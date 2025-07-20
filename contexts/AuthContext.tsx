@@ -11,10 +11,17 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-interface User {
+export interface User {
 	id: string;
-	name: string;
+	full_name: string;
+	country: string;
+	in_game_name: string;
+	uid: string;
+	team?: string;
+	role?: string;
 	email: string;
+	avatar?: string;
+	banReason?: boolean;
 }
 
 interface AuthContextType {

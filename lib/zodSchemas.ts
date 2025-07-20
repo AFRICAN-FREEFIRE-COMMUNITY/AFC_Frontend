@@ -18,8 +18,8 @@ export const RegisterFormSchema = z
 		fullName: z.string().min(2, {
 			message: "Full name must be at least 2 characters.",
 		}),
-		uid: z.string().min(2, {
-			message: "UID must be at least 2 characters.",
+		uid: z.string().min(8, {
+			message: "UID must be at least 8 characters.",
 		}),
 		email: z.string().email().min(2, {
 			message: "Email must be at least 2 characters.",
@@ -63,6 +63,23 @@ export const ForgotPasswordFormSchema = z.object({
 	}),
 });
 
+export const EditProfileFormSchema = z.object({
+	avatar: z.string().optional(),
+	ingameName: z.string().min(2, {
+		message: "In game name must be at least 2 characters.",
+	}),
+	fullName: z.string().min(2, {
+		message: "Full name must be at least 2 characters.",
+	}),
+	uid: z.string().min(8, {
+		message: "UID must be at least 8 characters.",
+	}),
+	email: z.string().email().min(2, {
+		message: "Email must be at least 2 characters.",
+	}),
+	country: z.enum(countries, { message: "Country is required" }),
+});
+
 export type LoginFormSchemaType = z.infer<typeof LoginFormSchema>;
 export type ForgotPasswordFormSchemaType = z.infer<
 	typeof ForgotPasswordFormSchema
@@ -71,3 +88,4 @@ export type RegisterFormSchemaType = z.infer<typeof RegisterFormSchema>;
 export type EmailConfirmationFormSchemaType = z.infer<
 	typeof EmailConfirmationFormSchema
 >;
+export type EditProfileFormSchemaType = z.infer<typeof EditProfileFormSchema>;

@@ -4,7 +4,6 @@ import React, { useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -159,6 +158,7 @@ export function CreateAccountForm() {
 							<FormLabel>UID</FormLabel>
 							<FormControl>
 								<Input
+									type="number"
 									placeholder="Enter your FreeFire UID"
 									{...field}
 								/>

@@ -27,9 +27,6 @@ export function ForgotPasswordForm() {
 	const router = useRouter();
 
 	const [pending, startTransition] = useTransition();
-	const [isVisible, setIsVisible] = useState<boolean>(false);
-	const toggleVisibility = () => setIsVisible((prevState) => !prevState);
-
 	const form = useForm<ForgotPasswordFormSchemaType>({
 		resolver: zodResolver(ForgotPasswordFormSchema),
 		defaultValues: {
@@ -41,13 +38,14 @@ export function ForgotPasswordForm() {
 		startTransition(async () => {
 			try {
 				const response = await axios.post(
-					`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login/`,
+					`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/forgot-password/`,
 					{ ...data }
 				);
 
 				if (response.statusText === "OK") {
 					toast.success(response.data.message);
-					router.push("/home");
+					// router.push("/home");
+					console.log(response);
 				} else {
 					toast.error("Oops! An error occurred");
 				}

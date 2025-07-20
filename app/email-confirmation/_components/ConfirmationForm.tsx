@@ -55,7 +55,7 @@ export function ConfirmationForm({ email }: Props) {
 				);
 
 				toast.success(response.data.message);
-				router.push(`/home`);
+				router.push(`/login`);
 			} catch (error: any) {
 				console.log(error);
 				toast.error(
@@ -137,7 +137,11 @@ export function ConfirmationForm({ email }: Props) {
 							</FormItem>
 						)}
 					/>
-					<Button className="w-full" type="submit" disabled={pending}>
+					<Button
+						className="w-full"
+						type="submit"
+						disabled={pending || pendingResend}
+					>
 						{pending ? (
 							<Loader text="Confirming..." />
 						) : (
@@ -152,7 +156,7 @@ export function ConfirmationForm({ email }: Props) {
 					variant="ghost"
 					className="w-full"
 					onClick={handleResendCode}
-					disabled={pendingResend}
+					disabled={pendingResend || pending}
 				>
 					{pendingResend ? (
 						<Loader text="Sending..." />

@@ -56,7 +56,7 @@ export function LoginForm() {
 			} catch (error: any) {
 				console.log(error);
 				toast.error(
-					error?.response?.data?.error || "Internal server error"
+					error?.response?.data?.message || "Internal server error"
 				);
 				return;
 			}
@@ -74,7 +74,6 @@ export function LoginForm() {
 							<FormLabel>In-game Name or UID</FormLabel>
 							<FormControl>
 								<Input
-									type="email"
 									className="bg-input border-border"
 									placeholder="Enter your in-game name or UID"
 									{...field}
