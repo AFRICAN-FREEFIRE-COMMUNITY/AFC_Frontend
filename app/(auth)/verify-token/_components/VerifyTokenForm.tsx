@@ -130,7 +130,11 @@ export function VerifyTokenForm({ email }: Props) {
 						disabled={pendingResend || pending}
 						onClick={handleResendToken}
 					>
-						{pendingResend ? "Resending..." : "Resend token"}
+						{pendingResend ? (
+							<Loader text="Resending..." />
+						) : (
+							"Resend token"
+						)}
 					</Button>
 				</div>
 			</form>

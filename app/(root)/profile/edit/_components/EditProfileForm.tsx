@@ -52,6 +52,7 @@ export function EditProfileForm({
 	token: string;
 }) {
 	const router = useRouter();
+	const { login } = useAuth();
 
 	const [pending, startTransition] = useTransition();
 
@@ -86,6 +87,13 @@ export function EditProfileForm({
 				);
 
 				toast.success(response.data.message);
+				const storedToken = localStorage.getItem("authToken");
+				if (storedToken) {
+					await login(storedToken);
+				} else {
+					toast.error("Oops! An error occurred. Login again");
+					router.push("/login");
+				}
 				router.push(`/profile`);
 			} catch (error: any) {
 				toast.error(
