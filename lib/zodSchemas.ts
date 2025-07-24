@@ -63,6 +63,18 @@ export const ForgotPasswordFormSchema = z.object({
 	}),
 });
 
+export const VerifyTokenFormSchema = z.object({
+	token: z
+		.string()
+		.min(6, {
+			message: "Token must be 6 characters.",
+		})
+		.max(6, { message: "Token must be 6 characters" }),
+	email: z.string().email().min(2, {
+		message: "Email must be at least 2 characters.",
+	}),
+});
+
 export const EditProfileFormSchema = z.object({
 	avatar: z.string().optional(),
 	ingameName: z.string().min(2, {
@@ -80,9 +92,38 @@ export const EditProfileFormSchema = z.object({
 	country: z.enum(countries, { message: "Country is required" }),
 });
 
+export const ResetPasswordFormSchema = z
+	.object({
+		password: z
+			.string()
+			.min(8, { message: "Password must be at least 8 characters." })
+			.refine((val) => /[a-z]/.test(val), {
+				message: "Password must contain at least one lowercase letter.",
+			})
+			.refine((val) => /[A-Z]/.test(val), {
+				message: "Password must contain at least one uppercase letter.",
+			})
+			.refine((val) => /[0-9]/.test(val), {
+				message: "Password must contain at least one number.",
+			})
+			.refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
+				message:
+					"Password must contain at least one special character.",
+			}),
+		confirmPassword: z.string(),
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: "Passwords do not match",
+		path: ["confirmPassword"], // 👈 attach the error to confirmPassword
+	});
+
 export type LoginFormSchemaType = z.infer<typeof LoginFormSchema>;
 export type ForgotPasswordFormSchemaType = z.infer<
 	typeof ForgotPasswordFormSchema
+>;
+export type VerifyTokenFormSchemaType = z.infer<typeof VerifyTokenFormSchema>;
+export type ResetPasswordFormSchemaType = z.infer<
+	typeof ResetPasswordFormSchema
 >;
 export type RegisterFormSchemaType = z.infer<typeof RegisterFormSchema>;
 export type EmailConfirmationFormSchemaType = z.infer<

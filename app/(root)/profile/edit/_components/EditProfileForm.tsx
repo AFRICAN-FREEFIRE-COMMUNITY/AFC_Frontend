@@ -88,7 +88,6 @@ export function EditProfileForm({
 				toast.success(response.data.message);
 				router.push(`/profile`);
 			} catch (error: any) {
-				console.log(error);
 				toast.error(
 					error?.response?.data?.message || "Internal server error"
 				);

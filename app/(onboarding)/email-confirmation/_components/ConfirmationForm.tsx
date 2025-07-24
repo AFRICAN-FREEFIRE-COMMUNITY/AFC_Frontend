@@ -57,7 +57,6 @@ export function ConfirmationForm({ email }: Props) {
 				toast.success(response.data.message);
 				router.push(`/login`);
 			} catch (error: any) {
-				console.log(error);
 				toast.error(
 					error?.response?.data?.error || "Internal server error"
 				);
@@ -75,45 +74,12 @@ export function ConfirmationForm({ email }: Props) {
 
 				toast.success(response.data.message);
 			} catch (error: any) {
-				console.log(error);
 				toast.error(
 					error?.response?.data?.error || "Internal server error"
 				);
 			}
 		});
 	};
-
-	// const handleConfirmEmail = async (e: React.FormEvent) => {
-	// 	e.preventDefault();
-	// 	// In a real application, this would verify the confirmation code with the backend
-	// 	try {
-	// 		// Simulating an API call
-	// 		await new Promise((resolve) => setTimeout(resolve, 1000));
-
-	// 		if (confirmationCode === "123456") {
-	// 			// This is a mock validation, replace with actual logic
-	// 			localStorage.removeItem("pendingConfirmationEmail");
-	// 			toast({
-	// 				title: "Email confirmed",
-	// 				description: "Your account has been successfully created.",
-	// 			});
-	// 			router.push("/home");
-	// 		} else {
-	// 			toast({
-	// 				title: "Invalid code",
-	// 				description: "Please enter the correct confirmation code.",
-	// 				variant: "destructive",
-	// 			});
-	// 		}
-	// 	} catch (error) {
-	// 		toast({
-	// 			title: "Error",
-	// 			description:
-	// 				"An error occurred while confirming your email. Please try again.",
-	// 			variant: "destructive",
-	// 		});
-	// 	}
-	// };
 
 	return (
 		<>

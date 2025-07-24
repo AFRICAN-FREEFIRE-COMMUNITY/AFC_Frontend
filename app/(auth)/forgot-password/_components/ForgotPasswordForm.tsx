@@ -38,19 +38,17 @@ export function ForgotPasswordForm() {
 		startTransition(async () => {
 			try {
 				const response = await axios.post(
-					`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/forgot-password/`,
+					`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/send-verification-token/`,
 					{ ...data }
 				);
 
 				if (response.statusText === "OK") {
 					toast.success(response.data.message);
-					// router.push("/home");
-					console.log(response);
+					router.push(`/verify-token?email=${data.email}`);
 				} else {
 					toast.error("Oops! An error occurred");
 				}
 			} catch (error: any) {
-				console.log(error);
 				toast.error(
 					error?.response?.data?.error || "Internal server error"
 				);
@@ -71,7 +69,8 @@ export function ForgotPasswordForm() {
 							<FormControl>
 								<Input
 									className="bg-input border-border"
-									placeholder="Enter your in-game name or UID"
+									type="email"
+									placeholder="Enter your email"
 									{...field}
 								/>
 							</FormControl>
@@ -87,7 +86,7 @@ export function ForgotPasswordForm() {
 					{pending ? (
 						<Loader text="Sending..." />
 					) : (
-						" Send Reset Instructions"
+						"Send Reset Instructions"
 					)}
 				</Button>
 			</form>

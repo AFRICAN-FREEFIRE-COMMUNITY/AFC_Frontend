@@ -6,8 +6,6 @@ import { BarChart2, Calendar, Trophy, Users } from "lucide-react";
 export const HomeBoxes = () => {
 	const { user } = useAuth();
 
-	console.log(user);
-
 	return (
 		<div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 mb-8">
 			<Card className="card-hover">

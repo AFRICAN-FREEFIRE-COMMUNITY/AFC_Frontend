@@ -17,7 +17,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { env } from "@/lib/env";
 import axios from "axios";
-import { RegisterFormSchema, RegisterFormSchemaType } from "@/lib/zodSchemas";
+import {
+	ResetPasswordFormSchema,
+	ResetPasswordFormSchemaType,
+} from "@/lib/zodSchemas";
 import { Loader } from "@/components/Loader";
 import {
 	Select,
@@ -31,21 +34,21 @@ import { CheckIcon, EyeIcon, EyeOffIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 
-export function CreateAccountForm() {
+interface Props {
+	email: string;
+	token: string;
+}
+
+export function ResetPasswordForm({ email, token }: Props) {
 	const router = useRouter();
 
 	const [pending, startTransition] = useTransition();
 
-	const form = useForm<RegisterFormSchemaType>({
-		resolver: zodResolver(RegisterFormSchema),
+	const form = useForm<ResetPasswordFormSchemaType>({
+		resolver: zodResolver(ResetPasswordFormSchema),
 		defaultValues: {
-			ingameName: "",
-			fullName: "",
-			email: "",
-			country: "" as RegisterFormSchemaType["country"],
-			uid: "",
 			password: "",
-            confirmPassword: "",
+			confirmPassword: "",
 		},
 	});
 
@@ -87,25 +90,21 @@ export function CreateAccountForm() {
 		return "Strong password";
 	};
 
-	function onSubmit(data: RegisterFormSchemaType) {
+	function onSubmit(data: ResetPasswordFormSchemaType) {
 		startTransition(async () => {
 			try {
 				const authData = {
-					in_game_name: data.ingameName,
-					uid: data.uid,
-					email: data.email,
-					password: data.password,
-					confirm_password: data.confirmPassword,
-					full_name: data.fullName,
-					country: data.country,
+					email,
+					new_password: data.password,
+					token,
 				};
 				const response = await axios.post(
-					`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/signup/`,
+					`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/reset-password/`,
 					{ ...authData }
 				);
 
-				toast.success(response.data.message);
-				router.push(`/email-confirmation?email=${data.email}`);
+				toast.success(`${response.data.message}. Redirecting...`);
+				router.push(`/login`);
 			} catch (error: any) {
 				toast.error(
 					error?.response?.data?.error || "Internal server error"
@@ -118,100 +117,6 @@ export function CreateAccountForm() {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-				<FormField
-					control={form.control}
-					name="fullName"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Full Name</FormLabel>
-							<FormControl>
-								<Input
-									placeholder="Enter your full name"
-									{...field}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="ingameName"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>In-game Name</FormLabel>
-							<FormControl>
-								<Input
-									className="bg-input border-border"
-									placeholder="Enter your in-game name"
-									{...field}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="uid"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>UID</FormLabel>
-							<FormControl>
-								<Input
-									type="number"
-									placeholder="Enter your FreeFire UID"
-									{...field}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="email"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Email</FormLabel>
-							<FormControl>
-								<Input
-									type="email"
-									placeholder="Enter your email"
-									{...field}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="country"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Country</FormLabel>
-							<Select
-								onValueChange={field.onChange}
-								defaultValue={field.value}
-							>
-								<FormControl>
-									<SelectTrigger>
-										<SelectValue placeholder="Select your country" />
-									</SelectTrigger>
-								</FormControl>
-								<SelectContent>
-									{countries.map((country, index) => (
-										<SelectItem key={index} value={country}>
-											{country}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
 				<FormField
 					control={form.control}
 					name="password"
@@ -369,7 +274,11 @@ export function CreateAccountForm() {
 					type="submit"
 					disabled={pending}
 				>
-					{pending ? <Loader text="Creating..." /> : "Register"}
+					{pending ? (
+						<Loader text="Resetting..." />
+					) : (
+						"Reset password"
+					)}
 				</Button>
 			</form>
 		</Form>
