@@ -20,7 +20,7 @@ export interface User {
 	team?: string;
 	role?: string;
 	email: string;
-	avatar?: string;
+	profile_pic?: string;
 	banReason?: boolean;
 }
 

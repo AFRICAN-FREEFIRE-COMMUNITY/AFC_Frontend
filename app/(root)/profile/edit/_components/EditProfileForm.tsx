@@ -32,7 +32,7 @@ import {
 	EditProfileFormSchemaType,
 } from "@/lib/zodSchemas";
 import Link from "next/link";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
@@ -55,11 +55,12 @@ export function EditProfileForm({
 	const { login } = useAuth();
 
 	const [pending, startTransition] = useTransition();
+	const [avatar, setAvatar] = useState<string>();
 
 	const form = useForm<EditProfileFormSchemaType>({
 		resolver: zodResolver(EditProfileFormSchema),
 		defaultValues: {
-			avatar: user.avatar || "",
+			avatar: user.profile_pic || "",
 			ingameName: user.in_game_name || "",
 			fullName: user.full_name || "",
 			country:
@@ -74,6 +75,7 @@ export function EditProfileForm({
 		startTransition(async () => {
 			try {
 				const editedData = {
+					profile_pic: data.avatar,
 					full_name: data.fullName,
 					country: data.country,
 					in_game_name: data.ingameName,
@@ -85,7 +87,6 @@ export function EditProfileForm({
 					{ ...editedData },
 					{ headers: { Authorization: `Bearer ${token}` } }
 				);
-
 				toast.success(response.data.message);
 				const storedToken = localStorage.getItem("authToken");
 				if (storedToken) {
@@ -110,8 +111,13 @@ export function EditProfileForm({
 				<div className="flex justify-center mb-4">
 					<Avatar className="w-32 h-32 mb-4">
 						<AvatarImage
-							src={user.avatar || DEFAULT_PROFILE_PICTURE}
+							src={
+								avatar ||
+								user.profile_pic ||
+								DEFAULT_PROFILE_PICTURE
+							}
 							alt={`${user.full_name}'s picture`}
+							className="object-cover"
 						/>
 						<AvatarFallback>
 							{user.full_name.charAt(0)}
@@ -129,7 +135,20 @@ export function EditProfileForm({
 									type="file"
 									accept="image/*"
 									placeholder="shadcn"
-									{...field}
+									onChange={(e) => {
+										const file = e.target.files?.[0];
+										if (file) {
+											console.log(file);
+											const reader = new FileReader();
+											reader.readAsDataURL(file);
+											reader.onload = () => {
+												const previewImage =
+													reader.result as string;
+												setAvatar(previewImage);
+												field.onChange(previewImage);
+											};
+										}
+									}}
 								/>
 							</FormControl>
 							<FormMessage />
