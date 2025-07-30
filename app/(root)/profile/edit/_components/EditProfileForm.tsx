@@ -37,6 +37,7 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
 import { Loader } from "@/components/Loader";
+import Image from "next/image";
 
 const FormSchema = z.object({
 	avatar: z.string().min(2, {
@@ -56,6 +57,7 @@ export function EditProfileForm({
 
 	const [pending, startTransition] = useTransition();
 	const [avatar, setAvatar] = useState<string>();
+	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
 	const form = useForm<EditProfileFormSchemaType>({
 		resolver: zodResolver(EditProfileFormSchema),
@@ -74,19 +76,31 @@ export function EditProfileForm({
 	function onSubmit(data: EditProfileFormSchemaType) {
 		startTransition(async () => {
 			try {
-				const editedData = {
-					profile_pic: data.avatar,
-					full_name: data.fullName,
-					country: data.country,
-					in_game_name: data.ingameName,
-					email: data.email,
-					uid: data.uid,
-				};
+				// Create FormData object
+				const formData = new FormData();
+
+				// Append all form fields to FormData
+				formData.append("full_name", data.fullName);
+				formData.append("country", data.country);
+				formData.append("in_game_name", data.ingameName);
+				formData.append("email", data.email);
+				formData.append("uid", data.uid);
+
+				// Append profile picture file if selected
+				if (selectedFile) {
+					formData.append("profile_pic", selectedFile);
+				}
+
 				const response = await axios.post(
 					`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/edit-profile/`,
-					{ ...editedData },
-					{ headers: { Authorization: `Bearer ${token}` } }
+					formData,
+					{
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					}
 				);
+
 				toast.success(response.data.message);
 				const storedToken = localStorage.getItem("authToken");
 				if (storedToken) {
@@ -109,7 +123,7 @@ export function EditProfileForm({
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 				<div className="flex justify-center mb-4">
-					<Avatar className="w-32 h-32 mb-4">
+					<Avatar className="w-32 h-32 mb-4 object-cover">
 						<AvatarImage
 							src={
 								avatar ||
@@ -124,6 +138,7 @@ export function EditProfileForm({
 						</AvatarFallback>
 					</Avatar>
 				</div>
+
 				<FormField
 					control={form.control}
 					name="avatar"
@@ -138,14 +153,16 @@ export function EditProfileForm({
 									onChange={(e) => {
 										const file = e.target.files?.[0];
 										if (file) {
-											console.log(file);
+											setSelectedFile(file);
+
+											// Create preview URL for display
 											const reader = new FileReader();
 											reader.readAsDataURL(file);
 											reader.onload = () => {
 												const previewImage =
 													reader.result as string;
 												setAvatar(previewImage);
-												field.onChange(previewImage);
+												field.onChange(file.name);
 											};
 										}
 									}}

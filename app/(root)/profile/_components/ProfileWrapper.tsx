@@ -79,8 +79,6 @@ export const ProfileWrapper = () => {
 
 	if (!user) return null;
 
-	console.log(user);
-
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<h1 className="text-4xl font-bold mb-8">Player Profile</h1>
@@ -107,6 +105,7 @@ export const ProfileWrapper = () => {
 									user.profile_pic || DEFAULT_PROFILE_PICTURE
 								}
 								alt={`${user.full_name}'s picture`}
+								className="object-cover"
 							/>
 							<AvatarFallback>
 								{user.full_name.charAt(0)}
