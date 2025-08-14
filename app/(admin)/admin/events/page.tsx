@@ -7,69 +7,44 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
-
-// Mock function to fetch events
-const fetchEvents = async (filters) => {
-  // In a real app, this would be an API call with the filters applied
-  return [
-    {
-      id: 1,
-      name: "Summer Showdown",
-      date: "2023-07-15",
-      format: "Battle Royale",
-      status: "Upcoming",
-    },
-    {
-      id: 2,
-      name: "Fall Classic",
-      date: "2023-09-20",
-      format: "Clash Squad",
-      status: "Registration Open",
-    },
-    {
-      id: 3,
-      name: "Winter Cup",
-      date: "2023-12-10",
-      format: "Hybrid",
-      status: "Planning",
-    },
-  ]
-}
+import { useEvents } from "@/hooks/useAdminApi"
 
 export default function EventsAndScrimsPage() {
-  const [events, setEvents] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [filterFormat, setFilterFormat] = useState("all")
   const [filterType, setFilterType] = useState("all")
 
-  useEffect(() => {
-    const getEvents = async () => {
-      try {
-        const data = await fetchEvents({
-          searchTerm,
-          format: filterFormat,
-          type: filterType,
-        })
-        setEvents(data)
-      } catch (err) {
-        setError("Failed to fetch events")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    getEvents()
-  }, [searchTerm, filterFormat, filterType])
-
-  if (isLoading) {
-    return <AdminLayout>Loading events and scrims...</AdminLayout>
+  // Build filters object
+  const filters = {
+    ...(searchTerm && { search: searchTerm }),
+    ...(filterFormat !== "all" && { format: filterFormat }),
+    ...(filterType !== "all" && { type: filterType }),
   }
 
-  if (error) {
-    return <AdminLayout>Error: {error}</AdminLayout>
+  const { data: events, loading, error, pagination, updateParams, changePage } = useEvents(filters)
+
+  // Update filters when search/filter values change
+  useEffect(() => {
+    updateParams(filters)
+  }, [searchTerm, filterFormat, filterType])
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+      case 'live':
+        return 'default'
+      case 'upcoming':
+        return 'secondary'
+      case 'completed':
+        return 'outline'
+      case 'cancelled':
+        return 'destructive'
+      default:
+        return 'secondary'
+    }
   }
 
   return (
@@ -117,35 +92,100 @@ export default function EventsAndScrimsPage() {
             <CardTitle>Events & Scrims</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Format</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {events.map((event) => (
-                  <TableRow key={event.id}>
-                    <TableCell>{event.name}</TableCell>
-                    <TableCell>{event.date}</TableCell>
-                    <TableCell>{event.format}</TableCell>
-                    <TableCell>{event.status}</TableCell>
-                    <TableCell>
-                      <Button asChild variant="outline" size="sm" className="mr-2">
-                        <Link href={`/admin/events/${event.id}`}>View</Link>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Loading events...</span>
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center py-8 text-red-500">
+                <AlertCircle className="h-8 w-8" />
+                <span className="ml-2">Error: {error}</span>
+              </div>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Format</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Participants</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {events && events.length > 0 ? (
+                      events.map((event: any) => (
+                        <TableRow key={event.id}>
+                          <TableCell className="font-medium">{event.name}</TableCell>
+                          <TableCell>
+                            {new Date(event.startDate).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>{event.format}</TableCell>
+                          <TableCell className="capitalize">{event.type}</TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(event.status)}>
+                              {event.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {event.participantCount || 0} / {event.maxParticipants || 'Unlimited'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button asChild variant="outline" size="sm">
+                                <Link href={`/admin/events/${event.id}`}>View</Link>
+                              </Button>
+                              <Button asChild variant="outline" size="sm">
+                                <Link href={`/admin/events/${event.id}/edit`}>Edit</Link>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          No events found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination */}
+                {pagination && pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="text-sm text-muted-foreground">
+                      Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                      {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                      {pagination.total} events
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => changePage(pagination.page - 1)}
+                        disabled={pagination.page <= 1}
+                      >
+                        Previous
                       </Button>
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/events/${event.id}/edit`}>Edit</Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => changePage(pagination.page + 1)}
+                        disabled={pagination.page >= pagination.totalPages}
+                      >
+                        Next
                       </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

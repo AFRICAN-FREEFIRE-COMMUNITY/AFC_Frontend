@@ -13,61 +13,83 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, ShoppingCart, History } from "lucide-react";
-
-// Mock function to fetch recent activities
-const fetchRecentActivities = async () => {
-	// In a real app, this would be an API call
-	return [
-		{
-			id: 1,
-			user: "John Doe",
-			action: "Updated tournament results",
-			timestamp: "2023-07-01 14:30",
-		},
-		{
-			id: 2,
-			user: "Jane Smith",
-			action: "Created new announcement",
-			timestamp: "2023-07-01 13:15",
-		},
-		{
-			id: 3,
-			user: "Mike Johnson",
-			action: "Banned player #12345",
-			timestamp: "2023-07-01 11:45",
-		},
-	];
-};
-
-// Mock function to fetch shop items
-const fetchShopItems = async () => {
-	// In a real app, this would be an API call
-	return [
-		{ id: 1, name: "100 Diamonds", price: 1250, stock: 1000 },
-		{ id: 2, name: "500 Diamonds", price: 6000, stock: 500 },
-		{ id: 3, name: "1000 Diamonds", price: 11000, stock: 250 },
-	];
-};
+import { ArrowRight, ShoppingCart, History, Loader2, AlertCircle, Users, Trophy, FileText, TrendingUp } from "lucide-react";
+import { useDashboardStats, useAdminHistory } from "@/hooks/useAdminApi";
 
 export const Dashboard = () => {
 	const router = useRouter();
 	const [userRole, setUserRole] = useState("moderator"); // This should be fetched from an auth context in a real app
-	const [recentActivities, setRecentActivities] = useState([]);
-	const [shopItems, setShopItems] = useState([]);
-
-	useEffect(() => {
-		const loadData = async () => {
-			const activities: any = await fetchRecentActivities();
-			const items: any = await fetchShopItems();
-			setRecentActivities(activities);
-			setShopItems(items);
-		};
-		loadData();
-	}, []);
+	
+	// Use API hooks
+	const { data: dashboardStats, loading: statsLoading, error: statsError } = useDashboardStats();
+	const { data: recentActivities, loading: activitiesLoading, error: activitiesError } = useAdminHistory({ limit: 5 });
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+
+			{/* Dashboard Stats */}
+			{statsLoading ? (
+				<div className="flex items-center justify-center py-8">
+					<Loader2 className="h-8 w-8 animate-spin" />
+					<span className="ml-2">Loading dashboard stats...</span>
+				</div>
+			) : statsError ? (
+				<div className="flex items-center justify-center py-8 text-red-500">
+					<AlertCircle className="h-8 w-8" />
+					<span className="ml-2">Error loading stats: {statsError}</span>
+				</div>
+			) : dashboardStats ? (
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">Total Teams</CardTitle>
+							<Users className="h-4 w-4 text-muted-foreground" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">{dashboardStats.totalTeams}</div>
+							<p className="text-xs text-muted-foreground">
+								+{dashboardStats.newTeamsThisMonth} from last month
+							</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">Active Events</CardTitle>
+							<Trophy className="h-4 w-4 text-muted-foreground" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">{dashboardStats.activeEvents}</div>
+							<p className="text-xs text-muted-foreground">
+								{dashboardStats.upcomingEvents} upcoming
+							</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">Total Players</CardTitle>
+							<Users className="h-4 w-4 text-muted-foreground" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">{dashboardStats.totalPlayers}</div>
+							<p className="text-xs text-muted-foreground">
+								+{dashboardStats.newPlayersThisMonth} from last month
+							</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">Revenue</CardTitle>
+							<TrendingUp className="h-4 w-4 text-muted-foreground" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">${dashboardStats.totalRevenue}</div>
+							<p className="text-xs text-muted-foreground">
+								+{dashboardStats.revenueGrowth}% from last month
+							</p>
+						</CardContent>
+					</Card>
+				</div>
+			) : null}
 
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 				<Card>
@@ -197,32 +219,56 @@ export const Dashboard = () => {
 					<CardTitle>Recent Activities</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>User</TableHead>
-								<TableHead>Action</TableHead>
-								<TableHead>Timestamp</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{recentActivities.map((activity: any) => (
-								<TableRow key={activity.id}>
-									<TableCell>{activity.user}</TableCell>
-									<TableCell>{activity.action}</TableCell>
-									<TableCell>{activity.timestamp}</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-					<div className="mt-4 text-right">
-						<Button asChild variant="outline">
-							<Link href="/admin/history">
-								View All Activities{" "}
-								<ArrowRight className="ml-2 h-4 w-4" />
-							</Link>
-						</Button>
-					</div>
+					{activitiesLoading ? (
+						<div className="flex items-center justify-center py-8">
+							<Loader2 className="h-8 w-8 animate-spin" />
+							<span className="ml-2">Loading activities...</span>
+						</div>
+					) : activitiesError ? (
+						<div className="flex items-center justify-center py-8 text-red-500">
+							<AlertCircle className="h-8 w-8" />
+							<span className="ml-2">Error loading activities: {activitiesError}</span>
+						</div>
+					) : (
+						<>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>User</TableHead>
+										<TableHead>Action</TableHead>
+										<TableHead>Timestamp</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{recentActivities && recentActivities.length > 0 ? (
+										recentActivities.map((activity: any) => (
+											<TableRow key={activity.id}>
+												<TableCell>{activity.user?.username || activity.user?.name || 'Unknown'}</TableCell>
+												<TableCell>{activity.action}</TableCell>
+												<TableCell>
+													{new Date(activity.timestamp || activity.createdAt).toLocaleString()}
+												</TableCell>
+											</TableRow>
+										))
+									) : (
+										<TableRow>
+											<TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+												No recent activities found
+											</TableCell>
+										</TableRow>
+									)}
+								</TableBody>
+							</Table>
+							<div className="mt-4 text-right">
+								<Button asChild variant="outline">
+									<Link href="/admin/history">
+										View All Activities{" "}
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</Link>
+								</Button>
+							</div>
+						</>
+					)}
 				</CardContent>
 			</Card>
 		</div>

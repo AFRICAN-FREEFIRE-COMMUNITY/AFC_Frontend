@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
+import { Loader2, AlertCircle } from "lucide-react";
 import { addDays } from "date-fns";
+import { useTeams, useApiMutation } from "@/hooks/useAdminApi";
+import * as adminApi from "@/lib/api/admin";
 
 export const Teams = () => {
 	const [searchTerm, setSearchTerm] = useState("");
@@ -49,8 +52,43 @@ export const Teams = () => {
 		to: addDays(new Date(), 7),
 	});
 	const [banReasons, setBanReasons] = useState<string[]>([]);
-	const [teams, setTeams] = useState<any>([]); // Added state variable
 	const { toast } = useToast();
+
+	// Build filters object
+	const filters = {
+		...(searchTerm && { search: searchTerm }),
+		...(filterTier !== "all" && { tier: filterTier }),
+	};
+
+	const { data: teams, loading, error, pagination, updateParams, changePage, refetch } = useTeams(filters);
+
+	// API mutations
+	const banTeamMutation = useApiMutation(
+		({ id, data }: { id: string; data: any }) => adminApi.teamsApi.ban(id, data),
+		{
+			successMessage: "Team banned successfully",
+			onSuccess: () => {
+				refetch();
+				setBanModalOpen(false);
+				setSelectedTeam(null);
+				setBanDateRange({ from: new Date(), to: addDays(new Date(), 7) });
+				setBanReasons([]);
+			},
+		}
+	);
+
+	const unbanTeamMutation = useApiMutation(
+		(id: string) => adminApi.teamsApi.unban(id),
+		{
+			successMessage: "Team unbanned successfully",
+			onSuccess: () => refetch(),
+		}
+	);
+
+	// Update filters when search/filter values change
+	useEffect(() => {
+		updateParams(filters);
+	}, [searchTerm, filterTier]);
 	const availableBanReasons = [
 		{
 			id: "conduct",
@@ -84,118 +122,35 @@ export const Teams = () => {
 		},
 	];
 
-	// Mock data for teams (moved to useState)
-	useState<any>(() => {
-		setTeams([
-			{
-				id: 1,
-				name: "Team Alpha",
-				tier: 1,
-				members: 5,
-				totalWins: 20,
-				totalEarnings: "$50,000",
-				isBanned: false,
-				banReason: "",
-			},
-			{
-				id: 2,
-				name: "Omega Squad",
-				tier: 2,
-				members: 5,
-				totalWins: 15,
-				totalEarnings: "$30,000",
-				isBanned: true,
-				banReason: "Cheating",
-			},
-			{
-				id: 3,
-				name: "Phoenix Rising",
-				tier: 1,
-				members: 5,
-				totalWins: 18,
-				totalEarnings: "$45,000",
-				isBanned: false,
-				banReason: "",
-			},
-		]);
-		// @ts-ignore
-	}, []);
-
-	const filteredTeams = teams.filter(
-		(team: any) =>
-			team.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-			(filterTier === "all" || team.tier === Number.parseInt(filterTier))
-	);
-
 	const handleBanTeam = async () => {
-		try {
-			// Simulate API call to ban the team
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			const updatedTeams = teams.map((team: any) => {
-				if (team === selectedTeam) {
-					return {
-						...team,
-						isBanned: true,
-						banReason: banReasons
-							.map(
-								(id) =>
-									availableBanReasons.find(
-										(reason) => reason.id === id
-									)?.label
-							)
-							.join(", "),
-						banStartDate: banDateRange.from,
-						banEndDate: banDateRange.to,
-					};
-				}
-				return team;
-			});
-			setTeams(updatedTeams);
-
-			toast({
-				title: "Team Banned",
-				description: `Successfully banned ${
-					selectedTeam.name
-				} from ${banDateRange.from.toLocaleDateString()} to ${banDateRange.to.toLocaleDateString()}.`,
-			});
-		} catch (error) {
+		if (!selectedTeam || banReasons.length === 0) {
 			toast({
 				title: "Error",
-				description: "Failed to ban the team. Please try again.",
+				description: "Please select at least one reason for the ban.",
 				variant: "destructive",
 			});
-		} finally {
-			setBanModalOpen(false);
-			setSelectedTeam(null);
-			setBanDateRange({ from: new Date(), to: addDays(new Date(), 7) });
-			setBanReasons([]);
+			return;
+		}
+
+		try {
+			await banTeamMutation.mutate({
+				id: selectedTeam.id,
+				data: {
+					reasons: banReasons,
+					startDate: banDateRange.from,
+					endDate: banDateRange.to,
+				},
+			});
+		} catch (error) {
+			// Error handling is done in the mutation hook
 		}
 	};
 
-	const handleUnbanTeam = async (teamId: any) => {
+	const handleUnbanTeam = async (teamId: string) => {
 		try {
-			// Simulate API call to unban team
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			const updatedTeams = teams.map((team: any) => {
-				if (team.id === teamId) {
-					return { ...team, isBanned: false, banReason: "" };
-				}
-				return team;
-			});
-			setTeams(updatedTeams);
-
-			toast({
-				title: "Team Unbanned",
-				description: "Successfully unbanned the team.",
-			});
+			await unbanTeamMutation.mutate(teamId);
 		} catch (error) {
-			toast({
-				title: "Error",
-				description: "Failed to unban the team. Please try again.",
-				variant: "destructive",
-			});
+			// Error handling is done in the mutation hook
 		}
 	};
 
@@ -230,20 +185,33 @@ export const Teams = () => {
 					<CardTitle>Teams</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Name</TableHead>
-								<TableHead>Tier</TableHead>
-								<TableHead>Members</TableHead>
-								<TableHead>Total Wins</TableHead>
-								<TableHead>Total Earnings</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{filteredTeams.map((team: any) => (
+					{loading ? (
+						<div className="flex items-center justify-center py-8">
+							<Loader2 className="h-8 w-8 animate-spin" />
+							<span className="ml-2">Loading teams...</span>
+						</div>
+					) : error ? (
+						<div className="flex items-center justify-center py-8 text-red-500">
+							<AlertCircle className="h-8 w-8" />
+							<span className="ml-2">Error: {error}</span>
+						</div>
+					) : (
+						<>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Name</TableHead>
+										<TableHead>Tier</TableHead>
+										<TableHead>Members</TableHead>
+										<TableHead>Total Wins</TableHead>
+										<TableHead>Total Earnings</TableHead>
+										<TableHead>Status</TableHead>
+										<TableHead>Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{teams && teams.length > 0 ? (
+										teams.map((team: any) => (
 								<TableRow key={team.id}>
 									<TableCell>{team.name}</TableCell>
 									<TableCell>{team.tier}</TableCell>
@@ -422,9 +390,47 @@ export const Teams = () => {
 										</div>
 									</TableCell>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
+										))
+									) : (
+										<TableRow>
+											<TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+												No teams found
+											</TableCell>
+										</TableRow>
+									)}
+								</TableBody>
+							</Table>
+
+							{/* Pagination */}
+							{pagination && pagination.totalPages > 1 && (
+								<div className="flex items-center justify-between mt-4">
+									<div className="text-sm text-muted-foreground">
+										Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+										{Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+										{pagination.total} teams
+									</div>
+									<div className="flex space-x-2">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => changePage(pagination.page - 1)}
+											disabled={pagination.page <= 1}
+										>
+											Previous
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => changePage(pagination.page + 1)}
+											disabled={pagination.page >= pagination.totalPages}
+										>
+											Next
+										</Button>
+									</div>
+								</div>
+							)}
+						</>
+					)}
 				</CardContent>
 			</Card>
 		</div>

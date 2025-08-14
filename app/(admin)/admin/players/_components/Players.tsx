@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
 import { addDays } from "date-fns";
+import { Loader2, AlertCircle } from "lucide-react";
+import { usePlayers, useApiMutation } from "@/hooks/useAdminApi";
+import { playersApi } from "@/lib/api/admin";
 
 export const Players = () => {
 	const [searchTerm, setSearchTerm] = useState("");
@@ -50,6 +53,65 @@ export const Players = () => {
 	});
 	const [banReasons, setBanReasons] = useState<string[]>([]);
 	const { toast } = useToast();
+
+	// Build filters object
+	const filters = {
+		...(searchTerm && { search: searchTerm }),
+		...(filterTeam !== "all" && { team: filterTeam }),
+	};
+
+	// Use API hooks
+	const { data: players, loading, error, refetch, pagination, changePage, updateParams } = usePlayers(filters);
+	
+	// Update filters when search/filter values change
+	useEffect(() => {
+		updateParams(filters);
+	}, [searchTerm, filterTeam]);
+
+	// Mutation hooks for ban/unban operations
+	const banPlayerMutation = useApiMutation(
+		({ id, reason }: { id: string; reason: string }) => playersApi.ban(id, reason),
+		{
+			onSuccess: () => {
+				refetch();
+				setBanModalOpen(false);
+				setSelectedPlayer(null);
+				setBanDateRange({ from: new Date(), to: addDays(new Date(), 7) });
+				setBanReasons([]);
+				toast({
+					title: "Player Banned",
+					description: `Successfully banned ${selectedPlayer?.name}.`,
+				});
+			},
+			onError: (error: any) => {
+				toast({
+					title: "Error",
+					description: "Failed to ban the player. Please try again.",
+					variant: "destructive",
+				});
+			},
+		}
+	);
+
+	const unbanPlayerMutation = useApiMutation(playersApi.unban, {
+		onSuccess: () => {
+			refetch();
+			setBanModalOpen(false);
+			setSelectedPlayer(null);
+			toast({
+				title: "Player Unbanned",
+				description: "Successfully unbanned the player.",
+			});
+		},
+		onError: (error: any) => {
+			toast({
+				title: "Error",
+				description: "Failed to unban the player. Please try again.",
+				variant: "destructive",
+			});
+		},
+	});
+
 	const availableBanReasons = [
 		{
 			id: "conduct",
@@ -83,116 +145,21 @@ export const Players = () => {
 		},
 	];
 
-	// Mock data for players
-	const [players, setPlayers] = useState<any>([
-		{
-			id: 1,
-			name: "John Doe",
-			team: "Team Alpha",
-			kills: 500,
-			wins: 20,
-			mvps: 5,
-			isBanned: false,
-			banReason: "",
-		},
-		{
-			id: 2,
-			name: "Jane Smith",
-			team: "Omega Squad",
-			kills: 450,
-			wins: 18,
-			mvps: 4,
-			isBanned: true,
-			banReason: "Cheating",
-		},
-		{
-			id: 3,
-			name: "Mike Johnson",
-			team: "Phoenix Rising",
-			kills: 480,
-			wins: 19,
-			mvps: 6,
-			isBanned: false,
-			banReason: "",
-		},
-	]);
-
-	const filteredPlayers = players.filter(
-		(player: any) =>
-			player.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-			(filterTeam === "all" || player.team === filterTeam)
-	);
-
-	const handleBanPlayer = async () => {
-		try {
-			// Simulate API call to ban the player
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			const updatedPlayers = players.map((player: any) => {
-				if (player === selectedPlayer) {
-					return {
-						...player,
-						isBanned: true,
-						banReason: banReasons
-							.map(
-								(id) =>
-									availableBanReasons.find(
-										(reason) => reason.id === id
-									)?.label
-							)
-							.join(", "),
-						banStartDate: banDateRange.from,
-						banEndDate: banDateRange.to,
-					};
-				}
-				return player;
+	const handleBanPlayer = () => {
+		if (selectedPlayer && banReasons.length > 0) {
+			const reasonText = banReasons
+				.map((id) => availableBanReasons.find((reason) => reason.id === id)?.label)
+				.join(", ");
+			
+			banPlayerMutation.mutate({ 
+				id: selectedPlayer.id, 
+				reason: reasonText 
 			});
-			setPlayers(updatedPlayers);
-
-			toast({
-				title: "Player Banned",
-				description: `Successfully banned ${
-					selectedPlayer.name
-				} from ${banDateRange.from.toLocaleDateString()} to ${banDateRange.to.toLocaleDateString()}.`,
-			});
-		} catch (error) {
-			toast({
-				title: "Error",
-				description: "Failed to ban the player. Please try again.",
-				variant: "destructive",
-			});
-		} finally {
-			setBanModalOpen(false);
-			setSelectedPlayer(null);
-			setBanDateRange({ from: new Date(), to: addDays(new Date(), 7) });
-			setBanReasons([]);
 		}
 	};
 
-	const handleUnbanPlayer = async (playerId: any) => {
-		try {
-			// Simulate API call to unban player
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			const updatedPlayers = players.map((player: any) => {
-				if (player.id === playerId) {
-					return { ...player, isBanned: false, banReason: "" };
-				}
-				return player;
-			});
-			setPlayers(updatedPlayers);
-
-			toast({
-				title: "Player Unbanned",
-				description: "Successfully unbanned the player.",
-			});
-		} catch (error) {
-			toast({
-				title: "Error",
-				description: "Failed to unban the player. Please try again.",
-				variant: "destructive",
-			});
-		}
+	const handleUnbanPlayer = (playerId: string) => {
+		unbanPlayerMutation.mutate(playerId);
 	};
 
 	return (
@@ -233,201 +200,220 @@ export const Players = () => {
 					<CardTitle>Players</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Name</TableHead>
-								<TableHead>Team</TableHead>
-								<TableHead>Kills</TableHead>
-								<TableHead>Wins</TableHead>
-								<TableHead>MVPs</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{filteredPlayers.map((player: any) => (
-								<TableRow key={player.id}>
-									<TableCell>{player.name}</TableCell>
-									<TableCell>{player.team}</TableCell>
-									<TableCell>{player.kills}</TableCell>
-									<TableCell>{player.wins}</TableCell>
-									<TableCell>{player.mvps}</TableCell>
-									<TableCell>
-										{player.isBanned ? (
-											<Badge variant="destructive">
-												Banned
-											</Badge>
-										) : (
-											<Badge variant="secondary">
-												Active
-											</Badge>
-										)}
-									</TableCell>
-									<TableCell>
-										<div className="flex items-center space-x-2">
-											<Button
-												asChild
-												variant="outline"
-												size="sm"
-												className="mr-2"
-											>
-												<Link
-													href={`/admin/players/${player.id}`}
+					{loading ? (
+						<div className="flex items-center justify-center py-8">
+							<Loader2 className="h-8 w-8 animate-spin" />
+							<span className="ml-2">Loading players...</span>
+						</div>
+					) : error ? (
+						<div className="flex items-center justify-center py-8 text-red-500">
+							<AlertCircle className="h-8 w-8 mr-2" />
+							<span>Error loading players: {typeof error === 'string' ? error : 'An error occurred'}</span>
+						</div>
+					) : (
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Name</TableHead>
+									<TableHead>Team</TableHead>
+									<TableHead>Kills</TableHead>
+									<TableHead>Wins</TableHead>
+									<TableHead>MVPs</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead>Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{players?.map((player: any) => (
+									<TableRow key={player.id}>
+										<TableCell>{player.name}</TableCell>
+										<TableCell>{player.team}</TableCell>
+										<TableCell>{player.kills}</TableCell>
+										<TableCell>{player.wins}</TableCell>
+										<TableCell>{player.mvps}</TableCell>
+										<TableCell>
+											{player.isBanned ? (
+												<Badge variant="destructive">
+													Banned
+												</Badge>
+											) : (
+												<Badge variant="secondary">
+													Active
+												</Badge>
+											)}
+										</TableCell>
+										<TableCell>
+											<div className="flex items-center space-x-2">
+												<Button
+													asChild
+													variant="outline"
+													size="sm"
+													className="mr-2"
 												>
-													View
-												</Link>
-											</Button>
-											<AlertDialog
-												open={banModalOpen}
-												onOpenChange={setBanModalOpen}
-											>
-												<AlertDialogTrigger asChild>
-													<Button
-														variant={
-															player.isBanned
-																? "secondary"
-																: "destructive"
-														}
-														onClick={() => {
-															setSelectedPlayer(
-																player
-															);
-															setBanModalOpen(
-																true
-															);
-														}}
+													<Link
+														href={`/admin/players/${player.id}`}
 													>
-														{player.isBanned
-															? "Unban"
-															: "Ban"}
-													</Button>
-												</AlertDialogTrigger>
-												<AlertDialogContent>
-													<AlertDialogHeader>
-														<AlertDialogTitle>
-															{selectedPlayer?.isBanned
-																? "Unban Player"
-																: "Ban Player"}
-														</AlertDialogTitle>
-														<AlertDialogDescription>
-															{selectedPlayer?.isBanned
-																? `Are you sure you want to unban ${selectedPlayer?.name}?`
-																: `Are you sure you want to ban ${selectedPlayer?.name}?`}
-														</AlertDialogDescription>
-													</AlertDialogHeader>
-													{!selectedPlayer?.isBanned && (
-														<div className="space-y-4 px-4 py-2">
-															<div>
-																<Label>
-																	Ban Duration
-																</Label>
-																<DatePickerWithRange
-																	dateRange={
-																		banDateRange
-																	}
-																	// @ts-ignore
-																	setDateRange={
-																		setBanDateRange
-																	}
-																/>
-															</div>
-															<div>
-																<Label>
-																	Reason(s)
-																	for Ban
-																</Label>
-																<div className="space-y-2 mt-2">
-																	{availableBanReasons.map(
-																		(
-																			reason
-																		) => (
-																			<div
-																				key={
-																					reason.id
-																				}
-																				className="flex items-start space-x-2"
-																			>
-																				<Checkbox
-																					id={
-																						reason.id
-																					}
-																					checked={banReasons.includes(
-																						reason.id
-																					)}
-																					onCheckedChange={(
-																						checked
-																					) => {
-																						setBanReasons(
-																							(
-																								prevReasons
-																							) =>
-																								checked
-																									? [
-																											...prevReasons,
-																											reason.id,
-																									  ]
-																									: prevReasons.filter(
-																											(
-																												r
-																											) =>
-																												r !==
-																												reason.id
-																									  )
-																						);
-																					}}
-																				/>
-																				<div>
-																					<Label
-																						htmlFor={
-																							reason.id
-																						}
-																						className="font-medium"
-																					>
-																						{
-																							reason.label
-																						}
-																					</Label>
-																					<p className="text-sm text-muted-foreground">
-																						{
-																							reason.description
-																						}
-																					</p>
-																				</div>
-																			</div>
-																		)
-																	)}
-																</div>
-															</div>
-														</div>
-													)}
-													<AlertDialogFooter>
-														<AlertDialogCancel>
-															Cancel
-														</AlertDialogCancel>
-														<AlertDialogAction
-															onClick={
-																selectedPlayer?.isBanned
-																	? () =>
-																			handleUnbanPlayer(
-																				selectedPlayer.id
-																			)
-																	: handleBanPlayer
+														View
+													</Link>
+												</Button>
+												<AlertDialog
+													open={banModalOpen}
+													onOpenChange={setBanModalOpen}
+												>
+													<AlertDialogTrigger asChild>
+														<Button
+															variant={
+																player.isBanned
+																	? "secondary"
+																	: "destructive"
 															}
+															onClick={() => {
+																setSelectedPlayer(
+																	player
+																);
+																setBanModalOpen(
+																	true
+																);
+															}}
 														>
-															{selectedPlayer?.isBanned
+															{player.isBanned
 																? "Unban"
 																: "Ban"}
-														</AlertDialogAction>
-													</AlertDialogFooter>
-												</AlertDialogContent>
-											</AlertDialog>
-										</div>
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
+														</Button>
+													</AlertDialogTrigger>
+													<AlertDialogContent>
+														<AlertDialogHeader>
+															<AlertDialogTitle>
+																{selectedPlayer?.isBanned
+																	? "Unban Player"
+																	: "Ban Player"}
+															</AlertDialogTitle>
+															<AlertDialogDescription>
+																{selectedPlayer?.isBanned
+																	? `Are you sure you want to unban ${selectedPlayer?.name}?`
+																	: `Are you sure you want to ban ${selectedPlayer?.name}?`}
+															</AlertDialogDescription>
+														</AlertDialogHeader>
+														{!selectedPlayer?.isBanned && (
+															<div className="space-y-4 px-4 py-2">
+																<div>
+																	<Label>
+																		Ban Duration
+																	</Label>
+																	<DatePickerWithRange
+																		dateRange={
+																			banDateRange
+																		}
+																		// @ts-ignore
+																		setDateRange={
+																			setBanDateRange
+																		}
+																	/>
+																</div>
+																<div>
+																	<Label>
+																		Reason(s)
+																		for Ban
+																	</Label>
+																	<div className="space-y-2 mt-2">
+																		{availableBanReasons.map(
+																			(
+																				reason
+																			) => (
+																				<div
+																					key={
+																						reason.id
+																					}
+																					className="flex items-start space-x-2"
+																				>
+																					<Checkbox
+																						id={
+																							reason.id
+																						}
+																						checked={banReasons.includes(
+																							reason.id
+																						)}
+																						onCheckedChange={(
+																							checked
+																						) => {
+																							setBanReasons(
+																								(
+																									prevReasons
+																								) =>
+																									checked
+																										? [
+																												...prevReasons,
+																												reason.id,
+																										  ]
+																										: prevReasons.filter(
+																												(
+																													r
+																												) =>
+																													r !==
+																													reason.id
+																										  )
+																							);
+																						}}
+																					/>
+																					<div>
+																						<Label
+																							htmlFor={
+																								reason.id
+																							}
+																							className="font-medium"
+																						>
+																							{
+																								reason.label
+																							}
+																						</Label>
+																						<p className="text-sm text-muted-foreground">
+																							{
+																								reason.description
+																							}
+																						</p>
+																					</div>
+																				</div>
+																			)
+																		)}
+																	</div>
+																</div>
+															</div>
+														)}
+														<AlertDialogFooter>
+															<AlertDialogCancel>
+																Cancel
+															</AlertDialogCancel>
+															<AlertDialogAction
+																onClick={
+																	selectedPlayer?.isBanned
+																		? () =>
+																				handleUnbanPlayer(
+																					selectedPlayer.id
+																				)
+																		: handleBanPlayer
+																}
+															>
+																{selectedPlayer?.isBanned
+																	? "Unban"
+																	: "Ban"}
+															</AlertDialogAction>
+														</AlertDialogFooter>
+													</AlertDialogContent>
+												</AlertDialog>
+											</div>
+										</TableCell>
+									</TableRow>
+								))}
+								{players?.length === 0 && (
+									<TableRow>
+										<TableCell colSpan={7} className="text-center py-8">
+											No players found.
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					)}
 				</CardContent>
 			</Card>
 		</div>

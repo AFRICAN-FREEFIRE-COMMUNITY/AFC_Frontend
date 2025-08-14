@@ -25,44 +25,11 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Plus, ImagePlus } from "lucide-react";
-
-// Mock function to fetch shop items
-const fetchShopItems = async () => {
-	// In a real app, this would be an API call
-	return [
-		{
-			id: 1,
-			name: "Small Diamond Pack",
-			description: "Perfect for small purchases and beginners",
-			amount: 100,
-			price: 1250,
-			stock: 1000,
-			image: "/placeholder.svg?height=100&width=100",
-		},
-		{
-			id: 2,
-			name: "Medium Diamond Pack",
-			description: "Great value for regular players",
-			amount: 500,
-			price: 6000,
-			stock: 500,
-			image: "/placeholder.svg?height=100&width=100",
-		},
-		{
-			id: 3,
-			name: "Large Diamond Pack",
-			description: "Ideal for active gamers",
-			amount: 1000,
-			price: 11000,
-			stock: 0,
-			image: "/placeholder.svg?height=100&width=100",
-		},
-	];
-};
+import { Pencil, Trash2, Plus, ImagePlus, Loader2, AlertCircle } from "lucide-react";
+import { useShopItems, useApiMutation } from "@/hooks/useAdminApi";
+import { shopApi } from "@/lib/api/admin";
 
 export function Shop() {
-	const [shopItems, setShopItems] = useState<any>([]);
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -80,13 +47,11 @@ export function Shop() {
 	const { toast } = useToast();
 	const router = useRouter();
 
-	useEffect(() => {
-		const loadShopItems = async () => {
-			const items = await fetchShopItems();
-			setShopItems(items);
-		};
-		loadShopItems();
-	}, []);
+	// API hooks
+	const { data: shopItems, loading, error, refetch } = useShopItems({});
+	const createItemMutation = useApiMutation((data: any) => shopApi.create(data));
+	const updateItemMutation = useApiMutation(({ id, data }: { id: string; data: any }) => shopApi.update(id, data));
+	const deleteItemMutation = useApiMutation((id: string) => shopApi.delete(id));
 
 	const handleImageChange = (e: any) => {
 		const file = e.target.files[0];
@@ -104,28 +69,37 @@ export function Shop() {
 		}
 	};
 
-	const handleAddItem = () => {
+	const handleAddItem = async () => {
 		if (
 			newItem.name &&
 			newItem.amount > 0 &&
 			newItem.price > 0 &&
 			newItem.stock >= 0
 		) {
-			setShopItems([...shopItems, { ...newItem, id: Date.now() }]);
-			setNewItem({
-				name: "",
-				description: "",
-				amount: 0,
-				price: 0,
-				stock: 0,
-				image: "",
-			});
-			setImagePreview("");
-			setIsAddDialogOpen(false);
-			toast({
-				title: "Product Added",
-				description: "The new product has been added to the shop.",
-			});
+			try {
+				await createItemMutation.mutate(newItem);
+				setNewItem({
+					name: "",
+					description: "",
+					amount: 0,
+					price: 0,
+					stock: 0,
+					image: "",
+				});
+				setImagePreview("");
+				setIsAddDialogOpen(false);
+				refetch();
+				toast({
+					title: "Product Added",
+					description: "The new product has been added to the shop.",
+				});
+			} catch (error) {
+				toast({
+					title: "Error",
+					description: "Failed to add product. Please try again.",
+					variant: "destructive",
+				});
+			}
 		} else {
 			toast({
 				title: "Invalid Input",
@@ -141,25 +115,30 @@ export function Shop() {
 		setIsEditDialogOpen(true);
 	};
 
-	const handleUpdateItem = () => {
+	const handleUpdateItem = async () => {
 		if (
 			editingItem.name &&
 			editingItem.amount > 0 &&
 			editingItem.price > 0 &&
 			editingItem.stock >= 0
 		) {
-			setShopItems(
-				shopItems.map((item: any) =>
-					item.id === editingItem.id ? editingItem : item
-				)
-			);
-			setEditingItem(null);
-			setImagePreview("");
-			setIsEditDialogOpen(false);
-			toast({
-				title: "Product Updated",
-				description: "The product has been successfully updated.",
-			});
+			try {
+				await updateItemMutation.mutate({ id: editingItem.id, data: editingItem });
+				setEditingItem(null);
+				setImagePreview("");
+				setIsEditDialogOpen(false);
+				refetch();
+				toast({
+					title: "Product Updated",
+					description: "The product has been successfully updated.",
+				});
+			} catch (error) {
+				toast({
+					title: "Error",
+					description: "Failed to update product. Please try again.",
+					variant: "destructive",
+				});
+			}
 		} else {
 			toast({
 				title: "Invalid Input",
@@ -174,16 +153,23 @@ export function Shop() {
 		setIsDeleteDialogOpen(true);
 	};
 
-	const handleDeleteItem = () => {
-		setShopItems(
-			shopItems.filter((item: any) => item.id !== itemToDelete.id)
-		);
-		setItemToDelete(null);
-		setIsDeleteDialogOpen(false);
-		toast({
-			title: "Product Deleted",
-			description: "The product has been removed from the shop.",
-		});
+	const handleDeleteItem = async () => {
+		try {
+			await deleteItemMutation.mutate(itemToDelete.id);
+			setItemToDelete(null);
+			setIsDeleteDialogOpen(false);
+			refetch();
+			toast({
+				title: "Product Deleted",
+				description: "The product has been removed from the shop.",
+			});
+		} catch (error) {
+			toast({
+				title: "Error",
+				description: "Failed to delete product. Please try again.",
+				variant: "destructive",
+			});
+		}
 	};
 
 	return (
@@ -200,85 +186,104 @@ export function Shop() {
 					<CardTitle>Shop Products</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Image</TableHead>
-								<TableHead>Name</TableHead>
-								<TableHead>Diamonds</TableHead>
-								<TableHead>Price</TableHead>
-								<TableHead>Stock</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{shopItems.map((item: any) => (
-								<TableRow key={item.id}>
-									<TableCell>
-										<img
-											src={
-												item.image ||
-												"/placeholder.svg?height=50&width=50"
-											}
-											alt={item.name}
-											className="w-12 h-12 object-cover rounded"
-										/>
-									</TableCell>
-									<TableCell>
-										<div>
-											<p className="font-medium">
-												{item.name}
-											</p>
-											<p className="text-xs text-muted-foreground line-clamp-1">
-												{item.description}
-											</p>
-										</div>
-									</TableCell>
-									<TableCell>{item.amount} 💎</TableCell>
-									<TableCell>
-										₦{item.price.toLocaleString()}
-									</TableCell>
-									<TableCell>{item.stock}</TableCell>
-									<TableCell>
-										<span
-											className={`px-2 py-1 rounded text-xs ${
-												item.stock > 0
-													? "bg-green-100 text-green-800"
-													: "bg-red-100 text-red-800"
-											}`}
-										>
-											{item.stock > 0
-												? "In Stock"
-												: "Out of Stock"}
-										</span>
-									</TableCell>
-									<TableCell>
-										<div className="flex space-x-2">
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() =>
-													handleEditItem(item)
-												}
-											>
-												<Pencil className="h-4 w-4" />
-											</Button>
-											<Button
-												variant="destructive"
-												size="sm"
-												onClick={() =>
-													confirmDelete(item)
-												}
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</div>
-									</TableCell>
+					{loading ? (
+						<div className="flex items-center justify-center py-8">
+							<Loader2 className="h-8 w-8 animate-spin" />
+							<span className="ml-2">Loading shop items...</span>
+						</div>
+					) : error ? (
+						<div className="flex items-center justify-center py-8 text-red-500">
+							<AlertCircle className="h-8 w-8" />
+							<span className="ml-2">Error loading shop items: {typeof error === 'string' ? error : 'Unknown error'}</span>
+						</div>
+					) : (
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Image</TableHead>
+									<TableHead>Name</TableHead>
+									<TableHead>Diamonds</TableHead>
+									<TableHead>Price</TableHead>
+									<TableHead>Stock</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead>Actions</TableHead>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
+							</TableHeader>
+							<TableBody>
+								{shopItems?.map((item: any) => (
+									<TableRow key={item.id}>
+										<TableCell>
+											<img
+												src={
+													item.image ||
+													"/placeholder.svg?height=50&width=50"
+												}
+												alt={item.name}
+												className="w-12 h-12 object-cover rounded"
+											/>
+										</TableCell>
+										<TableCell>
+											<div>
+												<p className="font-medium">
+													{item.name}
+												</p>
+												<p className="text-xs text-muted-foreground line-clamp-1">
+													{item.description}
+												</p>
+											</div>
+										</TableCell>
+										<TableCell>{item.amount} 💎</TableCell>
+										<TableCell>
+											₦{item.price.toLocaleString()}
+										</TableCell>
+										<TableCell>{item.stock}</TableCell>
+										<TableCell>
+											<span
+												className={`px-2 py-1 rounded text-xs ${
+													item.stock > 0
+														? "bg-green-100 text-green-800"
+														: "bg-red-100 text-red-800"
+												}`}
+											>
+												{item.stock > 0
+													? "In Stock"
+													: "Out of Stock"}
+											</span>
+										</TableCell>
+										<TableCell>
+											<div className="flex space-x-2">
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={() =>
+														handleEditItem(item)
+													}
+												>
+													<Pencil className="h-4 w-4" />
+												</Button>
+												<Button
+													variant="destructive"
+													size="sm"
+													onClick={() =>
+														confirmDelete(item)
+													}
+												>
+													<Trash2 className="h-4 w-4" />
+												</Button>
+											</div>
+										</TableCell>
+									</TableRow>
+								))}
+								{shopItems?.length === 0 && (
+									<TableRow>
+										<TableCell colSpan={7} className="text-center py-8 text-gray-500">
+											No shop items found
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					)}
 				</CardContent>
 			</Card>
 

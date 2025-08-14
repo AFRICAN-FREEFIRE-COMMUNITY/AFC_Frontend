@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import AdminLayout from "@/components/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,25 +9,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-import { BarChart2, Plus } from "lucide-react"
+import { BarChart2, Plus, Loader2, AlertCircle } from "lucide-react"
+import { useTiers } from "@/hooks/useAdminApi"
 
 const AdminTiersPage = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterTier, setFilterTier] = useState("all")
 
-  // Mock data for tiers
-  const [tiers, setTiers] = useState([
-    { id: 1, name: "Tier 1 - July 2023", teams: 10, status: "published" },
-    { id: 2, name: "Tier 2 - July 2023", teams: 15, status: "published" },
-    { id: 3, name: "Tier 3 - July 2023", teams: 20, status: "published" },
-    { id: 4, name: "Tier 1 - August 2023", teams: 12, status: "draft" },
-  ])
+  // Build filters object
+  const filters = {
+    ...(searchTerm && { search: searchTerm }),
+  }
 
-  const filteredTiers = tiers.filter(
-    (tier) =>
-      tier.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterTier === "all" || tier.name.includes(`Tier ${filterTier}`)),
-  )
+  const { data: tiers, loading, error, updateParams } = useTiers(filters)
+
+  // Update filters when search term changes
+  useEffect(() => {
+    updateParams(filters)
+  }, [searchTerm])
 
   return (
     <AdminLayout>
@@ -73,34 +72,54 @@ const AdminTiersPage = () => {
             <CardTitle>Tiers</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tier Name</TableHead>
-                  <TableHead>Teams</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTiers.map((tier) => (
-                  <TableRow key={tier.id}>
-                    <TableCell>{tier.name}</TableCell>
-                    <TableCell>{tier.teams}</TableCell>
-                    <TableCell>
-                      <Badge variant={tier.status === "published" ? "success" : "secondary"}>
-                        {tier.status === "published" ? "Published" : "Draft"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/tiers/${tier.id}`}>View</Link>
-                      </Button>
-                    </TableCell>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Loading tiers...</span>
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center py-8 text-red-500">
+                <AlertCircle className="h-8 w-8" />
+                <span className="ml-2">Error: {typeof error === 'string' ? error : 'Failed to load tiers'}</span>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tier Name</TableHead>
+                    <TableHead>Teams</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {tiers && tiers.length > 0 ? (
+                    tiers.map((tier: any) => (
+                      <TableRow key={tier.id}>
+                        <TableCell>{tier.name}</TableCell>
+                        <TableCell>{tier.teams || 0}</TableCell>
+                        <TableCell>
+                          <Badge variant={tier.status === "published" ? "default" : "secondary"}>
+                            {tier.status === "published" ? "Published" : "Draft"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/admin/tiers/${tier.id}`}>View</Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                        No tiers found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
