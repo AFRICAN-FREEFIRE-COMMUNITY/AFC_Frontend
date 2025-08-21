@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
-import * as adminApi from '@/lib/api/admin';
-import type { PaginatedResponse, ApiResponse } from '@/lib/types/admin';
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import * as adminApi from "@/lib/api/admin";
+import type { PaginatedResponse, ApiResponse } from "@/lib/types/admin";
 
 // Generic hook for API calls with loading and error states
 export function useApiCall<T>(
@@ -19,7 +19,8 @@ export function useApiCall<T>(
       const response = await apiCall();
       setData(response.data);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
+      const errorMessage =
+        err.response?.data?.message || err.message || "An error occurred";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -54,17 +55,22 @@ export function usePaginatedApi<T>(
     try {
       setLoading(true);
       setError(null);
-      const response = await apiCall({ ...params, page: pagination.page, limit: pagination.limit });
+      const response = await apiCall({
+        ...params,
+        page: pagination.page,
+        limit: pagination.limit,
+      });
       setData(response.data.data);
       setPagination(response.data.pagination);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
+      const errorMessage =
+        err.response?.data?.message || err.message || "An error occurred";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  }, [apiCall, params, pagination.page, pagination.limit]);
+  }, [apiCall, params, pagination]);
 
   useEffect(() => {
     fetchData();
@@ -72,15 +78,15 @@ export function usePaginatedApi<T>(
 
   const updateParams = useCallback((newParams: any) => {
     setParams((prev: any) => ({ ...prev, ...newParams }));
-    setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
+    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to first page
   }, []);
 
   const changePage = useCallback((page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
   }, []);
 
   const changeLimit = useCallback((limit: number) => {
-    setPagination(prev => ({ ...prev, limit, page: 1 }));
+    setPagination((prev) => ({ ...prev, limit, page: 1 }));
   }, []);
 
   return {
@@ -233,7 +239,10 @@ export function useAdminHistory(filters: any = {}) {
 }
 
 export function useUserHistory(userId: string, filters: any = {}) {
-  return usePaginatedApi((params) => adminApi.historyApi.getByUser(userId, params), filters);
+  return usePaginatedApi(
+    (params) => adminApi.historyApi.getByUser(userId, params),
+    filters
+  );
 }
 
 // Match Results hooks
@@ -247,7 +256,10 @@ export function useMatchResult(id: string) {
 
 // Partner hooks
 export function useRosterVerification(filters: any = {}) {
-  return useApiCall(() => adminApi.partnerApi.getRosterVerification(filters), [filters]);
+  return useApiCall(
+    () => adminApi.partnerApi.getRosterVerification(filters),
+    [filters]
+  );
 }
 
 export function usePartnerStats() {
@@ -266,35 +278,39 @@ export function useApiMutation<T, P = any>(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const mutate = useCallback(async (params: P) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await apiCall(params);
-      
-      if (options.successMessage) {
-        toast.success(options.successMessage);
+  const mutate = useCallback(
+    async (params: P) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await apiCall(params);
+
+        if (options.successMessage) {
+          toast.success(options.successMessage);
+        }
+
+        if (options.onSuccess) {
+          options.onSuccess(response.data);
+        }
+
+        return response.data;
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.message || err.message || "An error occurred";
+        setError(errorMessage);
+        toast.error(errorMessage);
+
+        if (options.onError) {
+          options.onError(err);
+        }
+
+        throw err;
+      } finally {
+        setLoading(false);
       }
-      
-      if (options.onSuccess) {
-        options.onSuccess(response.data);
-      }
-      
-      return response.data;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      
-      if (options.onError) {
-        options.onError(err);
-      }
-      
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [apiCall, options]);
+    },
+    [apiCall, options]
+  );
 
   return { mutate, loading, error };
 }
@@ -302,90 +318,96 @@ export function useApiMutation<T, P = any>(
 // Specific mutation hooks
 export function useCreateEvent() {
   return useApiMutation(adminApi.eventsApi.create, {
-    successMessage: 'Event created successfully',
+    successMessage: "Event created successfully",
   });
 }
 
 export function useUpdateEvent() {
   return useApiMutation(
-    ({ id, data }: { id: string; data: any }) => adminApi.eventsApi.update(id, data),
-    { successMessage: 'Event updated successfully' }
+    ({ id, data }: { id: string; data: any }) =>
+      adminApi.eventsApi.update(id, data),
+    { successMessage: "Event updated successfully" }
   );
 }
 
 export function useDeleteEvent() {
   return useApiMutation(adminApi.eventsApi.delete, {
-    successMessage: 'Event deleted successfully',
+    successMessage: "Event deleted successfully",
   });
 }
 
 export function useCreateTeam() {
   return useApiMutation(adminApi.teamsApi.create, {
-    successMessage: 'Team created successfully',
+    successMessage: "Team created successfully",
   });
 }
 
 export function useUpdateTeam() {
   return useApiMutation(
-    ({ id, data }: { id: string; data: any }) => adminApi.teamsApi.update(id, data),
-    { successMessage: 'Team updated successfully' }
+    ({ id, data }: { id: string; data: any }) =>
+      adminApi.teamsApi.update(id, data),
+    { successMessage: "Team updated successfully" }
   );
 }
 
 export function useDeleteTeam() {
   return useApiMutation(adminApi.teamsApi.delete, {
-    successMessage: 'Team deleted successfully',
+    successMessage: "Team deleted successfully",
   });
 }
 
 export function useCreatePlayer() {
   return useApiMutation(adminApi.playersApi.create, {
-    successMessage: 'Player created successfully',
+    successMessage: "Player created successfully",
   });
 }
 
 export function useUpdatePlayer() {
   return useApiMutation(
-    ({ id, data }: { id: string; data: any }) => adminApi.playersApi.update(id, data),
-    { successMessage: 'Player updated successfully' }
+    ({ id, data }: { id: string; data: any }) =>
+      adminApi.playersApi.update(id, data),
+    { successMessage: "Player updated successfully" }
   );
 }
 
 export function useBanPlayer() {
   return useApiMutation(
-    ({ id, reason }: { id: string; reason: string }) => adminApi.playersApi.ban(id, reason),
-    { successMessage: 'Player banned successfully' }
+    ({ id, reason }: { id: string; reason: string }) =>
+      adminApi.playersApi.ban(id, reason),
+    { successMessage: "Player banned successfully" }
   );
 }
 
 export function useUnbanPlayer() {
   return useApiMutation(adminApi.playersApi.unban, {
-    successMessage: 'Player unbanned successfully',
+    successMessage: "Player unbanned successfully",
   });
 }
 
 export function useCreateNews() {
   return useApiMutation(adminApi.newsApi.create, {
-    successMessage: 'News article created successfully',
+    successMessage: "News article created successfully",
   });
 }
 
 export function useUpdateNews() {
   return useApiMutation(
-    ({ id, data }: { id: string; data: any }) => adminApi.newsApi.update(id, data),
-    { successMessage: 'News article updated successfully' }
+    ({ id, data }: { id: string; data: any }) =>
+      adminApi.newsApi.update(id, data),
+    { successMessage: "News article updated successfully" }
   );
 }
 
 export function usePublishNews() {
   return useApiMutation(adminApi.newsApi.publish, {
-    successMessage: 'News article published successfully',
+    successMessage: "News article published successfully",
   });
 }
 
 export function useUploadImage() {
   return useApiMutation(
-    ({ file, type }: { file: File; type: string }) => adminApi.uploadApi.uploadImage(file, type),
-    { successMessage: 'Image uploaded successfully' }
+    ({ file, type }: { file: File; type: string }) =>
+      adminApi.uploadApi.uploadImage(file, type),
+    { successMessage: "Image uploaded successfully" }
   );
 }
