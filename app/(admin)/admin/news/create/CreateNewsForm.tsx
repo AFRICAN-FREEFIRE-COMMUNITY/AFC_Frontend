@@ -682,7 +682,7 @@ export function CreateNewsForm() {
         formData.append("news_title", data.title);
         formData.append("content", data.content);
         formData.append("category", data.category);
-        formData.append("related_event", data.event!);
+        // formData.append("related_event", data.event!);
         formData.append("author", data.author);
 
         // Append profile picture file if selected
@@ -703,6 +703,7 @@ export function CreateNewsForm() {
         toast.success(response.data.message);
         router.push(`/news`);
       } catch (error: any) {
+        console.log(error);
         toast.error(error?.response?.data?.message || "Internal server error");
         return;
       }

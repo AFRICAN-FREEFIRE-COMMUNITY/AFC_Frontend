@@ -1,14 +1,5 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Layout from "@/components/Layout"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, ExternalLink } from "lucide-react"
-import Image from "next/image"
+import Layout from "@/components/Layout";
+import { NewsDetails } from "./_components/NewsDetails";
 
 // Mock function to fetch a news post
 const fetchNewsPost = async (id: string) => {
@@ -61,116 +52,21 @@ const fetchNewsPost = async (id: string) => {
       image: "/placeholder.svg?height=400&width=800",
       category: "banned-updates",
     },
-  ]
+  ];
 
-  return newsItems.find((item) => item.id === id)
-}
+  return newsItems.find((item) => item.id === id);
+};
 
-export default function NewsPostPage() {
-  const params = useParams()
-  const router = useRouter()
-  const [newsPost, setNewsPost] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState("")
+type Params = Promise<{
+  id: string;
+}>;
 
-  useEffect(() => {
-    const getNewsPost = async () => {
-      try {
-        const post = await fetchNewsPost(params.id as string)
-        if (post) {
-          setNewsPost(post)
-        } else {
-          setError("News post not found")
-        }
-      } catch (err) {
-        setError("Failed to fetch news post")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    getNewsPost()
-  }, [params.id])
-
-  if (isLoading) {
-    return <Layout>Loading...</Layout>
-  }
-
-  if (error) {
-    return <Layout>Error: {error}</Layout>
-  }
-
-  if (!newsPost) {
-    return <Layout>News post not found</Layout>
-  }
+export default async function NewsPostPage({ params }: { params: Params }) {
+  const { id } = await params;
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <Button variant="outline" onClick={() => router.back()} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
-        </Button>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl">{newsPost.title}</CardTitle>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={newsPost.author.avatar} alt={newsPost.author.name} />
-                <AvatarFallback>{newsPost.author.name[0]}</AvatarFallback>
-              </Avatar>
-              <span>{newsPost.author.name}</span>
-              <span>•</span>
-              <span>{new Date(newsPost.date).toLocaleString()}</span>
-              <span>•</span>
-              <Badge variant="secondary">{newsPost.category}</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Image
-              src={newsPost.image || "/placeholder.svg"}
-              alt={newsPost.title}
-              width={800}
-              height={400}
-              className="w-full h-auto rounded-lg mb-6"
-            />
-            <div className="prose max-w-none mb-6" dangerouslySetInnerHTML={{ __html: newsPost.content }} />
-            {newsPost.category === "tournament-updates" && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Tournament Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <dt className="font-semibold">Tournament Name</dt>
-                      <dd>{newsPost.tournamentName}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-semibold">Format</dt>
-                      <dd>{newsPost.format}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-semibold">Prize Pool</dt>
-                      <dd>{newsPost.prizePool}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-semibold">Location</dt>
-                      <dd>{newsPost.location}</dd>
-                    </div>
-                  </dl>
-                </CardContent>
-              </Card>
-            )}
-            {newsPost.category === "tournament-updates" && newsPost.registrationLink && (
-              <Button asChild className="mt-4">
-                <a href={newsPost.registrationLink} target="_blank" rel="noopener noreferrer">
-                  Register for Tournament <ExternalLink className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <NewsDetails id={id} />
     </Layout>
-  )
+  );
 }

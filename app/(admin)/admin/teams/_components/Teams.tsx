@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,10 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { addDays } from "date-fns";
 import { useTeams, useApiMutation } from "@/hooks/useAdminApi";
 import * as adminApi from "@/lib/api/admin";
+import { toast } from "sonner";
+import { FullLoader } from "@/components/Loader";
+import axios from "axios";
+import { env } from "@/lib/env";
 
 export const Teams = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,7 +56,8 @@ export const Teams = () => {
     to: addDays(new Date(), 7),
   });
   const [banReasons, setBanReasons] = useState<string[]>([]);
-  const { toast } = useToast();
+  const [pending, startTransition] = useTransition();
+  const [teams, setTeams] = useState<any>();
 
   // Build filters object
   const filters = {
@@ -60,15 +65,15 @@ export const Teams = () => {
     ...(filterTier !== "all" && { tier: filterTier }),
   };
 
-  const {
-    data: teams,
-    loading,
-    error,
-    pagination,
-    updateParams,
-    changePage,
-    refetch,
-  } = useTeams(filters);
+  // const {
+  //   data: teams,
+  //   loading,
+  //   error,
+  //   pagination,
+  //   updateParams,
+  //   changePage,
+  //   refetch,
+  // } = useTeams(filters);
 
   // API mutations
   const banTeamMutation = useApiMutation(
@@ -77,7 +82,7 @@ export const Teams = () => {
     {
       successMessage: "Team banned successfully",
       onSuccess: () => {
-        refetch();
+        // refetch();
         setBanModalOpen(false);
         setSelectedTeam(null);
         setBanDateRange({ from: new Date(), to: addDays(new Date(), 7) });
@@ -90,14 +95,14 @@ export const Teams = () => {
     (id: string) => adminApi.teamsApi.unban(id),
     {
       successMessage: "Team unbanned successfully",
-      onSuccess: () => refetch(),
+      // onSuccess: () => refetch(),
     }
   );
 
   // Update filters when search/filter values change
-  useEffect(() => {
-    updateParams(filters);
-  }, [searchTerm, filterTier]);
+  // useEffect(() => {
+  //   updateParams(filters);
+  // }, [searchTerm, filterTier]);
   const availableBanReasons = [
     {
       id: "conduct",
@@ -133,11 +138,11 @@ export const Teams = () => {
 
   const handleBanTeam = async () => {
     if (!selectedTeam || banReasons.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select at least one reason for the ban.",
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Error",
+      //   description: "Please select at least one reason for the ban.",
+      //   variant: "destructive",
+      // });
       return;
     }
 
@@ -162,6 +167,26 @@ export const Teams = () => {
       // Error handling is done in the mutation hook
     }
   };
+
+  useEffect(() => {
+    startTransition(async () => {
+      try {
+        const res = await axios(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
+        );
+
+        if (res.statusText === "OK") {
+          setTeams(res.data.teams);
+        } else {
+          toast.error("Oops! An error occurred");
+        }
+      } catch (error: any) {
+        toast.error(error?.response?.data.message);
+      }
+    });
+  }, []);
+
+  if (pending) return <FullLoader />;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -194,203 +219,162 @@ export const Teams = () => {
           <CardTitle>Teams</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin" />
-              <span className="ml-2">Loading teams...</span>
-            </div>
-          ) : error ? (
-            <div className="flex items-center justify-center py-8 text-red-500">
-              <AlertCircle className="h-8 w-8" />
-              <span className="ml-2">Error: {error}</span>
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Tier</TableHead>
-                    <TableHead>Members</TableHead>
-                    <TableHead>Total Wins</TableHead>
-                    <TableHead>Total Earnings</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {teams && teams.length > 0 ? (
-                    teams.map((team: any) => (
-                      <TableRow key={team.id}>
-                        <TableCell>{team.name}</TableCell>
-                        <TableCell>{team.tier}</TableCell>
-                        <TableCell>{team.members}</TableCell>
-                        <TableCell>{team.totalWins}</TableCell>
-                        <TableCell>{team.totalEarnings}</TableCell>
-                        <TableCell>
-                          {team.isBanned ? (
-                            <Badge variant="destructive">Banned</Badge>
-                          ) : (
-                            <Badge variant="secondary">Active</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Tier</TableHead>
+                <TableHead>Members</TableHead>
+                <TableHead>Total Wins</TableHead>
+                <TableHead>Total Earnings</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {teams && teams.length > 0 ? (
+                teams.map((team: any) => (
+                  <TableRow key={team.team_name}>
+                    <TableCell>{team.team_name}</TableCell>
+                    <TableCell>{team.team_tier}</TableCell>
+                    <TableCell>
+                      {team.team_members ? team.team_members : 0}
+                    </TableCell>
+                    <TableCell>
+                      {team.total_wins ? team.total_wins : 0}
+                    </TableCell>
+                    <TableCell>
+                      ${team.total_earnings ? team.total_earnings : 0}
+                    </TableCell>
+                    <TableCell>
+                      {team.is_banned ? (
+                        <Badge variant="destructive">Banned</Badge>
+                      ) : (
+                        <Badge variant="secondary">Active</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="mr-2"
+                        >
+                          <Link href={`/admin/teams/${team.team_name}`}>
+                            View
+                          </Link>
+                        </Button>
+                        <AlertDialog
+                          open={banModalOpen}
+                          onOpenChange={setBanModalOpen}
+                        >
+                          <AlertDialogTrigger asChild>
                             <Button
-                              asChild
-                              variant="outline"
-                              size="sm"
-                              className="mr-2"
+                              variant={
+                                team.isBanned ? "secondary" : "destructive"
+                              }
+                              onClick={() => {
+                                setSelectedTeam(team);
+                                setBanModalOpen(true);
+                              }}
                             >
-                              <Link href={`/admin/teams/${team.id}`}>View</Link>
+                              {team.isBanned ? "Unban" : "Ban"}
                             </Button>
-                            <AlertDialog
-                              open={banModalOpen}
-                              onOpenChange={setBanModalOpen}
-                            >
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant={
-                                    team.isBanned ? "secondary" : "destructive"
-                                  }
-                                  onClick={() => {
-                                    setSelectedTeam(team);
-                                    setBanModalOpen(true);
-                                  }}
-                                >
-                                  {team.isBanned ? "Unban" : "Ban"}
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    {selectedTeam?.isBanned
-                                      ? "Unban Team"
-                                      : "Ban Team"}
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    {selectedTeam?.isBanned
-                                      ? `Are you sure you want to unban ${selectedTeam?.name}?`
-                                      : `Are you sure you want to ban ${selectedTeam?.name}?`}
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                {!selectedTeam?.isBanned && (
-                                  <div className="space-y-4 px-4 py-2">
-                                    <div>
-                                      <Label>Ban Duration</Label>
-                                      <DatePickerWithRange
-                                        dateRange={banDateRange}
-                                        // @ts-ignore
-                                        setDateRange={setBanDateRange}
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label>Reason(s) for Ban</Label>
-                                      <div className="space-y-2 mt-2">
-                                        {availableBanReasons.map((reason) => (
-                                          <div
-                                            key={reason.id}
-                                            className="flex items-start space-x-2"
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {selectedTeam?.isBanned
+                                  ? "Unban Team"
+                                  : "Ban Team"}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {selectedTeam?.isBanned
+                                  ? `Are you sure you want to unban ${selectedTeam?.name}?`
+                                  : `Are you sure you want to ban ${selectedTeam?.name}?`}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            {!selectedTeam?.isBanned && (
+                              <div className="space-y-4 px-4 py-2">
+                                <div>
+                                  <Label>Ban Duration</Label>
+                                  <DatePickerWithRange
+                                    dateRange={banDateRange}
+                                    // @ts-ignore
+                                    setDateRange={setBanDateRange}
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Reason(s) for Ban</Label>
+                                  <div className="space-y-2 mt-2">
+                                    {availableBanReasons.map((reason) => (
+                                      <div
+                                        key={reason.id}
+                                        className="flex items-start space-x-2"
+                                      >
+                                        <Checkbox
+                                          id={reason.id}
+                                          checked={banReasons.includes(
+                                            reason.id
+                                          )}
+                                          onCheckedChange={(checked) => {
+                                            setBanReasons((prevReasons) =>
+                                              checked
+                                                ? [...prevReasons, reason.id]
+                                                : prevReasons.filter(
+                                                    (r) => r !== reason.id
+                                                  )
+                                            );
+                                          }}
+                                        />
+                                        <div>
+                                          <Label
+                                            htmlFor={reason.id}
+                                            className="font-medium"
                                           >
-                                            <Checkbox
-                                              id={reason.id}
-                                              checked={banReasons.includes(
-                                                reason.id
-                                              )}
-                                              onCheckedChange={(checked) => {
-                                                setBanReasons((prevReasons) =>
-                                                  checked
-                                                    ? [
-                                                        ...prevReasons,
-                                                        reason.id,
-                                                      ]
-                                                    : prevReasons.filter(
-                                                        (r) => r !== reason.id
-                                                      )
-                                                );
-                                              }}
-                                            />
-                                            <div>
-                                              <Label
-                                                htmlFor={reason.id}
-                                                className="font-medium"
-                                              >
-                                                {reason.label}
-                                              </Label>
-                                              <p className="text-sm text-muted-foreground">
-                                                {reason.description}
-                                              </p>
-                                            </div>
-                                          </div>
-                                        ))}
+                                            {reason.label}
+                                          </Label>
+                                          <p className="text-sm text-muted-foreground">
+                                            {reason.description}
+                                          </p>
+                                        </div>
                                       </div>
-                                    </div>
+                                    ))}
                                   </div>
-                                )}
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={
-                                      selectedTeam?.isBanned
-                                        ? () => handleUnbanTeam(selectedTeam.id)
-                                        : handleBanTeam
-                                    }
-                                  >
-                                    {selectedTeam?.isBanned ? "Unban" : "Ban"}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        className="text-center py-8 text-muted-foreground"
-                      >
-                        No teams found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-                    {Math.min(
-                      pagination.page * pagination.limit,
-                      pagination.total
-                    )}{" "}
-                    of {pagination.total} teams
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => changePage(pagination.page - 1)}
-                      disabled={pagination.page <= 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => changePage(pagination.page + 1)}
-                      disabled={pagination.page >= pagination.totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
+                                </div>
+                              </div>
+                            )}
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={
+                                  selectedTeam?.isBanned
+                                    ? () => handleUnbanTeam(selectedTeam.id)
+                                    : handleBanTeam
+                                }
+                              >
+                                {selectedTeam?.isBanned ? "Unban" : "Ban"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    No teams found
+                  </TableCell>
+                </TableRow>
               )}
-            </>
-          )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

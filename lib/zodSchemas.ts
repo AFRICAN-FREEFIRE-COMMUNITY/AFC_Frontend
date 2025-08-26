@@ -192,10 +192,19 @@ export const EditNewsFormSchema = z.object({
     .min(1, "Title is required")
     .max(200, "Title must be less than 200 characters"),
   content: z.string().min(1, "Content is required"),
+  id: z.number().min(1, "ID is required"),
   category: z.string().min(1, "Category is required"),
   event: z.string().optional(),
   author: z.string().min(1, "Author is required"),
   images: z.string().optional(),
+});
+
+export const BanTeamFormSchema = z.object({
+  ban_duration: z.string().min(1, "Ban duration is required"),
+  team_id: z.string().min(1, "Team ID is required"),
+  reasons: z.array(z.string()).refine((value) => value.some((item) => item), {
+    message: "You have to select at least 1 reason.",
+  }),
 });
 
 export type LoginFormSchemaType = z.infer<typeof LoginFormSchema>;
@@ -216,3 +225,4 @@ export type CreateTeamFormSchemaType = z.infer<typeof CreateTeamFormSchema>;
 export type EditTeamFormSchemaType = z.infer<typeof EditTeamFormSchema>;
 export type CreateNewsFormSchemaType = z.infer<typeof CreateNewsFormSchema>;
 export type EditNewsFormSchemaType = z.infer<typeof EditNewsFormSchema>;
+export type BanTeamFormSchemaType = z.infer<typeof BanTeamFormSchema>;

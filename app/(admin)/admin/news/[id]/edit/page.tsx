@@ -1,10 +1,15 @@
 import AdminLayout from "@/components/AdminLayout";
 import { EditNewsForm } from "./_components/EditNewsForm";
 
-export default function EditNewsPage({ params }: { params: { id: string } }) {
+type Params = Promise<{
+  id: string;
+}>;
+
+export default async function EditNewsPage({ params }: { params: Params }) {
+  const { id } = await params;
   return (
     <AdminLayout>
-      <EditNewsForm />
+      <EditNewsForm id={id} />
     </AdminLayout>
   );
 }

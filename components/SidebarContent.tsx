@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   Home,
   Users,
@@ -16,32 +16,41 @@ import {
   UserCircle,
   Shield,
   ShoppingCart,
-} from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
-import type React from "react"
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import type React from "react";
 
 interface SidebarContentProps {
-  isLoggedIn: boolean
-  onLogin: () => void
-  onLogout: () => void
-  userRole: string
+  isLoggedIn: boolean;
+  onLogin: () => void;
+  onLogout: () => void;
+  userRole: string;
 }
 
-export const SidebarContent: React.FC<SidebarContentProps> = ({ isLoggedIn, onLogin, onLogout, userRole }) => {
-  const pathname = usePathname()
-  const router = useRouter()
-  const { toast } = useToast()
+export const SidebarContent: React.FC<SidebarContentProps> = ({
+  isLoggedIn,
+  onLogin,
+  onLogout,
+  userRole,
+}) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const menuItems = [
     { href: "/home", label: "Home", icon: Home },
     { href: "/teams", label: "Teams", icon: Users },
-    { href: "/tournaments-and-scrims", label: "Tournaments & Scrims", icon: Calendar },
+    {
+      href: "/tournaments-and-scrims",
+      label: "Tournaments & Scrims",
+      icon: Calendar,
+    },
     { href: "/rankings", label: "Rankings & Tiers", icon: BarChart2 },
     { href: "/news", label: "News & Updates", icon: Newspaper },
     { href: "/shop", label: "Shop", icon: ShoppingCart },
     { href: "/about", label: "About Us", icon: Info },
     { href: "/contact", label: "Contact", icon: Mail },
-  ]
+  ];
 
   return (
     <div className="py-4">
@@ -62,7 +71,9 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({ isLoggedIn, onLo
               {item.label}
             </Link>
           ))}
-          {(userRole === "moderator" || userRole === "super_admin") && (
+          {(userRole === "moderator" ||
+            userRole === "super_admin" ||
+            userRole === "admin") && (
             <Link
               href="/admin/dashboard"
               className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
@@ -97,7 +108,10 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({ isLoggedIn, onLo
               <LogIn className="mr-2 h-4 w-4" /> Login
             </Button>
             <Link href="/create-account">
-              <Button variant="outline" className="w-full hover:bg-primary/10 transition-colors duration-200">
+              <Button
+                variant="outline"
+                className="w-full hover:bg-primary/10 transition-colors duration-200"
+              >
                 Create Account
               </Button>
             </Link>
@@ -105,5 +119,5 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({ isLoggedIn, onLo
         )}
       </div>
     </div>
-  )
-}
+  );
+};

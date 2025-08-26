@@ -29,18 +29,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { newsCategories, relatedEvents } from "@/constants";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
+import { FullLoader } from "@/components/Loader";
 
-export function EditNewsForm() {
+export function EditNewsForm({ id }: { id: string }) {
   const router = useRouter();
   const { user, token } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [newsDetails, setNewsDetails] = useState<any>();
 
   const [pending, startTransition] = useTransition();
+  const [pendingEdit, startEditTransition] = useTransition();
 
   const form = useForm<EditNewsFormSchemaType>({
     resolver: zodResolver(EditNewsFormSchema),
@@ -54,15 +57,47 @@ export function EditNewsForm() {
     },
   });
 
+  useEffect(() => {
+    if (!id) return; // Don't run if id is not available yet
+
+    startTransition(async () => {
+      try {
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
+          { news_id: id }
+        );
+        setNewsDetails(res.data.news);
+      } catch (error: any) {
+        toast.error(error.response.data.message);
+      }
+    });
+  }, [id]);
+
+  // Update form values when teamDetails changes
+  useEffect(() => {
+    if (newsDetails) {
+      form.reset({
+        id: newsDetails.news_id || "",
+        title: newsDetails.news_title || "",
+        content: newsDetails.content || "",
+        category: newsDetails.category || "",
+        event: newsDetails.related_events || "",
+        images: newsDetails.images_url || "",
+        author: user?.full_name || "",
+      });
+    }
+  }, [newsDetails, form]);
+
   function handleSaveDraft() {}
 
   function handlePublish(data: EditNewsFormSchemaType) {
-    startTransition(async () => {
+    startEditTransition(async () => {
       try {
         // Create FormData object
         const formData = new FormData();
 
         // Append all form fields to FormData
+        formData.append("news_id", data.id.toString());
         formData.append("news_title", data.title);
         formData.append("content", data.content);
         formData.append("category", data.category);
@@ -85,13 +120,14 @@ export function EditNewsForm() {
         );
 
         toast.success(response.data.message);
-        router.push(`/news`);
+        router.back();
       } catch (error: any) {
         toast.error(error?.response?.data?.message || "Internal server error");
         return;
       }
     });
   }
+  if (pending) return <FullLoader />;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -242,16 +278,16 @@ export function EditNewsForm() {
                 <Button
                   type="button"
                   onClick={handleSaveDraft}
-                  disabled={pending}
+                  disabled={pendingEdit}
                 >
-                  {pending ? "Saving..." : "Save to Drafts"}
+                  {pendingEdit ? "Saving..." : "Save to Drafts"}
                 </Button>
                 <Button
                   type="submit"
                   // onClick={handlePublish}
-                  disabled={pending}
+                  disabled={pendingEdit}
                 >
-                  {pending ? "Publishing..." : "Publish"}
+                  {pendingEdit ? "Publishing..." : "Publish"}
                 </Button>
               </div>
             </form>

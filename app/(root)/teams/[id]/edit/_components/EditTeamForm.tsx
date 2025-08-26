@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { Loader } from "@/components/Loader";
+import { FullLoader, Loader } from "@/components/Loader";
 import { EditTeamFormSchema, EditTeamFormSchemaType } from "@/lib/zodSchemas";
 import { useEffect, useState, useTransition } from "react";
 import axios from "axios";
@@ -137,6 +137,8 @@ export function EditTeamForm({ id }: { id: string }) {
       }
     });
   }
+
+  if (pending) return <FullLoader />;
 
   return (
     <Form {...form}>

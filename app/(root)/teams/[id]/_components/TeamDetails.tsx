@@ -167,7 +167,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
   const [teamDetails, setTeamDetails] = useState<any>();
 
   const { user, token } = useAuth();
-  const [isAdmin] = useState(user?.role === "admin");
+  const isAdmin = user?.role === "admin";
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
