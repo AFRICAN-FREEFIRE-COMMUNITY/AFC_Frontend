@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -16,11 +16,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  CreateTeamFormSchema,
-  CreateTeamFormSchemaType,
-} from "@/lib/zodSchemas";
-import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
+import { Loader } from "@/components/Loader";
+import { EditTeamFormSchema, EditTeamFormSchemaType } from "@/lib/zodSchemas";
+import { useEffect, useState, useTransition } from "react";
+import axios from "axios";
+import { env } from "@/lib/env";
 import {
   Select,
   SelectContent,
@@ -28,86 +29,77 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { countries } from "@/constants";
-import { useState, useTransition } from "react";
-import axios from "axios";
-import { env } from "@/lib/env";
-import { useRouter } from "next/navigation";
+import { extractSocialMediaUrls } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  Check,
-  Github,
-  Globe,
-  Instagram,
-  Linkedin,
-  Plus,
-  Twitter,
-  X,
-  Youtube,
-} from "lucide-react";
-import { Loader } from "@/components/Loader";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-export function CreateTeamForm() {
-  const router = useRouter();
+export function EditTeamForm({ id }: { id: string }) {
   const [pending, startTransition] = useTransition();
-  const { user, token } = useAuth();
-
+  const [submitPending, startSubmitTransition] = useTransition();
+  const [teamDetails, setTeamDetails] = useState<any>();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const form = useForm<CreateTeamFormSchemaType>({
-    resolver: zodResolver(CreateTeamFormSchema),
+  const { user, token } = useAuth();
+  const router = useRouter();
+
+  const form = useForm<EditTeamFormSchemaType>({
+    resolver: zodResolver(EditTeamFormSchema),
     defaultValues: {
+      team_id: "",
       team_name: "",
-      team_description: "",
-      country: "",
-      team_tag: "",
-      list_of_players_to_invite: [{ player: "" }],
+      team_logo: "",
+      join_settings: "",
+      facebook_url: "",
+      twitter_url: "",
+      instagram_url: "",
+      youtube_url: "",
+      twitch_url: "",
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "list_of_players_to_invite",
-  });
+  useEffect(() => {
+    if (!id) return; // Don't run if id is not available yet
 
-  const addInvite = () => {
-    append({ player: "" });
-  };
-
-  const removeInvite = (index: number) => {
-    if (fields.length > 1) {
-      remove(index);
-    }
-  };
-
-  function onSubmit(data: z.infer<typeof CreateTeamFormSchema>) {
     startTransition(async () => {
+      try {
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+          { team_name: id }
+        );
+        setTeamDetails(res.data.team);
+      } catch (error: any) {
+        toast.error(error.response.data.message);
+      }
+    });
+  }, [id]);
+
+  // Update form values when teamDetails changes
+  useEffect(() => {
+    if (teamDetails) {
+      const socialUrls = extractSocialMediaUrls(teamDetails.social_media_links);
+
+      form.reset({
+        team_id: teamDetails.team_id || teamDetails.team_name,
+        team_name: teamDetails.team_name || "",
+        join_settings: teamDetails.join_settings || "",
+        team_logo: teamDetails.team_logo || "",
+        ...socialUrls,
+        // Add all other fields that need to be populated
+      });
+    }
+  }, [teamDetails, form]);
+
+  function onSubmit(data: EditTeamFormSchemaType) {
+    startSubmitTransition(async () => {
       try {
         // Create FormData object
         const formData = new FormData();
 
         formData.append("team_name", data.team_name);
-        if (data.team_tag) {
-          formData.append("team_tag", data.team_tag);
-        }
         if (selectedFile) {
           formData.append("team_logo", selectedFile);
         }
-        formData.append("team_description", data.team_description);
-        formData.append("country", data.country);
         formData.append("join_settings", data.join_settings);
-        // Handle list_of_players_to_invite as JSON string
-        if (
-          data.list_of_players_to_invite &&
-          data.list_of_players_to_invite.length > 0
-        ) {
-          formData.append(
-            "list_of_players_to_invite",
-            JSON.stringify(data.list_of_players_to_invite)
-          );
-        }
-
         const socialMediaLinks: any = {};
         if (data.facebook_url) socialMediaLinks.facebook = data.facebook_url;
         if (data.twitter_url) socialMediaLinks.twitter = data.twitter_url;
@@ -118,15 +110,13 @@ export function CreateTeamForm() {
         // Only append if there are social media links
         if (Object.keys(socialMediaLinks).length > 0) {
           formData.append(
-            "team_social_media_links",
+            "social_media_links",
             JSON.stringify(socialMediaLinks)
           );
         }
 
-        console.log(data, formData);
-
         const response = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/create-team/`,
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/edit-team/`,
           formData,
           {
             headers: {
@@ -137,7 +127,7 @@ export function CreateTeamForm() {
 
         if (response.statusText === "OK") {
           toast.success(`Team created successfully!`);
-          router.push("/teams");
+          router.push(`/teams/${id}`);
         } else {
           toast.error("Oops! An error occurred");
         }
@@ -159,19 +149,6 @@ export function CreateTeamForm() {
               <FormLabel>Team name</FormLabel>
               <FormControl>
                 <Input placeholder="Enter your team name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="team_tag"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Team tag (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your team tag" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -210,52 +187,11 @@ export function CreateTeamForm() {
         />
         <FormField
           control={form.control}
-          name="team_description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Team description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Enter a brief description about your team"
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="country"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Country</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your country" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {countries.map((country, index) => (
-                    <SelectItem key={index} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="join_settings"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Join settings</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your settings" />
@@ -270,51 +206,6 @@ export function CreateTeamForm() {
             </FormItem>
           )}
         />
-        <div className="space-y-2">
-          <FormLabel>Invite Members (Email or Username)</FormLabel>
-          {fields.map((field, index) => (
-            <FormField
-              key={field.id}
-              control={form.control}
-              name={`list_of_players_to_invite.${index}.player`}
-              render={({ field: formField }) => (
-                <FormItem>
-                  <FormControl>
-                    <div className="relative group">
-                      <Input
-                        {...formField}
-                        placeholder={`Enter email or username`}
-                      />
-                      <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                        {formField.value && (
-                          <Button type="button" variant="ghost">
-                            <Check className="w-4 h-4 text-green-500" />
-                          </Button>
-                        )}
-                        {fields.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeInvite(index)}
-                            className="text-muted-foreground hover:text-red-500"
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-          <Button type="button" onClick={addInvite} disabled={pending}>
-            <Plus className="size-4 mr-1" />
-            New invite
-          </Button>
-        </div>
         <div className="space-y-2.5">
           <FormLabel>Social Media Links (Optional)</FormLabel>
           <div className="space-y-1.5">
@@ -382,10 +273,10 @@ export function CreateTeamForm() {
         </div>
         <div className="flex items-center justify-between gap-4">
           <Button asChild variant={"outline"}>
-            <Link href="/teams">Cancel</Link>
+            <Link href={`/teams/${id}`}>Back</Link>
           </Button>
-          <Button type="submit">
-            {pending ? <Loader text="Creating..." /> : "Create Team"}
+          <Button disabled={submitPending} type="submit">
+            {submitPending ? <Loader text="Updating..." /> : "Update Team"}
           </Button>
         </div>
       </form>

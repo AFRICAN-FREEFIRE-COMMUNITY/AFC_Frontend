@@ -1,104 +1,112 @@
-"use client"
+// "use client"
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Layout from "@/components/Layout"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "@/components/ui/use-toast"
-import { X } from "lucide-react"
+// import { useState, useEffect } from "react"
+// import { useParams, useRouter } from "next/navigation"
+import Layout from "@/components/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button"
+// import { Input } from "@/components/ui/input"
+// import { Label } from "@/components/ui/label"
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// import { toast } from "@/components/ui/use-toast"
+// import { X } from "lucide-react"
+import { EditTeamForm } from "./_components/EditTeamForm";
 
-// Mock team data
-const mockTeamData = {
-  id: "1",
-  name: "Team Alpha",
-  logo: "https://example.com/team-alpha-logo.png",
-  joinSetting: "open",
-}
+// // Mock team data
+// const mockTeamData = {
+//   id: "1",
+//   name: "Team Alpha",
+//   logo: "https://example.com/team-alpha-logo.png",
+//   joinSetting: "open",
+// }
 
-export default function EditTeamPage() {
-  const params = useParams()
-  const router = useRouter()
-  const [teamData, setTeamData] = useState(mockTeamData)
-  const [logoFile, setLogoFile] = useState<File | null>(null)
-  const [socialMediaLinks, setSocialMediaLinks] = useState([
-    { platform: "facebook", link: "https://facebook.com/teamalpha" },
-    { platform: "twitter", link: "https://twitter.com/teamalpha" },
-    { platform: "instagram", link: "https://instagram.com/teamalpha" },
-  ])
+type Params = Promise<{
+  id: string;
+}>;
 
-  useEffect(() => {
-    // In a real app, fetch team data based on params.id
-    // setTeamData(fetchedTeamData)
-  }, [])
+export default async function EditTeamPage({ params }: { params: Params }) {
+  const { id } = await params;
+  const decodedId = decodeURIComponent(id);
+  // const params = useParams()
+  // const router = useRouter()
+  // const [teamData, setTeamData] = useState(mockTeamData)
+  // const [logoFile, setLogoFile] = useState<File | null>(null)
+  // const [socialMediaLinks, setSocialMediaLinks] = useState([
+  //   { platform: "facebook", link: "https://facebook.com/teamalpha" },
+  //   { platform: "twitter", link: "https://twitter.com/teamalpha" },
+  //   { platform: "instagram", link: "https://instagram.com/teamalpha" },
+  // ])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setTeamData({ ...teamData, [e.target.name]: e.target.value })
-  }
+  // useEffect(() => {
+  //   // In a real app, fetch team data based on params.id
+  //   // setTeamData(fetchedTeamData)
+  // }, [])
 
-  const handleSocialMediaChange = (index: number, field: "platform" | "link", value: string) => {
-    const updatedLinks = [...socialMediaLinks]
-    updatedLinks[index][field] = value
-    setSocialMediaLinks(updatedLinks)
-  }
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  //   setTeamData({ ...teamData, [e.target.name]: e.target.value })
+  // }
 
-  const addSocialMediaLink = () => {
-    setSocialMediaLinks([...socialMediaLinks, { platform: "", link: "" }])
-  }
+  // const handleSocialMediaChange = (index: number, field: "platform" | "link", value: string) => {
+  //   const updatedLinks = [...socialMediaLinks]
+  //   updatedLinks[index][field] = value
+  //   setSocialMediaLinks(updatedLinks)
+  // }
 
-  const removeSocialMediaLink = (index: number) => {
-    const updatedLinks = socialMediaLinks.filter((_, i) => i !== index)
-    setSocialMediaLinks(updatedLinks)
-  }
+  // const addSocialMediaLink = () => {
+  //   setSocialMediaLinks([...socialMediaLinks, { platform: "", link: "" }])
+  // }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // const removeSocialMediaLink = (index: number) => {
+  //   const updatedLinks = socialMediaLinks.filter((_, i) => i !== index)
+  //   setSocialMediaLinks(updatedLinks)
+  // }
 
-    // In a real app, you would make an API call to update the team
-    try {
-      // Simulating an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
 
-      // Handle logo upload
-      if (logoFile) {
-        // In a real app, you would upload the file to your server or a file storage service
-        console.log("Uploading logo:", logoFile.name)
-      }
+  //   // In a real app, you would make an API call to update the team
+  //   try {
+  //     // Simulating an API call
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Include socialMediaLinks in the data to be sent to the server
-      const updatedTeamData = {
-        ...teamData,
-        socialMediaLinks,
-      }
+  //     // Handle logo upload
+  //     if (logoFile) {
+  //       // In a real app, you would upload the file to your server or a file storage service
+  //       console.log("Uploading logo:", logoFile.name)
+  //     }
 
-      console.log("Updating team data:", updatedTeamData)
+  //     // Include socialMediaLinks in the data to be sent to the server
+  //     const updatedTeamData = {
+  //       ...teamData,
+  //       socialMediaLinks,
+  //     }
 
-      toast({
-        title: "Team updated successfully",
-        description: `${teamData.name} has been updated.`,
-      })
-      router.push(`/teams/${teamData.id}`)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An error occurred while updating the team. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
+  //     console.log("Updating team data:", updatedTeamData)
+
+  //     toast({
+  //       title: "Team updated successfully",
+  //       description: `${teamData.name} has been updated.`,
+  //     })
+  //     router.push(`/teams/${teamData.id}`)
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description: "An error occurred while updating the team. Please try again.",
+  //       variant: "destructive",
+  //     })
+  //   }
+  // }
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Edit Team: {teamData.name}</CardTitle>
+            <CardTitle>Edit Team: {decodedId}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <EditTeamForm id={decodedId} />
+            {/* <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="name">Team Name</Label>
                 <Input id="name" name="name" value={teamData.name} onChange={handleChange} required />
@@ -168,10 +176,10 @@ export default function EditTeamPage() {
                 </Button>
                 <Button type="submit">Update Team</Button>
               </div>
-            </form>
+            </form> */}
           </CardContent>
         </Card>
       </div>
     </Layout>
-  )
+  );
 }

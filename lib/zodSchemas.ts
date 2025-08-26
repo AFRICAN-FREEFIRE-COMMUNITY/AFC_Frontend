@@ -139,6 +139,39 @@ export const CreateTeamFormSchema = z.object({
   country: z.string().min(2, {
     message: "Country must be at least 2 characters.",
   }),
+  join_settings: z.string().min(2, {
+    message: "Join settings must be selected.",
+  }),
+  list_of_players_to_invite: z
+    .array(
+      z.object({
+        player: z.string(),
+      })
+    )
+    .optional(),
+  facebook_url: z.string().optional(),
+  twitter_url: z.string().optional(),
+  instagram_url: z.string().optional(),
+  youtube_url: z.string().optional(),
+  twitch_url: z.string().optional(),
+});
+
+export const EditTeamFormSchema = z.object({
+  team_id: z.string().min(2, {
+    message: "Team id is required.",
+  }),
+  team_name: z.string().min(2, {
+    message: "Team name must be at least 2 characters.",
+  }),
+  team_logo: z.string().optional(),
+  join_settings: z.string().min(2, {
+    message: "Join settings must be selected.",
+  }),
+  facebook_url: z.string().optional(),
+  twitter_url: z.string().optional(),
+  instagram_url: z.string().optional(),
+  youtube_url: z.string().optional(),
+  twitch_url: z.string().optional(),
 });
 
 export const CreateNewsFormSchema = z.object({
@@ -180,5 +213,6 @@ export type EmailConfirmationFormSchemaType = z.infer<
 export type EditProfileFormSchemaType = z.infer<typeof EditProfileFormSchema>;
 export type ContactFormSchemaType = z.infer<typeof ContactFormSchema>;
 export type CreateTeamFormSchemaType = z.infer<typeof CreateTeamFormSchema>;
+export type EditTeamFormSchemaType = z.infer<typeof EditTeamFormSchema>;
 export type CreateNewsFormSchemaType = z.infer<typeof CreateNewsFormSchema>;
 export type EditNewsFormSchemaType = z.infer<typeof EditNewsFormSchema>;
