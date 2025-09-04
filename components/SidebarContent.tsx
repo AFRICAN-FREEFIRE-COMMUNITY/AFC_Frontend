@@ -16,6 +16,7 @@ import {
   UserCircle,
   Shield,
   ShoppingCart,
+  Award,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import type React from "react";
@@ -48,6 +49,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     { href: "/rankings", label: "Rankings & Tiers", icon: BarChart2 },
     { href: "/news", label: "News & Updates", icon: Newspaper },
     { href: "/shop", label: "Shop", icon: ShoppingCart },
+    { href: "/awards", label: "Awards", icon: Award },
     { href: "/about", label: "About Us", icon: Info },
     { href: "/contact", label: "Contact", icon: Mail },
   ];

@@ -61,7 +61,7 @@ export const DEFAULT_PROFILE_PICTURE =
 export const newsCategories = [
   { value: "general", label: "General News" },
   { value: "tournament", label: "Tournament Updates" },
-  { value: "ban", label: "Banned Player/Team Updates" },
+  { value: "bans", label: "Banned Player/Team Updates" },
   // { value: "maintenance", label: "Maintenance Updates" },
   // { value: "events", label: "Event Announcements" },
 ];
