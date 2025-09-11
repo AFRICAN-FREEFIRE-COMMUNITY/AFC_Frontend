@@ -261,8 +261,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Check if user has admin or moderator role
-    const allowedRoles = ["admin", "moderator", "player"];
+    const allowedRoles = ["admin", "moderator"];
     if (!user?.role || !allowedRoles.includes(user.role)) {
       toast.error("You don't have permission to access the admin panel");
       router.push("/home");

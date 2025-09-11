@@ -22,6 +22,7 @@ export interface User {
   email: string;
   profile_pic?: string;
   banReason?: boolean;
+  isBanned?: boolean;
 }
 
 interface AuthContextType {

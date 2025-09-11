@@ -162,6 +162,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
   const [newMemberSearch, setNewMemberSearch] = useState("");
 
   const [pending, startTransition] = useTransition();
+  const [pendingRequest, startRequestTransition] = useTransition();
   const [pendingDisbanded, startDisbandTransition] = useTransition();
   const [pendingTransfer, startTransferTransition] = useTransition();
   const [teamDetails, setTeamDetails] = useState<any>();
@@ -193,9 +194,24 @@ export const TeamDetails = ({ id }: { id: string }) => {
     });
   }, [id]);
 
+  console.log(teamDetails);
+
   const handleJoinTeam = () => {
-    // Implement join team logic
-    console.log("Requesting to join team...");
+    startRequestTransition(async () => {
+      try {
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/send-join-request/`,
+          { team_id: teamDetails.team_id, message: "" },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success(res.data.message);
+      } catch (error: any) {
+        console.log(error);
+        toast.error(error.response.data.message);
+      }
+    });
   };
 
   const handleGenerateInviteLink = () => {
@@ -296,6 +312,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
   };
 
   const handleDisbandTeam = async () => {
+    console.log("yess");
     startDisbandTransition(async () => {
       try {
         const response = await axios.post(
@@ -307,6 +324,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
             },
           }
         );
+        console.log(response);
 
         if (response.statusText === "OK") {
           toast.success(response.data.message);
@@ -392,6 +410,9 @@ export const TeamDetails = ({ id }: { id: string }) => {
   if (teamDetails)
     return (
       <div className="container mx-auto px-4 py-8">
+        <Button variant={"outline"} className="mb-4" asChild>
+          <Link href="/teams">Go back</Link>
+        </Button>
         <Card className={team.isBanned ? "border-red-500" : ""}>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -419,9 +440,15 @@ export const TeamDetails = ({ id }: { id: string }) => {
               </div>
               <div className="space-x-2">
                 {!isTeamCreator && !teamDetails?.is_banned && (
-                  <Button onClick={handleJoinTeam}>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Request to Join
+                  <Button disabled={pendingRequest} onClick={handleJoinTeam}>
+                    {pendingRequest ? (
+                      <Loader text="Sending..." />
+                    ) : (
+                      <>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Request to Join
+                      </>
+                    )}
                   </Button>
                 )}
                 {isTeamCreator && !teamDetails?.is_banned && (

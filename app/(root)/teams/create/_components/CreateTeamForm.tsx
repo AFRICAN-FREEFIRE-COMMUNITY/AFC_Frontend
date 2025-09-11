@@ -135,14 +135,19 @@ export function CreateTeamForm() {
           }
         );
 
-        if (response.statusText === "OK") {
+        console.log(response);
+
+        if (response.statusText === "Created") {
           toast.success(`Team created successfully!`);
           router.push("/teams");
         } else {
+          console.log("noooo");
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
+        console.log(error);
         toast.error(error?.response?.data?.message || "Internal server error");
+
         return;
       }
     });
@@ -384,7 +389,7 @@ export function CreateTeamForm() {
           <Button asChild variant={"outline"}>
             <Link href="/teams">Cancel</Link>
           </Button>
-          <Button type="submit">
+          <Button disabled={pending} type="submit">
             {pending ? <Loader text="Creating..." /> : "Create Team"}
           </Button>
         </div>

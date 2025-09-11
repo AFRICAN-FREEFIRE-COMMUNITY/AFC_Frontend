@@ -157,7 +157,7 @@ export const CreateTeamFormSchema = z.object({
 });
 
 export const EditTeamFormSchema = z.object({
-  team_id: z.string().min(2, {
+  team_id: z.coerce.number().min(2, {
     message: "Team id is required.",
   }),
   team_name: z.string().min(2, {

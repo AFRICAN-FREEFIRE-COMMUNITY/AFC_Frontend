@@ -50,7 +50,7 @@ export const LatestNews = () => {
         );
 
         if (res.statusText === "OK") {
-          setNews(res.data.news);
+          setNews(res.data.news.splice(0, 2));
         } else {
           toast.error("Oops! An error occurred");
         }
