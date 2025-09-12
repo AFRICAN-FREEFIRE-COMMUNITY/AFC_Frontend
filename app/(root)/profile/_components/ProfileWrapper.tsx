@@ -77,8 +77,6 @@ export const ProfileWrapper = () => {
 
   const { user } = useAuth();
 
-  console.log(user);
-
   if (!user) return null;
 
   return (

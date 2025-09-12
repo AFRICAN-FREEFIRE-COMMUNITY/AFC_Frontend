@@ -703,7 +703,6 @@ export function CreateNewsForm() {
         toast.success(response.data.message);
         router.push(`/news`);
       } catch (error: any) {
-        console.log(error);
         toast.error(error?.response?.data?.message || "Internal server error");
         return;
       }

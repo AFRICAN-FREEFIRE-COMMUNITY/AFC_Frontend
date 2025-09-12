@@ -83,9 +83,7 @@ export function Team({ id }: { id: string }) {
           { team_name: decodedId }
         );
         setTeamDetails(res.data.team);
-        console.log(res.data);
       } catch (error: any) {
-        console.log(error);
         toast.error(error.response.data.message);
       }
     });

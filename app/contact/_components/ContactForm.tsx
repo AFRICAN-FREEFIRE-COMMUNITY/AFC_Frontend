@@ -57,7 +57,6 @@ export const ContactForm = () => {
         );
 
         if (response.statusText === "OK") {
-          console.log(response);
           toast.success(response.data.message);
           // router.push("/home");
           setOpenModal(true);

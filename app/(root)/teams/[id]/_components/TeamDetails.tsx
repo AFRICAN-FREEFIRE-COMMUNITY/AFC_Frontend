@@ -186,15 +186,11 @@ export const TeamDetails = ({ id }: { id: string }) => {
         );
         setTeamDetails(res.data.team);
         setIsTeamCreator(res.data.team.team_creator === user?.in_game_name);
-        console.log(res.data);
       } catch (error: any) {
-        console.log(error);
         toast.error(error.response.data.message);
       }
     });
   }, [id]);
-
-  console.log(teamDetails);
 
   const handleJoinTeam = () => {
     startRequestTransition(async () => {
@@ -208,7 +204,6 @@ export const TeamDetails = ({ id }: { id: string }) => {
         );
         toast.success(res.data.message);
       } catch (error: any) {
-        console.log(error);
         toast.error(error.response.data.message);
       }
     });
@@ -312,7 +307,6 @@ export const TeamDetails = ({ id }: { id: string }) => {
   };
 
   const handleDisbandTeam = async () => {
-    console.log("yess");
     startDisbandTransition(async () => {
       try {
         const response = await axios.post(
@@ -324,8 +318,6 @@ export const TeamDetails = ({ id }: { id: string }) => {
             },
           }
         );
-        console.log(response);
-
         if (response.statusText === "OK") {
           toast.success(response.data.message);
           router.push("/teams");
@@ -333,7 +325,6 @@ export const TeamDetails = ({ id }: { id: string }) => {
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
-        console.log(error);
         toast.error(error?.response?.data?.message);
       }
     });
@@ -381,7 +372,6 @@ export const TeamDetails = ({ id }: { id: string }) => {
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
-        console.log(error);
         toast.error(error?.response?.data?.message);
       }
     });
@@ -574,11 +564,11 @@ export const TeamDetails = ({ id }: { id: string }) => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {teamDetails?.team_members?.map((member: any) => (
+                        {teamDetails?.members?.map((member: any) => (
                           <TableRow key={member.id}>
-                            <TableCell>{member.name}</TableCell>
-                            <TableCell>{member.inGameRole}</TableCell>
-                            <TableCell>{member.managementRole}</TableCell>
+                            <TableCell>{member.username}</TableCell>
+                            <TableCell>{member.in_game_role}</TableCell>
+                            <TableCell>{member.management_role}</TableCell>
                             <TableCell>
                               <Button variant="outline" asChild>
                                 <Link href={`/players/${member.id}`}>
@@ -589,7 +579,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                           </TableRow>
                         ))}
                       </TableBody>
-                      {teamDetails?.team_members === undefined && (
+                      {teamDetails?.members === undefined && (
                         <p className="italic text-sm text-center py-4 w-full">
                           There are no members yet
                         </p>

@@ -123,8 +123,6 @@ export function CreateTeamForm() {
           );
         }
 
-        console.log(data, formData);
-
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/create-team/`,
           formData,
@@ -135,17 +133,13 @@ export function CreateTeamForm() {
           }
         );
 
-        console.log(response);
-
         if (response.statusText === "Created") {
           toast.success(`Team created successfully!`);
           router.push("/teams");
         } else {
-          console.log("noooo");
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
-        console.log(error);
         toast.error(error?.response?.data?.message || "Internal server error");
 
         return;

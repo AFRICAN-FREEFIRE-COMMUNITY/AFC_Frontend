@@ -33,17 +33,13 @@ export const NewsDetails = ({ id }: { id: string }) => {
           { news_id: decodedId }
         );
         setNewsDetails(res.data.news);
-        console.log(res.data);
       } catch (error: any) {
-        console.log(error);
         toast.error(error.response.data.message);
       }
     });
   }, [id]);
 
   if (pending) return <FullLoader text="details" />;
-
-  console.log(newsDetails);
 
   if (newsDetails)
     return (
