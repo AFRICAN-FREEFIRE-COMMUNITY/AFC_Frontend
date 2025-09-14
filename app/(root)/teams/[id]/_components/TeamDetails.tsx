@@ -158,7 +158,6 @@ export const TeamDetails = ({ id }: { id: string }) => {
   const [selectedEvent, setSelectedEvent] = useState("");
   const [isTeamCreator, setIsTeamCreator] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [newMemberSearch, setNewMemberSearch] = useState("");
 
   const [pending, startTransition] = useTransition();
@@ -210,7 +209,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
   };
 
   const handleGenerateInviteLink = () => {
-    const newInviteLink = `https://afcdatabase.com/join-team/${
+    const newInviteLink = `${env.NEXT_PUBLIC_URL}/join-team/${
       teamDetails.team_id
     }/${Math.random().toString(36).substr(2, 9)}`;
     setInviteLink(newInviteLink);
@@ -395,7 +394,6 @@ export const TeamDetails = ({ id }: { id: string }) => {
   };
 
   if (pending) return <FullLoader text="details" />;
-  if (error) return <Layout>Error: {error}</Layout>;
 
   if (teamDetails)
     return (
@@ -411,6 +409,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                   <AvatarImage
                     src={teamDetails?.team_logo}
                     alt={teamDetails?.team_name}
+                    className="object-cover"
                   />
                   <AvatarFallback>{teamDetails?.team_name[0]}</AvatarFallback>
                 </Avatar>

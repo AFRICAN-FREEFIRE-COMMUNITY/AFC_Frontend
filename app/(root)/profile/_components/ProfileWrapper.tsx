@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -81,7 +81,10 @@ export const ProfileWrapper = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Player Profile</h1>
+      <h1 className="text-4xl font-bold mb-4">Player Profile</h1>
+      <Button variant="outline" onClick={() => router.back()} className="mb-4">
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back
+      </Button>
 
       {user.isBanned && (
         <Alert variant="destructive" className="mb-6">

@@ -24,34 +24,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
-// const useAuth = () => {
-//   const [isLoggedIn, setIsLoggedIn] = useState(false)
-//   const [userRole, setUserRole] = useState("user")
-
-//   const login = useCallback(() => {
-//     setIsLoggedIn(true)
-//     setUserRole("moderator")
-//     localStorage.setItem("isLoggedIn", "true")
-//     localStorage.setItem("userRole", "moderator")
-//   }, [])
-
-//   const logout = useCallback(() => {
-//     setIsLoggedIn(false)
-//     setUserRole("user")
-//     localStorage.removeItem("isLoggedIn")
-//     localStorage.removeItem("userRole")
-//   }, [])
-
-//   useEffect(() => {
-//     const storedIsLoggedIn = localStorage.getItem("isLoggedIn") === "true"
-//     const storedUserRole = localStorage.getItem("userRole") || "user"
-//     setIsLoggedIn(storedIsLoggedIn)
-//     setUserRole(storedUserRole)
-//   }, [])
-
-//   return { isLoggedIn, userRole, login, logout }
-// }
-
 const CartDrawer = () => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, tax, total } =
     useCart();
@@ -119,9 +91,8 @@ const CartDrawer = () => {
                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
                   disabled={item.quantity <= 1}
                 >
-                  <Minus className="h-4 w-4" />
+                  <span className="w-8 text-center">{item.quantity}</span>
                 </Button>
-                <span className="w-8 text-center">{item.quantity}</span>
                 <Button
                   variant="outline"
                   size="icon"
@@ -170,17 +141,14 @@ const CartDrawer = () => {
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
-  // const { isLoggedIn, userRole, login, logout } = useAuth()
   const { user, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      // await new Promise((resolve) => setTimeout(resolve, 500));
       if (
         !isAuthenticated &&
         !["/", "/login", "/create-account"].includes(pathname)
       ) {
-        // login()
         redirect("/login");
       }
     };
@@ -240,41 +208,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </nav>
       <main className="container mx-auto py-8 px-4 relative z-10">
-        {pathname.includes("/news") && (
-          <div className="mb-6 space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-grow">
-                <input
-                  type="search"
-                  placeholder="Search news and announcements..."
-                  className="w-full pl-10 pr-4 py-2 border rounded-md bg-background/50 backdrop-blur-sm"
-                />
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-muted-foreground"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div className="flex-shrink-0">
-                <input
-                  type="date"
-                  className="w-full md:w-auto px-4 py-2 border rounded-md bg-background/50 backdrop-blur-sm"
-                />
-              </div>
-            </div>
-          </div>
-        )}
         {children}
         {pathname.includes("/news") && (
           <div className="mt-8 flex justify-center">

@@ -143,7 +143,7 @@ export function Teams() {
                       }`}
                     >
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 capitalize">
                           <Avatar className="w-10 h-10">
                             <AvatarImage
                               src={team.team_logo}
@@ -152,7 +152,7 @@ export function Teams() {
                             />
                             <AvatarFallback>{team.team_name[0]}</AvatarFallback>
                           </Avatar>
-                          {team.team_name}
+                          <span className="uppercase">{team.team_name}</span>
                           {team.is_banned && (
                             <Badge variant="destructive">BANNED</Badge>
                           )}
@@ -160,7 +160,7 @@ export function Teams() {
                       </CardHeader>
                       <CardContent>
                         <p>
-                          Members: {team.team_members ? team.team_members : 0}
+                          Members: {team.member_count ? team.member_count : 0}
                         </p>
                         <p>Tier: {team.team_tier}</p>
                         <div className="flex justify-between mt-4">

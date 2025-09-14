@@ -446,8 +446,6 @@ export function Settings() {
           }
         );
 
-        console.log("Response:", response.data);
-
         if (response.data.success || response.status === 200) {
           await fetchUsers();
           setIsEditUserOpen(false);
