@@ -35,6 +35,7 @@ interface SidebarContentProps {
   onLogin: () => void;
   onLogout: () => void;
   userRole: string;
+  isAdmin: boolean;
 }
 
 export const SidebarContent: React.FC<SidebarContentProps> = ({
@@ -42,6 +43,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   onLogin,
   onLogout,
   userRole,
+  isAdmin,
 }) => {
   const pathname = usePathname();
 
@@ -132,7 +134,8 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
 
             {(userRole === "moderator" ||
               userRole === "super_admin" ||
-              userRole === "admin") && (
+              userRole === "admin" ||
+              isAdmin) && (
               <>
                 <Separator className="my-4" />
                 <Collapsible className="group">

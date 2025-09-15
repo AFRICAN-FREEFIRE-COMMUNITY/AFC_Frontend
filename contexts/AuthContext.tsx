@@ -1,5 +1,4 @@
 "use client";
-
 import { env } from "@/lib/env";
 import axios from "axios";
 import {
@@ -13,12 +12,14 @@ import { toast } from "sonner";
 
 export interface User {
   id: string;
+  user_id: number; // Add this since your DB returns user_id
   full_name: string;
   country: string;
   in_game_name: string;
   uid: string;
   team?: string;
   role: string;
+  roles: string[]; // Add this array for admin roles
   email: string;
   profile_pic?: string;
   banReason?: boolean;
@@ -32,6 +33,10 @@ interface AuthContextType {
   login: (token: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isAdminByRoleOrRoles: boolean;
+  hasRole: (role: string) => boolean;
+  hasAnyRole: (roles: string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,9 +70,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (res.statusText !== "OK") throw new Error("Failed to fetch user");
 
-      setUser(res.data);
+      // Map the database user to your User interface
+      const dbUser = res.data;
+      const mappedUser: User = {
+        id: dbUser.user_id.toString(), // Convert user_id to string for id
+        user_id: dbUser.user_id,
+        full_name: dbUser.full_name,
+        country: dbUser.country,
+        in_game_name: dbUser.in_game_name,
+        uid: dbUser.uid,
+        team: dbUser.team,
+        role: dbUser.role,
+        roles: dbUser.roles || [], // Handle the roles array
+        email: dbUser.email,
+        profile_pic: dbUser.profile_pic,
+        banReason: dbUser.banReason,
+        isBanned: dbUser.isBanned,
+      };
+
+      setUser(mappedUser);
     } catch (err: any) {
-      toast.error(err.response.data.message || "Internal server error");
+      toast.error(err.response?.data?.message || "Internal server error");
       logout();
     } finally {
       setLoading(false);
@@ -86,6 +109,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null);
   };
 
+  // Helper function to check if user has a specific role
+  const hasRole = (role: string): boolean => {
+    if (!user) return false;
+
+    // Check both the main role and the roles array
+    if (user.role === role) return true;
+
+    // Check roles array (case insensitive)
+    return user.roles.some((r) => r.toLowerCase() === role.toLowerCase());
+  };
+
+  // Helper function to check if user has any of the specified roles
+  const hasAnyRole = (roles: string[]): boolean => {
+    if (!user) return false;
+
+    return roles.some((role) => hasRole(role));
+  };
+
+  const isAdminByRoleOrRoles = user
+    ? user.role === "admin" ||
+      (user.role === "player" &&
+        user.roles?.some((role) =>
+          ["Head Admin", "Shop Admin", "News Admin"].includes(role)
+        ))
+    : false;
+
+  // Check if user is admin (has any admin role)
+  const isAdmin = user
+    ? user.role === "admin" ||
+      hasAnyRole(["Head Admin", "Shop Admin", "News Admin", "admin"])
+    : false;
+
   return (
     <AuthContext.Provider
       value={{
@@ -95,6 +150,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         isAuthenticated: !!user,
+        isAdmin,
+        hasRole,
+        hasAnyRole,
+        isAdminByRoleOrRoles,
       }}
     >
       {children}

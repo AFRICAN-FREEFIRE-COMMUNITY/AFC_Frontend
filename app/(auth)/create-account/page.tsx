@@ -1,8 +1,15 @@
+"use client";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { CreateAccountForm } from "./_components/CreateAccountForm";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function page() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) return router.push("/home");
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="bg-card p-8 rounded-lg shadow-lg w-full max-w-md">

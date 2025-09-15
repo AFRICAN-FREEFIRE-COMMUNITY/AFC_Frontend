@@ -162,6 +162,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
 
   const [pending, startTransition] = useTransition();
   const [pendingRequest, startRequestTransition] = useTransition();
+  const [pendingInvite, startInviteTransition] = useTransition();
   const [pendingDisbanded, startDisbandTransition] = useTransition();
   const [pendingTransfer, startTransferTransition] = useTransition();
   const [teamDetails, setTeamDetails] = useState<any>();
@@ -251,29 +252,33 @@ export const TeamDetails = ({ id }: { id: string }) => {
         (request) => request.id !== requestId
       ),
     }));
-    // toast({
-    //   title: "Join request denied",
-    //   description: "The join request has been denied.",
-    // });
   };
 
   const handleAddNewMember = () => {
+    if (!newMemberSearch)
+      return toast.error("Please enter UID or in-game-name or email");
     if (team.members.length >= 6) {
-      // toast({
-      //   title: "Team is full",
-      //   description: "You cannot add more members to this team.",
-      //   variant: "destructive",
-      // });
-      return;
+      toast.error("Team is full");
     }
 
-    // In a real app, you would make an API call to invite the new member
-    // toast({
-    //   title: "Invitation sent",
-    //   description: `An invitation has been sent to ${newMemberSearch}.`,
-    // });
-
-    setNewMemberSearch("");
+    startInviteTransition(async () => {
+      try {
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/invite-member/`,
+          {
+            team_id: teamDetails.team_id,
+            invitee_email_or_ign: newMemberSearch,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success(res.data.message);
+        setNewMemberSearch("");
+      } catch (error: any) {
+        toast.error(error.response.data.message);
+      }
+    });
   };
 
   const handleBanStatusChange = async (newBanStatus: boolean) => {
@@ -591,13 +596,19 @@ export const TeamDetails = ({ id }: { id: string }) => {
                         </h4>
                         <div className="flex space-x-2">
                           <Input
-                            placeholder="Search by username or email"
+                            placeholder="Invite by email"
                             value={newMemberSearch}
                             onChange={(e) => setNewMemberSearch(e.target.value)}
                           />
                           <Button onClick={handleAddNewMember}>
-                            <Search className="mr-2 h-4 w-4" />
-                            Invite
+                            {pendingInvite ? (
+                              <Loader text=" " />
+                            ) : (
+                              <>
+                                <Search className="mr-2 h-4 w-4" />
+                                Invite
+                              </>
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -611,7 +622,13 @@ export const TeamDetails = ({ id }: { id: string }) => {
                   <CardHeader>
                     <CardTitle>Team Statistics</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="relative overflow-hidden">
+                    {/* Blur Overlay */}
+                    <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Coming Soon
+                      </span>
+                    </div>
                     <div className="space-y-4">
                       <div>
                         <Label>Date Range</Label>

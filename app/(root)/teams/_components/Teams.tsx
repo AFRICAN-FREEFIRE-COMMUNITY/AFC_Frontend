@@ -30,7 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
-import { FullLoader } from "@/components/Loader";
+import { FullLoader, Loader } from "@/components/Loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -82,17 +82,24 @@ export function Teams() {
     });
   }, [token]);
 
+  const [pendingRequest, startRequestTransition] = useTransition();
+
   const handleApply = (teamId: any) => {
-    // In a real application, you would send this request to your backend
-    console.log(
-      `Applying to team ${teamId} with message: ${applicationMessage}`
-    );
-    // toast({
-    //   title: "Application Sent",
-    //   description: "Your application has been sent to the team owner.",
-    // });
-    setApplicationMessage("");
-    setSelectedTeam(null);
+    startRequestTransition(async () => {
+      try {
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/send-join-request/`,
+          { team_id: teamId, message: "" },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success(res.data.message);
+        setSelectedTeam(null);
+      } catch (error: any) {
+        toast.error(error.response.data.message);
+      }
+    });
   };
 
   if (pending) return <FullLoader />;
@@ -174,7 +181,7 @@ export function Teams() {
                               <DialogTrigger asChild>
                                 <Button
                                   variant="outline"
-                                  onClick={() => setSelectedTeam(team)}
+                                  onClick={() => console.log(team)}
                                   disabled={
                                     team.is_banned || team.team_members >= 6
                                   }
@@ -213,11 +220,16 @@ export function Teams() {
                                 <DialogFooter>
                                   <Button
                                     type="submit"
+                                    disabled={pendingRequest}
                                     onClick={() =>
-                                      handleApply(selectedTeam?.id)
+                                      handleApply(selectedTeam?.team_id)
                                     }
                                   >
-                                    Send Application
+                                    {pendingRequest ? (
+                                      <Loader />
+                                    ) : (
+                                      "Send Application"
+                                    )}
                                   </Button>
                                 </DialogFooter>
                               </DialogContent>

@@ -248,7 +248,14 @@ import { Separator } from "./ui/separator";
 const AdminLayout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    loading,
+    logout,
+    isAdmin,
+    isAdminByRoleOrRoles,
+  } = useAuth();
 
   useEffect(() => {
     // Wait for auth to load
@@ -261,13 +268,12 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const allowedRoles = ["admin", "moderator"];
-    if (!user?.role || !allowedRoles.includes(user.role)) {
+    if (!isAdminByRoleOrRoles) {
       toast.error("You don't have permission to access the admin panel");
       router.push("/home");
       return;
     }
-  }, [loading, isAuthenticated, user, router]);
+  }, [loading, isAuthenticated, user, router, isAdmin, isAdminByRoleOrRoles]);
 
   const navItems = [
     {

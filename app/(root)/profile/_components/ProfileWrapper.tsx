@@ -143,49 +143,41 @@ export const ProfileWrapper = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
                     <p className="font-semibold">Total Kills</p>
-                    <p className="text-2xl font-bold">
-                      {userProfile.stats.kills}
-                    </p>
+                    <p className="text-2xl font-bold">0</p>
                   </div>
                   <div>
                     <p className="font-semibold">Wins</p>
-                    <p className="text-2xl font-bold">
-                      {userProfile.stats.wins}
-                    </p>
+                    <p className="text-2xl font-bold">0</p>
                   </div>
                   <div>
                     <p className="font-semibold">MVPs</p>
-                    <p className="text-2xl font-bold">
-                      {userProfile.stats.mvps}
-                    </p>
+                    <p className="text-2xl font-bold">0</p>
                   </div>
                   <div>
                     <p className="font-semibold">Booyahs</p>
-                    <p className="text-2xl font-bold">
-                      {userProfile.stats.booyahs}
-                    </p>
+                    <p className="text-2xl font-bold">0</p>
                   </div>
                   <div>
                     <p className="font-semibold">Tournaments</p>
-                    <p className="text-2xl font-bold">
-                      {userProfile.stats.tournamentsParticipated}
-                    </p>
+                    <p className="text-2xl font-bold">0</p>
                   </div>
                   <div>
                     <p className="font-semibold">Scrims</p>
-                    <p className="text-2xl font-bold">
-                      {userProfile.stats.scrimsParticipated}
-                    </p>
+                    <p className="text-2xl font-bold">0</p>
                   </div>
                   <div>
                     <p className="font-semibold">Current Rank</p>
-                    <p className="text-2xl font-bold">
-                      #{userProfile.stats.rank}
-                    </p>
+                    <p className="text-2xl font-bold">0</p>
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="history">
+              <TabsContent value="history" className="relative overflow-hidden">
+                {/* Blur Overlay */}
+                <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Coming Soon
+                  </span>
+                </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -205,7 +197,16 @@ export const ProfileWrapper = () => {
                   </TableBody>
                 </Table>
               </TabsContent>
-              <TabsContent value="achievements">
+              <TabsContent
+                value="achievements"
+                className="relative overflow-hidden"
+              >
+                {/* Blur Overlay */}
+                <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Coming Soon
+                  </span>
+                </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -224,7 +225,13 @@ export const ProfileWrapper = () => {
                 </Table>
               </TabsContent>
               {userProfile.role !== "user" && (
-                <TabsContent value="admin">
+                <TabsContent value="admin" className="relative overflow-hidden">
+                  {/* Blur Overlay */}
+                  <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Coming Soon
+                    </span>
+                  </div>
                   <h3 className="text-xl font-semibold mb-4">
                     Admin Capabilities
                   </h3>

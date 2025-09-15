@@ -23,14 +23,17 @@ export default function ContactPage() {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold">Email</h3>
-                  <p>support@afcdatabase.com</p>
+                  <a href={`mailto:info@africanfreefirecommunity.com`}>
+                    info@africanfreefirecommunity.com
+                  </a>
                 </div>
                 <div>
                   <h3 className="font-semibold">Discord</h3>
                   <p>
                     Join our Discord server:{" "}
                     <a
-                      href="https://discord.gg/afcdatabase"
+                      href="https://discord.gg/african-freefire-community-afc-920726990607237160
+"
                       className="text-primary hover:underline"
                     >
                       AFC Database
@@ -50,7 +53,15 @@ export default function ContactPage() {
                     </li>
                     <li>
                       <a
-                        href="https://facebook.com/afcdatabase"
+                        href="https://www.tiktok.com/@africanfreefirecommunity?_t=ZS-8zkdR9UFB9m&_r=1"
+                        className="text-primary hover:underline"
+                      >
+                        Tiktok
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.facebook.com/share/1G4D9jDyyt/"
                         className="text-primary hover:underline"
                       >
                         Facebook
@@ -58,7 +69,15 @@ export default function ContactPage() {
                     </li>
                     <li>
                       <a
-                        href="https://instagram.com/afcdatabase"
+                        href="https://www.instagram.com/africanfreefirecommunity?igsh=MXV0dHU2NXlmNXRhMg=="
+                        className="text-primary hover:underline"
+                      >
+                        Instagram
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.youtube.com/@AFRICANFREEFIRECOMMUNITY1"
                         className="text-primary hover:underline"
                       >
                         Instagram
