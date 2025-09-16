@@ -575,7 +575,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                             <TableCell>{member.management_role}</TableCell>
                             <TableCell>
                               <Button variant="outline" asChild>
-                                <Link href={`/players/${member.id}`}>
+                                <Link href={`/players/${member.username}`}>
                                   View Profile
                                 </Link>
                               </Button>

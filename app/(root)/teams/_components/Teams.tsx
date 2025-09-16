@@ -95,12 +95,15 @@ export function Teams() {
           }
         );
         toast.success(res.data.message);
+        console.log(res.data);
         setSelectedTeam(null);
       } catch (error: any) {
         toast.error(error.response.data.message);
       }
     });
   };
+
+  console.log(selectedTeam);
 
   if (pending) return <FullLoader />;
 
@@ -181,7 +184,7 @@ export function Teams() {
                               <DialogTrigger asChild>
                                 <Button
                                   variant="outline"
-                                  onClick={() => console.log(team)}
+                                  onClick={() => setSelectedTeam(team)}
                                   disabled={
                                     team.is_banned || team.team_members >= 6
                                   }
