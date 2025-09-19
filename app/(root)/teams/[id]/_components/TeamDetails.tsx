@@ -166,6 +166,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
   const [pendingDisbanded, startDisbandTransition] = useTransition();
   const [pendingTransfer, startTransferTransition] = useTransition();
   const [teamDetails, setTeamDetails] = useState<any>();
+  const [joinRequests, setJoinRequests] = useState<any>();
 
   const { user, token } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -184,8 +185,14 @@ export const TeamDetails = ({ id }: { id: string }) => {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
           { team_name: decodedId }
         );
+        const requestResponse = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
+          { team_id: res.data.team.team_id }
+        );
         setTeamDetails(res.data.team);
         setIsTeamCreator(res.data.team.team_creator === user?.in_game_name);
+
+        setJoinRequests(requestResponse.data.join_requests);
       } catch (error: any) {
         toast.error(error.response.data.message);
       }
@@ -819,7 +826,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                       <CardTitle>Join Requests</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {teamDetails?.join_requests?.length === 0 ? (
+                      {joinRequests?.length === 0 ? (
                         <p>No pending join requests.</p>
                       ) : (
                         <Table>
@@ -831,15 +838,17 @@ export const TeamDetails = ({ id }: { id: string }) => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {teamDetails?.join_requests?.map((request: any) => (
-                              <TableRow key={request.id}>
-                                <TableCell>{request.name}</TableCell>
+                            {joinRequests?.map((request: any) => (
+                              <TableRow key={request.request_id}>
+                                <TableCell>{request.requester}</TableCell>
                                 <TableCell>{request.uid}</TableCell>
                                 <TableCell>
                                   <div className="space-x-2">
                                     <Button
                                       onClick={() =>
-                                        handleApproveJoinRequest(request.id)
+                                        handleApproveJoinRequest(
+                                          request.request_id
+                                        )
                                       }
                                     >
                                       Approve
@@ -847,13 +856,17 @@ export const TeamDetails = ({ id }: { id: string }) => {
                                     <Button
                                       variant="outline"
                                       onClick={() =>
-                                        handleDenyJoinRequest(request.id)
+                                        handleDenyJoinRequest(
+                                          request.request_id
+                                        )
                                       }
                                     >
                                       Deny
                                     </Button>
                                     <Button variant="outline" asChild>
-                                      <Link href={`/players/${request.id}`}>
+                                      <Link
+                                        href={`/players/${request.requester}`}
+                                      >
                                         View Profile
                                       </Link>
                                     </Button>
