@@ -181,7 +181,7 @@ export default function PlayerProfilePage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {playerData.recentMatches.map((match) => (
+                    {playerData.recentMatches.map((match: any) => (
                       <TableRow key={match.id}>
                         <TableCell>{match.tournament}</TableCell>
                         <TableCell>{match.kills}</TableCell>
@@ -192,13 +192,6 @@ export default function PlayerProfilePage() {
                 </Table>
               </TabsContent>
             </Tabs>
-            <div className="mt-6 flex justify-end">
-              <Button asChild>
-                <Link href={`/players/${playerData.id}/edit`}>
-                  Edit Profile
-                </Link>
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>

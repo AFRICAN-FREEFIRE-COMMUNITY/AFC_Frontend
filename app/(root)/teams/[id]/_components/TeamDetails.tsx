@@ -162,6 +162,9 @@ export const TeamDetails = ({ id }: { id: string }) => {
 
   const [pending, startTransition] = useTransition();
   const [pendingRequest, startRequestTransition] = useTransition();
+  const [pendingApproveRequest, startApproveRequestTransition] =
+    useTransition();
+  const [pendingDenyRequest, startDenyRequestTransition] = useTransition();
   const [pendingInvite, startInviteTransition] = useTransition();
   const [pendingDisbanded, startDisbandTransition] = useTransition();
   const [pendingTransfer, startTransferTransition] = useTransition();
@@ -230,21 +233,23 @@ export const TeamDetails = ({ id }: { id: string }) => {
 
   const handleApproveJoinRequest = (requestId: string) => {
     // In a real app, you would make an API call to approve the request
-    setTeam((prevTeam) => ({
-      ...prevTeam,
-      joinRequests: prevTeam.joinRequests.filter(
-        (request) => request.id !== requestId
-      ),
-      members: [
-        ...prevTeam.members,
-        {
-          id: requestId,
-          name: "New Member",
-          inGameRole: "",
-          managementRole: "",
-        },
-      ],
-    }));
+    startApproveRequestTransition(async () => {
+      try {
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
+          { request_id: requestId, decision: "approved" },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success(res.data.message);
+        router.refresh();
+      } catch (error: any) {
+        console.log(error);
+        toast.error(error.response.data.message);
+      }
+    });
+
     // toast({
     //   title: "Join request approved",
     //   description: "The player has been added to your team.",
@@ -252,13 +257,22 @@ export const TeamDetails = ({ id }: { id: string }) => {
   };
 
   const handleDenyJoinRequest = (requestId: string) => {
-    // In a real app, you would make an API call to deny the request
-    setTeam((prevTeam) => ({
-      ...prevTeam,
-      joinRequests: prevTeam.joinRequests.filter(
-        (request) => request.id !== requestId
-      ),
-    }));
+    // In a real app, you would make an API call to approve the request
+    startDenyRequestTransition(async () => {
+      try {
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
+          { request_id: requestId, decision: "denied" },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success(res.data.message);
+        router.refresh();
+      } catch (error: any) {
+        toast.error(error.response.data.message);
+      }
+    });
   };
 
   const handleAddNewMember = () => {
@@ -575,20 +589,22 @@ export const TeamDetails = ({ id }: { id: string }) => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {teamDetails?.members?.map((member: any) => (
-                          <TableRow key={member.id}>
-                            <TableCell>{member.username}</TableCell>
-                            <TableCell>{member.in_game_role}</TableCell>
-                            <TableCell>{member.management_role}</TableCell>
-                            <TableCell>
-                              <Button variant="outline" asChild>
-                                <Link href={`/players/${member.username}`}>
-                                  View Profile
-                                </Link>
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {teamDetails?.members?.map(
+                          (member: any, index: string) => (
+                            <TableRow key={index}>
+                              <TableCell>{member.username}</TableCell>
+                              <TableCell>{member.in_game_role}</TableCell>
+                              <TableCell>{member.management_role}</TableCell>
+                              <TableCell>
+                                <Button variant="outline" asChild>
+                                  <Link href={`/players/${member.username}`}>
+                                    View Profile
+                                  </Link>
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        )}
                       </TableBody>
                       {teamDetails?.members === undefined && (
                         <p className="italic text-sm text-center py-4 w-full">
@@ -845,23 +861,39 @@ export const TeamDetails = ({ id }: { id: string }) => {
                                 <TableCell>
                                   <div className="space-x-2">
                                     <Button
+                                      disabled={
+                                        pendingApproveRequest ||
+                                        pendingDenyRequest
+                                      }
                                       onClick={() =>
                                         handleApproveJoinRequest(
                                           request.request_id
                                         )
                                       }
                                     >
-                                      Approve
+                                      {pendingApproveRequest ? (
+                                        <Loader text="Approving..." />
+                                      ) : (
+                                        "Approve"
+                                      )}
                                     </Button>
                                     <Button
                                       variant="outline"
+                                      disabled={
+                                        pendingApproveRequest ||
+                                        pendingDenyRequest
+                                      }
                                       onClick={() =>
                                         handleDenyJoinRequest(
                                           request.request_id
                                         )
                                       }
                                     >
-                                      Deny
+                                      {pendingDenyRequest ? (
+                                        <Loader text="Denying..." />
+                                      ) : (
+                                        "Deny"
+                                      )}
                                     </Button>
                                     <Button variant="outline" asChild>
                                       <Link
