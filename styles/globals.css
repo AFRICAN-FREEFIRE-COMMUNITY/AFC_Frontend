@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 150 10% 3.9%; /* Dark background */
+  --foreground: 150 10% 97.5%; /* Light text */
+  --card: 150 10% 3.9%; /* Dark card background */
+  --card-foreground: 150 10% 97.5%; /* Light card text */
+  --popover: 150 10% 3.9%; /* Dark popover background */
+  --popover-foreground: 150 10% 97.5%; /* Light popover text */
+  --primary: 142 76% 36%; /* Green primary */
+  --primary-foreground: 150 10% 97.5%; /* Light text on primary */
+  --secondary: 150 20% 24%; /* Darker green secondary */
+  --secondary-foreground: 150 10% 97.5%; /* Light text on secondary */
+  --muted: 150 20% 24%; /* Muted green */
+  --muted-foreground: 150 10% 60%; /* Muted text */
+  --accent: 150 20% 24%; /* Accent green */
+  --accent-foreground: 150 10% 97.5%; /* Light text on accent */
+  --destructive: 0 62.8% 30.6%; /* Red for destructive actions */
+  --destructive-foreground: 150 10% 97.5%; /* Light text on destructive */
+  --border: 150 20% 24%; /* Border color */
+  --input: 150 20% 24%; /* Input background */
+  --ring: 142 76% 36%; /* Focus ring color */
+  --gold: 45 100% 50%; /* Gold accent color */
+}
+
+.dark {
+  --background: 150 10% 3.9%; /* Dark background */
+  --foreground: 150 10% 97.5%; /* Light text */
+  --card: 150 10% 3.9%; /* Dark card background */
+  --card-foreground: 150 10% 97.5%; /* Light card text */
+  --popover: 150 10% 3.9%; /* Dark popover background */
+  --popover-foreground: 150 10% 97.5%; /* Light popover text */
+  --primary: 142 76% 36%; /* Green primary */
+  --primary-foreground: 150 10% 97.5%; /* Light text on primary */
+  --secondary: 150 20% 24%; /* Darker green secondary */
+  --secondary-foreground: 150 10% 97.5%; /* Light text on secondary */
+  --muted: 150 20% 24%; /* Muted green */
+  --muted-foreground: 150 10% 60%; /* Muted text */
+  --accent: 150 20% 24%; /* Accent green */
+  --accent-foreground: 150 10% 97.5%; /* Light text on accent */
+  --destructive: 0 62.8% 30.6%; /* Red for destructive actions */
+  --destructive-foreground: 150 10% 97.5%; /* Light text on destructive */
+  --border: 150 20% 24%; /* Border color */
+  --input: 150 20% 24%; /* Input background */
+  --ring: 142 76% 36%; /* Focus ring color */
+  --gold: 45 100% 50%; /* Gold accent color */
+}
+
+body {
+  @apply bg-background text-foreground;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+}
+
+@layer components {
+  .hero-gradient {
+    @apply bg-gradient-to-r from-primary via-primary/50 to-background;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1;
+  }
+
+  .button-gradient {
+    @apply bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all duration-300;
+  }
+
+  .gold-text {
+    @apply text-[hsl(var(--gold))];
+  }
+}
