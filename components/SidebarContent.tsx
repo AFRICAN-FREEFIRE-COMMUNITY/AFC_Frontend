@@ -69,7 +69,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
       icon: ShoppingCart,
       comingSoon: true,
     },
-    { href: "/awards", label: "Awards", icon: Award, comingSoon: true },
+    { href: "/awards", label: "Awards", icon: Award },
     { href: "/about", label: "About Us", icon: Info },
     { href: "/contact", label: "Contact", icon: Mail },
   ];

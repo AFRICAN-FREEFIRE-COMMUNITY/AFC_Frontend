@@ -749,11 +749,11 @@ export function Awards() {
   return (
     <div className="flex min-h-screen w-full flex-col relative overflow-hidden">
       {/* Blur Overlay */}
-      <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
+      {/* <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
         <span className="text-sm font-medium text-muted-foreground">
           Coming Soon
         </span>
-      </div>
+      </div> */}
       {/* Header */}
       <div className="relative bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-b">
         <div className="absolute inset-0 bg-[url('/placeholder.svg?height=200&width=1200&text=Awards+Background')] opacity-10"></div>

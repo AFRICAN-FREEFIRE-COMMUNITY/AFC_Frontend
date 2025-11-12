@@ -45,6 +45,8 @@ import {
   Trophy,
   Star,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 // Mock function to fetch voting metrics
 const fetchVotingMetrics = async () => {
@@ -949,7 +951,6 @@ export default function AdminVotesPage() {
                 </CardContent>
               </Card>
             </div>
-
             <Card>
               <CardHeader>
                 <CardTitle>

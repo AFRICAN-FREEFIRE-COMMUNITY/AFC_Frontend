@@ -225,6 +225,7 @@ import {
   ShoppingCart,
   Menu,
   LogOut,
+  Award,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/contexts/AuthContext";
@@ -427,6 +428,12 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       name: "Admin History",
       href: "/admin/history",
       icon: BarChart2,
+      roles: ["admin", "moderator"],
+    },
+    {
+      name: "Admin Awards",
+      href: "/admin/awards",
+      icon: Award,
       roles: ["admin", "moderator"],
     },
     {
