@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -47,6 +47,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
+import { FullLoader } from "@/components/Loader";
+import { CreateCategoryModal } from "./_components/CreateCategoryModal";
+import { env } from "@/lib/env";
+import { AddSectionModal } from "./_components/AddSectionModal";
+import { CreateNomineeModal } from "./_components/CreateNomineeModal";
+import { AssignNomineeModal } from "./_components/AssignNomineeModal";
 
 // Mock function to fetch voting metrics
 const fetchVotingMetrics = async () => {
@@ -533,12 +541,356 @@ export default function AdminVotesPage() {
   const [metrics, setMetrics] = useState(null);
   const [categoryData, setCategoryData] = useState([]);
   const [timelineData, setTimelineData] = useState([]);
-  const [recentActivities, setRecentActivities] = useState([]);
   const [topNominees, setTopNominees] = useState([]);
   const [nomineeVotes, setNomineeVotes] = useState(null);
   const [selectedSection, setSelectedSection] = useState("contentCreators");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const { user, token } = useAuth();
+
+  // Data states
+  const [categories, setCategories] = useState([]);
+  const [nominees, setNominees] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+
+  const getCurrentCategoryData = () => {
+    if (!nomineeVotes || !selectedSection || !selectedCategory) return [];
+    return nomineeVotes[selectedSection][selectedCategory] || [];
+  };
+
+  const getSectionCategories = () => {
+    if (!nomineeVotes || !selectedSection) return [];
+    return Object.keys(nomineeVotes[selectedSection]);
+  };
+
+  // Stats
+  const [stats, setStats] = useState({
+    totalCategories: 0,
+    totalNominees: 0,
+    totalAssignments: 0,
+  });
+
+  // UI toggles
+  const [showCategoriesList, setShowCategoriesList] = useState(false);
+  const [showNomineesList, setShowNomineesList] = useState(false);
+  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
+  const [showNewNomineeForm, setShowNewNomineeForm] = useState(false);
+
+  // Form states
+  const [newCategoryData, setNewCategoryData] = useState({
+    name: "",
+    section_id: "",
+  });
+  const [newNomineeData, setNewNomineeData] = useState({
+    name: "",
+    video_url: "",
+  });
+  const [formData, setFormData] = useState({
+    category_id: "",
+    nominee_id: "",
+  });
+
+  // Loading & messaging
+  const [fetchingData, setFetchingData] = useState(true);
+  const [loadingCategory, setLoadingCategory] = useState(false);
+  const [loadingNominee, setLoadingNominee] = useState(false);
+  const [loadingAssign, setLoadingAssign] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [message, setMessage] = useState({ type: "", text: "" });
+
+  // Helper: API wrapper to reduce repetition
+  const apiFetch = useCallback(
+    async (path, options = {}) => {
+      if (!token) throw new Error("No auth token");
+      const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}${path}`;
+      const res = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...(options.headers || {}),
+        },
+      });
+      // try parse body safely
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const errMsg = body?.message || `Request failed: ${res.status}`;
+        const err = new Error(errMsg);
+        // attach server body for debugging
+        (err as any).serverBody = body;
+        throw err;
+      }
+      return body;
+    },
+    [token]
+  );
+
+  // Fetch functions
+  const fetchCategories = useCallback(async () => {
+    try {
+      const data = await apiFetch("/awards/categories/view/");
+
+      console.log(data);
+
+      const categoriesData = data.categories || data || [];
+      setCategories(categoriesData);
+      setStats((prev) => ({ ...prev, totalCategories: categoriesData.length }));
+    } catch (err) {
+      console.error("fetchCategories error:", err);
+      // don't blow up UI; show message
+      setMessage({ type: "error", text: "Failed to load categories" });
+    }
+  }, [apiFetch]);
+
+  const fetchNominees = useCallback(async () => {
+    try {
+      const data = await apiFetch("/awards/nominees/view/");
+
+      console.log(data);
+      const nomineesData = data.nominees || data || [];
+      setNominees(nomineesData);
+      setStats((prev) => ({ ...prev, totalNominees: nomineesData.length }));
+    } catch (err) {
+      console.error("fetchNominees error:", err);
+      setMessage({ type: "error", text: "Failed to load nominees" });
+    }
+  }, [apiFetch]);
+
+  const fetchSections = useCallback(async () => {
+    try {
+      const data = await apiFetch("/awards/sections/all/");
+      const sectionsData = data.sections || data || [];
+      setSections(sectionsData);
+    } catch (err) {
+      console.error("fetchSections error:", err);
+      // fallback default sections (useful if backend endpoint absent)
+      setSections([
+        { id: "content", name: "Content Creator Awards" },
+        { id: "esports", name: "Esports Awards" },
+      ]);
+    }
+  }, [apiFetch]);
+
+  const fetchActivities = useCallback(async () => {
+    // optional endpoint; swallow error if not available
+    try {
+      const data = await apiFetch("/awards/activities/view/");
+      const acts = data.activities || data || [];
+      setRecentActivities(acts);
+    } catch (err) {
+      // Not fatal; activities may not exist
+      console.debug("No activities endpoint or failed to load activities.");
+    }
+  }, [apiFetch]);
+
+  const fetchInitialData = useCallback(async () => {
+    setFetchingData(true);
+    try {
+      await Promise.all([
+        fetchCategories(),
+        fetchNominees(),
+        fetchSections(),
+        fetchActivities(),
+      ]);
+    } catch (err) {
+      console.error("fetchInitialData error:", err);
+      setMessage({ type: "error", text: "Failed to load initial data" });
+    } finally {
+      setFetchingData(false);
+    }
+  }, [fetchCategories, fetchNominees, fetchSections, fetchActivities]);
+
+  // run on mount and when token becomes available
+  useEffect(() => {
+    if (token) {
+      fetchInitialData();
+    }
+  }, [token, fetchInitialData]);
+
+  // Auto dismiss message after 5 seconds
+  useEffect(() => {
+    if (!message.text) return;
+    const t = setTimeout(() => setMessage({ type: "", text: "" }), 5000);
+    return () => clearTimeout(t);
+  }, [message]);
+
+  // Helpers to get selected entities
+  const getSectionName = useCallback(
+    (sectionId) => {
+      const s = sections.find((x) => (x.id || x._id) === sectionId);
+      return s ? s.name || s.title : "Unknown Section";
+    },
+    [sections]
+  );
+
+  const getSelectedCategory = () =>
+    categories.find((c) => (c.id || c._id) === formData.category_id);
+
+  const getSelectedNominee = () =>
+    nominees.find((n) => (n.id || n._id) === formData.nominee_id);
+
+  // CRUD Handlers
+  const handleAddNewCategory = async () => {
+    if (!newCategoryData.name.trim() || !newCategoryData.section_id) {
+      setMessage({
+        type: "error",
+        text: "Category name and section are required",
+      });
+      return;
+    }
+    setLoadingCategory(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      // Using endpoint you confirmed: /awards/categories/create/
+      await apiFetch("/awards/categories/add/", {
+        method: "POST",
+        body: JSON.stringify({
+          name: newCategoryData.name,
+          section_id: newCategoryData.section_id,
+        }),
+      });
+
+      setMessage({ type: "success", text: "Category created successfully!" });
+      setNewCategoryData({ name: "", section_id: "" });
+      setShowNewCategoryForm(false);
+      await fetchCategories();
+    } catch (err) {
+      console.error("handleAddNewCategory error:", err);
+      setMessage({
+        type: "error",
+        text: (err as Error).message || "Failed to create category",
+      });
+    } finally {
+      setLoadingCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this category? This cannot be undone."
+      )
+    ) {
+      return;
+    }
+    setDeletingId(categoryId);
+    try {
+      // Using endpoint you confirmed: DELETE /awards/categories/delete/:id/
+      await apiFetch(`/awards/categories/delete/${categoryId}/`, {
+        method: "DELETE",
+      });
+      setMessage({ type: "success", text: "Category deleted successfully!" });
+      await fetchCategories();
+      // refresh nominees & stats too
+      await fetchNominees();
+    } catch (err) {
+      console.error("handleDeleteCategory error:", err);
+      setMessage({
+        type: "error",
+        text: (err as Error).message || "Failed to delete category",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleAddNewNominee = async () => {
+    if (!newNomineeData.name.trim()) {
+      setMessage({ type: "error", text: "Nominee name is required" });
+      return;
+    }
+    setLoadingNominee(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      // Using endpoint you confirmed: /awards/nominees/create/
+      await apiFetch("/awards/nominees/create/", {
+        method: "POST",
+        body: JSON.stringify({
+          name: newNomineeData.name,
+          video_url: newNomineeData.video_url || "",
+        }),
+      });
+      setMessage({ type: "success", text: "Nominee created successfully!" });
+      setNewNomineeData({ name: "", video_url: "" });
+      setShowNewNomineeForm(false);
+      await fetchNominees();
+    } catch (err) {
+      console.error("handleAddNewNominee error:", err);
+      setMessage({
+        type: "error",
+        text: (err as Error).message || "Failed to create nominee",
+      });
+    } finally {
+      setLoadingNominee(false);
+    }
+  };
+
+  const handleDeleteNominee = async (nomineeId) => {
+    if (
+      !confirm("Delete nominee? This will remove the nominee from the system.")
+    )
+      return;
+    setDeletingId(nomineeId);
+    try {
+      // Using endpoint you confirmed: DELETE /awards/nominees/delete/:id/
+      await apiFetch(`/awards/nominees/delete/${nomineeId}/`, {
+        method: "DELETE",
+      });
+      setMessage({ type: "success", text: "Nominee deleted successfully!" });
+      await fetchNominees();
+    } catch (err) {
+      console.error("handleDeleteNominee error:", err);
+      setMessage({
+        type: "error",
+        text: (err as Error).message || "Failed to delete nominee",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleAssignNominee = async () => {
+    if (!formData.category_id || !formData.nominee_id) {
+      setMessage({
+        type: "error",
+        text: "Please select both category and nominee",
+      });
+      return;
+    }
+    setLoadingAssign(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      // Using the category-nominee add endpoint from second code
+      await apiFetch("/awards/category-nominee/add/", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+      setMessage({ type: "success", text: "Nominee assigned to category!" });
+      setFormData({ category_id: "", nominee_id: "" });
+      setStats((prev) => ({
+        ...prev,
+        totalAssignments: prev.totalAssignments + 1,
+      }));
+    } catch (err) {
+      console.error("handleAssignNominee error:", err);
+      setMessage({
+        type: "error",
+        text: (err as Error).message || "Failed to assign nominee",
+      });
+    } finally {
+      setLoadingAssign(false);
+    }
+  };
+
+  const handleResetAssignment = () => {
+    setFormData({ category_id: "", nominee_id: "" });
+    setMessage({ type: "", text: "" });
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -601,15 +953,9 @@ export default function AdminVotesPage() {
     );
   }
 
-  const getCurrentCategoryData = () => {
-    if (!nomineeVotes || !selectedSection || !selectedCategory) return [];
-    return nomineeVotes[selectedSection][selectedCategory] || [];
-  };
-
-  const getSectionCategories = () => {
-    if (!nomineeVotes || !selectedSection) return [];
-    return Object.keys(nomineeVotes[selectedSection]);
-  };
+  if (fetchingData) {
+    return <FullLoader />;
+  }
 
   return (
     <AdminLayout>
@@ -741,14 +1087,18 @@ export default function AdminVotesPage() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
-            <TabsTrigger value="nominees">Nominee Votes</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="top-nominees">Top Nominees</TabsTrigger>
-            <TabsTrigger value="activities">Activities</TabsTrigger>
-          </TabsList>
+          <ScrollArea>
+            <TabsList className="w-full">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="categories">Categories</TabsTrigger>
+              <TabsTrigger value="nominees">Nominee Votes</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline</TabsTrigger>
+              <TabsTrigger value="top-nominees">Top Nominees</TabsTrigger>
+              <TabsTrigger value="activities">Activities</TabsTrigger>
+              <TabsTrigger value="management">Management</TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1160,7 +1510,368 @@ export default function AdminVotesPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          <TabsContent value="management" className="space-y-6">
+            <Tabs defaultValue="categories" className="space-y-6">
+              <div className="border-b">
+                <TabsList className="w-full">
+                  <TabsTrigger className="w-full" value="categories">
+                    <span className="mr-2">📁</span>
+                    Categories
+                  </TabsTrigger>
+                  <TabsTrigger className="w-full" value="nominees">
+                    <span className="mr-2">👥</span>
+                    Nominees
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="categories" className="mt-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Manage Categories</CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Add, edit, or delete voting categories
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-end gap-2">
+                      <AddSectionModal onSectionAdded={fetchSections} />
+                      <CreateCategoryModal
+                        sections={sections}
+                        handleAddNewCategory={handleAddNewCategory}
+                        loadingCategory={loadingCategory}
+                        newCategoryData={newCategoryData}
+                        setNewCategoryData={setNewCategoryData}
+                      />
+                    </div>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Filter by Section
+                        </label>
+                        <Select
+                          defaultValue="all"
+                          onValueChange={() => {}} /* keep UI only for now */
+                        >
+                          <SelectTrigger className="w-64">
+                            <SelectValue placeholder="All Sections" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Sections</SelectItem>
+                            {sections.map((s) => (
+                              <SelectItem
+                                key={s.id || s._id}
+                                value={s.id || s._id}
+                              >
+                                {s.name || s.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="rounded-lg border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Category Name</TableHead>
+                              <TableHead>Section</TableHead>
+                              {/* <TableHead>Gender Option</TableHead> */}
+                              {/* <TableHead>Description</TableHead> */}
+                              <TableHead>Nominees</TableHead>
+                              <TableHead className="text-right">
+                                Actions
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+
+                          <TableBody>
+                            {categories.length === 0 ? (
+                              <TableRow>
+                                <TableCell
+                                  colSpan={6}
+                                  className="text-center text-sm text-gray-400 py-8"
+                                >
+                                  No categories yet.
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              categories.map((cat) => (
+                                <TableRow key={cat.id || cat._id}>
+                                  <TableCell className="font-medium">
+                                    {cat.name || cat.title}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge>{cat.section}</Badge>
+                                  </TableCell>
+                                  {/* <TableCell>
+                                    <Badge variant="outline">
+                                      {cat.gender_option ||
+                                        cat.gender ||
+                                        "No Gender"}
+                                    </Badge>
+                                  </TableCell> */}
+                                  {/* <TableCell className="max-w-xs truncate">
+                                    {cat.description || cat.desc || "—"}
+                                  </TableCell> */}
+                                  <TableCell>
+                                    <Badge variant="secondary">
+                                      {(cat.nominees_count ??
+                                        cat.nominees?.length) ||
+                                        0}{" "}
+                                      nominees
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                          /* implement edit if needed */
+                                        }}
+                                      >
+                                        <span className="sr-only">Edit</span> ✏️
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                          handleDeleteCategory(
+                                            cat.id || cat._id
+                                          )
+                                        }
+                                        disabled={
+                                          deletingId === (cat.id || cat._id)
+                                        }
+                                      >
+                                        <span className="sr-only">Delete</span>
+                                        {deletingId === (cat.id || cat._id) ? (
+                                          <Loader className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                          "🗑️"
+                                        )}
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Nominees */}
+              <TabsContent value="nominees" className="mt-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Manage Nominees</CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Add, edit, or delete nominees for voting categories
+                      </p>
+                    </div>
+                    <div className="flex items-center justify end gap-2">
+                      <AssignNomineeModal
+                        categories={categories}
+                        nominees={nominees}
+                        setStats={setStats}
+                      />
+                      <CreateNomineeModal onNomineeAdded={fetchNominees} />
+                    </div>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Filter by Section
+                          </label>
+                          <Select defaultValue="all">
+                            <SelectTrigger>
+                              <SelectValue placeholder="All Sections" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Sections</SelectItem>
+                              {sections.map((s) => (
+                                <SelectItem
+                                  key={s.id || s._id}
+                                  value={s.id || s._id}
+                                >
+                                  {s.name || s.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Filter by Category
+                          </label>
+                          <Select defaultValue="all">
+                            <SelectTrigger>
+                              <SelectValue placeholder="All Categories" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">
+                                All Categories
+                              </SelectItem>
+                              {categories.map((c) => (
+                                <SelectItem
+                                  key={c.id || c._id}
+                                  value={c.id || c._id}
+                                >
+                                  {c.name || c.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Nominee Name</TableHead>
+                              <TableHead>Category</TableHead>
+                              <TableHead>Section</TableHead>
+                              <TableHead>Profile URL</TableHead>
+                              <TableHead>Bio</TableHead>
+                              <TableHead className="text-right">
+                                Actions
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {nominees.length === 0 ? (
+                              <TableRow>
+                                <TableCell
+                                  colSpan={6}
+                                  className="text-center text-sm text-gray-400 py-8"
+                                >
+                                  No nominees found.
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              nominees.map((nom) => {
+                                // Try to determine first category/section if nominee holds it; fallback to placeholder
+                                const firstCategory =
+                                  (nom.categories && nom.categories[0]) || null;
+                                const sectionName = firstCategory
+                                  ? getSectionName(
+                                      firstCategory.section_id ||
+                                        firstCategory.sectionId
+                                    )
+                                  : "-";
+                                return (
+                                  <TableRow key={nom.id || nom._id}>
+                                    <TableCell className="font-medium">
+                                      {nom.name}
+                                    </TableCell>
+                                    <TableCell>
+                                      {firstCategory?.name || "-"}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge>{sectionName}</Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      {nom.video_url ? (
+                                        <a
+                                          href={nom.video_url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-blue-500 hover:underline text-sm"
+                                        >
+                                          🔗 View Profile
+                                        </a>
+                                      ) : (
+                                        <span className="text-gray-400 text-sm">
+                                          —
+                                        </span>
+                                      )}
+                                    </TableCell>
+                                    <TableCell className="max-w-xs truncate">
+                                      {nom.bio || nom.description || "—"}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <div className="flex justify-end gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => {
+                                            /* edit later */
+                                          }}
+                                        >
+                                          <span className="sr-only">Edit</span>{" "}
+                                          ✏️
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() =>
+                                            handleDeleteNominee(
+                                              nom.id || nom._id
+                                            )
+                                          }
+                                          disabled={
+                                            deletingId === (nom.id || nom._id)
+                                          }
+                                        >
+                                          <span className="sr-only">
+                                            Delete
+                                          </span>
+                                          {deletingId ===
+                                          (nom.id || nom._id) ? (
+                                            <Loader className="w-4 h-4 animate-spin" />
+                                          ) : (
+                                            "🗑️"
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
         </Tabs>
+      </div>
+      <div className="flex gap-3">
+        {/* <CreateNomineeModal
+    handleAddNewNominee={handleAddNewNominee}
+    loadingNominee={loadingNominee}
+    newNomineeData={newNomineeData}
+    setNewNomineeData={setNewNomineeData}
+  />
+
+  <AssignNomineeModal
+    categories={categories}
+    nominees={nominees}
+    handleAssignNominee={handleAssignNominee}
+    loadingAssign={loadingAssign}
+    formData={formData}
+    setFormData={setFormData}
+    getSelectedCategory={getSelectedCategory}
+    getSelectedNominee={getSelectedNominee}
+    handleResetAssignment={handleResetAssignment}
+  /> */}
       </div>
     </AdminLayout>
   );

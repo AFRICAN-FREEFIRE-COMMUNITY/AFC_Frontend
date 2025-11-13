@@ -49,6 +49,7 @@ export function LoginForm() {
         if (response.statusText === "OK") {
           await login(response.data.session_token);
           toast.success(response.data.message);
+          console.log(response.data);
           router.push("/home");
         } else {
           toast.error("Oops! An error occurred");
