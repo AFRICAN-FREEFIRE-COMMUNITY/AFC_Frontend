@@ -84,6 +84,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     { name: "Admin Rankings", href: "/admin/rankings", icon: BarChart2 },
     { name: "Admin Tiers", href: "/admin/tiers", icon: ShieldCheck },
     { name: "Admin Shop", href: "/admin/shop", icon: ShoppingCart },
+    { name: "Admin Votes", href: "/admin/votes", icon: Award },
     { name: "Admin History", href: "/admin/history", icon: BarChart2 },
     {
       name: "Admin Partner Verification",

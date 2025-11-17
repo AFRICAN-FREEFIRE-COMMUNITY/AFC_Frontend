@@ -49,12 +49,13 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
-import { FullLoader } from "@/components/Loader";
+import { FullLoader, Loader } from "@/components/Loader";
 import { CreateCategoryModal } from "./_components/CreateCategoryModal";
 import { env } from "@/lib/env";
 import { AddSectionModal } from "./_components/AddSectionModal";
 import { CreateNomineeModal } from "./_components/CreateNomineeModal";
 import { AssignNomineeModal } from "./_components/AssignNomineeModal";
+import { toast } from "sonner";
 
 // Mock function to fetch voting metrics
 const fetchVotingMetrics = async () => {
@@ -640,7 +641,8 @@ export default function AdminVotesPage() {
     } catch (err) {
       console.error("fetchCategories error:", err);
       // don't blow up UI; show message
-      setMessage({ type: "error", text: "Failed to load categories" });
+      // setMessage({ type: "error", text: "Failed to load categories" });
+      toast.error("Failed to load categories");
     }
   }, [apiFetch]);
 
@@ -654,7 +656,8 @@ export default function AdminVotesPage() {
       setStats((prev) => ({ ...prev, totalNominees: nomineesData.length }));
     } catch (err) {
       console.error("fetchNominees error:", err);
-      setMessage({ type: "error", text: "Failed to load nominees" });
+      // setMessage({ type: "error", text: "Failed to load nominees" });
+      toast.error("Failed to load nominees");
     }
   }, [apiFetch]);
 
@@ -696,7 +699,8 @@ export default function AdminVotesPage() {
       ]);
     } catch (err) {
       console.error("fetchInitialData error:", err);
-      setMessage({ type: "error", text: "Failed to load initial data" });
+      // setMessage({ type: "error", text: "Failed to load initial data" });
+      toast.error("Failed to load initial data");
     } finally {
       setFetchingData(false);
     }
@@ -734,10 +738,11 @@ export default function AdminVotesPage() {
   // CRUD Handlers
   const handleAddNewCategory = async () => {
     if (!newCategoryData.name.trim() || !newCategoryData.section_id) {
-      setMessage({
-        type: "error",
-        text: "Category name and section are required",
-      });
+      toast.error("Category name and section are required");
+      // setMessage({
+      //   type: "error",
+      //   text: "Category name and section are required",
+      // });
       return;
     }
     setLoadingCategory(true);
@@ -753,16 +758,19 @@ export default function AdminVotesPage() {
         }),
       });
 
-      setMessage({ type: "success", text: "Category created successfully!" });
+      toast.success("Category created successfully!");
+
+      // setMessage({ type: "success", text: "Category created successfully!" });
       setNewCategoryData({ name: "", section_id: "" });
       setShowNewCategoryForm(false);
       await fetchCategories();
     } catch (err) {
       console.error("handleAddNewCategory error:", err);
-      setMessage({
-        type: "error",
-        text: (err as Error).message || "Failed to create category",
-      });
+      toast.error((err as Error).message || "Failed to create category");
+      // setMessage({
+      //   type: "error",
+      //   text: (err as Error).message || "Failed to create category",
+      // });
     } finally {
       setLoadingCategory(false);
     }
@@ -779,19 +787,24 @@ export default function AdminVotesPage() {
     setDeletingId(categoryId);
     try {
       // Using endpoint you confirmed: DELETE /awards/categories/delete/:id/
-      await apiFetch(`/awards/categories/delete/${categoryId}/`, {
+      await apiFetch(`/awards/categories/delete`, {
         method: "DELETE",
+        body: JSON.stringify({
+          category_id: categoryId,
+        }),
       });
-      setMessage({ type: "success", text: "Category deleted successfully!" });
+      toast.success("Category deleted successfully!");
+      // setMessage({ type: "success", text: "Category deleted successfully!" });
       await fetchCategories();
       // refresh nominees & stats too
       await fetchNominees();
     } catch (err) {
       console.error("handleDeleteCategory error:", err);
-      setMessage({
-        type: "error",
-        text: (err as Error).message || "Failed to delete category",
-      });
+      toast.error((err as Error).message || "Failed to delete category");
+      // setMessage({
+      //   type: "error",
+      //   text: (err as Error).message || "Failed to delete category",
+      // });
     } finally {
       setDeletingId(null);
     }
@@ -799,7 +812,8 @@ export default function AdminVotesPage() {
 
   const handleAddNewNominee = async () => {
     if (!newNomineeData.name.trim()) {
-      setMessage({ type: "error", text: "Nominee name is required" });
+      toast.error("Nominee name is requried");
+      // setMessage({ type: "error", text: "Nominee name is required" });
       return;
     }
     setLoadingNominee(true);
@@ -814,16 +828,18 @@ export default function AdminVotesPage() {
           video_url: newNomineeData.video_url || "",
         }),
       });
-      setMessage({ type: "success", text: "Nominee created successfully!" });
+      toast.success("Nominee created successfully");
+      // setMessage({ type: "success", text: "Nominee created successfully!" });
       setNewNomineeData({ name: "", video_url: "" });
       setShowNewNomineeForm(false);
       await fetchNominees();
     } catch (err) {
       console.error("handleAddNewNominee error:", err);
-      setMessage({
-        type: "error",
-        text: (err as Error).message || "Failed to create nominee",
-      });
+      toast.error((err as Error).message || "Failed to create nominee");
+      // setMessage({
+      //   type: "error",
+      //   text: (err as Error).message || "Failed to create nominee",
+      // });
     } finally {
       setLoadingNominee(false);
     }
@@ -837,17 +853,22 @@ export default function AdminVotesPage() {
     setDeletingId(nomineeId);
     try {
       // Using endpoint you confirmed: DELETE /awards/nominees/delete/:id/
-      await apiFetch(`/awards/nominees/delete/${nomineeId}/`, {
+      await apiFetch(`/awards/nominees/delete/`, {
         method: "DELETE",
+        body: JSON.stringify({
+          nominee_id: nomineeId,
+        }),
       });
-      setMessage({ type: "success", text: "Nominee deleted successfully!" });
+      // setMessage({ type: "success", text: "Nominee deleted successfully!" });
+      toast.success("Nominee deleted successfully!");
       await fetchNominees();
     } catch (err) {
       console.error("handleDeleteNominee error:", err);
-      setMessage({
-        type: "error",
-        text: (err as Error).message || "Failed to delete nominee",
-      });
+      toast.error((err as Error).message || "Failed to delete nominee");
+      // setMessage({
+      //   type: "error",
+      //   text: (err as Error).message || "Failed to delete nominee",
+      // });
     } finally {
       setDeletingId(null);
     }
@@ -855,10 +876,11 @@ export default function AdminVotesPage() {
 
   const handleAssignNominee = async () => {
     if (!formData.category_id || !formData.nominee_id) {
-      setMessage({
-        type: "error",
-        text: "Please select both category and nominee",
-      });
+      // setMessage({
+      //   type: "error",
+      //   text: "Please select both category and nominee",
+      // });
+      toast.error("Please select both category and nominee");
       return;
     }
     setLoadingAssign(true);
@@ -870,7 +892,8 @@ export default function AdminVotesPage() {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      setMessage({ type: "success", text: "Nominee assigned to category!" });
+      // setMessage({ type: "success", text: "Nominee assigned to category!" });
+      toast.success("Nominee assigned to category!");
       setFormData({ category_id: "", nominee_id: "" });
       setStats((prev) => ({
         ...prev,
@@ -878,10 +901,11 @@ export default function AdminVotesPage() {
       }));
     } catch (err) {
       console.error("handleAssignNominee error:", err);
-      setMessage({
-        type: "error",
-        text: (err as Error).message || "Failed to assign nominee",
-      });
+      toast.error((err as Error).message || "Failed to assign nominee");
+      // setMessage({
+      //   type: "error",
+      //   text: (err as Error).message || "Failed to assign nominee",
+      // });
     } finally {
       setLoadingAssign(false);
     }
@@ -1649,7 +1673,7 @@ export default function AdminVotesPage() {
                                       >
                                         <span className="sr-only">Delete</span>
                                         {deletingId === (cat.id || cat._id) ? (
-                                          <Loader className="w-4 h-4 animate-spin" />
+                                          <Loader />
                                         ) : (
                                           "🗑️"
                                         )}
@@ -1831,7 +1855,7 @@ export default function AdminVotesPage() {
                                           </span>
                                           {deletingId ===
                                           (nom.id || nom._id) ? (
-                                            <Loader className="w-4 h-4 animate-spin" />
+                                            <Loader />
                                           ) : (
                                             "🗑️"
                                           )}

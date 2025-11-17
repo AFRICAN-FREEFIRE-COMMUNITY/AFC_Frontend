@@ -20,6 +20,7 @@ import Layout from "@/components/Layout";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { FullLoader } from "@/components/Loader";
 
 // Backend API interfaces
 interface BackendNominee {
@@ -579,21 +580,7 @@ export function Awards() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center">
-        <Card className="w-full max-w-md mx-auto">
-          <CardContent className="text-center p-8">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-            <h2 className="text-base md:text-xl font-semibold mb-2">
-              Loading Awards...
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              Please wait while we load the awards data.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <FullLoader />;
   }
 
   // Error state

@@ -430,12 +430,12 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       icon: BarChart2,
       roles: ["admin", "moderator"],
     },
-    {
-      name: "Admin Awards",
-      href: "/admin/awards",
-      icon: Award,
-      roles: ["admin", "moderator"],
-    },
+    // {
+    //   name: "Admin Awards",
+    //   href: "/admin/awards",
+    //   icon: Award,
+    //   roles: ["admin", "moderator"],
+    // },
     {
       name: "Admin Votes",
       href: "/admin/votes",
