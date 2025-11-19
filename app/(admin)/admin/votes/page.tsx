@@ -44,6 +44,7 @@ import {
   AlertCircle,
   Trophy,
   Star,
+  PlayCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -56,382 +57,148 @@ import { AddSectionModal } from "./_components/AddSectionModal";
 import { CreateNomineeModal } from "./_components/CreateNomineeModal";
 import { AssignNomineeModal } from "./_components/AssignNomineeModal";
 import { toast } from "sonner";
+import { EditCategoryModal } from "./_components/EditCategoryModal";
+import { EditNomineeModal } from "./_components/EditNomineeModal";
 
-// Mock function to fetch voting metrics
-const fetchVotingMetrics = async () => {
-  return {
-    totalVotes: 15847,
-    totalVoters: 8923,
-    completedVotes: 7234,
-    partialVotes: 1689,
-    contentCreatorVotes: 4567,
-    esportsAwardVotes: 3890,
-    averageVotingTime: "4.2 minutes",
-    votingCompletionRate: 81.1,
-    peakVotingHour: "8:00 PM",
-    mostVotedCategory: "Best Content Creator",
-    leastVotedCategory: "Best Rookie Player",
-  };
+// Real API fetch functions
+const fetchVotingMetrics = async (token: string) => {
+  const baseUrl = env.NEXT_PUBLIC_BACKEND_API_URL;
+
+  try {
+    const [totalVotesRes, totalVotersRes] = await Promise.all([
+      fetch(`${baseUrl}/awards/get-total-votes-cast/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      fetch(`${baseUrl}/awards/get-total-voters/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ]);
+
+    const totalVotesData = await totalVotesRes.json();
+    const totalVotersData = await totalVotersRes.json();
+
+    return {
+      totalVotes: totalVotesData.total_votes || 0,
+      totalVoters: totalVotersData.total_voters || 0,
+      completedVotes: Math.floor((totalVotersData.total_voters || 0) * 0.81), // Estimated
+      partialVotes: Math.floor((totalVotersData.total_voters || 0) * 0.19), // Estimated
+      contentCreatorVotes: 0, // Will be updated from section data
+      esportsAwardVotes: 0, // Will be updated from section data
+      averageVotingTime: "4.2 minutes",
+      votingCompletionRate: 81.1,
+      peakVotingHour: "8:00 PM",
+      mostVotedCategory: "Best Content Creator",
+      leastVotedCategory: "Best Rookie Player",
+    };
+  } catch (error) {
+    console.error("Error fetching voting metrics:", error);
+    return {
+      totalVotes: 0,
+      totalVoters: 0,
+      completedVotes: 0,
+      partialVotes: 0,
+      contentCreatorVotes: 0,
+      esportsAwardVotes: 0,
+      averageVotingTime: "N/A",
+      votingCompletionRate: 0,
+      peakVotingHour: "N/A",
+      mostVotedCategory: "N/A",
+      leastVotedCategory: "N/A",
+    };
+  }
 };
 
-// Mock function to fetch detailed nominee votes by category
-const fetchNomineeVotesByCategory = async () => {
-  return {
-    contentCreators: {
-      "Best Content Creator": [
-        { name: "StreamMaster_NG", votes: 456, percentage: 37.2 },
-        { name: "GamerQueen_Lagos", votes: 389, percentage: 31.7 },
-        { name: "ProStreamer_Abuja", votes: 234, percentage: 19.1 },
-        { name: "ContentKing_PH", votes: 123, percentage: 10.0 },
-        { name: "StreamStar_Kano", votes: 24, percentage: 2.0 },
-        { name: "GamingGuru_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "StreamLegend_Jos", votes: 0, percentage: 0.0 },
-        { name: "ContentPro_Enugu", votes: 0, percentage: 0.0 },
-        { name: "GamerElite_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "StreamChamp_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Gaming Setup": [
-        { name: "TechMaster_NG", votes: 345, percentage: 42.1 },
-        { name: "SetupKing_Lagos", votes: 267, percentage: 32.6 },
-        { name: "GamingRig_Abuja", votes: 134, percentage: 16.4 },
-        { name: "TechGuru_PH", votes: 45, percentage: 5.5 },
-        { name: "SetupPro_Kano", votes: 28, percentage: 3.4 },
-        { name: "RigMaster_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "TechElite_Jos", votes: 0, percentage: 0.0 },
-        { name: "SetupLegend_Enugu", votes: 0, percentage: 0.0 },
-        { name: "GamingTech_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "RigChamp_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Most Entertaining Stream": [
-        { name: "FunnyGamer_NG", votes: 423, percentage: 38.9 },
-        { name: "EntertainKing_Lagos", votes: 356, percentage: 32.7 },
-        { name: "LaughMaster_Abuja", votes: 189, percentage: 17.4 },
-        { name: "ComedyPro_PH", votes: 78, percentage: 7.2 },
-        { name: "FunStreamer_Kano", votes: 42, percentage: 3.8 },
-        { name: "JokeMaster_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "LaughLegend_Jos", votes: 0, percentage: 0.0 },
-        { name: "FunnyElite_Enugu", votes: 0, percentage: 0.0 },
-        { name: "ComedyChamp_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "EntertainPro_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Educational Content": [
-        { name: "TeachMaster_NG", votes: 398, percentage: 38.1 },
-        { name: "EduGamer_Lagos", votes: 334, percentage: 32.0 },
-        { name: "TutorialKing_Abuja", votes: 201, percentage: 19.2 },
-        { name: "LearnPro_PH", votes: 67, percentage: 6.4 },
-        { name: "EduStreamer_Kano", votes: 45, percentage: 4.3 },
-        { name: "TutorialMaster_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "LearnLegend_Jos", votes: 0, percentage: 0.0 },
-        { name: "EduElite_Enugu", votes: 0, percentage: 0.0 },
-        { name: "TeachChamp_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "TutorialPro_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Rising Star Creator": [
-        { name: "NewStar_NG", votes: 367, percentage: 36.8 },
-        { name: "RisingStar_Lagos", votes: 289, percentage: 29.0 },
-        { name: "FreshFace_Abuja", votes: 178, percentage: 17.8 },
-        { name: "NewTalent_PH", votes: 89, percentage: 8.9 },
-        { name: "UpComing_Kano", votes: 75, percentage: 7.5 },
-        { name: "FreshStar_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "NewLegend_Jos", votes: 0, percentage: 0.0 },
-        { name: "RisingElite_Enugu", votes: 0, percentage: 0.0 },
-        { name: "FreshChamp_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "NewPro_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Collaboration": [
-        { name: "CollabMaster_NG", votes: 334, percentage: 34.5 },
-        { name: "TeamWork_Lagos", votes: 278, percentage: 28.7 },
-        { name: "PartnerPro_Abuja", votes: 189, percentage: 19.5 },
-        { name: "CollabKing_PH", votes: 98, percentage: 10.1 },
-        { name: "TeamMaster_Kano", votes: 69, percentage: 7.2 },
-        { name: "CollabLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "TeamElite_Jos", votes: 0, percentage: 0.0 },
-        { name: "PartnerChamp_Enugu", votes: 0, percentage: 0.0 },
-        { name: "CollabPro_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "TeamStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Most Creative Content": [
-        { name: "CreativeMaster_NG", votes: 312, percentage: 33.4 },
-        { name: "ArtisticGamer_Lagos", votes: 267, percentage: 28.6 },
-        { name: "CreativeKing_Abuja", votes: 178, percentage: 19.1 },
-        { name: "ArtPro_PH", votes: 89, percentage: 9.5 },
-        { name: "CreativeStreamer_Kano", votes: 88, percentage: 9.4 },
-        { name: "ArtMaster_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "CreativeLegend_Jos", votes: 0, percentage: 0.0 },
-        { name: "ArtisticElite_Enugu", votes: 0, percentage: 0.0 },
-        { name: "CreativeChamp_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "ArtPro_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Community Engagement": [
-        { name: "CommunityKing_NG", votes: 289, percentage: 32.1 },
-        { name: "EngageMaster_Lagos", votes: 245, percentage: 27.2 },
-        { name: "CommunityPro_Abuja", votes: 167, percentage: 18.5 },
-        { name: "EngageKing_PH", votes: 112, percentage: 12.4 },
-        { name: "CommunityStreamer_Kano", votes: 88, percentage: 9.8 },
-        { name: "EngageLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "CommunityElite_Jos", votes: 0, percentage: 0.0 },
-        { name: "EngageChamp_Enugu", votes: 0, percentage: 0.0 },
-        { name: "CommunityMaster_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "EngagePro_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Mobile Gaming Content": [
-        { name: "MobileKing_NG", votes: 278, percentage: 31.7 },
-        { name: "MobileMaster_Lagos", votes: 234, percentage: 26.7 },
-        { name: "MobilePro_Abuja", votes: 156, percentage: 17.8 },
-        { name: "MobileGamer_PH", votes: 123, percentage: 14.0 },
-        { name: "MobileStreamer_Kano", votes: 87, percentage: 9.9 },
-        { name: "MobileLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "MobileElite_Jos", votes: 0, percentage: 0.0 },
-        { name: "MobileChamp_Enugu", votes: 0, percentage: 0.0 },
-        { name: "MobileExpert_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "MobileStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Tutorial Creator": [
-        { name: "TutorialMaster_NG", votes: 267, percentage: 31.6 },
-        { name: "GuideKing_Lagos", votes: 223, percentage: 26.4 },
-        { name: "TutorialPro_Abuja", votes: 145, percentage: 17.2 },
-        { name: "GuideGuru_PH", votes: 112, percentage: 13.3 },
-        { name: "TutorialStreamer_Kano", votes: 98, percentage: 11.6 },
-        { name: "GuideLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "TutorialElite_Jos", votes: 0, percentage: 0.0 },
-        { name: "GuideChamp_Enugu", votes: 0, percentage: 0.0 },
-        { name: "TutorialExpert_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "GuideStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Streaming Quality": [
-        { name: "QualityKing_NG", votes: 245, percentage: 29.0 },
-        { name: "HDMaster_Lagos", votes: 212, percentage: 25.1 },
-        { name: "QualityPro_Abuja", votes: 167, percentage: 19.8 },
-        { name: "StreamQuality_PH", votes: 123, percentage: 14.6 },
-        { name: "HDStreamer_Kano", votes: 98, percentage: 11.6 },
-        { name: "QualityLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "HDElite_Jos", votes: 0, percentage: 0.0 },
-        { name: "QualityChamp_Enugu", votes: 0, percentage: 0.0 },
-        { name: "StreamExpert_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "QualityStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Personality": [
-        { name: "PersonalityKing_NG", votes: 234, percentage: 27.7 },
-        { name: "CharismaMaster_Lagos", votes: 201, percentage: 23.8 },
-        { name: "PersonalityPro_Abuja", votes: 178, percentage: 21.1 },
-        { name: "CharismaKing_PH", votes: 134, percentage: 15.9 },
-        { name: "PersonalityStreamer_Kano", votes: 98, percentage: 11.6 },
-        { name: "CharismaLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "PersonalityElite_Jos", votes: 0, percentage: 0.0 },
-        { name: "CharismaChamp_Enugu", votes: 0, percentage: 0.0 },
-        { name: "PersonalityExpert_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "CharismaStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-    },
-    esportsAwards: {
-      "Best Team Performance": [
-        { name: "Team Phoenix", votes: 456, percentage: 45.2 },
-        { name: "Elite Squad", votes: 334, percentage: 33.1 },
-        { name: "Thunder Bolts", votes: 123, percentage: 12.2 },
-        { name: "Fire Dragons", votes: 67, percentage: 6.6 },
-        { name: "Storm Warriors", votes: 29, percentage: 2.9 },
-        { name: "Lightning Strikes", votes: 0, percentage: 0.0 },
-        { name: "Blazing Phoenixes", votes: 0, percentage: 0.0 },
-        { name: "Mighty Eagles", votes: 0, percentage: 0.0 },
-        { name: "Savage Wolves", votes: 0, percentage: 0.0 },
-        { name: "Royal Tigers", votes: 0, percentage: 0.0 },
-      ],
-      "Best Individual Player": [
-        { name: "ProGamer_Lagos", votes: 389, percentage: 49.1 },
-        { name: "ElitePlayer_Abuja", votes: 267, percentage: 33.7 },
-        { name: "SkillMaster_PH", votes: 89, percentage: 11.2 },
-        { name: "ProShooter_Kano", votes: 34, percentage: 4.3 },
-        { name: "GameLegend_Ibadan", votes: 13, percentage: 1.6 },
-        { name: "ProElite_Jos", votes: 0, percentage: 0.0 },
-        { name: "SkillLegend_Enugu", votes: 0, percentage: 0.0 },
-        { name: "GameMaster_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "ProChamp_Benin", votes: 0, percentage: 0.0 },
-        { name: "EliteShooter_Warri", votes: 0, percentage: 0.0 },
-      ],
-      "Best IGL (In-Game Leader)": [
-        { name: "IGL_Master", votes: 276, percentage: 37.2 },
-        { name: "LeaderPro_Lagos", votes: 234, percentage: 31.5 },
-        { name: "StrategyKing_Abuja", votes: 134, percentage: 18.1 },
-        { name: "TacticMaster_PH", votes: 67, percentage: 9.0 },
-        { name: "LeaderElite_Kano", votes: 31, percentage: 4.2 },
-        { name: "StrategyLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "TacticPro_Jos", votes: 0, percentage: 0.0 },
-        { name: "LeaderChamp_Enugu", votes: 0, percentage: 0.0 },
-        { name: "StrategyElite_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "TacticLegend_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Fragger": [
-        { name: "Fragger_Pro", votes: 254, percentage: 35.1 },
-        { name: "KillMaster_Lagos", votes: 201, percentage: 27.8 },
-        { name: "FragKing_Abuja", votes: 145, percentage: 20.0 },
-        { name: "KillPro_PH", votes: 78, percentage: 10.8 },
-        { name: "FragElite_Kano", votes: 45, percentage: 6.2 },
-        { name: "KillLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "FragChamp_Jos", votes: 0, percentage: 0.0 },
-        { name: "KillExpert_Enugu", votes: 0, percentage: 0.0 },
-        { name: "FragMaster_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "KillStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Support Player": [
-        { name: "Support_King", votes: 232, percentage: 34.2 },
-        { name: "SupportMaster_Lagos", votes: 189, percentage: 27.9 },
-        { name: "SupportPro_Abuja", votes: 134, percentage: 19.8 },
-        { name: "SupportElite_PH", votes: 78, percentage: 11.5 },
-        { name: "SupportLegend_Kano", votes: 45, percentage: 6.6 },
-        { name: "SupportChamp_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "SupportExpert_Jos", votes: 0, percentage: 0.0 },
-        { name: "SupportStar_Enugu", votes: 0, percentage: 0.0 },
-        { name: "SupportGuru_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "SupportAce_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Rookie Team": [
-        { name: "Rookie Phoenix", votes: 223, percentage: 32.8 },
-        { name: "Fresh Squad", votes: 178, percentage: 26.2 },
-        { name: "New Thunder", votes: 145, percentage: 21.3 },
-        { name: "Rising Dragons", votes: 89, percentage: 13.1 },
-        { name: "Young Warriors", votes: 45, percentage: 6.6 },
-        { name: "Rookie Lightning", votes: 0, percentage: 0.0 },
-        { name: "Fresh Eagles", votes: 0, percentage: 0.0 },
-        { name: "New Wolves", votes: 0, percentage: 0.0 },
-        { name: "Rising Tigers", votes: 0, percentage: 0.0 },
-        { name: "Young Lions", votes: 0, percentage: 0.0 },
-      ],
-      "Best Rookie Player": [
-        { name: "Rookie_Wonder", votes: 210, percentage: 33.7 },
-        { name: "FreshTalent_Lagos", votes: 167, percentage: 26.8 },
-        { name: "NewStar_Abuja", votes: 123, percentage: 19.7 },
-        { name: "RisingPro_PH", votes: 78, percentage: 12.5 },
-        { name: "YoungElite_Kano", votes: 45, percentage: 7.2 },
-        { name: "FreshLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "NewChamp_Jos", votes: 0, percentage: 0.0 },
-        { name: "RisingExpert_Enugu", votes: 0, percentage: 0.0 },
-        { name: "YoungMaster_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "FreshStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Tournament Organizer": [
-        { name: "Tournament_Org_NG", votes: 188, percentage: 31.8 },
-        { name: "EventMaster_Lagos", votes: 156, percentage: 26.4 },
-        { name: "TourneyPro_Abuja", votes: 123, percentage: 20.8 },
-        { name: "EventKing_PH", votes: 78, percentage: 13.2 },
-        { name: "TourneyElite_Kano", votes: 46, percentage: 7.8 },
-        { name: "EventLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "TourneyChamp_Jos", votes: 0, percentage: 0.0 },
-        { name: "EventExpert_Enugu", votes: 0, percentage: 0.0 },
-        { name: "TourneyMaster_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "EventStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Caster/Commentator": [
-        { name: "CasterKing_NG", votes: 176, percentage: 30.6 },
-        { name: "CommentMaster_Lagos", votes: 145, percentage: 25.2 },
-        { name: "CasterPro_Abuja", votes: 123, percentage: 21.4 },
-        { name: "CommentKing_PH", votes: 89, percentage: 15.5 },
-        { name: "CasterElite_Kano", votes: 42, percentage: 7.3 },
-        { name: "CommentLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "CasterChamp_Jos", votes: 0, percentage: 0.0 },
-        { name: "CommentExpert_Enugu", votes: 0, percentage: 0.0 },
-        { name: "CasterMaster_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "CommentStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Esports Moment": [
-        { name: "Epic Comeback vs Team Phoenix", votes: 165, percentage: 28.9 },
-        {
-          name: "Last Second Victory - Elite Squad",
-          votes: 134,
-          percentage: 23.5,
-        },
-        { name: "Perfect Game - Thunder Bolts", votes: 112, percentage: 19.6 },
-        { name: "Clutch Play - Fire Dragons", votes: 89, percentage: 15.6 },
-        {
-          name: "Amazing Strategy - Storm Warriors",
-          votes: 71,
-          percentage: 12.4,
-        },
-        {
-          name: "Incredible Shot - Lightning Strikes",
-          votes: 0,
-          percentage: 0.0,
-        },
-        {
-          name: "Team Coordination - Blazing Phoenixes",
-          votes: 0,
-          percentage: 0.0,
-        },
-        { name: "Solo Victory - Mighty Eagles", votes: 0, percentage: 0.0 },
-        { name: "Tactical Genius - Savage Wolves", votes: 0, percentage: 0.0 },
-        { name: "Championship Win - Royal Tigers", votes: 0, percentage: 0.0 },
-      ],
-      "Best Coach": [
-        { name: "Coach_Elite", votes: 298, percentage: 60.6 },
-        { name: "CoachMaster_Lagos", votes: 123, percentage: 25.0 },
-        { name: "CoachPro_Abuja", votes: 45, percentage: 9.2 },
-        { name: "CoachKing_PH", votes: 18, percentage: 3.7 },
-        { name: "CoachLegend_Kano", votes: 8, percentage: 1.6 },
-        { name: "CoachChamp_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "CoachExpert_Jos", votes: 0, percentage: 0.0 },
-        { name: "CoachStar_Enugu", votes: 0, percentage: 0.0 },
-        { name: "CoachGuru_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "CoachAce_Benin", votes: 0, percentage: 0.0 },
-      ],
-      "Best Analyst": [
-        { name: "AnalystPro_NG", votes: 154, percentage: 33.5 },
-        { name: "DataMaster_Lagos", votes: 123, percentage: 26.8 },
-        { name: "AnalystKing_Abuja", votes: 89, percentage: 19.4 },
-        { name: "DataPro_PH", votes: 56, percentage: 12.2 },
-        { name: "AnalystElite_Kano", votes: 37, percentage: 8.1 },
-        { name: "DataLegend_Ibadan", votes: 0, percentage: 0.0 },
-        { name: "AnalystChamp_Jos", votes: 0, percentage: 0.0 },
-        { name: "DataExpert_Enugu", votes: 0, percentage: 0.0 },
-        { name: "AnalystMaster_Kaduna", votes: 0, percentage: 0.0 },
-        { name: "DataStar_Benin", votes: 0, percentage: 0.0 },
-      ],
-    },
-  };
+// Fetch votes per section
+const fetchVotesPerSection = async (token: string) => {
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/get-votes-per-section/`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const data = await response.json();
+    return data.votes_per_section || [];
+  } catch (error) {
+    console.error("Error fetching votes per section:", error);
+    return [];
+  }
 };
 
-// Mock function to fetch category voting data
-const fetchCategoryVotingData = async () => {
-  return [
-    { category: "Best Content Creator", votes: 1234, completion: 92 },
-    { category: "Best Gaming Setup", votes: 1156, completion: 87 },
-    { category: "Most Entertaining Stream", votes: 1089, completion: 84 },
-    { category: "Best Educational Content", votes: 1045, completion: 81 },
-    { category: "Rising Star Creator", votes: 998, completion: 78 },
-    { category: "Best Collaboration", votes: 967, completion: 75 },
-    { category: "Most Creative Content", votes: 934, completion: 72 },
-    { category: "Best Community Engagement", votes: 901, completion: 69 },
-    { category: "Best Mobile Gaming Content", votes: 878, completion: 66 },
-    { category: "Best Tutorial Creator", votes: 845, completion: 63 },
-    { category: "Best Streaming Quality", votes: 812, completion: 60 },
-    { category: "Best Personality", votes: 789, completion: 57 },
-    { category: "Best Team Performance", votes: 1009, completion: 95 },
-    { category: "Best Individual Player", votes: 792, completion: 89 },
-    { category: "Best IGL (In-Game Leader)", votes: 742, completion: 84 },
-    { category: "Best Fragger", votes: 723, completion: 81 },
-    { category: "Best Support Player", votes: 678, completion: 78 },
-    { category: "Best Rookie Team", votes: 680, completion: 75 },
-    { category: "Best Rookie Player", votes: 623, completion: 72 },
-    { category: "Best Tournament Organizer", votes: 591, completion: 69 },
-    { category: "Best Caster/Commentator", votes: 575, completion: 66 },
-    { category: "Best Esports Moment", votes: 571, completion: 63 },
-    { category: "Best Coach", votes: 492, completion: 60 },
-    { category: "Best Analyst", votes: 459, completion: 57 },
-  ];
+// Fetch votes per category
+const fetchVotesPerCategory = async (token: string) => {
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/get-votes-per-category/`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const data = await response.json();
+
+    // Transform the data to match expected format
+    const votesData = Array.isArray(data)
+      ? data
+      : data.votes_per_category || [];
+
+    // Map to consistent format
+    return votesData.map((item) => ({
+      category_name: item.category || item.category_name,
+      total_votes: item.votes || item.total_votes || 0,
+      category_id: item.category_id || null,
+      section_name: item.section_name || item.section || null,
+    }));
+  } catch (error) {
+    console.error("Error fetching votes per category:", error);
+    return [];
+  }
 };
 
-// Mock function to fetch voting timeline data
-const fetchVotingTimelineData = async () => {
-  return [
-    { date: "2024-01-01", votes: 234 },
-    { date: "2024-01-02", votes: 456 },
-    { date: "2024-01-03", votes: 789 },
-    { date: "2024-01-04", votes: 1123 },
-    { date: "2024-01-05", votes: 1456 },
-    { date: "2024-01-06", votes: 1789 },
-    { date: "2024-01-07", votes: 2123 },
-    { date: "2024-01-08", votes: 2456 },
-    { date: "2024-01-09", votes: 2789 },
-    { date: "2024-01-10", votes: 3123 },
-  ];
+// Fetch votes per nominee
+const fetchVotesPerNominee = async (token: string) => {
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/get-votes-per-nominee/`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const data = await response.json();
+
+    // Handle the actual API response format
+    const votesData = Array.isArray(data) ? data : data.votes_per_nominee || [];
+
+    // If we have total votes from metrics, calculate actual vote counts
+    // Otherwise, use percentages directly
+    return votesData.map((item) => ({
+      nominee_id: item.nominee_id || item.id || null,
+      nominee_name: item.nominee || item.nominee_name || item.name,
+      category_id: item.category_id || null,
+      category_name: item.category || item.category_name || null,
+      total_votes: item.votes || item.total_votes || 0,
+      percentage: item.percentage || 0,
+    }));
+  } catch (error) {
+    console.error("Error fetching votes per nominee:", error);
+    return [];
+  }
+};
+
+// Fetch voting timeline
+const fetchVotingTimelineData = async (token: string) => {
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/get-voting-timeline/`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const data = await response.json();
+    return data.voting_timeline || [];
+  } catch (error) {
+    console.error("Error fetching voting timeline:", error);
+    return [];
+  }
 };
 
 // Mock function to fetch recent voting activities
@@ -475,78 +242,57 @@ const fetchRecentVotingActivities = async () => {
   ];
 };
 
-// Mock function to fetch top nominees data
-const fetchTopNomineesData = async () => {
-  return [
-    {
-      name: "StreamMaster_NG",
-      category: "Best Content Creator",
-      votes: 456,
-      percentage: 37,
-    },
-    {
-      name: "ProGamer_Lagos",
-      category: "Best Individual Player",
-      votes: 389,
-      percentage: 49,
-    },
-    {
-      name: "Team_Phoenix",
-      category: "Best Team Performance",
-      votes: 367,
-      percentage: 45,
-    },
-    {
-      name: "Rising_Star_Abuja",
-      category: "Rising Star Creator",
-      votes: 334,
-      percentage: 33,
-    },
-    { name: "Coach_Elite", category: "Best Coach", votes: 298, percentage: 61 },
-    {
-      name: "IGL_Master",
-      category: "Best IGL (In-Game Leader)",
-      votes: 276,
-      percentage: 37,
-    },
-    {
-      name: "Fragger_Pro",
-      category: "Best Fragger",
-      votes: 254,
-      percentage: 35,
-    },
-    {
-      name: "Support_King",
-      category: "Best Support Player",
-      votes: 232,
-      percentage: 34,
-    },
-    {
-      name: "Rookie_Wonder",
-      category: "Best Rookie Player",
-      votes: 210,
-      percentage: 34,
-    },
-    {
-      name: "Tournament_Org_NG",
-      category: "Best Tournament Organizer",
-      votes: 188,
-      percentage: 32,
-    },
-  ];
-};
-
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
 export default function AdminVotesPage() {
   const [metrics, setMetrics] = useState(null);
-  const [categoryData, setCategoryData] = useState([]);
+  const [sectionVotes, setSectionVotes] = useState([]);
+  const [categoryVotes, setCategoryVotes] = useState([]);
+  const [nomineeVotes, setNomineeVotes] = useState([]);
   const [timelineData, setTimelineData] = useState([]);
   const [topNominees, setTopNominees] = useState([]);
-  const [nomineeVotes, setNomineeVotes] = useState(null);
-  const [selectedSection, setSelectedSection] = useState("contentCreators");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSection, setSelectedSection] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
+
+  // Add these state variables at the top of your component
+  const [selectedSectionFilter, setSelectedSectionFilter] = useState("all");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("all");
+
+  // Add this filtering function
+  const getFilteredNominees = () => {
+    let filtered = [...nominees];
+
+    // Filter by section
+    if (selectedSectionFilter !== "all") {
+      filtered = filtered.filter((nom) => {
+        const nomineeCategories = nom.categories || [];
+        return nomineeCategories.some(
+          (cat) => cat.section === selectedSectionFilter
+        );
+      });
+    }
+
+    // Filter by category
+    if (selectedCategoryFilter !== "all") {
+      filtered = filtered.filter((nom) => {
+        const nomineeCategories = nom.categories || [];
+        return nomineeCategories.some(
+          (cat) => (cat.id || cat._id) === selectedCategoryFilter
+        );
+      });
+    }
+
+    return filtered;
+  };
+
+  // Get unique sections from nominees for filter dropdown
+  const getUniqueSectionsFromNominees = () => {
+    const allSections = nominees.flatMap((nom) =>
+      (nom.categories || []).map((cat) => cat.section).filter(Boolean)
+    );
+    return [...new Set(allSections)];
+  };
 
   const { user, token } = useAuth();
 
@@ -556,15 +302,10 @@ export default function AdminVotesPage() {
   const [sections, setSections] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
 
-  const getCurrentCategoryData = () => {
-    if (!nomineeVotes || !selectedSection || !selectedCategory) return [];
-    return nomineeVotes[selectedSection][selectedCategory] || [];
-  };
-
-  const getSectionCategories = () => {
-    if (!nomineeVotes || !selectedSection) return [];
-    return Object.keys(nomineeVotes[selectedSection]);
-  };
+  // Additional states for the tabs
+  const [allSectionsData, setAllSectionsData] = useState([]);
+  const [allCategoriesData, setAllCategoriesData] = useState([]);
+  const [allNomineesData, setAllNomineesData] = useState([]);
 
   // Stats
   const [stats, setStats] = useState({
@@ -614,12 +355,10 @@ export default function AdminVotesPage() {
           ...(options.headers || {}),
         },
       });
-      // try parse body safely
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         const errMsg = body?.message || `Request failed: ${res.status}`;
         const err = new Error(errMsg);
-        // attach server body for debugging
         (err as any).serverBody = body;
         throw err;
       }
@@ -632,16 +371,12 @@ export default function AdminVotesPage() {
   const fetchCategories = useCallback(async () => {
     try {
       const data = await apiFetch("/awards/categories/view/");
-
-      console.log(data);
-
       const categoriesData = data.categories || data || [];
       setCategories(categoriesData);
+      setAllCategoriesData(categoriesData); // Store for display
       setStats((prev) => ({ ...prev, totalCategories: categoriesData.length }));
     } catch (err) {
       console.error("fetchCategories error:", err);
-      // don't blow up UI; show message
-      // setMessage({ type: "error", text: "Failed to load categories" });
       toast.error("Failed to load categories");
     }
   }, [apiFetch]);
@@ -649,14 +384,12 @@ export default function AdminVotesPage() {
   const fetchNominees = useCallback(async () => {
     try {
       const data = await apiFetch("/awards/nominees/view/");
-
-      console.log(data);
       const nomineesData = data.nominees || data || [];
       setNominees(nomineesData);
+      setAllNomineesData(nomineesData); // Store for display
       setStats((prev) => ({ ...prev, totalNominees: nomineesData.length }));
     } catch (err) {
       console.error("fetchNominees error:", err);
-      // setMessage({ type: "error", text: "Failed to load nominees" });
       toast.error("Failed to load nominees");
     }
   }, [apiFetch]);
@@ -666,9 +399,9 @@ export default function AdminVotesPage() {
       const data = await apiFetch("/awards/sections/all/");
       const sectionsData = data.sections || data || [];
       setSections(sectionsData);
+      setAllSectionsData(sectionsData); // Store for display
     } catch (err) {
       console.error("fetchSections error:", err);
-      // fallback default sections (useful if backend endpoint absent)
       setSections([
         { id: "content", name: "Content Creator Awards" },
         { id: "esports", name: "Esports Awards" },
@@ -677,16 +410,76 @@ export default function AdminVotesPage() {
   }, [apiFetch]);
 
   const fetchActivities = useCallback(async () => {
-    // optional endpoint; swallow error if not available
     try {
       const data = await apiFetch("/awards/activities/view/");
       const acts = data.activities || data || [];
       setRecentActivities(acts);
     } catch (err) {
-      // Not fatal; activities may not exist
       console.debug("No activities endpoint or failed to load activities.");
     }
   }, [apiFetch]);
+
+  // Load all voting analytics data
+  const loadVotingAnalytics = useCallback(async () => {
+    if (!token) return;
+
+    setLoading(true);
+    try {
+      const [
+        votingMetrics,
+        sectionVotesData,
+        categoryVotesData,
+        nomineeVotesData,
+        votingTimeline,
+        activities,
+      ] = await Promise.all([
+        fetchVotingMetrics(token),
+        fetchVotesPerSection(token),
+        fetchVotesPerCategory(token),
+        fetchVotesPerNominee(token),
+        fetchVotingTimelineData(token),
+        fetchRecentVotingActivities(),
+      ]);
+
+      // Update metrics with section votes if available
+      if (sectionVotesData.length > 0) {
+        votingMetrics.contentCreatorVotes =
+          sectionVotesData.find((s) =>
+            s.section_name?.toLowerCase().includes("content")
+          )?.total_votes || 0;
+
+        votingMetrics.esportsAwardVotes =
+          sectionVotesData.find((s) =>
+            s.section_name?.toLowerCase().includes("esport")
+          )?.total_votes || 0;
+      }
+
+      setMetrics(votingMetrics);
+      setSectionVotes(sectionVotesData);
+      setCategoryVotes(categoryVotesData);
+      setNomineeVotes(nomineeVotesData);
+      setTimelineData(votingTimeline);
+      setRecentActivities(activities);
+
+      // Calculate top nominees from nominee votes data
+      const topNomineesData = nomineeVotesData
+        .sort((a, b) => b.total_votes - a.total_votes)
+        .slice(0, 10)
+        .map((nominee) => ({
+          name: nominee.nominee_name,
+          category: nominee.category_name || "N/A",
+          votes: nominee.total_votes,
+          percentage: nominee.percentage || 0,
+        }));
+
+      setTopNominees(topNomineesData);
+    } catch (error) {
+      console.error("Error loading voting analytics:", error);
+      toast.error("Failed to load voting analytics");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   const fetchInitialData = useCallback(async () => {
     setFetchingData(true);
@@ -696,15 +489,21 @@ export default function AdminVotesPage() {
         fetchNominees(),
         fetchSections(),
         fetchActivities(),
+        loadVotingAnalytics(),
       ]);
     } catch (err) {
       console.error("fetchInitialData error:", err);
-      // setMessage({ type: "error", text: "Failed to load initial data" });
       toast.error("Failed to load initial data");
     } finally {
       setFetchingData(false);
     }
-  }, [fetchCategories, fetchNominees, fetchSections, fetchActivities]);
+  }, [
+    fetchCategories,
+    fetchNominees,
+    fetchSections,
+    fetchActivities,
+    loadVotingAnalytics,
+  ]);
 
   // run on mount and when token becomes available
   useEffect(() => {
@@ -739,17 +538,12 @@ export default function AdminVotesPage() {
   const handleAddNewCategory = async () => {
     if (!newCategoryData.name.trim() || !newCategoryData.section_id) {
       toast.error("Category name and section are required");
-      // setMessage({
-      //   type: "error",
-      //   text: "Category name and section are required",
-      // });
       return;
     }
     setLoadingCategory(true);
     setMessage({ type: "", text: "" });
 
     try {
-      // Using endpoint you confirmed: /awards/categories/create/
       await apiFetch("/awards/categories/add/", {
         method: "POST",
         body: JSON.stringify({
@@ -759,18 +553,12 @@ export default function AdminVotesPage() {
       });
 
       toast.success("Category created successfully!");
-
-      // setMessage({ type: "success", text: "Category created successfully!" });
       setNewCategoryData({ name: "", section_id: "" });
       setShowNewCategoryForm(false);
       await fetchCategories();
     } catch (err) {
       console.error("handleAddNewCategory error:", err);
       toast.error((err as Error).message || "Failed to create category");
-      // setMessage({
-      //   type: "error",
-      //   text: (err as Error).message || "Failed to create category",
-      // });
     } finally {
       setLoadingCategory(false);
     }
@@ -786,7 +574,6 @@ export default function AdminVotesPage() {
     }
     setDeletingId(categoryId);
     try {
-      // Using endpoint you confirmed: DELETE /awards/categories/delete/:id/
       await apiFetch(`/awards/categories/delete`, {
         method: "DELETE",
         body: JSON.stringify({
@@ -794,17 +581,11 @@ export default function AdminVotesPage() {
         }),
       });
       toast.success("Category deleted successfully!");
-      // setMessage({ type: "success", text: "Category deleted successfully!" });
       await fetchCategories();
-      // refresh nominees & stats too
       await fetchNominees();
     } catch (err) {
       console.error("handleDeleteCategory error:", err);
       toast.error((err as Error).message || "Failed to delete category");
-      // setMessage({
-      //   type: "error",
-      //   text: (err as Error).message || "Failed to delete category",
-      // });
     } finally {
       setDeletingId(null);
     }
@@ -812,15 +593,13 @@ export default function AdminVotesPage() {
 
   const handleAddNewNominee = async () => {
     if (!newNomineeData.name.trim()) {
-      toast.error("Nominee name is requried");
-      // setMessage({ type: "error", text: "Nominee name is required" });
+      toast.error("Nominee name is required");
       return;
     }
     setLoadingNominee(true);
     setMessage({ type: "", text: "" });
 
     try {
-      // Using endpoint you confirmed: /awards/nominees/create/
       await apiFetch("/awards/nominees/create/", {
         method: "POST",
         body: JSON.stringify({
@@ -829,17 +608,12 @@ export default function AdminVotesPage() {
         }),
       });
       toast.success("Nominee created successfully");
-      // setMessage({ type: "success", text: "Nominee created successfully!" });
       setNewNomineeData({ name: "", video_url: "" });
       setShowNewNomineeForm(false);
       await fetchNominees();
     } catch (err) {
       console.error("handleAddNewNominee error:", err);
       toast.error((err as Error).message || "Failed to create nominee");
-      // setMessage({
-      //   type: "error",
-      //   text: (err as Error).message || "Failed to create nominee",
-      // });
     } finally {
       setLoadingNominee(false);
     }
@@ -852,23 +626,17 @@ export default function AdminVotesPage() {
       return;
     setDeletingId(nomineeId);
     try {
-      // Using endpoint you confirmed: DELETE /awards/nominees/delete/:id/
       await apiFetch(`/awards/nominees/delete/`, {
         method: "DELETE",
         body: JSON.stringify({
           nominee_id: nomineeId,
         }),
       });
-      // setMessage({ type: "success", text: "Nominee deleted successfully!" });
       toast.success("Nominee deleted successfully!");
       await fetchNominees();
     } catch (err) {
       console.error("handleDeleteNominee error:", err);
       toast.error((err as Error).message || "Failed to delete nominee");
-      // setMessage({
-      //   type: "error",
-      //   text: (err as Error).message || "Failed to delete nominee",
-      // });
     } finally {
       setDeletingId(null);
     }
@@ -876,10 +644,6 @@ export default function AdminVotesPage() {
 
   const handleAssignNominee = async () => {
     if (!formData.category_id || !formData.nominee_id) {
-      // setMessage({
-      //   type: "error",
-      //   text: "Please select both category and nominee",
-      // });
       toast.error("Please select both category and nominee");
       return;
     }
@@ -887,12 +651,10 @@ export default function AdminVotesPage() {
     setMessage({ type: "", text: "" });
 
     try {
-      // Using the category-nominee add endpoint from second code
       await apiFetch("/awards/category-nominee/add/", {
         method: "POST",
         body: JSON.stringify(formData),
       });
-      // setMessage({ type: "success", text: "Nominee assigned to category!" });
       toast.success("Nominee assigned to category!");
       setFormData({ category_id: "", nominee_id: "" });
       setStats((prev) => ({
@@ -902,10 +664,6 @@ export default function AdminVotesPage() {
     } catch (err) {
       console.error("handleAssignNominee error:", err);
       toast.error((err as Error).message || "Failed to assign nominee");
-      // setMessage({
-      //   type: "error",
-      //   text: (err as Error).message || "Failed to assign nominee",
-      // });
     } finally {
       setLoadingAssign(false);
     }
@@ -916,68 +674,32 @@ export default function AdminVotesPage() {
     setMessage({ type: "", text: "" });
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [
-          votingMetrics,
-          categoryVoting,
-          votingTimeline,
-          activities,
-          nominees,
-          detailedVotes,
-        ] = await Promise.all([
-          fetchVotingMetrics(),
-          fetchCategoryVotingData(),
-          fetchVotingTimelineData(),
-          fetchRecentVotingActivities(),
-          fetchTopNomineesData(),
-          fetchNomineeVotesByCategory(),
-        ]);
-
-        setMetrics(votingMetrics);
-        setCategoryData(categoryVoting);
-        setTimelineData(votingTimeline);
-        setRecentActivities(activities);
-        setTopNominees(nominees);
-        setNomineeVotes(detailedVotes);
-
-        // Set default category for content creators
-        if (detailedVotes?.contentCreators) {
-          setSelectedCategory(Object.keys(detailedVotes.contentCreators)[0]);
-        }
-      } catch (error) {
-        console.error("Error loading voting data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
-  // Update selected category when section changes
-  useEffect(() => {
-    if (nomineeVotes && selectedSection) {
-      const sectionData = nomineeVotes[selectedSection];
-      if (sectionData) {
-        setSelectedCategory(Object.keys(sectionData)[0]);
-      }
+  // Get filtered category votes based on selected section
+  const getFilteredCategoryVotes = () => {
+    if (selectedSection === "all") {
+      return categoryVotes;
     }
-  }, [selectedSection, nomineeVotes]);
 
-  if (loading) {
-    return (
-      <AdminLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-lg">Loading voting metrics...</div>
-          </div>
-        </div>
-      </AdminLayout>
+    return categoryVotes.filter((cat) => {
+      const section = sections.find(
+        (s) => (s.id || s._id) === cat.section_id || s.name === cat.section_name
+      );
+      return section && (section.id || section._id) === selectedSection;
+    });
+  };
+
+  // Get filtered nominee votes based on selected category
+  const getFilteredNomineeVotes = () => {
+    if (selectedCategory === "all") {
+      return nomineeVotes;
+    }
+
+    return nomineeVotes.filter(
+      (nom) => (nom.category_id || nom.category_name) === selectedCategory
     );
-  }
+  };
 
-  if (fetchingData) {
+  if (fetchingData || loading) {
     return <FullLoader />;
   }
 
@@ -1003,7 +725,7 @@ export default function AdminVotesPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {metrics?.totalVotes?.toLocaleString()}
+                {metrics?.totalVotes?.toLocaleString() || "0"}
               </div>
               <div className="text-sm text-muted-foreground mt-1">
                 Across all categories
@@ -1020,7 +742,7 @@ export default function AdminVotesPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {metrics?.totalVoters?.toLocaleString()}
+                {metrics?.totalVoters?.toLocaleString() || "0"}
               </div>
               <div className="text-sm text-muted-foreground mt-1">
                 Unique participants
@@ -1037,10 +759,10 @@ export default function AdminVotesPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {metrics?.votingCompletionRate}%
+                {metrics?.votingCompletionRate || 0}%
               </div>
               <div className="text-sm text-muted-foreground mt-1">
-                {metrics?.completedVotes?.toLocaleString()} completed
+                {metrics?.completedVotes?.toLocaleString() || "0"} completed
               </div>
             </CardContent>
           </Card>
@@ -1054,7 +776,7 @@ export default function AdminVotesPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {metrics?.averageVotingTime}
+                {metrics?.averageVotingTime || "N/A"}
               </div>
               <div className="text-sm text-muted-foreground mt-1">
                 Per complete session
@@ -1073,9 +795,21 @@ export default function AdminVotesPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
-                {metrics?.contentCreatorVotes?.toLocaleString()}
+                {metrics?.contentCreatorVotes?.toLocaleString() || "0"}
               </div>
-              <div className="text-sm text-muted-foreground">12 categories</div>
+              <div className="text-sm text-muted-foreground">
+                {
+                  categoryVotes.filter((c) =>
+                    allCategoriesData.some(
+                      (cat) =>
+                        cat.name?.trim().toLowerCase() ===
+                          c.category_name?.trim().toLowerCase() &&
+                        cat.section?.toLowerCase().includes("content")
+                    )
+                  ).length
+                }{" "}
+                categories
+              </div>
             </CardContent>
           </Card>
 
@@ -1087,24 +821,36 @@ export default function AdminVotesPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {metrics?.esportsAwardVotes?.toLocaleString()}
+                {metrics?.esportsAwardVotes?.toLocaleString() || "0"}
               </div>
-              <div className="text-sm text-muted-foreground">12 categories</div>
+              <div className="text-sm text-muted-foreground">
+                {
+                  categoryVotes.filter((c) =>
+                    allCategoriesData.some(
+                      (cat) =>
+                        cat.name?.trim().toLowerCase() ===
+                          c.category_name?.trim().toLowerCase() &&
+                        cat.section?.toLowerCase().includes("esport")
+                    )
+                  ).length
+                }{" "}
+                categories
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium">
-                Peak Voting Time
+                Total Categories
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">
-                {metrics?.peakVotingHour}
+                {categories.length}
               </div>
               <div className="text-sm text-muted-foreground">
-                Daily peak activity
+                Across {sections.length} sections
               </div>
             </CardContent>
           </Card>
@@ -1114,10 +860,11 @@ export default function AdminVotesPage() {
           <ScrollArea>
             <TabsList className="w-full">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="sections">Sections</TabsTrigger>
               <TabsTrigger value="categories">Categories</TabsTrigger>
-              <TabsTrigger value="nominees">Nominee Votes</TabsTrigger>
+              <TabsTrigger value="nominees">Nominees</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger value="top-nominees">Top Nominees</TabsTrigger>
+              <TabsTrigger value="top-performers">Top Performers</TabsTrigger>
               <TabsTrigger value="activities">Activities</TabsTrigger>
               <TabsTrigger value="management">Management</TabsTrigger>
             </TabsList>
@@ -1137,20 +884,22 @@ export default function AdminVotesPage() {
                         data={[
                           {
                             name: "Completed",
-                            value: metrics?.completedVotes,
+                            value: metrics?.completedVotes || 0,
                             fill: "#00C49F",
                           },
                           {
                             name: "Partial",
-                            value: metrics?.partialVotes,
+                            value: metrics?.partialVotes || 0,
                             fill: "#FFBB28",
                           },
                           {
                             name: "Not Started",
-                            value:
-                              metrics?.totalVoters -
-                              metrics?.completedVotes -
-                              metrics?.partialVotes,
+                            value: Math.max(
+                              0,
+                              (metrics?.totalVoters || 0) -
+                                (metrics?.completedVotes || 0) -
+                                (metrics?.partialVotes || 0)
+                            ),
                             fill: "#FF8042",
                           },
                         ]}
@@ -1164,17 +913,7 @@ export default function AdminVotesPage() {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {[
-                          { name: "Completed", value: metrics?.completedVotes },
-                          { name: "Partial", value: metrics?.partialVotes },
-                          {
-                            name: "Not Started",
-                            value:
-                              metrics?.totalVoters -
-                              metrics?.completedVotes -
-                              metrics?.partialVotes,
-                          },
-                        ].map((entry, index) => (
+                        {[0, 1, 2].map((index) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={COLORS[index % COLORS.length]}
@@ -1194,16 +933,10 @@ export default function AdminVotesPage() {
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart
-                      data={[
-                        {
-                          section: "Content Creators",
-                          votes: metrics?.contentCreatorVotes,
-                        },
-                        {
-                          section: "Esports Awards",
-                          votes: metrics?.esportsAwardVotes,
-                        },
-                      ]}
+                      data={sectionVotes.map((section) => ({
+                        section: section.section_name,
+                        votes: section.total_votes,
+                      }))}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="section" />
@@ -1217,156 +950,459 @@ export default function AdminVotesPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="sections" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Sections</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Overview of all award sections in the system
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {allSectionsData.length === 0 ? (
+                    <div className="col-span-full text-center py-8 text-muted-foreground">
+                      No sections available
+                    </div>
+                  ) : (
+                    allSectionsData.map((section) => {
+                      const sectionCategories = allCategoriesData.filter(
+                        (cat) =>
+                          cat.section_id === (section.id || section._id) ||
+                          cat.section === section.name
+                      );
+
+                      const sectionVoteData = sectionVotes.find(
+                        (sv) =>
+                          sv.section_name === section.name ||
+                          sv.section_id === (section.id || section._id)
+                      );
+
+                      return (
+                        <Card
+                          key={section.id || section._id}
+                          className="hover:shadow-md transition-shadow"
+                        >
+                          <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              <Trophy className="h-5 w-5 text-primary" />
+                              {section.name || section.title}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">
+                                Categories:
+                              </span>
+                              <Badge variant="secondary">
+                                {sectionCategories.length}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">
+                                Total Votes:
+                              </span>
+                              <Badge>
+                                {sectionVoteData?.total_votes?.toLocaleString() ||
+                                  "0"}
+                              </Badge>
+                            </div>
+                            {section.description && (
+                              <p className="text-xs text-muted-foreground pt-2 border-t">
+                                {section.description}
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="categories" className="space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <Select
+                  value={selectedSection}
+                  onValueChange={setSelectedSection}
+                >
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="Filter by section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sections</SelectItem>
+                    {allSectionsData.map((section) => (
+                      <SelectItem
+                        key={section.id || section._id}
+                        value={section.id || section._id}
+                      >
+                        {section.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <Card>
               <CardHeader>
                 <CardTitle>Category Voting Performance</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Vote distribution across all categories
+                </p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {categoryData.map((category, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">
-                          {category.category}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
-                            {category.votes} votes
-                          </span>
-                          <Badge
-                            variant={
-                              category.completion > 70 ? "default" : "secondary"
-                            }
-                          >
-                            {category.completion}%
-                          </Badge>
+                <div className="space-y-6">
+                  {(() => {
+                    let filteredCategories = allCategoriesData;
+                    if (selectedSection !== "all") {
+                      filteredCategories = allCategoriesData.filter(
+                        (cat) =>
+                          cat.section_id === selectedSection ||
+                          cat.section ===
+                            allSectionsData.find(
+                              (s) => (s.id || s._id) === selectedSection
+                            )?.name
+                      );
+                    }
+
+                    if (filteredCategories.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No categories available
                         </div>
+                      );
+                    }
+
+                    // Sort by votes descending
+                    const sortedCategories = filteredCategories
+                      .map((category) => {
+                        // Match by name (case-insensitive and trimmed)
+                        const categoryVoteData = categoryVotes.find(
+                          (cv) =>
+                            cv.category_name?.trim().toLowerCase() ===
+                            (category.name || category.title)
+                              ?.trim()
+                              .toLowerCase()
+                        );
+
+                        const votes = categoryVoteData?.total_votes || 0;
+                        const percentage =
+                          metrics?.totalVotes && metrics.totalVotes > 0
+                            ? (votes / metrics.totalVotes) * 100
+                            : 0;
+
+                        return {
+                          ...category,
+                          votes,
+                          percentage,
+                        };
+                      })
+                      .sort((a, b) => b.votes - a.votes);
+
+                    return sortedCategories.map((category, index) => (
+                      <div
+                        key={category.id || category._id}
+                        className="space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <span className="font-medium text-foreground">
+                              {category.name || category.title}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {category.section}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-muted-foreground">
+                              {category.votes.toLocaleString()} votes
+                            </span>
+                            <Badge className="min-w-[50px] justify-center">
+                              {Math.round(category.percentage)}%
+                            </Badge>
+                          </div>
+                        </div>
+                        <Progress
+                          value={category.percentage}
+                          className="h-2.5"
+                        />
                       </div>
-                      <Progress value={category.completion} className="h-2" />
-                    </div>
-                  ))}
+                    ));
+                  })()}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="nominees" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Select Section</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Select
-                    value={selectedSection}
-                    onValueChange={setSelectedSection}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="contentCreators">
-                        <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4" />
-                          Content Creators
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="esportsAwards">
-                        <div className="flex items-center gap-2">
-                          <Trophy className="h-4 w-4" />
-                          Esports Awards
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Select Category</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Select
-                    value={selectedCategory}
-                    onValueChange={setSelectedCategory}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getSectionCategories().map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Category Stats</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="text-2xl font-bold">
-                      {getCurrentCategoryData().reduce(
-                        (sum, nominee) => sum + nominee.votes,
-                        0
-                      )}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Total votes in category
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="flex items-center justify-between mb-4">
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {allCategoriesData.map((category) => (
+                    <SelectItem
+                      key={category.id || category._id}
+                      value={category.name || category.title}
+                    >
+                      {category.name || category.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
             <Card>
               <CardHeader>
-                <CardTitle>
-                  Nominee Votes - {selectedCategory}
-                  <Badge className="ml-2" variant="outline">
-                    {selectedSection === "contentCreators"
-                      ? "Content Creators"
-                      : "Esports Awards"}
-                  </Badge>
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>
+                      Nominee Votes
+                      {selectedCategory !== "all"
+                        ? ` - ${selectedCategory}`
+                        : ""}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Vote distribution across nominees
+                    </p>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {/* Chart View */}
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={getCurrentCategoryData().slice(0, 8)}
-                        layout="horizontal"
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="name" type="category" width={120} />
-                        <Tooltip />
-                        <Bar dataKey="votes" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                {/* Chart Section */}
+                {(() => {
+                  let filteredNominees = nomineeVotes;
 
-                  {/* Table View */}
-                  <Table>
-                    <TableHeader>
+                  // Filter by category if selected
+                  if (selectedCategory !== "all") {
+                    filteredNominees = nomineeVotes.filter(
+                      (nom) =>
+                        nom.category_name?.trim().toLowerCase() ===
+                        selectedCategory?.trim().toLowerCase()
+                    );
+                  }
+
+                  // Calculate vote counts from percentages if we have total votes
+                  const nomineesWithVotes = filteredNominees.map((nom) => {
+                    let calculatedVotes = nom.total_votes;
+
+                    // If no vote count but we have percentage and total votes, calculate it
+                    if (
+                      !calculatedVotes &&
+                      nom.percentage &&
+                      metrics?.totalVotes
+                    ) {
+                      calculatedVotes = Math.round(
+                        (nom.percentage / 100) * metrics.totalVotes
+                      );
+                    }
+
+                    return {
+                      ...nom,
+                      total_votes: calculatedVotes || 0,
+                    };
+                  });
+
+                  const sortedNominees = nomineesWithVotes.sort(
+                    (a, b) => b.percentage - a.percentage
+                  );
+                  const topNominees = sortedNominees.slice(0, 10);
+
+                  if (sortedNominees.length === 0) {
+                    return (
+                      <div className="text-center py-12 text-muted-foreground">
+                        No nominee data available
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <>
+                      {/* Horizontal Bar Chart */}
+                      <div className="mb-8">
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart
+                            data={topNominees.map((nom) => ({
+                              name: nom.nominee_name,
+                              percentage: nom.percentage,
+                            }))}
+                            layout="vertical"
+                            margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" domain={[0, 100]} />
+                            <YAxis
+                              dataKey="name"
+                              type="category"
+                              width={100}
+                              tick={{ fontSize: 12 }}
+                            />
+                            <Tooltip
+                              formatter={(value) =>
+                                `${Number(value).toFixed(1)}%`
+                              }
+                            />
+                            <Bar dataKey="percentage" fill="#8884d8" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Table Section */}
+                      <div className="rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-muted/50">
+                              <TableHead className="w-[80px]">Rank</TableHead>
+                              <TableHead>Nominee</TableHead>
+                              <TableHead className="w-[120px]">Votes</TableHead>
+                              <TableHead className="w-[120px]">
+                                Percentage
+                              </TableHead>
+                              <TableHead className="w-[200px]">
+                                Progress
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {sortedNominees.map((nominee, index) => {
+                              const isTopThree = index < 3;
+
+                              return (
+                                <TableRow
+                                  key={`${nominee.nominee_name}-${index}`}
+                                  className="hover:bg-muted/50 transition-colors"
+                                >
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <Badge
+                                        variant={
+                                          isTopThree ? "default" : "secondary"
+                                        }
+                                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                                      >
+                                        #{index + 1}
+                                      </Badge>
+                                      {index === 0 && (
+                                        <Trophy className="h-4 w-4 text-yellow-500" />
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    {nominee.nominee_name}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-1">
+                                      <Vote className="h-3 w-3 text-blue-500" />
+                                      <span className="font-semibold">
+                                        {nominee.total_votes > 0
+                                          ? nominee.total_votes.toLocaleString()
+                                          : "-"}
+                                      </span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant={
+                                        nominee.percentage > 10
+                                          ? "default"
+                                          : "secondary"
+                                      }
+                                      className="font-semibold"
+                                    >
+                                      {nominee.percentage.toFixed(1)}%
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <Progress
+                                        value={nominee.percentage}
+                                        className="h-2 flex-1"
+                                      />
+                                      <span className="text-xs text-muted-foreground w-12 text-right">
+                                        {nominee.percentage.toFixed(1)}%
+                                      </span>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="timeline" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Voting Timeline</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {timelineData.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    No timeline data available
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={timelineData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line
+                        type="monotone"
+                        dataKey="votes"
+                        stroke="#8884d8"
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="top-performers" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Performing Nominees</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Rank</TableHead>
+                      <TableHead>Nominee</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Votes</TableHead>
+                      <TableHead>Percentage</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {topNominees.length === 0 ? (
                       <TableRow>
-                        <TableHead>Rank</TableHead>
-                        <TableHead>Nominee</TableHead>
-                        <TableHead>Votes</TableHead>
-                        <TableHead>Percentage</TableHead>
-                        <TableHead>Progress</TableHead>
+                        <TableCell
+                          colSpan={5}
+                          className="text-center text-muted-foreground"
+                        >
+                          No top performers data available
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getCurrentCategoryData().map((nominee, index) => (
+                    ) : (
+                      topNominees.map((nominee, index) => (
                         <TableRow key={index}>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -1384,102 +1420,28 @@ export default function AdminVotesPage() {
                             {nominee.name}
                           </TableCell>
                           <TableCell>
+                            <Badge variant="outline">{nominee.category}</Badge>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex items-center gap-2">
                               <Vote className="h-4 w-4 text-blue-500" />
                               {nominee.votes.toLocaleString()}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge
-                              variant={
-                                nominee.percentage > 30
-                                  ? "default"
-                                  : "secondary"
-                              }
-                            >
-                              {nominee.percentage.toFixed(1)}%
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
                             <div className="flex items-center gap-2">
                               <Progress
                                 value={nominee.percentage}
-                                className="h-2 w-20"
+                                className="h-2 w-16"
                               />
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-sm">
                                 {nominee.percentage.toFixed(1)}%
                               </span>
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="timeline" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Voting Timeline</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={timelineData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="votes"
-                      stroke="#8884d8"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="top-nominees" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Performing Nominees</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nominee</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Votes</TableHead>
-                      <TableHead>Percentage</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {topNominees.map((nominee, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">
-                          {nominee.name}
-                        </TableCell>
-                        <TableCell>{nominee.category}</TableCell>
-                        <TableCell>{nominee.votes}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Progress
-                              value={nominee.percentage}
-                              className="h-2 w-16"
-                            />
-                            <span className="text-sm">
-                              {nominee.percentage}%
-                            </span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -1502,38 +1464,50 @@ export default function AdminVotesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentActivities.map((activity) => (
-                      <TableRow key={activity.id}>
-                        <TableCell className="font-medium">
-                          {activity.user}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {activity.action.includes("Completed") ? (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                            ) : activity.action.includes("Partial") ? (
-                              <AlertCircle className="h-4 w-4 text-yellow-600" />
-                            ) : (
-                              <Clock className="h-4 w-4 text-blue-600" />
-                            )}
-                            {activity.action}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {activity.categories} categories
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {activity.timestamp}
+                    {recentActivities.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={4}
+                          className="text-center text-muted-foreground"
+                        >
+                          No recent activities
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      recentActivities.map((activity) => (
+                        <TableRow key={activity.id}>
+                          <TableCell className="font-medium">
+                            {activity.user}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {activity.action.includes("Completed") ? (
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              ) : activity.action.includes("Partial") ? (
+                                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                              ) : (
+                                <Clock className="h-4 w-4 text-blue-600" />
+                              )}
+                              {activity.action}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {activity.categories} categories
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {activity.timestamp}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
           </TabsContent>
+
           <TabsContent value="management" className="space-y-6">
             <Tabs defaultValue="categories" className="space-y-6">
               <div className="border-b">
@@ -1548,6 +1522,7 @@ export default function AdminVotesPage() {
                   </TabsTrigger>
                 </TabsList>
               </div>
+
               <TabsContent value="categories" className="mt-6">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
@@ -1575,10 +1550,7 @@ export default function AdminVotesPage() {
                         <label className="text-sm font-medium mb-2 block">
                           Filter by Section
                         </label>
-                        <Select
-                          defaultValue="all"
-                          onValueChange={() => {}} /* keep UI only for now */
-                        >
+                        <Select defaultValue="all" onValueChange={() => {}}>
                           <SelectTrigger className="w-64">
                             <SelectValue placeholder="All Sections" />
                           </SelectTrigger>
@@ -1602,8 +1574,6 @@ export default function AdminVotesPage() {
                             <TableRow>
                               <TableHead>Category Name</TableHead>
                               <TableHead>Section</TableHead>
-                              {/* <TableHead>Gender Option</TableHead> */}
-                              {/* <TableHead>Description</TableHead> */}
                               <TableHead>Nominees</TableHead>
                               <TableHead className="text-right">
                                 Actions
@@ -1615,7 +1585,7 @@ export default function AdminVotesPage() {
                             {categories.length === 0 ? (
                               <TableRow>
                                 <TableCell
-                                  colSpan={6}
+                                  colSpan={4}
                                   className="text-center text-sm text-gray-400 py-8"
                                 >
                                   No categories yet.
@@ -1630,16 +1600,6 @@ export default function AdminVotesPage() {
                                   <TableCell>
                                     <Badge>{cat.section}</Badge>
                                   </TableCell>
-                                  {/* <TableCell>
-                                    <Badge variant="outline">
-                                      {cat.gender_option ||
-                                        cat.gender ||
-                                        "No Gender"}
-                                    </Badge>
-                                  </TableCell> */}
-                                  {/* <TableCell className="max-w-xs truncate">
-                                    {cat.description || cat.desc || "—"}
-                                  </TableCell> */}
                                   <TableCell>
                                     <Badge variant="secondary">
                                       {(cat.nominees_count ??
@@ -1650,15 +1610,11 @@ export default function AdminVotesPage() {
                                   </TableCell>
                                   <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => {
-                                          /* implement edit if needed */
-                                        }}
-                                      >
-                                        <span className="sr-only">Edit</span> ✏️
-                                      </Button>
+                                      <EditCategoryModal
+                                        category={cat}
+                                        sections={sections}
+                                        onCategoryUpdated={fetchCategories}
+                                      />
                                       <Button
                                         variant="ghost"
                                         size="icon"
@@ -1691,7 +1647,6 @@ export default function AdminVotesPage() {
                 </Card>
               </TabsContent>
 
-              {/* Nominees */}
               <TabsContent value="nominees" className="mt-6">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
@@ -1713,25 +1668,27 @@ export default function AdminVotesPage() {
 
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">
                             Filter by Section
                           </label>
-                          <Select defaultValue="all">
+                          <Select
+                            value={selectedSectionFilter}
+                            onValueChange={setSelectedSectionFilter}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="All Sections" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="all">All Sections</SelectItem>
-                              {sections.map((s) => (
-                                <SelectItem
-                                  key={s.id || s._id}
-                                  value={s.id || s._id}
-                                >
-                                  {s.name || s.title}
-                                </SelectItem>
-                              ))}
+                              {getUniqueSectionsFromNominees().map(
+                                (section) => (
+                                  <SelectItem key={section} value={section}>
+                                    {section}
+                                  </SelectItem>
+                                )
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
@@ -1740,7 +1697,10 @@ export default function AdminVotesPage() {
                           <label className="text-sm font-medium mb-2 block">
                             Filter by Category
                           </label>
-                          <Select defaultValue="all">
+                          <Select
+                            value={selectedCategoryFilter}
+                            onValueChange={setSelectedCategoryFilter}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="All Categories" />
                             </SelectTrigger>
@@ -1759,6 +1719,18 @@ export default function AdminVotesPage() {
                             </SelectContent>
                           </Select>
                         </div>
+
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Results
+                          </label>
+                          <div className="h-10 flex items-center">
+                            <Badge variant="secondary" className="text-sm">
+                              {getFilteredNominees().length} of{" "}
+                              {nominees.length} nominees
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="rounded-lg border">
@@ -1768,8 +1740,6 @@ export default function AdminVotesPage() {
                               <TableHead>Nominee Name</TableHead>
                               <TableHead>Category</TableHead>
                               <TableHead>Section</TableHead>
-                              <TableHead>Profile URL</TableHead>
-                              <TableHead>Bio</TableHead>
                               <TableHead className="text-right">
                                 Actions
                               </TableHead>
@@ -1779,65 +1749,97 @@ export default function AdminVotesPage() {
                             {nominees.length === 0 ? (
                               <TableRow>
                                 <TableCell
-                                  colSpan={6}
+                                  colSpan={4}
                                   className="text-center text-sm text-gray-400 py-8"
                                 >
                                   No nominees found.
                                 </TableCell>
                               </TableRow>
                             ) : (
-                              nominees.map((nom) => {
-                                // Try to determine first category/section if nominee holds it; fallback to placeholder
-                                const firstCategory =
-                                  (nom.categories && nom.categories[0]) || null;
-                                const sectionName = firstCategory
-                                  ? getSectionName(
-                                      firstCategory.section_id ||
-                                        firstCategory.sectionId
-                                    )
-                                  : "-";
+                              getFilteredNominees().map((nom) => {
+                                const nomineeCategories = nom.categories || [];
+                                const categoryCount = nomineeCategories.length;
+
+                                const uniqueSections = [
+                                  ...new Set(
+                                    nomineeCategories
+                                      .map((cat) => cat.section)
+                                      .filter(Boolean)
+                                  ),
+                                ];
+
                                 return (
                                   <TableRow key={nom.id || nom._id}>
                                     <TableCell className="font-medium">
                                       {nom.name}
                                     </TableCell>
+
                                     <TableCell>
-                                      {firstCategory?.name || "-"}
-                                    </TableCell>
-                                    <TableCell>
-                                      <Badge>{sectionName}</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                      {nom.video_url ? (
-                                        <a
-                                          href={nom.video_url}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="text-blue-500 hover:underline text-sm"
-                                        >
-                                          🔗 View Profile
-                                        </a>
-                                      ) : (
+                                      {categoryCount === 0 ? (
                                         <span className="text-gray-400 text-sm">
-                                          —
+                                          Not assigned
                                         </span>
+                                      ) : categoryCount === 1 ? (
+                                        <span className="text-sm">
+                                          {nomineeCategories[0].name}
+                                        </span>
+                                      ) : (
+                                        <div className="flex items-center gap-2">
+                                          <Badge variant="secondary">
+                                            {categoryCount} categories
+                                          </Badge>
+                                          <div className="group relative">
+                                            <button className="text-blue-500 hover:text-blue-600 text-xs">
+                                              View all
+                                            </button>
+                                            <div className="hidden group-hover:block absolute left-0 top-6 z-50 bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl min-w-[200px]">
+                                              <div className="space-y-1">
+                                                {nomineeCategories.map(
+                                                  (cat, idx) => (
+                                                    <div
+                                                      key={idx}
+                                                      className="text-xs text-gray-300 py-1"
+                                                    >
+                                                      • {cat.name}
+                                                    </div>
+                                                  )
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
                                       )}
                                     </TableCell>
-                                    <TableCell className="max-w-xs truncate">
-                                      {nom.bio || nom.description || "—"}
+
+                                    <TableCell>
+                                      {uniqueSections.length === 0 ? (
+                                        <Badge variant="outline">
+                                          No Section
+                                        </Badge>
+                                      ) : uniqueSections.length === 1 ? (
+                                        <Badge>{uniqueSections[0]}</Badge>
+                                      ) : (
+                                        <div className="flex flex-wrap gap-1">
+                                          {uniqueSections.map(
+                                            (section, idx) => (
+                                              <Badge
+                                                key={idx}
+                                                variant="secondary"
+                                              >
+                                                {section}
+                                              </Badge>
+                                            )
+                                          )}
+                                        </div>
+                                      )}
                                     </TableCell>
+
                                     <TableCell className="text-right">
                                       <div className="flex justify-end gap-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => {
-                                            /* edit later */
-                                          }}
-                                        >
-                                          <span className="sr-only">Edit</span>{" "}
-                                          ✏️
-                                        </Button>
+                                        <EditNomineeModal
+                                          nominee={nom}
+                                          onNomineeUpdated={fetchNominees}
+                                        />
                                         <Button
                                           variant="ghost"
                                           size="icon"
@@ -1876,26 +1878,6 @@ export default function AdminVotesPage() {
             </Tabs>
           </TabsContent>
         </Tabs>
-      </div>
-      <div className="flex gap-3">
-        {/* <CreateNomineeModal
-    handleAddNewNominee={handleAddNewNominee}
-    loadingNominee={loadingNominee}
-    newNomineeData={newNomineeData}
-    setNewNomineeData={setNewNomineeData}
-  />
-
-  <AssignNomineeModal
-    categories={categories}
-    nominees={nominees}
-    handleAssignNominee={handleAssignNominee}
-    loadingAssign={loadingAssign}
-    formData={formData}
-    setFormData={setFormData}
-    getSelectedCategory={getSelectedCategory}
-    getSelectedNominee={getSelectedNominee}
-    handleResetAssignment={handleResetAssignment}
-  /> */}
       </div>
     </AdminLayout>
   );
