@@ -865,7 +865,7 @@ export default function AdminVotesPage() {
               <TabsTrigger value="nominees">Nominees</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
               <TabsTrigger value="top-performers">Top Performers</TabsTrigger>
-              <TabsTrigger value="activities">Activities</TabsTrigger>
+              {/* <TabsTrigger value="activities">Activities</TabsTrigger> */}
               <TabsTrigger value="management">Management</TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
@@ -1448,7 +1448,7 @@ export default function AdminVotesPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="activities" className="space-y-6">
+          {/* <TabsContent value="activities" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Recent Voting Activities</CardTitle>
@@ -1506,7 +1506,7 @@ export default function AdminVotesPage() {
                 </Table>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
 
           <TabsContent value="management" className="space-y-6">
             <Tabs defaultValue="categories" className="space-y-6">
