@@ -122,7 +122,7 @@ export function AssignNomineeModal({
               onChange={(e) =>
                 setFormData({ ...formData, category_id: e.target.value })
               }
-              className="w-full border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full border border-gray-600 text-black rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="">-- Choose a category --</option>
               {categories.map((cat) => (
@@ -143,7 +143,7 @@ export function AssignNomineeModal({
               onChange={(e) =>
                 setFormData({ ...formData, nominee_id: e.target.value })
               }
-              className="w-full border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
             >
               <option value="">-- Choose a nominee --</option>
               {nominees.map((nom) => (

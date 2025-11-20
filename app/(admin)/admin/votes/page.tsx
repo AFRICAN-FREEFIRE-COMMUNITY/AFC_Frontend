@@ -59,6 +59,7 @@ import { AssignNomineeModal } from "./_components/AssignNomineeModal";
 import { toast } from "sonner";
 import { EditCategoryModal } from "./_components/EditCategoryModal";
 import { EditNomineeModal } from "./_components/EditNomineeModal";
+import { RemoveNomineeModal } from "./_components/RemoveNomineeModal";
 
 // Real API fetch functions
 const fetchVotingMetrics = async (token: string) => {
@@ -194,7 +195,8 @@ const fetchVotingTimelineData = async (token: string) => {
       }
     );
     const data = await response.json();
-    return data.voting_timeline || [];
+    // API returns array directly, not wrapped in voting_timeline
+    return Array.isArray(data) ? data : (data.voting_timeline || []);
   } catch (error) {
     console.error("Error fetching voting timeline:", error);
     return [];
@@ -258,6 +260,8 @@ export default function AdminVotesPage() {
   // Add these state variables at the top of your component
   const [selectedSectionFilter, setSelectedSectionFilter] = useState("all");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("all");
+  const [selectedManagementSectionFilter, setSelectedManagementSectionFilter] =
+    useState("all");
 
   // Add this filtering function
   const getFilteredNominees = () => {
@@ -462,13 +466,35 @@ export default function AdminVotesPage() {
       setRecentActivities(activities);
 
       // Calculate top nominees from nominee votes data
-      const topNomineesData = nomineeVotesData
-        .sort((a, b) => b.total_votes - a.total_votes)
+      // Match the logic used in the Nominees tab for consistency
+      const nomineesWithCalculatedVotes = nomineeVotesData.map((nom) => {
+        let calculatedVotes = nom.total_votes;
+
+        // If no vote count but we have percentage and total votes, calculate it
+        if (
+          !calculatedVotes &&
+          nom.percentage &&
+          votingMetrics?.totalVotes
+        ) {
+          calculatedVotes = Math.round(
+            (nom.percentage / 100) * votingMetrics.totalVotes
+          );
+        }
+
+        return {
+          ...nom,
+          total_votes: calculatedVotes || 0,
+        };
+      });
+
+      const topNomineesData = nomineesWithCalculatedVotes
+        .filter((nominee) => nominee.percentage > 0) // Only include nominees with votes
+        .sort((a, b) => b.percentage - a.percentage) // Sort by percentage like Nominees tab
         .slice(0, 10)
         .map((nominee) => ({
           name: nominee.nominee_name,
           category: nominee.category_name || "N/A",
-          votes: nominee.total_votes,
+          votes: nominee.total_votes || 0,
           percentage: nominee.percentage || 0,
         }));
 
@@ -1349,6 +1375,9 @@ export default function AdminVotesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Voting Timeline</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Track voting activity over time
+                </p>
               </CardHeader>
               <CardContent>
                 {timelineData.length === 0 ? (
@@ -1356,20 +1385,108 @@ export default function AdminVotesPage() {
                     No timeline data available
                   </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={timelineData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="votes"
-                        stroke="#8884d8"
-                        strokeWidth={2}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <>
+                    <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                        <p className="text-sm text-muted-foreground">
+                          Total Days Tracked
+                        </p>
+                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {timelineData.length}
+                        </p>
+                      </div>
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                        <p className="text-sm text-muted-foreground">
+                          Peak Daily Votes
+                        </p>
+                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {Math.max(...timelineData.map((d) => d.votes || 0))}
+                        </p>
+                      </div>
+                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                        <p className="text-sm text-muted-foreground">
+                          Average Daily Votes
+                        </p>
+                        <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                          {Math.round(
+                            timelineData.reduce(
+                              (sum, d) => sum + (d.votes || 0),
+                              0
+                            ) / timelineData.length
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <ResponsiveContainer width="100%" height={400}>
+                      <LineChart
+                        data={timelineData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          className="stroke-muted"
+                        />
+                        <XAxis
+                          dataKey="date"
+                          tickFormatter={(date) => {
+                            const d = new Date(date);
+                            return d.toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            });
+                          }}
+                          className="text-xs"
+                        />
+                        <YAxis
+                          label={{
+                            value: "Votes",
+                            angle: -90,
+                            position: "insideLeft",
+                          }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "rgba(0, 0, 0, 0.8)",
+                            border: "none",
+                            borderRadius: "8px",
+                            color: "white",
+                          }}
+                          labelFormatter={(date) => {
+                            const d = new Date(date);
+                            return d.toLocaleDateString("en-US", {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            });
+                          }}
+                          formatter={(value) => [
+                            `${value} votes`,
+                            "Total Votes",
+                          ]}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="votes"
+                          stroke="#8884d8"
+                          strokeWidth={3}
+                          dot={{
+                            fill: "#8884d8",
+                            strokeWidth: 2,
+                            r: 4,
+                            strokeDasharray: "",
+                          }}
+                          activeDot={{
+                            r: 6,
+                            fill: "#6366f1",
+                            stroke: "#fff",
+                            strokeWidth: 2,
+                          }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -1379,71 +1496,109 @@ export default function AdminVotesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Top Performing Nominees</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Top 10 nominees by vote count across all categories
+                </p>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Rank</TableHead>
-                      <TableHead>Nominee</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Votes</TableHead>
-                      <TableHead>Percentage</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {topNominees.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={5}
-                          className="text-center text-muted-foreground"
-                        >
-                          No top performers data available
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      topNominees.map((nominee, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={index < 3 ? "default" : "secondary"}
-                              >
-                                #{index + 1}
-                              </Badge>
-                              {index === 0 && (
-                                <Trophy className="h-4 w-4 text-yellow-500" />
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {nominee.name}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{nominee.category}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Vote className="h-4 w-4 text-blue-500" />
-                              {nominee.votes.toLocaleString()}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress
-                                value={nominee.percentage}
-                                className="h-2 w-16"
-                              />
-                              <span className="text-sm">
-                                {nominee.percentage.toFixed(1)}%
-                              </span>
-                            </div>
-                          </TableCell>
+                {topNominees.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">
+                      No top performers data available
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Votes will appear here once voting begins
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="w-[100px]">Rank</TableHead>
+                          <TableHead>Nominee</TableHead>
+                          <TableHead>Category</TableHead>
+                          <TableHead className="w-[120px]">Votes</TableHead>
+                          <TableHead className="w-[200px]">Percentage</TableHead>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {topNominees.map((nominee, index) => {
+                          const isTopThree = index < 3;
+
+                          return (
+                            <TableRow
+                              key={`${nominee.name}-${index}`}
+                              className={`hover:bg-muted/50 transition-colors ${
+                                isTopThree ? "bg-muted/20" : ""
+                              }`}
+                            >
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Badge
+                                    variant={isTopThree ? "default" : "secondary"}
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center text-base ${
+                                      index === 0 ? "bg-yellow-500 hover:bg-yellow-600" :
+                                      index === 1 ? "bg-gray-400 hover:bg-gray-500" :
+                                      index === 2 ? "bg-amber-600 hover:bg-amber-700" :
+                                      ""
+                                    }`}
+                                  >
+                                    #{index + 1}
+                                  </Badge>
+                                  {index === 0 && (
+                                    <Trophy className="h-5 w-5 text-yellow-500" />
+                                  )}
+                                  {index === 1 && (
+                                    <Star className="h-5 w-5 text-gray-400" />
+                                  )}
+                                  {index === 2 && (
+                                    <Star className="h-5 w-5 text-amber-600" />
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-semibold">
+                                {nominee.name || "Unknown Nominee"}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="whitespace-nowrap">
+                                  {nominee.category || "N/A"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Vote className="h-4 w-4 text-blue-500" />
+                                  <span className="font-semibold text-lg">
+                                    {(nominee.votes || 0).toLocaleString()}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <Progress
+                                    value={nominee.percentage || 0}
+                                    className="h-2.5 flex-1"
+                                  />
+                                  <Badge
+                                    variant={
+                                      (nominee.percentage || 0) > 10
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    className="min-w-[60px] justify-center font-semibold"
+                                  >
+                                    {(nominee.percentage || 0).toFixed(1)}%
+                                  </Badge>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -1546,35 +1701,69 @@ export default function AdminVotesPage() {
 
                   <CardContent>
                     <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Filter by Section
-                        </label>
-                        <Select defaultValue="all" onValueChange={() => {}}>
-                          <SelectTrigger className="w-64">
-                            <SelectValue placeholder="All Sections" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Sections</SelectItem>
-                            {sections.map((s) => (
-                              <SelectItem
-                                key={s.id || s._id}
-                                value={s.id || s._id}
-                              >
-                                {s.name || s.title}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Filter by Section
+                          </label>
+                          <Select
+                            value={selectedManagementSectionFilter}
+                            onValueChange={setSelectedManagementSectionFilter}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="All Sections" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Sections</SelectItem>
+                              {sections.map((s) => (
+                                <SelectItem
+                                  key={s.id || s._id}
+                                  value={s.id || s._id}
+                                >
+                                  {s.name || s.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Results
+                          </label>
+                          <div className="h-10 flex items-center">
+                            <Badge variant="secondary" className="text-sm">
+                              {(() => {
+                                if (selectedManagementSectionFilter === "all") {
+                                  return `${categories.length} categories`;
+                                }
+                                const filtered = categories.filter((cat) => {
+                                  return (
+                                    cat.section_id ===
+                                      selectedManagementSectionFilter ||
+                                    cat.section ===
+                                      sections.find(
+                                        (s) =>
+                                          (s.id || s._id) ===
+                                          selectedManagementSectionFilter
+                                      )?.name
+                                  );
+                                });
+                                return `${filtered.length} of ${categories.length} categories`;
+                              })()}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="rounded-lg border">
                         <Table>
                           <TableHeader>
-                            <TableRow>
+                            <TableRow className="bg-muted/50">
                               <TableHead>Category Name</TableHead>
                               <TableHead>Section</TableHead>
                               <TableHead>Nominees</TableHead>
+                              <TableHead>Votes</TableHead>
                               <TableHead className="text-right">
                                 Actions
                               </TableHead>
@@ -1582,63 +1771,114 @@ export default function AdminVotesPage() {
                           </TableHeader>
 
                           <TableBody>
-                            {categories.length === 0 ? (
-                              <TableRow>
-                                <TableCell
-                                  colSpan={4}
-                                  className="text-center text-sm text-gray-400 py-8"
-                                >
-                                  No categories yet.
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              categories.map((cat) => (
-                                <TableRow key={cat.id || cat._id}>
-                                  <TableCell className="font-medium">
-                                    {cat.name || cat.title}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge>{cat.section}</Badge>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge variant="secondary">
-                                      {(cat.nominees_count ??
-                                        cat.nominees?.length) ||
-                                        0}{" "}
-                                      nominees
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                      <EditCategoryModal
-                                        category={cat}
-                                        sections={sections}
-                                        onCategoryUpdated={fetchCategories}
-                                      />
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() =>
-                                          handleDeleteCategory(
-                                            cat.id || cat._id
-                                          )
-                                        }
-                                        disabled={
-                                          deletingId === (cat.id || cat._id)
-                                        }
-                                      >
-                                        <span className="sr-only">Delete</span>
-                                        {deletingId === (cat.id || cat._id) ? (
-                                          <Loader />
-                                        ) : (
-                                          "🗑️"
-                                        )}
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              ))
-                            )}
+                            {(() => {
+                              let filteredCategories = categories;
+
+                              // Apply section filter
+                              if (selectedManagementSectionFilter !== "all") {
+                                filteredCategories = categories.filter((cat) => {
+                                  return (
+                                    cat.section_id ===
+                                      selectedManagementSectionFilter ||
+                                    cat.section ===
+                                      sections.find(
+                                        (s) =>
+                                          (s.id || s._id) ===
+                                          selectedManagementSectionFilter
+                                      )?.name
+                                  );
+                                });
+                              }
+
+                              if (filteredCategories.length === 0) {
+                                return (
+                                  <TableRow>
+                                    <TableCell
+                                      colSpan={5}
+                                      className="text-center text-sm text-gray-400 py-8"
+                                    >
+                                      No categories found.
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              }
+
+                              return filteredCategories.map((cat) => {
+                                // Find vote data for this category
+                                const categoryVoteData = categoryVotes.find(
+                                  (cv) =>
+                                    cv.category_name?.trim().toLowerCase() ===
+                                    (cat.name || cat.title)
+                                      ?.trim()
+                                      .toLowerCase()
+                                );
+
+                                const totalVotes =
+                                  categoryVoteData?.total_votes || 0;
+
+                                return (
+                                  <TableRow
+                                    key={cat.id || cat._id}
+                                    className="hover:bg-muted/50 transition-colors"
+                                  >
+                                    <TableCell className="font-medium">
+                                      {cat.name || cat.title}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge variant="outline">
+                                        {cat.section}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge variant="secondary">
+                                        {(cat.nominees_count ??
+                                          cat.nominees?.length) ||
+                                          0}{" "}
+                                        nominees
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        <Vote className="h-4 w-4 text-blue-500" />
+                                        <span className="font-semibold">
+                                          {totalVotes.toLocaleString()}
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <div className="flex justify-end gap-2">
+                                        <EditCategoryModal
+                                          category={cat}
+                                          sections={sections}
+                                          onCategoryUpdated={fetchCategories}
+                                        />
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() =>
+                                            handleDeleteCategory(
+                                              cat.id || cat._id
+                                            )
+                                          }
+                                          disabled={
+                                            deletingId === (cat.id || cat._id)
+                                          }
+                                        >
+                                          <span className="sr-only">
+                                            Delete
+                                          </span>
+                                          {deletingId === (cat.id || cat._id) ? (
+                                            <Loader />
+                                          ) : (
+                                            "🗑️"
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              });
+                            })()}
                           </TableBody>
                         </Table>
                       </div>
@@ -1839,6 +2079,10 @@ export default function AdminVotesPage() {
                                         <EditNomineeModal
                                           nominee={nom}
                                           onNomineeUpdated={fetchNominees}
+                                        />
+                                        <RemoveNomineeModal
+                                          nominee={nom}
+                                          onNomineeRemoved={fetchNominees}
                                         />
                                         <Button
                                           variant="ghost"

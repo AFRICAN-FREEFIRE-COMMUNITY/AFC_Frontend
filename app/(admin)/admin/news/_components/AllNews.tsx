@@ -127,7 +127,7 @@ export const AllNews = () => {
           </Select>
         </div>
         <Button asChild>
-          <Link href="/admin/news/create">Create New Announcement</Link>
+          <Link href="/admin/news/create">Create New</Link>
         </Button>
       </div>
       <Card>
