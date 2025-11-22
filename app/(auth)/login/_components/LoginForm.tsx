@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { Suspense, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ import { Loader } from "@/components/Loader";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-export function LoginForm() {
+function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
@@ -158,5 +158,13 @@ export function LoginForm() {
         </Button>
       </form>
     </Form>
+  );
+}
+
+export function LoginForm() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-8"><Loader text="Loading..." /></div>}>
+      <LoginFormContent />
+    </Suspense>
   );
 }
