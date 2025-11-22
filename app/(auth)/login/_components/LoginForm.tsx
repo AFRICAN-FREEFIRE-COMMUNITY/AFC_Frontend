@@ -48,14 +48,11 @@ function LoginFormContent() {
           { ...data }
         );
 
-        console.log(response);
-
         if (response.statusText === "OK") {
           // Wait for login to complete (including fetching user data)
           await login(response.data.session_token);
 
           toast.success(response.data.message);
-          console.log(response.data);
 
           // Small delay to ensure auth state is fully updated
           setTimeout(() => {
@@ -78,7 +75,9 @@ function LoginFormContent() {
 
           // Redirect to email confirmation with email parameter
           if (email) {
-            router.push(`/email-confirmation?email=${encodeURIComponent(email)}`);
+            router.push(
+              `/email-confirmation?email=${encodeURIComponent(email)}`
+            );
           } else {
             // If they logged in with IGN/UID, redirect to a page to enter email
             router.push(`/email-confirmation/enter-email`);
@@ -163,7 +162,13 @@ function LoginFormContent() {
 
 export function LoginForm() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-8"><Loader text="Loading..." /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex justify-center py-8">
+          <Loader text="Loading..." />
+        </div>
+      }
+    >
       <LoginFormContent />
     </Suspense>
   );

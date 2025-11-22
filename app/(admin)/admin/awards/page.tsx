@@ -171,11 +171,7 @@ export default function page() {
         }
       );
 
-      console.log(response, newCategoryData);
-
       const data = await response.json();
-
-      console.log(data);
 
       if (response.ok) {
         setMessage({
@@ -192,7 +188,6 @@ export default function page() {
         });
       }
     } catch (error) {
-      console.log(error);
       setMessage({
         type: "error",
         text: "An error occurred. Please try again.",

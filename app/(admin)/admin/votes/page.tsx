@@ -119,8 +119,6 @@ const fetchVotesPerSection = async (token: string) => {
       }
     );
     const data = await response.json();
-    console.log("Section votes API response:", data);
-
     // Handle different response formats
     const votesData = Array.isArray(data) ? data : data.votes_per_section || [];
 
@@ -129,8 +127,6 @@ const fetchVotesPerSection = async (token: string) => {
       section_name: item.section_name || item.section || "Unknown",
       total_votes: item.total_votes || item.votes || 0,
     }));
-
-    console.log("Processed section votes:", normalizedData);
 
     return normalizedData;
   } catch (error) {
@@ -199,7 +195,6 @@ const fetchVotesPerNominee = async (token: string) => {
       }
     });
 
-    console.log("Transformed votes data:", votesArray);
     return votesArray;
   } catch (error) {
     console.error("Error fetching votes per nominee-category:", error);
@@ -480,15 +475,9 @@ export default function AdminVotesPage() {
           )?.total_votes || 0;
       }
 
-      console.log("Setting section votes state:", sectionVotesData);
-
       // If no section votes data, calculate from category votes
       let finalSectionVotes = sectionVotesData;
       if (sectionVotesData.length === 0 && categoryVotesData.length > 0) {
-        console.log(
-          "No section votes from API, calculating from category votes..."
-        );
-
         // Group category votes by section
         const sectionVotesMap = new Map();
         categoryVotesData.forEach((cat) => {
@@ -507,8 +496,6 @@ export default function AdminVotesPage() {
             total_votes: votes,
           })
         );
-
-        console.log("Calculated section votes:", finalSectionVotes);
       }
 
       setMetrics(votingMetrics);
@@ -557,7 +544,6 @@ export default function AdminVotesPage() {
               : 0,
         }));
 
-      console.log("Top nominees calculated:", topNomineesData.length);
       setTopNominees(topNomineesData);
     } catch (error) {
       console.error("Error loading voting analytics:", error);
@@ -668,15 +654,10 @@ export default function AdminVotesPage() {
 
   // Helper function to get all category winners
   const getAllCategoryWinners = useCallback(() => {
-    // Get all categories from allCategoriesData
-    console.log("Getting winners for categories:", allCategoriesData.length);
-    console.log("Nominee votes available:", nomineeVotes.length);
-
     const winners = allCategoriesData
       .map((category) => getCategoryWinner(category))
       .filter((winner) => winner !== null && winner.winning_votes > 0);
 
-    console.log("Total winners found:", winners.length);
     return winners;
   }, [allCategoriesData, getCategoryWinner, nomineeVotes]);
 
@@ -1388,10 +1369,6 @@ export default function AdminVotesPage() {
               </CardHeader>
               <CardContent>
                 {(() => {
-                  console.log(
-                    "Nominees Tab - Total nominee votes:",
-                    nomineeVotes.length
-                  );
                   let filteredNominees = nomineeVotes;
 
                   // Filter by category if selected
@@ -1415,13 +1392,6 @@ export default function AdminVotesPage() {
                           .toLowerCase();
                         return voteCategoryName === categoryName;
                       });
-
-                      console.log(
-                        "Filtered nominees count:",
-                        filteredNominees.length,
-                        "for category:",
-                        categoryName
-                      );
                     }
                   }
 

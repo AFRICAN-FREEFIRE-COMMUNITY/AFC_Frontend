@@ -99,7 +99,7 @@ export function Teams() {
         toast.success(res.data.message);
 
         // Add team to applied teams set
-        setAppliedTeams(prev => new Set(prev).add(teamId));
+        setAppliedTeams((prev) => new Set(prev).add(teamId));
 
         // Close the dialog
         setDialogOpen(false);
@@ -112,8 +112,6 @@ export function Teams() {
       }
     });
   };
-
-  console.log(selectedTeam);
 
   if (pending) return <FullLoader />;
 
@@ -192,13 +190,19 @@ export function Teams() {
                             </Link>
                           </Button>
                           {team.team_owner !== user?.in_game_name && (
-                            <Dialog open={dialogOpen && selectedTeam?.team_id === team.team_id} onOpenChange={(open) => {
-                              setDialogOpen(open);
-                              if (!open) {
-                                setSelectedTeam(null);
-                                setApplicationMessage("");
+                            <Dialog
+                              open={
+                                dialogOpen &&
+                                selectedTeam?.team_id === team.team_id
                               }
-                            }}>
+                              onOpenChange={(open) => {
+                                setDialogOpen(open);
+                                if (!open) {
+                                  setSelectedTeam(null);
+                                  setApplicationMessage("");
+                                }
+                              }}
+                            >
                               <DialogTrigger asChild>
                                 <Button
                                   variant="outline"
@@ -213,7 +217,9 @@ export function Teams() {
                                     appliedTeams.has(team.team_id)
                                   }
                                 >
-                                  {appliedTeams.has(team.team_id) ? "Applied" : "Apply to Join"}
+                                  {appliedTeams.has(team.team_id)
+                                    ? "Applied"
+                                    : "Apply to Join"}
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>

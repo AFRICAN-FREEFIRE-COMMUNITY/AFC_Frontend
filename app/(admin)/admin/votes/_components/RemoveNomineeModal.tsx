@@ -31,8 +31,6 @@ export function RemoveNomineeModal({
 
   const nomineeCategories = nominee.categories || [];
 
-  console.log(nominee, nominee.categories);
-
   const handleRemoveNominee = async () => {
     if (!selectedCategory) {
       toast.error("Please select a category");
@@ -57,8 +55,6 @@ export function RemoveNomineeModal({
         }
       );
 
-      console.log(selectedCategory, nominee.id);
-
       const data = await response.json();
 
       if (response.ok) {
@@ -72,7 +68,6 @@ export function RemoveNomineeModal({
         );
       }
     } catch (error) {
-      console.log(error);
       toast.error("An error occurred. Please try again.");
       console.error("Error removing nominee:", error);
     } finally {
@@ -84,8 +79,6 @@ export function RemoveNomineeModal({
   if (nomineeCategories.length === 0) {
     return null;
   }
-
-  console.log(nomineeCategories);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

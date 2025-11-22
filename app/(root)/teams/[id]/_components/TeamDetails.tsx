@@ -159,6 +159,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
   const [eventFilter, setEventFilter] = useState("all");
   const [selectedEvent, setSelectedEvent] = useState("");
   const [isTeamCreator, setIsTeamCreator] = useState(false);
+  const [hasFullAccess, setHasFullAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [newMemberSearch, setNewMemberSearch] = useState("");
 
@@ -197,7 +198,18 @@ export const TeamDetails = ({ id }: { id: string }) => {
         );
         setTeamDetails(res.data.team);
         setIsTeamCreator(res.data.team.team_creator === user?.in_game_name);
-        console.log(res.data);
+
+        // Determine who has full access to team controls
+        const teamOwner = res.data.team.team_owner;
+        const teamCreator = res.data.team.team_creator;
+
+        // If there's a team_owner, only the team_owner has full access
+        // If there's no team_owner (null), the team_creator has full access
+        if (teamOwner) {
+          setHasFullAccess(teamOwner === user?.in_game_name);
+        } else {
+          setHasFullAccess(teamCreator === user?.in_game_name);
+        }
 
         setJoinRequests(requestResponse.data.join_requests);
       } catch (error: any) {
@@ -269,7 +281,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
         toast.success(res.data.message);
         router.refresh();
       } catch (error: any) {
-        console.log(error);
+        error;
         toast.error(error.response.data.message);
       }
     });
@@ -401,28 +413,6 @@ export const TeamDetails = ({ id }: { id: string }) => {
     });
   };
 
-  const handleTransferOwnership = async (newOwnerId: string) => {
-    // In a real app, you would make an API call here
-    console.log("Transferring ownership to:", newOwnerId);
-    // Refresh the team data or update the local state
-    setTeam((prevTeam) => ({
-      ...prevTeam,
-      members: prevTeam.members.map((member) => {
-        if (member.id === newOwnerId) {
-          return { ...member, managementRole: "Team Owner" };
-        } else if (member.managementRole === "Team Owner") {
-          return { ...member, managementRole: "" };
-        }
-        return member;
-      }),
-    }));
-
-    // toast({
-    //   title: "Ownership Transferred",
-    //   description: "Team ownership has been successfully transferred.",
-    // });
-  };
-
   function onSubmit(data: z.infer<typeof FormSchema>) {
     startTransferTransition(async () => {
       try {
@@ -437,37 +427,22 @@ export const TeamDetails = ({ id }: { id: string }) => {
         );
 
         if (response.statusText === "OK") {
-          toast.success(response.data.message || "Ownership transferred successfully!");
+          toast.success(
+            response.data.message || "Ownership transferred successfully!"
+          );
           router.push("/teams");
         } else {
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Failed to transfer ownership");
+        toast.error(
+          error?.response?.data?.message || "Failed to transfer ownership"
+        );
       }
     });
   }
 
-  const handleLeaveTeam = async () => {
-    // In a real app, you would make an API call here
-    console.log("Leaving team:", team.id);
-    router.push("/teams");
-  };
-
-  const getTeam = async (teamId: string) => {
-    // Replace with your actual API call
-    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call delay
-    return teamData;
-  };
-
-  const getCurrentUserId = () => {
-    // Replace with your actual logic to get the current user ID
-    return "1"; // Replace with actual user ID retrieval
-  };
-
   if (pending) return <FullLoader text="details" />;
-
-  console.log(teamDetails);
 
   if (teamDetails)
     return (
@@ -502,7 +477,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                 </div>
               </div>
               <div className="space-x-2 w-full md:w-auto">
-                {!isTeamCreator && !teamDetails?.is_banned && !isMember && (
+                {!hasFullAccess && !teamDetails?.is_banned && !isMember && (
                   <Button
                     className="w-full md:w-auto"
                     disabled={pendingRequest}
@@ -518,7 +493,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                     )}
                   </Button>
                 )}
-                {isTeamCreator && !teamDetails?.is_banned && (
+                {hasFullAccess && !teamDetails?.is_banned && (
                   <>
                     <Button asChild>
                       <Link href={`/teams/${teamDetails?.team_name}/edit`}>
@@ -534,7 +509,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                     </Button>
                   </>
                 )}
-                {!isTeamCreator && isMember && !teamDetails?.is_banned && (
+                {!hasFullAccess && isMember && !teamDetails?.is_banned && (
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button
@@ -597,7 +572,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                 <TabsTrigger value="members">Members</TabsTrigger>
                 <TabsTrigger value="statistics">Statistics</TabsTrigger>
                 <TabsTrigger value="social">Social Media</TabsTrigger>
-                {isTeamCreator && (
+                {hasFullAccess && (
                   <TabsTrigger value="requests">Join Requests</TabsTrigger>
                 )}
               </TabsList>
@@ -731,7 +706,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                         </p>
                       )}
                     </Table>
-                    {isTeamCreator && teamDetails?.members?.length < 6 && (
+                    {hasFullAccess && teamDetails?.members?.length < 6 && (
                       <div className="mt-4">
                         <h4 className="text-lg font-semibold mb-2">
                           Add New Member
@@ -966,7 +941,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
                 </Card>
               </TabsContent>
 
-              {isTeamCreator && (
+              {hasFullAccess && (
                 <TabsContent value="requests">
                   <Card>
                     <CardHeader>
@@ -1048,7 +1023,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
               )}
             </Tabs>
 
-            {isTeamCreator && !teamDetails?.isBanned && (
+            {hasFullAccess && !teamDetails?.isBanned && (
               <Card className="mt-6">
                 <CardHeader>
                   <CardTitle>Team Owner Controls</CardTitle>
@@ -1139,7 +1114,8 @@ export const TeamDetails = ({ id }: { id: string }) => {
                                       {teamDetails?.members
                                         ?.filter(
                                           (member: any) =>
-                                            member.username !== user?.in_game_name
+                                            member.username !==
+                                            user?.in_game_name
                                         )
                                         ?.map((member: any) => (
                                           <SelectItem
@@ -1157,10 +1133,16 @@ export const TeamDetails = ({ id }: { id: string }) => {
                             />
                             <DialogFooter className="flex gap-4">
                               <DialogClose asChild>
-                                <Button variant="outline" type="button">Cancel</Button>
+                                <Button variant="outline" type="button">
+                                  Cancel
+                                </Button>
                               </DialogClose>
                               <Button type="submit" disabled={pendingTransfer}>
-                                {pendingTransfer ? <Loader text="Transferring..." /> : "Transfer"}
+                                {pendingTransfer ? (
+                                  <Loader text="Transferring..." />
+                                ) : (
+                                  "Transfer"
+                                )}
                               </Button>
                             </DialogFooter>
                           </form>

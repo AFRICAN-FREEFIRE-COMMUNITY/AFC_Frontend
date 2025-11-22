@@ -117,8 +117,6 @@ export function EditTeamForm({ id }: { id: string }) {
   // Submit handler
   //
   async function onSubmit(data: EditTeamFormSchemaType) {
-    console.log("Submitting data:", data);
-
     startSubmitTransition(async () => {
       try {
         const formData = new FormData();
@@ -188,9 +186,7 @@ export function EditTeamForm({ id }: { id: string }) {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit, (errors) => {
-          console.log("Validation errors:", errors); // ✅ debug
-        })}
+        onSubmit={form.handleSubmit(onSubmit, (errors) => {})}
         className="space-y-4"
       >
         {/* Team name */}

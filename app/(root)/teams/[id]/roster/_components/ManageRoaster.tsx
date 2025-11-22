@@ -155,8 +155,6 @@ export function ManageRoster({ id }: { id: string }) {
         setRoleChanges(new Map()); // Clear changes after successful save
         router.push(`/teams/${id}`);
       } catch (error: any) {
-        console.log(error);
-
         toast.error(
           error?.response?.data?.message || "Failed to update roster"
         );
@@ -165,8 +163,6 @@ export function ManageRoster({ id }: { id: string }) {
   };
 
   if (pending) return <FullLoader text="details" />;
-
-  console.log(teamDetails);
 
   if (teamDetails)
     return (
@@ -228,9 +224,6 @@ export function ManageRoster({ id }: { id: string }) {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="member">Member</SelectItem>
-                            <SelectItem value="team_owner">
-                              Team Owner
-                            </SelectItem>
                             <SelectItem value="team_captain">
                               Team Captain
                             </SelectItem>

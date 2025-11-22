@@ -433,8 +433,6 @@ export function Settings() {
           role_ids: roleIds,
         };
 
-        console.log("Sending request body:", requestBody);
-
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/assign-roles-to-user/`,
           requestBody,
