@@ -43,6 +43,8 @@ export function Teams() {
   const [pending, startTransition] = useTransition();
   const [teams, setTeams] = useState<any[]>([]);
   const [myTeam, setMyTeam] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [appliedTeams, setAppliedTeams] = useState<Set<number>>(new Set());
 
   // Filter teams based on search input
   const filteredTeams = teams.filter((team) =>
@@ -89,14 +91,22 @@ export function Teams() {
       try {
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/send-join-request/`,
-          { team_id: teamId, message: "" },
+          { team_id: teamId, message: applicationMessage },
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
         toast.success(res.data.message);
-        console.log(res.data);
+
+        // Add team to applied teams set
+        setAppliedTeams(prev => new Set(prev).add(teamId));
+
+        // Close the dialog
+        setDialogOpen(false);
+
+        // Reset selected team and message
         setSelectedTeam(null);
+        setApplicationMessage("");
       } catch (error: any) {
         toast.error(error.response.data.message);
       }
@@ -182,17 +192,28 @@ export function Teams() {
                             </Link>
                           </Button>
                           {team.team_owner !== user?.in_game_name && (
-                            <Dialog>
+                            <Dialog open={dialogOpen && selectedTeam?.team_id === team.team_id} onOpenChange={(open) => {
+                              setDialogOpen(open);
+                              if (!open) {
+                                setSelectedTeam(null);
+                                setApplicationMessage("");
+                              }
+                            }}>
                               <DialogTrigger asChild>
                                 <Button
                                   variant="outline"
-                                  onClick={() => setSelectedTeam(team)}
+                                  onClick={() => {
+                                    setSelectedTeam(team);
+                                    setDialogOpen(true);
+                                  }}
                                   className="w-full"
                                   disabled={
-                                    team.is_banned || team.team_members >= 6
+                                    team.is_banned ||
+                                    team.member_count >= 6 ||
+                                    appliedTeams.has(team.team_id)
                                   }
                                 >
-                                  Apply to Join
+                                  {appliedTeams.has(team.team_id) ? "Applied" : "Apply to Join"}
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>
@@ -220,6 +241,7 @@ export function Teams() {
                                         setApplicationMessage(e.target.value)
                                       }
                                       className="col-span-3"
+                                      placeholder="Tell the team owner why you want to join..."
                                     />
                                   </div>
                                 </div>
@@ -289,7 +311,7 @@ export function Teams() {
                   </CardHeader>
                   <CardContent className="text-sm md:text-base">
                     <p>
-                      Members: {myTeam.team_members ? myTeam.team_members : 0}
+                      Members: {myTeam.member_count ? myTeam.member_count : 0}
                     </p>
                     <p>Tier: {myTeam.team_tier}</p>
                     <div className="flex justify-between mt-4">

@@ -109,7 +109,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                   className="flex items-center px-4 py-2 text-sm font-medium rounded-md opacity-60 cursor-not-allowed"
                 >
                   <item.icon className="mr-3 h-6 w-6" />
-                  <span>{item.label}</span>
+                  <span className="line-clamp-1">{item.label}</span>
                   <Badge
                     variant="secondary"
                     className="ml-2 text-xs line-clamp-1 font-medium"

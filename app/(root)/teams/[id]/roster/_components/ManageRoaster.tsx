@@ -24,20 +24,24 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Mock team data
-const mockTeamData = {
-  id: "1",
-  name: "Team Alpha",
-  members: [],
-};
+interface MemberUpdate {
+  member_id: number;
+  management_role: string;
+  in_game_role: string;
+}
 
 export function ManageRoster({ id }: { id: string }) {
   const router = useRouter();
-  const [teamData, setTeamData] = useState(mockTeamData);
+  const { token } = useAuth();
 
   const [teamDetails, setTeamDetails] = useState<any>();
   const [pending, startTransition] = useTransition();
+  const [savePending, startSaveTransition] = useTransition();
+  const [roleChanges, setRoleChanges] = useState<Map<number, MemberUpdate>>(
+    new Map()
+  );
 
   useEffect(() => {
     if (!id) return; // Don't run if id is not available yet
@@ -62,84 +66,114 @@ export function ManageRoster({ id }: { id: string }) {
   }, []);
 
   const handleRoleChange = (
-    memberId: string,
+    memberId: number,
     roleType: "inGameRole" | "managementRole",
     newRole: string
   ) => {
-    // setTeamData((prevData) => {
-    //   const updatedMembers = prevData.members.map((member) => {
-    //     if (member.id === memberId) {
-    //       return { ...member, [roleType]: newRole };
-    //     }
-    //     // If setting a new Team Captain or Team Owner, remove the role from other members
-    //     if (
-    //       roleType === "managementRole" &&
-    //       (newRole === "Team Captain" || newRole === "Team Owner")
-    //     ) {
-    //       return {
-    //         ...member,
-    //         managementRole:
-    //           member.managementRole === newRole
-    //             ? "None"
-    //             : member.managementRole,
-    //       };
-    //     }
-    //     return member;
-    //   });
-    //   return { ...prevData, members: updatedMembers };
-    // });
+    setRoleChanges((prevChanges) => {
+      const newChanges = new Map(prevChanges);
+      const existingChange = newChanges.get(memberId);
+
+      // Find the current member to get their current roles
+      const currentMember = teamDetails?.members?.find(
+        (m: any) => m.id === memberId
+      );
+
+      if (currentMember) {
+        const update: MemberUpdate = {
+          member_id: memberId,
+          management_role:
+            roleType === "managementRole"
+              ? newRole
+              : existingChange?.management_role ||
+                currentMember.management_role,
+          in_game_role:
+            roleType === "inGameRole"
+              ? newRole
+              : existingChange?.in_game_role || currentMember.in_game_role,
+        };
+
+        newChanges.set(memberId, update);
+      }
+
+      return newChanges;
+    });
   };
 
-  const handleKickMember = async (memberId: string) => {
-    // // In a real app, you would make an API call to remove the member
-    // try {
-    //   // Simulating an API call
-    //   await new Promise((resolve) => setTimeout(resolve, 1000));
-    //   setTeamData((prevData) => ({
-    //     ...prevData,
-    //     members: prevData.members.filter((member) => member.id !== memberId),
-    //   }));
-    //   toast({
-    //     title: "Member removed",
-    //     description: "The team member has been removed successfully.",
-    //   });
-    // } catch (error) {
-    //   toast({
-    //     title: "Error",
-    //     description:
-    //       "An error occurred while removing the team member. Please try again.",
-    //     variant: "destructive",
-    //   });
-    // }
+  const handleKickMember = async (memberId: number) => {
+    if (!confirm("Are you sure you want to kick this member from the team?")) {
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/kick-team-member/`,
+        {
+          team_id: teamDetails?.team_id.toString(),
+          member_id: memberId.toString(),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast.success("Member kicked successfully!");
+
+      // Refresh team details
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+        { team_name: decodeURIComponent(id) }
+      );
+      setTeamDetails(res.data.team);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to kick member");
+    }
   };
 
   const handleSave = async () => {
-    // try {
-    //   // Simulating an API call
-    //   await new Promise((resolve) => setTimeout(resolve, 1000));
-    //   toast({
-    //     title: "Changes saved",
-    //     description: "The team roster has been updated successfully.",
-    //   });
-    //   router.push(`/teams/${params.id}`);
-    // } catch (error) {
-    //   toast({
-    //     title: "Error",
-    //     description:
-    //       "An error occurred while saving changes. Please try again.",
-    //     variant: "destructive",
-    //   });
-    // }
+    if (roleChanges.size === 0) {
+      toast.info("No changes to save");
+      return;
+    }
+
+    startSaveTransition(async () => {
+      try {
+        const updates = Array.from(roleChanges.values());
+
+        await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/manage-team-roster/`,
+          {
+            team_id: teamDetails?.team_id,
+            updates,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        toast.success("Team roster updated successfully!");
+        setRoleChanges(new Map()); // Clear changes after successful save
+        router.push(`/teams/${id}`);
+      } catch (error: any) {
+        console.log(error);
+
+        toast.error(
+          error?.response?.data?.message || "Failed to update roster"
+        );
+      }
+    });
   };
 
   if (pending) return <FullLoader text="details" />;
+
+  console.log(teamDetails);
 
   if (teamDetails)
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Manage Roster: {teamData.name}</CardTitle>
+            <CardTitle>Manage Roster: {teamDetails.team_name}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -152,65 +186,88 @@ export function ManageRoster({ id }: { id: string }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {teamDetails?.members?.map((member: any) => (
-                  <TableRow key={member.id}>
-                    <TableCell>{member.username}</TableCell>
-                    <TableCell>
-                      <Select
-                        value={member.in_game_role}
-                        onValueChange={(value) =>
-                          handleRoleChange(member.id, "inGameRole", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="rusher">Rusher</SelectItem>
-                          <SelectItem value="grenade">Grenade</SelectItem>
-                          <SelectItem value="sniper">Sniper</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={member.management_role}
-                        onValueChange={(value) =>
-                          handleRoleChange(member.id, "managementRole", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="None">None</SelectItem>
-                          <SelectItem value="Team Captain">
-                            Team Captain
-                          </SelectItem>
-                          <SelectItem value="Team Owner">Team Owner</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleKickMember(member.id)}
-                      >
-                        Kick
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {teamDetails?.members?.map((member: any) => {
+                  const pendingChange = roleChanges.get(member.id);
+                  const currentInGameRole =
+                    pendingChange?.in_game_role || member.in_game_role;
+                  const currentManagementRole =
+                    pendingChange?.management_role || member.management_role;
+
+                  return (
+                    <TableRow key={member.id}>
+                      <TableCell>{member.username}</TableCell>
+                      <TableCell>
+                        <Select
+                          key={`in-game-${member.id}`}
+                          value={currentInGameRole}
+                          onValueChange={(value) =>
+                            handleRoleChange(member.id, "inGameRole", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="rusher">Rusher</SelectItem>
+                            <SelectItem value="support">Support</SelectItem>
+                            <SelectItem value="grenader">Grenader</SelectItem>
+                            <SelectItem value="sniper">Sniper</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          key={`management-${member.id}`}
+                          value={currentManagementRole}
+                          onValueChange={(value) =>
+                            handleRoleChange(member.id, "managementRole", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="member">Member</SelectItem>
+                            <SelectItem value="team_owner">
+                              Team Owner
+                            </SelectItem>
+                            <SelectItem value="team_captain">
+                              Team Captain
+                            </SelectItem>
+                            <SelectItem value="vice_captain">
+                              Vice Captain
+                            </SelectItem>
+                            <SelectItem value="coach">Coach</SelectItem>
+                            <SelectItem value="manager">Manager</SelectItem>
+                            <SelectItem value="analyst">Analyst</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleKickMember(member.id)}
+                        >
+                          Kick
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
             <div className="flex justify-between mt-4">
               <Button
                 variant="outline"
                 onClick={() => router.push(`/teams/${id}`)}
+                disabled={savePending}
               >
                 Back
               </Button>
-              <Button onClick={handleSave}>Save Changes</Button>
+              <Button onClick={handleSave} disabled={savePending}>
+                {savePending ? "Saving..." : "Save Changes"}
+                {roleChanges.size > 0 && ` (${roleChanges.size})`}
+              </Button>
             </div>
           </CardContent>
         </Card>

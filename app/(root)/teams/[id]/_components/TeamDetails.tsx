@@ -37,6 +37,7 @@ import {
   Twitch,
   AlertTriangle,
   Search,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -80,6 +81,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { formatRole } from "@/lib/utils";
 
 const FormSchema = z.object({
   new_owner_ign: z.string({
@@ -168,6 +170,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
   const [pendingInvite, startInviteTransition] = useTransition();
   const [pendingDisbanded, startDisbandTransition] = useTransition();
   const [pendingTransfer, startTransferTransition] = useTransition();
+  const [pendingExit, startExitTransition] = useTransition();
   const [teamDetails, setTeamDetails] = useState<any>();
   const [joinRequests, setJoinRequests] = useState<any>();
 
@@ -240,7 +243,9 @@ export const TeamDetails = ({ id }: { id: string }) => {
         setInviteLink(response.data.invite_link);
         toast.success("Invite link generated successfully!");
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Failed to generate invite link");
+        toast.error(
+          error?.response?.data?.message || "Failed to generate invite link"
+        );
       }
     });
   };
@@ -374,6 +379,28 @@ export const TeamDetails = ({ id }: { id: string }) => {
     });
   };
 
+  const handleExitTeam = async () => {
+    startExitTransition(async () => {
+      try {
+        const response = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/exit-team/`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        toast.success(
+          response.data.message || "You have left the team successfully"
+        );
+        router.push("/teams");
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || "Failed to exit team");
+      }
+    });
+  };
+
   const handleTransferOwnership = async (newOwnerId: string) => {
     // In a real app, you would make an API call here
     console.log("Transferring ownership to:", newOwnerId);
@@ -401,7 +428,7 @@ export const TeamDetails = ({ id }: { id: string }) => {
       try {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/transfer-ownership/`,
-          { new_owner_ign: teamDetails.team_id },
+          { new_owner_ign: data.new_owner_ign },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -410,13 +437,13 @@ export const TeamDetails = ({ id }: { id: string }) => {
         );
 
         if (response.statusText === "OK") {
-          toast.success(response.data.message);
+          toast.success(response.data.message || "Ownership transferred successfully!");
           router.push("/teams");
         } else {
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message);
+        toast.error(error?.response?.data?.message || "Failed to transfer ownership");
       }
     });
   }
@@ -439,6 +466,8 @@ export const TeamDetails = ({ id }: { id: string }) => {
   };
 
   if (pending) return <FullLoader text="details" />;
+
+  console.log(teamDetails);
 
   if (teamDetails)
     return (
@@ -504,6 +533,45 @@ export const TeamDetails = ({ id }: { id: string }) => {
                       </Link>
                     </Button>
                   </>
+                )}
+                {!isTeamCreator && isMember && !teamDetails?.is_banned && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        className="w-full md:w-auto"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Exit Team
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Exit Team</DialogTitle>
+                        <DialogDescription>
+                          Are you sure you want to leave{" "}
+                          {teamDetails?.team_name}? This action cannot be
+                          undone.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button
+                          variant="destructive"
+                          onClick={handleExitTeam}
+                          disabled={pendingExit}
+                        >
+                          {pendingExit ? (
+                            <Loader text="Leaving..." />
+                          ) : (
+                            "Yes, Exit Team"
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 )}
               </div>
             </div>
@@ -638,8 +706,14 @@ export const TeamDetails = ({ id }: { id: string }) => {
                           (member: any, index: string) => (
                             <TableRow key={index}>
                               <TableCell>{member.username}</TableCell>
-                              <TableCell>{member.in_game_role}</TableCell>
-                              <TableCell>{member.management_role}</TableCell>
+                              <TableCell>
+                                {formatRole(member.in_game_role) || (
+                                  <span className="italic">Not selected</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {formatRole(member.management_role)}
+                              </TableCell>
                               <TableCell>
                                 <Button variant="outline" asChild>
                                   <Link href={`/players/${member.username}`}>
@@ -982,7 +1056,10 @@ export const TeamDetails = ({ id }: { id: string }) => {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <Button onClick={handleGenerateInviteLink} disabled={pendingGenerateLink}>
+                      <Button
+                        onClick={handleGenerateInviteLink}
+                        disabled={pendingGenerateLink}
+                      >
                         {pendingGenerateLink ? (
                           <Loader text="Generating..." />
                         ) : (
@@ -1062,15 +1139,14 @@ export const TeamDetails = ({ id }: { id: string }) => {
                                       {teamDetails?.members
                                         ?.filter(
                                           (member: any) =>
-                                            member.managementRole !==
-                                            "Team Owner"
+                                            member.username !== user?.in_game_name
                                         )
                                         ?.map((member: any) => (
                                           <SelectItem
                                             key={member.id}
-                                            value={member.id}
+                                            value={member.username}
                                           >
-                                            {member.name}
+                                            {member.username}
                                           </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -1080,8 +1156,12 @@ export const TeamDetails = ({ id }: { id: string }) => {
                               )}
                             />
                             <DialogFooter className="flex gap-4">
-                              <DialogClose>Cancel</DialogClose>
-                              <Button type="submit">Transfer</Button>
+                              <DialogClose asChild>
+                                <Button variant="outline" type="button">Cancel</Button>
+                              </DialogClose>
+                              <Button type="submit" disabled={pendingTransfer}>
+                                {pendingTransfer ? <Loader text="Transferring..." /> : "Transfer"}
+                              </Button>
                             </DialogFooter>
                           </form>
                         </Form>
