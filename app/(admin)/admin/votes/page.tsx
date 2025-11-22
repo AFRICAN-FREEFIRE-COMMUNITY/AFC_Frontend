@@ -2386,7 +2386,7 @@ const fetchVotesPerSection = async (token: string) => {
     console.log("Section votes API response:", data);
 
     // Handle different response formats
-    const votesData = Array.isArray(data) ? data : (data.votes_per_section || []);
+    const votesData = Array.isArray(data) ? data : data.votes_per_section || [];
 
     // Normalize the data structure to use consistent keys
     const normalizedData = votesData.map((item: any) => ({
@@ -2432,32 +2432,41 @@ const fetchVotesPerCategory = async (token: string) => {
   }
 };
 
-// Fetch votes per nominee
+// Fetch votes per nominee PER CATEGORY (not cumulative)
 const fetchVotesPerNominee = async (token: string) => {
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/get-votes-per-nominee/`,
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/get-total-votes-per-nominee-per-category/`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
     const data = await response.json();
 
-    // Handle the actual API response format
-    const votesData = Array.isArray(data) ? data : data.votes_per_nominee || [];
+    // Handle the new API response format
+    // Format: { "Category Name": [{ "nominee": "Name", "votes": 5 }] }
+    const votesArray: any[] = [];
 
-    // If we have total votes from metrics, calculate actual vote counts
-    // Otherwise, use percentages directly
-    return votesData.map((item) => ({
-      nominee_id: item.nominee_id || item.id || null,
-      nominee_name: item.nominee || item.nominee_name || item.name,
-      category_id: item.category_id || null,
-      category_name: item.category || item.category_name || null,
-      total_votes: item.votes || item.total_votes || 0,
-      percentage: item.percentage || 0,
-    }));
+    // Convert the object structure to a flat array
+    Object.entries(data).forEach(([categoryName, nominees]: [string, any]) => {
+      if (Array.isArray(nominees)) {
+        nominees.forEach((nominee) => {
+          votesArray.push({
+            nominee_id: null, // Backend doesn't provide ID in this format
+            nominee_name: nominee.nominee,
+            category_id: null, // Backend doesn't provide ID in this format
+            category_name: categoryName.trim(),
+            total_votes: nominee.votes || 0,
+            percentage: 0, // Will calculate later if needed
+          });
+        });
+      }
+    });
+
+    console.log("Transformed votes data:", votesArray);
+    return votesArray;
   } catch (error) {
-    console.error("Error fetching votes per nominee:", error);
+    console.error("Error fetching votes per nominee-category:", error);
     return [];
   }
 };
@@ -2740,21 +2749,28 @@ export default function AdminVotesPage() {
       // If no section votes data, calculate from category votes
       let finalSectionVotes = sectionVotesData;
       if (sectionVotesData.length === 0 && categoryVotesData.length > 0) {
-        console.log("No section votes from API, calculating from category votes...");
+        console.log(
+          "No section votes from API, calculating from category votes..."
+        );
 
         // Group category votes by section
         const sectionVotesMap = new Map();
         categoryVotesData.forEach((cat) => {
           const sectionName = cat.section_name || cat.section || "Other";
           const currentVotes = sectionVotesMap.get(sectionName) || 0;
-          sectionVotesMap.set(sectionName, currentVotes + (cat.total_votes || 0));
+          sectionVotesMap.set(
+            sectionName,
+            currentVotes + (cat.total_votes || 0)
+          );
         });
 
         // Convert map to array
-        finalSectionVotes = Array.from(sectionVotesMap.entries()).map(([name, votes]) => ({
-          section_name: name,
-          total_votes: votes,
-        }));
+        finalSectionVotes = Array.from(sectionVotesMap.entries()).map(
+          ([name, votes]) => ({
+            section_name: name,
+            total_votes: votes,
+          })
+        );
 
         console.log("Calculated section votes:", finalSectionVotes);
       }
@@ -2856,6 +2872,66 @@ export default function AdminVotesPage() {
 
   const getSelectedNominee = () =>
     nominees.find((n) => (n.id || n._id) === formData.nominee_id);
+
+  // Helper function to get winner for a specific category
+  const getCategoryWinner = useCallback(
+    (category: any) => {
+      const categoryId = category.id || category._id;
+      const categoryName = (category.name || category.title)?.trim();
+
+      // Find all vote records for this category from nomineeVotes
+      // Match by category name (case-insensitive)
+      const categoryVotes = nomineeVotes.filter((vote) => {
+        const voteCategoryName = vote.category_name?.trim();
+        return voteCategoryName?.toLowerCase() === categoryName?.toLowerCase();
+      });
+
+      if (categoryVotes.length === 0) {
+        return null;
+      }
+
+      // Sort by votes descending to find winner
+      const sorted = [...categoryVotes].sort(
+        (a, b) => b.total_votes - a.total_votes
+      );
+      const winner = sorted[0];
+
+      // Calculate total votes in this category
+      const totalCategoryVotes = sorted.reduce(
+        (sum, n) => sum + (n.total_votes || 0),
+        0
+      );
+      const winnerPercentage =
+        totalCategoryVotes > 0
+          ? (winner.total_votes / totalCategoryVotes) * 100
+          : 0;
+
+      return {
+        category_id: categoryId,
+        category_name: categoryName,
+        winner_id: winner.nominee_id,
+        winner_name: winner.nominee_name,
+        winning_votes: winner.total_votes,
+        winning_percentage: winnerPercentage,
+        total_nominees: sorted.length,
+      };
+    },
+    [nomineeVotes]
+  );
+
+  // Helper function to get all category winners
+  const getAllCategoryWinners = useCallback(() => {
+    // Get all categories from allCategoriesData
+    console.log("Getting winners for categories:", allCategoriesData.length);
+    console.log("Nominee votes available:", nomineeVotes.length);
+
+    const winners = allCategoriesData
+      .map((category) => getCategoryWinner(category))
+      .filter((winner) => winner !== null && winner.winning_votes > 0);
+
+    console.log("Total winners found:", winners.length);
+    return winners;
+  }, [allCategoriesData, getCategoryWinner, nomineeVotes]);
 
   // CRUD Handlers
   const handleAddNewCategory = async () => {
@@ -3195,6 +3271,7 @@ export default function AdminVotesPage() {
               <TabsTrigger value="sections">Sections</TabsTrigger>
               <TabsTrigger value="categories">Categories</TabsTrigger>
               <TabsTrigger value="nominees">Nominees</TabsTrigger>
+              <TabsTrigger value="winners">Winners</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
               <TabsTrigger value="top-performers">Top Performers</TabsTrigger>
               {/* <TabsTrigger value="activities">Activities</TabsTrigger> */}
@@ -3281,16 +3358,16 @@ export default function AdminVotesPage() {
                           angle={-45}
                           textAnchor="end"
                           height={100}
-                          tick={{ fill: '#888' }}
+                          tick={{ fill: "#888" }}
                         />
-                        <YAxis tick={{ fill: '#888' }} />
+                        <YAxis tick={{ fill: "#888" }} />
                         <Tooltip
                           contentStyle={{
-                            backgroundColor: '#1a1a1a',
-                            border: '1px solid #333',
-                            borderRadius: '8px'
+                            backgroundColor: "#1a1a1a",
+                            border: "1px solid #333",
+                            borderRadius: "8px",
                           }}
-                          labelStyle={{ color: '#fff' }}
+                          labelStyle={{ color: "#fff" }}
                         />
                         <Bar
                           dataKey="votes"
@@ -3824,6 +3901,156 @@ export default function AdminVotesPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Winners Tab */}
+          <TabsContent value="winners" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-6 h-6 text-yellow-500" />
+                  <div>
+                    <CardTitle>Category Winners</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Winners for each award category based on vote counts
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const allWinners = getAllCategoryWinners();
+
+                  if (allWinners.length === 0) {
+                    return (
+                      <div className="text-center py-12">
+                        <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground text-lg mb-2">
+                          No winners data available yet
+                        </p>
+                        <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
+                          Winners will appear once votes have been cast for
+                          categories.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  // Group winners by section
+                  const winnersBySection = allWinners.reduce((acc, winner) => {
+                    // Find the category to get its section
+                    const category = allCategoriesData.find(
+                      (c) =>
+                        String(c.id || c._id) === String(winner.category_id)
+                    );
+                    const sectionId = category?.section_id || "unknown";
+                    const sectionName = getSectionName(sectionId);
+
+                    if (!acc[sectionName]) {
+                      acc[sectionName] = [];
+                    }
+                    acc[sectionName].push(winner);
+                    return acc;
+                  }, {} as Record<string, typeof allWinners>);
+
+                  return (
+                    <div className="space-y-8">
+                      {/* Summary Stats */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                          <p className="text-sm text-muted-foreground">
+                            Total Winners
+                          </p>
+                          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                            {allWinners.length}
+                          </p>
+                        </div>
+                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                          <p className="text-sm text-muted-foreground">
+                            Sections
+                          </p>
+                          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {Object.keys(winnersBySection).length}
+                          </p>
+                        </div>
+                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                          <p className="text-sm text-muted-foreground">
+                            Total Categories
+                          </p>
+                          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                            {allCategoriesData.length}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Winners Grid */}
+                      {Object.entries(winnersBySection).map(
+                        ([sectionName, winners]) => (
+                          <div key={sectionName}>
+                            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                              <Star className="w-5 h-5 text-yellow-500" />
+                              {sectionName}
+                              <Badge variant="outline" className="ml-2">
+                                {winners.length}{" "}
+                                {winners.length === 1 ? "winner" : "winners"}
+                              </Badge>
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {winners.map((winner) => (
+                                <Card
+                                  key={winner.category_id}
+                                  className="text-base md:text-base hover:shadow-lg transition-shadow"
+                                >
+                                  <CardHeader className="pb-3">
+                                    <CardTitle className="text-base md:text-base flex items-start justify-between gap-2">
+                                      <span className="flex-1">
+                                        {winner.category_name}
+                                      </span>
+                                      <Trophy className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                        1
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="font-semibold text-lg">
+                                          {winner.winner_name}
+                                        </p>
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                          <span>
+                                            {winner.winning_votes} votes
+                                          </span>
+                                          <span>•</span>
+                                          <span>
+                                            {winner.winning_percentage.toFixed(
+                                              1
+                                            )}
+                                            %
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="pt-2 border-t">
+                                      <p className="text-xs text-muted-foreground">
+                                        {winner.total_nominees} nominees in
+                                        category
+                                      </p>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="timeline" className="space-y-6">
             <Card>
               <CardHeader>
