@@ -139,7 +139,7 @@ export default function HomePage() {
     <Layout>
       <div className="container mx-auto px-4">
         <PageHeader
-          title="Welcome to AFC DATABASE"
+          title="Welcome to AFC"
           description="Your hub for African Freefire community stats and events"
         />
 

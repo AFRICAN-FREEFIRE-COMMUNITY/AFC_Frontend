@@ -86,7 +86,8 @@ export const NewsDetails = ({ id }: { id: string }) => {
               className="prose max-w-none mb-6"
               dangerouslySetInnerHTML={{ __html: newsDetails.content }}
             /> */}
-            {extractTiptapText(newsDetails.content)}
+            {/* {extractTiptapText(newsDetails.content)} */}
+            <RenderDescription json={newsDetails?.content} />
             {newsDetails.category === "tournament" && (
               <Card className="my-6">
                 <CardHeader>

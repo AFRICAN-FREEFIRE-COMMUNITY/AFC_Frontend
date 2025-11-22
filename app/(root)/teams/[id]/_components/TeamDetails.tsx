@@ -225,11 +225,24 @@ export const TeamDetails = ({ id }: { id: string }) => {
     });
   };
 
+  const [pendingGenerateLink, startGenerateLinkTransition] = useTransition();
+
   const handleGenerateInviteLink = () => {
-    const newInviteLink = `${env.NEXT_PUBLIC_URL}/join-team/${
-      teamDetails.team_id
-    }/${Math.random().toString(36).substr(2, 9)}`;
-    setInviteLink(newInviteLink);
+    startGenerateLinkTransition(async () => {
+      try {
+        const response = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/generate-invite-link/`,
+          { team_id: teamDetails.team_id },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setInviteLink(response.data.invite_link);
+        toast.success("Invite link generated successfully!");
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || "Failed to generate invite link");
+      }
+    });
   };
 
   const handleCopyInviteLink = () => {
@@ -969,8 +982,12 @@ export const TeamDetails = ({ id }: { id: string }) => {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <Button onClick={handleGenerateInviteLink}>
-                        Generate Invite Link
+                      <Button onClick={handleGenerateInviteLink} disabled={pendingGenerateLink}>
+                        {pendingGenerateLink ? (
+                          <Loader text="Generating..." />
+                        ) : (
+                          "Generate Invite Link"
+                        )}
                       </Button>
                       {inviteLink && (
                         <div className="mt-2 flex items-center space-x-2">

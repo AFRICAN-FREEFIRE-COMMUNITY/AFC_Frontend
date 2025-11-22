@@ -36,7 +36,7 @@ export default function ContactPage() {
 "
                       className="text-primary hover:underline"
                     >
-                      AFC Database
+                      AFC
                     </a>
                   </p>
                 </div>

@@ -108,17 +108,35 @@ export function CreateTeamForm() {
           );
         }
 
-        const socialMediaLinks: any = {};
-        if (data.facebook_url) socialMediaLinks.facebook = data.facebook_url;
-        if (data.twitter_url) socialMediaLinks.twitter = data.twitter_url;
-        if (data.instagram_url) socialMediaLinks.instagram = data.instagram_url;
-        if (data.youtube_url) socialMediaLinks.youtube = data.youtube_url;
-        if (data.twitch_url) socialMediaLinks.twitch = data.twitch_url;
+        // Convert social media links to array format expected by backend
+        const socialMediaLinks: Array<{ platform: string; link: string }> = [];
+        if (data.facebook_url)
+          socialMediaLinks.push({
+            platform: "Facebook",
+            link: data.facebook_url,
+          });
+        if (data.twitter_url)
+          socialMediaLinks.push({
+            platform: "Twitter",
+            link: data.twitter_url,
+          });
+        if (data.instagram_url)
+          socialMediaLinks.push({
+            platform: "Instagram",
+            link: data.instagram_url,
+          });
+        if (data.youtube_url)
+          socialMediaLinks.push({
+            platform: "Youtube",
+            link: data.youtube_url,
+          });
+        if (data.twitch_url)
+          socialMediaLinks.push({ platform: "Twitch", link: data.twitch_url });
 
         // Only append if there are social media links
-        if (Object.keys(socialMediaLinks).length > 0) {
+        if (socialMediaLinks.length > 0) {
           formData.append(
-            "team_social_media_links",
+            "social_media_links",
             JSON.stringify(socialMediaLinks)
           );
         }

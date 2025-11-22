@@ -112,7 +112,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                   <span>{item.label}</span>
                   <Badge
                     variant="secondary"
-                    className="ml-2 text-xs font-medium"
+                    className="ml-2 text-xs line-clamp-1 font-medium"
                   >
                     Coming Soon
                   </Badge>

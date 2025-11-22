@@ -145,25 +145,49 @@ const CartDrawer = () => {
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, logout, isAdmin } = useAuth();
+  const { user, isAuthenticated, logout, isAdmin, loading } = useAuth();
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      if (
-        !isAuthenticated &&
-        !["/", "/login", "/create-account"].includes(pathname)
-      ) {
-        redirect("/login");
+      // Don't redirect while still loading authentication state
+      if (loading) return;
+
+      // Allow access to public pages only
+      const publicPaths = ["/", "/login", "/create-account"];
+      const isEmailConfirmationPage = pathname.startsWith("/email-confirmation");
+
+      if (!isAuthenticated && !publicPaths.includes(pathname) && !isEmailConfirmationPage) {
+        // For invite pages, redirect to login with the invite URL
+        if (pathname.startsWith("/invite/")) {
+          router.push(`/login?redirect=${pathname}`);
+        } else {
+          redirect("/login");
+        }
       }
     };
     checkLoginStatus();
-  }, [pathname, user]);
+  }, [pathname, user, loading, isAuthenticated, router]);
 
   const handleLogout = () => {
     logout();
     toast("Logged out successfully");
     router.push("/");
   };
+
+  // Show loading state while checking authentication
+  const publicPaths = ["/", "/login", "/create-account"];
+  const isEmailConfirmationPage = pathname.startsWith("/email-confirmation");
+
+  if (loading && !publicPaths.includes(pathname) && !isEmailConfirmationPage) {
+    return (
+      <div className="min-h-screen bg-background text-foreground font-inter relative overflow-hidden flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground font-inter relative overflow-hidden">
@@ -178,7 +202,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             >
               <Logo className="text-primary" />
               <span className="text-base md:text-xl font-bold gold-text">
-                AFC DATABASE
+                AFC
               </span>
             </Link>
           </div>
@@ -198,9 +222,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <SheetContent side="right" className="w-full sm:w-[400px]">
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
-                  <SheetDescription>
-                    Navigation menu for AFC DATABASE
-                  </SheetDescription>
+                  <SheetDescription>Navigation menu for AFC</SheetDescription>
                 </SheetHeader>
                 <SidebarContent
                   isLoggedIn={isAuthenticated}
@@ -295,7 +317,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <footer className="border-t bg-background/50 backdrop-blur-sm mt-12">
         <div className="container mx-auto px-4 py-6 flex text-sm md:text-base justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} AFC DATABASE. All rights reserved.
+            &copy; {new Date().getFullYear()} AFC. All rights reserved.
           </p>
           <nav className="space-x-4 hidden md:block">
             <a

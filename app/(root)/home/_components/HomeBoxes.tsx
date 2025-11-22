@@ -8,7 +8,7 @@ import { BarChart2, Calendar, Trophy, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const HomeBoxes = () => {
-  const [totalUsers, setTotalUsers] = useState<number>();
+  const [totalUsers, setTotalUsers] = useState<number>(0);
 
   useEffect(() => {
     const fetchUsers = async () => {

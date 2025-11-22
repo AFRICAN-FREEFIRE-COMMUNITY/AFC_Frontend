@@ -17,7 +17,7 @@ export default function page() {
           <Logo size="large" />
         </div>
         <h1 className="text-2xl md:text-3xl font-rajdhani font-bold text-primary mb-6 text-center">
-          Create AFC DATABASE Account
+          Create AFC Account
         </h1>
         <CreateAccountForm />
         <div className="mt-6 text-center">

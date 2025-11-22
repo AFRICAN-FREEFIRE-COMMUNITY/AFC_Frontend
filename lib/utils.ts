@@ -17,10 +17,10 @@ export const extractSocialMediaUrls = (socialMediaArray: any) => {
 
   if (socialMediaArray && Array.isArray(socialMediaArray)) {
     socialMediaArray.forEach((social) => {
-      if (social.platform && social.url) {
-        const platformKey = `${social.platform}_url`;
+      if (social.platform && social.link) {
+        const platformKey = `${social.platform.toLowerCase()}_url`;
         if (platformKey in socialUrls) {
-          socialUrls[platformKey] = social.url;
+          socialUrls[platformKey] = social.link;
         }
       }
     });

@@ -4,7 +4,7 @@ import React, { useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -24,7 +24,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
+  const redirectUrl = searchParams.get("redirect");
 
   const [pending, startTransition] = useTransition();
   const [isVisible, setIsVisible] = useState<boolean>(false);
@@ -46,17 +48,47 @@ export function LoginForm() {
           { ...data }
         );
 
+        console.log(response);
+
         if (response.statusText === "OK") {
+          // Wait for login to complete (including fetching user data)
           await login(response.data.session_token);
+
           toast.success(response.data.message);
           console.log(response.data);
-          router.push("/home");
+
+          // Small delay to ensure auth state is fully updated
+          setTimeout(() => {
+            // Redirect to the URL they came from, or default to /home
+            // Use replace to avoid adding login page to history
+            if (redirectUrl) {
+              router.replace(redirectUrl);
+            } else {
+              router.push("/home");
+            }
+          }, 100);
         } else {
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Internal server error");
-        return;
+        if (error.response?.status === 403) {
+          // User hasn't confirmed their email
+          const email = data.ign_or_uid.includes("@") ? data.ign_or_uid : "";
+          toast.info("Please confirm your email to continue");
+
+          // Redirect to email confirmation with email parameter
+          if (email) {
+            router.push(`/email-confirmation?email=${encodeURIComponent(email)}`);
+          } else {
+            // If they logged in with IGN/UID, redirect to a page to enter email
+            router.push(`/email-confirmation/enter-email`);
+          }
+        } else {
+          toast.error(
+            error?.response?.data?.message || "Internal server error"
+          );
+          return;
+        }
       }
     });
   }

@@ -1,14 +1,32 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Layout from "@/components/Layout"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import Layout from "@/components/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,12 +34,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 export default function RankingsPage() {
-  const [selectedMonth, setSelectedMonth] = useState<string>("July")
-  const [selectedYear, setSelectedYear] = useState<string>("2023")
-  const [selectedEntityType, setSelectedEntityType] = useState<"players" | "teams">("players")
+  const [selectedMonth, setSelectedMonth] = useState<string>("July");
+  const [selectedYear, setSelectedYear] = useState<string>("2023");
+  const [selectedEntityType, setSelectedEntityType] = useState<
+    "players" | "teams"
+  >("players");
 
   // Mock data for rankings and tiers
   const playerRankings = [
@@ -30,7 +50,7 @@ export default function RankingsPage() {
     { rank: 3, name: "BlazeMaster", team: "Phoenix Rising", points: 460 },
     { rank: 4, name: "ThunderBolt", team: "Gamma Force", points: 440 },
     { rank: 5, name: "NinjaWarrior", team: "Delta Strikers", points: 420 },
-  ]
+  ];
 
   const teamRankings = [
     { rank: 1, name: "Team Alpha", points: 1000 },
@@ -38,7 +58,7 @@ export default function RankingsPage() {
     { rank: 3, name: "Phoenix Rising", points: 900 },
     { rank: 4, name: "Gamma Force", points: 850 },
     { rank: 5, name: "Delta Strikers", points: 800 },
-  ]
+  ];
 
   const teamTiers = [
     { name: "Team Alpha", tier: 1 },
@@ -46,7 +66,7 @@ export default function RankingsPage() {
     { name: "Phoenix Rising", tier: 2 },
     { name: "Gamma Force", tier: 2 },
     { name: "Delta Strikers", tier: 3 },
-  ]
+  ];
 
   const months = [
     "January",
@@ -61,14 +81,15 @@ export default function RankingsPage() {
     "October",
     "November",
     "December",
-  ]
+  ];
 
-  const years = ["2023", "2022", "2021"]
+  const years = ["2023", "2022", "2021"];
 
   const playerRankingCriteria = [
     {
       name: "Tournament Kills",
-      description: "Points based on the number of kills in official tournaments",
+      description:
+        "Points based on the number of kills in official tournaments",
       calculation:
         "Points are awarded based on kill ranges. For example: 0-100 kills: 1 point, 101-300 kills: 3 points, 301-500 kills: 5 points, etc.",
     },
@@ -98,7 +119,7 @@ export default function RankingsPage() {
       description: "0.5 points for each scrim win",
       calculation: "Total Scrim Wins * 0.5",
     },
-  ]
+  ];
 
   const teamRankingCriteria = [
     {
@@ -141,7 +162,7 @@ export default function RankingsPage() {
       calculation:
         "Scrim wins: 0.5 points each, Scrim kills and placements: Similar to tournament calculations but with lower point values",
     },
-  ]
+  ];
 
   return (
     <Layout>
@@ -151,7 +172,9 @@ export default function RankingsPage() {
         <div className="flex items-center space-x-4 mb-6">
           <Select
             value={selectedEntityType}
-            onValueChange={(value: "players" | "teams") => setSelectedEntityType(value)}
+            onValueChange={(value: "players" | "teams") =>
+              setSelectedEntityType(value)
+            }
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select entity type" />
@@ -194,7 +217,9 @@ export default function RankingsPage() {
           <div className="grid grid-cols-3 gap-6 mb-8">
             <Card className="col-start-2">
               <CardHeader>
-                <CardTitle className="text-center">Top Player of the Month</CardTitle>
+                <CardTitle className="text-center">
+                  Top Player of the Month
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-center">
                 <h3 className="text-2xl font-bold mb-2">FireKing</h3>
@@ -208,14 +233,20 @@ export default function RankingsPage() {
         <Tabs defaultValue="rankings" className="space-y-4">
           <TabsList>
             <TabsTrigger value="rankings">Rankings</TabsTrigger>
-            {selectedEntityType === "teams" && <TabsTrigger value="tiers">Tiers</TabsTrigger>}
+            {selectedEntityType === "teams" && (
+              <TabsTrigger value="tiers">Tiers</TabsTrigger>
+            )}
             <TabsTrigger value="criteria">Criteria</TabsTrigger>
           </TabsList>
 
           <TabsContent value="rankings">
             <Card>
               <CardHeader>
-                <CardTitle>{selectedEntityType === "players" ? "Player Rankings" : "Team Rankings"}</CardTitle>
+                <CardTitle>
+                  {selectedEntityType === "players"
+                    ? "Player Rankings"
+                    : "Team Rankings"}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[400px]">
@@ -224,16 +255,23 @@ export default function RankingsPage() {
                       <TableRow>
                         <TableHead>Rank</TableHead>
                         <TableHead>Name</TableHead>
-                        {selectedEntityType === "players" && <TableHead>Team</TableHead>}
+                        {selectedEntityType === "players" && (
+                          <TableHead>Team</TableHead>
+                        )}
                         <TableHead>Points</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {(selectedEntityType === "players" ? playerRankings : teamRankings).map((entity) => (
+                      {(selectedEntityType === "players"
+                        ? playerRankings
+                        : teamRankings
+                      ).map((entity) => (
                         <TableRow key={entity.rank}>
                           <TableCell>{entity.rank}</TableCell>
                           <TableCell>{entity.name}</TableCell>
-                          {selectedEntityType === "players" && <TableCell>{(entity as any).team}</TableCell>}
+                          {selectedEntityType === "players" && (
+                            <TableCell>{(entity as any).team}</TableCell>
+                          )}
                           <TableCell>{entity.points}</TableCell>
                         </TableRow>
                       ))}
@@ -278,14 +316,18 @@ export default function RankingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {selectedEntityType === "players" ? "Player Ranking Criteria" : "Team Ranking and Tiering Criteria"}
+                  {selectedEntityType === "players"
+                    ? "Player Ranking Criteria"
+                    : "Team Ranking and Tiering Criteria"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Accordion type="single" collapsible className="w-full">
                   {selectedEntityType === "players" ? (
                     <AccordionItem value="player-criteria">
-                      <AccordionTrigger>Player Ranking Criteria</AccordionTrigger>
+                      <AccordionTrigger>
+                        Player Ranking Criteria
+                      </AccordionTrigger>
                       <AccordionContent>
                         <ul className="list-disc pl-6 space-y-2">
                           {playerRankingCriteria.map((criterion, index) => (
@@ -301,7 +343,9 @@ export default function RankingsPage() {
                   ) : (
                     <>
                       <AccordionItem value="team-ranking-criteria">
-                        <AccordionTrigger>Team Ranking Criteria</AccordionTrigger>
+                        <AccordionTrigger>
+                          Team Ranking Criteria
+                        </AccordionTrigger>
                         <AccordionContent>
                           <ul className="list-disc pl-6 space-y-2">
                             {teamRankingCriteria.map((criterion, index) => (
@@ -317,7 +361,10 @@ export default function RankingsPage() {
                       <AccordionItem value="team-tier-criteria">
                         <AccordionTrigger>Team Tier Criteria</AccordionTrigger>
                         <AccordionContent>
-                          <p>Teams are assigned to tiers based on their total ranking points:</p>
+                          <p>
+                            Teams are assigned to tiers based on their total
+                            ranking points:
+                          </p>
                           <ul className="list-disc pl-6 space-y-2 mt-2">
                             <li>
                               <strong>Tier 1:</strong> 70 points or more
@@ -341,36 +388,52 @@ export default function RankingsPage() {
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle>Detailed Ranking and Tiering Criteria</DialogTitle>
+                        <DialogTitle>
+                          Detailed Ranking and Tiering Criteria
+                        </DialogTitle>
                         <DialogDescription>
-                          This document provides a comprehensive explanation of how players and teams are ranked and
-                          tiered in the AFC DATABASE system.
+                          This document provides a comprehensive explanation of
+                          how players and teams are ranked and tiered in the AFC
+                          system.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="mt-4 space-y-6">
                         <section>
-                          <h3 className="text-lg font-semibold mb-2">Player Ranking Criteria</h3>
+                          <h3 className="text-lg font-semibold mb-2">
+                            Player Ranking Criteria
+                          </h3>
                           {playerRankingCriteria.map((criterion, index) => (
                             <div key={index} className="mb-4">
                               <h4 className="font-medium">{criterion.name}</h4>
                               <p>{criterion.description}</p>
-                              <p className="text-sm text-muted-foreground mt-1">Calculation: {criterion.calculation}</p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Calculation: {criterion.calculation}
+                              </p>
                             </div>
                           ))}
                         </section>
                         <section>
-                          <h3 className="text-lg font-semibold mb-2">Team Ranking Criteria</h3>
+                          <h3 className="text-lg font-semibold mb-2">
+                            Team Ranking Criteria
+                          </h3>
                           {teamRankingCriteria.map((criterion, index) => (
                             <div key={index} className="mb-4">
                               <h4 className="font-medium">{criterion.name}</h4>
                               <p>{criterion.description}</p>
-                              <p className="text-sm text-muted-foreground mt-1">Calculation: {criterion.calculation}</p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Calculation: {criterion.calculation}
+                              </p>
                             </div>
                           ))}
                         </section>
                         <section>
-                          <h3 className="text-lg font-semibold mb-2">Team Tier Criteria</h3>
-                          <p>Teams are assigned to tiers based on their total ranking points:</p>
+                          <h3 className="text-lg font-semibold mb-2">
+                            Team Tier Criteria
+                          </h3>
+                          <p>
+                            Teams are assigned to tiers based on their total
+                            ranking points:
+                          </p>
                           <ul className="list-disc pl-6 space-y-2 mt-2">
                             <li>
                               <strong>Tier 1:</strong> 70 points or more
@@ -393,5 +456,5 @@ export default function RankingsPage() {
         </Tabs>
       </div>
     </Layout>
-  )
+  );
 }

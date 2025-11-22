@@ -18,7 +18,7 @@ export default function LoginPage() {
           <Logo size="large" />
         </div>
         <h1 className="text-2xl md:text-3xl font-rajdhani font-bold text-primary mb-6 text-center">
-          Login to AFC DATABASE
+          Login to AFC
         </h1>
         <LoginForm />
         <div className="mt-4 text-center">
