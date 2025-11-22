@@ -1,10 +1,25 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { env } from "@/lib/env";
+import { formatMoneyInput } from "@/lib/utils";
+import axios from "axios";
 import { BarChart2, Calendar, Trophy, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const HomeBoxes = () => {
-  const { user } = useAuth();
+  const [totalUsers, setTotalUsers] = useState<number>();
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const users = await axios(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`
+      );
+      setTotalUsers(users?.data?.total_users);
+    };
+
+    fetchUsers();
+  }, []);
 
   return (
     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -23,7 +38,9 @@ export const HomeBoxes = () => {
           <CardTitle>Active Players</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold gold-text">3,000</p>
+          <p className="text-4xl font-bold gold-text">
+            {formatMoneyInput(totalUsers)}
+          </p>
         </CardContent>
       </Card>
       <Card className="card-hover">

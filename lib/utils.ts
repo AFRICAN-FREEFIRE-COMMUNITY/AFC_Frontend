@@ -52,3 +52,25 @@ export function formatDate(dateString: string | any): string {
   // Format the date
   return `${month} ${getOrdinalSuffix(day)}, ${year}`;
 }
+
+export const formatMoneyInput = (inputValue: string | number | any) => {
+  if (inputValue == null) return "";
+
+  let value = String(inputValue);
+
+  // Allow spaces in text — don't format unless it's a pure number
+  const numericOnly = value.replace(/,/g, ""); // remove commas to check
+
+  if (!/^\d+(\.\d+)?$/.test(numericOnly)) {
+    // Not a number → return raw text
+    return value;
+  }
+
+  // Split whole and decimal
+  let [whole, decimal] = numericOnly.split(".");
+
+  // Add commas to whole number
+  whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  return decimal !== undefined ? `${whole}.${decimal}` : whole;
+};

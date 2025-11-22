@@ -216,7 +216,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </nav>
       <main className="container mx-auto py-8 px-1.5 md:px-4 relative z-10">
         {children}
-        {pathname.includes("/news") && (
+        {/* {pathname.includes("/news") && (
           <div className="mt-8 flex justify-center">
             <nav
               className="inline-flex rounded-md shadow-sm"
@@ -290,7 +290,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </a>
             </nav>
           </div>
-        )}
+        )} */}
       </main>
       <footer className="border-t bg-background/50 backdrop-blur-sm mt-12">
         <div className="container mx-auto px-4 py-6 flex text-sm md:text-base justify-between items-center">
