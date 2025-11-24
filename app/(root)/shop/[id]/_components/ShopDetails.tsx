@@ -119,7 +119,7 @@ export function ShopDetails() {
 							<img
 								src={bundle.image || "/placeholder.svg"}
 								alt={bundle.name}
-								className="w-full h-auto rounded-lg"
+								className="w-full h-auto rounded-md"
 							/>
 						</CardContent>
 					</Card>

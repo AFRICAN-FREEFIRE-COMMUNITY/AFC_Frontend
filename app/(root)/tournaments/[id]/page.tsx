@@ -574,7 +574,7 @@ const fetchTournamentData = async (id: string) => {
               <li>Registration fee: $50 per team</li>
             </ul>
             
-            <p class="bg-blue-50 p-4 rounded-lg"><strong>Early Bird Special:</strong> Teams registering before February 15th get a 20% discount on registration fees!</p>
+            <p class="bg-blue-50 p-4 rounded-md"><strong>Early Bird Special:</strong> Teams registering before February 15th get a 20% discount on registration fees!</p>
             
             <p>Don't miss your chance to compete for glory and the biggest prize pool of the spring season!</p>
           </div>
@@ -649,7 +649,7 @@ const fetchTournamentData = async (id: string) => {
               <li>Complete medical and travel documentation required</li>
             </ul>
             
-            <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-lg border-l-4 border-yellow-400">
+            <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-md border-l-4 border-yellow-400">
               <p><strong>🏆 Prize Distribution:</strong></p>
               <ul class="list-disc list-inside mt-2 space-y-1">
                 <li>1st Place: $15,000 + Trophy + Medals</li>
@@ -660,7 +660,7 @@ const fetchTournamentData = async (id: string) => {
               </ul>
             </div>
             
-            <p class="bg-red-50 p-4 rounded-lg border-l-4 border-red-400">
+            <p class="bg-red-50 p-4 rounded-md border-l-4 border-red-400">
               <strong>⚠️ Important:</strong> This is an invitation-only tournament. Teams will be selected based on performance and qualification criteria. Travel and accommodation support provided for qualifying teams.
             </p>
             
@@ -849,7 +849,7 @@ export default function TournamentDetails() {
                       {tournament.stages.map((stage, index) => (
                         <div
                           key={index}
-                          className="flex justify-between items-center p-4 bg-gray-50 rounded-lg"
+                          className="flex justify-between items-center p-4 bg-gray-50 rounded-md"
                         >
                           <div>
                             <h4 className="font-semibold text-lg">
@@ -902,7 +902,7 @@ export default function TournamentDetails() {
                       )}
                       {tournament.newsPost &&
                         tournament.newsPost.registrationLink && (
-                          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                          <div className="mt-4 p-4 bg-blue-50 rounded-md">
                             <p className="text-blue-800 font-medium mb-2">
                               Ready to compete?
                             </p>

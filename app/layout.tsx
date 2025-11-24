@@ -1,5 +1,5 @@
 import type React from "react";
-import { Inter, Rajdhani } from "next/font/google";
+import { DM_Sans, Inter, Rajdhani } from "next/font/google";
 import "../styles/globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "sonner";
@@ -18,10 +18,14 @@ const rajdhani = Rajdhani({
   display: "swap",
 });
 
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+});
+
 export const metadata = {
-  title: "AFC Esports Metrics",
+  title: "Africa Freefire Community",
   description: "Track your performance in the African Freefire Community",
-  generator: "v0.dev",
 };
 
 export default function RootLayout({
@@ -30,7 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${rajdhani.variable}`}>
+    // <html lang="en" className={`${inter.variable} ${rajdhani.variable}`}>
+    <html lang="en" className={`${dmSans.className}`}>
       <body className="font-sans">
         <AuthProvider>
           <Providers>{children}</Providers>

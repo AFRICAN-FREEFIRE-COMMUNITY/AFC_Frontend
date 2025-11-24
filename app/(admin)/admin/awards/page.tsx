@@ -396,7 +396,7 @@ export default function page() {
           <div>
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className=" border rounded-lg p-6">
+              <div className=" border rounded-md p-6">
                 <div className="flex items-center justify-between mb-4">
                   <Trophy className="w-8 h-8 text-yellow-500" />
                 </div>
@@ -406,7 +406,7 @@ export default function page() {
                 <div className="text-gray-400 text-sm">Total Categories</div>
               </div>
 
-              <div className=" border rounded-lg p-6">
+              <div className=" border rounded-md p-6">
                 <div className="flex items-center justify-between mb-4">
                   <Users className="w-8 h-8 text-blue-500" />
                 </div>
@@ -416,7 +416,7 @@ export default function page() {
                 <div className="text-gray-400 text-sm">Total Nominees</div>
               </div>
 
-              <div className=" border rounded-lg p-6">
+              <div className=" border rounded-md p-6">
                 <div className="flex items-center justify-between mb-4">
                   <Award className="w-8 h-8 text-purple-500" />
                 </div>
@@ -430,7 +430,7 @@ export default function page() {
             {/* Alert Messages */}
             {message.text && (
               <div
-                className={`mb-6 p-4 rounded-lg flex items-start ${
+                className={`mb-6 p-4 rounded-md flex items-start ${
                   message.type === "success"
                     ? "bg-green-900/30 border border-green-700"
                     : "bg-red-900/30 border border-red-700"
@@ -468,7 +468,7 @@ export default function page() {
                   setShowCategoriesList(!showCategoriesList);
                   setShowNomineesList(false);
                 }}
-                className=" border hover:border-yellow-500 rounded-lg p-6 text-left transition-all"
+                className=" border hover:border-yellow-500 rounded-md p-6 text-left transition-all"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -491,7 +491,7 @@ export default function page() {
                   setShowNomineesList(!showNomineesList);
                   setShowCategoriesList(false);
                 }}
-                className=" border hover:border-blue-500 rounded-lg p-6 text-left transition-all"
+                className=" border hover:border-blue-500 rounded-md p-6 text-left transition-all"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -512,7 +512,7 @@ export default function page() {
 
             {/* Categories List */}
             {showCategoriesList && (
-              <div className=" border rounded-lg p-6 mb-8">
+              <div className=" border rounded-md p-6 mb-8">
                 <h3 className="text-xl font-bold mb-4 flex items-center">
                   <Trophy className="w-6 h-6 text-yellow-500 mr-3" />
                   All Award Categories ({categories.length})
@@ -526,7 +526,7 @@ export default function page() {
                     categories.map((cat) => (
                       <div
                         key={cat.id || cat._id}
-                        className=" rounded-lg p-4 flex items-center justify-between"
+                        className=" rounded-md p-4 flex items-center justify-between"
                       >
                         <div className="flex-1">
                           <h4 className="font-semibold text-white mb-1">
@@ -541,7 +541,7 @@ export default function page() {
                             handleDeleteCategory(cat.id || cat._id)
                           }
                           disabled={deletingId === (cat.id || cat._id)}
-                          className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+                          className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-md flex items-center transition-colors"
                         >
                           {deletingId === (cat.id || cat._id) ? (
                             <Loader className="w-4 h-4 animate-spin" />
@@ -561,7 +561,7 @@ export default function page() {
 
             {/* Nominees List */}
             {showNomineesList && (
-              <div className=" border rounded-lg p-6 mb-8">
+              <div className=" border rounded-md p-6 mb-8">
                 <h3 className="text-xl font-bold mb-4 flex items-center">
                   <Users className="w-6 h-6 text-blue-500 mr-3" />
                   All Nominees ({nominees.length})
@@ -573,7 +573,7 @@ export default function page() {
                     </p>
                   ) : (
                     nominees.map((nom) => (
-                      <div key={nom.id || nom._id} className=" rounded-lg p-4">
+                      <div key={nom.id || nom._id} className=" rounded-md p-4">
                         <h4 className="font-semibold text-white mb-1">
                           {nom.name}
                         </h4>
@@ -595,7 +595,7 @@ export default function page() {
             )}
 
             {/* Create New Category Section */}
-            <div className=" border rounded-lg p-8 mb-8">
+            <div className=" border rounded-md p-8 mb-8">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <FolderPlus className="w-6 h-6 text-yellow-500 mr-3" />
@@ -603,7 +603,7 @@ export default function page() {
                 </div>
                 <button
                   onClick={() => setShowNewCategoryForm(!showNewCategoryForm)}
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md transition-colors flex items-center"
                 >
                   {showNewCategoryForm ? (
                     <>
@@ -635,7 +635,7 @@ export default function page() {
                         })
                       }
                       placeholder="e.g., Best Content Creator, Best Esports Player"
-                      className="w-full  border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                      className="w-full  border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     />
                   </div>
 
@@ -651,7 +651,7 @@ export default function page() {
                           section_id: e.target.value,
                         })
                       }
-                      className="w-full  border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                      className="w-full  border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     >
                       <option value="">-- Select a section --</option>
                       {sections.map((section) => (
@@ -672,7 +672,7 @@ export default function page() {
                   <button
                     onClick={handleAddNewCategory}
                     disabled={loading}
-                    className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center"
+                    className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-md transition-colors flex items-center justify-center"
                   >
                     {loading ? (
                       <>
@@ -691,7 +691,7 @@ export default function page() {
             </div>
 
             {/* Create New Nominee Section */}
-            <div className=" border rounded-lg p-8 mb-8">
+            <div className=" border rounded-md p-8 mb-8">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <Plus className="w-6 h-6 text-blue-500 mr-3" />
@@ -699,7 +699,7 @@ export default function page() {
                 </div>
                 <button
                   onClick={() => setShowNewNomineeForm(!showNewNomineeForm)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors flex items-center"
                 >
                   {showNewNomineeForm ? (
                     <>
@@ -731,7 +731,7 @@ export default function page() {
                         })
                       }
                       placeholder="Enter nominee name"
-                      className="w-full  border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full  border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
 
@@ -752,7 +752,7 @@ export default function page() {
                         })
                       }
                       placeholder="https://youtube.com/watch?v=..."
-                      className="w-full  border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full  border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-gray-500 text-xs mt-2">
                       Add a video URL for video-based award categories
@@ -762,7 +762,7 @@ export default function page() {
                   <button
                     onClick={handleAddNewNominee}
                     disabled={loading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center"
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-md transition-colors flex items-center justify-center"
                   >
                     {loading ? (
                       <>
@@ -781,7 +781,7 @@ export default function page() {
             </div>
 
             {/* Assign Nominee to Category Section */}
-            <div className=" border rounded-lg p-8">
+            <div className=" border rounded-md p-8">
               <div className="flex items-center mb-6">
                 <Award className="w-6 h-6 text-green-500 mr-3" />
                 <h2 className="text-2xl font-bold">
@@ -800,7 +800,7 @@ export default function page() {
                     onChange={(e) =>
                       setFormData({ ...formData, category_id: e.target.value })
                     }
-                    className="w-full  border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full  border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
                     <option value="">-- Choose a category --</option>
                     {categories.map((cat) => (
@@ -824,7 +824,7 @@ export default function page() {
                     onChange={(e) =>
                       setFormData({ ...formData, nominee_id: e.target.value })
                     }
-                    className="w-full  border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full  border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
                     <option value="">-- Choose a nominee --</option>
                     {nominees.map((nom) => (
@@ -840,7 +840,7 @@ export default function page() {
 
                 {/* Preview Section */}
                 {formData.category_id && formData.nominee_id && (
-                  <div className="mb-8 p-4 /50 border border-gray-600 rounded-lg">
+                  <div className="mb-8 p-4 /50 border border-gray-600 rounded-md">
                     <h3 className="text-sm font-semibold mb-3 text-gray-300">
                       Assignment Preview
                     </h3>
@@ -867,7 +867,7 @@ export default function page() {
                   <button
                     onClick={handleAssignNominee}
                     disabled={loading}
-                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center"
+                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-md transition-colors flex items-center justify-center"
                   >
                     {loading ? (
                       <>
@@ -885,7 +885,7 @@ export default function page() {
                   <button
                     onClick={handleReset}
                     disabled={loading}
-                    className=" hover:bg-gray-600 disabled: disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center"
+                    className=" hover:bg-gray-600 disabled: disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-md transition-colors flex items-center"
                   >
                     <X className="w-5 h-5 mr-2" />
                     Reset
@@ -895,7 +895,7 @@ export default function page() {
             </div>
 
             {/* Help Section */}
-            <div className="mt-8  border rounded-lg p-6">
+            <div className="mt-8  border rounded-md p-6">
               <h3 className="text-lg font-semibold mb-3 flex items-center">
                 <AlertCircle className="w-5 h-5 mr-2 text-blue-500" />
                 Quick Guide

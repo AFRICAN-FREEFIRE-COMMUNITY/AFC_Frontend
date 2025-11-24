@@ -12,7 +12,7 @@ export default function page() {
   if (isAuthenticated) return router.push("/home");
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="bg-card p-8 rounded-lg shadow-lg w-full max-w-md">
+      <div className="bg-card p-8 rounded-md shadow-lg w-full max-w-md">
         <div className="flex justify-center mb-6">
           <Logo size="large" />
         </div>

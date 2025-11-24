@@ -49,7 +49,7 @@ export function CreateCategoryModal({
                 setNewCategoryData({ ...newCategoryData, name: e.target.value })
               }
               placeholder="e.g., Best Content Creator"
-              className="w-full border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              className="w-full border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             />
           </div>
 
@@ -65,7 +65,7 @@ export function CreateCategoryModal({
                   section_id: e.target.value,
                 })
               }
-              className="w-full border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              className="w-full border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             >
               <option value="">-- Select a section --</option>
               {sections.map((section) => (

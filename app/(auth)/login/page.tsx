@@ -13,10 +13,10 @@ export default function LoginPage() {
   if (isAuthenticated) return router.push("/home");
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="bg-card p-8 rounded-lg shadow-lg w-full max-w-md">
-        <div className="flex justify-center mb-6">
+      <div className="bg-card p-8 rounded-md shadow-lg w-full max-w-md">
+        <Link href={"/"} className="flex justify-center mb-6">
           <Logo size="large" />
-        </div>
+        </Link>
         <h1 className="text-2xl md:text-3xl font-rajdhani font-bold text-primary mb-6 text-center">
           Login to AFC
         </h1>

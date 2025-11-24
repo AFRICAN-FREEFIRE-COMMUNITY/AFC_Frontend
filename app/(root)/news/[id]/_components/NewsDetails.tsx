@@ -80,7 +80,7 @@ export const NewsDetails = ({ id }: { id: string }) => {
               alt={newsDetails.news_title}
               width={800}
               height={400}
-              className="w-full h-auto rounded-lg mb-6"
+              className="w-full h-auto rounded-md mb-6"
             />
             {/* <div
               className="prose max-w-none mb-6"

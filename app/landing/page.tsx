@@ -18,6 +18,9 @@ import {
   Crown,
   Flame,
 } from "lucide-react";
+import { formatMoneyInput } from "@/lib/utils";
+import axios from "axios";
+import { env } from "@/lib/env";
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false);
@@ -65,11 +68,37 @@ export default function LandingPage() {
     },
   ];
 
+  const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [totalTeams, setTotalTeams] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const users = await axios(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`
+      );
+      const teams = await axios(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
+      );
+      setTotalUsers(users?.data?.total_users);
+      setTotalTeams(teams?.data?.teams.length);
+    };
+
+    fetchUsers();
+  }, []);
+
   const stats = [
-    { label: "Active Players", value: "50,000+", icon: Users },
+    {
+      label: "Active Players",
+      value: `${formatMoneyInput(totalUsers)}+`,
+      icon: Users,
+    },
     { label: "Tournaments Held", value: "1,200+", icon: Trophy },
     { label: "Prize Pool Distributed", value: "$500K+", icon: Crown },
-    { label: "Teams Registered", value: "8,500+", icon: Shield },
+    {
+      label: "Teams Registered",
+      value: `${formatMoneyInput(totalTeams)}+`,
+      icon: Shield,
+    },
   ];
 
   return (
@@ -77,14 +106,14 @@ export default function LandingPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <Link href={"/"} className="flex items-center space-x-2">
             <Logo size="small" />
-            <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[hsl(var(--gold))] bg-clip-text text-transparent">
-              AFC Esports
+            <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[hsl(var(--gold))] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
+              Africa Freefire Community
             </span>
-          </div>
+          </Link>
 
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center font-medium space-x-6">
             <Link
               href="/tournaments"
               className="text-muted-foreground hover:text-primary transition-colors"
@@ -113,15 +142,12 @@ export default function LandingPage() {
 
           <div className="flex items-center space-x-3">
             <Link href="/login">
-              <Button
-                variant="ghost"
-                className="text-foreground hover:text-primary hidden md:block"
-              >
+              <Button variant="ghost" size="md" className="hidden md:block">
                 Sign In
               </Button>
             </Link>
             <Link href="/create-account">
-              <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground">
+              <Button size="md" variant={"gradient"}>
                 Join Now
               </Button>
             </Link>
@@ -147,7 +173,7 @@ export default function LandingPage() {
               Season 2025 Now Live
             </Badge>
 
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold mb-4 leading-tight">
               <span className="bg-gradient-to-r from-primary via-[hsl(var(--gold))] to-primary bg-clip-text text-transparent">
                 Dominate
               </span>
@@ -164,7 +190,7 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               {/* <Link href="/create-account">
                 <Button
-                  size="lg"
+
                   className="bg-gradient-to-r from-primary to-[hsl(var(--gold))] hover:from-primary/90 hover:to-[hsl(var(--gold))]/90 text-primary-foreground px-8 py-6 text-lg"
                 >
                   <GamepadIcon className="w-5 h-5 mr-2" />
@@ -173,7 +199,7 @@ export default function LandingPage() {
               </Link>
               <Link href="/tournaments">
                 <Button
-                  size="lg"
+
                   variant="outline"
                   className="border-primary/30 text-primary hover:bg-primary/10 px-8 py-6 text-lg bg-transparent"
                 >
@@ -182,11 +208,8 @@ export default function LandingPage() {
                 </Button>
               </Link> */}
               <Link href="/create-account">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-primary to-[hsl(var(--gold))] hover:from-primary/90 hover:to-[hsl(var(--gold))]/90 text-primary-foreground px-8 py-6 text-lg"
-                >
-                  <Star className="w-5 h-5 mr-2" />
+                <Button variant="gradient">
+                  <Star />
                   Create Account
                 </Button>
               </Link>
@@ -265,20 +288,13 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/create-account">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-primary to-[hsl(var(--gold))] hover:from-primary/90 hover:to-[hsl(var(--gold))]/90 text-primary-foreground px-8 py-6 text-lg"
-                >
+                <Button variant="gradient" className="w-full">
                   <Star className="w-5 h-5 mr-2" />
                   Create Account
                 </Button>
               </Link>
               <Link href="/about">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary/30 text-primary hover:bg-primary/10 px-8 py-6 text-lg bg-transparent"
-                >
+                <Button variant="outline" className="w-full">
                   Learn More
                 </Button>
               </Link>
@@ -302,7 +318,7 @@ export default function LandingPage() {
                 The premier Free Fire competitive platform for serious players.
               </p>
             </div>
-            {/* 
+            {/*
             <div>
               <h4 className="font-semibold mb-4 text-primary">Platform</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">

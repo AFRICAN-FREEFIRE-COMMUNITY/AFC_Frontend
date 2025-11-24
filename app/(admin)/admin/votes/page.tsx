@@ -1158,7 +1158,7 @@ export default function AdminVotesPage() {
                           </CardHeader>
                           <CardContent className="space-y-4">
                             {/* Prominent Total Votes Display */}
-                            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-4 border-2 border-primary/20">
+                            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-md p-4 border-2 border-primary/20">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <Vote className="h-5 w-5 text-primary" />
@@ -1462,7 +1462,7 @@ export default function AdminVotesPage() {
                     <>
                       {/* Filter Stats Summary */}
                       <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-4 border border-blue-200 dark:border-blue-800">
                           <p className="text-sm text-muted-foreground">
                             Total Nominees
                           </p>
@@ -1470,7 +1470,7 @@ export default function AdminVotesPage() {
                             {sortedNominees.length}
                           </p>
                         </div>
-                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                        <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-4 border border-green-200 dark:border-green-800">
                           <p className="text-sm text-muted-foreground">
                             Total Votes
                           </p>
@@ -1478,7 +1478,7 @@ export default function AdminVotesPage() {
                             {filteredTotalVotes.toLocaleString()}
                           </p>
                         </div>
-                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-md p-4 border border-purple-200 dark:border-purple-800">
                           <p className="text-sm text-muted-foreground">
                             Average Votes
                           </p>
@@ -1664,7 +1664,7 @@ export default function AdminVotesPage() {
                     <div className="space-y-8">
                       {/* Summary Stats */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-4 border border-blue-200 dark:border-blue-800">
                           <p className="text-sm text-muted-foreground">
                             Total Winners
                           </p>
@@ -1672,7 +1672,7 @@ export default function AdminVotesPage() {
                             {allWinners.length}
                           </p>
                         </div>
-                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                        <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-4 border border-green-200 dark:border-green-800">
                           <p className="text-sm text-muted-foreground">
                             Sections
                           </p>
@@ -1680,7 +1680,7 @@ export default function AdminVotesPage() {
                             {Object.keys(winnersBySection).length}
                           </p>
                         </div>
-                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-md p-4 border border-purple-200 dark:border-purple-800">
                           <p className="text-sm text-muted-foreground">
                             Total Categories
                           </p>
@@ -1775,7 +1775,7 @@ export default function AdminVotesPage() {
                 ) : (
                   <>
                     <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-4 border border-blue-200 dark:border-blue-800">
                         <p className="text-sm text-muted-foreground">
                           Total Days Tracked
                         </p>
@@ -1783,7 +1783,7 @@ export default function AdminVotesPage() {
                           {timelineData.length}
                         </p>
                       </div>
-                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-4 border border-green-200 dark:border-green-800">
                         <p className="text-sm text-muted-foreground">
                           Peak Daily Votes
                         </p>
@@ -1791,7 +1791,7 @@ export default function AdminVotesPage() {
                           {Math.max(...timelineData.map((d) => d.votes || 0))}
                         </p>
                       </div>
-                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-md p-4 border border-purple-200 dark:border-purple-800">
                         <p className="text-sm text-muted-foreground">
                           Average Daily Votes
                         </p>
@@ -1899,7 +1899,7 @@ export default function AdminVotesPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="rounded-lg border">
+                  <div className="rounded-md border">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
@@ -2148,7 +2148,7 @@ export default function AdminVotesPage() {
                         </div>
                       </div>
 
-                      <div className="rounded-lg border">
+                      <div className="rounded-md border">
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-muted/50">
@@ -2388,7 +2388,7 @@ export default function AdminVotesPage() {
                         </div>
                       </div>
 
-                      <div className="rounded-lg border">
+                      <div className="rounded-md border">
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -2447,7 +2447,7 @@ export default function AdminVotesPage() {
                                             <button className="text-blue-500 hover:text-blue-600 text-xs">
                                               View all
                                             </button>
-                                            <div className="hidden group-hover:block absolute left-0 top-6 z-50 bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl min-w-[200px]">
+                                            <div className="hidden group-hover:block absolute left-0 top-6 z-50 bg-gray-800 border border-gray-700 rounded-md p-3 shadow-xl min-w-[200px]">
                                               <div className="space-y-1">
                                                 {nomineeCategories.map(
                                                   (cat, idx) => (

@@ -154,9 +154,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       // Allow access to public pages only
       const publicPaths = ["/", "/login", "/create-account"];
-      const isEmailConfirmationPage = pathname.startsWith("/email-confirmation");
+      const isEmailConfirmationPage = pathname.startsWith(
+        "/email-confirmation"
+      );
 
-      if (!isAuthenticated && !publicPaths.includes(pathname) && !isEmailConfirmationPage) {
+      if (
+        !isAuthenticated &&
+        !publicPaths.includes(pathname) &&
+        !isEmailConfirmationPage
+      ) {
         // For invite pages, redirect to login with the invite URL
         if (pathname.startsWith("/invite/")) {
           router.push(`/login?redirect=${pathname}`);
@@ -201,8 +207,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               className="flex items-center space-x-2"
             >
               <Logo className="text-primary" />
-              <span className="text-base md:text-xl font-bold gold-text">
-                AFC
+              <span className="text-base md:text-xl font-bold gold-text line-clamp-1">
+                Africa Freefire Community
               </span>
             </Link>
           </div>

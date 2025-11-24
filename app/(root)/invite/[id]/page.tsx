@@ -156,7 +156,7 @@ export default function InvitePage() {
 
               {/* Team Description */}
               {teamDetails?.team_description && (
-                <div className="bg-muted p-4 rounded-lg">
+                <div className="bg-muted p-4 rounded-md">
                   <h3 className="font-semibold mb-2">About the Team</h3>
                   <p className="text-sm text-muted-foreground">
                     {teamDetails?.team_description}
@@ -166,21 +166,21 @@ export default function InvitePage() {
 
               {/* Team Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-center p-4 bg-muted rounded-md">
                   <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-2xl font-bold">
                     {teamDetails?.members?.length || 0}/6
                   </p>
                   <p className="text-xs text-muted-foreground">Members</p>
                 </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-center p-4 bg-muted rounded-md">
                   <Trophy className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-2xl font-bold">
                     {teamDetails?.stats?.tournament_wins || 0}
                   </p>
                   <p className="text-xs text-muted-foreground">Wins</p>
                 </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-center p-4 bg-muted rounded-md">
                   <Badge
                     variant="outline"
                     className="h-6 w-6 mx-auto mb-2 flex items-center justify-center"
@@ -192,7 +192,7 @@ export default function InvitePage() {
                   </p>
                   <p className="text-xs text-muted-foreground">Tier</p>
                 </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-center p-4 bg-muted rounded-md">
                   <Calendar className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-2xl font-bold">{teamDetails?.country}</p>
                   <p className="text-xs text-muted-foreground">Country</p>
@@ -207,7 +207,7 @@ export default function InvitePage() {
                     {teamDetails?.members.map((member: any, index: number) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                        className="flex items-center justify-between p-3 bg-muted rounded-md"
                       >
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">

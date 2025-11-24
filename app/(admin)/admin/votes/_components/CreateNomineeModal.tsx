@@ -87,7 +87,7 @@ export function CreateNomineeModal({
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="e.g., John Doe"
-              className="w-full border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-transparent"
+              className="w-full border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-transparent"
             />
           </div>
 
@@ -102,7 +102,7 @@ export function CreateNomineeModal({
                 setFormData({ ...formData, video_url: e.target.value })
               }
               placeholder="https://youtube.com/watch?v=..."
-              className="w-full border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-transparent"
+              className="w-full border border-gray-600 rounded-md px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-transparent"
             />
             <p className="text-gray-500 text-xs mt-2">
               Add a video URL for video-based award categories

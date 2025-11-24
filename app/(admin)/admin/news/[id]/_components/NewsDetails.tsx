@@ -82,7 +82,7 @@ export const NewsDetails = ({ id }: { id: string }) => {
               alt={newsDetails.nes_title}
               width={800}
               height={400}
-              className="w-full h-auto rounded-lg mb-6"
+              className="w-full h-auto rounded-md mb-6"
             />
             {extractTiptapText(newsDetails.content)}
             {newsDetails.event && (

@@ -8,7 +8,7 @@ const page = async ({ searchParams }: { searchParams: any }) => {
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-background">
-			<div className="bg-card p-8 rounded-lg shadow-lg w-full max-w-md">
+			<div className="bg-card p-8 rounded-md shadow-md w-full max-w-md">
 				<div className="flex justify-center mb-6">
 					<Logo size="large" />
 				</div>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --radius: 0.75rem;
+    }
+  </style>
+</head>
+<body class="p-8 space-y-4">
+  <div class="rounded-sm bg-blue-500 text-white p-4">rounded-sm</div>
+  <div class="rounded-md bg-blue-500 text-white p-4">rounded-md</div>
+  <div class="rounded-lg bg-blue-500 text-white p-4">rounded-lg</div>
+  <div class="rounded-xl bg-blue-500 text-white p-4">rounded-xl</div>
+  <div class="rounded-2xl bg-blue-500 text-white p-4">rounded-2xl</div>
+</body>
+</html>

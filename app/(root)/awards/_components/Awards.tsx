@@ -643,7 +643,7 @@ export function Awards() {
                     contentCreatorVotes.map((vote) => (
                       <div
                         key={vote.categoryId}
-                        className="bg-muted/50 rounded-lg p-2 md:p-3 text-left"
+                        className="bg-muted/50 rounded-md p-2 md:p-3 text-left"
                       >
                         <p className="font-medium text-xs md:text-sm text-primary">
                           {getCategoryName(vote.sectionId, vote.categoryId)}
@@ -677,7 +677,7 @@ export function Awards() {
                     esportsVotes.map((vote) => (
                       <div
                         key={vote.categoryId}
-                        className="bg-muted/50 rounded-lg p-2 md:p-3 text-left"
+                        className="bg-muted/50 rounded-md p-2 md:p-3 text-left"
                       >
                         <p className="font-medium text-xs md:text-sm text-primary">
                           {getCategoryName(vote.sectionId, vote.categoryId)}
@@ -700,7 +700,7 @@ export function Awards() {
               </Card>
             </div>
 
-            <div className="bg-muted/50 rounded-lg p-3 md:p-4 mb-4 md:mb-6 space-y-1 md:space-y-2">
+            <div className="bg-muted/50 rounded-md p-3 md:p-4 mb-4 md:mb-6 space-y-1 md:space-y-2">
               <p className="text-xs md:text-sm text-muted-foreground">
                 <strong>Content Creators submitted:</strong>{" "}
                 {submissionStatus.contentCreatorsDate
@@ -748,7 +748,7 @@ export function Awards() {
             the best creators and players!
           </p>
 
-          <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-3 md:p-4 mb-4 md:mb-6 max-w-md mx-auto">
+          <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-md p-3 md:p-4 mb-4 md:mb-6 max-w-md mx-auto">
             <div className="flex items-center justify-center">
               <Clock className="h-4 w-4 md:h-5 md:w-5 text-yellow-600 mr-2" />
               <span className="text-sm md:text-base text-yellow-700 font-semibold">
@@ -805,7 +805,7 @@ export function Awards() {
                   </p>
 
                   {!isSectionSubmitted(section.id) && (
-                    <div className="bg-muted/30 rounded-lg p-3 md:p-4 mt-3 md:mt-4 mb-4 md:mb-6">
+                    <div className="bg-muted/30 rounded-md p-3 md:p-4 mt-3 md:mt-4 mb-4 md:mb-6">
                       <div>
                         <h3 className="text-base md:text-lg font-semibold mb-1 md:mb-2">
                           Voting Progress
@@ -818,7 +818,7 @@ export function Awards() {
                       </div>
                       {getSectionVotesCount(section.id) > 0 &&
                         !canSubmitSection(section.id) && (
-                          <div className="mt-3 md:mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3 md:p-4">
+                          <div className="mt-3 md:mt-4 bg-yellow-50 border border-yellow-200 rounded-md p-3 md:p-4">
                             <p className="text-xs md:text-sm text-yellow-800">
                               <strong>Note:</strong> You need to vote in all{" "}
                               {getSectionCategoriesCount(section.id)} categories
@@ -830,7 +830,7 @@ export function Awards() {
                   )}
 
                   {isSectionSubmitted(section.id) && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4 mt-3 md:mt-4 mb-4 md:mb-6">
+                    <div className="bg-green-50 border border-green-200 rounded-md p-3 md:p-4 mt-3 md:mt-4 mb-4 md:mb-6">
                       <div className="flex items-center justify-center mb-2">
                         <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-green-500 mr-2" />
                         <h3 className="text-base md:text-lg font-semibold text-green-800">
@@ -889,7 +889,7 @@ export function Awards() {
                               return (
                                 <div
                                   key={nominee.id}
-                                  className={`flex items-start justify-between gap-2 md:gap-3 rounded-lg p-2.5 md:p-3 transition-all duration-200 ${
+                                  className={`flex items-start justify-between gap-2 md:gap-3 rounded-md p-2.5 md:p-3 transition-all duration-200 ${
                                     isVoted
                                       ? "bg-primary/10 border-2 border-primary/30 shadow-sm"
                                       : "bg-muted/50 hover:bg-muted/70 border-2 border-transparent"

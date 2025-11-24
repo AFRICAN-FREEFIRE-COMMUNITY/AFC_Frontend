@@ -192,13 +192,13 @@ export default function HomePage() {
             </CardContent>
           </Card>
         </div>
-        <Card className="rounded-lg shadow-sm border">
+        <Card className="rounded-md shadow-sm border">
           <div className="p-6 border-b">
             <h2 className="text-xl font-semibold">Rankings and Tiers</h2>
           </div>
           <div className="p-6">
             {/* Tab Navigation */}
-            <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-6">
+            <div className="flex space-x-1 bg-muted p-1 rounded-md mb-6">
               <button
                 onClick={() => setActiveTab("rankings")}
                 className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${

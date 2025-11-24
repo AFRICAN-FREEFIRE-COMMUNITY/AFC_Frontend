@@ -71,7 +71,7 @@ export function AddSectionModal({
 
       {/* Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md bg-[#111827] text-white border border-gray-700 rounded-xl">
+        <DialogContent className="sm:max-w-md bg-[#111827] text-white border border-gray-700 rounded-md">
           <DialogHeader>
             <DialogTitle className="text-xl flex items-center gap-2">
               <Plus className="w-5 h-5 text-purple-500" />
@@ -91,7 +91,7 @@ export function AddSectionModal({
                   setFormData({ ...formData, name: e.target.value })
                 }
                 placeholder="e.g., Content Creator Awards"
-                className="w-full border border-gray-600 rounded-lg px-4 py-3 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full border border-gray-600 rounded-md px-4 py-3 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
@@ -111,7 +111,7 @@ export function AddSectionModal({
                   })
                 }
                 placeholder="Enter max votes"
-                className="w-full border border-gray-600 rounded-lg px-4 py-3 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full border border-gray-600 rounded-md px-4 py-3 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
               <p className="text-gray-500 text-xs mt-2">
                 Maximum number of votes allowed per user in this section
