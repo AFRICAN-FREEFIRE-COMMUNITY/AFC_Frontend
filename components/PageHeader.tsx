@@ -11,7 +11,7 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
     <div className="mb-8">
       <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-0 md:items-center">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-[hsl(var(--gold))] bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-4xl font-bold text-primary">
             {title}
           </h1>
           {description && (

@@ -1,9 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(head:*)",
-      "Bash(ls:*)",
-      "Bash(npm run dev:*)"
+      "Bash(find:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

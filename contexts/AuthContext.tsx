@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
   ReactNode,
+  useCallback,
 } from "react";
 import { toast } from "sonner";
 
@@ -57,6 +58,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // Set up axios interceptor to handle invalid/expired tokens
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          const errorMessage = error.response?.data?.message?.toLowerCase() || "";
+          // Check for common token expiration/invalid messages
+          if (
+            errorMessage.includes("token") ||
+            errorMessage.includes("expired") ||
+            errorMessage.includes("invalid") ||
+            errorMessage.includes("unauthorized") ||
+            errorMessage.includes("authentication")
+          ) {
+            localStorage.removeItem("authToken");
+            setUser(null);
+            setToken(null);
+            toast.error("Session expired. Please log in again.");
+            window.location.href = "/login";
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, []);
+
   const fetchUser = async (token: string) => {
     try {
       const res = await axios(
@@ -103,11 +135,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await fetchUser(token);
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("authToken");
     setUser(null);
     setToken(null);
-  };
+  }, []);
 
   // Helper function to check if user has a specific role
   const hasRole = (role: string): boolean => {

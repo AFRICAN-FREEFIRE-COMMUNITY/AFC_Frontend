@@ -1,45 +1,66 @@
-import type React from "react";
-import { DM_Sans, Inter, Rajdhani } from "next/font/google";
-import "../styles/globals.css";
-import { Providers } from "./providers";
-import { Toaster } from "sonner";
+import type { Metadata, Viewport } from "next";
+import { DM_Sans } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const rajdhani = Rajdhani({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-rajdhani",
-  display: "swap",
-});
+import { Toaster } from "sonner";
+import { PageGradient } from "@/components/PageGradient";
+import {
+  defaultMetadata,
+  generateOrganizationSchema,
+  generateWebsiteSchema,
+} from "@/lib/seo";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
-export const metadata = {
-  title: "Africa Freefire Community",
-  description: "Track your performance in the African Freefire Community",
+export const metadata: Metadata = defaultMetadata;
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    // <html lang="en" className={`${inter.variable} ${rajdhani.variable}`}>
-    <html lang="en" className={`${dmSans.className}`}>
-      <body className="font-sans">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateOrganizationSchema()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebsiteSchema()),
+          }}
+        />
+      </head>
+      <body className={`${dmSans.className} antialiased relative`}>
         <AuthProvider>
-          <Providers>{children}</Providers>
-          <Toaster />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <PageGradient />
+            {children}
+            <Toaster position="bottom-center" />
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

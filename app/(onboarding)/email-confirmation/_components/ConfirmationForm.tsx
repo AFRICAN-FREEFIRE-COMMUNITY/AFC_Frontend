@@ -18,12 +18,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import {
   EmailConfirmationFormSchema,
   EmailConfirmationFormSchemaType,
 } from "@/lib/zodSchemas";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { Loader } from "@/components/Loader";
@@ -39,6 +38,10 @@ export function ConfirmationForm({ email }: Props) {
 
   const [pending, startTransition] = useTransition();
   const [pendingResend, startResendTransition] = useTransition();
+
+  useEffect(() => {
+    if (!email) router.push(`/email-confirmation/enter-email`);
+  }, [email, router]);
 
   const form = useForm<EmailConfirmationFormSchemaType>({
     resolver: zodResolver(EmailConfirmationFormSchema),
@@ -118,30 +121,31 @@ export function ConfirmationForm({ email }: Props) {
               </FormItem>
             )}
           />
-          <Button
-            className="w-full"
-            type="submit"
-            disabled={pending || pendingResend}
-          >
-            {pending ? <Loader text="Confirming..." /> : "Confirm Email"}
-          </Button>
+          <div className="grid gap-2">
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={pending || pendingResend}
+            >
+              {pending ? <Loader text="Confirming..." /> : "Confirm Email"}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={handleResendCode}
+              disabled={pendingResend || pending}
+            >
+              {pendingResend ? (
+                <Loader text="Sending..." />
+              ) : (
+                "Resend confirmation code"
+              )}
+            </Button>
+          </div>
         </form>
       </Form>
-      <div className="mt-4 text-center">
-        <Button
-          type="button"
-          variant="ghost"
-          className="w-full"
-          onClick={handleResendCode}
-          disabled={pendingResend || pending}
-        >
-          {pendingResend ? (
-            <Loader text="Sending..." />
-          ) : (
-            "Resend confirmation code"
-          )}
-        </Button>
-      </div>
+      <div className="mt-4 text-center"></div>
     </>
   );
 }

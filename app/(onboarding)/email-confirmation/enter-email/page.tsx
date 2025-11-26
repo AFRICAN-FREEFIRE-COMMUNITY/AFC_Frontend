@@ -8,10 +8,23 @@ import { z } from "zod";
 import { toast } from "sonner";
 import axios from "axios";
 import { env } from "@/lib/env";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/Loader";
 
@@ -43,63 +56,52 @@ export default function EnterEmailPage() {
 
         toast.success(response.data.message || "Verification code sent!");
         // Redirect to confirmation page with email
-        router.push(`/email-confirmation?email=${encodeURIComponent(data.email)}`);
+        router.push(
+          `/email-confirmation?email=${encodeURIComponent(data.email)}`
+        );
       } catch (error: any) {
         toast.error(
           error?.response?.data?.error ||
-          error?.response?.data?.message ||
-          "Failed to send verification code"
+            error?.response?.data?.message ||
+            "Failed to send verification code"
         );
       }
     });
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-4">
-            <Logo size="large" />
-          </div>
-          <CardTitle className="text-2xl text-center">
-            Email Verification Required
-          </CardTitle>
-          <CardDescription className="text-center">
-            Please enter your email address to receive a verification code
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="Enter your email"
-                        className="bg-input border-border"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                className="w-full"
-                type="submit"
-                disabled={pending}
-              >
-                {pending ? <Loader text="Sending..." /> : "Send Verification Code"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+    <div>
+      <h1 className="text-2xl md:text-3xl font-semibold text-primary mb-2 text-center">
+        Email Verification Required
+      </h1>
+      <p className="text-muted-foreground text-center text-base mb-8">
+        Please enter your email address to receive a verification code
+      </p>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email Address</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="bg-input border-border"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button className="w-full" type="submit" disabled={pending}>
+            {pending ? <Loader text="Sending..." /> : "Send Verification Code"}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 }

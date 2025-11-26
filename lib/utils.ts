@@ -5,28 +5,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Helper function to extract social media URLs from array
-export const extractSocialMediaUrls = (socialMediaArray: any) => {
-  const socialUrls: any = {
-    facebook_url: "",
-    twitter_url: "",
-    instagram_url: "",
-    youtube_url: "",
-    twitch_url: "",
-  };
+export const formatMoneyInput = (inputValue: string | number | any) => {
+  if (inputValue == null) return "";
 
-  if (socialMediaArray && Array.isArray(socialMediaArray)) {
-    socialMediaArray.forEach((social) => {
-      if (social.platform && social.link) {
-        const platformKey = `${social.platform.toLowerCase()}_url`;
-        if (platformKey in socialUrls) {
-          socialUrls[platformKey] = social.link;
-        }
-      }
-    });
+  let value = String(inputValue);
+
+  // Allow spaces in text — don't format unless it's a pure number
+  const numericOnly = value.replace(/,/g, ""); // remove commas to check
+
+  if (!/^\d+(\.\d+)?$/.test(numericOnly)) {
+    // Not a number → return raw text
+    return value;
   }
 
-  return socialUrls;
+  // Split whole and decimal
+  let [whole, decimal] = numericOnly.split(".");
+
+  // Add commas to whole number
+  whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  return decimal !== undefined ? `${whole}.${decimal}` : whole;
 };
 
 export function formatDate(dateString: string | any): string {
@@ -53,32 +51,34 @@ export function formatDate(dateString: string | any): string {
   return `${month} ${getOrdinalSuffix(day)}, ${year}`;
 }
 
-export const formatMoneyInput = (inputValue: string | number | any) => {
-  if (inputValue == null) return "";
-
-  let value = String(inputValue);
-
-  // Allow spaces in text — don't format unless it's a pure number
-  const numericOnly = value.replace(/,/g, ""); // remove commas to check
-
-  if (!/^\d+(\.\d+)?$/.test(numericOnly)) {
-    // Not a number → return raw text
-    return value;
-  }
-
-  // Split whole and decimal
-  let [whole, decimal] = numericOnly.split(".");
-
-  // Add commas to whole number
-  whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-  return decimal !== undefined ? `${whole}.${decimal}` : whole;
-};
-
-export const formatRole = (role: string) => {
+export const formatWord = (role: string) => {
   if (!role) return "";
   return role
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
+};
+
+// Helper function to extract social media URLs from array
+export const extractSocialMediaUrls = (socialMediaArray: any) => {
+  const socialUrls: any = {
+    facebook_url: "",
+    twitter_url: "",
+    instagram_url: "",
+    youtube_url: "",
+    twitch_url: "",
+  };
+
+  if (socialMediaArray && Array.isArray(socialMediaArray)) {
+    socialMediaArray.forEach((social) => {
+      if (social.platform && social.link) {
+        const platformKey = `${social.platform.toLowerCase()}_url`;
+        if (platformKey in socialUrls) {
+          socialUrls[platformKey] = social.link;
+        }
+      }
+    });
+  }
+
+  return socialUrls;
 };
