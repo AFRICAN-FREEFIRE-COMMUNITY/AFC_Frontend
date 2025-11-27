@@ -64,7 +64,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          const errorMessage = error.response?.data?.message?.toLowerCase() || "";
+          const errorMessage =
+            error.response?.data?.message?.toLowerCase() || "";
           // Check for common token expiration/invalid messages
           if (
             errorMessage.includes("token") ||

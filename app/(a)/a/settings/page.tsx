@@ -762,6 +762,170 @@ const page = () => {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
+
+                            <DialogContent className="sm:max-w-[700px] max-h-[90vh] p-0 flex flex-col">
+                              {/* Header */}
+                              <DialogHeader className="p-6 pb-2 border-b">
+                                <DialogTitle>Edit User</DialogTitle>
+                                <DialogDescription>
+                                  Update user roles and permissions. Remove all
+                                  roles to convert admin to regular player.
+                                </DialogDescription>
+                              </DialogHeader>
+
+                              {/* Scrollable Content */}
+                              <div className="px-6 py-4 overflow-y-auto max-h-[65vh]">
+                                {selectedUser && (
+                                  <div className="grid gap-6">
+                                    {/* Username */}
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                      <Label className="text-right">
+                                        Username
+                                      </Label>
+                                      <Input
+                                        value={selectedUser.username}
+                                        onChange={(e) =>
+                                          setSelectedUser({
+                                            ...selectedUser,
+                                            username: e.target.value,
+                                          })
+                                        }
+                                        className="col-span-3"
+                                      />
+                                    </div>
+
+                                    {/* Email */}
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                      <Label className="text-right">
+                                        Email
+                                      </Label>
+                                      <Input
+                                        value={selectedUser.email}
+                                        onChange={(e) =>
+                                          setSelectedUser({
+                                            ...selectedUser,
+                                            email: e.target.value,
+                                          })
+                                        }
+                                        className="col-span-3"
+                                      />
+                                    </div>
+
+                                    {/* Roles */}
+                                    <div className="grid grid-cols-4 items-start gap-4">
+                                      <Label className="text-right pt-2">
+                                        Roles
+                                      </Label>
+                                      <div className="col-span-3 space-y-3">
+                                        {rolesLoading ? (
+                                          <div className="flex items-center space-x-2">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span className="text-sm text-muted-foreground">
+                                              Loading roles...
+                                            </span>
+                                          </div>
+                                        ) : (
+                                          getDisplayRoles().map((role) => (
+                                            <div
+                                              key={role.id}
+                                              className="flex items-start space-x-3"
+                                            >
+                                              <Checkbox
+                                                id={`edit-role-${role.id}`}
+                                                checked={selectedUser.roles.includes(
+                                                  role.name
+                                                )}
+                                                onCheckedChange={(checked) =>
+                                                  handleRoleChange(
+                                                    role.name,
+                                                    checked as boolean
+                                                  )
+                                                }
+                                              />
+                                              <div className="grid gap-1.5 leading-none">
+                                                <Label
+                                                  htmlFor={`edit-role-${role.id}`}
+                                                  className="text-sm font-medium leading-none"
+                                                >
+                                                  {formatWord(role.name)}
+                                                </Label>
+                                                <p className="text-xs text-muted-foreground">
+                                                  {role.description}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          ))
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Permissions */}
+                                    <div className="grid grid-cols-4 items-start gap-4">
+                                      <Label className="text-right pt-2">
+                                        Permissions
+                                      </Label>
+                                      <div className="col-span-3 space-y-2">
+                                        <p className="text-sm text-muted-foreground">
+                                          Based on selected roles (
+                                          {selectedUser.roles.length} role(s)):
+                                        </p>
+                                        <div className="flex flex-wrap gap-1">
+                                          {selectedUser.permissions.map(
+                                            (permissionId) => (
+                                              <Badge
+                                                key={permissionId}
+                                                variant="secondary"
+                                                className="text-xs"
+                                              >
+                                                {getPermissionName(
+                                                  permissionId
+                                                )}
+                                              </Badge>
+                                            )
+                                          )}
+                                          {selectedUser.permissions.length ===
+                                            0 && (
+                                            <Badge
+                                              variant="outline"
+                                              className="text-xs"
+                                            >
+                                              No permissions (Regular Player)
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Footer */}
+                              <DialogFooter className="p-6 pt-2 border-t">
+                                <Button
+                                  disabled={editPending}
+                                  onClick={handleEditUser}
+                                >
+                                  {editPending ? <Loader /> : "Update User"}
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+
+                          {/* <Dialog
+                            open={
+                              isEditUserOpen && selectedUser?.id === user.id
+                            }
+                            onOpenChange={setIsEditUserOpen}
+                          >
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedUser(user)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
                             <DialogContent className="sm:max-w-[700px]">
                               <DialogHeader>
                                 <DialogTitle>Edit User</DialogTitle>
@@ -890,7 +1054,7 @@ const page = () => {
                                 </Button>
                               </DialogFooter>
                             </DialogContent>
-                          </Dialog>
+                          </Dialog> */}
 
                           <Button
                             variant="outline"
@@ -950,7 +1114,6 @@ const page = () => {
                   placeholder="Search all users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="max-w-sm"
                 />
               </div>
 
@@ -990,11 +1153,13 @@ const page = () => {
                           {user.roles.length > 0 ? (
                             user.roles.map((role) => (
                               <Badge key={role} className={getRoleColor(role)}>
-                                {role}
+                                {formatWord(role)}
                               </Badge>
                             ))
                           ) : (
-                            <Badge variant="outline">No admin roles</Badge>
+                            <Badge className="italic" variant="outline">
+                              No admin roles
+                            </Badge>
                           )}
                         </div>
                       </TableCell>

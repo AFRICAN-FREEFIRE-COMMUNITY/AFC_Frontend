@@ -83,6 +83,7 @@ import { formatWord } from "@/lib/utils";
 import { BackButton } from "@/components/BackButton";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { IconCopy } from "@tabler/icons-react";
+import { BanModal } from "@/app/(a)/a/_components/BanModal";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -106,6 +107,7 @@ const Page = ({ params }: { params: Params }) => {
   const [hasFullAccess, setHasFullAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [newMemberSearch, setNewMemberSearch] = useState("");
+  const [successRequest, setSuccessRequest] = useState(false);
 
   const [pending, startTransition] = useTransition();
   const [pendingRequest, startRequestTransition] = useTransition();
@@ -178,8 +180,10 @@ const Page = ({ params }: { params: Params }) => {
           }
         );
         toast.success(res.data.message);
+        setSuccessRequest(true);
       } catch (error: any) {
         toast.error(error.response.data.message);
+        setSuccessRequest(true);
       }
     });
   };
@@ -229,11 +233,6 @@ const Page = ({ params }: { params: Params }) => {
         toast.error(error.response.data.message);
       }
     });
-
-    // toast({
-    //   title: "Join request approved",
-    //   description: "The player has been added to your team.",
-    // });
   };
 
   const handleDenyJoinRequest = (requestId: string) => {
@@ -280,27 +279,6 @@ const Page = ({ params }: { params: Params }) => {
         toast.error(error.response.data.message);
       }
     });
-  };
-
-  const handleBanStatusChange = async (newBanStatus: boolean) => {
-    try {
-      // Simulating an API call to update the ban status
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // toast({
-      //   title: newBanStatus ? "Team banned" : "Team unbanned",
-      //   description: newBanStatus
-      //     ? "The team has been banned and restricted from certain activities."
-      //     : "The team's ban has been lifted.",
-      // });
-    } catch (error) {
-      // toast({
-      //   title: "Error",
-      //   description:
-      //     "An error occurred while updating the team's ban status. Please try again.",
-      //   variant: "destructive",
-      // });
-    }
   };
 
   const handleDisbandTeam = async () => {
@@ -361,7 +339,6 @@ const Page = ({ params }: { params: Params }) => {
             },
           }
         );
-        console.log(response);
 
         if (response.statusText === "OK") {
           toast.success(
@@ -372,8 +349,6 @@ const Page = ({ params }: { params: Params }) => {
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
-        console.log(error);
-
         toast.error(
           error?.response?.data?.message || "Failed to transfer ownership"
         );
@@ -381,11 +356,43 @@ const Page = ({ params }: { params: Params }) => {
     });
   }
 
+  const refreshTeamDetails = async () => {
+    if (!id) return; // Don't run if id is not available yet
+
+    startTransition(async () => {
+      try {
+        const decodedId = decodeURIComponent(id);
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+          { team_name: decodedId }
+        );
+        const requestResponse = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
+          { team_id: res.data.team.team_id }
+        );
+        setTeamDetails(res.data.team);
+        setIsTeamCreator(res.data.team.team_creator === user?.in_game_name);
+
+        // Determine who has full access to team controls
+        const teamOwner = res.data.team.team_owner;
+        const teamCreator = res.data.team.team_creator;
+
+        // If there's a team_owner, only the team_owner has full access
+        // If there's no team_owner (null), the team_creator has full access
+        if (teamOwner) {
+          setHasFullAccess(teamOwner === user?.in_game_name);
+        } else {
+          setHasFullAccess(teamCreator === user?.in_game_name);
+        }
+
+        setJoinRequests(requestResponse.data.join_requests);
+      } catch (error: any) {
+        toast.error(error.response.data.message);
+      }
+    });
+  };
+
   if (pending) return <FullLoader text="details" />;
-
-  // if (!teamDetails) return notFound();
-
-  console.log(teamDetails);
 
   if (teamDetails)
     return (
@@ -418,33 +425,55 @@ const Page = ({ params }: { params: Params }) => {
                 </div>
               </div>
               <div className="space-x-2 w-full md:w-auto">
-                {!hasFullAccess && !teamDetails?.is_banned && !isMember && (
-                  <Button
-                    className="w-full md:w-auto"
-                    disabled={pendingRequest}
-                    onClick={handleJoinTeam}
-                  >
-                    {pendingRequest ? (
-                      <Loader text="Sending..." />
-                    ) : (
-                      <>
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Request to Join
-                      </>
-                    )}
-                  </Button>
-                )}
+                {!hasFullAccess &&
+                  !teamDetails?.is_banned &&
+                  !isMember &&
+                  teamDetails.join_settings === "by_request" && (
+                    <Button
+                      className="w-full md:w-auto"
+                      disabled={pendingRequest || successRequest}
+                      onClick={handleJoinTeam}
+                    >
+                      {pendingRequest ? (
+                        <Loader text="Sending..." />
+                      ) : (
+                        <>
+                          <UserPlus />
+                          Request to Join
+                        </>
+                      )}
+                    </Button>
+                  )}
+                {!hasFullAccess &&
+                  !teamDetails?.is_banned &&
+                  !isMember &&
+                  teamDetails.join_settings === "open" && (
+                    <Button
+                      className="w-full md:w-auto"
+                      disabled={pendingRequest || successRequest}
+                      onClick={handleJoinTeam}
+                    >
+                      {pendingRequest ? (
+                        <Loader text="Sending..." />
+                      ) : (
+                        <>
+                          <UserPlus />
+                          Join now
+                        </>
+                      )}
+                    </Button>
+                  )}
                 {hasFullAccess && !teamDetails?.is_banned && (
                   <>
                     <Button variant={"secondary"} asChild>
                       <Link href={`/teams/${teamDetails?.team_name}/edit`}>
-                        <Edit className="mr-2 h-4 w-4" />
+                        <Edit />
                         Edit Team
                       </Link>
                     </Button>
                     <Button asChild>
                       <Link href={`/teams/${teamDetails?.team_name}/roster`}>
-                        <Users className="mr-2 h-4 w-4" />
+                        <Users />
                         Manage Roster
                       </Link>
                     </Button>
@@ -457,7 +486,7 @@ const Page = ({ params }: { params: Params }) => {
                         variant="destructive"
                         className="w-full md:w-auto"
                       >
-                        <LogOut className="mr-2 h-4 w-4" />
+                        <LogOut />
                         Exit Team
                       </Button>
                     </DialogTrigger>
@@ -662,7 +691,7 @@ const Page = ({ params }: { params: Params }) => {
                               <Loader text=" " />
                             ) : (
                               <>
-                                <Search className="mr-2 h-4 w-4" />
+                                <Search />
                                 Invite
                               </>
                             )}
@@ -904,6 +933,7 @@ const Page = ({ params }: { params: Params }) => {
                                 <TableCell>
                                   <div className="space-x-2">
                                     <Button
+                                      size="md"
                                       disabled={
                                         pendingApproveRequest ||
                                         pendingDenyRequest
@@ -921,7 +951,8 @@ const Page = ({ params }: { params: Params }) => {
                                       )}
                                     </Button>
                                     <Button
-                                      variant="outline"
+                                      size="md"
+                                      variant="destructive"
                                       disabled={
                                         pendingApproveRequest ||
                                         pendingDenyRequest
@@ -938,7 +969,7 @@ const Page = ({ params }: { params: Params }) => {
                                         "Deny"
                                       )}
                                     </Button>
-                                    <Button variant="outline" asChild>
+                                    <Button size="md" variant="outline" asChild>
                                       <Link
                                         href={`/players/${request.requester}`}
                                       >
@@ -1103,32 +1134,14 @@ const Page = ({ params }: { params: Params }) => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={teamDetails?.is_banned}
-                        onCheckedChange={handleBanStatusChange}
-                        id="team-ban-toggle"
-                      />
-                      <Label htmlFor="team-ban-toggle">
-                        {teamDetails?.is_banned ? "Unban Team" : "Ban Team"}
-                      </Label>
-                    </div>
-                    {teamDetails?.is_banned && (
-                      <div>
-                        <Label htmlFor="ban-reason">Ban Reason</Label>
-                        <Input
-                          id="ban-reason"
-                          value={teamDetails?.banReason}
-                          //   onChange={(e) =>
-                          //     setTeam((prev) => ({
-                          //       ...prev,
-                          //       banReason: e.target.value,
-                          //     }))
-                          //   }
-                          placeholder="Enter reason for ban"
-                        />
-                      </div>
-                    )}
+                    <BanModal
+                      isBanned={teamDetails?.is_banned ?? false}
+                      teamName={teamDetails?.team_name ?? "Team"}
+                      team_id={teamDetails?.team_id ?? ""}
+                      onSuccess={() => {
+                        refreshTeamDetails();
+                      }}
+                    />
                   </div>
                 </CardContent>
               </Card>

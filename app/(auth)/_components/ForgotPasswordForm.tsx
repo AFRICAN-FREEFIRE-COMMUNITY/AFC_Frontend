@@ -49,7 +49,11 @@ export function ForgotPasswordForm() {
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Internal server error");
+        toast.error(
+          error?.response?.data?.error ||
+            error?.response?.data?.message ||
+            "Internal server error"
+        );
         return;
       }
     });

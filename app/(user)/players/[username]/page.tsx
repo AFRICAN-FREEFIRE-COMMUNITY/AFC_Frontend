@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -50,10 +50,6 @@ export default function page() {
   }, [username]);
 
   if (pending) return <FullLoader />;
-
-  const router = useRouter();
-
-  console.log(playerData);
 
   if (playerData)
     return (
