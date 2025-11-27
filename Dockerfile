@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:20-alpine
 ENV PORT=3000
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
