@@ -142,7 +142,7 @@ export default function HomePage() {
 
       <HomeBoxes />
 
-      <div className="grid gap-8 md:grid-cols-2 mb-4">
+      <div className="grid gap-4 md:grid-cols-2 mb-4">
         <LatestNews />
 
         <Card className="relative overflow-hidden">

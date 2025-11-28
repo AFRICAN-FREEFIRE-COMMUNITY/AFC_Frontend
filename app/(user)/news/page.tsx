@@ -234,7 +234,7 @@ const page = () => {
           {filteredNews.map((newsDetails: any) => (
             <Card
               key={newsDetails.news_id}
-              className="overflow-hidden h-full flex flex-col hover:shadow-lg transition-shadow"
+              className="overflow-hidden h-full bg-transparent gap-0 p-0 flex flex-col hover:shadow-lg transition-shadow"
             >
               <div className="relative h-48">
                 <Image
@@ -249,7 +249,7 @@ const page = () => {
                   </Badge>
                 </div>
               </div>
-              <CardContent className="flex-grow flex flex-col">
+              <CardContent className="flex-grow py-4 flex flex-col">
                 <Link
                   href={`/news/${newsDetails.news_id}`}
                   className="text-lg font-medium mb-2 line-clamp-2 hover:underline hover:text-primary"

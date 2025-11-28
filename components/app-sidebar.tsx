@@ -21,7 +21,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <div className="cursor-pointer flex items-center justify-start gap-2">
-          <Logo /> <span className="font-semibold text-base">Admin Panel</span>
+          <Logo />{" "}
+          <span className="font-medium text-sm text-muted-foreground">
+            Admin Panel
+          </span>
         </div>
       </SidebarHeader>
       <SidebarContent>

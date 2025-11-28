@@ -146,7 +146,6 @@ export function CreateAccountForm() {
               <FormLabel>In-game Name</FormLabel>
               <FormControl>
                 <Input
-                  className="bg-input border-border"
                   placeholder="Enter your in-game name"
                   onPaste={preventPaste}
                   {...field}

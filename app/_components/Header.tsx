@@ -16,21 +16,11 @@ export const Header = () => {
         </Link>
 
         <nav className="hidden md:flex items-center font-medium gap-2">
-          <Button size={"sm"} asChild variant={"ghost"}>
-            <Link
-              href="/tournaments"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Tournaments
-            </Link>
+          <Button disabled size={"sm"} variant={"ghost"}>
+            Tournaments
           </Button>
-          <Button size={"sm"} asChild variant={"ghost"}>
-            <Link
-              href="/rankings"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Rankings
-            </Link>
+          <Button disabled size={"sm"} variant={"ghost"}>
+            Rankings
           </Button>
           <Button size={"sm"} asChild variant={"ghost"}>
             <Link
@@ -51,7 +41,7 @@ export const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-3">
-          {/* <ThemeToggle /> */}
+          <ThemeToggle />
           <Link href="/login">
             <Button variant="ghost" size="md" className="hidden md:block">
               Sign In

@@ -24,7 +24,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
       <Header />
       <div className="py-20 container">
         <div className="flex items-center justify-center">
-          <div className="rounded-md shadow-lg w-full max-w-xl">
+          <div className="rounded-md w-full max-w-2xl">
             <Link href={"/"} className="flex justify-center">
               <Logo size="large" />
             </Link>

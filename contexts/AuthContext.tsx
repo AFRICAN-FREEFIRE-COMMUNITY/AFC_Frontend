@@ -63,7 +63,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const interceptor = axios.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
+        // Skip interceptor for auth endpoints (login, register, etc.)
+        const requestUrl = error.config?.url || "";
+        const isAuthEndpoint =
+          requestUrl.includes("/auth/login") ||
+          requestUrl.includes("/auth/register") ||
+          requestUrl.includes("/auth/forgot-password") ||
+          requestUrl.includes("/auth/reset-password");
+
+        if (error.response?.status === 401 && !isAuthEndpoint && token) {
           const errorMessage =
             error.response?.data?.message?.toLowerCase() || "";
           // Check for common token expiration/invalid messages
@@ -88,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
-  }, []);
+  }, [token]);
 
   const fetchUser = async (token: string) => {
     try {
