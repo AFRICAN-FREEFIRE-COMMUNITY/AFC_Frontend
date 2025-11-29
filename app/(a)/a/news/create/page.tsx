@@ -85,7 +85,7 @@ function page() {
         );
 
         toast.success(response.data.message);
-        router.push(`/news`);
+        router.push(`/a/news`);
       } catch (error: any) {
         toast.error(error?.response?.data?.message || "Internal server error");
         return;

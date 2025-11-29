@@ -14,8 +14,12 @@ import { toast } from "sonner";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
-import { extractTiptapText } from "@/components/text-editor/RenderDescription";
+import {
+  extractTiptapText,
+  RenderDescription,
+} from "@/components/text-editor/RenderDescription";
 import { BackButton } from "@/components/BackButton";
+import { DeleteNewsModal } from "../_components/DeleteNewsModal";
 
 type Params = Promise<{
   id: string;
@@ -52,11 +56,19 @@ const page = ({ params }: { params: Params }) => {
       <div>
         <div className="flex justify-between items-center mb-2">
           <BackButton />
-          <Button asChild className="mr-2">
-            <Link href={`/admin/news/${id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" /> Edit
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild>
+              <Link href={`/a/news/${id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" /> Edit
+              </Link>
+            </Button>
+            <DeleteNewsModal
+              newsId={id}
+              newsTitle={newsDetails.news_title}
+              redirectTo="/a/news"
+              showLabel
+            />
+          </div>
         </div>
         <Card>
           <CardHeader>
@@ -86,7 +98,7 @@ const page = ({ params }: { params: Params }) => {
               height={400}
               className="w-full h-auto rounded-md mb-6"
             />
-            {extractTiptapText(newsDetails.content)}
+            <RenderDescription json={newsDetails?.content} />
             {newsDetails.event && (
               <div className="mt-4">
                 <h3 className="text-lg font-semibold">Related Event</h3>

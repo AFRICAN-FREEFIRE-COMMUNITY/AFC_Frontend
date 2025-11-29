@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +70,20 @@ const page = () => {
     });
   }, []);
 
+  const filteredTeams = useMemo(() => {
+    if (!teams) return [];
+
+    return teams.filter((team: any) => {
+      const matchesSearch = team.team_name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesTier =
+        filterTier === "all" || String(team.team_tier) === filterTier;
+
+      return matchesSearch && matchesTier;
+    });
+  }, [teams, searchTerm, filterTier]);
+
   if (pending) return <FullLoader />;
 
   return (
@@ -116,8 +130,8 @@ const page = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {teams && teams.length > 0 ? (
-                teams.map((team: any) => (
+              {filteredTeams.length > 0 ? (
+                filteredTeams.map((team: any) => (
                   <TableRow key={team.team_name}>
                     <TableCell>{team.team_name}</TableCell>
                     <TableCell>{team.team_tier}</TableCell>

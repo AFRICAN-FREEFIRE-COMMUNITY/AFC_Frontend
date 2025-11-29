@@ -27,6 +27,8 @@ export function MobileNavbar() {
 
   const { user, isAdmin } = useAuth();
 
+  console.log(user);
+
   const handleLinkClick = () => {
     setOpen(false);
   };
@@ -124,13 +126,26 @@ export function MobileNavbar() {
           </div>
         </ScrollArea>
         <SheetFooter>
-          <Button variant="secondary" asChild onClick={handleLinkClick}>
-            <Link href="/profile">My profile</Link>
-          </Button>
-          <Button onClick={handleLogout} type="submit">
-            <IconLogout />
-            Logout
-          </Button>
+          {user === null ? (
+            <>
+              <Button variant={"secondary"}>
+                <Link href="/login">Sign in</Link>
+              </Button>
+              <Button variant={"gradient"} asChild>
+                <Link href={"/register"}>Join now</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="secondary" asChild onClick={handleLinkClick}>
+                <Link href="/profile">My profile</Link>
+              </Button>
+              <Button onClick={handleLogout} type="submit">
+                <IconLogout />
+                Logout
+              </Button>
+            </>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>

@@ -109,6 +109,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       );
 
+      console.log(res);
+
       if (res.statusText !== "OK") throw new Error("Failed to fetch user");
 
       // Map the database user to your User interface

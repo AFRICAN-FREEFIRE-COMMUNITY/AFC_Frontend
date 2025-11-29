@@ -33,12 +33,12 @@ export const Header = () => {
 
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <Button variant={"ghost"} size={"icon"}>
+          {/* <Button variant={"ghost"} size={"icon"}>
             <IconBell />
           </Button>
           <Button variant={"ghost"} size={"icon"}>
             <IconShoppingCart />
-          </Button>
+          </Button> */}
           <MobileNavbar />
         </div>
       </div>
