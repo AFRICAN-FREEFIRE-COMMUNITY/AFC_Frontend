@@ -19,8 +19,8 @@ import {
   Swords,
   Users,
 } from "lucide-react";
-import { BackButton } from "@/components/BackButton";
 import { formatDate, formatWord } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function page() {
   const params = useParams();
@@ -54,7 +54,7 @@ export default function page() {
   if (playerData)
     return (
       <div>
-        <BackButton />
+        <PageHeader back title={`${playerData.username}`} />
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">

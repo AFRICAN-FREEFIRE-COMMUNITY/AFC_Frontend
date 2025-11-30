@@ -116,15 +116,15 @@ function page() {
 
   return (
     <div>
-      <PageHeader
-        title="Teams"
-        description="Explore and manage Freefire teams"
-        action={
-          <Button className="w-full md:w-auto" asChild>
-            <Link href="/teams/create">Create Team</Link>
-          </Button>
-        }
-      />
+      <div className="flex items-start md:items-center justify-between gap-2 flex-col md:flex-row">
+        <PageHeader
+          title="Teams"
+          description="Explore and manage Freefire teams"
+        />
+        <Button className="w-full md:w-auto" asChild>
+          <Link href="/teams/create">Create Team</Link>
+        </Button>
+      </div>
 
       <div className="mb-4">
         <Input

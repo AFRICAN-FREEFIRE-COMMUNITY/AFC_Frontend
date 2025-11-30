@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/Loader";
 import { Trash2, AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const DeleteNewsModal = ({
   newsId,
@@ -65,7 +66,10 @@ export const DeleteNewsModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" className={showLabel ? "" : "px-8"}>
+        <Button
+          variant="destructive"
+          className={cn("flex-1", showLabel ? "" : "px-8")}
+        >
           <Trash2 className="h-4 w-4" />
           {showLabel && <span className="ml-2">Delete</span>}
         </Button>

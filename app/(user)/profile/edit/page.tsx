@@ -35,7 +35,7 @@ import { env } from "@/lib/env";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Input } from "@/components/ui/input";
-import { BackButton } from "@/components/BackButton";
+import { PageHeader } from "@/components/PageHeader";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -69,7 +69,9 @@ const Page = () => {
         avatar: user.profile_pic || "",
         ingameName: user.in_game_name || "",
         fullName: user.full_name || "",
-        country: (user.country as EditProfileFormSchemaType["country"]) || ("" as EditProfileFormSchemaType["country"]),
+        country:
+          (user.country as EditProfileFormSchemaType["country"]) ||
+          ("" as EditProfileFormSchemaType["country"]),
         email: user.email || "",
         uid: user.uid || "",
       });
@@ -124,8 +126,8 @@ const Page = () => {
 
   return (
     <div>
-      <h1 className="text-3xl md:text-4xl font-bold mb-4">Edit Profile</h1>
-      <BackButton />
+      <PageHeader back title={`Edit Profile: ${user.full_name}`} />
+
       <Card>
         <CardHeader>
           <CardTitle>Update Your Information</CardTitle>

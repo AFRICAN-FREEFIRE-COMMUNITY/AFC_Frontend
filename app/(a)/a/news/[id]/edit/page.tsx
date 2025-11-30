@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { EditNewsFormSchema, EditNewsFormSchemaType } from "@/lib/zodSchemas";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { RichTextEditor } from "@/components/text-editor/Editor";
 import {
   Select,
@@ -35,7 +34,6 @@ import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
-import { BackButton } from "@/components/BackButton";
 
 type Params = Promise<{
   id: string;
@@ -138,8 +136,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
 
   return (
     <div>
-      <BackButton />
-      <PageHeader title="Edit News & Announcement" />
+      <PageHeader title={`Edit News: ${newsDetails.news_title}`} back />
       <Form {...form}>
         <Card>
           <CardContent className="space-y-4">

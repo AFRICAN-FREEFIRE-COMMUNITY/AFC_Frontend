@@ -21,7 +21,7 @@ import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
 import { BanModal } from "../../_components/BanModal";
-import { BackButton } from "@/components/BackButton";
+import { PageHeader } from "@/components/PageHeader";
 
 type Params = Promise<{
   id: string;
@@ -62,12 +62,8 @@ const page = ({ params }: { params: Params }) => {
   if (teamDetails)
     return (
       <div>
-        <BackButton />
-
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold">
-            {teamDetails.team_name} Details
-          </h1>
+          <PageHeader title={`${teamDetails.team_name} Details`} back />
           <BanModal
             isBanned={teamDetails.is_banned}
             teamName={teamDetails.team_name}

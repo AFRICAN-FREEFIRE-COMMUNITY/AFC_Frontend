@@ -22,8 +22,8 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { FullLoader } from "@/components/Loader";
-import { BackButton } from "@/components/BackButton";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { PageHeader } from "@/components/PageHeader";
 
 const page = () => {
   const router = useRouter();
@@ -83,8 +83,7 @@ const page = () => {
 
   return (
     <div>
-      <h1 className="text-3xl md:text-4xl font-bold mb-4">Player Profile</h1>
-      <BackButton />{" "}
+      <PageHeader back title={`Player Profile: ${user.full_name}`} />
       {user.isBanned && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />

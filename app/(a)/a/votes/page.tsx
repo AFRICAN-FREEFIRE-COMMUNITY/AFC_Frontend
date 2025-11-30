@@ -887,7 +887,7 @@ export default function Page() {
     <div>
       <PageHeader title="Voting Analytics Dashboard" />
       {/* Main Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2 mb-2">
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="line-clamp-1">Total Votes Cast</CardTitle>

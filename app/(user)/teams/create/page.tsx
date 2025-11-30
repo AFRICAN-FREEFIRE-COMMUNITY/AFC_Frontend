@@ -48,7 +48,7 @@ import {
 import { Loader } from "@/components/Loader";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BackButton } from "@/components/BackButton";
+import { PageHeader } from "@/components/PageHeader";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -179,11 +179,8 @@ export default function CreateTeamForm() {
 
   return (
     <div>
-      <BackButton />
+      <PageHeader title={`Create a New Team`} back />
       <Card>
-        <CardHeader>
-          <CardTitle>Create a New Team</CardTitle>
-        </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

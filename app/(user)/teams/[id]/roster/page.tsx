@@ -33,10 +33,10 @@ import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
-import { BackButton } from "@/components/BackButton";
 import { UserX, AlertTriangle, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatWord } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 interface MemberUpdate {
   member_id: number;
@@ -142,7 +142,9 @@ export default function page({ params }: { params: Params }) {
           }
         );
 
-        toast.success(`${memberToKick.username} has been removed from the team`);
+        toast.success(
+          `${memberToKick.username} has been removed from the team`
+        );
         setKickModalOpen(false);
         setMemberToKick(null);
 
@@ -208,11 +210,8 @@ export default function page({ params }: { params: Params }) {
   if (teamDetails)
     return (
       <div>
-        <BackButton />
+        <PageHeader title={`Manage Roster: ${teamDetails.team_name}`} back />
         <Card>
-          <CardHeader>
-            <CardTitle>Manage Roster: {teamDetails.team_name}</CardTitle>
-          </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
@@ -287,7 +286,10 @@ export default function page({ params }: { params: Params }) {
                               : "Creator"}
                           </Badge>
                         ) : isSelf(member) ? (
-                          <Badge variant="outline" className="text-muted-foreground">
+                          <Badge
+                            variant="outline"
+                            className="text-muted-foreground"
+                          >
                             You
                           </Badge>
                         ) : (
@@ -326,7 +328,6 @@ export default function page({ params }: { params: Params }) {
             </div>
           </CardContent>
         </Card>
-
         {/* Kick Member Modal */}
         <Dialog open={kickModalOpen} onOpenChange={setKickModalOpen}>
           <DialogContent className="sm:max-w-[425px]">

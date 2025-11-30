@@ -29,9 +29,9 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { extractSocialMediaUrls } from "@/lib/utils";
-import { BackButton } from "@/components/BackButton";
+import { PageHeader } from "@/components/PageHeader";
 
 // Regex pattern for safe names (blocks fancy unicode, emojis, etc.)
 const SAFE_NAME_REGEX = /^[a-zA-Z0-9\s_\-.'@]+$/;
@@ -50,7 +50,8 @@ export const EditTeamFormSchema = z.object({
     .string()
     .min(2, { message: "Team name must be at least 2 characters." })
     .refine((val) => !val || SAFE_NAME_REGEX.test(val), {
-      message: "Team name can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @). Special characters like emojis or fancy unicode text are not allowed.",
+      message:
+        "Team name can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @). Special characters like emojis or fancy unicode text are not allowed.",
     }),
   team_logo: z.string().optional(),
   join_settings: z
@@ -204,11 +205,8 @@ export default function page({ params }: { params: Params }) {
 
   return (
     <div>
-      <BackButton />
+      <PageHeader title={`Edit Team: ${decodedId}`} back />
       <Card>
-        <CardHeader>
-          <CardTitle>Edit Team: {decodedId}</CardTitle>
-        </CardHeader>
         <CardContent>
           <Form {...form}>
             <form

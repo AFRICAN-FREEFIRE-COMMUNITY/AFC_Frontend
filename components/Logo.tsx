@@ -23,7 +23,7 @@ export function Logo({
       alt="AFC Logo"
       width={width}
       height={height}
-      className={`object-contain ${className}`}
+      className={`object-cover ${className}`}
       priority
     />
   );

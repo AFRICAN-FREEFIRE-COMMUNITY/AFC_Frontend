@@ -73,17 +73,16 @@ import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { formatWord } from "@/lib/utils";
-import { BackButton } from "@/components/BackButton";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { IconCopy } from "@tabler/icons-react";
+import { IconArrowLeft, IconCopy } from "@tabler/icons-react";
 import { BanModal } from "@/app/(a)/a/_components/BanModal";
+import { PageHeader } from "@/components/PageHeader";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -397,7 +396,14 @@ const Page = ({ params }: { params: Params }) => {
   if (teamDetails)
     return (
       <div>
-        <BackButton />
+        <Button
+          className="mb-4"
+          onClick={() => router.back()}
+          size="icon"
+          variant={"secondary"}
+        >
+          <IconArrowLeft />
+        </Button>
         <Card className={teamDetails.isBanned ? "border-red-500" : ""}>
           <CardHeader>
             <div className="flex flex-col md:flex-row items-start gap-4 md:gap-0 md:items-center justify-between">

@@ -134,3 +134,62 @@
 		width: 92%;
 	}
 }
+
+/* For Chrome, Safari, Edge */
+[data-sidebar="content"]::-webkit-scrollbar {
+  width: 6px; /* thin scrollbar */
+}
+
+[data-sidebar="content"]::-webkit-scrollbar-track {
+  background: transparent; /* blend with sidebar */
+}
+
+[data-sidebar="content"]::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3); /* soft white thumb */
+  border-radius: 9999px; /* rounded pill */
+}
+
+[data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5); /* brighter on hover */
+}
+
+/* For Firefox */
+[data-sidebar="content"] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Dark mode scrollbar for sidebar */
+.dark [data-sidebar="content"]::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.5); /* darker thumb */
+}
+
+.dark [data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.7); /* brighter on hover */
+}
+
+.dark [data-sidebar="content"] {
+  scrollbar-color: rgba(100, 116, 139, 0.5) transparent;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 9999px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}
+
+/* Dark mode scrollbar for custom-scroll */
+.dark .custom-scroll::-webkit-scrollbar-thumb {
+  background: #475569; /* slate-600 */
+}
+.dark .custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #64748b; /* slate-500 */
+}
