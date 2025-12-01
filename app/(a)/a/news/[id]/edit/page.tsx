@@ -27,13 +27,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { newsCategories, relatedEvents } from "@/constants";
-import { use, useEffect, useState, useTransition } from "react";
+import { use, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
+import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
+import Image from "next/image";
 
 type Params = Promise<{
   id: string;
@@ -46,6 +48,14 @@ export default function EditNewsForm({ params }: { params: Params }) {
   const { user, token } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newsDetails, setNewsDetails] = useState<any>();
+
+  console.log(newsDetails);
+
+  const [previewUrl, setPreviewUrl] = useState<string>(
+    newsDetails?.images_url ? newsDetails.images_url : ""
+  );
+
+  console.log(previewUrl);
 
   const [pending, startTransition] = useTransition();
   const [pendingEdit, startEditTransition] = useTransition();
@@ -72,6 +82,9 @@ export default function EditNewsForm({ params }: { params: Params }) {
           { news_id: id }
         );
         setNewsDetails(res.data.news);
+        setPreviewUrl(
+          res?.data?.news?.images_url ? res?.data?.news?.images_url : ""
+        );
       } catch (error: any) {
         toast.error(error.response.data.message);
       }
@@ -132,11 +145,15 @@ export default function EditNewsForm({ params }: { params: Params }) {
       }
     });
   }
+
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   if (pending) return <FullLoader />;
 
   return (
     <div>
-      <PageHeader title={`Edit News: ${newsDetails.news_title}`} back />
+      <PageHeader title={`Edit News: ${newsDetails?.news_title}`} back />
       <Form {...form}>
         <Card>
           <CardContent className="space-y-4">
@@ -231,26 +248,135 @@ export default function EditNewsForm({ params }: { params: Params }) {
                   <FormItem>
                     <FormLabel>Images</FormLabel>
                     <FormControl>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        placeholder="Select images"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setSelectedFile(file);
+                      <div className="space-y-4">
+                        {!previewUrl ? (
+                          <div
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              setIsDragging(true);
+                            }}
+                            onDragLeave={(e) => {
+                              e.preventDefault();
+                              setIsDragging(false);
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              setIsDragging(false);
+                              const file = e.dataTransfer.files?.[0];
+                              if (file) {
+                                if (
+                                  ![
+                                    "image/png",
+                                    "image/jpeg",
+                                    "image/jpg",
+                                    "image/webp",
+                                  ].includes(file.type)
+                                ) {
+                                  toast.error(
+                                    "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                  );
+                                  return;
+                                }
+                                setSelectedFile(file);
+                                setPreviewUrl(URL.createObjectURL(file));
+                              }
+                            }}
+                            className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                              isDragging
+                                ? "border-primary bg-primary/5"
+                                : "border-gray-300 bg-gray-50"
+                            }`}
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                                <IconPhoto
+                                  size={32}
+                                  className="text-primary dark:text-white"
+                                />
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Drop your image here, or{" "}
+                                <span className="text-primary font-medium hover:underline">
+                                  browse
+                                </span>
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Supports: PNG, JPG, JPEG, WEBP
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
+                              <Image
+                                width={1000}
+                                height={1000}
+                                src={previewUrl}
+                                alt="Featured image"
+                                className="aspect-video size-full object-cover"
+                              />
+                            </div>
 
-                            // Create preview URL for display
-                            const reader = new FileReader();
-                            reader.readAsDataURL(file);
-                            reader.onload = () => {
-                              const previewImage = reader.result as string;
-                              // setAvatar(previewImage);
-                              field.onChange(file.name);
-                            };
-                          }
-                        }}
-                      />
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => {
+                                  setSelectedFile(null);
+                                  setPreviewUrl("");
+                                  field.onChange("");
+                                  if (fileInputRef.current) {
+                                    fileInputRef.current.value = "";
+                                  }
+                                }}
+                              >
+                                <IconX size={16} className="mr-2" />
+                                Remove
+                              </Button>
+
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => fileInputRef.current?.click()}
+                              >
+                                <IconUpload size={16} className="mr-2" />
+                                Replace
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg,image/webp"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+
+                            if (
+                              ![
+                                "image/png",
+                                "image/jpeg",
+                                "image/jpg",
+                                "image/webp",
+                              ].includes(file.type)
+                            ) {
+                              toast.error(
+                                "Only PNG, JPG, JPEG, or WEBP files are supported."
+                              );
+                              return;
+                            }
+
+                            setSelectedFile(file);
+                            setPreviewUrl(URL.createObjectURL(file));
+                          }}
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
