@@ -236,12 +236,13 @@ const page = () => {
               key={newsDetails.news_id}
               className="overflow-hidden h-full bg-transparent gap-0 p-0 flex flex-col hover:shadow-lg transition-shadow"
             >
-              <div className="relative h-48">
+              <div className="relative">
                 <Image
                   src={newsDetails.images_url || "/sample-img.png"}
                   alt={newsDetails.news_title}
-                  fill
-                  className="object-cover"
+                  width={1000}
+                  height={1000}
+                  className="object-cover size-full aspect-video"
                 />
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
                   <Badge variant="secondary" className="text-xs capitalize">
