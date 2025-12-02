@@ -7,7 +7,7 @@ export const siteConfig = {
   description:
     "The official platform for African Free Fire esports. Join teams, compete in tournaments, track player stats, and stay updated with the latest Free Fire news across Africa.",
   url: "https://africanfreefirecommunity.com",
-  ogImage: "https://africanfreefirecommunity.com/og-image.jpg",
+  ogImage: "https://africanfreefirecommunity.com/logo.png",
   links: {
     twitter: "https://twitter.com/afcdatabase",
     instagram: "https://instagram.com/africanfreefirecommunity",
@@ -88,9 +88,14 @@ export const defaultMetadata: Metadata = {
     site: "@afcdatabase",
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   manifest: "/site.webmanifest",
   alternates: {
