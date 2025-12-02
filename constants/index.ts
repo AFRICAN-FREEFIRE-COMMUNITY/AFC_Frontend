@@ -173,6 +173,7 @@ export const homeNavLinksMobile = [
     slug: "/shop",
     label: "Shop",
     icon: IconShoppingCart,
+    comingSoon: true,
   },
   { slug: "/awards", label: "Awards", icon: Award },
   { slug: "/about", label: "About Us", icon: IconInfoCircle },
