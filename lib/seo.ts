@@ -37,6 +37,9 @@ export const siteConfig = {
     "Free Fire guild",
     "Free Fire clan",
     "Free Fire rankings",
+    "Tomiwa Adelae",
+    "Adelae",
+    "Tomiwa",
   ],
 };
 
