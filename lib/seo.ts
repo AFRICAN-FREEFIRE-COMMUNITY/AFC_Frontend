@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { env } from "./env";
 
 // Site configuration
 export const siteConfig = {
@@ -6,8 +7,8 @@ export const siteConfig = {
   shortName: "AFC",
   description:
     "The official platform for African Free Fire esports. Join teams, compete in tournaments, track player stats, and stay updated with the latest Free Fire news across Africa.",
-  url: "https://africanfreefirecommunity.com",
-  ogImage: "https://africanfreefirecommunity.com/logo.png",
+  url: `${env.NEXT_PUBLIC_URL}`,
+  ogImage: `${env.NEXT_PUBLIC_URL}/logo.png`,
   links: {
     twitter: "https://twitter.com/afcdatabase",
     instagram: "https://instagram.com/africanfreefirecommunity",
@@ -73,14 +74,7 @@ export const defaultMetadata: Metadata = {
     siteName: siteConfig.name,
     title: siteConfig.name,
     description: siteConfig.description,
-    images: [
-      {
-        url: siteConfig.ogImage,
-        width: 1200,
-        height: 630,
-        alt: `${siteConfig.name} - Free Fire Esports Platform`,
-      },
-    ],
+    images: "/assets/opengraph.png",
   },
   twitter: {
     card: "summary_large_image",
