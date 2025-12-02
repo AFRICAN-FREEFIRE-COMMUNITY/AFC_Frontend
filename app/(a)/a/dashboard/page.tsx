@@ -33,6 +33,7 @@ import { ArrowRight, Shield, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { Activity, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 // Mock function to fetch website metrics
 const fetchWebsiteMetrics = async () => {
@@ -55,10 +56,16 @@ const fetchWebsiteMetrics = async () => {
   };
 };
 
-// Mock function to fetch recent activities
-const fetchRecentActivities = async () => {
-  // In a real app, this would be an API call
-  return [
+const page = () => {
+  const router = useRouter();
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [totalTeams, setTotalTeams] = useState<number>(0);
+  const [totalNews, setTotalNews] = useState<number>(0);
+
+  const recentActivities = [
     {
       id: 1,
       user: "John Doe",
@@ -90,27 +97,32 @@ const fetchRecentActivities = async () => {
       timestamp: "2023-07-01 09:15",
     },
   ];
-};
-
-const page = () => {
-  const router = useRouter();
-  const [metrics, setMetrics] = useState(null);
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const [totalUsers, setTotalUsers] = useState<number>(0);
-  const [totalTeams, setTotalTeams] = useState<number>(0);
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const users = await axios(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`
-      );
-      const teams = await axios(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
-      );
-      setTotalUsers(users?.data?.total_users);
-      setTotalTeams(teams?.data?.teams.length);
+      try {
+        const users = await axios(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`
+        );
+        const teams = await axios(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
+        );
+        const news = await axios(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`
+        );
+
+        console.log(news);
+
+        setTotalUsers(users?.data?.total_users);
+        setTotalTeams(teams?.data?.teams.length);
+        setTotalNews(news.data.news?.length);
+      } catch (error) {
+        setTotalUsers(0);
+        setTotalTeams(0);
+        toast.error("Oops! An error occurred");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchUsers();
@@ -143,12 +155,12 @@ const page = () => {
                   <TrendingUp className="h-3 w-3" />+ 10 this month
                 </div>
               </div>
-              <Button asChild className="w-full mt-3">
+              {/* <Button asChild className="w-full mt-3">
                 <Link href="/a/players">
                   <IconUserPlus className="mr-2 h-4 w-4" />
                   Manage Members
                 </Link>
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
 
@@ -167,12 +179,12 @@ const page = () => {
                   <TrendingUp className="h-3 w-3" />+ 10 this month
                 </div>
               </div>
-              <Button asChild className="w-full mt-3">
+              {/* <Button asChild className="w-full mt-3">
                 <Link href="/a/teams">
                   <Shield className="mr-2 h-4 w-4" />
                   Manage Teams
                 </Link>
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
 
@@ -189,12 +201,12 @@ const page = () => {
                   <IconCalendar className="h-3 w-3" />0 active
                 </div>
               </div>
-              <Button asChild className="w-full mt-3">
+              {/* <Button asChild className="w-full mt-3">
                 <Link href="/a/events">
                   <IconTrophy className="mr-2 h-4 w-4" />
                   Manage Tournaments
                 </Link>
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
 
@@ -211,12 +223,12 @@ const page = () => {
                   <IconActivity className="h-3 w-3" />0 active
                 </div>
               </div>
-              <Button asChild className="w-full mt-3">
+              {/* <Button asChild className="w-full mt-3">
                 <Link href="/a/events">
                   <IconSwords className="mr-2 h-4 w-4" />
                   Manage Scrims
                 </Link>
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
         </div>
@@ -232,7 +244,7 @@ const page = () => {
               <IconArticle className="h-4 w-4 text-indigo-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{totalNews}</div>
               <div className="text-sm text-muted-foreground mt-1">
                 0 published
               </div>
@@ -290,14 +302,14 @@ const page = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
-          <Button asChild className="h-auto p-4">
-            <Link
+          <Button disabled className="h-auto p-4">
+            {/* <Link
               href="/a/leaderboards/create"
               className="flex flex-col items-center gap-2"
-            >
-              <IconTrophy className="h-6 w-6" />
-              <span>Create Leaderboard</span>
-            </Link>
+            > */}
+            <IconTrophy className="h-6 w-6" />
+            <span>Create Leaderboard</span>
+            {/* </Link> */}
           </Button>
 
           <Button
@@ -315,31 +327,31 @@ const page = () => {
           </Button>
 
           <Button
-            asChild
+            disabled
             variant="outline"
             className="h-auto p-4 bg-transparent"
           >
-            <Link
+            {/* <Link
               href="/a/events/create"
               className="flex flex-col items-center gap-2"
-            >
-              <IconCalendar className="h-6 w-6" />
-              <span>Create Event</span>
-            </Link>
+            > */}
+            <IconCalendar className="h-6 w-6" />
+            <span>Create Event</span>
+            {/* </Link> */}
           </Button>
 
           <Button
-            asChild
+            disabled
             variant="outline"
             className="h-auto p-4 bg-transparent"
           >
-            <Link
+            {/* <Link
               href="/a/rankings"
               className="flex flex-col items-center gap-2"
-            >
-              <IconStar className="h-6 w-6" />
-              <span>Manage Rankings</span>
-            </Link>
+            > */}
+            <IconStar className="h-6 w-6" />
+            <span>Manage Rankings</span>
+            {/* </Link> */}
           </Button>
         </div>
 
@@ -375,13 +387,13 @@ const page = () => {
                 ))}
               </TableBody>
             </Table>
-            <div className="mt-4 text-right">
+            {/* <div className="mt-4 text-right">
               <Button asChild variant="outline">
                 <Link href="/a/history">
                   View All Activities <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>
