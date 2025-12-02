@@ -21,8 +21,8 @@ import {
 import { formatMoneyInput } from "@/lib/utils";
 import axios from "axios";
 import { env } from "@/lib/env";
-import { Header } from "../_components/Header";
 import { Footer } from "../_components/Footer";
+import { Header } from "../(user)/_components/Header";
 
 const page = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -105,7 +105,6 @@ const page = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
-      {/* Header */}
       <Header />
 
       {/* Hero Section */}

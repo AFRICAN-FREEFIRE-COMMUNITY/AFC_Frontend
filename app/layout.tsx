@@ -11,6 +11,7 @@ import {
   generateOrganizationSchema,
   generateWebsiteSchema,
 } from "@/lib/seo";
+import { CartProvider } from "@/contexts/CartContext";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -73,7 +74,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <PageGradient />
-            {children}
+            <CartProvider>{children}</CartProvider>
             <Toaster position="bottom-center" />
           </ThemeProvider>
         </AuthProvider>

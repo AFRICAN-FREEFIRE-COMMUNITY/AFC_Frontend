@@ -11,10 +11,19 @@ import { IconShoppingCart } from "@tabler/icons-react";
 import { useCart } from "@/contexts/CartContext";
 import { CartSheet } from "@/components/CartSheet";
 import { Badge } from "@/components/ui/badge";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Header = () => {
+  const pathname = usePathname();
+
   const { getItemCount, setIsCartOpen } = useCart();
   const itemCount = getItemCount();
+
+  const { user } = useAuth();
+
+  const isActive = (slug: string) =>
+    pathname === slug || pathname.startsWith(`${slug}/`);
 
   return (
     <>
@@ -29,7 +38,13 @@ export const Header = () => {
 
           <nav className="hidden md:flex items-center gap-2 font-medium text-muted-foreground text-sm">
             {homeNavLinks.map(({ slug, label }, index) => (
-              <Button size={"sm"} key={index} asChild variant={"ghost"}>
+              <Button
+                size={"sm"}
+                key={index}
+                asChild
+                className={isActive(slug) ? "text-primary" : ""}
+                variant={isActive(slug) ? "secondary" : "ghost"}
+              >
                 <Link
                   href={slug}
                   className="hover:text-primary transition-colors"
@@ -42,22 +57,40 @@ export const Header = () => {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Button
-              variant={"ghost"}
-              size={"icon"}
-              className="relative"
-              onClick={() => setIsCartOpen(true)}
-            >
-              <IconShoppingCart />
-              {itemCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            {user ? (
+              <>
+                <Button
+                  variant={"ghost"}
+                  size={"icon"}
+                  className="relative"
+                  onClick={() => setIsCartOpen(true)}
                 >
-                  {itemCount > 99 ? "99+" : itemCount}
-                </Badge>
-              )}
-            </Button>
+                  <IconShoppingCart />
+                  {itemCount > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      {itemCount > 99 ? "99+" : itemCount}
+                    </Badge>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="md"
+                  className="hidden md:flex"
+                >
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button asChild size="md" variant={"gradient"}>
+                  <Link href="/create-account">Join Now</Link>
+                </Button>
+              </>
+            )}
             <MobileNavbar />
           </div>
         </div>

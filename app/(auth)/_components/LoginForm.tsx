@@ -159,7 +159,7 @@ function LoginFormContent() {
           type="submit"
           disabled={pending}
         >
-          {pending ? <Loader text="Authenticating..." /> : "Login"}
+          {pending ? <Loader text="Loading..." /> : "Login"}
         </Button>
       </form>
     </Form>

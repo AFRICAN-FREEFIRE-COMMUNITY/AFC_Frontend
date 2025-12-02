@@ -49,13 +49,9 @@ export default function EditNewsForm({ params }: { params: Params }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newsDetails, setNewsDetails] = useState<any>();
 
-  console.log(newsDetails);
-
   const [previewUrl, setPreviewUrl] = useState<string>(
     newsDetails?.images_url ? newsDetails.images_url : ""
   );
-
-  console.log(previewUrl);
 
   const [pending, startTransition] = useTransition();
   const [pendingEdit, startEditTransition] = useTransition();

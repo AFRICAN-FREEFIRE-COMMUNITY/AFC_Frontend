@@ -27,8 +27,6 @@ export function MobileNavbar() {
 
   const { user, isAdmin } = useAuth();
 
-  console.log(user);
-
   const handleLinkClick = () => {
     setOpen(false);
   };

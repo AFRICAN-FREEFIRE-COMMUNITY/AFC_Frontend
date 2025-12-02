@@ -98,34 +98,34 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link
-                  href="/help"
+                  href="/about"
                   className="hover:text-primary transition-colors"
                 >
-                  Help Center
+                  About us
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/rules"
+                  href="/contact"
                   className="hover:text-primary transition-colors"
                 >
-                  Rules
+                  Contact
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/privacy"
+                  href="/news"
                   className="hover:text-primary transition-colors"
                 >
-                  Privacy
+                  News
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/terms"
+                  href="/teams"
                   className="hover:text-primary transition-colors"
                 >
-                  Terms
+                  Teams
                 </Link>
               </li>
             </ul>
