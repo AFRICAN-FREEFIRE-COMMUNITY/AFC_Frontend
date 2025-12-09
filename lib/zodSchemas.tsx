@@ -19,7 +19,9 @@ const validateSafeName = (value: string) => {
 const safeNameSchema = (fieldName: string, minLength: number = 2) =>
   z
     .string()
-    .min(minLength, { message: `${fieldName} must be at least ${minLength} characters.` })
+    .min(minLength, {
+      message: `${fieldName} must be at least ${minLength} characters.`,
+    })
     .refine((val) => validateSafeName(val), {
       message: `${fieldName} can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @). Special characters like emojis or fancy unicode text are not allowed.`,
     });
@@ -148,7 +150,8 @@ export const CreateTeamFormSchema = z.object({
     .string()
     .optional()
     .refine((val) => !val || SAFE_NAME_REGEX.test(val), {
-      message: "Team tag can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @).",
+      message:
+        "Team tag can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @).",
     }),
   team_logo: z.string().optional(),
   team_description: z.string().min(2, {
@@ -202,6 +205,166 @@ export const CreateNewsFormSchema = z.object({
   images: z.string().optional(),
 });
 
+// export const CreateEventFormSchema = z.object({
+//   name: z
+//     .string()
+//     .min(1, "Name is required")
+//     .max(200, "Name must be less than 200 characters"),
+//   competitionType: z.string().min(1, "Competition type is required"),
+//   participantType: z.string().min(1, "Participant type is required"),
+//   eventMode: z.string().min(1, "Event mode is required"),
+//   eventType: z.string().min(1, "Participant type is required"),
+//   maxPlayer: z.string().min(1, "Author is required"),
+//   banner: z.string().min(1, "Participant type is required"),
+//   streamChannels: z
+//     .array(
+//       z.object({
+//         url: z.string().url({ message: "Please enter a valid URL" }),
+//       })
+//     )
+//     .optional(), // makes the whole field optional
+// });
+
+// export const StageDetailSchema = z.object({
+//   stageName: z.string().min(1, { message: "Stage name is required." }),
+//   teamsQualify: z.coerce
+//     .number()
+//     .min(1, { message: "Must qualify at least 1 team." })
+//     .or(z.string().min(1))
+//     .optional(),
+
+//   // Date and time can be strings for simplicity with date pickers/inputs
+//   playingDate: z.string().optional(),
+//   playingTime: z.string().optional(),
+
+//   stageFormat: z.string().min(1, { message: "Select a stage format." }),
+//   groupsPerStage: z.coerce
+//     .number()
+//     .min(1, { message: "Must have at least 1 group." })
+//     .or(z.string().min(1))
+//     .optional(),
+// });
+
+// export const CreateEventFormSchema = z.object({
+//   // STEP 1 Fields
+//   name: z
+//     .string()
+//     .min(1, "Name is required")
+//     .max(200, "Name must be less than 200 characters"),
+//   competitionType: z.string().min(1, "Competition type is required"),
+//   participantType: z.string().min(1, "Participant type is required"),
+//   eventType: z.string().min(1, "Event type is required"),
+//   maxPlayer: z.string().min(1, "Max Teams/Player is required"),
+//   banner: z.string().min(1, "Tournament banner is required"),
+//   streamChannels: z
+//     .array(
+//       z.object({
+//         url: z
+//           .string()
+//           .url({ message: "Please enter a valid URL" })
+//           .or(z.literal("")), // Allow empty string temporarily for UX
+//       })
+//     )
+//     .optional(),
+
+//   // STEP 2 Field
+//   eventMode: z.string().min(1, "Event mode is required"),
+
+//   // STEP 3 Fields (New)
+//   // numberOfStages: z.coerce
+//   //   .number()
+//   //   .min(1, { message: "Must have at least 1 stage." }),
+//   numberOfStages: z.coerce
+//     .number()
+//     .min(1, { message: "Must have at least 1 stage." }),
+//   stageNames: z
+//     .array(
+//       z.object({
+//         name: z.string().min(1, { message: "Stage name cannot be empty." }),
+//       })
+//     )
+//     .min(1, "You must define at least one stage name."),
+
+//   // STEP 4 Field (New)
+//   stages: z.array(StageDetailSchema).refine((stages) => stages.length >= 1, {
+//     message: "You must configure details for all stages before proceeding.",
+//     path: ["stages"],
+//   }),
+// });
+
+// --- New Schemas for Event Creation ---
+
+export const StreamChannelSchema = z.object({
+  url: z
+    .string()
+    .url({ message: "Please enter a valid URL" })
+    .or(z.literal("")),
+});
+
+export const StageNameSchema = z.object({
+  name: safeNameSchema("Stage name", 1),
+});
+
+export const StageDetailSchema = z.object({
+  stageName: z.string().min(1, { message: "Stage name is required." }),
+
+  // Use .nullable().optional() if the field can be empty in the UI
+  // z.coerce.number() is critical for converting input string to number
+  teamsQualify: z.coerce
+    .number()
+    .min(1, { message: "Must qualify at least 1 team." })
+    .nullable()
+    .optional(),
+
+  playingDate: z.string().nullable().optional(),
+  playingTime: z.string().nullable().optional(),
+
+  stageFormat: z.string().min(1, { message: "Select a stage format." }),
+
+  groupsPerStage: z.coerce
+    .number()
+    .min(1, { message: "Must have at least 1 group." })
+    .nullable()
+    .optional(),
+});
+
+// --- The Target Schema ---
+
+export const CreateEventFormSchema = z.object({
+  // STEP 1 Fields
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(200, "Name must be less than 200 characters"),
+  competitionType: z.string().min(1, "Competition type is required"),
+  participantType: z.string().min(1, "Participant type is required"),
+  eventType: z.string().min(1, "Event type is required"),
+  maxPlayer: z.string().min(1, "Max Teams/Player is required"),
+  banner: z.string().min(1, "Tournament banner is required"),
+  streamChannels: z.array(StreamChannelSchema).optional(),
+
+  // STEP 2 Field
+  eventMode: z.string().min(1, "Event mode is required"),
+
+  // STEP 3 Fields
+  // Must be a NUMBER type, which z.coerce.number() ensures
+  numberOfStages: z.coerce
+    .number({ message: "Number of stages must be a valid number" })
+    .min(1, { message: "Must have at least 1 stage." }),
+  stageNames: z
+    .array(StageNameSchema)
+    .min(1, "You must define at least one stage name."),
+
+  // STEP 4 Field
+  stages: z
+    .array(StageDetailSchema)
+    .min(1, "You must configure details for all stages before proceeding."),
+});
+
+// --- Export Types ---
+
+// Define and export the main type
+
 export const EditNewsFormSchema = z.object({
   title: z
     .string()
@@ -240,3 +403,34 @@ export type EditTeamFormSchemaType = z.infer<typeof EditTeamFormSchema>;
 export type CreateNewsFormSchemaType = z.infer<typeof CreateNewsFormSchema>;
 export type EditNewsFormSchemaType = z.infer<typeof EditNewsFormSchema>;
 export type BanTeamFormSchemaType = z.infer<typeof BanTeamFormSchema>;
+export type CreateEventFormSchemaType = z.infer<typeof CreateEventFormSchema>;
+export type StageDetailSchemaType = z.infer<typeof StageDetailSchema>;
+
+export const groupSchema = z.object({
+  group_name: z.string().min(1),
+  teams: z.array(z.string().min(1)),
+});
+
+export const stageSchema = z.object({
+  stage_name: z.string().min(1),
+  stage_type: z.enum(["knockout", "group"]),
+  number_of_groups: z.number().optional(),
+  groups: z.array(groupSchema).optional(),
+});
+
+export const tournamentSchema = z.object({
+  tournament_name: z.string().min(1),
+  game_title: z.string().min(1),
+  start_date: z.string().min(1),
+  end_date: z.string().min(1),
+  streaming_channels: z.array(z.string()),
+  prize_pool: z.array(
+    z.object({
+      place: z.string().min(1),
+      reward: z.string().min(1),
+    })
+  ),
+  stages: z.array(stageSchema),
+});
+
+export type TournamentFormData = z.infer<typeof tournamentSchema>;

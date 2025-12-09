@@ -82,3 +82,21 @@ export const extractSocialMediaUrls = (socialMediaArray: any) => {
 
   return socialUrls;
 };
+
+export const formattedWord: Record<string, string> = {
+  "br - normal": "Battle Royale - Normal",
+  "br - roundrobin": "Battle Royale - Knockout",
+  "br - point rush": "Battle Royale - Point Rush",
+  "br - champion rush": "Battle Royale - Champion Rush",
+  "cs - normal": "Clash Squad - Normal",
+  "cs - league": "Clash Squad - League",
+  "cs - knockout": "Clash Squad - Knockout",
+  "cs - double elimination": "Clash Squad - Double Elimination",
+  "cs - round robin": "Clash Squad - Round Robin",
+  battle_royale: "Battle Royale",
+  clash_squad: "Clash Squad",
+  tier_2: "Tier 2",
+  tier_1: "Tier 1",
+  tier_3: "Tier 3",
+  tier_4: "Tier 4",
+};

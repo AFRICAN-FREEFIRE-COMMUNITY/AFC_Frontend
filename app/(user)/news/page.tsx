@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DEFAULT_IMAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
@@ -230,7 +231,7 @@ const page = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {filteredNews.map((newsDetails: any) => (
             <Card
               key={newsDetails.news_id}
@@ -238,7 +239,7 @@ const page = () => {
             >
               <div className="relative">
                 <Image
-                  src={newsDetails.images_url || "/sample-img.png"}
+                  src={newsDetails.images_url || DEFAULT_IMAGE}
                   alt={newsDetails.news_title}
                   width={1000}
                   height={1000}

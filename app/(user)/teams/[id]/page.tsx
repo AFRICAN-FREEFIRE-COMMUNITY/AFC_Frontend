@@ -437,7 +437,11 @@ const Page = ({ params }: { params: Params }) => {
                   teamDetails.join_settings === "by_request" && (
                     <Button
                       className="w-full md:w-auto"
-                      disabled={pendingRequest || successRequest}
+                      disabled={
+                        pendingRequest ||
+                        successRequest ||
+                        teamDetails.members.length >= 6
+                      }
                       onClick={handleJoinTeam}
                     >
                       {pendingRequest ? (

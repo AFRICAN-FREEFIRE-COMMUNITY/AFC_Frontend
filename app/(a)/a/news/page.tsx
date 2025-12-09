@@ -28,6 +28,7 @@ import {
   truncateText,
 } from "@/components/text-editor/RenderDescription";
 import { IconCalendar, IconCirclePlus } from "@tabler/icons-react";
+import { DEFAULT_IMAGE } from "@/constants";
 
 const page = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -145,7 +146,7 @@ const page = () => {
   return (
     <div>
       <div className="flex flex-col md:flex-row items-start justify-start md:justify-between md:items-center mb-6">
-        <PageHeader title="News & Announcements Management" />
+        <PageHeader title="News Management" />
         <Button className="w-full md:w-auto" asChild>
           <Link href="/a/news/create">
             <IconCirclePlus className="mr-2 h-4 w-4" />
@@ -181,9 +182,9 @@ const page = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
             <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full md:w-[200px]">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -196,7 +197,7 @@ const page = () => {
             </Select>
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full md:w-[150px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -280,7 +281,7 @@ const page = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2">
           {filteredNews.map((newsDetails: any) => (
             <Card
               key={newsDetails.news_id}
@@ -288,7 +289,7 @@ const page = () => {
             >
               <div className="relative">
                 <Image
-                  src={newsDetails.images_url || "/sample-img.png"}
+                  src={newsDetails.images_url || DEFAULT_IMAGE}
                   alt={newsDetails.news_title}
                   width={1000}
                   height={1000}
@@ -309,9 +310,12 @@ const page = () => {
                 </div>
               </div>
               <CardContent className="flex-grow py-4 flex flex-col">
-                <h3 className="text-lg font-medium mb-2 line-clamp-2">
+                <Link
+                  href={`/a/news/${newsDetails.news_id}`}
+                  className="text-base font-medium mb-2 line-clamp-2 hover:underline hover:text-primary"
+                >
                   {newsDetails.news_title}
-                </h3>
+                </Link>
                 <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-3">
                   <Avatar className="h-5 w-5">
                     <AvatarImage

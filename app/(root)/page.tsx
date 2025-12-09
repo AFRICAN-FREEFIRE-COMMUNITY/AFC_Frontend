@@ -112,7 +112,7 @@ const page = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-gold/5" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
 
-        <div className="container mx-auto px-4 py-24 relative z-10">
+        <div className="container mx-auto py-24 relative z-10">
           <div
             className={`text-center transition-all duration-1000 ${
               isVisible
@@ -204,7 +204,7 @@ const page = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
             {features.map((feature, index) => (
               <Card
                 key={index}

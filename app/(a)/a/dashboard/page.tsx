@@ -111,8 +111,6 @@ const page = () => {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`
         );
 
-        console.log(news);
-
         setTotalUsers(users?.data?.total_users);
         setTotalTeams(teams?.data?.teams.length);
         setTotalNews(news.data.news?.length);

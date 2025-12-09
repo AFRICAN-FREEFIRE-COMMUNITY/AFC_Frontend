@@ -28,7 +28,7 @@ export const HomeBoxes = () => {
   }, []);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4 mb-8">
       <Card className="border-primary">
         <CardHeader>
           <IconTrophy className="h-8 w-8 text-gold mb-1" />

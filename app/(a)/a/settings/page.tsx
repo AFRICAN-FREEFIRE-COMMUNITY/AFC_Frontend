@@ -1108,14 +1108,11 @@ const page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center space-x-2 mb-4">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search all users..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+              <Input
+                placeholder="Search all users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
 
               <Table>
                 <TableHeader>

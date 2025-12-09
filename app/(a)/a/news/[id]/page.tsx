@@ -16,6 +16,7 @@ import { formatDate } from "@/lib/utils";
 import { RenderDescription } from "@/components/text-editor/RenderDescription";
 import { DeleteNewsModal } from "../_components/DeleteNewsModal";
 import { PageHeader } from "@/components/PageHeader";
+import { DEFAULT_IMAGE } from "@/constants";
 
 type Params = Promise<{
   id: string;
@@ -92,7 +93,7 @@ const page = ({ params }: { params: Params }) => {
 
         <div>
           <Image
-            src={newsDetails.images_url || "/sample-img.png"}
+            src={newsDetails.images_url || DEFAULT_IMAGE}
             alt={newsDetails.nes_title}
             width={800}
             height={400}

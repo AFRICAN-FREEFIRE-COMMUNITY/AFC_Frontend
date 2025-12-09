@@ -16,6 +16,7 @@ import { ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DEFAULT_IMAGE } from "@/constants";
 
 type Params = Promise<{
   id: string;
@@ -80,7 +81,7 @@ export default function Page({ params }: { params: Params }) {
       />
       <div>
         <Image
-          src={newsDetails.images_url || "/sample-img.png"}
+          src={newsDetails.images_url || DEFAULT_IMAGE}
           alt={newsDetails.news_title}
           width={800}
           height={400}
