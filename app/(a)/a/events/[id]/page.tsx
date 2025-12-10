@@ -92,7 +92,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     });
   }, [id]);
 
-  if (pending || !eventDetails) return <FullLoader text="details" />;
+  if (pending || !eventDetails) return <FullLoader />;
 
   // Destructure for cleaner JSX
   const {
@@ -114,26 +114,16 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     stream_channels,
   } = eventDetails;
 
-  console.log(uploaded_rules_url);
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
         <PageHeader back title={event_name} />
-        <div className="grid grid-cols-2 gap-2 w-full md:w-auto">
-          <Button asChild variant={"secondary"}>
-            <Link href={`/a/events/${id}/edit`}>
-              <IconPencil className="w-4 h-4 mr-2" />
-              Edit
-            </Link>
-          </Button>
-          {/* <Button asChild variant={"secondary"}>
-            <Link href={`/a/events/${id}/results`}>
-              <IconPencil className="w-4 h-4 mr-2" />
-              Upload Results
-            </Link>
-          </Button> */}
-        </div>
+        <Button asChild variant={"secondary"}>
+          <Link href={`/a/events/${id}/edit`}>
+            <IconPencil className="w-4 h-4 mr-2" />
+            Edit
+          </Link>
+        </Button>
       </div>
 
       <Card>
@@ -250,8 +240,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                   return numA - numB;
                 })
                 .map(([position, amount]) => (
-                  <li key={position}>
-                    {position}: {formatMoneyInput(String(amount))}
+                  <li key={position} className="uppercase">
+                    {position}: ${formatMoneyInput(String(amount))}
                   </li>
                 ))}
             </ul>
@@ -325,8 +315,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               <div key={index} className="border-b last:border-b-0 py-3">
                 <p className="font-semibold text-base">{stage.stage_name}</p>
                 <p className="text-sm text-muted-foreground">
-                  Format: {stage.stage_format} | Groups: {stage.groups.length} |
-                  Qualify: {stage.teams_qualifying_from_stage || "N/A"}
+                  Format: {formattedWord[stage.stage_format]} | Groups:{" "}
+                  {stage.groups.length} | Qualify:{" "}
+                  {stage.teams_qualifying_from_stage || "N/A"}
                 </p>
               </div>
             ))}

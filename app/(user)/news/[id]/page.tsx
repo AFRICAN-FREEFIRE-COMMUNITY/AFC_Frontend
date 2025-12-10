@@ -49,7 +49,7 @@ export default function Page({ params }: { params: Params }) {
     fetchNews();
   }, [id]);
 
-  if (loading) return <FullLoader text="details" />;
+  if (loading) return <FullLoader />;
 
   if (!newsDetails) notFound();
 

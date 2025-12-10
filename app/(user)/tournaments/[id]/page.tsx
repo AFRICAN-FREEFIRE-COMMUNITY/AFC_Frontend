@@ -599,7 +599,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         setActiveStageTab(details.stages[0].stage_name);
       }
     } catch (err) {
-      console.error("Failed to fetch event details:", err);
       toast.error("Failed to load event details");
     } finally {
       setIsLoading(false);
@@ -696,7 +695,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
               className="aspect-video size-full object-cover rounded-md"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <p>Date: {eventDetails.start_date}</p>
             <p>
               Prize Pool: ${parseFloat(eventDetails.prizepool).toLocaleString()}

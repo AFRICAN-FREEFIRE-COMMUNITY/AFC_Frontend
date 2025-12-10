@@ -57,7 +57,7 @@ const page = ({ params }: { params: Params }) => {
     });
   }, [id]);
 
-  if (pending) return <FullLoader text="details" />;
+  if (pending) return <FullLoader />;
 
   if (teamDetails)
     return (

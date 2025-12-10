@@ -205,7 +205,7 @@ export default function page({ params }: { params: Params }) {
     });
   };
 
-  if (pending) return <FullLoader text="details" />;
+  if (pending) return <FullLoader />;
 
   if (teamDetails)
     return (

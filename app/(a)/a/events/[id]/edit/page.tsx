@@ -60,6 +60,7 @@ import axios from "axios";
 import { ComingSoon } from "@/components/ComingSoon";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
+import { FullLoader } from "@/components/Loader";
 
 /* =================================================================
  * NOTE: The Schemas (GroupSchema, StageSchema, EventFormSchema)
@@ -286,7 +287,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           { event_id: decodedId }
         );
         // Ensure data path is correct based on your API response structure
-        setEventDetails(res.data.event_details);
+        const fetchedDetails: EventDetails = res.data.event_details;
+
+        // --- ADDED LOGIC: Sync stage names from fetched data ---
+        if (fetchedDetails.stages) {
+          const names = fetchedDetails.stages.map((s: any) => s.stage_name);
+          setStageNames(names);
+        }
+        // --- END ADDED LOGIC ---
+
+        setEventDetails(fetchedDetails);
       } catch (error: any) {
         // Handle error response structure
         const errorMessage =
@@ -297,8 +307,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       }
     });
   }, [id]);
-
-  console.log(eventDetails);
 
   // Update form values when teamDetails changes
   useEffect(() => {
@@ -333,8 +341,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       setPreviewRuleUrl(eventDetails.uploaded_rules_url || "");
     }
   }, [eventDetails, form]);
-
-  console.log(eventDetails);
 
   // Placeholder Initial Data
   const getMockInitialData = (): EventFormType => ({
@@ -463,19 +469,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   ) => {
     /* ... (same logic) ... */
   };
-  const handleSaveStage = () => {
-    /* ... (same logic) ... */
-  };
-  const moveStage = (index: number, direction: "up" | "down") => {
-    /* ... (same logic) ... */
-  };
-  const handleDeleteStage = (index: number) => {
-    /* ... (same logic) ... */
-  };
-
-  // We need to keep the logic bodies for these functions. They are long, but necessary.
-
-  // Re-implementing simplified function bodies here for completeness.
 
   const eventType = form.watch("event_type") === "external";
 
@@ -531,7 +524,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setTempGroups(newGroups);
   };
 
-  const handleSaveStageLogic = () => {
+  // ... existing code
+
+  const handleSaveStageLogic = async () => {
+    // 1. Stage/Group Validation (Keep this local validation)
+    // ... (Your existing validation checks here) ...
     if (
       !stageModalData.stage_name ||
       !stageModalData.stage_format ||
@@ -539,10 +536,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       !stageModalData.end_date ||
       stageModalData.teams_qualifying_from_stage === undefined
     ) {
-      toast.error("Please fill all required stage fields");
+      toast.error("Please fill all required stage fields (Step 1)");
       return;
     }
-
     const invalidGroup = tempGroups.find(
       (g) =>
         !g.playing_date ||
@@ -551,10 +547,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         g.teams_qualifying < 1
     );
     if (invalidGroup) {
-      toast.error("Please complete all group details correctly");
+      toast.error("Please complete all group details correctly (Step 2)");
       return;
     }
 
+    // 2. Prepare and Update Stage Data
     const newStage: StageType = {
       stage_name: stageModalData.stage_name,
       start_date: stageModalData.start_date,
@@ -567,17 +564,30 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     const currentStages = [...stages];
     currentStages[editingStageIndex!] = newStage;
-    form.setValue("stages", currentStages);
 
-    const currentNames = [...stageNames];
-    if (currentNames[editingStageIndex!] !== newStage.stage_name) {
-      currentNames[editingStageIndex!] = newStage.stage_name;
-      setStageNames(currentNames);
-    }
+    // A. Update form value (must happen before validation)
+    form.setValue("stages", currentStages, { shouldDirty: true });
 
-    toast.success("Stage saved successfully");
+    // 3. Trigger Full Form Validation
+    const isValid = await form.trigger(); // Trigger validation for the ENTIRE form
+
+    // 4. Close Modal and Notify User
     setIsStageModalOpen(false);
     setStageModalStep(1);
+    toast.success("Stage configuration updated. Attempting event save...");
+
+    // B. Only call onSubmit if the entire form is valid
+    if (isValid) {
+      // Get the current valid form data
+      const data = form.getValues();
+
+      await onSubmit(data);
+    } else {
+      // If validation fails (e.g., event name is empty), show an error
+      toast.error(
+        "Overall form validation failed. Check 'Basic Info' and 'Prize & Rules' tabs."
+      );
+    }
   };
 
   const moveStageLogic = (index: number, direction: "up" | "down") => {
@@ -797,7 +807,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         const res = await response.json();
 
         if (response.ok) {
-          toast.success(res.message || "Event created successfully!");
+          toast.success("Event updated successfully!");
           //   router.push(`/a/events`);
         } else {
           console.error("Server Error:", res);
@@ -815,7 +825,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   };
 
   if (initialLoading) {
-    return <div className="p-8 text-center">Loading event data...</div>;
+    return <FullLoader />;
   }
 
   if (eventTitle)
@@ -1393,7 +1403,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         )}
                       />
 
-                      {/* Individual Stage Cards */}
                       {stageNames.map((name, index) => {
                         const stage = stages[index];
                         const isConfigured = !!stage;
@@ -2005,13 +2014,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       type="button"
                       variant="outline"
                       onClick={() => setStageModalStep(1)}
+                      className="w-full"
                     >
                       Back
                     </Button>
                   )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex justify-between items-center gap-2">
                   <Button
                     type="button"
                     variant="ghost"
