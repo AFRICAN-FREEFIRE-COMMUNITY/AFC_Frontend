@@ -1582,7 +1582,7 @@ export default function Page() {
           </form>
           {/* Stage Configuration Modal */}
           <Dialog open={isStageModalOpen} onOpenChange={setIsStageModalOpen}>
-            <DialogContent className=" text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl">
                   {stageModalStep === 1 ? "Stage Details" : "Configure Groups"}
@@ -1845,7 +1845,7 @@ export default function Page() {
                     </Button>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center justify-between gap-2">
                   <Button
                     type="button"
                     variant="ghost"
