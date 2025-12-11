@@ -9,8 +9,6 @@ import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Search } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 // --- Types & Constants ---
 // Define the structure of an event
@@ -67,22 +65,13 @@ const EventsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null); // Memoized function for data fetching and processing
 
-  const { token } = useAuth();
-
   const loadEvents = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-tournaments-and-scrims/`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ event_id: id }),
-        }
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-tournaments-and-scrims/`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -92,7 +81,9 @@ const EventsPage = () => {
       setEvents(data.events || []);
     } catch (err) {
       console.error("Failed to fetch events:", err);
-      toast.error("Failed to load events");
+      setError(
+        "Failed to load events. Please check the API endpoint and try again."
+      );
     } finally {
       setIsLoading(false);
     }
