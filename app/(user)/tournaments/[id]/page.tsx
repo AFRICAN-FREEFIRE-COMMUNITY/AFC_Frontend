@@ -103,6 +103,7 @@ interface EventDetails {
   stream_channels: string[];
   stages: Stage[];
   event_banner_url: string | null;
+  uploaded_rules_url: string | null;
   // Assuming 'location' and 'format' from the image can be inferred or added.
 }
 
@@ -359,7 +360,83 @@ const RegistrationModals: React.FC<ModalProps> = ({
           </>
         );
 
+      // ... inside RegistrationModals component, within renderDialog()
+
       case "RULES":
+        // Assuming uploaded_rules_url is available on eventDetails
+        const textRules = eventDetails.event_rules;
+        const documentUrl = (eventDetails as any).uploaded_rules_url; // Cast to access the new field
+        const hasDocument = documentUrl && documentUrl.startsWith("http");
+        const hasTextRules = !!textRules;
+
+        const renderRulesContent = () => {
+          if (hasTextRules) {
+            // 🥇 PRIORITY 1: Display TEXT rules
+            return (
+              <div className="space-y-4">
+                <div>
+                  <p className="font-medium text-primary">General Rules:</p>
+                  {/* Render HTML content if your text rules are formatted, otherwise use a <p> tag */}
+                  <p className="whitespace-pre-wrap">{textRules}</p>
+                </div>
+                {/* You can optionally add a link to the document here as a secondary option */}
+                {hasDocument && (
+                  <div className="pt-2">
+                    <p className="font-medium text-primary">
+                      Full Rules Document:
+                    </p>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="p-0 h-auto text-sm text-yellow-400 hover:text-yellow-300"
+                      onClick={() => window.open(documentUrl, "_blank")}
+                    >
+                      Download Official Rules Document
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          if (hasDocument) {
+            // 🥈 PRIORITY 2: Display DOCUMENT link
+            return (
+              <div className="text-center space-y-4 pt-4">
+                <AlertTriangle className="w-8 h-8 text-primary mx-auto mb-2" />
+                <p className="font-semibold text-primary">
+                  Official Rules Document Available
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  There are no embedded text rules. Please click the button
+                  below to download and review the official document.
+                </p>
+                <Button
+                  type="button"
+                  onClick={() => window.open(documentUrl, "_blank")}
+                  className="w-full"
+                >
+                  Download Rules Document
+                </Button>
+              </div>
+            );
+          }
+
+          // ❌ FALLBACK: No rules found
+          return (
+            <div className="text-center p-4">
+              <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+              <p className="font-semibold text-yellow-400">
+                Rules Document Missing
+              </p>
+              <p className="text-xs">
+                Tournament rules are currently unavailable. Contact tournament
+                admins for clarification.
+              </p>
+            </div>
+          );
+        };
+
         return (
           <>
             <DialogHeader>
@@ -367,12 +444,17 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 Tournament Rules & Policies
               </DialogTitle>
             </DialogHeader>
+
             <div className="max-h-80 p-4 bg-primary/10 rounded-md overflow-y-auto pr-4 space-y-4 text-sm text-gray-300">
+              {renderRulesContent()}
+
+              {/* Separator and hardcoded policies (kept separate for critical info) */}
+              <Separator className="my-4 bg-gray-700" />
               <div>
-                <p className="font-medium text-primary">General Rules:</p>
+                <p className="font-medium text-primary">Conduct Policy:</p>
                 <p>
-                  Players must follow all tournament guidelines and conduct
-                  policies.
+                  Maintain professional conduct at all times. Harassment or
+                  toxicity will result in disqualification.
                 </p>
               </div>
               <div>
@@ -382,21 +464,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   tournament.
                 </p>
               </div>
-              <div>
-                <p className="font-medium text-primary">Conduct:</p>
-                <p>
-                  Maintain professional conduct at all times. Harassment or
-                  toxicity will result in disqualification.
-                </p>
-              </div>
-              <div>
-                <p className="font-medium text-primary">Full Rules:</p>
-                <p>
-                  {eventDetails.event_rules ||
-                    "Rules text missing from API response. Check registration link for full details."}
-                </p>
-              </div>
             </div>
+
             <div className="flex items-center space-x-2 mt-2">
               <Checkbox
                 id="rules"
@@ -592,6 +661,8 @@ const EventDetailPage = ({ params }: { params: Params }) => {
       const result: ApiResponse = await response.json();
       const details = result.event_details;
 
+      console.log(details);
+
       setEventDetails(details);
 
       // Set the first stage as the default active tab
@@ -652,6 +723,8 @@ const EventDetailPage = ({ params }: { params: Params }) => {
     setDiscordConnected(true);
     setModalStep("DISCORD_JOIN"); // Move to Join Discord Server modal
   };
+
+  console.log(eventDetails);
 
   const handleJoinedServer = async () => {
     startJoinedTransition(async () => {
@@ -741,7 +814,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           )}
         </CardContent>
       </Card>
-
       {/* Floating Register Button */}
       {/* {eventDetails.event_type === "external" && (
         <div className="text-center mt-6">
@@ -755,7 +827,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           </Button>
         </div>
       )} */}
-
       {/* Floating Register Button - Conditional Logic */}
       <div className="text-center mt-6">
         {eventDetails.event_type === "external" ? (
@@ -779,24 +850,62 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         )}
       </div>
 
-      {/* Rules and Prize Distribution (Optional side content, not in image but good to include) */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
         <Card className="gap-0">
           <CardHeader>
             <CardTitle className="text-xl mb-3">Rules</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm ">
-              {eventDetails.event_rules || "Rules document pending."}
-            </p>
+            {/* START OF NEW LOGIC */}
+            {/* Assuming uploaded_rules_url is available on eventDetails */}
+            {(() => {
+              const textRules = eventDetails.event_rules;
+              // Cast to access the assumed new field uploaded_rules_url
+              const documentUrl = (eventDetails as any).uploaded_rules_url;
+              const hasDocument = documentUrl && documentUrl.startsWith("http");
+              const hasTextRules = !!textRules;
+
+              if (hasTextRules) {
+                // Case 1: Display text rules (Priority)
+                return (
+                  <p className="text-sm whitespace-pre-wrap">{textRules}</p>
+                );
+              } else if (hasDocument) {
+                // Case 2: Display download button for document URL
+                return (
+                  <div className="flex flex-col items-start space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Official rules are provided as a downloadable document.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="default" // Using default button style for prominence
+                      onClick={() => window.open(documentUrl, "_blank")}
+                      className="w-full justify-center bg-primary/90 hover:bg-primary text-black font-semibold"
+                    >
+                      Download Rules Document
+                    </Button>
+                  </div>
+                );
+              } else {
+                // Case 3: Fallback message
+                return (
+                  <p className="text-sm text-gray-500">
+                    Rules document pending. Please check back later.
+                  </p>
+                );
+              }
+            })()}
           </CardContent>
         </Card>
+
+        {/* Prize Distribution Card (Unchanged) */}
         <Card className="gap-0">
           <CardHeader>
             <CardTitle className="text-xl mb-3">Prize Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm  space-y-1">
+            <ul className="text-sm space-y-1">
               {Object.entries(eventDetails.prize_distribution).map(
                 ([place, prize]) => (
                   <li key={place}>

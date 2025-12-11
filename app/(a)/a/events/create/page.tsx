@@ -40,7 +40,13 @@ import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
-import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
+import {
+  IconFile,
+  IconFileText,
+  IconPhoto,
+  IconUpload,
+  IconX,
+} from "@tabler/icons-react";
 import Image from "next/image";
 
 const formattedWord = {
@@ -1308,23 +1314,144 @@ export default function Page() {
                     //     <FormItem>
                     //       <FormLabel>Upload Rules Document</FormLabel>
                     //       <FormControl>
-                    //         <Input
-                    //           ref={rulesFileInputRef}
-                    //           type="file"
-                    //           onChange={(e) => {
-                    //             field.onChange(e.target.files?.[0]?.name || "");
-                    //             form.setValue("event_rules", "");
-                    //           }}
-                    //           className=""
-                    //           accept=".pdf,.doc,.docx"
-                    //         />
+                    //         <div className="space-y-4">
+                    //           {!previewRuleUrl ? (
+                    //             <div
+                    //               onDragOver={(e) => {
+                    //                 e.preventDefault();
+                    //                 setIsDragging(true);
+                    //               }}
+                    //               onDragLeave={(e) => {
+                    //                 e.preventDefault();
+                    //                 setIsDragging(false);
+                    //               }}
+                    //               onDrop={(e) => {
+                    //                 e.preventDefault();
+                    //                 setIsDragging(false);
+                    //                 const file = e.dataTransfer.files?.[0];
+                    //                 if (file) {
+                    //                   if (
+                    //                     ![
+                    //                       "image/png",
+                    //                       "image/jpeg",
+                    //                       "image/jpg",
+                    //                       "image/webp",
+                    //                     ].includes(file.type)
+                    //                   ) {
+                    //                     toast.error(
+                    //                       "Only PNG, JPG, JPEG, or WEBP files are supported."
+                    //                     );
+                    //                     return;
+                    //                   }
+                    //                   setSelectedRuleFile(file);
+                    //                   setPreviewRuleUrl(
+                    //                     URL.createObjectURL(file)
+                    //                   );
+                    //                 }
+                    //               }}
+                    //               className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                    //                 isDragging
+                    //                   ? "border-primary bg-primary/5"
+                    //                   : "border-gray-300 bg-gray-50"
+                    //               }`}
+                    //               onClick={() =>
+                    //                 rulesFileInputRef.current?.click()
+                    //               }
+                    //             >
+                    //               <div className="flex flex-col items-center gap-3">
+                    //                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                    //                   <IconPhoto
+                    //                     size={32}
+                    //                     className="text-primary dark:text-white"
+                    //                   />
+                    //                 </div>
+                    //                 <p className="text-sm text-muted-foreground">
+                    //                   Drop your image here, or{" "}
+                    //                   <span className="text-primary font-medium hover:underline">
+                    //                     browse
+                    //                   </span>
+                    //                 </p>
+                    //                 <p className="text-xs text-muted-foreground mt-1">
+                    //                   Supports: PNG, JPG, JPEG, WEBP
+                    //                 </p>
+                    //               </div>
+                    //             </div>
+                    //           ) : (
+                    //             <div className="space-y-4">
+                    //               <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
+                    //                 <Image
+                    //                   width={1000}
+                    //                   height={1000}
+                    //                   src={previewRuleUrl}
+                    //                   alt="Featured image"
+                    //                   className="aspect-video size-full object-cover"
+                    //                 />
+                    //               </div>
+
+                    //               <div className="flex gap-2">
+                    //                 <Button
+                    //                   type="button"
+                    //                   variant="outline"
+                    //                   className="flex-1"
+                    //                   onClick={() => {
+                    //                     setSelectedRuleFile(null);
+                    //                     setPreviewRuleUrl("");
+                    //                     field.onChange("");
+                    //                     if (rulesFileInputRef.current) {
+                    //                       rulesFileInputRef.current.value = "";
+                    //                     }
+                    //                   }}
+                    //                 >
+                    //                   <IconX size={16} className="mr-2" />
+                    //                   Remove
+                    //                 </Button>
+
+                    //                 <Button
+                    //                   type="button"
+                    //                   variant="outline"
+                    //                   className="flex-1"
+                    //                   onClick={() =>
+                    //                     rulesFileInputRef.current?.click()
+                    //                   }
+                    //                 >
+                    //                   <IconUpload size={16} className="mr-2" />
+                    //                   Replace
+                    //                 </Button>
+                    //               </div>
+                    //             </div>
+                    //           )}
+
+                    //           <input
+                    //             ref={rulesFileInputRef}
+                    //             type="file"
+                    //             accept="image/png,image/jpeg,image/jpg,image/webp"
+                    //             className="hidden"
+                    //             onChange={(e) => {
+                    //               const file = e.target.files?.[0];
+                    //               if (!file) return;
+
+                    //               if (
+                    //                 ![
+                    //                   "image/png",
+                    //                   "image/jpeg",
+                    //                   "image/jpg",
+                    //                   "image/webp",
+                    //                 ].includes(file.type)
+                    //               ) {
+                    //                 toast.error(
+                    //                   "Only PNG, JPG, JPEG, or WEBP files are supported."
+                    //                 );
+                    //                 return;
+                    //               }
+
+                    //               setSelectedRuleFile(file);
+                    //               field.onChange(file);
+                    //               setPreviewRuleUrl(URL.createObjectURL(file));
+                    //             }}
+                    //           />
+                    //         </div>
                     //       </FormControl>
                     //       <FormMessage />
-                    //       {form.getValues("rules_document") && (
-                    //         <p className="text-sm text-zinc-400">
-                    //           Selected: {form.getValues("rules_document")}
-                    //         </p>
-                    //       )}
                     //     </FormItem>
                     //   )}
                     // />
@@ -1337,6 +1464,7 @@ export default function Page() {
                           <FormControl>
                             <div className="space-y-4">
                               {!previewRuleUrl ? (
+                                // --- Document Drop Area (Replaced Icon and Text) ---
                                 <div
                                   onDragOver={(e) => {
                                     e.preventDefault();
@@ -1351,16 +1479,15 @@ export default function Page() {
                                     setIsDragging(false);
                                     const file = e.dataTransfer.files?.[0];
                                     if (file) {
-                                      if (
-                                        ![
-                                          "image/png",
-                                          "image/jpeg",
-                                          "image/jpg",
-                                          "image/webp",
-                                        ].includes(file.type)
-                                      ) {
+                                      // NEW Validation List
+                                      const supportedTypes = [
+                                        "application/pdf",
+                                        "application/msword",
+                                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                      ];
+                                      if (!supportedTypes.includes(file.type)) {
                                         toast.error(
-                                          "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                          "Only PDF, DOC, or DOCX files are supported."
                                         );
                                         return;
                                       }
@@ -1381,34 +1508,51 @@ export default function Page() {
                                 >
                                   <div className="flex flex-col items-center gap-3">
                                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                                      <IconPhoto
+                                      {/* CHANGED ICON: IconPhoto -> IconFileText */}
+                                      <IconFileText
                                         size={32}
                                         className="text-primary dark:text-white"
                                       />
                                     </div>
                                     <p className="text-sm text-muted-foreground">
-                                      Drop your image here, or{" "}
+                                      Drop your document here, or{" "}
+                                      {/* CHANGED: 'image' -> 'document' */}
                                       <span className="text-primary font-medium hover:underline">
                                         browse
                                       </span>
                                     </p>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                      Supports: PNG, JPG, JPEG, WEBP
+                                      Supports: PDF, DOC, DOCX{" "}
+                                      {/* CHANGED Supported List */}
                                     </p>
                                   </div>
                                 </div>
                               ) : (
+                                // --- Document Preview Area (Replaced Image Preview with Document Icon) ---
                                 <div className="space-y-4">
-                                  <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
-                                    <Image
-                                      width={1000}
-                                      height={1000}
-                                      src={previewRuleUrl}
-                                      alt="Featured image"
-                                      className="aspect-video size-full object-cover"
+                                  <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex flex-col items-center justify-center p-8">
+                                    {/* REPLACED IMAGE PREVIEW WITH DOCUMENT DISPLAY */}
+                                    <IconFile
+                                      size={64}
+                                      className="text-primary"
                                     />
+                                    <p className="text-sm font-medium mt-2">
+                                      {/* Display the file name if available */}
+                                      {selectedRuleFile?.name ||
+                                        "Rules Document Uploaded"}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      File Size:{" "}
+                                      {(
+                                        selectedRuleFile?.size /
+                                        1024 /
+                                        1024
+                                      ).toFixed(2)}{" "}
+                                      MB
+                                    </p>
                                   </div>
 
+                                  {/* ... Buttons remain the same ... */}
                                   <div className="flex gap-2">
                                     <Button
                                       type="button"
@@ -1445,22 +1589,23 @@ export default function Page() {
                               <input
                                 ref={rulesFileInputRef}
                                 type="file"
-                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                // CHANGED ACCEPT ATTRIBUTE
+                                accept=".pdf,application/pdf,.doc,application/msword,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                 className="hidden"
                                 onChange={(e) => {
                                   const file = e.target.files?.[0];
                                   if (!file) return;
 
-                                  if (
-                                    ![
-                                      "image/png",
-                                      "image/jpeg",
-                                      "image/jpg",
-                                      "image/webp",
-                                    ].includes(file.type)
-                                  ) {
+                                  // NEW Validation List
+                                  const supportedTypes = [
+                                    "application/pdf",
+                                    "application/msword",
+                                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                  ];
+
+                                  if (!supportedTypes.includes(file.type)) {
                                     toast.error(
-                                      "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                      "Only PDF, DOC, or DOCX files are supported."
                                     );
                                     return;
                                   }
