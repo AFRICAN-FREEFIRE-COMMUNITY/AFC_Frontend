@@ -8,7 +8,7 @@ import React, {
   use,
   useTransition,
 } from "react";
-import { notFound, useRouter } from "next/navigation"; // Assuming you are using Next.js 13+ router
+import { notFound, useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -27,7 +27,7 @@ import {
   AlertTriangle,
   User,
 } from "lucide-react";
-import { Separator } from "@/components/ui/separator"; // Assuming you have a Separator component
+import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -67,8 +67,6 @@ interface StageGroup {
   playing_date: string;
   playing_time: string;
   teams_qualifying: number;
-  // NOTE: Results data is typically fetched separately,
-  // but we'll use mock data for the table rendering based on the image.
 }
 
 interface Stage {
@@ -104,7 +102,6 @@ interface EventDetails {
   stages: Stage[];
   event_banner_url: string | null;
   uploaded_rules_url: string | null;
-  // Assuming 'location' and 'format' from the image can be inferred or added.
 }
 
 interface ApiResponse {
@@ -127,20 +124,12 @@ const MOCK_RESULTS_DATA = [
     placement_points: 45,
     total_points: 90,
   },
-  // Add more rows as needed
 ];
 
 // --- Sub-Components ---
 
-/**
- * Renders the results table for a stage (matching the image design).
- * In a real app, this would fetch results data based on stage/group IDs.
- */
 const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
   const [isDatesVisible, setIsDatesVisible] = useState(true);
-
-  // In a real application, you'd likely map over groups here to show results per group.
-  // For the sake of matching the image's single table view, we simplify.
 
   return (
     <Card>
@@ -238,6 +227,7 @@ interface ModalProps {
   handleDiscordConnect: () => void;
   handleJoinedServer: () => void;
   pendingJoined: boolean;
+  isDiscordConnected: boolean;
 }
 
 const RegistrationModals: React.FC<ModalProps> = ({
@@ -251,6 +241,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
   handleDiscordConnect,
   handleJoinedServer,
   pendingJoined,
+  isDiscordConnected,
 }) => {
   const isSoloDisabled = eventDetails.participant_type === "squad";
   const isTeamDisabled = eventDetails.participant_type === "solo";
@@ -296,11 +287,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               </div>
             </div>
             <DialogFooter className="mt-4 flex sm:justify-between">
-              <Button
-                variant="secondary"
-                //   onClick={closeAll}
-                onClick={() => setModalStep("TYPE")}
-              >
+              <Button variant="secondary" onClick={() => setModalStep("TYPE")}>
                 Back
               </Button>
               <Button onClick={() => setModalStep("RULES")}>Continue</Button>
@@ -319,7 +306,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
             </DialogHeader>
             <div className="grid gap-2">
               <Card
-                // onClick={() => !isSoloDisabled && handleSelectType("solo")}
                 onClick={() => !isSoloDisabled && setModalStep("INFO")}
                 className={`cursor-pointer transition ${
                   isSoloDisabled
@@ -338,8 +324,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 </CardHeader>
               </Card>
               <Card
-                // onClick={() => !isTeamDisabled && handleSelectType("team")}
-                // onClick={() => !isTeamDisabled && setModalStep("TYPE")}
+                // Team registration is disabled for this flow
                 className={`cursor-pointer transition ${
                   isTeamDisabled
                     ? "bg-white opacity-50"
@@ -360,26 +345,20 @@ const RegistrationModals: React.FC<ModalProps> = ({
           </>
         );
 
-      // ... inside RegistrationModals component, within renderDialog()
-
       case "RULES":
-        // Assuming uploaded_rules_url is available on eventDetails
         const textRules = eventDetails.event_rules;
-        const documentUrl = (eventDetails as any).uploaded_rules_url; // Cast to access the new field
+        const documentUrl = (eventDetails as any).uploaded_rules_url;
         const hasDocument = documentUrl && documentUrl.startsWith("http");
         const hasTextRules = !!textRules;
 
         const renderRulesContent = () => {
           if (hasTextRules) {
-            // 🥇 PRIORITY 1: Display TEXT rules
             return (
               <div className="space-y-4">
                 <div>
                   <p className="font-medium text-primary">General Rules:</p>
-                  {/* Render HTML content if your text rules are formatted, otherwise use a <p> tag */}
                   <p className="whitespace-pre-wrap">{textRules}</p>
                 </div>
-                {/* You can optionally add a link to the document here as a secondary option */}
                 {hasDocument && (
                   <div className="pt-2">
                     <p className="font-medium text-primary">
@@ -400,7 +379,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
           }
 
           if (hasDocument) {
-            // 🥈 PRIORITY 2: Display DOCUMENT link
             return (
               <div className="text-center space-y-4 pt-4">
                 <AlertTriangle className="w-8 h-8 text-primary mx-auto mb-2" />
@@ -422,7 +400,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
             );
           }
 
-          // ❌ FALLBACK: No rules found
           return (
             <div className="text-center p-4">
               <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
@@ -448,7 +425,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <div className="max-h-80 p-4 bg-primary/10 rounded-md overflow-y-auto pr-4 space-y-4 text-sm text-gray-300">
               {renderRulesContent()}
 
-              {/* Separator and hardcoded policies (kept separate for critical info) */}
               <Separator className="my-4 bg-gray-700" />
               <div>
                 <p className="font-medium text-primary">Conduct Policy:</p>
@@ -503,25 +479,47 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 Required for tournament participation
               </DialogDescription>
             </DialogHeader>
-            <div className="text-center p-4 bg-primary/10 rounded-lg space-y-8">
-              <p className="text-sm text-gray-300">
-                Your registration is incomplete until your Discord account is
-                linked.
-              </p>
-              <div className="grid gap-2">
-                <Button onClick={handleDiscordConnect} className="w-full">
-                  Connect Discord Account
-                </Button>
-                <DialogFooter className="flex sm:justify-end">
-                  <Button
-                    variant="secondary"
-                    onClick={() => setModalStep("RULES")}
-                  >
-                    Back
+            <div className="text-center p-4 bg-primary/10 rounded-lg space-y-4">
+              {isDiscordConnected ? (
+                // Successfully connected, just need to proceed
+                <div className="space-y-4">
+                  <CheckCircle className="w-8 h-8 text-primary mx-auto" />
+                  <p className="font-semibold text-primary">
+                    Discord Account Connected!
+                  </p>
+                  <p className="text-sm text-gray-300">
+                    You can now proceed to the final step.
+                  </p>
+                </div>
+              ) : (
+                // Needs to connect
+                <div className="space-y-4">
+                  <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto" />
+                  <p className="text-sm text-gray-300">
+                    Your Discord account is not yet linked. Click below to open
+                    the authentication window and link your account.
+                  </p>
+                  <Button onClick={handleDiscordConnect} className="w-full">
+                    Connect Discord Account
                   </Button>
-                </DialogFooter>
-              </div>
+                  <p className="text-xs text-primary pt-2">
+                    After connecting, this page will reload. If successful, you
+                    will automatically advance.
+                  </p>
+                </div>
+              )}
             </div>
+            <DialogFooter className="flex sm:justify-between">
+              <Button variant="secondary" onClick={() => setModalStep("RULES")}>
+                Back
+              </Button>
+              <Button
+                onClick={() => setModalStep("DISCORD_JOIN")}
+                disabled={!isDiscordConnected}
+              >
+                Continue to Final Step
+              </Button>
+            </DialogFooter>
           </>
         );
 
@@ -553,8 +551,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 Join AFC Discord Server
               </Button>
               <p className="text-xs text-gray-400 pt-2">
-                After joining, click the button below to continue to your
-                registration confirmation.
+                After joining, click the button below to confirm your
+                registration.
               </p>
             </div>
             <DialogFooter className="mt-4 flex sm:justify-between">
@@ -570,7 +568,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 className="bg-green-600 hover:bg-green-500"
               >
                 {pendingJoined ? (
-                  <Loader text="Joining..." />
+                  <Loader text="Completing Registration..." />
                 ) : (
                   "I've Joined the Server"
                 )}
@@ -625,7 +623,9 @@ type Params = Promise<{
 const EventDetailPage = ({ params }: { params: Params }) => {
   const { id } = use(params);
   const { token } = useAuth();
-  const router = useRouter(); // Use the router to handle navigation
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -634,10 +634,54 @@ const EventDetailPage = ({ params }: { params: Params }) => {
   const [modalStep, setModalStep] = useState<ModalStep>("CLOSED");
   const [regType, setRegType] = useState<RegistrationType | null>(null);
   const [rulesAccepted, setRulesAccepted] = useState(false);
-  const [discordConnected, setDiscordConnected] = useState(false); // Mock state for Discord connection
+
+  const [discordConnected, setDiscordConnected] = useState(false);
 
   const [pendingJoined, startJoinedTransition] = useTransition();
-  // Function to fetch data from the POST endpoint
+
+  useEffect(() => {
+    const discordStatus = searchParams.get("discord");
+    const intendedStep = searchParams.get("step");
+
+    // Only run if we detect a Discord status AND it came from our registration flow
+    if (discordStatus) {
+      // 1. Force the modal open to the starting point of the check
+      setModalStep("DISCORD_LINK");
+
+      // Use a small delay to ensure the modal container has rendered
+      // before attempting the final step transition.
+      setTimeout(() => {
+        if (discordStatus === "connected") {
+          // Success detected: Set connected state, show success, and advance
+          setDiscordConnected(true);
+          setModalStep("DISCORD_JOIN"); // <-- ADVANCE TO NEXT STEP
+          toast.success(
+            "Discord account linked successfully! Please join the server to complete registration."
+          );
+        } else {
+          // Error detected: Show error toast and stay on DISCORD_LINK
+          setDiscordConnected(false);
+          const errorMsg =
+            searchParams.get("message") ||
+            "Discord connection failed. Please try again.";
+          toast.error(errorMsg);
+          // Modal stays on DISCORD_LINK for retry
+        }
+
+        // 2. Clean up the URL (This is crucial for preventing repeated execution on refresh)
+        // We use replace to update the URL without adding a new history entry.
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.delete("discord");
+        newSearchParams.delete("step");
+        // router.replace is preferred for cleaning params
+        router.replace(
+          `${window.location.pathname}?${newSearchParams.toString()}`,
+          { scroll: false }
+        );
+      }, 50); // Small delay for state consistency
+    }
+  }, [searchParams, router]);
+
   const fetchEventDetails = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -661,11 +705,8 @@ const EventDetailPage = ({ params }: { params: Params }) => {
       const result: ApiResponse = await response.json();
       const details = result.event_details;
 
-      console.log(details);
-
       setEventDetails(details);
 
-      // Set the first stage as the default active tab
       if (details.stages.length > 0) {
         setActiveStageTab(details.stages[0].stage_name);
       }
@@ -674,13 +715,59 @@ const EventDetailPage = ({ params }: { params: Params }) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     if (id) {
       fetchEventDetails();
     }
   }, [fetchEventDetails, id]);
+
+  // --- NEW LOGIC: Check URL for Discord Connection Status ---
+  useEffect(() => {
+    const discordStatus = searchParams.get("discord");
+    const intendedStep = searchParams.get("step");
+
+    // Only proceed if we have a connection status AND it came from the registration flow
+    if (discordStatus && intendedStep === "discord") {
+      // We must make sure the modal is open before proceeding.
+      // Set the base step (DISCORD_LINK) so the modal context can render,
+      // then immediately check the status and advance/error.
+      setModalStep("DISCORD_LINK");
+
+      // Timeout is used to ensure the modal state has rendered before the final move/toast
+      // This is often needed when changing multiple states involving complex UI transitions.
+      setTimeout(() => {
+        if (discordStatus === "connected") {
+          // 1. Success detected: Set the connected state, show success, and advance
+          setDiscordConnected(true);
+          setModalStep("DISCORD_JOIN"); // <-- ADVANCE TO NEXT STEP
+          toast.success(
+            "Discord account linked successfully! Please join the server to complete registration."
+          );
+        } else {
+          // 2. Error detected: Show error toast and stay on DISCORD_LINK
+          setDiscordConnected(false);
+          const errorMsg =
+            searchParams.get("message") ||
+            "Discord connection failed. Please try again.";
+          toast.error(errorMsg);
+          setModalStep("DISCORD_LINK"); // <-- STAY ON CURRENT STEP
+        }
+
+        // 3. Clean up the URL (important to use `replace` to avoid breaking the Back button)
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.delete("discord");
+        newSearchParams.delete("step");
+        // Important: Replace history without reloading the page
+        router.replace(
+          `${window.location.pathname}?${newSearchParams.toString()}`,
+          { scroll: false }
+        );
+      }, 50); // Small delay for state consistency
+    }
+  }, [searchParams, router]);
+  // --- END NEW LOGIC ---
 
   // Handle Loading and Error states
   if (isLoading) return <FullLoader />;
@@ -689,13 +776,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
     return notFound();
   }
 
-  // --- Rendering Logic ---
-
-  // Determine participant count based on max teams/players
-  const participantText = `${eventDetails.max_teams_or_players} ${
-    eventDetails.participant_type.charAt(0).toUpperCase() +
-    eventDetails.participant_type.slice(1)
-  }s`;
+  // --- Event Handlers ---
 
   const handleRegisterClick = () => {
     setModalStep("TYPE");
@@ -703,28 +784,35 @@ const EventDetailPage = ({ params }: { params: Params }) => {
 
   const handleSelectType = (type: RegistrationType) => {
     setRegType(type);
-    setModalStep("RULES"); // Move to rules after selecting type
+    setModalStep("RULES");
   };
 
   const handleRulesContinue = () => {
     if (rulesAccepted) {
-      // Assuming Discord connection is the next required step
-      setModalStep("DISCORD_LINK"); // Move to Discord Link modal
+      // If Discord is already connected, skip DISCORD_LINK step
+      if (discordConnected) {
+        setModalStep("DISCORD_JOIN");
+      } else {
+        setModalStep("DISCORD_LINK");
+      }
     }
   };
 
   const handleDiscordConnect = () => {
-    // Mocking a successful Discord connection
-    const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}`;
+    // The redirect URL needs to include the parameters the server will echo back
+    const redirectUrl = encodeURIComponent(
+      `${window.location.origin}${window.location.pathname}?id=${id}&discord=connected&step=discord`
+    );
 
-    // Open Discord auth URL in a new tab
+    // Construct the URL for the server to initiate OAuth
+    const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${id}&redirect_url=${redirectUrl}`;
+
+    // Open Discord auth URL in a new tab/window
     window.open(url, "_blank", "noopener,noreferrer");
 
-    setDiscordConnected(true);
-    setModalStep("DISCORD_JOIN"); // Move to Join Discord Server modal
+    // CRITICAL CHANGE: We do NOT set state or move the modal here.
+    // The modal transition is handled by the useEffect above once the URL changes (due to server redirect).
   };
-
-  console.log(eventDetails);
 
   const handleJoinedServer = async () => {
     startJoinedTransition(async () => {
@@ -749,17 +837,18 @@ const EventDetailPage = ({ params }: { params: Params }) => {
     });
   };
 
-  // Custom format for "Format" to match the image (assuming event_mode/competition_type maps to it)
   const formatText = `${eventDetails.event_mode.toUpperCase()} / ${eventDetails.competition_type.toUpperCase()}`;
+  const participantText = `${eventDetails.max_teams_or_players} ${
+    eventDetails.participant_type.charAt(0).toUpperCase() +
+    eventDetails.participant_type.slice(1)
+  }s`;
 
   return (
     <div>
-      {/* Main Content Card (Dark Background from Image) */}
       <Card>
         <CardHeader className="space-y-2">
           <PageHeader title={eventDetails.event_name} back />
           <div className="space-y-2">
-            {/* <p className="font-medium text-sm md:text-base">Banner Image</p> */}
             <Image
               src={eventDetails.event_banner_url || DEFAULT_IMAGE}
               alt={eventDetails.event_name || "Event Banner"}
@@ -773,8 +862,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             <p>
               Prize Pool: ${parseFloat(eventDetails.prizepool).toLocaleString()}
             </p>
-            <p>Location: Online</p>{" "}
-            {/* Hardcoded as 'Online' based on image, adjust if API provides location */}
+            <p>Location: Online</p>
             <p>Format: {formatText}</p>
           </div>
           <p className="text-sm">Participants: {participantText}</p>
@@ -800,7 +888,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
                 </TabsList>
                 <ScrollBar orientation="horizontal" />
               </ScrollArea>
-              {/* Tab Content for each Stage */}
               {eventDetails.stages.map((stage) => (
                 <TabsContent key={stage.id} value={stage.stage_name}>
                   <StageResultsTable stage={stage} />
@@ -814,20 +901,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           )}
         </CardContent>
       </Card>
-      {/* Floating Register Button */}
-      {/* {eventDetails.event_type === "external" && (
-        <div className="text-center mt-6">
-          <Button
-            variant={"secondary"}
-            onClick={() =>
-              window.open(eventDetails.registration_link, "_blank")
-            }
-          >
-            Register for Tournament
-          </Button>
-        </div>
-      )} */}
-      {/* Floating Register Button - Conditional Logic */}
+
       <div className="text-center mt-6">
         {eventDetails.event_type === "external" ? (
           <Button
@@ -856,22 +930,17 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             <CardTitle className="text-xl mb-3">Rules</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* START OF NEW LOGIC */}
-            {/* Assuming uploaded_rules_url is available on eventDetails */}
             {(() => {
               const textRules = eventDetails.event_rules;
-              // Cast to access the assumed new field uploaded_rules_url
               const documentUrl = (eventDetails as any).uploaded_rules_url;
               const hasDocument = documentUrl && documentUrl.startsWith("http");
               const hasTextRules = !!textRules;
 
               if (hasTextRules) {
-                // Case 1: Display text rules (Priority)
                 return (
                   <p className="text-sm whitespace-pre-wrap">{textRules}</p>
                 );
               } else if (hasDocument) {
-                // Case 2: Display download button for document URL
                 return (
                   <div className="flex flex-col items-start space-y-3">
                     <p className="text-sm text-muted-foreground">
@@ -879,16 +948,15 @@ const EventDetailPage = ({ params }: { params: Params }) => {
                     </p>
                     <Button
                       type="button"
-                      variant="default" // Using default button style for prominence
+                      variant="default"
                       onClick={() => window.open(documentUrl, "_blank")}
-                      className="w-full justify-center bg-primary/90 hover:bg-primary text-black font-semibold"
+                      className="w-full"
                     >
                       Download Rules Document
                     </Button>
                   </div>
                 );
               } else {
-                // Case 3: Fallback message
                 return (
                   <p className="text-sm text-gray-500">
                     Rules document pending. Please check back later.
@@ -899,7 +967,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           </CardContent>
         </Card>
 
-        {/* Prize Distribution Card (Unchanged) */}
         <Card className="gap-0">
           <CardHeader>
             <CardTitle className="text-xl mb-3">Prize Distribution</CardTitle>
@@ -917,6 +984,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           </CardContent>
         </Card>
       </div>
+
       {/* --- Registration Modals --- */}
       <RegistrationModals
         eventDetails={eventDetails}
@@ -929,6 +997,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         handleDiscordConnect={handleDiscordConnect}
         handleJoinedServer={handleJoinedServer}
         pendingJoined={pendingJoined}
+        isDiscordConnected={discordConnected}
       />
     </div>
   );

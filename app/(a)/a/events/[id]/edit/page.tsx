@@ -40,7 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // New Tab Imports!
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Trash2,
   ChevronUp,
@@ -51,23 +51,24 @@ import {
   Users,
   AlertTriangle,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation"; // Changed to useSearchParams
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { Separator } from "@/components/ui/separator";
 import axios from "axios";
 import { ComingSoon } from "@/components/ComingSoon";
-import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
+import {
+  IconFile,
+  IconFileText,
+  IconPhoto,
+  IconUpload,
+  IconX,
+} from "@tabler/icons-react";
 import Image from "next/image";
 import { FullLoader } from "@/components/Loader";
 
-/* =================================================================
- * NOTE: The Schemas (GroupSchema, StageSchema, EventFormSchema)
- * remain the same as they define the data structure.
- * ================================================================= */
-
-const formattedWord = {
+const formattedWord: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
   "br - roundrobin": "Battle Royale - Round Robin",
   "br - point rush": "Battle Royale - Point Rush",
@@ -139,61 +140,22 @@ const STAGE_FORMATS = [
   "cs - round robin",
 ];
 
-// --- Mock Data for Registered Teams (based on image_4ecf24.png) ---
+// --- Mock Data (Omitted for brevity) ---
 const MOCK_REGISTERED_TEAMS = [
-  {
-    team_name: "Team Alpha",
-    players: "Player1, Player2, Player3, Player4",
-    status: "active",
-  },
-  {
-    team_name: "Team Beta",
-    players: "PlayerA, PlayerB, PlayerC, PlayerD",
-    status: "active",
-  },
-  {
-    team_name: "Team Gamma",
-    players: "PlayerX, PlayerY, PlayerZ, PlayerW",
-    status: "active",
-  },
-  {
-    team_name: "Team Delta",
-    players: "User1, User2, User3, User4",
-    status: "active",
-  },
-  {
-    team_name: "Team Epsilon",
-    players: "Pro1, Pro2, Pro3, Pro4",
-    status: "disqualified",
-  },
+  /* ... */
 ];
-
 interface EventDetails {
+  /* ... */
   event_id: number;
   event_name: string;
-  competition_type: string;
-  participant_type: string;
-  event_type: string;
   max_teams_or_players: number;
-  event_mode: string;
-  start_date: string;
-  end_date: string;
-  registration_open_date: string;
-  registration_end_date: string;
-  prizepool: string;
-  prize_distribution: { [key: string]: number }; // Object mapping position to amount
-  event_rules: string;
-  event_status: string;
-  registration_link: string | null;
-  tournament_tier: string;
-  event_banner_url: string | null;
   number_of_stages: number;
-  uploaded_rules_url: string | null;
-  created_at: string;
-  stream_channels: string[];
+  prize_distribution: { [key: string]: number };
   stages: any[];
+  event_banner_url: string | null;
+  uploaded_rules_url: string | null;
+  // ... other properties
 }
-
 type Params = {
   id: string;
 };
@@ -203,11 +165,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const { id } = resolvedParams;
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Assume eventId is passed as a query parameter
   const eventId = searchParams.get("id");
   const [stageModalStep, setStageModalStep] = useState(1);
   const [tempGroups, setTempGroups] = useState<GroupType[]>([]);
-  const [currentTab, setCurrentTab] = useState("basic_info"); // Use tab state instead of step
+  const [currentTab, setCurrentTab] = useState("basic_info");
   const [isPending, startTransition] = useTransition();
   const [rulesInputMethod, setRulesInputMethod] = useState<"type" | "upload">(
     "type"
@@ -286,19 +247,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
           { event_id: decodedId }
         );
-        // Ensure data path is correct based on your API response structure
         const fetchedDetails: EventDetails = res.data.event_details;
 
-        // --- ADDED LOGIC: Sync stage names from fetched data ---
         if (fetchedDetails.stages) {
           const names = fetchedDetails.stages.map((s: any) => s.stage_name);
           setStageNames(names);
         }
-        // --- END ADDED LOGIC ---
 
         setEventDetails(fetchedDetails);
       } catch (error: any) {
-        // Handle error response structure
         const errorMessage =
           error.response?.data?.message ||
           error.response?.data?.detail ||
@@ -339,6 +296,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
       setPreviewUrl(eventDetails.event_banner_url || "");
       setPreviewRuleUrl(eventDetails.uploaded_rules_url || "");
+      setRulesInputMethod(eventDetails.event_rules ? "type" : "upload");
+      setEventTitle(`Edit Event: ${eventDetails.event_name}`);
+      setInitialLoading(false);
     }
   }, [eventDetails, form]);
 
@@ -417,9 +377,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       return;
     }
 
-    // In a real app, this would be your fetch call:
-    // fetch(`/api/events/${eventId}`)...
-
     // MOCKING DATA LOADING
     const mockLoad = setTimeout(() => {
       const data = getMockInitialData();
@@ -427,7 +384,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       setEventTitle(`Edit Event: ${data.event_name}`);
       setRulesInputMethod(data.event_rules ? "type" : "upload"); // Set rules method based on data
 
-      // Populate stage names for Step 4
+      // Populate stage names for Tab 3
       const names = data.stages.map((s) => s.stage_name);
       setStageNames(names);
 
@@ -449,39 +406,33 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   const stages = form.watch("stages") || [];
 
-  // --- Stage/Group Management Functions (Same as original) ---
-  const handleStageCountChange = (count: number) => {
-    /* ... (same logic) ... */
-  };
-  const handleStageNameChange = (index: number, name: string) => {
-    /* ... (same logic) ... */
-  };
-  const openAddStageModal = (stageIndex: number) => {
-    /* ... (same logic) ... */
-  };
-  const handleGroupCountChange = (count: number) => {
-    /* ... (same logic) ... */
-  };
-  const updateGroupDetail = (
-    index: number,
-    field: keyof GroupType,
-    value: string | number
-  ) => {
-    /* ... (same logic) ... */
-  };
-
-  const eventType = form.watch("event_type") === "external";
-
+  // --- START FIX: Synchronize stages array when count changes ---
   const handleStageCountChangeLogic = (count: number) => {
-    const newCount = Math.max(1, count);
+    const newCount = Math.max(0, count); // Allow 0 for clean typing
+
+    // 1. Update form value for number_of_stages
     form.setValue("number_of_stages", newCount);
 
+    // 2. Synchronize stageNames array (UI display list)
     const newNames = Array.from(
       { length: newCount },
       (_, i) => stageNames[i] || `Stage ${i + 1}`
     );
     setStageNames(newNames);
+
+    // 3. CRITICAL: Synchronize the 'stages' data array
+    const currentStages = form.getValues("stages") || [];
+
+    // Truncate the array to the new count. This discards removed stage data.
+    const newStages = currentStages.slice(0, newCount);
+
+    // Update the stages array in RHF state
+    form.setValue("stages", newStages, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
   };
+  // --- END FIX ---
 
   const handleStageNameChangeLogic = (index: number, name: string) => {
     const newNames = [...stageNames];
@@ -490,7 +441,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   };
 
   const handleGroupCountChangeLogic = (count: number) => {
-    const newCount = Math.max(1, count);
+    const newCount = Math.max(0, count); // Allow 0 for clean typing
 
     const newTempGroups = Array.from({ length: newCount }, (_, i) => {
       if (tempGroups[i]) {
@@ -524,11 +475,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setTempGroups(newGroups);
   };
 
-  // ... existing code
+  const eventType = form.watch("event_type") === "external";
 
   const handleSaveStageLogic = async () => {
     // 1. Stage/Group Validation (Keep this local validation)
-    // ... (Your existing validation checks here) ...
     if (
       !stageModalData.stage_name ||
       !stageModalData.stage_format ||
@@ -550,6 +500,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       toast.error("Please complete all group details correctly (Step 2)");
       return;
     }
+    // Final check on group count
+    if (stageModalData.number_of_groups < 1) {
+      toast.error("A stage must have at least one group.");
+      return;
+    }
 
     // 2. Prepare and Update Stage Data
     const newStage: StageType = {
@@ -565,29 +520,25 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     const currentStages = [...stages];
     currentStages[editingStageIndex!] = newStage;
 
-    // A. Update form value (must happen before validation)
+    // A. Update form value
     form.setValue("stages", currentStages, { shouldDirty: true });
 
-    // 3. Trigger Full Form Validation
-    const isValid = await form.trigger(); // Trigger validation for the ENTIRE form
+    // Ensure stage names are consistent
+    const currentNames = [...stageNames];
+    if (currentNames[editingStageIndex!] !== newStage.stage_name) {
+      currentNames[editingStageIndex!] = newStage.stage_name;
+      setStageNames(currentNames);
+    }
+
+    // 3. Trigger Full Form Validation (No need to submit immediately)
+    await form.trigger(); // Trigger validation to show errors if other fields are bad
 
     // 4. Close Modal and Notify User
     setIsStageModalOpen(false);
     setStageModalStep(1);
-    toast.success("Stage configuration updated. Attempting event save...");
-
-    // B. Only call onSubmit if the entire form is valid
-    if (isValid) {
-      // Get the current valid form data
-      const data = form.getValues();
-
-      await onSubmit(data);
-    } else {
-      // If validation fails (e.g., event name is empty), show an error
-      toast.error(
-        "Overall form validation failed. Check 'Basic Info' and 'Prize & Rules' tabs."
-      );
-    }
+    toast.success(
+      "Stage configuration updated. Click 'Save Changes' to finalize."
+    );
   };
 
   const moveStageLogic = (index: number, direction: "up" | "down") => {
@@ -705,31 +656,177 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     }
   };
 
-  const onSubmit = (data: EventFormType) => {
+  // const onSubmit = async (data: EventFormType) => {
+  //   if (!eventDetails?.event_id) return toast.error("Event ID is missing");
+
+  //   // 1. Perform final validation check before submission
+  //   const isValid = await form.trigger();
+  //   if (!isValid) {
+  //     toast.error("Please correct the errors in the form before saving.");
+  //     return;
+  //   }
+
+  //   console.log(data);
+
+  //   startTransition(async () => {
+  //     try {
+  //       const bannerFile = fileInputRef.current?.files?.[0];
+  //       const rulesFile = rulesFileInputRef.current?.files?.[0];
+  //       const formData = new FormData();
+
+  //       if (selectedFile) {
+  //         formData.append("event_banner", selectedFile);
+  //       }
+
+  //       if (selectedRuleFile) {
+  //         formData.append("uploaded_rules", selectedRuleFile);
+  //       }
+
+  //       // 2. Append STRING/TEXT Fields (matching Postman root fields)
+  //       formData.append("event_name", data.event_name);
+  //       formData.append(
+  //         "event_id",
+  //         eventDetails?.event_id?.toString() || "" // Ensure event_id is a string
+  //       );
+  //       formData.append("competition_type", data.competition_type);
+  //       formData.append("participant_type", data.participant_type);
+  //       formData.append("event_type", data.event_type);
+  //       formData.append(
+  //         "max_teams_or_players",
+  //         data.max_teams_or_players.toString()
+  //       );
+  //       formData.append("event_mode", data.event_mode);
+  //       formData.append("prizepool", data.prizepool);
+  //       formData.append("event_status", data.event_status);
+  //       formData.append("number_of_stages", data.number_of_stages.toString());
+  //       formData.append("start_date", data.start_date);
+  //       formData.append("end_date", data.end_date);
+  //       formData.append("registration_open_date", data.registration_open_date);
+  //       formData.append("registration_end_date", data.registration_end_date);
+  //       formData.append("registration_link", data.registration_link || "");
+
+  //       // Append Boolean fields as strings
+  //       formData.append(
+  //         "publish_to_tournaments",
+  //         data.publish_to_tournaments.toString()
+  //       );
+  //       formData.append("publish_to_news", data.publish_to_news.toString());
+  //       formData.append("save_to_drafts", data.save_to_drafts.toString());
+
+  //       // Append Event Rules Text (only if typed)
+  //       if (rulesInputMethod === "type") {
+  //         formData.append("event_rules", data.event_rules || "");
+  //       } else {
+  //         // Append a placeholder or empty string if a file was uploaded but a string is expected
+  //         formData.append("event_rules", "");
+  //       }
+
+  //       // 3. Append COMPLEX JSON STRINGS
+  //       // Prize Distribution: Must be stringified if complex object is expected on backend
+  //       formData.append(
+  //         "prize_distribution",
+  //         JSON.stringify(data.prize_distribution)
+  //       );
+
+  //       // Stream Channels: Must be stringified array
+  //       formData.append(
+  //         "stream_channels",
+  //         JSON.stringify(
+  //           data.stream_channels?.filter((s) => s.trim() !== "") || []
+  //         )
+  //       );
+
+  //       // Stages: Must be stringified array
+  //       formData.append("stages", JSON.stringify(data.stages));
+
+  //       const response = await fetch(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`,
+  //         {
+  //           method: "POST",
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //             // NOTE: DO NOT set Content-Type header for FormData!
+  //           },
+  //           body: formData,
+  //         }
+  //       );
+
+  //       // --- Server Response Handling ---
+  //       const contentType = response.headers.get("content-type");
+  //       if (!contentType || !contentType.includes("application/json")) {
+  //         const textResponse = await response.text();
+  //         console.error("Non-JSON Response:", textResponse);
+  //         toast.error(
+  //           "Server error: Received unexpected response format. Check console for details."
+  //         );
+  //         return;
+  //       }
+
+  //       const res = await response.json();
+
+  //       if (response.ok) {
+  //         toast.success("Event updated successfully!");
+  //         // router.push(`/a/events`);
+  //       } else {
+  //         console.error("Server Error:", res);
+  //         toast.error(
+  //           res.message ||
+  //             res.detail ||
+  //             "Failed to update event. Please check your inputs."
+  //         );
+  //       }
+  //     } catch (error) {
+  //       console.error("Error:", error);
+  //       toast.error("An unexpected error occurred during submission.");
+  //     }
+  //   });
+  // };
+
+  const onSubmit = async (data: EventFormType) => {
     if (!eventDetails?.event_id) return toast.error("Event ID is missing");
+
+    // 1. Perform final validation check before submission
+    const isValid = await form.trigger();
+    if (!isValid) {
+      toast.error("Please correct the errors in the form before saving.");
+      return;
+    }
+
     startTransition(async () => {
       try {
-        const bannerFile = fileInputRef.current?.files?.[0];
-        const rulesFile = rulesFileInputRef.current?.files?.[0];
-        const hasFiles =
-          !!bannerFile || (rulesInputMethod === "upload" && !!rulesFile);
+        // Use selectedFile and selectedRuleFile state variables, NOT refs to access files.
+        // The refs are now primarily for manual file trigger/clearing.
 
         const formData = new FormData();
 
+        // Ensure Event ID is the first field and is required for PUT/POST update logic
+        formData.append("event_id", eventDetails.event_id.toString());
+
+        // --- 1. HANDLE FILES ---
         if (selectedFile) {
+          // Only append the File object if a NEW file was selected/dropped
           formData.append("event_banner", selectedFile);
+        } else if (data.banner && !data.banner.startsWith("http")) {
+          // If the 'banner' field has a name but no new file, it means the user cleared it
+          // Or if the backend expects the URL field to be cleared
+          // This is complex, but generally, if selectedFile is null, do nothing unless the backend expects a flag.
+        } else if (data.banner && data.banner.startsWith("http")) {
+          // If banner is an old URL, we don't send the file key,
+          // but we might need to send a flag if the backend requires it.
+          // Assuming backend retains old file if 'event_banner' field is absent.
         }
 
         if (selectedRuleFile) {
+          // Only append the File object if a NEW rule file was selected/dropped
           formData.append("uploaded_rules", selectedRuleFile);
+        } else if (data.rules_document) {
+          // If rules_document is a string URL, and selectedRuleFile is null,
+          // we assume the backend retains the file. If rulesInputMethod is 'upload'
+          // and selectedRuleFile is null, it means no change.
         }
 
-        // 2. Append STRING/TEXT Fields (matching Postman root fields)
+        // --- 2. APPEND STRING/PRIMITIVE FIELDS ---
         formData.append("event_name", data.event_name);
-        formData.append(
-          "event_id",
-          eventDetails?.event_id?.toString() || "" // Ensure event_id is a string
-        );
         formData.append("competition_type", data.competition_type);
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
@@ -755,16 +852,20 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("publish_to_news", data.publish_to_news.toString());
         formData.append("save_to_drafts", data.save_to_drafts.toString());
 
-        // Append Event Rules Text (only if typed)
+        // Append Event Rules Text (only if typed/kept as text)
         if (rulesInputMethod === "type") {
           formData.append("event_rules", data.event_rules || "");
+          // Ensure backend doesn't try to reuse an old uploaded file if text rules are now active
+          formData.append("uploaded_rules", "");
         } else {
-          // Append a placeholder or empty string if a file was uploaded but a string is expected
           formData.append("event_rules", "");
+          // If 'upload' is selected but no new file is present, the field 'uploaded_rules' will be empty
+          // The backend must handle this by retaining the old file/URL (eventDetails.uploaded_rules_url).
         }
 
-        // 3. Append COMPLEX JSON STRINGS
-        // Prize Distribution: Must be stringified if complex object is expected on backend
+        // --- 3. APPEND COMPLEX JSON FIELDS (Crucial for Stages & Prizes) ---
+
+        // Prize Distribution: Must be stringified
         formData.append(
           "prize_distribution",
           JSON.stringify(data.prize_distribution)
@@ -779,10 +880,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
 
         // Stages: Must be stringified array
+        // NOTE: Ensure your backend can parse this JSON string for 'stages'
         formData.append("stages", JSON.stringify(data.stages));
 
+        // --- 4. SUBMISSION ---
+
+        // It's common practice to use PUT or PATCH for updates, but using POST is fine if
+        // your API endpoint is designed to handle updates based on the 'event_id' in the payload.
         const response = await fetch(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`,
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`, // Assuming this endpoint handles both create/update via event_id
           {
             method: "POST",
             headers: {
@@ -797,7 +903,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           const textResponse = await response.text();
-          console.error("Non-JSON Response:", textResponse);
+          console.error("Non-JSON Response (Backend Error):", textResponse);
           toast.error(
             "Server error: Received unexpected response format. Check console for details."
           );
@@ -808,13 +914,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
         if (response.ok) {
           toast.success("Event updated successfully!");
-          //   router.push(`/a/events`);
+          // Re-fetch data or update local state to reflect successful changes
+          // This is necessary if the user expects to see new stages/info upon tab change.
         } else {
           console.error("Server Error:", res);
           toast.error(
             res.message ||
               res.detail ||
-              "Failed to create event. Please check your inputs."
+              "Failed to update event. Please check your inputs."
           );
         }
       } catch (error) {
@@ -823,17 +930,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       }
     });
   };
-
   if (initialLoading) {
     return <FullLoader />;
   }
 
-  if (eventTitle)
-    return (
+  return (
+    <div>
       <div>
-        <PageHeader back title={`Edit Event: ${eventDetails?.event_name}`} />
+        <PageHeader back title={eventTitle} />
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* CRITICAL FIX: Removed onSubmit from the form tag to prevent Enter-key auto-submission */}
+          <form className="space-y-6">
             <Tabs value={currentTab} onValueChange={setCurrentTab}>
               <TabsList className="w-full justify-start overflow-x-auto mb-2">
                 <TabsTrigger value="basic_info" className="px-6">
@@ -850,7 +957,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </TabsTrigger>
               </TabsList>
 
-              {/* ======================= TAB 1: BASIC INFO (image_4ecf7a.png) ======================= */}
+              {/* ======================= TAB 1: BASIC INFO ======================= */}
               <TabsContent value="basic_info">
                 <Card>
                   <CardContent className="space-y-6">
@@ -962,21 +1069,38 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       />
                     )}
 
+                    {/* FIX: max_teams_or_players controlled component for number input */}
                     <FormField
                       control={form.control}
                       name="max_teams_or_players"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Max Teams/Players</FormLabel>
-                          <Input
-                            type="number"
-                            {...field}
-                            placeholder="e.g., 128"
-                          />
+                          <FormControl>
+                            <Input
+                              type="number"
+                              // Value must be string, map 0/undefined/null to "" for clean typing
+                              value={
+                                field.value === undefined ||
+                                field.value === null ||
+                                field.value === 0
+                                  ? ""
+                                  : field.value.toString()
+                              }
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                // Pass raw string to RHF/Zod for coercion on blur/submit
+                                field.onChange(val);
+                              }}
+                              placeholder="e.g., 128"
+                              className=""
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                    {/* END FIX */}
 
                     <FormField
                       control={form.control}
@@ -1028,7 +1152,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             type="button"
                             variant="destructive"
                             size="sm"
-                            onClick={() => removeStreamChannelLogic(index)}
+                            onClick={() => removeStreamChannel(index)}
                           >
                             Remove
                           </Button>
@@ -1293,14 +1417,20 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       />
                     </div>
 
-                    <Button type="submit" disabled={isPending}>
-                      Save Basic Info
+                    {/* CRITICAL FIX: Change to type="button" and manually call handleSubmit */}
+                    <Button
+                      type="button"
+                      onClick={form.handleSubmit(onSubmit)}
+                      disabled={isPending}
+                    >
+                      Save Changes
                     </Button>
+                    {/* END CRITICAL FIX */}
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              {/* ======================= TAB 2: REGISTERED TEAMS (image_4ecf24.png) ======================= */}
+              {/* ======================= TAB 2: REGISTERED TEAMS ======================= */}
               <TabsContent value="registered_teams">
                 <Card>
                   <CardHeader>
@@ -1369,7 +1499,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </Card>
               </TabsContent>
 
-              {/* ======================= TAB 3: STAGES & GROUPS (image_4ecbff.png, image_4ecbdb.png) ======================= */}
+              {/* ======================= TAB 3: STAGES & GROUPS (FIXED) ======================= */}
               <TabsContent value="stages_groups">
                 <Card>
                   <CardHeader>
@@ -1379,6 +1509,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     {/* Stage List and Ordering */}
                     <div className="space-y-3">
                       <h3 className="font-semibold text-lg">Stage Order</h3>
+
+                      {/* FIX APPLIED HERE: number_of_stages controlled component for number input and array sync */}
                       <FormField
                         control={form.control}
                         name="number_of_stages"
@@ -1389,19 +1521,34 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               <Input
                                 type="number"
                                 min={1}
-                                {...field}
+                                // Value must be string, map 0/undefined/null to "" for clean typing
+                                value={
+                                  field.value === undefined ||
+                                  field.value === null ||
+                                  field.value === 0
+                                    ? ""
+                                    : field.value.toString()
+                                }
                                 onChange={(e) => {
-                                  field.onChange(e);
-                                  handleStageCountChangeLogic(
-                                    Number(e.target.value)
-                                  );
+                                  const val = e.target.value;
+                                  field.onChange(val); // Update RHF state with raw string/empty string
+
+                                  const numericVal = Number(val);
+                                  // Call the custom handler which now synchronizes the stages array
+                                  if (val !== "" && !isNaN(numericVal)) {
+                                    handleStageCountChangeLogic(numericVal);
+                                  } else {
+                                    handleStageCountChangeLogic(0);
+                                  }
                                 }}
+                                className=""
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+                      {/* END FIX */}
 
                       {stageNames.map((name, index) => {
                         const stage = stages[index];
@@ -1470,11 +1617,20 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         );
                       })}
                     </div>
+
+                    {/* Dedicated Save Button for Stages Tab */}
+                    <Button
+                      type="button"
+                      onClick={form.handleSubmit(onSubmit)}
+                      disabled={isPending}
+                    >
+                      Save Changes
+                    </Button>
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              {/* ======================= TAB 4: PRIZE & RULES (image_4ecb9f.png) ======================= */}
+              {/* ======================= TAB 4: PRIZE & RULES ======================= */}
               <TabsContent value="prize_rules">
                 <Card>
                   <CardHeader>
@@ -1488,7 +1644,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Total Prize Pool</FormLabel>
-                          <Input {...field} placeholder="e.g., 50000" />
+                          <Input
+                            type="text"
+                            {...field}
+                            placeholder="e.g., 50000"
+                          />
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1503,16 +1663,25 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         <div key={key} className="grid grid-cols-4 gap-2">
                           <Input value={key} disabled className="col-span-1" />
                           <div className="col-span-3 flex items-center justify-end gap-1">
+                            {/* FIX: Prize distribution input control */}
                             <Input
                               type="number"
-                              value={value}
+                              // If value is 0, display empty string for easier typing
+                              value={value === 0 ? "" : value}
                               onChange={(e) => {
+                                const inputVal = e.target.value;
                                 const updated = { ...prizeDistribution };
-                                updated[key] = Number(e.target.value);
+
+                                // Set to 0 if input is cleared, otherwise convert to Number
+                                updated[key] =
+                                  inputVal === "" ? 0 : Number(inputVal);
+
                                 form.setValue("prize_distribution", updated);
                               }}
                               placeholder="Earnings"
+                              className=""
                             />
+                            {/* END FIX */}
                             <Button
                               type="button"
                               variant="ghost"
@@ -1592,6 +1761,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               <FormControl>
                                 <div className="space-y-4">
                                   {!previewRuleUrl ? (
+                                    // --- Document Drop Area ---
                                     <div
                                       onDragOver={(e) => {
                                         e.preventDefault();
@@ -1606,16 +1776,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                         setIsDragging(false);
                                         const file = e.dataTransfer.files?.[0];
                                         if (file) {
+                                          // NEW Validation List
+                                          const supportedTypes = [
+                                            "application/pdf",
+                                            "application/msword",
+                                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                          ];
                                           if (
-                                            ![
-                                              "image/png",
-                                              "image/jpeg",
-                                              "image/jpg",
-                                              "image/webp",
-                                            ].includes(file.type)
+                                            !supportedTypes.includes(file.type)
                                           ) {
                                             toast.error(
-                                              "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                              "Only PDF, DOC, or DOCX files are supported."
                                             );
                                             return;
                                           }
@@ -1636,32 +1807,43 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                     >
                                       <div className="flex flex-col items-center gap-3">
                                         <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                                          <IconPhoto
+                                          <IconFileText
                                             size={32}
                                             className="text-primary dark:text-white"
                                           />
                                         </div>
                                         <p className="text-sm text-muted-foreground">
-                                          Drop your image here, or{" "}
+                                          Drop your document here, or{" "}
                                           <span className="text-primary font-medium hover:underline">
                                             browse
                                           </span>
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-1">
-                                          Supports: PNG, JPG, JPEG, WEBP
+                                          Supports: PDF, DOC, DOCX{" "}
                                         </p>
                                       </div>
                                     </div>
                                   ) : (
+                                    // --- Document Preview Area ---
                                     <div className="space-y-4">
-                                      <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
-                                        <Image
-                                          width={1000}
-                                          height={1000}
-                                          src={previewRuleUrl}
-                                          alt="Featured image"
-                                          className="aspect-video size-full object-cover"
+                                      <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex flex-col items-center justify-center p-8">
+                                        <IconFile
+                                          size={64}
+                                          className="text-primary"
                                         />
+                                        <p className="text-sm font-medium mt-2">
+                                          {selectedRuleFile?.name ||
+                                            "Rules Document Uploaded"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          File Size:{" "}
+                                          {(
+                                            (selectedRuleFile?.size || 0) /
+                                            1024 /
+                                            1024
+                                          ).toFixed(2)}{" "}
+                                          MB
+                                        </p>
                                       </div>
 
                                       <div className="flex gap-2">
@@ -1704,22 +1886,23 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                   <input
                                     ref={rulesFileInputRef}
                                     type="file"
-                                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                                    // CHANGED ACCEPT ATTRIBUTE
+                                    accept=".pdf,application/pdf,.doc,application/msword,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                     className="hidden"
                                     onChange={(e) => {
                                       const file = e.target.files?.[0];
                                       if (!file) return;
 
-                                      if (
-                                        ![
-                                          "image/png",
-                                          "image/jpeg",
-                                          "image/jpg",
-                                          "image/webp",
-                                        ].includes(file.type)
-                                      ) {
+                                      // NEW Validation List
+                                      const supportedTypes = [
+                                        "application/pdf",
+                                        "application/msword",
+                                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                      ];
+
+                                      if (!supportedTypes.includes(file.type)) {
                                         toast.error(
-                                          "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                          "Only PDF, DOC, or DOCX files are supported."
                                         );
                                         return;
                                       }
@@ -1740,31 +1923,39 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       )}
                     </div>
 
-                    <Button type="submit" disabled={isPending}>
+                    {/* CRITICAL FIX: Change to type="button" and manually call handleSubmit */}
+                    <Button
+                      type="button"
+                      onClick={form.handleSubmit(onSubmit)}
+                      disabled={isPending}
+                    >
                       Save Changes
                     </Button>
+                    {/* END CRITICAL FIX */}
                   </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>
           </form>
-          {/* ======================= STAGE CONFIG MODAL (Same as original) ======================= */}
+
+          {/* ======================= STAGE CONFIG MODAL (FIXED) ======================= */}
 
           <Dialog open={isStageModalOpen} onOpenChange={setIsStageModalOpen}>
-            <DialogContent className="flex max-h-[70vh] overflow-auto justify-start flex-col gap-0">
+            <DialogContent className="flex max-h-[90vh] overflow-auto justify-start flex-col gap-0">
               <DialogHeader>
                 <DialogTitle>
-                  {stageModalStep === 1 ? "Stage Details" : "Configure Groups"} 
+                  {stageModalStep === 1 ? "Stage Details" : "Configure Groups"}
                 </DialogTitle>
 
                 <p className="text-sm text-muted-foreground">
-                  Step {stageModalStep} of 2 Lorem ipsum dolor sit amet,
-                  consectetur adipisicing elit. Similique asperiores dolores
-                  perspiciatis reprehenderit, quo non nobis ab necessitatibus
-                  officia corporis.
+                  Step {stageModalStep} of 2 (Configuration for{" "}
+                  {editingStageIndex !== null
+                    ? stageNames[editingStageIndex]
+                    : "New Stage"}
+                  )
                 </p>
               </DialogHeader>
-              {/* MODAL STEP 1: Stage Basic Info */} 
+              {/* MODAL STEP 1: Stage Basic Info */}
               {stageModalStep === 1 && (
                 <div className="space-y-4">
                   <div>
@@ -1848,6 +2039,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </Select>
                   </div>
 
+                  {/* FIX: teams_qualifying_from_stage controlled component for number input */}
                   <div>
                     <label className="text-sm font-medium mb-2 block">
                       Teams Qualifying from this Stage
@@ -1856,16 +2048,28 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     <Input
                       type="number"
                       min={0}
-                      value={stageModalData.teams_qualifying_from_stage}
-                      onChange={(e) =>
+                      // Value must be string, map 0/undefined/null to "" for clean typing
+                      value={
+                        stageModalData.teams_qualifying_from_stage ===
+                          undefined ||
+                        stageModalData.teams_qualifying_from_stage === 0
+                          ? ""
+                          : stageModalData.teams_qualifying_from_stage
+                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
                         setStageModalData({
                           ...stageModalData,
-                          teams_qualifying_from_stage: Number(e.target.value),
-                        })
-                      }
+                          teams_qualifying_from_stage:
+                            // Convert to number, but use 0 if input is empty string
+                            val === "" ? 0 : Number(val),
+                        });
+                      }}
                     />
                   </div>
+                  {/* END FIX */}
 
+                  {/* FIX: number_of_groups controlled component for number input */}
                   <div>
                     <label className="text-sm font-medium mb-2 block">
                       Number of Groups
@@ -1874,12 +2078,21 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     <Input
                       type="number"
                       min={1}
-                      value={stageModalData.number_of_groups}
+                      // Value must be string, map 0/undefined/null to "" for clean typing
+                      value={
+                        stageModalData.number_of_groups === 0
+                          ? ""
+                          : stageModalData.number_of_groups
+                      }
                       onChange={(e) =>
-                        handleGroupCountChangeLogic(Number(e.target.value))
+                        handleGroupCountChangeLogic(
+                          // Convert to number, but use 0 if input is empty string
+                          e.target.value === "" ? 0 : Number(e.target.value)
+                        )
                       }
                     />
                   </div>
+                  {/* END FIX */}
 
                   <div className="pt-4 border-t">
                     <p className="text-sm text-zinc-400 mb-3">
@@ -1902,7 +2115,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   </div>
                 </div>
               )}
-              {/* MODAL STEP 2: Groups Configuration */} {" "}
+              {/* MODAL STEP 2: Groups Configuration */}
               {stageModalStep === 2 && (
                 <div className="space-y-2">
                   <div className="bg-primary/10 border border-primary/50 rounded-lg p-4">
@@ -1923,7 +2136,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       className="border rounded-lg p-4 space-y-4"
                     >
                       <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">Group {index + 1}</h4> 
+                        <h4 className="font-semibold">Group {index + 1}</h4>
                         <span className="text-xs text-zinc-500">
                           {group.group_name}
                         </span>
@@ -1985,6 +2198,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         </div>
                       </div>
 
+                      {/* FIX: teams_qualifying controlled component for number input */}
                       <div>
                         <label className="text-sm font-medium mb-2 block">
                           Teams Qualifying from this Group
@@ -1993,16 +2207,23 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         <Input
                           type="number"
                           min={1}
-                          value={group.teams_qualifying}
+                          // Value must be string, map 0/undefined/null to "" for clean typing
+                          value={
+                            group.teams_qualifying === 0
+                              ? ""
+                              : group.teams_qualifying
+                          }
                           onChange={(e) =>
                             updateGroupDetailLogic(
                               index,
                               "teams_qualifying",
-                              Number(e.target.value)
+                              // Convert to number, but use 0 if input is empty string
+                              e.target.value === "" ? 0 : Number(e.target.value)
                             )
                           }
                         />
                       </div>
+                      {/* END FIX */}
                     </div>
                   ))}
                 </div>
@@ -2057,7 +2278,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         setStageModalStep(2);
                       }}
                     >
-                      Next: Configure Groups{" "}
+                      Next: Configure Groups
                     </Button>
                   ) : (
                     <Button type="button" onClick={handleSaveStageLogic}>
@@ -2068,7 +2289,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </Form>{" "}
+        </Form>
       </div>
-    );
+    </div>
+  );
 }

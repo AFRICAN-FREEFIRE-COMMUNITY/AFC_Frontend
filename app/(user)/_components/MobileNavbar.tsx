@@ -123,7 +123,7 @@ export function MobileNavbar() {
             )}
           </div>
         </ScrollArea>
-        <SheetFooter>
+        <SheetFooter className="mb-5">
           {user === null ? (
             <>
               <Button variant={"secondary"}>
