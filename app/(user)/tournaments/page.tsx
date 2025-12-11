@@ -10,6 +10,7 @@ import Link from "next/link";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 // --- Types & Constants ---
 // Define the structure of an event
@@ -91,9 +92,7 @@ const EventsPage = () => {
       setEvents(data.events || []);
     } catch (err) {
       console.error("Failed to fetch events:", err);
-      setError(
-        "Failed to load events. Please check the API endpoint and try again."
-      );
+      toast.error("Failed to load events");
     } finally {
       setIsLoading(false);
     }

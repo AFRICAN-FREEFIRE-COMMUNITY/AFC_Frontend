@@ -101,6 +101,7 @@ interface EventDetails {
   stages: Stage[];
   event_banner_url: string | null;
   uploaded_rules_url: string | null;
+  is_registered: boolean;
 }
 
 interface ApiResponse {
@@ -903,12 +904,17 @@ const EventDetailPage = ({ params }: { params: Params }) => {
       </Card>
 
       <div className="text-center mt-6">
-        {eventDetails.event_type === "external" ? (
+        {eventDetails.is_registered ? (
+          <Button disabled>You've registered already</Button>
+        ) : eventDetails.event_type === "external" ? (
           <Button
             onClick={() =>
               window.open(eventDetails.registration_link, "_blank")
             }
-            disabled={eventDetails.event_status !== "upcoming"}
+            disabled={
+              eventDetails.event_status !== "upcoming" ||
+              eventDetails.is_registered
+            }
           >
             {eventDetails.event_status === "upcoming"
               ? "Register (External Link)"
@@ -917,7 +923,10 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         ) : (
           <Button
             onClick={handleRegisterClick}
-            disabled={eventDetails.event_status !== "upcoming"}
+            disabled={
+              eventDetails.event_status !== "upcoming" ||
+              eventDetails.is_registered
+            }
           >
             Register for Tournament
           </Button>
