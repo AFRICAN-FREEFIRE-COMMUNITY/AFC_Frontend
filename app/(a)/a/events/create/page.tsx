@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition, useRef } from "react";
+import React, { useState, useTransition, useRef, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -78,31 +78,54 @@ const StageSchema = z.object({
   teams_qualifying_from_stage: z.coerce.number().min(0).optional(),
 });
 
-const EventFormSchema = z.object({
-  event_name: z.string().min(1, "Event name required"),
-  competition_type: z.string().min(1, "Competition type required"),
-  participant_type: z.string().min(1, "Participant type required"),
-  event_type: z.string().min(1, "Event type required"),
-  max_teams_or_players: z.coerce.number().min(1, "Max teams/players required"),
-  banner: z.string().optional(),
-  stream_channels: z.array(z.string()).optional(),
-  event_mode: z.string().min(1, "Event mode required"),
-  number_of_stages: z.coerce.number().min(1, "At least 1 stage required"),
-  stages: z.array(StageSchema).min(1, "At least one stage required"),
-  prizepool: z.string().min(1, "Prize pool required"),
-  prize_distribution: z.record(z.string(), z.coerce.number()),
-  event_rules: z.string().optional(),
-  rules_document: z.any().optional(),
-  start_date: z.string().min(1, "Start date required"),
-  end_date: z.string().min(1, "End date required"),
-  registration_open_date: z.string().min(1, "Registration open date required"),
-  registration_end_date: z.string().min(1, "Registration end date required"),
-  registration_link: z.string().optional().or(z.literal("")),
-  event_status: z.string().default("upcoming"),
-  publish_to_tournaments: z.boolean().default(false),
-  publish_to_news: z.boolean().default(false),
-  save_to_drafts: z.boolean().default(false),
-});
+const EventFormSchema = z
+  .object({
+    event_name: z.string().min(1, "Event name required"),
+    competition_type: z.string().min(1, "Competition type required"),
+    participant_type: z.string().min(1, "Participant type required"),
+    event_type: z.string().min(1, "Event type required"),
+    max_teams_or_players: z.coerce
+      .number()
+      .min(1, "Max teams/players required"),
+    banner: z.string().optional(),
+    stream_channels: z.array(z.string()).optional(),
+    event_mode: z.string().min(1, "Event mode required"),
+    number_of_stages: z.coerce.number().min(1, "At least 1 stage required"),
+    stages: z.array(StageSchema).min(1, "At least one stage required"),
+    prizepool: z.string().min(1, "Prize pool required"),
+    prize_distribution: z.record(z.string(), z.coerce.number()),
+    event_rules: z.string().optional(),
+    rules_document: z.any().optional(),
+    start_date: z.string().min(1, "Start date required"),
+    end_date: z.string().min(1, "End date required"),
+    registration_open_date: z
+      .string()
+      .min(1, "Registration open date required"),
+    registration_end_date: z.string().min(1, "Registration end date required"),
+    registration_link: z.string().optional().or(z.literal("")),
+    event_status: z.string().default("upcoming"),
+    publish_to_tournaments: z.boolean().default(false),
+    publish_to_news: z.boolean().default(false),
+    save_to_drafts: z.boolean().default(false),
+  })
+  .refine(
+    (data) => {
+      // Logic: If 'save_to_drafts' is true, ALL publish options must be false.
+      if (data.save_to_drafts) {
+        return !data.publish_to_tournaments && !data.publish_to_news;
+      }
+      // Logic: If ANY publish option is true, 'save_to_drafts' must be false.
+      if (data.publish_to_tournaments || data.publish_to_news) {
+        return !data.save_to_drafts;
+      }
+      return true; // Allows all other combinations (e.g., all false)
+    },
+    {
+      message:
+        "An event cannot be saved as a draft and published simultaneously.",
+      path: ["save_to_drafts"], // The error will be attached to the 'save_to_drafts' field
+    }
+  );
 
 type EventFormType = z.infer<typeof EventFormSchema>;
 type StageType = z.infer<typeof StageSchema>;
@@ -546,7 +569,23 @@ export default function Page() {
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
-        formData.append("event_status", data.event_status);
+        let finalEventStatus = data.event_status;
+        if (data.save_to_drafts) {
+          // If the user checked 'Save as Draft', override the status.
+          // Assuming your backend recognizes 'draft'
+          finalEventStatus = "draft";
+        } else if (finalEventStatus === "draft") {
+          // If the initial state was 'draft' and the user did NOT check 'Save as Draft',
+          // but a different status hasn't been set, revert to 'upcoming' or keep original state.
+          // For editing, let's keep the user-selected/default status unless 'Save as Draft' is explicitly checked.
+          // We keep the logic simple: if 'save_to_drafts' is checked, it's a draft. Otherwise, use the form's status.
+        }
+
+        // NOTE: Many APIs use an explicit 'is_draft: true/false' flag for simplicity.
+        // If your backend API expects an explicit 'is_draft' boolean field:
+        formData.append("is_draft", data.save_to_drafts.toString());
+        // If your backend API expects the status to be changed:
+        formData.append("event_status", finalEventStatus);
         formData.append("number_of_stages", data.number_of_stages.toString());
         formData.append("start_date", data.start_date);
         formData.append("end_date", data.end_date);
@@ -604,6 +643,7 @@ export default function Page() {
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           const textResponse = await response.text();
+
           console.error("Non-JSON Response:", textResponse);
           toast.error(
             "Server error: Received unexpected response format. Check console for details."
@@ -630,6 +670,46 @@ export default function Page() {
       }
     });
   };
+
+  const saveToDraftsWatch = form.watch("save_to_drafts");
+  const publishToTournamentsWatch = form.watch("publish_to_tournaments");
+  const publishToNewsWatch = form.watch("publish_to_news");
+
+  const isDraftChecked = saveToDraftsWatch;
+  const isPublishChecked = publishToTournamentsWatch || publishToNewsWatch;
+
+  // This effect enforces the mutual exclusivity by resetting the opposite field
+  // when one state becomes true.
+  useEffect(() => {
+    // If draft is checked, uncheck all publish options
+    if (isDraftChecked && isPublishChecked) {
+      if (publishToTournamentsWatch) {
+        form.setValue("publish_to_tournaments", false);
+      }
+      if (publishToNewsWatch) {
+        form.setValue("publish_to_news", false);
+      }
+      // Show a message to the user that we corrected their choice
+      toast.info(
+        "Draft mode selected. Publishing options automatically unchecked."
+      );
+    }
+    // If any publish is checked, uncheck draft
+    else if (isPublishChecked && isDraftChecked) {
+      form.setValue("save_to_drafts", false);
+      // Show a message to the user that we corrected their choice
+      toast.info("Publishing selected. Draft mode automatically unchecked.");
+    }
+  }, [
+    isDraftChecked,
+    isPublishChecked,
+    publishToTournamentsWatch,
+    publishToNewsWatch,
+    form, // dependency for react-hook-form
+  ]);
+
+  const hasFinalAction =
+    saveToDraftsWatch || publishToTournamentsWatch || publishToNewsWatch;
 
   return (
     <div>
@@ -1236,7 +1316,7 @@ export default function Page() {
                         <FormLabel>Total Prize Pool</FormLabel>
                         <FormControl>
                           <Input
-                            type="text" // Keeping this as text input
+                            type="number" // Keeping this as text input
                             // Value must be string, map undefined/null/empty string to "" for clean typing
                             value={
                               field.value === undefined || field.value === null
@@ -1533,7 +1613,7 @@ export default function Page() {
                       Where would you like to publish this event?
                     </p>
 
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="publish_to_tournaments"
                       render={({ field }) => (
@@ -1549,9 +1629,29 @@ export default function Page() {
                           </FormLabel>
                         </FormItem>
                       )}
-                    />
+                    /> */}
 
                     <FormField
+                      control={form.control}
+                      name="publish_to_tournaments"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              // DISABLE if Draft is currently checked
+                              disabled={saveToDraftsWatch}
+                            />
+                          </FormControl>
+                          <FormLabel className="!mt-0 cursor-pointer">
+                            Publish to Tournaments
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* <FormField
                       control={form.control}
                       name="publish_to_news"
                       render={({ field }) => (
@@ -1567,7 +1667,7 @@ export default function Page() {
                           </FormLabel>
                         </FormItem>
                       )}
-                    />
+                    /> */}
 
                     <FormField
                       control={form.control}
@@ -1578,10 +1678,14 @@ export default function Page() {
                             <Checkbox
                               checked={field.value}
                               onCheckedChange={field.onChange}
+                              // DISABLE if ANY publishing option is currently checked
+                              disabled={
+                                publishToTournamentsWatch || publishToNewsWatch
+                              }
                             />
                           </FormControl>
                           <FormLabel className="!mt-0 cursor-pointer">
-                            Save to Drafts
+                            Save as Draft
                           </FormLabel>
                         </FormItem>
                       )}
@@ -1628,10 +1732,30 @@ export default function Page() {
                   //   {isPending ? "Creating..." : "Create Event"}
                   // </Button>
 
+                  // <Button
+                  //   type="button" // <--- CRITICAL CHANGE: Prevent Enter-key submission
+                  //   onClick={form.handleSubmit(onSubmit)} // <--- Call submission function directly on click
+                  //   disabled={
+                  //     currentStep !== 7 ||
+                  //     isPending ||
+                  //     !saveToDraftsWatch ||
+                  //     !publishToNewsWatch
+                  //   } // Ensure button is only active on step 7
+                  // >
+                  //   {isPending ? "Creating..." : "Create Event"}
+                  // </Button>
+
                   <Button
-                    type="button" // <--- CRITICAL CHANGE: Prevent Enter-key submission
-                    onClick={form.handleSubmit(onSubmit)} // <--- Call submission function directly on click
-                    disabled={currentStep !== 7 || isPending} // Ensure button is only active on step 7
+                    type="button"
+                    onClick={form.handleSubmit(onSubmit)}
+                    disabled={
+                      // Disable if NOT on the final step
+                      currentStep !== 7 ||
+                      // Disable if submission is pending
+                      isPending ||
+                      // Disable if the user has NOT selected any final action (Draft or Publish)
+                      !hasFinalAction
+                    }
                   >
                     {isPending ? "Creating..." : "Create Event"}
                   </Button>

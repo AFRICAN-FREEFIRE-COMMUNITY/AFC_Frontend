@@ -692,6 +692,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ event_id: id }),
         }
