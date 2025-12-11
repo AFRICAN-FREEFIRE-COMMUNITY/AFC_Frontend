@@ -45,14 +45,13 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
         <p className="text-sm text-muted-foreground">Date: {formattedDate}</p>
 
         <p className="text-sm text-muted-foreground">
-          Status:
+          Status:{" "}
           {event.event_status.charAt(0).toUpperCase() +
             event.event_status.slice(1)}
         </p>
 
         <Button className="w-full" variant={"outline"} asChild>
-          {/* Link assumes the correct structure for EditEventPage: /a/events?id=... or a path */}
-          <Link href={`/a/events?id=${event.event_id}`}>View Tournament</Link>
+          <Link href={`/tournaments/${event.event_id}`}>View Tournament</Link>
         </Button>
       </CardContent>
     </Card>
