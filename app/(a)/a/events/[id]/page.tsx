@@ -253,14 +253,22 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             {uploaded_rules_url ? (
               <p className="text-muted-foreground text-xs md:text-sm">
                 Rules provided via document:{" "}
-                <Link
+                {/* <Link
                   href={uploaded_rules_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:underline"
                 >
                   View Document
-                </Link>
+                </Link> */}
+                <Button
+                  type="button"
+                  variant="link"
+                  className="p-0 h-auto text-sm text-yellow-400 hover:text-yellow-300"
+                  onClick={() => window.open(uploaded_rules_url, "_blank")}
+                >
+                  Download Official Rules Document
+                </Button>
               </p>
             ) : event_rules && event_rules.trim().length > 0 ? (
               <p className="text-muted-foreground text-xs md:text-sm whitespace-pre-line">

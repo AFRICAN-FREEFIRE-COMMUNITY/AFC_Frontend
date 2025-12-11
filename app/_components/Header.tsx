@@ -19,7 +19,7 @@ export const Header = () => {
         <Link href={"/"} className="flex items-center space-x-2">
           <Logo size="small" />
           <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
-            Africa Freefire Community
+            African Freefire Community
           </span>
         </Link>
 

@@ -98,31 +98,54 @@ const StageSchema = z.object({
   teams_qualifying_from_stage: z.coerce.number().min(0).optional(),
 });
 
-const EventFormSchema = z.object({
-  event_name: z.string().min(1, "Event name required"),
-  competition_type: z.string().min(1, "Competition type required"),
-  participant_type: z.string().min(1, "Participant type required"),
-  event_type: z.string().min(1, "Event type required"),
-  max_teams_or_players: z.coerce.number().min(1, "Max teams/players required"),
-  banner: z.string().optional(),
-  stream_channels: z.array(z.string()).optional(),
-  event_mode: z.string().min(1, "Event mode required"),
-  number_of_stages: z.coerce.number().min(1, "At least 1 stage required"),
-  stages: z.array(StageSchema).min(1, "At least one stage required"),
-  prizepool: z.string().min(1, "Prize pool required"),
-  prize_distribution: z.record(z.string(), z.coerce.number()),
-  event_rules: z.string().optional(),
-  rules_document: z.string().optional(),
-  start_date: z.string().min(1, "Start date required"),
-  end_date: z.string().min(1, "End date required"),
-  registration_open_date: z.string().min(1, "Registration open date required"),
-  registration_end_date: z.string().min(1, "Registration end date required"),
-  registration_link: z.string().optional().or(z.literal("")),
-  event_status: z.string().default("upcoming"),
-  publish_to_tournaments: z.boolean().default(false),
-  publish_to_news: z.boolean().default(false),
-  save_to_drafts: z.boolean().default(false),
-});
+const EventFormSchema = z
+  .object({
+    event_name: z.string().min(1, "Event name required"),
+    competition_type: z.string().min(1, "Competition type required"),
+    participant_type: z.string().min(1, "Participant type required"),
+    event_type: z.string().min(1, "Event type required"),
+    max_teams_or_players: z.coerce
+      .number()
+      .min(1, "Max teams/players required"),
+    banner: z.string().optional(),
+    stream_channels: z.array(z.string()).optional(),
+    event_mode: z.string().min(1, "Event mode required"),
+    number_of_stages: z.coerce.number().min(1, "At least 1 stage required"),
+    stages: z.array(StageSchema).min(1, "At least one stage required"),
+    prizepool: z.string().min(1, "Prize pool required"),
+    prize_distribution: z.record(z.string(), z.coerce.number()),
+    event_rules: z.string().optional(),
+    rules_document: z.any().optional(),
+    start_date: z.string().min(1, "Start date required"),
+    end_date: z.string().min(1, "End date required"),
+    registration_open_date: z
+      .string()
+      .min(1, "Registration open date required"),
+    registration_end_date: z.string().min(1, "Registration end date required"),
+    registration_link: z.string().optional().or(z.literal("")),
+    event_status: z.string().default("upcoming"),
+    publish_to_tournaments: z.boolean().default(false),
+    publish_to_news: z.boolean().default(false),
+    save_to_drafts: z.boolean().default(false),
+  })
+  .refine(
+    (data) => {
+      // Logic: If 'save_to_drafts' is true, ALL publish options must be false.
+      if (data.save_to_drafts) {
+        return !data.publish_to_tournaments && !data.publish_to_news;
+      }
+      // Logic: If ANY publish option is true, 'save_to_drafts' must be false.
+      if (data.publish_to_tournaments || data.publish_to_news) {
+        return !data.save_to_drafts;
+      }
+      return true; // Allows all other combinations (e.g., all false)
+    },
+    {
+      message:
+        "An event cannot be saved as a draft and published simultaneously.",
+      path: ["save_to_drafts"], // The error will be attached to the 'save_to_drafts' field
+    }
+  );
 
 type EventFormType = z.infer<typeof EventFormSchema>;
 type StageType = z.infer<typeof StageSchema>;
@@ -222,8 +245,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       number_of_stages: 1,
       stages: [],
       prizepool: "",
-      prize_distribution: { "1st": 0, "2nd": 0, "3rd": 0 },
-      event_rules: "",
+      prize_distribution: { "1": 0, "2": 0, "3": 0 }, // <-- FIXED SIMPLE KEYS      event_rules: "",
       rules_document: "",
       start_date: "",
       end_date: "",
@@ -619,6 +641,20 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   // Prize Distribution Logic (Same as original)
   const prizeDistribution = form.watch("prize_distribution") || {};
 
+  const addPrizePosition = () => {
+    const current = { ...prizeDistribution };
+    // Find next numeric key
+    const numericKeys = Object.keys(current)
+      .map((key) => parseInt(key.replace(/[^0-9]/g, "")))
+      .filter((n) => !isNaN(n));
+    const nextPos = (numericKeys.length > 0 ? Math.max(...numericKeys) : 0) + 1;
+
+    form.setValue("prize_distribution", {
+      ...current,
+      [`${nextPos}`]: 0, // <-- USE SIMPLE KEY
+    });
+  };
+
   const addStreamChannel = () => appendStream("");
   const addPrizePositionLogic = () => {
     const current = { ...prizeDistribution };
@@ -782,10 +818,299 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   //   });
   // };
 
+  // const onSubmit = async (data: EventFormType) => {
+  //   if (!eventDetails?.event_id) return toast.error("Event ID is missing");
+
+  //   // 1. Perform final validation check before submission
+  //   const isValid = await form.trigger();
+  //   if (!isValid) {
+  //     toast.error("Please correct the errors in the form before saving.");
+  //     return;
+  //   }
+
+  //   startTransition(async () => {
+  //     try {
+  //       // Use selectedFile and selectedRuleFile state variables, NOT refs to access files.
+  //       // The refs are now primarily for manual file trigger/clearing.
+
+  //       const formData = new FormData();
+
+  //       // Ensure Event ID is the first field and is required for PUT/POST update logic
+  //       formData.append("event_id", eventDetails.event_id.toString());
+
+  //       // --- 1. HANDLE FILES ---
+  //       if (selectedFile) {
+  //         // Only append the File object if a NEW file was selected/dropped
+  //         formData.append("event_banner", selectedFile);
+  //       } else if (data.banner && !data.banner.startsWith("http")) {
+  //         // If the 'banner' field has a name but no new file, it means the user cleared it
+  //         // Or if the backend expects the URL field to be cleared
+  //         // This is complex, but generally, if selectedFile is null, do nothing unless the backend expects a flag.
+  //       } else if (data.banner && data.banner.startsWith("http")) {
+  //         // If banner is an old URL, we don't send the file key,
+  //         // but we might need to send a flag if the backend requires it.
+  //         // Assuming backend retains old file if 'event_banner' field is absent.
+  //       }
+
+  //       if (selectedRuleFile) {
+  //         // Only append the File object if a NEW rule file was selected/dropped
+  //         formData.append("uploaded_rules", selectedRuleFile);
+  //       } else if (data.rules_document) {
+  //         // If rules_document is a string URL, and selectedRuleFile is null,
+  //         // we assume the backend retains the file. If rulesInputMethod is 'upload'
+  //         // and selectedRuleFile is null, it means no change.
+  //       }
+
+  //       // --- 2. APPEND STRING/PRIMITIVE FIELDS ---
+  //       formData.append("event_name", data.event_name);
+  //       formData.append("competition_type", data.competition_type);
+  //       formData.append("participant_type", data.participant_type);
+  //       formData.append("event_type", data.event_type);
+  //       formData.append(
+  //         "max_teams_or_players",
+  //         data.max_teams_or_players.toString()
+  //       );
+  //       formData.append("event_mode", data.event_mode);
+  //       formData.append("prizepool", data.prizepool);
+  //       formData.append("event_status", data.event_status);
+  //       formData.append("number_of_stages", data.number_of_stages.toString());
+  //       formData.append("start_date", data.start_date);
+  //       formData.append("end_date", data.end_date);
+  //       formData.append("registration_open_date", data.registration_open_date);
+  //       formData.append("registration_end_date", data.registration_end_date);
+  //       formData.append("registration_link", data.registration_link || "");
+
+  //       // Append Boolean fields as strings
+  //       formData.append(
+  //         "publish_to_tournaments",
+  //         data.publish_to_tournaments.toString()
+  //       );
+  //       formData.append("publish_to_news", data.publish_to_news.toString());
+  //       formData.append("save_to_drafts", data.save_to_drafts.toString());
+
+  //       // Append Event Rules Text (only if typed/kept as text)
+  //       if (rulesInputMethod === "type") {
+  //         formData.append("event_rules", data.event_rules || "");
+  //         // Ensure backend doesn't try to reuse an old uploaded file if text rules are now active
+  //         formData.append("uploaded_rules", "");
+  //       } else {
+  //         formData.append("event_rules", "");
+  //         // If 'upload' is selected but no new file is present, the field 'uploaded_rules' will be empty
+  //         // The backend must handle this by retaining the old file/URL (eventDetails.uploaded_rules_url).
+  //       }
+
+  //       // --- 3. APPEND COMPLEX JSON FIELDS (Crucial for Stages & Prizes) ---
+
+  //       // Prize Distribution: Must be stringified
+  //       formData.append(
+  //         "prize_distribution",
+  //         JSON.stringify(data.prize_distribution)
+  //       );
+
+  //       // Stream Channels: Must be stringified array
+  //       formData.append(
+  //         "stream_channels",
+  //         JSON.stringify(
+  //           data.stream_channels?.filter((s) => s.trim() !== "") || []
+  //         )
+  //       );
+
+  //       // Stages: Must be stringified array
+  //       // NOTE: Ensure your backend can parse this JSON string for 'stages'
+  //       formData.append("stages", JSON.stringify(data.stages));
+
+  //       // --- 4. SUBMISSION ---
+
+  //       // It's common practice to use PUT or PATCH for updates, but using POST is fine if
+  //       // your API endpoint is designed to handle updates based on the 'event_id' in the payload.
+  //       const response = await fetch(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, // Assuming this endpoint handles both create/update via event_id
+  //         {
+  //           method: "POST",
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //             // NOTE: DO NOT set Content-Type header for FormData!
+  //           },
+  //           body: formData,
+  //         }
+  //       );
+
+  //       // --- Server Response Handling ---
+  //       const contentType = response.headers.get("content-type");
+  //       if (!contentType || !contentType.includes("application/json")) {
+  //         const textResponse = await response.text();
+  //         console.error("Non-JSON Response (Backend Error):", textResponse);
+  //         toast.error(
+  //           "Server error: Received unexpected response format. Check console for details."
+  //         );
+  //         return;
+  //       }
+
+  //       const res = await response.json();
+
+  //       if (response.ok) {
+  //         toast.success("Event updated successfully!");
+  //         // Re-fetch data or update local state to reflect successful changes
+  //         // This is necessary if the user expects to see new stages/info upon tab change.
+  //       } else {
+  //         console.error("Server Error:", res);
+  //         toast.error(
+  //           res.message ||
+  //             res.detail ||
+  //             "Failed to update event. Please check your inputs."
+  //         );
+  //       }
+  //     } catch (error) {
+  //       console.error("Error:", error);
+  //       toast.error("An unexpected error occurred during submission.");
+  //     }
+  //   });
+  // };
+  const formatPrizeKey = (key: string) => {
+    if (key.endsWith("Place")) {
+      key = key.split(" ")[0];
+    }
+    const numericPart = parseInt(key.replace(/[^0-9]/g, ""));
+    if (isNaN(numericPart)) return key;
+
+    const suffix =
+      numericPart === 1
+        ? "st"
+        : numericPart === 2
+        ? "nd"
+        : numericPart === 3
+        ? "rd"
+        : "th";
+    return `${numericPart}${suffix} Place`;
+  };
+
+  // const onSubmit = async (data: EventFormType) => {
+  //   if (!eventDetails?.event_id) return toast.error("Event ID is missing");
+
+  //   const isValid = await form.trigger();
+  //   if (!isValid) {
+  //     toast.error("Please correct the errors in the form before saving.");
+  //     return;
+  //   }
+
+  //   startTransition(async () => {
+  //     try {
+  //       const formData = new FormData();
+
+  //       // Ensure Event ID is the first field and is required for POST/PATCH update logic
+  //       formData.append("event_id", eventDetails.event_id.toString());
+
+  //       // --- 1. HANDLE FILES ---
+  //       // Only append the File object if a NEW file was selected/dropped
+  //       if (selectedFile) {
+  //         formData.append("event_banner", selectedFile);
+  //       }
+  //       if (selectedRuleFile) {
+  //         formData.append("uploaded_rules", selectedRuleFile);
+  //       }
+
+  //       // --- 2. APPEND PRIMITIVE FIELDS ---
+  //       formData.append("event_name", data.event_name);
+  //       formData.append("competition_type", data.competition_type);
+  //       formData.append("participant_type", data.participant_type);
+  //       formData.append("event_type", data.event_type);
+  //       formData.append(
+  //         "max_teams_or_players",
+  //         data.max_teams_or_players.toString()
+  //       );
+  //       formData.append("event_mode", data.event_mode);
+  //       formData.append("prizepool", data.prizepool);
+  //       formData.append("event_status", data.event_status);
+  //       formData.append("number_of_stages", data.number_of_stages.toString());
+  //       formData.append("start_date", data.start_date);
+  //       formData.append("end_date", data.end_date);
+  //       formData.append("registration_open_date", data.registration_open_date);
+  //       formData.append("registration_end_date", data.registration_end_date);
+  //       formData.append("registration_link", data.registration_link || "");
+
+  //       // Append Boolean fields as strings
+  //       formData.append(
+  //         "publish_to_tournaments",
+  //         data.publish_to_tournaments.toString()
+  //       );
+  //       formData.append("publish_to_news", data.publish_to_news.toString());
+  //       formData.append("save_to_drafts", data.save_to_drafts.toString());
+
+  //       // Append Event Rules Text (CONDITIONAL)
+  //       if (rulesInputMethod === "type") {
+  //         formData.append("event_rules", data.event_rules || "");
+  //         // If typed rules are used, explicitly clear the uploaded_rules field on the backend
+  //         formData.append("uploaded_rules", "");
+  //       } else {
+  //         formData.append("event_rules", "");
+  //       }
+
+  //       // --- 3. APPEND COMPLEX JSON STRINGS (FIX for "must be a JSON object" error) ---
+
+  //       // Prize Distribution: Must be stringified
+  //       formData.append(
+  //         "prize_distribution",
+  //         JSON.stringify(data.prize_distribution)
+  //       );
+
+  //       // Stream Channels: Must be stringified array
+  //       formData.append(
+  //         "stream_channels",
+  //         JSON.stringify(
+  //           data.stream_channels?.filter((s) => s.trim() !== "") || []
+  //         )
+  //       );
+
+  //       // Stages: Must be stringified array
+  //       formData.append("stages", JSON.stringify(data.stages));
+
+  //       // --- 4. SUBMISSION ---
+
+  //       const response = await fetch(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, // Using the assumed edit endpoint
+  //         {
+  //           method: "POST", // Assumed method based on original code structure
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //             // NOTE: DO NOT set Content-Type header for FormData!
+  //           },
+  //           body: formData,
+  //         }
+  //       );
+
+  //       // --- Server Response Handling ---
+  //       const contentType = response.headers.get("content-type");
+  //       if (!contentType || !contentType.includes("application/json")) {
+  //         const textResponse = await response.text();
+  //         console.error("Non-JSON Response (Backend Error):", textResponse);
+  //         toast.error("Server error: Received unexpected response format.");
+  //         return;
+  //       }
+
+  //       const res = await response.json();
+
+  //       if (response.ok) {
+  //         toast.success("Event updated successfully!");
+  //         // Re-fetch data to sync UI with backend changes, or redirect
+  //         // router.push(`/a/events`);
+  //       } else {
+  //         console.error("Server Error:", res);
+  //         toast.error(
+  //           res.message ||
+  //             res.detail ||
+  //             "Failed to update event. Please check your inputs."
+  //         );
+  //       }
+  //     } catch (error) {
+  //       console.error("Error:", error);
+  //       toast.error("An unexpected error occurred during submission.");
+  //     }
+  //   });
+  // };
+
   const onSubmit = async (data: EventFormType) => {
     if (!eventDetails?.event_id) return toast.error("Event ID is missing");
 
-    // 1. Perform final validation check before submission
     const isValid = await form.trigger();
     if (!isValid) {
       toast.error("Please correct the errors in the form before saving.");
@@ -794,38 +1119,46 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     startTransition(async () => {
       try {
-        // Use selectedFile and selectedRuleFile state variables, NOT refs to access files.
-        // The refs are now primarily for manual file trigger/clearing.
-
         const formData = new FormData();
 
-        // Ensure Event ID is the first field and is required for PUT/POST update logic
+        // =======================================================
+        // 🚨 Core Logic for Save to Draft 🚨
+        // We use a flag (like 'is_draft') or modify 'event_status'
+        // based on the checkbox. Since your schema has event_status: 'upcoming' by default,
+        // we will overwrite it if 'save_to_drafts' is checked.
+        // Assuming your backend supports 'draft' as a status.
+        // =======================================================
+        let finalEventStatus = data.event_status;
+        if (data.save_to_drafts) {
+          // If the user checked 'Save as Draft', override the status.
+          // Assuming your backend recognizes 'draft'
+          finalEventStatus = "draft";
+        } else if (finalEventStatus === "draft") {
+          // If the initial state was 'draft' and the user did NOT check 'Save as Draft',
+          // but a different status hasn't been set, revert to 'upcoming' or keep original state.
+          // For editing, let's keep the user-selected/default status unless 'Save as Draft' is explicitly checked.
+          // We keep the logic simple: if 'save_to_drafts' is checked, it's a draft. Otherwise, use the form's status.
+        }
+
+        // NOTE: Many APIs use an explicit 'is_draft: true/false' flag for simplicity.
+        // If your backend API expects an explicit 'is_draft' boolean field:
+        formData.append("is_draft", data.save_to_drafts.toString());
+        // If your backend API expects the status to be changed:
+        formData.append("event_status", finalEventStatus);
+        // =======================================================
+
+        // Ensure Event ID is the first field and is required for POST/PATCH update logic
         formData.append("event_id", eventDetails.event_id.toString());
 
         // --- 1. HANDLE FILES ---
         if (selectedFile) {
-          // Only append the File object if a NEW file was selected/dropped
           formData.append("event_banner", selectedFile);
-        } else if (data.banner && !data.banner.startsWith("http")) {
-          // If the 'banner' field has a name but no new file, it means the user cleared it
-          // Or if the backend expects the URL field to be cleared
-          // This is complex, but generally, if selectedFile is null, do nothing unless the backend expects a flag.
-        } else if (data.banner && data.banner.startsWith("http")) {
-          // If banner is an old URL, we don't send the file key,
-          // but we might need to send a flag if the backend requires it.
-          // Assuming backend retains old file if 'event_banner' field is absent.
         }
-
         if (selectedRuleFile) {
-          // Only append the File object if a NEW rule file was selected/dropped
           formData.append("uploaded_rules", selectedRuleFile);
-        } else if (data.rules_document) {
-          // If rules_document is a string URL, and selectedRuleFile is null,
-          // we assume the backend retains the file. If rulesInputMethod is 'upload'
-          // and selectedRuleFile is null, it means no change.
         }
 
-        // --- 2. APPEND STRING/PRIMITIVE FIELDS ---
+        // --- 2. APPEND PRIMITIVE FIELDS (Non-Draft Related) ---
         formData.append("event_name", data.event_name);
         formData.append("competition_type", data.competition_type);
         formData.append("participant_type", data.participant_type);
@@ -836,7 +1169,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
-        formData.append("event_status", data.event_status);
+        // formData.append("event_status", finalEventStatus); // ALREADY HANDLED ABOVE
         formData.append("number_of_stages", data.number_of_stages.toString());
         formData.append("start_date", data.start_date);
         formData.append("end_date", data.end_date);
@@ -850,28 +1183,23 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           data.publish_to_tournaments.toString()
         );
         formData.append("publish_to_news", data.publish_to_news.toString());
-        formData.append("save_to_drafts", data.save_to_drafts.toString());
+        // formData.append("save_to_drafts", data.save_to_drafts.toString()); // Only use this if backend expects it. Prefer the dedicated 'is_draft' field or 'event_status' change.
 
-        // Append Event Rules Text (only if typed/kept as text)
+        // Append Event Rules Text (CONDITIONAL)
         if (rulesInputMethod === "type") {
           formData.append("event_rules", data.event_rules || "");
-          // Ensure backend doesn't try to reuse an old uploaded file if text rules are now active
+          // If typed rules are used, explicitly clear the uploaded_rules field on the backend
           formData.append("uploaded_rules", "");
         } else {
           formData.append("event_rules", "");
-          // If 'upload' is selected but no new file is present, the field 'uploaded_rules' will be empty
-          // The backend must handle this by retaining the old file/URL (eventDetails.uploaded_rules_url).
         }
 
-        // --- 3. APPEND COMPLEX JSON FIELDS (Crucial for Stages & Prizes) ---
-
-        // Prize Distribution: Must be stringified
+        // --- 3. APPEND COMPLEX JSON STRINGS ---
         formData.append(
           "prize_distribution",
           JSON.stringify(data.prize_distribution)
         );
 
-        // Stream Channels: Must be stringified array
         formData.append(
           "stream_channels",
           JSON.stringify(
@@ -880,42 +1208,37 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
 
         // Stages: Must be stringified array
-        // NOTE: Ensure your backend can parse this JSON string for 'stages'
         formData.append("stages", JSON.stringify(data.stages));
 
         // --- 4. SUBMISSION ---
-
-        // It's common practice to use PUT or PATCH for updates, but using POST is fine if
-        // your API endpoint is designed to handle updates based on the 'event_id' in the payload.
         const response = await fetch(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`, // Assuming this endpoint handles both create/update via event_id
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
           {
             method: "POST",
             headers: {
               Authorization: `Bearer ${token}`,
-              // NOTE: DO NOT set Content-Type header for FormData!
             },
             body: formData,
           }
         );
 
-        // --- Server Response Handling ---
+        // ... (rest of the response handling)
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           const textResponse = await response.text();
           console.error("Non-JSON Response (Backend Error):", textResponse);
-          toast.error(
-            "Server error: Received unexpected response format. Check console for details."
-          );
+          toast.error("Server error: Received unexpected response format.");
           return;
         }
 
         const res = await response.json();
 
         if (response.ok) {
-          toast.success("Event updated successfully!");
-          // Re-fetch data or update local state to reflect successful changes
-          // This is necessary if the user expects to see new stages/info upon tab change.
+          toast.success(
+            `Event saved as ${
+              data.save_to_drafts ? "Draft" : "Finalized"
+            } successfully!`
+          );
         } else {
           console.error("Server Error:", res);
           toast.error(
@@ -930,6 +1253,44 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       }
     });
   };
+
+  const saveToDraftsWatch = form.watch("save_to_drafts");
+  const publishToTournamentsWatch = form.watch("publish_to_tournaments");
+  const publishToNewsWatch = form.watch("publish_to_news");
+
+  const isDraftChecked = saveToDraftsWatch;
+  const isPublishChecked = publishToTournamentsWatch || publishToNewsWatch;
+
+  // This effect enforces the mutual exclusivity by resetting the opposite field
+  // when one state becomes true.
+  useEffect(() => {
+    // If draft is checked, uncheck all publish options
+    if (isDraftChecked && isPublishChecked) {
+      if (publishToTournamentsWatch) {
+        form.setValue("publish_to_tournaments", false);
+      }
+      if (publishToNewsWatch) {
+        form.setValue("publish_to_news", false);
+      }
+      // Show a message to the user that we corrected their choice
+      toast.info(
+        "Draft mode selected. Publishing options automatically unchecked."
+      );
+    }
+    // If any publish is checked, uncheck draft
+    else if (isPublishChecked && isDraftChecked) {
+      form.setValue("save_to_drafts", false);
+      // Show a message to the user that we corrected their choice
+      toast.info("Publishing selected. Draft mode automatically unchecked.");
+    }
+  }, [
+    isDraftChecked,
+    isPublishChecked,
+    publishToTournamentsWatch,
+    publishToNewsWatch,
+    form, // dependency for react-hook-form
+  ]);
+
   if (initialLoading) {
     return <FullLoader />;
   }
@@ -1364,7 +1725,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     {/* Publish Options */}
                     <div className="space-y-3 pt-4 border-t">
                       <FormLabel>Publish Options</FormLabel>
-                      <FormField
+                      {/* <FormField
                         control={form.control}
                         name="publish_to_tournaments"
                         render={({ field }) => (
@@ -1380,8 +1741,27 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             </FormLabel>
                           </FormItem>
                         )}
-                      />
+                      /> */}
                       <FormField
+                        control={form.control}
+                        name="publish_to_tournaments"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                // DISABLE if Draft is currently checked
+                                disabled={saveToDraftsWatch}
+                              />
+                            </FormControl>
+                            <FormLabel className="!mt-0 cursor-pointer">
+                              Publish to Tournaments
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      {/* <FormField
                         control={form.control}
                         name="publish_to_news"
                         render={({ field }) => (
@@ -1397,7 +1777,24 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             </FormLabel>
                           </FormItem>
                         )}
-                      />
+                      /> */}
+                      {/* <FormField
+                        control={form.control}
+                        name="save_to_drafts"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="!mt-0 cursor-pointer">
+                              Save as Draft
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      /> */}
                       <FormField
                         control={form.control}
                         name="save_to_drafts"
@@ -1407,6 +1804,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               <Checkbox
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
+                                // DISABLE if ANY publishing option is currently checked
+                                disabled={
+                                  publishToTournamentsWatch ||
+                                  publishToNewsWatch
+                                }
                               />
                             </FormControl>
                             <FormLabel className="!mt-0 cursor-pointer">
@@ -1440,6 +1842,35 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   </CardHeader>
                   <CardContent className="relative">
                     <ComingSoon />
+                    <p>
+                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                      Earum quidem quisquam voluptates eius possimus dolor saepe
+                      maxime corporis numquam? Id nihil eveniet, rerum commodi,
+                      debitis exercitationem, similique sit recusandae nostrum
+                      reprehenderit quos autem consequatur animi non facere nemo
+                      minima? Iste quod sapiente natus repellendus nostrum
+                      praesentium aperiam nam! Nisi quas temporibus, rerum,
+                      animi blanditiis excepturi corporis harum nulla, officiis
+                      molestiae non. Facilis eaque, optio voluptatum dolore quos
+                      magni nemo? Quia esse unde accusantium praesentium qui
+                      mollitia sunt placeat id voluptas aspernatur eum in neque
+                      enim amet beatae dicta voluptate laborum, eveniet et
+                      molestiae magni voluptatum laudantium tempora? Possimus
+                      repellendus consequuntur vel ea culpa quibusdam saepe
+                      expedita, repudiandae maiores id, impedit accusamus sunt
+                      soluta unde. Odio velit ad iure quis soluta! Ducimus, cum,
+                      beatae, animi asperiores dignissimos reprehenderit
+                      suscipit commodi obcaecati voluptatem alias repellat sit
+                      dolorum omnis numquam nulla natus laborum saepe id. In,
+                      odio numquam quidem ipsa nam, minima, eos et dolores vel
+                      obcaecati consequatur quam cum excepturi mollitia quae.
+                      Non quo voluptates fugiat repellendus, ullam sint! Facere
+                      explicabo incidunt nobis aut id non error suscipit, nemo,
+                      adipisci totam aspernatur culpa ab similique fugiat
+                      impedit ullam. Corrupti distinctio consequatur est fuga
+                      quis consequuntur. Cumque, sapiente aut? Vero expedita
+                      quos fugit?
+                    </p>
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-700">
                         <thead>
@@ -1659,47 +2090,51 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     {/* Prize Distribution */}
                     <div className="space-y-3">
                       <FormLabel>Prize Distribution</FormLabel>
-                      {Object.entries(prizeDistribution).map(([key, value]) => (
-                        <div key={key} className="grid grid-cols-4 gap-2">
-                          <Input value={key} disabled className="col-span-1" />
-                          <div className="col-span-3 flex items-center justify-end gap-1">
-                            {/* FIX: Prize distribution input control */}
+                      {Object.entries(prizeDistribution).map(
+                        (
+                          [key, value] // key is now "1", "2", etc.
+                        ) => (
+                          <div key={key} className="grid grid-cols-4 gap-2">
+                            {/* Display the formatted key */}
                             <Input
-                              type="number"
-                              // If value is 0, display empty string for easier typing
-                              value={value === 0 ? "" : value}
-                              onChange={(e) => {
-                                const inputVal = e.target.value;
-                                const updated = { ...prizeDistribution };
-
-                                // Set to 0 if input is cleared, otherwise convert to Number
-                                updated[key] =
-                                  inputVal === "" ? 0 : Number(inputVal);
-
-                                form.setValue("prize_distribution", updated);
-                              }}
-                              placeholder="Earnings"
-                              className=""
+                              value={formatPrizeKey(key)}
+                              disabled
+                              className="col-span-1"
                             />
-                            {/* END FIX */}
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removePrizePositionLogic(key)}
-                              disabled={
-                                Object.keys(prizeDistribution).length <= 1
-                              }
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="col-span-3 flex items-center justify-end gap-1">
+                              <Input
+                                type="number"
+                                value={value === 0 ? "" : value}
+                                onChange={(e) => {
+                                  const inputVal = e.target.value;
+                                  const updated = { ...prizeDistribution };
+                                  updated[key] =
+                                    inputVal === "" ? 0 : Number(inputVal);
+                                  form.setValue("prize_distribution", updated, {
+                                    shouldDirty: true,
+                                  });
+                                }}
+                                placeholder="Earnings"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removePrizePosition(key)} // Pass the simple key
+                                disabled={
+                                  Object.keys(prizeDistribution).length <= 1
+                                }
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      )}
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={addPrizePositionLogic}
+                        onClick={addPrizePosition}
                       >
                         + Add Prize Position
                       </Button>

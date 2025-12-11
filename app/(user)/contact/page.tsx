@@ -15,7 +15,7 @@ export const metadata: Metadata = generatePageMetadata({
     "Get in touch with the African Freefire Community (AFC). Contact us via email, Discord, or social media for inquiries, partnerships, or support.",
   keywords: [
     "contact AFC",
-    "Free Fire Africa contact",
+    "Free Fire African contact",
     "AFC support",
     "esports inquiry Africa",
   ],

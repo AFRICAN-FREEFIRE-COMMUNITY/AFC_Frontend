@@ -9,7 +9,7 @@ export const metadata: Metadata = generatePageMetadata({
   keywords: [
     "about AFC",
     "African esports organization",
-    "Free Fire Africa mission",
+    "Free Fire African mission",
     "esports community Africa",
   ],
   url: "/about",
