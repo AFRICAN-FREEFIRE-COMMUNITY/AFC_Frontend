@@ -160,7 +160,7 @@ const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
         )}
 
         {/* Results Table - Matches the image layout */}
-        <div className="overflow-x-auto mt-4">
+        {/* <div className="overflow-x-auto mt-4">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="">
               <tr>
@@ -210,7 +210,7 @@ const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
               )}
             </tbody>
           </table>
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   );

@@ -697,15 +697,15 @@ export function CreateAccountForm() {
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel className="font-normal text-sm">
-                  I confirm that I have read and agree to the
+                <label htmlFor="terms" className="text-sm leading-relaxed">
+                  I confirm that I have read and agree to the{" "}
                   <Link
                     href="/terms-of-service"
                     className="text-primary hover:underline font-medium"
                   >
                     Terms of Service
-                  </Link>
-                  and
+                  </Link>{" "}
+                  and{" "}
                   <Link
                     href="/privacy-policy"
                     className="text-primary hover:underline font-medium"
@@ -713,7 +713,7 @@ export function CreateAccountForm() {
                     Privacy Policy
                   </Link>
                   .
-                </FormLabel>
+                </label>
                 <FormMessage />
               </div>
             </FormItem>
