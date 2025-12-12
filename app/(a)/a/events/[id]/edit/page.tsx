@@ -267,7 +267,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         const decodedId = decodeURIComponent(id);
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-          { event_id: decodedId }
+          { event_id: decodedId },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         const fetchedDetails: EventDetails = res.data.event_details;
 

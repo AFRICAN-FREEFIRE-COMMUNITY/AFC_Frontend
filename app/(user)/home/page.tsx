@@ -21,95 +21,8 @@ import { HomeBoxes } from "../_components/HomeBoxes";
 import { LatestNews } from "../_components/LatestNews";
 import { useState } from "react";
 import { ComingSoon } from "@/components/ComingSoon";
+import { quarterlyTiers, teamRankings } from "@/constants";
 
-const teamRankings = [
-  { rank: 1, team: "VENT ESPORTS", points: 52, tournamentWins: 2, kills: 446 },
-  {
-    rank: 2,
-    team: "XTREME JUNIORS",
-    points: 43,
-    tournamentWins: 2,
-    kills: 142,
-  },
-  { rank: 3, team: "OUTLAW NOOBZ", points: 31, tournamentWins: 1, kills: 126 },
-  { rank: 4, team: "JUST TRY", points: 30, tournamentWins: 1, kills: 254 },
-  { rank: 5, team: "ZENX", points: 30, tournamentWins: 1, kills: 298 },
-  { rank: 6, team: "WHYFAM", points: 29, tournamentWins: 1, kills: 186 },
-  { rank: 7, team: "NEXT ESP", points: 29, tournamentWins: 1, kills: 163 },
-  { rank: 8, team: "NEM JOGOU", points: 21, tournamentWins: 1, kills: 100 },
-  { rank: 9, team: "OS JACK'S", points: 21, tournamentWins: 1, kills: 63 },
-  { rank: 10, team: "BROTHERHOOD", points: 21, tournamentWins: 1, kills: 78 },
-];
-
-// Hard-coded tier data from Second Quarter Tiers
-const tierData = [
-  { team: "JUST TRY", tier: "Tier 1", points: 94, april: 53, may: 41, june: 0 },
-  {
-    team: "XTREME JUNIORS",
-    tier: "Tier 2",
-    points: 69,
-    april: 0,
-    may: 43,
-    june: 26,
-  },
-  {
-    team: "ITEL ESPORTS",
-    tier: "Tier 2",
-    points: 61,
-    april: 7,
-    may: 23,
-    june: 31,
-  },
-  {
-    team: "OUTLAWS NOOBZ",
-    tier: "Tier 2",
-    points: 53,
-    april: 7,
-    may: 43,
-    june: 3,
-  },
-  {
-    team: "VENT ESPORTS",
-    tier: "Tier 3",
-    points: 50,
-    april: 14,
-    may: 3,
-    june: 33,
-  },
-  {
-    team: "FEARLESS N SONS",
-    tier: "Tier 3",
-    points: 49,
-    april: 0,
-    may: 43,
-    june: 6,
-  },
-  {
-    team: "BROTHERS SA",
-    tier: "Tier 3",
-    points: 47,
-    april: 0,
-    may: 41,
-    june: 6,
-  },
-  {
-    team: "ALLSTARSNAIJA",
-    tier: "Tier 3",
-    points: 42,
-    april: 6,
-    may: 3,
-    june: 33,
-  },
-  {
-    team: "VALOR ESPORTS",
-    tier: "Tier 3",
-    points: 41,
-    april: 3,
-    may: 3,
-    june: 35,
-  },
-  { team: "NEXT ESP", tier: "Tier 3", points: 38, april: 3, may: 3, june: 32 },
-];
 // Mock data for shop items
 const shopItems = [
   {
@@ -139,10 +52,8 @@ export default function HomePage() {
         title="Welcome to AFC"
         description="Your hub for African Freefire community stats and events"
       />
-
       <HomeBoxes />
-
-      <div className="grid gap-4 md:grid-cols-2 mb-4">
+      <div className="grid gap-2 md:grid-cols-2 mb-4">
         <LatestNews />
 
         <Card className="relative overflow-hidden">
@@ -199,7 +110,7 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground mb-4">
                 Team rankings based on overall performance metrics
               </p>
-              <div className="overflow-x-auto rounded-md border">
+              <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -244,9 +155,9 @@ export default function HomePage() {
 
             <TabsContent value="tiers">
               <p className="text-sm text-muted-foreground mb-4">
-                Second quarter tier standings (April - June)
+                Third quarter tier standings (July - September)
               </p>
-              <div className="overflow-x-auto rounded-md border">
+              <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -259,7 +170,7 @@ export default function HomePage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {tierData.map((team) => (
+                    {quarterlyTiers.map((team) => (
                       <TableRow key={team.team}>
                         <TableCell>
                           <Badge
@@ -281,9 +192,9 @@ export default function HomePage() {
                         <TableCell className="font-medium">
                           {team.points}
                         </TableCell>
-                        <TableCell>{team.april}</TableCell>
-                        <TableCell>{team.may}</TableCell>
-                        <TableCell>{team.june}</TableCell>
+                        <TableCell>{team.july}</TableCell>
+                        <TableCell>{team.august}</TableCell>
+                        <TableCell>{team.september}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

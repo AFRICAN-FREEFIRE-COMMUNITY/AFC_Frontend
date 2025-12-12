@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEFAULT_IMAGE } from "@/constants";
+import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 // Assuming these utility functions exist and work as intended
 import { formatDate, formatMoneyInput } from "@/lib/utils";
@@ -66,6 +67,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const { id } = resolvedParams;
   const router = useRouter();
 
+  const { token } = useAuth();
+
   const [pending, startTransition] = useTransition();
   const [eventDetails, setEventDetails] = useState<EventDetails>();
 
@@ -77,7 +80,13 @@ const Page = ({ params }: { params: Promise<Params> }) => {
         const decodedId = decodeURIComponent(id);
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-          { event_id: decodedId }
+          { event_id: decodedId },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         // Ensure data path is correct based on your API response structure
         setEventDetails(res.data.event_details);

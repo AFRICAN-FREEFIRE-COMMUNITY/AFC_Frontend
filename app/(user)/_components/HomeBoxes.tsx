@@ -1,6 +1,5 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { formatMoneyInput } from "@/lib/utils";
 import {
@@ -10,25 +9,29 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import axios from "axios";
-import { BarChart2, Calendar, Trophy, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const HomeBoxes = () => {
   const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [totalTournaments, setTotalTournaments] = useState<number>(0);
 
   useEffect(() => {
     const fetchUsers = async () => {
       const users = await axios(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`
       );
+      const tournaments = await axios(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`
+      );
       setTotalUsers(users?.data?.total_users);
+      setTotalTournaments(tournaments?.data?.total_tournaments);
     };
 
     fetchUsers();
   }, []);
 
   return (
-    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4 mb-8">
+    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4 mb-4">
       <Card className="border-primary">
         <CardHeader>
           <IconTrophy className="h-8 w-8 text-gold mb-1" />
@@ -55,7 +58,9 @@ export const HomeBoxes = () => {
           <CardTitle>Upcoming Tournaments</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-gold">3</p>
+          <p className="text-4xl font-bold text-gold">
+            {formatMoneyInput(totalTournaments)}
+          </p>
         </CardContent>
       </Card>
       <Card className="border-primary">

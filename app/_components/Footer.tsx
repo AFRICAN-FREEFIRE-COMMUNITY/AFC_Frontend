@@ -16,85 +16,55 @@ export const Footer = () => {
               The premier Free Fire competitive platform for serious players.
             </p>
           </div>
-          {/*
-            <div>
-              <h4 className="font-semibold mb-4 text-primary">Platform</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="/tournaments"
-                    className="hover:text-primary transition-colors"
-                  >
-                    Tournaments
-                  </Link>
-                </li>
-                <li>
+
+          <div>
+            <h4 className="font-semibold mb-4 text-primary">Platform</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                <Link
+                  href="/tournaments"
+                  className="hover:text-primary transition-colors"
+                >
+                  Tournaments
+                </Link>
+              </li>
+              {/* <li>
                   <Link
                     href="/rankings"
                     className="hover:text-primary transition-colors"
                   >
                     Rankings
                   </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/teams"
-                    className="hover:text-primary transition-colors"
-                  >
-                    Teams
-                  </Link>
-                </li>
-                <li>
+                </li> */}
+              <li>
+                <Link
+                  href="/teams"
+                  className="hover:text-primary transition-colors"
+                >
+                  Teams
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/awards"
+                  className="hover:text-primary transition-colors"
+                >
+                  Awards
+                </Link>
+              </li>
+              {/* <li>
                   <Link
                     href="/players"
                     className="hover:text-primary transition-colors"
                   >
                     Players
                   </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4 text-primary">Community</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <Link
-                    href="/news"
-                    className="hover:text-primary transition-colors"
-                  >
-                    News
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about"
-                    className="hover:text-primary transition-colors"
-                  >
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="hover:text-primary transition-colors"
-                  >
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/shop"
-                    className="hover:text-primary transition-colors"
-                  >
-                    Shop
-                  </Link>
-                </li>
-              </ul>
-            </div> */}
+                </li> */}
+            </ul>
+          </div>
 
           <div>
-            <h4 className="font-semibold mb-4 text-primary">Support</h4>
+            <h4 className="font-semibold mb-4 text-primary">Community</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link
@@ -126,6 +96,36 @@ export const Footer = () => {
                   className="hover:text-primary transition-colors"
                 >
                   Teams
+                </Link>
+              </li>
+              {/* <li>
+                  <Link
+                    href="/shop"
+                    className="hover:text-primary transition-colors"
+                  >
+                    Shop
+                  </Link>
+                </li> */}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold mb-4 text-primary">Support</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                <Link
+                  href="/terms-of-service"
+                  className="hover:text-primary transition-colors"
+                >
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/privacy-policy"
+                  className="hover:text-primary transition-colors"
+                >
+                  Privacy Policy
                 </Link>
               </li>
             </ul>
