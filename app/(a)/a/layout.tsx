@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 import { useRouter } from "next/navigation";

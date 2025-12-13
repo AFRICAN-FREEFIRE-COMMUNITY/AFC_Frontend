@@ -45,7 +45,6 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { AFC_DISCORD_SERVER, DEFAULT_IMAGE } from "@/constants";
 import axios from "axios";
-import { ComingSoon } from "@/components/ComingSoon";
 import Image from "next/image";
 
 // --- Types for API Response ---
@@ -126,8 +125,6 @@ const MOCK_RESULTS_DATA = [
   },
 ];
 
-// --- Sub-Components ---
-
 const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
   const [isDatesVisible, setIsDatesVisible] = useState(true);
 
@@ -139,7 +136,6 @@ const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* View Stage Dates Toggle */}
         <div
           className="flex items-center justify-between cursor-pointer text-base font-semibold hover:text-primary"
           onClick={() => setIsDatesVisible(!isDatesVisible)}
@@ -158,59 +154,6 @@ const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
             <p>Stage End: {formatDate(stage.end_date)}</p>
           </div>
         )}
-
-        {/* Results Table - Matches the image layout */}
-        {/* <div className="overflow-x-auto mt-4">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead className="">
-              <tr>
-                {[
-                  "Rank",
-                  "Team",
-                  "Kill Points",
-                  "Placement Points",
-                  "Total Points",
-                ].map((header) => (
-                  <th
-                    key={header}
-                    className="px-6 py-3 text-left truncate text-xs font-medium tracking-wider"
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-background divide-y divide-gray-700 relative">
-              <ComingSoon />
-              {MOCK_RESULTS_DATA.map((result) => (
-                <tr key={result.rank} className="hover:">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                    {result.rank}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {result.team}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {result.kill_points}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {result.placement_points}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
-                    {result.total_points}
-                  </td>
-                </tr>
-              ))}
-              {MOCK_RESULTS_DATA.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center py-4 text-gray-500">
-                    No results available yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div> */}
       </CardContent>
     </Card>
   );

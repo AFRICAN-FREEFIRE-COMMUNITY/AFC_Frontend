@@ -100,3 +100,25 @@ export const formattedWord: Record<string, string> = {
   tier_3: "Tier 3",
   tier_4: "Tier 4",
 };
+
+export function calculateDaysDifference(
+  dateStr1: string,
+  dateStr2?: string
+): number {
+  const date1 = new Date(dateStr1);
+  const date2: any = date1 ? new Date(dateStr2) : new Date(); // <-- Error occurs here
+
+  // Set time to noon to avoid daylight saving/timezone issues in calculation
+  date1.setHours(12, 0, 0, 0);
+  date2.setHours(12, 0, 0, 0);
+
+  // Calculate the difference in milliseconds
+  const diffTime = date1.getTime() - date2.getTime();
+
+  // Convert milliseconds difference to days and round up (ceil)
+  // Math.ceil ensures that even if there is less than a full day remaining,
+  // it is still counted as 1 day left if the time is in the future.
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays;
+}

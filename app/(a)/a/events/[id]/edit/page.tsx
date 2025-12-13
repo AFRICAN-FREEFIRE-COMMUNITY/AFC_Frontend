@@ -63,10 +63,19 @@ import {
   IconFileText,
   IconPhoto,
   IconUpload,
+  IconUserMinus,
   IconX,
 } from "@tabler/icons-react";
 import Image from "next/image";
 import { FullLoader } from "@/components/Loader";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const formattedWord: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
@@ -79,6 +88,12 @@ const formattedWord: Record<string, string> = {
   "cs - double elimination": "Clash Squad - Double Elimination",
   "cs - round robin": "Clash Squad - Round Robin",
 };
+
+interface RegisteredTeamType {
+  team_name: string;
+  players: string; // Comma-separated list of player usernames
+  status: "active" | "disqualified" | "withdrawn";
+}
 
 // Define EventFormType and other schemas (omitted for brevity, assume they are present)
 const GroupSchema = z.object({
@@ -163,22 +178,56 @@ const STAGE_FORMATS = [
   "cs - round robin",
 ];
 
-// --- Mock Data (Omitted for brevity) ---
-const MOCK_REGISTERED_TEAMS = [
-  /* ... */
-];
 interface EventDetails {
-  /* ... */
   event_id: number;
-  event_name: string;
+  competition_type: string;
+  participant_type: string;
+  event_type: string;
   max_teams_or_players: number;
-  number_of_stages: number;
-  prize_distribution: { [key: string]: number };
-  stages: any[];
+  event_name: string;
+  event_mode: string;
+  start_date: string;
+  end_date: string;
+  registration_open_date: string;
+  registration_end_date: string;
+  prizepool: string;
+  prize_distribution: { [key: string]: number }; // Object mapping position to amount
+  event_rules: string;
+  event_status: string;
+  registration_link: string | null;
+  tournament_tier: string;
   event_banner_url: string | null;
   uploaded_rules_url: string | null;
-  // ... other properties
+  number_of_stages: number;
+  created_at: string;
+  is_registered: boolean;
+  stream_channels: string[];
+  registered_competitors: Array<{
+    player_id: number;
+    username: string;
+    status: string; // e.g., 'registered'
+    // Assuming team_name/region/etc. might be missing for solo/individual registrations
+  }>;
+  tournament_teams: any[];
+  stages: Array<{
+    id: number;
+    stage_name: string;
+    start_date: string;
+    end_date: string;
+    number_of_groups: number;
+    stage_format: string;
+    teams_qualifying_from_stage: number;
+    groups: Array<{
+      id: number;
+      group_name: string;
+      playing_date: string;
+      playing_time: string;
+      teams_qualifying: number;
+      matches: any[];
+    }>;
+  }>;
 }
+
 type Params = {
   id: string;
 };
@@ -221,6 +270,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [previewUrl, setPreviewUrl] = useState<string>(
     eventDetails?.event_banner_url ? eventDetails.event_banner_url : ""
   );
+
+  console.log(eventDetails);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedRuleFile, setSelectedRuleFile] = useState<File | null>(null);
@@ -401,7 +452,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   useEffect(() => {
     if (!eventId) {
       setInitialLoading(false);
-      setEventTitle("Create New Event");
+      setEventTitle("Edit Event");
       return;
     }
 
@@ -1326,23 +1377,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     {/* Publish Options */}
                     <div className="space-y-3 pt-4 border-t">
                       <FormLabel>Publish Options</FormLabel>
-                      {/* <FormField
-                        control={form.control}
-                        name="publish_to_tournaments"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormLabel className="!mt-0 cursor-pointer">
-                              Publish to Tournaments
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      /> */}
                       <FormField
                         control={form.control}
                         name="publish_to_tournaments"
@@ -1362,40 +1396,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           </FormItem>
                         )}
                       />
-                      {/* <FormField
-                        control={form.control}
-                        name="publish_to_news"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormLabel className="!mt-0 cursor-pointer">
-                              Publish to News & Updates
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      /> */}
-                      {/* <FormField
-                        control={form.control}
-                        name="save_to_drafts"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormLabel className="!mt-0 cursor-pointer">
-                              Save as Draft
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      /> */}
+
                       <FormField
                         control={form.control}
                         name="save_to_drafts"
@@ -1438,94 +1439,39 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 <Card>
                   <CardHeader>
                     <CardTitle>
-                      Registered Teams/Players ({MOCK_REGISTERED_TEAMS.length})
+                      Registered Teams/Players (
+                      {eventDetails?.registered_competitors.length})
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="relative">
-                    <ComingSoon />
-                    <p>
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Earum quidem quisquam voluptates eius possimus dolor saepe
-                      maxime corporis numquam? Id nihil eveniet, rerum commodi,
-                      debitis exercitationem, similique sit recusandae nostrum
-                      reprehenderit quos autem consequatur animi non facere nemo
-                      minima? Iste quod sapiente natus repellendus nostrum
-                      praesentium aperiam nam! Nisi quas temporibus, rerum,
-                      animi blanditiis excepturi corporis harum nulla, officiis
-                      molestiae non. Facilis eaque, optio voluptatum dolore quos
-                      magni nemo? Quia esse unde accusantium praesentium qui
-                      mollitia sunt placeat id voluptas aspernatur eum in neque
-                      enim amet beatae dicta voluptate laborum, eveniet et
-                      molestiae magni voluptatum laudantium tempora? Possimus
-                      repellendus consequuntur vel ea culpa quibusdam saepe
-                      expedita, repudiandae maiores id, impedit accusamus sunt
-                      soluta unde. Odio velit ad iure quis soluta! Ducimus, cum,
-                      beatae, animi asperiores dignissimos reprehenderit
-                      suscipit commodi obcaecati voluptatem alias repellat sit
-                      dolorum omnis numquam nulla natus laborum saepe id. In,
-                      odio numquam quidem ipsa nam, minima, eos et dolores vel
-                      obcaecati consequatur quam cum excepturi mollitia quae.
-                      Non quo voluptates fugiat repellendus, ullam sint! Facere
-                      explicabo incidunt nobis aut id non error suscipit, nemo,
-                      adipisci totam aspernatur culpa ab similique fugiat
-                      impedit ullam. Corrupti distinctio consequatur est fuga
-                      quis consequuntur. Cumque, sapiente aut? Vero expedita
-                      quos fugit?
-                    </p>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-700">
-                        <thead>
-                          <tr className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                            <th className="px-4 py-2">Team Name</th>
-                            <th className="px-4 py-2">Players</th>
-                            <th className="px-4 py-2">Status</th>
-                            <th className="px-4 py-2 text-right">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-800">
-                          {MOCK_REGISTERED_TEAMS.map((team, index) => (
-                            <tr key={index}>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                                {team.team_name}
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-400">
-                                {team.players}
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-xs">
-                                <span
-                                  className={`px-2 py-1 rounded-full font-semibold ${
-                                    team.status === "active"
-                                      ? "bg-green-900/50 text-green-400"
-                                      : "bg-red-900/50 text-red-400"
-                                  }`}
-                                >
-                                  {team.status}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-right">
-                                {team.status === "active" ? (
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    className="space-x-1"
-                                  >
-                                    <Trash2 className="w-4 h-4" />{" "}
-                                    <span>Disqualify</span>
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="space-x-1"
-                                  >
-                                    <span>Reactivate</span>
-                                  </Button>
-                                )}
-                              </td>
-                            </tr>
+                    <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Players </TableHead>
+                            <TableHead>Status </TableHead>
+                            <TableHead></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {eventDetails?.registered_competitors.map((comp) => (
+                            <TableRow key={comp.player_id}>
+                              <TableCell className="capitalize">
+                                {comp.username}
+                              </TableCell>
+                              <TableCell className="capitalize">
+                                {comp.status}
+                              </TableCell>
+                              <TableCell>
+                                <Button variant={"destructive"}>
+                                  <IconUserMinus />
+                                  Disqualify
+                                </Button>
+                              </TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   </CardContent>
                 </Card>

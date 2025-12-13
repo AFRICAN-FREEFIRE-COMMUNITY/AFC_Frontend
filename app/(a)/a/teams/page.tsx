@@ -90,13 +90,13 @@ const page = () => {
     <div>
       <PageHeader title="Team Management" />
 
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex flex-col md:flex-row w-full md:w-auto items-start md:items-center gap-2">
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex flex-col md:flex-row w-full items-start md:items-center gap-2">
           <Input
             placeholder="Search teams..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-64"
+            className="w-full"
           />
           <Select value={filterTier} onValueChange={setFilterTier}>
             <SelectTrigger className="w-full md:w-40">
@@ -112,11 +112,11 @@ const page = () => {
         </div>
       </div>
 
-      <Card>
+      <Card className="gap-0">
         <CardHeader>
           <CardTitle>Teams</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="mt-2">
           <Table>
             <TableHeader>
               <TableRow>

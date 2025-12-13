@@ -64,6 +64,8 @@ const page = () => {
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalTeams, setTotalTeams] = useState<number>(0);
   const [totalNews, setTotalNews] = useState<number>(0);
+  const [totalTournaments, setTotalTournaments] = useState<number>(0);
+  const [totalScrims, setTotalScrims] = useState<number>(0);
 
   const recentActivities = [
     {
@@ -110,10 +112,18 @@ const page = () => {
         const news = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`
         );
+        const tournaments = await axios(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`
+        );
+        const scrims = await axios(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`
+        );
 
         setTotalUsers(users?.data?.total_users);
         setTotalTeams(teams?.data?.teams.length);
         setTotalNews(news.data.news?.length);
+        setTotalTournaments(tournaments?.data?.total_tournaments);
+        setTotalScrims(scrims?.data?.total_scrims);
       } catch (error) {
         setTotalUsers(0);
         setTotalTeams(0);
@@ -153,12 +163,10 @@ const page = () => {
                   <TrendingUp className="h-3 w-3" />+ 10 this month
                 </div>
               </div>
-              {/* <Button asChild className="w-full mt-3">
-                <Link href="/a/players">
-                  <IconUserPlus className="mr-2 h-4 w-4" />
-                  Manage Members
-                </Link>
-              </Button> */}
+              <Button disabled className="w-full mt-3" size="md">
+                <IconUserPlus className="mr-2 h-4 w-4" />
+                Manage Members
+              </Button>
             </CardContent>
           </Card>
 
@@ -177,12 +185,12 @@ const page = () => {
                   <TrendingUp className="h-3 w-3" />+ 10 this month
                 </div>
               </div>
-              {/* <Button asChild className="w-full mt-3">
+              <Button asChild className="w-full mt-3" size="md">
                 <Link href="/a/teams">
                   <Shield className="mr-2 h-4 w-4" />
                   Manage Teams
                 </Link>
-              </Button> */}
+              </Button>
             </CardContent>
           </Card>
 
@@ -193,18 +201,20 @@ const page = () => {
               <IconTrophy className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {formatMoneyInput(totalTournaments)}
+              </div>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex items-center gap-1 text-sm text-blue-600">
                   <IconCalendar className="h-3 w-3" />0 active
                 </div>
               </div>
-              {/* <Button asChild className="w-full mt-3">
+              <Button asChild className="w-full mt-3" size="md">
                 <Link href="/a/events">
                   <IconTrophy className="mr-2 h-4 w-4" />
                   Manage Tournaments
                 </Link>
-              </Button> */}
+              </Button>
             </CardContent>
           </Card>
 
@@ -215,18 +225,20 @@ const page = () => {
               <IconSwords className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {formatMoneyInput(totalScrims)}
+              </div>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex items-center gap-1 text-sm text-orange-600">
                   <IconActivity className="h-3 w-3" />0 active
                 </div>
               </div>
-              {/* <Button asChild className="w-full mt-3">
+              <Button asChild className="w-full mt-3" size="md">
                 <Link href="/a/events">
                   <IconSwords className="mr-2 h-4 w-4" />
                   Manage Scrims
                 </Link>
-              </Button> */}
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -246,7 +258,7 @@ const page = () => {
               <div className="text-sm text-muted-foreground mt-1">
                 0 published
               </div>
-              <Button asChild className="w-full mt-3">
+              <Button asChild className="w-full mt-3" size="md">
                 <Link href="/a/news">
                   <IconArticle className="mr-2 h-4 w-4" />
                   Manage News
@@ -266,7 +278,7 @@ const page = () => {
             <CardContent>
               <div className="text-2xl font-bold">0</div>
               <div className="text-sm text-muted-foreground mt-1">Top: 0</div>
-              <Button asChild className="w-full mt-3">
+              <Button asChild className="w-full mt-3" size="md">
                 <Link href="/a/shop">
                   <IconShoppingCart className="mr-2 h-4 w-4" />
                   Manage Shop
@@ -288,7 +300,7 @@ const page = () => {
               <div className="text-sm text-muted-foreground mt-1">
                 ₦0 from diamonds
               </div>
-              <Button asChild className="w-full mt-3">
+              <Button asChild className="w-full mt-3" size="md">
                 <Link href="/a/shop/orders">
                   <TrendingUp className="mr-2 h-4 w-4" />
                   View Orders
@@ -300,7 +312,10 @@ const page = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
-          <Button disabled className="h-auto p-4">
+          <Button
+            disabled
+            className="h-auto p-4 flex flex-col items-center gap-2"
+          >
             {/* <Link
               href="/a/leaderboards/create"
               className="flex flex-col items-center gap-2"
@@ -324,24 +339,20 @@ const page = () => {
             </Link>
           </Button>
 
-          <Button
-            disabled
-            variant="outline"
-            className="h-auto p-4 bg-transparent"
-          >
-            {/* <Link
+          <Button variant="outline" className="h-auto p-4 bg-transparent">
+            <Link
               href="/a/events/create"
               className="flex flex-col items-center gap-2"
-            > */}
-            <IconCalendar className="h-6 w-6" />
-            <span>Create Event</span>
-            {/* </Link> */}
+            >
+              <IconCalendar className="h-6 w-6" />
+              <span>Create Event</span>
+            </Link>
           </Button>
 
           <Button
             disabled
             variant="outline"
-            className="h-auto p-4 bg-transparent"
+            className="h-auto p-4 bg-transparent flex flex-col items-center gap-2"
           >
             {/* <Link
               href="/a/rankings"
