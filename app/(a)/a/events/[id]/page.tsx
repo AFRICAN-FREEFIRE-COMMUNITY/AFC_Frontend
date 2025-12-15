@@ -269,7 +269,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {totalRegistered}/{maxCapacity}
+                  {formatMoneyInput(totalRegistered)}/
+                  {formatMoneyInput(maxCapacity)}
                 </div>
                 <Progress value={registrationProgress} className="mt-2.5" />
                 <div className="flex items-center gap-2 mt-2">
@@ -472,7 +473,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                     Max Players
                   </p>
                   <p className="text-muted-foreground text-xs md:text-sm">
-                    {maxCapacity}
+                    {formatMoneyInput(maxCapacity)}
                   </p>
                 </div>
                 <div>

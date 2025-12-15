@@ -123,14 +123,14 @@ export function MobileNavbar() {
             )}
           </div>
         </ScrollArea>
-        <SheetFooter className="mb-5">
+        <SheetFooter className="mb-10">
           {user === null ? (
             <>
               <Button variant={"secondary"}>
                 <Link href="/login">Sign in</Link>
               </Button>
               <Button variant={"gradient"} asChild>
-                <Link href={"/register"}>Join now</Link>
+                <Link href={"/create-account"}>Join now</Link>
               </Button>
             </>
           ) : (

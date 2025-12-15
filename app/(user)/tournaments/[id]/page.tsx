@@ -782,7 +782,9 @@ const EventDetailPage = ({ params }: { params: Params }) => {
   };
 
   const formatText = `${eventDetails.event_mode.toUpperCase()} / ${eventDetails.competition_type.toUpperCase()}`;
-  const participantText = `${eventDetails.max_teams_or_players} ${
+  const participantText = `${formatMoneyInput(
+    eventDetails.max_teams_or_players
+  )} ${
     eventDetails.participant_type.charAt(0).toUpperCase() +
     eventDetails.participant_type.slice(1)
   }s`;
@@ -802,7 +804,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <p>Date: {eventDetails.start_date}</p>
+            <p>Date: {formatDate(eventDetails.start_date)}</p>
             <p>
               Prize Pool: ${parseFloat(eventDetails.prizepool).toLocaleString()}
             </p>
@@ -846,7 +848,11 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         </CardContent>
       </Card>
 
-      <div className="text-center mt-6">
+      <div className="mt-6 text-center">
+        <Button disabled>Registration closed</Button>
+      </div>
+
+      {/* <div className="text-center mt-6">
         {eventDetails.is_registered ? (
           <Button disabled>You've registered already</Button>
         ) : eventDetails.event_type === "external" ? (
@@ -874,7 +880,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             Register for Tournament
           </Button>
         )}
-      </div>
+      </div> */}
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
         <Card className="gap-0">

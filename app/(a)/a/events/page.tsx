@@ -628,7 +628,9 @@ const page = () => {
                     <TableCell className="capitalize">
                       {event.event_status}
                     </TableCell>
-                    <TableCell>{event.number_of_participants}</TableCell>
+                    <TableCell>
+                      {formatMoneyInput(event.number_of_participants)}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 justify-center">
                         <Button asChild variant={"outline"} size="md">
