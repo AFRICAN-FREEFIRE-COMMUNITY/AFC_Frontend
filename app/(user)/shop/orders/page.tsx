@@ -14,6 +14,7 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { ComingSoon } from "@/components/ComingSoon";
 
 // Mock orders data
 const mockOrders = [
@@ -63,7 +64,8 @@ export default function OrdersPage() {
   };
 
   return (
-    <div>
+    <div className="relative">
+      <ComingSoon />
       <PageHeader
         title="My Orders"
         description="View and track your diamond purchases"

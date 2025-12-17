@@ -12,6 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { DEFAULT_IMAGE } from "@/constants";
 import { useCart } from "@/contexts/CartContext";
+import { ComingSoon } from "@/components/ComingSoon";
 
 // Mock data for shop products (same as shop page)
 const mockProducts = [
@@ -199,7 +200,8 @@ export default function ProductDetailPage() {
     addItem(
       {
         id: product.id,
-        name: product.diamonds > 0 ? `${product.diamonds} Diamonds` : product.name,
+        name:
+          product.diamonds > 0 ? `${product.diamonds} Diamonds` : product.name,
         price: product.price,
         diamonds: product.diamonds,
         image: product.image,
@@ -213,7 +215,8 @@ export default function ProductDetailPage() {
     addItem(
       {
         id: product.id,
-        name: product.diamonds > 0 ? `${product.diamonds} Diamonds` : product.name,
+        name:
+          product.diamonds > 0 ? `${product.diamonds} Diamonds` : product.name,
         price: product.price,
         diamonds: product.diamonds,
         image: product.image,
@@ -239,7 +242,8 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div>
+    <div className="relative">
+      <ComingSoon />
       <h1 className="text-3xl font-bold text-primary mb-6">
         {getCategoryTitle(product.category)}
       </h1>

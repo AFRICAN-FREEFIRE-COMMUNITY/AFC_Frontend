@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { ComingSoon } from "@/components/ComingSoon";
 
 export default function OrderSuccessPage() {
   const router = useRouter();
@@ -27,7 +28,8 @@ export default function OrderSuccessPage() {
   }, [router]);
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="min-h-[60vh] flex items-center justify-center relative">
+      <ComingSoon />
       <Card className="max-w-md w-full">
         <CardContent className="pt-10 pb-8 text-center">
           <div className="flex justify-center mb-6">

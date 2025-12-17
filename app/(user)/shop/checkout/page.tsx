@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
+import { ComingSoon } from "@/components/ComingSoon";
 
 const steps = [
   { id: 1, name: "Cart", label: "Cart" },
@@ -128,7 +129,9 @@ export default function CheckoutPage() {
             </div>
             <span
               className={`text-xs mt-1 ${
-                currentStep >= step.id ? "text-primary" : "text-muted-foreground"
+                currentStep >= step.id
+                  ? "text-primary"
+                  : "text-muted-foreground"
               }`}
             >
               {step.label}
@@ -225,7 +228,10 @@ export default function CheckoutPage() {
               placeholder="your@email.com"
               value={customerDetails.email}
               onChange={(e) =>
-                setCustomerDetails({ ...customerDetails, email: e.target.value })
+                setCustomerDetails({
+                  ...customerDetails,
+                  email: e.target.value,
+                })
               }
               className="mt-1"
             />
@@ -271,7 +277,10 @@ export default function CheckoutPage() {
               placeholder="+234 800 123 4567"
               value={customerDetails.phone}
               onChange={(e) =>
-                setCustomerDetails({ ...customerDetails, phone: e.target.value })
+                setCustomerDetails({
+                  ...customerDetails,
+                  phone: e.target.value,
+                })
               }
               className="mt-1"
             />
@@ -301,7 +310,10 @@ export default function CheckoutPage() {
                 placeholder="Lagos"
                 value={customerDetails.city}
                 onChange={(e) =>
-                  setCustomerDetails({ ...customerDetails, city: e.target.value })
+                  setCustomerDetails({
+                    ...customerDetails,
+                    city: e.target.value,
+                  })
                 }
                 className="mt-1"
               />
@@ -517,7 +529,8 @@ export default function CheckoutPage() {
   );
 
   return (
-    <div>
+    <div className="relative">
+      <ComingSoon />
       <h1 className="text-3xl font-bold mb-6">Checkout</h1>
 
       {renderStepIndicator()}
