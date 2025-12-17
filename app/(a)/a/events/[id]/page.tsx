@@ -215,8 +215,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const upcomingStages = number_of_stages; // Mocking all stages are upcoming
   const stageProgress = (completedStages / number_of_stages) * 100;
 
-  // --- JSX Rendering (Data Mapped) ---
-
+  console.log(eventDetails);
   return (
     <div>
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">

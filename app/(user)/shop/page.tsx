@@ -10,6 +10,7 @@ import { Search, ShoppingCart, Diamond } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { DEFAULT_IMAGE } from "@/constants";
+import { ComingSoon } from "@/components/ComingSoon";
 
 // Mock data for shop products
 const mockProducts = [
@@ -163,8 +164,8 @@ export default function ShopPage() {
   };
 
   return (
-    <div>
-      {/* Header */}
+    <div className="relative">
+      <ComingSoon />
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <h1 className="text-3xl font-bold text-primary">AFC Shop</h1>
         <Button asChild variant="outline">

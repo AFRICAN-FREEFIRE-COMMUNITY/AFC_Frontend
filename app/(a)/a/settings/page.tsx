@@ -1,5 +1,5 @@
 "use client";
-
+import * as XLSX from "xlsx";
 import { useState, useMemo, useEffect, useTransition } from "react";
 import axios from "axios";
 import {
@@ -63,6 +63,7 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { formatWord } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { IconDownload } from "@tabler/icons-react";
 
 // Backend interfaces
 interface BackendUser {
@@ -548,15 +549,55 @@ const page = () => {
     return permission?.name || permissionId;
   };
 
+  const exportToExcel = () => {
+    try {
+      // Format the data specifically for Excel
+      const dataToExport = adminUsers.map((user) => ({
+        Username: user.username,
+        "Email Address": user.email,
+        Status: user.status,
+        "Role Type":
+          user.isPlayer && user.roles.length === 0 ? "Player" : "Admin",
+        "Assigned Roles": user.roles.join(", "),
+      }));
+
+      // Create worksheet
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+
+      // Generate buffer and download
+      XLSX.writeFile(
+        workbook,
+        `User_Export_${new Date().toISOString().split("T")[0]}.xlsx`
+      );
+
+      toast.success("Excel file downloaded successfully");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export users to Excel");
+    }
+  };
+
   if (loading) return <FullLoader />;
   return (
     <div className="space-y-6">
       {suspendPending && <FullLoader />}
-      <PageHeader
-        title="Admin Settings"
-        description={`Manage administrator roles and permissions (${adminUsers.length}
-            total users, ${adminOnlyUsers.length} admins)`}
-      />
+      <div className="flex items-start md:items-center justify-between gap-2">
+        <PageHeader
+          title="Admin Settings"
+          description={`Manage administrator roles and permissions (${adminUsers.length}
+        total users, ${adminOnlyUsers.length} admins)`}
+        />
+        <Button
+          variant="outline"
+          onClick={exportToExcel}
+          className="flex items-center gap-2"
+        >
+          <IconDownload className="h-4 w-4" />
+          Export to Excel
+        </Button>
+      </div>
       {/* <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
           <DialogTrigger asChild>
             <Button>

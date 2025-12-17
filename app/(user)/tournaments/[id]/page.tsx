@@ -847,13 +847,8 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           )}
         </CardContent>
       </Card>
-
-      <div className="mt-6 text-center">
-        <Button disabled>Registration closed</Button>
-      </div>
-
-      {/* <div className="text-center mt-6">
-        {eventDetails.is_registered ? (
+      <div className="text-center mt-6">
+        {!eventDetails.is_registered ? (
           <Button disabled>You've registered already</Button>
         ) : eventDetails.event_type === "external" ? (
           <Button
@@ -874,13 +869,16 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             onClick={handleRegisterClick}
             disabled={
               eventDetails.event_status !== "upcoming" ||
-              eventDetails.is_registered
+              !eventDetails.is_registered ||
+              new Date(eventDetails.registration_end_date) < new Date()
             }
           >
-            Register for Tournament
+            {new Date(eventDetails.registration_end_date) < new Date()
+              ? "Registration closed"
+              : "Register for Tournament"}
           </Button>
         )}
-      </div> */}
+      </div>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
         <Card className="gap-0">

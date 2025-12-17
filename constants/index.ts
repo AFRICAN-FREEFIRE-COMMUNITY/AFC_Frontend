@@ -185,7 +185,6 @@ export const adminNavLinks = [
     label: "Admin Leaderboards",
     slug: "/a/leaderboards",
     icon: IconTrophy,
-    comingSoon: true,
   },
   {
     label: "Admin Players",
