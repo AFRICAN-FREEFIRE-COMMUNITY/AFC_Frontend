@@ -340,6 +340,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           error.response?.data?.detail ||
           "Failed to fetch event details.";
         toast.error(errorMessage);
+        router.push("/login");
       }
     });
   }, [id]);
@@ -381,97 +382,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     }
   }, [eventDetails, form]);
 
-  // Placeholder Initial Data
-  const getMockInitialData = (): EventFormType => ({
-    event_name: "Summer Championship",
-    competition_type: "tournament",
-    participant_type: "squad",
-    event_type: "internal",
-    max_teams_or_players: 128,
-    banner: "",
-    stream_channels: ["https://twitch.tv/afc", "https://youtube.com/afc"],
-    event_mode: "hybrid",
-    number_of_stages: 2,
-    stages: [
-      {
-        stage_name: "Qualifiers",
-        start_date: "2024-01-15",
-        end_date: "2024-01-16",
-        number_of_groups: 4,
-        stage_format: "br - normal",
-        teams_qualifying_from_stage: 16,
-        groups: Array.from({ length: 4 }, (_, i) => ({
-          group_name: `Group ${String.fromCharCode(65 + i)}`,
-          playing_date: "2024-01-15",
-          playing_time: "20:00",
-          teams_qualifying: 4,
-        })),
-      },
-      {
-        stage_name: "Semi-finals",
-        start_date: "2024-01-22",
-        end_date: "2024-01-23",
-        number_of_groups: 2,
-        stage_format: "cs - normal",
-        teams_qualifying_from_stage: 8,
-        groups: [
-          {
-            group_name: "Upper Bracket",
-            playing_date: "2024-01-22",
-            playing_time: "19:00",
-            teams_qualifying: 4,
-          },
-          {
-            group_name: "Lower Bracket",
-            playing_date: "2024-01-23",
-            playing_time: "19:00",
-            teams_qualifying: 4,
-          },
-        ],
-      },
-    ],
-    prizepool: "50000",
-    prize_distribution: {
-      "1st Place": 25000,
-      "2nd Place": 15000,
-      "3rd Place": 10000,
-    },
-    event_rules: "Sample tournament rules",
-    rules_document: "",
-    start_date: "2023-07-15",
-    end_date: "2023-07-16",
-    registration_open_date: "2023-07-01",
-    registration_end_date: "2023-07-14",
-    registration_link: "https://external.example.com",
-    event_status: "upcoming",
-    publish_to_tournaments: true,
-    publish_to_news: false,
-    save_to_drafts: false,
-  });
-  // --- FETCH INITIAL DATA (MOCK) ---
   useEffect(() => {
     if (!eventId) {
       setInitialLoading(false);
       setEventTitle("Edit Event");
       return;
     }
-
-    // MOCKING DATA LOADING
-    const mockLoad = setTimeout(() => {
-      const data = getMockInitialData();
-      form.reset(data); // Populate form with fetched data
-      setEventTitle(`Edit Event: ${data.event_name}`);
-      setRulesInputMethod(data.event_rules ? "type" : "upload"); // Set rules method based on data
-
-      // Populate stage names for Tab 3
-      const names = data.stages.map((s) => s.stage_name);
-      setStageNames(names);
-
-      setInitialLoading(false);
-      toast.info(`Event ${eventId} loaded.`);
-    }, 1000);
-
-    return () => clearTimeout(mockLoad);
   }, [eventId, form]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {

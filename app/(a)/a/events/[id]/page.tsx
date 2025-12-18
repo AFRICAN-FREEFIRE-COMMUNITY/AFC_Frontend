@@ -155,12 +155,12 @@ const Page = ({ params }: { params: Promise<Params> }) => {
         // Ensure data path is correct based on your API response structure
         setEventDetails(res.data.event_details);
       } catch (error: any) {
-        // Handle error response structure
         const errorMessage =
           error.response?.data?.message ||
           error.response?.data?.detail ||
           "Failed to fetch event details.";
         toast.error(errorMessage);
+        router.push("/login");
       }
     });
   }, [id]);
