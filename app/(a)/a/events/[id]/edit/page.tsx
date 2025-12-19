@@ -1024,55 +1024,178 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     );
 
     if (hasUndefined) {
-      toast.error("Please configure all stages before saving");
-      setCurrentTab("stages_groups"); // Auto-navigate to the problematic tab
-      return;
-    }
+      const undefinedIndices = currentStages
+        .map((stage, idx) => (!stage || stage === undefined ? idx + 1 : null))
+        .filter((idx) => idx !== null);
 
-    // 2. Check for incomplete stage configurations
-    const incompleteStages = currentStages.filter(
-      (stage, idx) =>
-        !stage.stage_name ||
-        !stage.stage_format ||
-        !stage.start_date ||
-        !stage.end_date ||
-        !stage.groups ||
-        stage.groups.length === 0
-    );
-
-    if (incompleteStages.length > 0) {
       toast.error(
-        `${incompleteStages.length} stage(s) are incomplete. Please fill all required fields.`
+        `Stage ${undefinedIndices.join(", ")} ${
+          undefinedIndices.length > 1 ? "are" : "is"
+        } not configured. Click to configure.`,
+        {
+          duration: 5000,
+          action: {
+            label: "Configure",
+            onClick: () => setCurrentTab("stages_groups"),
+          },
+        }
       );
       setCurrentTab("stages_groups");
       return;
     }
 
-    // 3. Check for incomplete group configurations
+    // 2. DETAILED Stage Validation - Check each stage individually
     for (let i = 0; i < currentStages.length; i++) {
       const stage = currentStages[i];
-      const incompleteGroups = stage.groups.filter(
-        (g) =>
-          !g.group_name ||
-          !g.playing_date ||
-          !g.playing_time ||
-          !g.group_discord_role_id ||
-          g.teams_qualifying < 1
-      );
+      const stageName = stage.stage_name || `Stage ${i + 1}`;
+      const missingFields: string[] = [];
 
-      if (incompleteGroups.length > 0) {
+      // Check stage-level fields
+      if (!stage.stage_name || stage.stage_name.trim() === "") {
+        missingFields.push("Stage Name");
+      }
+      if (!stage.stage_format) {
+        missingFields.push("Stage Format");
+      }
+      if (!stage.start_date) {
+        missingFields.push("Start Date");
+      }
+      if (!stage.end_date) {
+        missingFields.push("End Date");
+      }
+      if (
+        !stage.stage_discord_role_id ||
+        stage.stage_discord_role_id.trim() === ""
+      ) {
+        missingFields.push("Discord Role ID");
+      }
+      if (
+        stage.teams_qualifying_from_stage === undefined ||
+        stage.teams_qualifying_from_stage === null ||
+        stage.teams_qualifying_from_stage < 0
+      ) {
+        missingFields.push("Teams Qualifying from Stage");
+      }
+      if (!stage.groups || stage.groups.length === 0) {
+        missingFields.push("At least one Group");
+      }
+
+      // If stage has missing fields, show specific error
+      if (missingFields.length > 0) {
         toast.error(
-          `Stage "${stage.stage_name}": ${incompleteGroups.length} group(s) are incomplete`
+          <div className="space-y-2">
+            <p className="font-semibold">{stageName} is incomplete</p>
+            <p className="text-sm">Missing fields:</p>
+            <ul className="list-disc list-inside text-sm space-y-1">
+              {missingFields.map((field, idx) => (
+                <li key={idx}>{field}</li>
+              ))}
+            </ul>
+          </div>,
+          {
+            duration: 6000,
+            action: {
+              label: "Fix Now",
+              onClick: () => {
+                setCurrentTab("stages_groups");
+                openAddStageModalLogic(i);
+              },
+            },
+          }
         );
         setCurrentTab("stages_groups");
         return;
       }
+
+      // 3. DETAILED Group Validation - Check each group within the stage
+      if (stage.groups && stage.groups.length > 0) {
+        for (let j = 0; j < stage.groups.length; j++) {
+          const group = stage.groups[j];
+          const groupName = group.group_name || `Group ${j + 1}`;
+          const groupMissingFields: string[] = [];
+
+          // Check group-level fields
+          if (!group.group_name || group.group_name.trim() === "") {
+            groupMissingFields.push("Group Name");
+          }
+          if (!group.playing_date) {
+            groupMissingFields.push("Playing Date");
+          }
+          if (!group.playing_time) {
+            groupMissingFields.push("Playing Time");
+          }
+          if (
+            !group.group_discord_role_id ||
+            group.group_discord_role_id.trim() === ""
+          ) {
+            groupMissingFields.push("Discord Role ID");
+          }
+          if (
+            group.teams_qualifying === undefined ||
+            group.teams_qualifying === null ||
+            group.teams_qualifying < 1
+          ) {
+            groupMissingFields.push("Teams Qualifying (must be at least 1)");
+          }
+
+          // If group has missing fields, show specific error
+          if (groupMissingFields.length > 0) {
+            toast.error(
+              <div className="space-y-2">
+                <p className="font-semibold">
+                  {stageName} → {groupName} is incomplete
+                </p>
+                <p className="text-sm">Missing fields:</p>
+                <ul className="list-disc list-inside text-sm space-y-1">
+                  {groupMissingFields.map((field, idx) => (
+                    <li key={idx}>{field}</li>
+                  ))}
+                </ul>
+              </div>,
+              {
+                duration: 6000,
+                action: {
+                  label: "Fix Now",
+                  onClick: () => {
+                    setCurrentTab("stages_groups");
+                    openAddStageModalLogic(i);
+                    // Auto-navigate to step 2 to show groups
+                    setTimeout(() => setStageModalStep(2), 100);
+                  },
+                },
+              }
+            );
+            setCurrentTab("stages_groups");
+            return;
+          }
+        }
+      }
+
+      // 4. Validate date logic
+      if (stage.start_date && stage.end_date) {
+        const startDate = new Date(stage.start_date);
+        const endDate = new Date(stage.end_date);
+
+        if (startDate > endDate) {
+          toast.error(`${stageName}: Start date cannot be after end date`, {
+            duration: 5000,
+            action: {
+              label: "Fix Now",
+              onClick: () => {
+                setCurrentTab("stages_groups");
+                openAddStageModalLogic(i);
+              },
+            },
+          });
+          setCurrentTab("stages_groups");
+          return;
+        }
+      }
     }
 
-    // 4. Run form validation
+    // 5. Run form validation for other fields
     const isValid = await form.trigger();
     if (!isValid) {
-      // Get all errors and show them in a user-friendly way
       const errors = form.formState.errors;
       const errorMessages: string[] = [];
 
@@ -1098,34 +1221,21 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       if (errors.prize_distribution)
         errorMessages.push("Prize distribution is incomplete");
 
-      // Stage Errors
-      if (errors.stages) {
-        if (Array.isArray(errors.stages)) {
-          errors.stages.forEach((stageError, idx) => {
-            if (stageError) {
-              errorMessages.push(`Stage ${idx + 1} has validation errors`);
-            }
-          });
-        } else {
-          errorMessages.push("Stages configuration has errors");
-        }
-      }
-
-      // Show the first 3 errors
+      // Show the errors
       if (errorMessages.length > 0) {
-        const displayErrors = errorMessages.slice(0, 3);
-        const remaining = errorMessages.length - 3;
+        const displayErrors = errorMessages.slice(0, 4);
+        const remaining = errorMessages.length - 4;
 
         toast.error(
-          <div className="space-y-1">
+          <div className="space-y-2">
             <p className="font-semibold">Please fix the following errors:</p>
-            <ul className="list-disc list-inside text-sm">
+            <ul className="list-disc list-inside text-sm space-y-1">
               {displayErrors.map((msg, idx) => (
                 <li key={idx}>{msg}</li>
               ))}
             </ul>
             {remaining > 0 && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-2">
                 ...and {remaining} more error(s)
               </p>
             )}
@@ -1158,6 +1268,39 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         setCurrentTab("prize_rules");
       }
 
+      return;
+    }
+
+    // 6. Validate event-level dates
+    const eventStart = new Date(data.start_date);
+    const eventEnd = new Date(data.end_date);
+    const regOpen = new Date(data.registration_open_date);
+    const regClose = new Date(data.registration_end_date);
+
+    if (eventStart > eventEnd) {
+      toast.error("Event start date cannot be after event end date", {
+        duration: 4000,
+      });
+      setCurrentTab("basic_info");
+      return;
+    }
+
+    if (regOpen > regClose) {
+      toast.error(
+        "Registration open date cannot be after registration close date",
+        {
+          duration: 4000,
+        }
+      );
+      setCurrentTab("basic_info");
+      return;
+    }
+
+    if (regClose > eventStart) {
+      toast.error("Registration must close before the event starts", {
+        duration: 4000,
+      });
+      setCurrentTab("basic_info");
       return;
     }
 
@@ -1324,6 +1467,317 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       }
     });
   };
+
+  // const onSubmit = async (data: EventFormType) => {
+  //   if (!eventDetails?.event_id) return toast.error("Event ID is missing");
+
+  //   // 1. Check for undefined stages first
+  //   const currentStages = form.getValues("stages");
+  //   const hasUndefined = currentStages.some(
+  //     (stage) => !stage || stage === undefined
+  //   );
+
+  //   if (hasUndefined) {
+  //     toast.error("Please configure all stages before saving");
+  //     setCurrentTab("stages_groups"); // Auto-navigate to the problematic tab
+  //     return;
+  //   }
+
+  //   // 2. Check for incomplete stage configurations
+  //   const incompleteStages = currentStages.filter(
+  //     (stage, idx) =>
+  //       !stage.stage_name ||
+  //       !stage.stage_format ||
+  //       !stage.start_date ||
+  //       !stage.end_date ||
+  //       !stage.groups ||
+  //       stage.groups.length === 0
+  //   );
+
+  //   if (incompleteStages.length > 0) {
+  //     toast.error(
+  //       `${incompleteStages.length} stage(s) are incomplete. Please fill all required fields.`
+  //     );
+  //     setCurrentTab("stages_groups");
+  //     return;
+  //   }
+
+  //   // 3. Check for incomplete group configurations
+  //   for (let i = 0; i < currentStages.length; i++) {
+  //     const stage = currentStages[i];
+  //     const incompleteGroups = stage.groups.filter(
+  //       (g) =>
+  //         !g.group_name ||
+  //         !g.playing_date ||
+  //         !g.playing_time ||
+  //         !g.group_discord_role_id ||
+  //         g.teams_qualifying < 1
+  //     );
+
+  //     if (incompleteGroups.length > 0) {
+  //       toast.error(
+  //         `Stage "${stage.stage_name}": ${incompleteGroups.length} group(s) are incomplete`
+  //       );
+  //       setCurrentTab("stages_groups");
+  //       return;
+  //     }
+  //   }
+
+  //   // 4. Run form validation
+  //   const isValid = await form.trigger();
+  //   if (!isValid) {
+  //     // Get all errors and show them in a user-friendly way
+  //     const errors = form.formState.errors;
+  //     const errorMessages: string[] = [];
+
+  //     // Basic Info Errors
+  //     if (errors.event_name) errorMessages.push("Event name is required");
+  //     if (errors.competition_type)
+  //       errorMessages.push("Competition type is required");
+  //     if (errors.participant_type)
+  //       errorMessages.push("Participant type is required");
+  //     if (errors.event_type) errorMessages.push("Event type is required");
+  //     if (errors.max_teams_or_players)
+  //       errorMessages.push("Max teams/players is required");
+  //     if (errors.event_mode) errorMessages.push("Event mode is required");
+  //     if (errors.start_date) errorMessages.push("Event start date is required");
+  //     if (errors.end_date) errorMessages.push("Event end date is required");
+  //     if (errors.registration_open_date)
+  //       errorMessages.push("Registration open date is required");
+  //     if (errors.registration_end_date)
+  //       errorMessages.push("Registration end date is required");
+
+  //     // Prize & Rules Errors
+  //     if (errors.prizepool) errorMessages.push("Prize pool is required");
+  //     if (errors.prize_distribution)
+  //       errorMessages.push("Prize distribution is incomplete");
+
+  //     // Stage Errors
+  //     if (errors.stages) {
+  //       if (Array.isArray(errors.stages)) {
+  //         errors.stages.forEach((stageError, idx) => {
+  //           if (stageError) {
+  //             errorMessages.push(`Stage ${idx + 1} has validation errors`);
+  //           }
+  //         });
+  //       } else {
+  //         errorMessages.push("Stages configuration has errors");
+  //       }
+  //     }
+
+  //     // Show the first 3 errors
+  //     if (errorMessages.length > 0) {
+  //       const displayErrors = errorMessages.slice(0, 3);
+  //       const remaining = errorMessages.length - 3;
+
+  //       toast.error(
+  //         <div className="space-y-1">
+  //           <p className="font-semibold">Please fix the following errors:</p>
+  //           <ul className="list-disc list-inside text-sm">
+  //             {displayErrors.map((msg, idx) => (
+  //               <li key={idx}>{msg}</li>
+  //             ))}
+  //           </ul>
+  //           {remaining > 0 && (
+  //             <p className="text-xs text-muted-foreground">
+  //               ...and {remaining} more error(s)
+  //             </p>
+  //           )}
+  //         </div>,
+  //         { duration: 6000 }
+  //       );
+  //     } else {
+  //       toast.error("Please correct the errors in the form before saving.", {
+  //         duration: 4000,
+  //       });
+  //     }
+
+  //     // Auto-navigate to the first tab with errors
+  //     if (
+  //       errors.event_name ||
+  //       errors.competition_type ||
+  //       errors.participant_type ||
+  //       errors.event_type ||
+  //       errors.max_teams_or_players ||
+  //       errors.event_mode ||
+  //       errors.start_date ||
+  //       errors.end_date ||
+  //       errors.registration_open_date ||
+  //       errors.registration_end_date
+  //     ) {
+  //       setCurrentTab("basic_info");
+  //     } else if (errors.stages) {
+  //       setCurrentTab("stages_groups");
+  //     } else if (errors.prizepool || errors.prize_distribution) {
+  //       setCurrentTab("prize_rules");
+  //     }
+
+  //     return;
+  //   }
+
+  //   startTransition(async () => {
+  //     try {
+  //       console.log(data);
+  //       const formData = new FormData();
+
+  //       let finalEventStatus = data.event_status;
+  //       if (data.save_to_drafts) {
+  //         finalEventStatus = "draft";
+  //       }
+
+  //       formData.append(
+  //         "is_draft",
+  //         data.save_to_drafts.toString() === "true" ? "True" : "False"
+  //       );
+  //       formData.append("event_status", finalEventStatus);
+  //       formData.append("event_id", eventDetails.event_id.toString());
+
+  //       // --- 1. HANDLE FILES ---
+  //       if (selectedFile) {
+  //         formData.append("event_banner", selectedFile);
+  //       }
+  //       if (selectedRuleFile) {
+  //         formData.append("uploaded_rules", selectedRuleFile);
+  //       }
+
+  //       // --- 2. APPEND PRIMITIVE FIELDS ---
+  //       formData.append("event_name", data.event_name);
+  //       formData.append("competition_type", data.competition_type);
+  //       formData.append("participant_type", data.participant_type);
+  //       formData.append("event_type", data.event_type);
+  //       formData.append(
+  //         "max_teams_or_players",
+  //         data.max_teams_or_players.toString()
+  //       );
+  //       formData.append("event_mode", data.event_mode);
+  //       formData.append("prizepool", data.prizepool);
+  //       formData.append("number_of_stages", data.number_of_stages.toString());
+  //       formData.append("start_date", data.start_date);
+  //       formData.append("end_date", data.end_date);
+  //       formData.append("registration_open_date", data.registration_open_date);
+  //       formData.append("registration_end_date", data.registration_end_date);
+  //       formData.append("registration_link", data.registration_link || "");
+
+  //       formData.append(
+  //         "publish_to_tournaments",
+  //         data.publish_to_tournaments.toString()
+  //       );
+  //       formData.append("publish_to_news", data.publish_to_news.toString());
+
+  //       if (rulesInputMethod === "type") {
+  //         formData.append("event_rules", data.event_rules || "");
+  //         formData.append("uploaded_rules", "");
+  //       } else {
+  //         formData.append("event_rules", "");
+  //       }
+
+  //       // --- 3. APPEND COMPLEX JSON STRINGS ---
+  //       formData.append(
+  //         "prize_distribution",
+  //         JSON.stringify(data.prize_distribution)
+  //       );
+
+  //       formData.append(
+  //         "stream_channels",
+  //         JSON.stringify(
+  //           data.stream_channels?.filter((s) => s.trim() !== "") || []
+  //         )
+  //       );
+
+  //       formData.append("stages", JSON.stringify(data.stages));
+
+  //       // --- 4. SUBMISSION ---
+  //       const response = await fetch(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
+  //         {
+  //           method: "POST",
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //           body: formData,
+  //         }
+  //       );
+
+  //       const contentType = response.headers.get("content-type");
+  //       if (!contentType || !contentType.includes("application/json")) {
+  //         const textResponse = await response.text();
+  //         console.error("Non-JSON Response (Backend Error):", textResponse);
+  //         toast.error(
+  //           "Server error: The server returned an unexpected response. Please try again or contact support.",
+  //           { duration: 5000 }
+  //         );
+  //         return;
+  //       }
+
+  //       const res = await response.json();
+
+  //       if (response.ok) {
+  //         toast.success(
+  //           `Event "${data.event_name}" saved as ${
+  //             data.save_to_drafts ? "Draft" : "Published"
+  //           } successfully!`,
+  //           { duration: 4000 }
+  //         );
+  //         // Optional: Redirect or refresh
+  //         // router.push(`/events/${eventDetails.event_id}`);
+  //       } else {
+  //         // Handle specific backend errors
+  //         const errorMessage = res.message || res.detail || res.error;
+
+  //         if (response.status === 400) {
+  //           toast.error(
+  //             <div className="space-y-1">
+  //               <p className="font-semibold">Validation Error</p>
+  //               <p className="text-sm">{errorMessage}</p>
+  //             </div>,
+  //             { duration: 5000 }
+  //           );
+  //         } else if (response.status === 401) {
+  //           toast.error("Your session has expired. Please log in again.");
+  //           router.push("/login");
+  //         } else if (response.status === 403) {
+  //           toast.error("You don't have permission to edit this event.", {
+  //             duration: 4000,
+  //           });
+  //         } else if (response.status === 404) {
+  //           toast.error("Event not found. It may have been deleted.", {
+  //             duration: 4000,
+  //           });
+  //         } else if (response.status >= 500) {
+  //           toast.error(
+  //             "Server error occurred. Please try again later or contact support.",
+  //             { duration: 5000 }
+  //           );
+  //         } else {
+  //           toast.error(
+  //             errorMessage || "Failed to update event. Please try again.",
+  //             { duration: 4000 }
+  //           );
+  //         }
+
+  //         console.error("Server Error:", res);
+  //       }
+  //     } catch (error: any) {
+  //       console.error("Error:", error);
+
+  //       // Network errors
+  //       if (
+  //         error.message === "Failed to fetch" ||
+  //         error.message.includes("NetworkError")
+  //       ) {
+  //         toast.error(
+  //           "Network error: Please check your internet connection and try again.",
+  //           { duration: 5000 }
+  //         );
+  //       } else {
+  //         toast.error(
+  //           "An unexpected error occurred. Please try again or contact support.",
+  //           { duration: 5000 }
+  //         );
+  //       }
+  //     }
+  //   });
+  // };
 
   // const onSubmit = async (data: EventFormType) => {
   //   if (!eventDetails?.event_id) return toast.error("Event ID is missing");
@@ -2367,10 +2821,193 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </div>
                 <Button
                   type="button"
-                  onClick={form.handleSubmit(onSubmit)}
+                  onClick={async () => {
+                    // Same validation as in Basic Info tab
+                    const currentStages = form.getValues("stages");
+
+                    // 1. Check for undefined stages
+                    const hasUndefined = currentStages.some(
+                      (stage) => !stage || stage === undefined
+                    );
+
+                    if (hasUndefined) {
+                      const undefinedIndices = currentStages
+                        .map((stage, idx) =>
+                          !stage || stage === undefined ? idx + 1 : null
+                        )
+                        .filter((idx) => idx !== null);
+
+                      toast.error(
+                        `Stage ${undefinedIndices.join(", ")} ${
+                          undefinedIndices.length > 1 ? "are" : "is"
+                        } not configured. Please configure before saving.`,
+                        {
+                          duration: 5000,
+                        }
+                      );
+                      return;
+                    }
+
+                    // 2. DETAILED Stage Validation - Check each stage individually
+                    for (let i = 0; i < currentStages.length; i++) {
+                      const stage = currentStages[i];
+                      const stageName = stage.stage_name || `Stage ${i + 1}`;
+                      const missingFields: string[] = [];
+
+                      // Check stage-level fields
+                      if (!stage.stage_name || stage.stage_name.trim() === "") {
+                        missingFields.push("Stage Name");
+                      }
+                      if (!stage.stage_format) {
+                        missingFields.push("Stage Format");
+                      }
+                      if (!stage.start_date) {
+                        missingFields.push("Start Date");
+                      }
+                      if (!stage.end_date) {
+                        missingFields.push("End Date");
+                      }
+                      if (
+                        !stage.stage_discord_role_id ||
+                        stage.stage_discord_role_id.trim() === ""
+                      ) {
+                        missingFields.push("Discord Role ID");
+                      }
+                      if (
+                        stage.teams_qualifying_from_stage === undefined ||
+                        stage.teams_qualifying_from_stage === null ||
+                        stage.teams_qualifying_from_stage < 0
+                      ) {
+                        missingFields.push("Teams Qualifying from Stage");
+                      }
+                      if (!stage.groups || stage.groups.length === 0) {
+                        missingFields.push("At least one Group");
+                      }
+
+                      // If stage has missing fields, show specific error
+                      if (missingFields.length > 0) {
+                        toast.error(
+                          <div className="space-y-2">
+                            <p className="font-semibold">
+                              {stageName} is incomplete
+                            </p>
+                            <p className="text-sm">Missing fields:</p>
+                            <ul className="list-disc list-inside text-sm space-y-1">
+                              {missingFields.map((field, idx) => (
+                                <li key={idx}>{field}</li>
+                              ))}
+                            </ul>
+                          </div>,
+                          {
+                            duration: 6000,
+                            action: {
+                              label: "Fix Now",
+                              onClick: () => {
+                                openAddStageModalLogic(i);
+                              },
+                            },
+                          }
+                        );
+                        return;
+                      }
+
+                      // 3. DETAILED Group Validation - Check each group within the stage
+                      if (stage.groups && stage.groups.length > 0) {
+                        for (let j = 0; j < stage.groups.length; j++) {
+                          const group = stage.groups[j];
+                          const groupName =
+                            group.group_name || `Group ${j + 1}`;
+                          const groupMissingFields: string[] = [];
+
+                          // Check group-level fields
+                          if (
+                            !group.group_name ||
+                            group.group_name.trim() === ""
+                          ) {
+                            groupMissingFields.push("Group Name");
+                          }
+                          if (!group.playing_date) {
+                            groupMissingFields.push("Playing Date");
+                          }
+                          if (!group.playing_time) {
+                            groupMissingFields.push("Playing Time");
+                          }
+                          if (
+                            !group.group_discord_role_id ||
+                            group.group_discord_role_id.trim() === ""
+                          ) {
+                            groupMissingFields.push("Discord Role ID");
+                          }
+                          if (
+                            group.teams_qualifying === undefined ||
+                            group.teams_qualifying === null ||
+                            group.teams_qualifying < 1
+                          ) {
+                            groupMissingFields.push(
+                              "Teams Qualifying (must be at least 1)"
+                            );
+                          }
+
+                          // If group has missing fields, show specific error
+                          if (groupMissingFields.length > 0) {
+                            toast.error(
+                              <div className="space-y-2">
+                                <p className="font-semibold">
+                                  {stageName} → {groupName} is incomplete
+                                </p>
+                                <p className="text-sm">Missing fields:</p>
+                                <ul className="list-disc list-inside text-sm space-y-1">
+                                  {groupMissingFields.map((field, idx) => (
+                                    <li key={idx}>{field}</li>
+                                  ))}
+                                </ul>
+                              </div>,
+                              {
+                                duration: 6000,
+                                action: {
+                                  label: "Fix Now",
+                                  onClick: () => {
+                                    openAddStageModalLogic(i);
+                                    // Auto-navigate to step 2 to show groups
+                                    setTimeout(() => setStageModalStep(2), 100);
+                                  },
+                                },
+                              }
+                            );
+                            return;
+                          }
+                        }
+                      }
+
+                      // 4. Validate date logic
+                      if (stage.start_date && stage.end_date) {
+                        const startDate = new Date(stage.start_date);
+                        const endDate = new Date(stage.end_date);
+
+                        if (startDate > endDate) {
+                          toast.error(
+                            `${stageName}: Start date cannot be after end date`,
+                            {
+                              duration: 5000,
+                              action: {
+                                label: "Fix Now",
+                                onClick: () => {
+                                  openAddStageModalLogic(i);
+                                },
+                              },
+                            }
+                          );
+                          return;
+                        }
+                      }
+                    }
+
+                    // If all validations pass, proceed with form submission
+                    await onSubmit(form.getValues());
+                  }}
                   disabled={isPending}
                 >
-                  {isPending ? <Loader text="Saving..." /> : "Save Changes"}
+                  {isPending ? <Loader text={"Saving.."} /> : "Save Changes"}
                 </Button>
               </TabsContent>
 
@@ -2802,7 +3439,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     >
                       Save Changes
                     </Button> */}
-                    <Button
+                    {/* <Button
                       type="button"
                       onClick={() => {
                         form.handleSubmit(
@@ -2823,7 +3460,205 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       ) : (
                         "Save Changes"
                       )}
+                    </Button> */}
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        // Same validation as in Basic Info tab
+                        const currentStages = form.getValues("stages");
+
+                        // 1. Check for undefined stages
+                        const hasUndefined = currentStages.some(
+                          (stage) => !stage || stage === undefined
+                        );
+
+                        if (hasUndefined) {
+                          const undefinedIndices = currentStages
+                            .map((stage, idx) =>
+                              !stage || stage === undefined ? idx + 1 : null
+                            )
+                            .filter((idx) => idx !== null);
+
+                          toast.error(
+                            `Stage ${undefinedIndices.join(", ")} ${
+                              undefinedIndices.length > 1 ? "are" : "is"
+                            } not configured. Please configure before saving.`,
+                            {
+                              duration: 5000,
+                            }
+                          );
+                          return;
+                        }
+
+                        // 2. DETAILED Stage Validation - Check each stage individually
+                        for (let i = 0; i < currentStages.length; i++) {
+                          const stage = currentStages[i];
+                          const stageName =
+                            stage.stage_name || `Stage ${i + 1}`;
+                          const missingFields: string[] = [];
+
+                          // Check stage-level fields
+                          if (
+                            !stage.stage_name ||
+                            stage.stage_name.trim() === ""
+                          ) {
+                            missingFields.push("Stage Name");
+                          }
+                          if (!stage.stage_format) {
+                            missingFields.push("Stage Format");
+                          }
+                          if (!stage.start_date) {
+                            missingFields.push("Start Date");
+                          }
+                          if (!stage.end_date) {
+                            missingFields.push("End Date");
+                          }
+                          if (
+                            !stage.stage_discord_role_id ||
+                            stage.stage_discord_role_id.trim() === ""
+                          ) {
+                            missingFields.push("Discord Role ID");
+                          }
+                          if (
+                            stage.teams_qualifying_from_stage === undefined ||
+                            stage.teams_qualifying_from_stage === null ||
+                            stage.teams_qualifying_from_stage < 0
+                          ) {
+                            missingFields.push("Teams Qualifying from Stage");
+                          }
+                          if (!stage.groups || stage.groups.length === 0) {
+                            missingFields.push("At least one Group");
+                          }
+
+                          // If stage has missing fields, show specific error
+                          if (missingFields.length > 0) {
+                            toast.error(
+                              <div className="space-y-2">
+                                <p className="font-semibold">
+                                  {stageName} is incomplete
+                                </p>
+                                <p className="text-sm">Missing fields:</p>
+                                <ul className="list-disc list-inside text-sm space-y-1">
+                                  {missingFields.map((field, idx) => (
+                                    <li key={idx}>{field}</li>
+                                  ))}
+                                </ul>
+                              </div>,
+                              {
+                                duration: 6000,
+                                action: {
+                                  label: "Fix Now",
+                                  onClick: () => {
+                                    openAddStageModalLogic(i);
+                                  },
+                                },
+                              }
+                            );
+                            return;
+                          }
+
+                          // 3. DETAILED Group Validation - Check each group within the stage
+                          if (stage.groups && stage.groups.length > 0) {
+                            for (let j = 0; j < stage.groups.length; j++) {
+                              const group = stage.groups[j];
+                              const groupName =
+                                group.group_name || `Group ${j + 1}`;
+                              const groupMissingFields: string[] = [];
+
+                              // Check group-level fields
+                              if (
+                                !group.group_name ||
+                                group.group_name.trim() === ""
+                              ) {
+                                groupMissingFields.push("Group Name");
+                              }
+                              if (!group.playing_date) {
+                                groupMissingFields.push("Playing Date");
+                              }
+                              if (!group.playing_time) {
+                                groupMissingFields.push("Playing Time");
+                              }
+                              if (
+                                !group.group_discord_role_id ||
+                                group.group_discord_role_id.trim() === ""
+                              ) {
+                                groupMissingFields.push("Discord Role ID");
+                              }
+                              if (
+                                group.teams_qualifying === undefined ||
+                                group.teams_qualifying === null ||
+                                group.teams_qualifying < 1
+                              ) {
+                                groupMissingFields.push(
+                                  "Teams Qualifying (must be at least 1)"
+                                );
+                              }
+
+                              // If group has missing fields, show specific error
+                              if (groupMissingFields.length > 0) {
+                                toast.error(
+                                  <div className="space-y-2">
+                                    <p className="font-semibold">
+                                      {stageName} → {groupName} is incomplete
+                                    </p>
+                                    <p className="text-sm">Missing fields:</p>
+                                    <ul className="list-disc list-inside text-sm space-y-1">
+                                      {groupMissingFields.map((field, idx) => (
+                                        <li key={idx}>{field}</li>
+                                      ))}
+                                    </ul>
+                                  </div>,
+                                  {
+                                    duration: 6000,
+                                    action: {
+                                      label: "Fix Now",
+                                      onClick: () => {
+                                        openAddStageModalLogic(i);
+                                        // Auto-navigate to step 2 to show groups
+                                        setTimeout(
+                                          () => setStageModalStep(2),
+                                          100
+                                        );
+                                      },
+                                    },
+                                  }
+                                );
+                                return;
+                              }
+                            }
+                          }
+
+                          // 4. Validate date logic
+                          if (stage.start_date && stage.end_date) {
+                            const startDate = new Date(stage.start_date);
+                            const endDate = new Date(stage.end_date);
+
+                            if (startDate > endDate) {
+                              toast.error(
+                                `${stageName}: Start date cannot be after end date`,
+                                {
+                                  duration: 5000,
+                                  action: {
+                                    label: "Fix Now",
+                                    onClick: () => {
+                                      openAddStageModalLogic(i);
+                                    },
+                                  },
+                                }
+                              );
+                              return;
+                            }
+                          }
+                        }
+
+                        // If all validations pass, proceed with form submission
+                        await onSubmit(form.getValues());
+                      }}
+                      disabled={isPending}
+                    >
+                      {isPending ? <Loader text="Saving..." /> : "Save Changes"}
                     </Button>
+
                     {/* END CRITICAL FIX */}
                   </CardContent>
                 </Card>
