@@ -17,6 +17,7 @@ import { TabsContent } from "@radix-ui/react-tabs";
 import {
   IconCalendar,
   IconCurrencyDollar,
+  IconExternalLink,
   IconPencil,
   IconTrendingUp,
   IconUsers,
@@ -215,7 +216,6 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const upcomingStages = number_of_stages; // Mocking all stages are upcoming
   const stageProgress = (completedStages / number_of_stages) * 100;
 
-  console.log(eventDetails);
   return (
     <div>
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
@@ -243,6 +243,15 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           </Link>
         </Button>
       </div>
+      <div className="mt-4 overflow-hidden rounded-md">
+        <Image
+          src={event_banner_url || DEFAULT_IMAGE}
+          alt={`${event_name}'s image`}
+          width={1000}
+          height={1000}
+          className="w-full h-50 aspect-video object-cover"
+        />
+      </div>
 
       <Tabs defaultValue="overview" className="mt-4">
         <ScrollArea>
@@ -251,6 +260,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="registrations">Registrations</TabsTrigger>
             <TabsTrigger value="stages">Stages</TabsTrigger>
+            <TabsTrigger value="prizes">Prizes</TabsTrigger>
             <TabsTrigger value="engagement">Engagement</TabsTrigger>
           </TabsList>
           <ScrollBar orientation="horizontal" />
@@ -261,7 +271,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 2xl:grid-cols-4">
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Total Registered
                 </CardTitle>
                 <IconUsers className="h-4 w-4" />
@@ -272,17 +282,32 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                   {formatMoneyInput(maxCapacity)}
                 </div>
                 <Progress value={registrationProgress} className="mt-2.5" />
-                <div className="flex items-center gap-2 mt-2">
+                {/* <div className="flex items-center gap-2 mt-2">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     {registrationProgress.toFixed(1)}% capacity
                   </div>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
-
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Prize Pool
+                </CardTitle>
+                <IconCurrencyDollar className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formattedPrizepool}</div>
+                {/* <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    {formattedPrizepool} total
+                  </div>
+                </div> */}
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow gap-1">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Days Until Start
                 </CardTitle>
                 <IconCalendar className="h-4 w-4" />
@@ -291,57 +316,34 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                 <div className="text-2xl font-bold">
                   {daysUntilStart} {daysUntilStart === 1 ? "day" : "days"}
                 </div>
-                <div className="flex items-center gap-2 mt-2">
+                {/* <div className="flex items-center gap-2 mt-2">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     Event duration: {eventDurationDays} days
                   </div>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Registration Closes
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Total Stages
                 </CardTitle>
                 <IconCalendar className="h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {daysUntilRegClose} {daysUntilRegClose === 1 ? "day" : "days"}
-                </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    Avg: {avgRegPerDay.toFixed(1)} players/day
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow gap-1">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Prize Pool
-                </CardTitle>
-                <IconCurrencyDollar className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{formattedPrizepool}</div>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    {formattedPrizepool} total
-                  </div>
+                  {eventDetails.stages.length}
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <Card>
+          {/* <Card>
             <CardHeader>
-              <CardTitle>Event Timeline</CardTitle>
+              <CardTitle>Event Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Registration Period Timeline */}
               <div className="flex items-center justify-between gap-4">
                 <p className="font-medium text-sm w-32 shrink-0">
                   Registration
@@ -351,14 +353,12 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                     {formatDate(registration_open_date)} →{" "}
                     {formatDate(registration_end_date)}
                   </p>
-                  {/* Using mock progress of 70, replace with real logic if available */}
                   <Progress value={70} />{" "}
                 </div>
                 <Badge variant={"outline"} className="shrink-0">
                   {daysUntilRegClose} days left
                 </Badge>
               </div>
-              {/* Event Period Timeline */}
               <div className="flex items-center justify-between gap-4">
                 <p className="font-medium text-sm w-32 shrink-0">
                   Event Period
@@ -367,7 +367,6 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                   <p className="text-muted-foreground text-xs ms:text-sm mb-1">
                     {formatDate(start_date)} → {formatDate(end_date)}
                   </p>
-                  {/* Using mock progress of 70, replace with real logic if available */}
                   <Progress value={70} />{" "}
                 </div>
                 <Badge variant={"outline"} className="shrink-0">
@@ -375,9 +374,102 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                 </Badge>
               </div>
             </CardContent>
+          </Card> */}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Event Configuration</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-y-4 text-sm">
+                <div className="text-muted-foreground">Type</div>
+                <div className="font-medium text-right capitalize">
+                  {eventDetails.event_type}
+                </div>
+                <div className="text-muted-foreground">Competition</div>
+                <div className="font-medium text-right capitalize">
+                  {eventDetails.competition_type}
+                </div>
+                <div className="text-muted-foreground">Participant Type</div>
+                <div className="font-medium text-right capitalize">
+                  {eventDetails.participant_type}
+                </div>
+                <div className="text-muted-foreground">Mode</div>
+                <div className="font-medium text-right capitalize">
+                  {eventDetails.event_mode}
+                </div>
+                <div className="text-muted-foreground">Max Teams</div>
+                <div className="font-medium text-right">
+                  {formatMoneyInput(eventDetails.max_teams_or_players)}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Registration Restrictions</CardTitle>
+                <Badge variant="secondary">Region</Badge>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Mode</span>
+                  <Badge variant="outline" className="bg-white text-black">
+                    Allow Only
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Regions:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {eventDetails.restrictions?.regions.map((r) => (
+                      <Badge
+                        key={r}
+                        variant="secondary"
+                        className="rounded-full px-3"
+                      >
+                        {r}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Countries:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {eventDetails.restrictions?.countries.map((c) => (
+                      <Badge
+                        key={c}
+                        variant="secondary"
+                        className="rounded-full px-3"
+                      >
+                        {c}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <IconExternalLink className="size-4" /> Streaming Channels
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-3">
+              {eventDetails.stream_channels.map((url, i) => (
+                <div
+                  key={i}
+                  className="bg-primary/10 text-primary text-sm font-medium hover:underline rounded-md py-2 px-4 border-none cursor-pointer"
+                >
+                  <a href={url} target="_blank">
+                    {url}
+                  </a>
+                </div>
+              ))}
+            </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <Card>
               <CardHeader>
                 <CardTitle>Player Status</CardTitle>
@@ -395,7 +487,6 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                     {formatMoneyInput(maxCapacity)}
                   </span>
                 </div>
-                {/* Mocked values as they are not in the provided JSON */}
                 <div className="flex items-center justify-between gap-2">
                   <span>Disqualified</span>
                   <span className="text-base font-semibold text-red-500">
@@ -436,14 +527,56 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Event Timeline</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {eventDetails.stages.map((stage, index) => (
+                <div key={stage.id} className="relative flex items-start gap-4">
+                  {/* Vertical Line Connector */}
+                  {index !== eventDetails.stages.length - 1 && (
+                    <div className="absolute left-[5px] top-6 w-[2px] h-full bg-muted-foreground/20" />
+                  )}
+
+                  {/* Status Dot */}
+                  <div
+                    className={`mt-1.5 size-3 rounded-full z-10 ${
+                      stage.status === "completed"
+                        ? "bg-green-500"
+                        : "bg-slate-500"
+                    }`}
+                  />
+
+                  <div className="flex-1 flex justify-between items-center">
+                    <div>
+                      <p className="font-medium text-sm">{stage.stage_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(stage.start_date)} →{" "}
+                        {formatDate(stage.end_date)}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={
+                        stage.status === "completed" ? "outline" : "secondary"
+                      }
+                      className="h-6"
+                    >
+                      {stage.status || "Upcoming"}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="details" className="mt-4 space-y-4">
           <Card>
             <CardContent className="space-y-6">
               {/* Banner Image Display */}
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Image
                   src={event_banner_url || DEFAULT_IMAGE}
                   alt={event_name || "Event Banner"}
@@ -451,7 +584,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                   height={1000}
                   className="aspect-video size-full object-cover rounded-md"
                 />
-              </div>
+              </div> */}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Basic Info */}
@@ -599,7 +732,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           <div className="grid-cols-1 grid md:grid-cols-2 2xl:grid-cols-3 gap-2">
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Registration Rate
                 </CardTitle>
                 <IconUsers className="h-4 w-4" />
@@ -619,7 +752,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Average Per Day
                 </CardTitle>
                 <IconUsers className="h-4 w-4" />
@@ -640,7 +773,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Time Until Close
                 </CardTitle>
                 <IconCalendar className="h-4 w-4" />
@@ -699,7 +832,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       <p>{stage.stage_name}</p>
                       <p className="text-muted-foreground text-xs mt-1">
                         {formatDate(stage.start_date)} -{" "}
-                        {formatDate(stage.end_date)}
+                        {formatDate(stage.end_date)} |{" "}
+                        {formattedWord[stage.stage_format] ||
+                          stage.stage_format}
                       </p>
                     </div>
                     {/* Mock badge based on date relative to now */}
@@ -710,7 +845,31 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardContent className="grid md:grid-cols-2 gap-2">
+                  {stage.groups.map((group, index) => (
+                    <Card className="bg-primary/10 gap-0">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between gap-2">
+                          <span>{group.group_name}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {group.teams_qualifying} qualify
+                          </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-2 space-y-2 text-sm text-muted-foreground">
+                        <p>
+                          {formatDate(group.playing_date)} at{" "}
+                          {group.playing_time}
+                        </p>
+                        <p>Discord: 1223</p>
+                        <p className="text-primary font-medium">
+                          Maps: Bermuda, Kalahari, Purgatory
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </CardContent>
+                {/* <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-muted-foreground text-xs">Groups</p>
                     <h3 className="font-semibold text-base">
@@ -740,7 +899,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       WAT
                     </h3>
                   </div>
-                </CardContent>
+                </CardContent> */}
               </Card>
             ))
           ) : (
@@ -750,13 +909,47 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           )}
         </TabsContent>
 
+        <TabsContent value="prizes" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Prize Distribution - ${formatMoneyInput(prizepool)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {Object.entries(prize_distribution)
+                .sort(([posA], [posB]) => {
+                  // Sorts 1st, 2nd, 3rd numerically
+                  const numA = parseInt(posA.replace(/\D/g, "")) || 0;
+                  const numB = parseInt(posB.replace(/\D/g, "")) || 0;
+                  return numA - numB;
+                })
+                .map(([position, amount]) => (
+                  <Card
+                    className="bg-primary/10 hover:bg-primary/15"
+                    key={position}
+                  >
+                    <CardContent className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-slate-200 capitalize">
+                        {position}
+                      </span>
+                      <span className="text-sm font-bold text-green-500">
+                        ${formatMoneyInput(amount)}
+                      </span>
+                    </CardContent>
+                  </Card>
+                ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* --- Engagement Tab --- */}
         <TabsContent value="engagement" className="mt-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 2xl:grid-cols-4">
             {/* Mocked/Placeholder data for engagement metrics */}
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Page Views (Mock)
                 </CardTitle>
                 <IconUsers className="h-4 w-4" />
@@ -774,7 +967,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             {/* ... other engagement cards remain mocked ... */}
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Unique Visitors (Mock)
                 </CardTitle>
                 <IconUsers className="h-4 w-4" />
@@ -791,7 +984,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </Card>
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Conversion Rate (Mock)
                 </CardTitle>
                 <IconUsers className="h-4 w-4" />
@@ -808,7 +1001,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </Card>
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Social Shares (Mock)
                 </CardTitle>
                 <IconUsers className="h-4 w-4" />
@@ -825,7 +1018,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </Card>
           </div>
 
-          <Card className="gap-0">
+          {/* <Card className="gap-0">
             <CardHeader>
               <CardTitle>Stream Links</CardTitle>
             </CardHeader>
@@ -852,7 +1045,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                 </p>
               )}
             </CardContent>
-          </Card>
+          </Card> */}
         </TabsContent>
       </Tabs>
     </div>

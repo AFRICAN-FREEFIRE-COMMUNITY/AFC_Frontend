@@ -100,7 +100,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUser = async (token: string) => {
     try {
-      console.log("first");
       const res = await axios(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-user-profile/`,
         {

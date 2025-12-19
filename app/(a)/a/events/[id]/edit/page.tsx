@@ -1,16 +1,9 @@
 "use client";
 
-import React, {
-  useState,
-  useTransition,
-  useRef,
-  useEffect,
-  useCallback,
-  use,
-} from "react";
+import React, { useState, useTransition, useRef, useEffect, use } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { optional, z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,6 +55,7 @@ import {
   IconFile,
   IconFileText,
   IconPhoto,
+  IconTrophy,
   IconUpload,
   IconUserMinus,
   IconX,
@@ -76,6 +70,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { GroupResultModal } from "../../_components/GroupResultModal";
+import { SeedStageModal } from "../../_components/SeedStageModal";
+import { formatDate } from "@/lib/utils";
 
 const formattedWord: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
@@ -98,6 +96,7 @@ interface RegisteredTeamType {
 // Define EventFormType and other schemas (omitted for brevity, assume they are present)
 const GroupSchema = z.object({
   group_name: z.string().min(1, "Group name required"),
+  discordId: z.string().optional(),
   playing_date: z.string().min(1, "Playing date required"),
   playing_time: z.string().min(1, "Playing time required"),
   teams_qualifying: z.coerce.number().min(1, "Must qualify at least 1 team"),
@@ -105,6 +104,8 @@ const GroupSchema = z.object({
 
 const StageSchema = z.object({
   stage_name: z.string().min(1, "Stage name required"),
+  discordId: z.string().optional(),
+  seeding_method: z.string().optional(),
   start_date: z.string().min(1, "Start date required"),
   end_date: z.string().min(1, "End date required"),
   number_of_groups: z.coerce.number().min(1, "Must have at least 1 group"),
@@ -212,6 +213,8 @@ interface EventDetails {
   stages: Array<{
     id: number;
     stage_name: string;
+    discordId: string;
+    seeding_method: string;
     start_date: string;
     end_date: string;
     number_of_groups: number;
@@ -220,6 +223,7 @@ interface EventDetails {
     groups: Array<{
       id: number;
       group_name: string;
+      discordId: string;
       playing_date: string;
       playing_time: string;
       teams_qualifying: number;
@@ -246,6 +250,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     "type"
   );
 
+  const [isSeedModalOpen, setIsSeedModalOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<any>(null);
+
   const [bannerPreview, setBannerPreview] = useState<string>("");
   const [initialLoading, setInitialLoading] = useState(true);
   const [eventTitle, setEventTitle] = useState("Loading Event...");
@@ -263,6 +270,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     stage_format: "",
     number_of_groups: 2,
     teams_qualifying_from_stage: 1,
+    seeding_method: "automatic",
+    discordId: "",
   });
 
   const { token } = useAuth();
@@ -271,7 +280,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     eventDetails?.event_banner_url ? eventDetails.event_banner_url : ""
   );
 
-  console.log(eventDetails);
+  const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
+  const [selectedGroupForResult, setSelectedGroupForResult] = useState(null);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedRuleFile, setSelectedRuleFile] = useState<File | null>(null);
@@ -281,6 +291,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const rulesFileInputRef = useRef<HTMLInputElement>(null);
+
+  const [selectedGroupForSeed, setSelectedGroupForSeed] = useState(null);
+
+  // 2. Define the confirmation handler
+  const handleConfirmSeed = (groupId: number) => {
+    console.log("Seeding teams for group:", groupId);
+    // Add your API call here
+    setIsSeedModalOpen(false);
+    toast.success("Teams seeded successfully!");
+  };
 
   const form = useForm<EventFormType>({
     resolver: zodResolver(EventFormSchema),
@@ -447,6 +467,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         playing_date: stageModalData.start_date || "",
         playing_time: "00:00",
         teams_qualifying: 1,
+        discordId: "",
       };
     });
 
@@ -509,6 +530,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       number_of_groups: stageModalData.number_of_groups,
       stage_format: stageModalData.stage_format,
       groups: tempGroups,
+      seeding_method: stageModalData.seeding_method,
+      discordId: stageModalData.discordId,
       teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
     };
 
@@ -586,6 +609,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         end_date: existingStage.end_date,
         stage_format: existingStage.stage_format,
         number_of_groups: existingStage.number_of_groups,
+        seeding_method: existingStage.seeding_method || "automatic",
+        discordId: existingStage.discordId || "",
         teams_qualifying_from_stage:
           existingStage.teams_qualifying_from_stage || 1,
       });
@@ -595,6 +620,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         stage_name: stageNames[stageIndex] || `Stage ${stageIndex + 1}`,
         start_date: "",
         end_date: "",
+        seeding_method: "automatic",
+        discordId: "",
         stage_format: "",
         number_of_groups: 2,
         teams_qualifying_from_stage: 1,
@@ -865,6 +892,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   return (
     <div>
+      <GroupResultModal
+        isOpen={isResultsModalOpen}
+        onOpenChange={setIsResultsModalOpen}
+        activeGroup={selectedGroupForResult}
+      />
+      <SeedStageModal
+        isOpen={isSeedModalOpen}
+        onOpenChange={setIsSeedModalOpen}
+        activeGroup={selectedGroupForSeed}
+        onConfirm={handleConfirmSeed}
+      />
       <div>
         <PageHeader back title={eventTitle} />
         <Form {...form}>
@@ -888,96 +926,164 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
               {/* ======================= TAB 1: BASIC INFO ======================= */}
               <TabsContent value="basic_info">
-                <Card>
+                <Card className="bg-primary/10">
+                  <CardHeader>
+                    <CardTitle>Event Details</CardTitle>
+                  </CardHeader>
                   <CardContent className="space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="event_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Event Name</FormLabel>
-                          <Input {...field} />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="competition_type"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Competition Type</FormLabel>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex gap-6"
-                          >
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="tournament" />
-                              <span>Tournament</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="scrims" />
-                              <span>Scrim</span>
-                            </div>
-                          </RadioGroup>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="participant_type"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Participant Type</FormLabel>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex gap-6"
-                          >
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="solo" />
-                              <span>Solo</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="duo" />
-                              <span>Duo</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="squad" />
-                              <span>Squad</span>
-                            </div>
-                          </RadioGroup>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="event_type"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Event Type</FormLabel>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex gap-6"
-                          >
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="internal" />
-                              <span>Internal Event</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="external" />
-                              <span>External Event</span>
-                            </div>
-                          </RadioGroup>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="event_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Event Name</FormLabel>
+                            <Input {...field} />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="max_teams_or_players"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max Teams/Players</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                // Value must be string, map 0/undefined/null to "" for clean typing
+                                value={
+                                  field.value === undefined ||
+                                  field.value === null ||
+                                  field.value === 0
+                                    ? ""
+                                    : field.value.toString()
+                                }
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  // Pass raw string to RHF/Zod for coercion on blur/submit
+                                  field.onChange(val);
+                                }}
+                                placeholder="e.g., 128"
+                                className=""
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="competition_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Competition Type</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value={"tournament"}>
+                                  Tournament
+                                </SelectItem>
+                                <SelectItem value={"scrims"}>Scrims</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="participant_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Participant Type</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value={"solo"}>Solo</SelectItem>
+                                <SelectItem value={"duo"}>Duo</SelectItem>
+                                <SelectItem value={"squad"}>Squad</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="event_mode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Event Mode</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select mode" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value={"virtual"}>
+                                  Virtual
+                                </SelectItem>
+                                <SelectItem value={"physical"}>
+                                  Physical (LAN)
+                                </SelectItem>
+                                <SelectItem value={"hybrid"}>Hybrid</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="event_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Event Type</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value={"internal"}>
+                                  Internal event
+                                </SelectItem>
+                                <SelectItem value={"external"}>
+                                  External event
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     {eventType && (
                       <FormField
@@ -998,71 +1104,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       />
                     )}
 
-                    {/* FIX: max_teams_or_players controlled component for number input */}
-                    <FormField
-                      control={form.control}
-                      name="max_teams_or_players"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Max Teams/Players</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              // Value must be string, map 0/undefined/null to "" for clean typing
-                              value={
-                                field.value === undefined ||
-                                field.value === null ||
-                                field.value === 0
-                                  ? ""
-                                  : field.value.toString()
-                              }
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                // Pass raw string to RHF/Zod for coercion on blur/submit
-                                field.onChange(val);
-                              }}
-                              placeholder="e.g., 128"
-                              className=""
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {/* END FIX */}
-
-                    <FormField
-                      control={form.control}
-                      name="event_mode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Event Mode</FormLabel>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex gap-6"
-                          >
-                            {["virtual", "physical", "hybrid"].map((mode) => (
-                              <div
-                                key={mode}
-                                className="flex items-center gap-2 text-sm"
-                              >
-                                <RadioGroupItem value={mode} />
-                                <span className="capitalize">
-                                  {mode === "physical"
-                                    ? "Physical (LAN)"
-                                    : mode}
-                                </span>
-                              </div>
-                            ))}
-                          </RadioGroup>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Stream Channels */}
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <FormLabel>Streaming Channel Links</FormLabel>
                       {streamFields.map((field, index) => (
                         <div key={field.id} className="flex gap-2 items-center">
@@ -1080,7 +1122,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           <Button
                             type="button"
                             variant="destructive"
-                            size="sm"
+                            size="md"
+                            className="h-11"
                             onClick={() => removeStreamChannel(index)}
                           >
                             Remove
@@ -1241,7 +1284,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       )}
                     />
                     {/* Dates */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="registration_open_date"
@@ -1264,8 +1307,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           </FormItem>
                         )}
                       />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="start_date"
@@ -1393,18 +1434,105 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </Card>
               </TabsContent>
 
-              {/* ======================= TAB 3: STAGES & GROUPS (FIXED) ======================= */}
-              <TabsContent value="stages_groups">
+              <TabsContent value="stages_groups" className="space-y-4">
+                {form.watch("stages").map((stage, sIdx) => (
+                  <Card key={sIdx} className="bg-primary/10">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div className="space-y-1 w-full">
+                        <CardTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-2">
+                          <span>
+                            <IconTrophy className="inline-block mr-2" />
+                            {stage.stage_name}{" "}
+                            <Badge className="capitalize">
+                              {sIdx === 0 ? "completed" : "upcoming"}
+                            </Badge>
+                          </span>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full md:w-auto"
+                            onClick={() => openAddStageModalLogic(sIdx)}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit Details
+                          </Button>
+                        </CardTitle>
+                        <p className="text-xs text-slate-400">
+                          {formatDate(stage.start_date)} →{" "}
+                          {formatDate(stage.end_date)} |{" "}
+                          {formattedWord[stage.stage_format]} |{" "}
+                          {stage.teams_qualifying_from_stage} teams qualify
+                        </p>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-2">
+                      {stage.groups.map((group, gIdx) => (
+                        <Card key={gIdx} className="bg-primary/10 gap-0">
+                          <CardHeader>
+                            <CardTitle>{group.group_name}</CardTitle>
+                          </CardHeader>
+                          <CardContent className="pt-2 text-muted-foreground text-sm flex flex-col md:flex-row items-start justify-between gap-4 md:gap-2">
+                            <div className="space-y-1">
+                              <p>
+                                {formatDate(group.playing_date)} at{" "}
+                                {group.playing_time}
+                              </p>
+                              <p className="text-primary">
+                                Maps: Bermuda, Kalahari, Purgatory
+                              </p>
+                              <p>8 teams | {group.teams_qualifying} qualify</p>
+                            </div>
+                            <div className="flex w-full md:w-auto items-start gap-2">
+                              <Button
+                                variant="secondary"
+                                type="button"
+                                size="md"
+                                className="flex-1"
+                                onClick={() => {
+                                  setSelectedGroupForResult(group); // Set the specific group data
+                                  setIsResultsModalOpen(true); // Open the modal
+                                }}
+                              >
+                                View Results
+                              </Button>
+                              <Button
+                                size="md"
+                                type="button"
+                                className="flex-1"
+                                onClick={() => {
+                                  setSelectedGroupForSeed(group); // Set the active group context
+                                  setIsSeedModalOpen(true); // Show the modal
+                                }}
+                              >
+                                Seed to Next Stage
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </CardContent>
+                  </Card>
+                ))}
+                <Button
+                  type="button"
+                  onClick={form.handleSubmit(onSubmit)}
+                  disabled={isPending}
+                >
+                  Save Changes
+                </Button>
+              </TabsContent>
+
+              {/* <TabsContent value="stages_groups">
                 <Card>
                   <CardHeader>
                     <CardTitle>Stages & Groups Configuration</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Stage List and Ordering */}
                     <div className="space-y-3">
                       <h3 className="font-semibold text-lg">Stage Order</h3>
 
-                      {/* FIX APPLIED HERE: number_of_stages controlled component for number input and array sync */}
                       <FormField
                         control={form.control}
                         name="number_of_stages"
@@ -1415,7 +1543,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               <Input
                                 type="number"
                                 min={1}
-                                // Value must be string, map 0/undefined/null to "" for clean typing
                                 value={
                                   field.value === undefined ||
                                   field.value === null ||
@@ -1425,10 +1552,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                 }
                                 onChange={(e) => {
                                   const val = e.target.value;
-                                  field.onChange(val); // Update RHF state with raw string/empty string
+                                  field.onChange(val); 
 
                                   const numericVal = Number(val);
-                                  // Call the custom handler which now synchronizes the stages array
                                   if (val !== "" && !isNaN(numericVal)) {
                                     handleStageCountChangeLogic(numericVal);
                                   } else {
@@ -1442,7 +1568,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           </FormItem>
                         )}
                       />
-                      {/* END FIX */}
 
                       {stageNames.map((name, index) => {
                         const stage = stages[index];
@@ -1512,7 +1637,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       })}
                     </div>
 
-                    {/* Dedicated Save Button for Stages Tab */}
                     <Button
                       type="button"
                       onClick={form.handleSubmit(onSubmit)}
@@ -1522,9 +1646,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </Button>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              </TabsContent> */}
 
-              {/* ======================= TAB 4: PRIZE & RULES ======================= */}
               <TabsContent value="prize_rules">
                 <Card>
                   <CardHeader>
@@ -1845,7 +1968,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   {stageModalStep === 1 ? "Stage Details" : "Configure Groups"}
                 </DialogTitle>
 
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground mb-4">
                   Step {stageModalStep} of 2 (Configuration for{" "}
                   {editingStageIndex !== null
                     ? stageNames[editingStageIndex]
@@ -1990,10 +2113,25 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       }
                     />
                   </div>
-                  {/* END FIX */}
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Stage Discord Role ID{" "}
+                    </label>
+                    <Input
+                      value={stageModalData.discordId}
+                      onChange={(e) =>
+                        setStageModalData({
+                          ...stageModalData,
+                          discordId: e.target.value,
+                        })
+                      }
+                      placeholder="e.g: 1234567890"
+                      className=""
+                    />
+                  </div>
 
                   <div className="pt-4 border-t">
-                    <p className="text-sm text-zinc-400 mb-3">
+                    <p className="text-xs text-muted-foreground mb-3">
                       You will configure {stageModalData.number_of_groups}{" "}
                       group(s) in the next step
                     </p>
@@ -2004,7 +2142,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         .map((group, i) => (
                           <div
                             key={i}
-                            className="px-3 py-1 bg-blue-950/30 border border-blue-900 rounded text-sm"
+                            className="px-3 py-1 bg-primary/10 border border-primary rounded-md text-xs"
                           >
                             {group.group_name}
                           </div>
@@ -2119,6 +2257,22 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               e.target.value === "" ? 0 : Number(e.target.value)
                             )
                           }
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Discord Role ID
+                        </label>
+                        <Input
+                          value={group.discordId}
+                          onChange={(e) =>
+                            setGroup({
+                              ...stageModalData,
+                              discordId: e.target.value,
+                            })
+                          }
+                          placeholder="e.g: 1234567890"
+                          className=""
                         />
                       </div>
                       {/* END FIX */}

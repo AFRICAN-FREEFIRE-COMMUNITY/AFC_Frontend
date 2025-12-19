@@ -3,7 +3,7 @@
 import React, { useState, useTransition, useRef, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { optional, z } from "zod";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import Image from "next/image";
+import { formatDate } from "@/lib/utils";
 
 const formattedWord: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
@@ -63,6 +64,7 @@ const formattedWord: Record<string, string> = {
 /* ========== SCHEMAS ========== */
 const GroupSchema = z.object({
   group_name: z.string().min(1, "Group name required"),
+  discordId: z.string().optional(),
   playing_date: z.string().min(1, "Playing date required"),
   playing_time: z.string().min(1, "Playing time required"),
   teams_qualifying: z.coerce.number().min(1, "Must qualify at least 1 team"),
@@ -70,10 +72,12 @@ const GroupSchema = z.object({
 
 const StageSchema = z.object({
   stage_name: z.string().min(1, "Stage name required"),
+  discordId: z.string().optional(),
   start_date: z.string().min(1, "Start date required"),
   end_date: z.string().min(1, "End date required"),
   number_of_groups: z.coerce.number().min(1, "Must have at least 1 group"),
   stage_format: z.string().min(1, "Stage format required"),
+  seeding_method: z.string().min(1, "Seeding method required"),
   groups: z.array(GroupSchema).min(1, "At least one group required"),
   teams_qualifying_from_stage: z.coerce.number().min(0).optional(),
 });
@@ -165,9 +169,11 @@ export default function Page() {
     stage_name: "",
     start_date: "",
     end_date: "",
+    seeding_method: "automatic",
     stage_format: "",
     number_of_groups: 2,
     teams_qualifying_from_stage: 1,
+    discordId: "",
   });
 
   const { user, token } = useAuth();
@@ -238,6 +244,8 @@ export default function Page() {
     if (existingStage) {
       setStageModalData({
         stage_name: existingStage.stage_name,
+        discordId: existingStage.discordId || "",
+        seeding_method: existingStage.seeding_method || "",
         start_date: existingStage.start_date,
         end_date: existingStage.end_date,
         stage_format: existingStage.stage_format,
@@ -249,7 +257,9 @@ export default function Page() {
     } else {
       setStageModalData({
         stage_name: stageNames[stageIndex] || `Stage ${stageIndex + 1}`,
+        discordId: "",
         start_date: "",
+        seeding_method: "automatic",
         end_date: "",
         stage_format: "",
         number_of_groups: 2,
@@ -262,6 +272,7 @@ export default function Page() {
           playing_date: "",
           playing_time: "00:00",
           teams_qualifying: 1,
+          discordId: "",
         }))
       );
     }
@@ -292,6 +303,7 @@ export default function Page() {
         playing_date: stageModalData.start_date || "",
         playing_time: "00:00",
         teams_qualifying: 1,
+        discordId: "",
       };
     });
 
@@ -349,6 +361,7 @@ export default function Page() {
 
     const newStage: StageType = {
       stage_name: stageModalData.stage_name,
+      discordId: stageModalData.discordId,
       start_date: stageModalData.start_date,
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
@@ -731,120 +744,141 @@ export default function Page() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Event Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} className="" />
-                        </FormControl>
+                        <Input {...field} />
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="competition_type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Competition Type</FormLabel>
-                        <FormControl>
-                          <RadioGroup
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="competition_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Competition Type</FormLabel>
+                          <Select
                             onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex gap-6"
+                            defaultValue={field.value}
                           >
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="tournament" />
-                              <span>Tournament</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="scrims" />
-                              <span>Scrim</span>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="participant_type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Participant Type</FormLabel>
-                        <FormControl>
-                          <RadioGroup
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={"tournament"}>
+                                Tournament
+                              </SelectItem>
+                              <SelectItem value={"scrims"}>Scrims</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="participant_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Participant Type</FormLabel>
+                          <Select
                             onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex gap-6"
+                            defaultValue={field.value}
                           >
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="solo" />
-                              <span>Solo</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="duo" />
-                              <span>Duo</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="squad" />
-                              <span>Squad</span>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={"solo"}>Solo</SelectItem>
+                              <SelectItem value={"duo"}>Duo</SelectItem>
+                              <SelectItem value={"squad"}>Squad</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>{" "}
                   <FormField
                     control={form.control}
                     name="event_type"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Event Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value={"internal"}>
+                              Internal event
+                            </SelectItem>
+                            <SelectItem value={"external"}>
+                              External event
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="max_teams_or_players"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Max Teams/Players</FormLabel>
                         <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="flex gap-6"
-                          >
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="internal" />
-                              <span>Internal Event</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <RadioGroupItem value="external" />
-                              <span>External Event</span>
-                            </div>
-                          </RadioGroup>
+                          <Input
+                            type="number"
+                            // Value must be string, map 0/undefined/null to "" for clean typing
+                            value={
+                              field.value === undefined ||
+                              field.value === null ||
+                              field.value === 0
+                                ? ""
+                                : field.value.toString()
+                            }
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              // Pass raw string to RHF/Zod for coercion on blur/submit
+                              field.onChange(val);
+                            }}
+                            placeholder="e.g., 128"
+                            className=""
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
                   {eventType && (
                     <FormField
                       control={form.control}
                       name="registration_link"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Registration Link (Optional)</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="https://registration.example.com"
-                              className=""
-                            />
-                          </FormControl>
+                          <FormLabel>
+                            Registration Link (Required for External)
+                          </FormLabel>
+                          <Input
+                            {...field}
+                            placeholder="https://registration.example.com"
+                          />
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   )}
-
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="registration_open_date"
@@ -873,8 +907,7 @@ export default function Page() {
                       )}
                     />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="start_date"
@@ -903,37 +936,6 @@ export default function Page() {
                       )}
                     />
                   </div>
-
-                  <FormField
-                    control={form.control}
-                    name="max_teams_or_players"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Max Teams/Players</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            // Keep the value as the string representation of the field's current number value.
-                            value={
-                              field.value === undefined ||
-                              field.value === null ||
-                              field.value === 0
-                                ? ""
-                                : field.value.toString()
-                            }
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              // Pass raw string to RHF/Zod for coercion on blur/submit
-                              field.onChange(val);
-                            }}
-                            placeholder="e.g., 128"
-                            className=""
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   <FormField
                     control={form.control}
                     name="banner"
@@ -1077,7 +1079,6 @@ export default function Page() {
                       </FormItem>
                     )}
                   />
-
                   <div className="space-y-3">
                     <FormLabel>Streaming Channel Links</FormLabel>
                     {streamFields.map((field, index) => (
@@ -1796,7 +1797,7 @@ export default function Page() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium mb-2 block">
                         Start Date
@@ -1857,6 +1858,28 @@ export default function Page() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Seeding Method
+                    </label>
+                    <Select
+                      value={stageModalData.seeding_method}
+                      onValueChange={(value) =>
+                        setStageModalData({
+                          ...stageModalData,
+                          seeding_method: value,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="">
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={"automatic"}>Automatic</SelectItem>
+                        <SelectItem value={"manual"}>Manual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   {/* FIXED: teams_qualifying_from_stage controlled component for number input */}
                   <div>
@@ -1886,7 +1909,6 @@ export default function Page() {
                       className=""
                     />
                   </div>
-                  {/* END FIX */}
 
                   {/* FIXED: number_of_groups controlled component for number input */}
                   <div>
@@ -1911,10 +1933,25 @@ export default function Page() {
                       className=""
                     />
                   </div>
-                  {/* END FIX */}
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Stage Discord Role ID{" "}
+                    </label>
+                    <Input
+                      value={stageModalData.discordId}
+                      onChange={(e) =>
+                        setStageModalData({
+                          ...stageModalData,
+                          discordId: e.target.value,
+                        })
+                      }
+                      placeholder="e.g: 1234567890"
+                      className=""
+                    />
+                  </div>
 
                   <div className="pt-4 border-t">
-                    <p className="text-sm text-zinc-400 mb-3">
+                    <p className="text-xs text-muted-foreground mb-2">
                       You will configure {stageModalData.number_of_groups}{" "}
                       group(s) in the next step
                     </p>
@@ -1924,7 +1961,7 @@ export default function Page() {
                         .map((group, i) => (
                           <div
                             key={i}
-                            className="px-3 py-1 bg-blue-950/30 border border-blue-900 rounded text-sm"
+                            className="px-3 py-1 bg-primary/10 rounded-md border border-primary text-xs"
                           >
                             {group.group_name}
                           </div>
@@ -1936,14 +1973,15 @@ export default function Page() {
 
               {/* MODAL STEP 2: Groups Configuration */}
               {stageModalStep === 2 && (
-                <div className="space-y-6 py-4">
-                  <div className="bg-blue-950/20 border border-blue-900 rounded-lg p-4">
+                <div className="space-y-3">
+                  <div className="bg-primary/10 border rounded-md p-4">
                     <p className="text-sm">
                       <span className="font-semibold">Stage:</span>{" "}
                       {stageModalData.stage_name}
                     </p>
                     <p className="text-sm text-zinc-400">
-                      {stageModalData.start_date} to {stageModalData.end_date} •{" "}
+                      {formatDate(stageModalData.start_date)} to{" "}
+                      {formatDate(stageModalData.end_date)} |{" "}
                       {formattedWord[stageModalData.stage_format]}
                     </p>
                   </div>
@@ -1978,7 +2016,7 @@ export default function Page() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">
                             Playing Date
@@ -2041,7 +2079,22 @@ export default function Page() {
                           className=""
                         />
                       </div>
-                      {/* END FIX */}
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Discord Role ID
+                        </label>
+                        <Input
+                          value={group.discordId}
+                          onChange={(e) =>
+                            setGroup({
+                              ...stageModalData,
+                              discordId: e.target.value,
+                            })
+                          }
+                          placeholder="e.g: 1234567890"
+                          className=""
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
