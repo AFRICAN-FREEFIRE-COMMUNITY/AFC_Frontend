@@ -46,6 +46,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AFC_DISCORD_SERVER, DEFAULT_IMAGE } from "@/constants";
 import axios from "axios";
 import Image from "next/image";
+import { IconUsers } from "@tabler/icons-react";
+import { Badge } from "@/components/ui/badge";
 
 // --- Types for API Response ---
 
@@ -82,6 +84,7 @@ interface EventDetails {
   event_id: number;
   competition_type: string;
   participant_type: string;
+  registered_competitors: any;
   event_type: string;
   max_teams_or_players: number;
   event_name: string;
@@ -811,7 +814,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             <p>Location: Online</p>
             <p>Format: {formatText}</p>
           </div>
-          <p className="text-sm">Participants: {participantText}</p>
+          <p className="text-xs md:text-sm">Participants: {participantText}</p>
         </CardHeader>
         <CardContent>
           {eventDetails.stages.length > 0 ? (
@@ -847,6 +850,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           )}
         </CardContent>
       </Card>
+
       <div className="text-center mt-6">
         {!eventDetails.is_registered ? (
           <Button disabled>You've registered already</Button>
@@ -879,6 +883,66 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           </Button>
         )}
       </div>
+
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-start gap-2">
+            <IconUsers />
+            Registered Participants
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center grid grid-cols-3 gap-2">
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center gap-2">
+                <p className="font-semibold text-lg md:text-2xl">0</p>
+                <p className="text-xs md:text-sm">Total Teams</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center gap-2">
+                <p className="font-semibold text-lg md:text-2xl">
+                  {eventDetails.registered_competitors.length}
+                </p>
+                <p className="text-xs md:text-sm">Players</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center gap-2">
+                <p className="font-semibold text-lg md:text-2xl">
+                  {formatMoneyInput(
+                    eventDetails.max_teams_or_players -
+                      eventDetails.registered_competitors.length
+                  )}
+                </p>
+                <p className="text-xs md:text-sm">Slot left</p>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-h-96 overflow-auto custom-scroll">
+            {eventDetails.registered_competitors.map((reg, index) => (
+              <Card key={index}>
+                <CardContent className="flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-start gap-2">
+                    <div className="px-4 py-2 rounded-full bg-primary text-white font-semibold text-base">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="font-white font-semibold text-base">
+                        {reg.username}
+                      </p>
+                      <p className="font-white text-xs capitalize">
+                        {reg.status}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge>Confirmed</Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
         <Card className="gap-0">

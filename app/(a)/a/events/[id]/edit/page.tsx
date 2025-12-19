@@ -287,7 +287,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     stage_discord_role_id: "",
   });
 
-  const { token } = useAuth();
+  const { token, loading: authLoading } = useAuth();
 
   const [previewUrl, setPreviewUrl] = useState<string>(
     eventDetails?.event_banner_url ? eventDetails.event_banner_url : ""
@@ -391,7 +391,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   // });
 
   useEffect(() => {
-    if (!id) return;
+    // Wait for auth context to load before making API calls
+    if (!id || authLoading || !token) return;
 
     startTransition(async () => {
       try {
@@ -444,7 +445,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         router.push("/login");
       }
     });
-  }, [id, token]); // Added token to dependencies for safety
+  }, [id, token, authLoading, router]);
 
   // useEffect(() => {
   //   if (!id) return;
