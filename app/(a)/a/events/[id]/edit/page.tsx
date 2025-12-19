@@ -61,7 +61,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import Image from "next/image";
-import { FullLoader } from "@/components/Loader";
+import { FullLoader, Loader } from "@/components/Loader";
 import {
   Table,
   TableBody,
@@ -743,6 +743,49 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     );
   };
 
+  // Add this near your other state declarations
+  const [tabErrors, setTabErrors] = useState<{
+    basic_info: boolean;
+    registered_teams: boolean;
+    stages_groups: boolean;
+    prize_rules: boolean;
+  }>({
+    basic_info: false,
+    registered_teams: false,
+    stages_groups: false,
+    prize_rules: false,
+  });
+
+  // Add this useEffect to track errors per tab
+  useEffect(() => {
+    const errors = form.formState.errors;
+
+    setTabErrors({
+      basic_info: !!(
+        errors.event_name ||
+        errors.competition_type ||
+        errors.participant_type ||
+        errors.event_type ||
+        errors.max_teams_or_players ||
+        errors.event_mode ||
+        errors.start_date ||
+        errors.end_date ||
+        errors.registration_open_date ||
+        errors.registration_end_date ||
+        errors.banner ||
+        errors.stream_channels
+      ),
+      registered_teams: false, // This tab typically doesn't have validation errors
+      stages_groups: !!(errors.stages || errors.number_of_stages),
+      prize_rules: !!(
+        errors.prizepool ||
+        errors.prize_distribution ||
+        errors.event_rules ||
+        errors.rules_document
+      ),
+    });
+  }, [form.formState.errors]);
+
   const moveStageLogic = (index: number, direction: "up" | "down") => {
     const currentStages = form.getValues("stages");
     const currentNames = [...stageNames];
@@ -974,9 +1017,147 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const onSubmit = async (data: EventFormType) => {
     if (!eventDetails?.event_id) return toast.error("Event ID is missing");
 
+    // 1. Check for undefined stages first
+    const currentStages = form.getValues("stages");
+    const hasUndefined = currentStages.some(
+      (stage) => !stage || stage === undefined
+    );
+
+    if (hasUndefined) {
+      toast.error("Please configure all stages before saving");
+      setCurrentTab("stages_groups"); // Auto-navigate to the problematic tab
+      return;
+    }
+
+    // 2. Check for incomplete stage configurations
+    const incompleteStages = currentStages.filter(
+      (stage, idx) =>
+        !stage.stage_name ||
+        !stage.stage_format ||
+        !stage.start_date ||
+        !stage.end_date ||
+        !stage.groups ||
+        stage.groups.length === 0
+    );
+
+    if (incompleteStages.length > 0) {
+      toast.error(
+        `${incompleteStages.length} stage(s) are incomplete. Please fill all required fields.`
+      );
+      setCurrentTab("stages_groups");
+      return;
+    }
+
+    // 3. Check for incomplete group configurations
+    for (let i = 0; i < currentStages.length; i++) {
+      const stage = currentStages[i];
+      const incompleteGroups = stage.groups.filter(
+        (g) =>
+          !g.group_name ||
+          !g.playing_date ||
+          !g.playing_time ||
+          !g.group_discord_role_id ||
+          g.teams_qualifying < 1
+      );
+
+      if (incompleteGroups.length > 0) {
+        toast.error(
+          `Stage "${stage.stage_name}": ${incompleteGroups.length} group(s) are incomplete`
+        );
+        setCurrentTab("stages_groups");
+        return;
+      }
+    }
+
+    // 4. Run form validation
     const isValid = await form.trigger();
     if (!isValid) {
-      toast.error("Please correct the errors in the form before saving.");
+      // Get all errors and show them in a user-friendly way
+      const errors = form.formState.errors;
+      const errorMessages: string[] = [];
+
+      // Basic Info Errors
+      if (errors.event_name) errorMessages.push("Event name is required");
+      if (errors.competition_type)
+        errorMessages.push("Competition type is required");
+      if (errors.participant_type)
+        errorMessages.push("Participant type is required");
+      if (errors.event_type) errorMessages.push("Event type is required");
+      if (errors.max_teams_or_players)
+        errorMessages.push("Max teams/players is required");
+      if (errors.event_mode) errorMessages.push("Event mode is required");
+      if (errors.start_date) errorMessages.push("Event start date is required");
+      if (errors.end_date) errorMessages.push("Event end date is required");
+      if (errors.registration_open_date)
+        errorMessages.push("Registration open date is required");
+      if (errors.registration_end_date)
+        errorMessages.push("Registration end date is required");
+
+      // Prize & Rules Errors
+      if (errors.prizepool) errorMessages.push("Prize pool is required");
+      if (errors.prize_distribution)
+        errorMessages.push("Prize distribution is incomplete");
+
+      // Stage Errors
+      if (errors.stages) {
+        if (Array.isArray(errors.stages)) {
+          errors.stages.forEach((stageError, idx) => {
+            if (stageError) {
+              errorMessages.push(`Stage ${idx + 1} has validation errors`);
+            }
+          });
+        } else {
+          errorMessages.push("Stages configuration has errors");
+        }
+      }
+
+      // Show the first 3 errors
+      if (errorMessages.length > 0) {
+        const displayErrors = errorMessages.slice(0, 3);
+        const remaining = errorMessages.length - 3;
+
+        toast.error(
+          <div className="space-y-1">
+            <p className="font-semibold">Please fix the following errors:</p>
+            <ul className="list-disc list-inside text-sm">
+              {displayErrors.map((msg, idx) => (
+                <li key={idx}>{msg}</li>
+              ))}
+            </ul>
+            {remaining > 0 && (
+              <p className="text-xs text-muted-foreground">
+                ...and {remaining} more error(s)
+              </p>
+            )}
+          </div>,
+          { duration: 6000 }
+        );
+      } else {
+        toast.error("Please correct the errors in the form before saving.", {
+          duration: 4000,
+        });
+      }
+
+      // Auto-navigate to the first tab with errors
+      if (
+        errors.event_name ||
+        errors.competition_type ||
+        errors.participant_type ||
+        errors.event_type ||
+        errors.max_teams_or_players ||
+        errors.event_mode ||
+        errors.start_date ||
+        errors.end_date ||
+        errors.registration_open_date ||
+        errors.registration_end_date
+      ) {
+        setCurrentTab("basic_info");
+      } else if (errors.stages) {
+        setCurrentTab("stages_groups");
+      } else if (errors.prizepool || errors.prize_distribution) {
+        setCurrentTab("prize_rules");
+      }
+
       return;
     }
 
@@ -987,21 +1168,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
         let finalEventStatus = data.event_status;
         if (data.save_to_drafts) {
-          // If the user checked 'Save as Draft', override the status.
-          // Assuming your backend recognizes 'draft'
           finalEventStatus = "draft";
-        } else if (finalEventStatus === "draft") {
         }
 
         formData.append(
           "is_draft",
           data.save_to_drafts.toString() === "true" ? "True" : "False"
         );
-        // If your backend API expects the status to be changed:
         formData.append("event_status", finalEventStatus);
-        // =======================================================
-
-        // Ensure Event ID is the first field and is required for POST/PATCH update logic
         formData.append("event_id", eventDetails.event_id.toString());
 
         // --- 1. HANDLE FILES ---
@@ -1012,7 +1186,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           formData.append("uploaded_rules", selectedRuleFile);
         }
 
-        // --- 2. APPEND PRIMITIVE FIELDS (Non-Draft Related) ---
+        // --- 2. APPEND PRIMITIVE FIELDS ---
         formData.append("event_name", data.event_name);
         formData.append("competition_type", data.competition_type);
         formData.append("participant_type", data.participant_type);
@@ -1023,7 +1197,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
-        // formData.append("event_status", finalEventStatus); // ALREADY HANDLED ABOVE
         formData.append("number_of_stages", data.number_of_stages.toString());
         formData.append("start_date", data.start_date);
         formData.append("end_date", data.end_date);
@@ -1031,18 +1204,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("registration_end_date", data.registration_end_date);
         formData.append("registration_link", data.registration_link || "");
 
-        // Append Boolean fields as strings
         formData.append(
           "publish_to_tournaments",
           data.publish_to_tournaments.toString()
         );
         formData.append("publish_to_news", data.publish_to_news.toString());
-        // formData.append("save_to_drafts", data.save_to_drafts.toString()); // Only use this if backend expects it. Prefer the dedicated 'is_draft' field or 'event_status' change.
 
-        // Append Event Rules Text (CONDITIONAL)
         if (rulesInputMethod === "type") {
           formData.append("event_rules", data.event_rules || "");
-          // If typed rules are used, explicitly clear the uploaded_rules field on the backend
           formData.append("uploaded_rules", "");
         } else {
           formData.append("event_rules", "");
@@ -1061,7 +1230,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           )
         );
 
-        // Stages: Must be stringified array
         formData.append("stages", JSON.stringify(data.stages));
 
         // --- 4. SUBMISSION ---
@@ -1076,12 +1244,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           }
         );
 
-        // ... (rest of the response handling)
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           const textResponse = await response.text();
           console.error("Non-JSON Response (Backend Error):", textResponse);
-          toast.error("Server error: Received unexpected response format.");
+          toast.error(
+            "Server error: The server returned an unexpected response. Please try again or contact support.",
+            { duration: 5000 }
+          );
           return;
         }
 
@@ -1089,24 +1259,208 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
         if (response.ok) {
           toast.success(
-            `Event saved as ${
-              data.save_to_drafts ? "Draft" : "Finalized"
-            } successfully!`
+            `Event "${data.event_name}" saved as ${
+              data.save_to_drafts ? "Draft" : "Published"
+            } successfully!`,
+            { duration: 4000 }
+          );
+          // Optional: Redirect or refresh
+          // router.push(`/events/${eventDetails.event_id}`);
+        } else {
+          // Handle specific backend errors
+          const errorMessage = res.message || res.detail || res.error;
+
+          if (response.status === 400) {
+            toast.error(
+              <div className="space-y-1">
+                <p className="font-semibold">Validation Error</p>
+                <p className="text-sm">{errorMessage}</p>
+              </div>,
+              { duration: 5000 }
+            );
+          } else if (response.status === 401) {
+            toast.error("Your session has expired. Please log in again.");
+            router.push("/login");
+          } else if (response.status === 403) {
+            toast.error("You don't have permission to edit this event.", {
+              duration: 4000,
+            });
+          } else if (response.status === 404) {
+            toast.error("Event not found. It may have been deleted.", {
+              duration: 4000,
+            });
+          } else if (response.status >= 500) {
+            toast.error(
+              "Server error occurred. Please try again later or contact support.",
+              { duration: 5000 }
+            );
+          } else {
+            toast.error(
+              errorMessage || "Failed to update event. Please try again.",
+              { duration: 4000 }
+            );
+          }
+
+          console.error("Server Error:", res);
+        }
+      } catch (error: any) {
+        console.error("Error:", error);
+
+        // Network errors
+        if (
+          error.message === "Failed to fetch" ||
+          error.message.includes("NetworkError")
+        ) {
+          toast.error(
+            "Network error: Please check your internet connection and try again.",
+            { duration: 5000 }
           );
         } else {
-          console.error("Server Error:", res);
           toast.error(
-            res.message ||
-              res.detail ||
-              "Failed to update event. Please check your inputs."
+            "An unexpected error occurred. Please try again or contact support.",
+            { duration: 5000 }
           );
         }
-      } catch (error) {
-        console.error("Error:", error);
-        toast.error("An unexpected error occurred during submission.");
       }
     });
   };
+
+  // const onSubmit = async (data: EventFormType) => {
+  //   if (!eventDetails?.event_id) return toast.error("Event ID is missing");
+
+  //   const isValid = await form.trigger();
+  //   if (!isValid) {
+  //     toast.error("Please correct the errors in the form before saving.");
+  //     return;
+  //   }
+
+  //   startTransition(async () => {
+  //     try {
+  //       console.log(data);
+  //       const formData = new FormData();
+
+  //       let finalEventStatus = data.event_status;
+  //       if (data.save_to_drafts) {
+  //         // If the user checked 'Save as Draft', override the status.
+  //         // Assuming your backend recognizes 'draft'
+  //         finalEventStatus = "draft";
+  //       } else if (finalEventStatus === "draft") {
+  //       }
+
+  //       formData.append(
+  //         "is_draft",
+  //         data.save_to_drafts.toString() === "true" ? "True" : "False"
+  //       );
+  //       // If your backend API expects the status to be changed:
+  //       formData.append("event_status", finalEventStatus);
+  //       // =======================================================
+
+  //       // Ensure Event ID is the first field and is required for POST/PATCH update logic
+  //       formData.append("event_id", eventDetails.event_id.toString());
+
+  //       // --- 1. HANDLE FILES ---
+  //       if (selectedFile) {
+  //         formData.append("event_banner", selectedFile);
+  //       }
+  //       if (selectedRuleFile) {
+  //         formData.append("uploaded_rules", selectedRuleFile);
+  //       }
+
+  //       // --- 2. APPEND PRIMITIVE FIELDS (Non-Draft Related) ---
+  //       formData.append("event_name", data.event_name);
+  //       formData.append("competition_type", data.competition_type);
+  //       formData.append("participant_type", data.participant_type);
+  //       formData.append("event_type", data.event_type);
+  //       formData.append(
+  //         "max_teams_or_players",
+  //         data.max_teams_or_players.toString()
+  //       );
+  //       formData.append("event_mode", data.event_mode);
+  //       formData.append("prizepool", data.prizepool);
+  //       // formData.append("event_status", finalEventStatus); // ALREADY HANDLED ABOVE
+  //       formData.append("number_of_stages", data.number_of_stages.toString());
+  //       formData.append("start_date", data.start_date);
+  //       formData.append("end_date", data.end_date);
+  //       formData.append("registration_open_date", data.registration_open_date);
+  //       formData.append("registration_end_date", data.registration_end_date);
+  //       formData.append("registration_link", data.registration_link || "");
+
+  //       // Append Boolean fields as strings
+  //       formData.append(
+  //         "publish_to_tournaments",
+  //         data.publish_to_tournaments.toString()
+  //       );
+  //       formData.append("publish_to_news", data.publish_to_news.toString());
+  //       // formData.append("save_to_drafts", data.save_to_drafts.toString()); // Only use this if backend expects it. Prefer the dedicated 'is_draft' field or 'event_status' change.
+
+  //       // Append Event Rules Text (CONDITIONAL)
+  //       if (rulesInputMethod === "type") {
+  //         formData.append("event_rules", data.event_rules || "");
+  //         // If typed rules are used, explicitly clear the uploaded_rules field on the backend
+  //         formData.append("uploaded_rules", "");
+  //       } else {
+  //         formData.append("event_rules", "");
+  //       }
+
+  //       // --- 3. APPEND COMPLEX JSON STRINGS ---
+  //       formData.append(
+  //         "prize_distribution",
+  //         JSON.stringify(data.prize_distribution)
+  //       );
+
+  //       formData.append(
+  //         "stream_channels",
+  //         JSON.stringify(
+  //           data.stream_channels?.filter((s) => s.trim() !== "") || []
+  //         )
+  //       );
+
+  //       // Stages: Must be stringified array
+  //       formData.append("stages", JSON.stringify(data.stages));
+
+  //       // --- 4. SUBMISSION ---
+  //       const response = await fetch(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
+  //         {
+  //           method: "POST",
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //           body: formData,
+  //         }
+  //       );
+
+  //       // ... (rest of the response handling)
+  //       const contentType = response.headers.get("content-type");
+  //       if (!contentType || !contentType.includes("application/json")) {
+  //         const textResponse = await response.text();
+  //         console.error("Non-JSON Response (Backend Error):", textResponse);
+  //         toast.error("Server error: Received unexpected response format.");
+  //         return;
+  //       }
+
+  //       const res = await response.json();
+
+  //       if (response.ok) {
+  //         toast.success(
+  //           `Event saved as ${
+  //             data.save_to_drafts ? "Draft" : "Finalized"
+  //           } successfully!`
+  //         );
+  //       } else {
+  //         console.error("Server Error:", res);
+  //         toast.error(
+  //           res.message ||
+  //             res.detail ||
+  //             "Failed to update event. Please check your inputs."
+  //         );
+  //       }
+  //     } catch (error) {
+  //       console.error("Error:", error);
+  //       toast.error("An unexpected error occurred during submission.");
+  //     }
+  //   });
+  // };
 
   // Add this state at the top of your component
   const [stageToRemove, setStageToRemove] = useState<number | null>(null);
@@ -1222,7 +1576,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           {/* CRITICAL FIX: Removed onSubmit from the form tag to prevent Enter-key auto-submission */}
           <form className="space-y-6">
             <Tabs value={currentTab} onValueChange={setCurrentTab}>
-              <TabsList className="w-full justify-start overflow-x-auto mb-2">
+              {/* <TabsList className="w-full justify-start overflow-x-auto mb-2">
                 <TabsTrigger value="basic_info" className="px-6">
                   Basic Info
                 </TabsTrigger>
@@ -1234,6 +1588,33 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </TabsTrigger>
                 <TabsTrigger value="prize_rules" className="px-6">
                   Prize & Rules
+                </TabsTrigger>
+              </TabsList> */}
+
+              <TabsList className="w-full justify-start overflow-x-auto mb-2">
+                <TabsTrigger value="basic_info" className="px-6 relative">
+                  Basic Info
+                  {tabErrors.basic_info && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="registered_teams" className="px-6 relative">
+                  Registered Teams
+                  {tabErrors.registered_teams && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="stages_groups" className="px-6 relative">
+                  Stages & Groups
+                  {tabErrors.stages_groups && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="prize_rules" className="px-6 relative">
+                  Prize & Rules
+                  {tabErrors.prize_rules && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
+                  )}
                 </TabsTrigger>
               </TabsList>
 
@@ -1694,6 +2075,39 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     <Button
                       type="button"
                       onClick={async () => {
+                        // Pre-validation checks
+                        const currentStages = form.getValues("stages");
+                        const hasUndefined = currentStages.some(
+                          (stage) => !stage || stage === undefined
+                        );
+
+                        if (hasUndefined) {
+                          toast.error(
+                            "Please configure all stages before saving",
+                            {
+                              description:
+                                "Navigate to the 'Stages & Groups' tab to complete setup",
+                              duration: 4000,
+                            }
+                          );
+                          setCurrentTab("stages_groups");
+                          return;
+                        }
+
+                        await onSubmit(form.getValues());
+                      }}
+                      disabled={isPending}
+                    >
+                      {isPending ? (
+                        <Loader text={"Saving..."} />
+                      ) : (
+                        "Save Changes"
+                      )}
+                    </Button>
+
+                    {/* <Button
+                      type="button"
+                      onClick={async () => {
                         // Check for undefined stages
                         const currentStages = form.getValues("stages");
                         const hasUndefined = currentStages.some(
@@ -1720,7 +2134,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       disabled={isPending}
                     >
                       Save Changes
-                    </Button>
+                    </Button> */}
 
                     {/* CRITICAL FIX: Change to type="button" and manually call handleSubmit */}
                     {/* <Button
@@ -1956,7 +2370,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   onClick={form.handleSubmit(onSubmit)}
                   disabled={isPending}
                 >
-                  Save Changes
+                  {isPending ? <Loader text="Saving..." /> : "Save Changes"}
                 </Button>
               </TabsContent>
 
@@ -2404,7 +2818,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       }}
                       disabled={isPending}
                     >
-                      {isPending ? "Saving..." : "Save Changes"}
+                      {isPending ? (
+                        <Loader text={"Saving..."} />
+                      ) : (
+                        "Save Changes"
+                      )}
                     </Button>
                     {/* END CRITICAL FIX */}
                   </CardContent>
@@ -2849,6 +3267,27 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             <Button
               type="button"
               variant="destructive"
+              onClick={confirmRemoveStage} // Use the confirm function, not handleRemoveStage
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Remove Stage
+            </Button>
+          </DialogFooter>
+
+          {/* <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsRemoveConfirmOpen(false);
+                setStageToRemove(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
               size="icon"
               onClick={() => handleRemoveStage(sIdx)}
               disabled={form.watch("stages").length <= 1}
@@ -2865,7 +3304,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             >
               <Trash2 className="w-4 h-4" />
             </Button>
-          </DialogFooter>
+          </DialogFooter> */}
         </DialogContent>
       </Dialog>
     </div>
