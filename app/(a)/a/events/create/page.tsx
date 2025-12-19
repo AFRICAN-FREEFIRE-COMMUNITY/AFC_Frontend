@@ -64,7 +64,7 @@ const formattedWord: Record<string, string> = {
 /* ========== SCHEMAS ========== */
 const GroupSchema = z.object({
   group_name: z.string().min(1, "Group name required"),
-  discordId: z.string().optional(),
+  group_discord_role_id: z.string().optional(),
   playing_date: z.string().min(1, "Playing date required"),
   playing_time: z.string().min(1, "Playing time required"),
   teams_qualifying: z.coerce.number().min(1, "Must qualify at least 1 team"),
@@ -72,12 +72,12 @@ const GroupSchema = z.object({
 
 const StageSchema = z.object({
   stage_name: z.string().min(1, "Stage name required"),
-  discordId: z.string().optional(),
+  stage_discord_role_id: z.string().optional(),
   start_date: z.string().min(1, "Start date required"),
   end_date: z.string().min(1, "End date required"),
   number_of_groups: z.coerce.number().min(1, "Must have at least 1 group"),
   stage_format: z.string().min(1, "Stage format required"),
-  seeding_method: z.string().min(1, "Seeding method required"),
+  // seeding_method: z.string().min(1, "Seeding method required"),
   groups: z.array(GroupSchema).min(1, "At least one group required"),
   teams_qualifying_from_stage: z.coerce.number().min(0).optional(),
 });
@@ -169,11 +169,11 @@ export default function Page() {
     stage_name: "",
     start_date: "",
     end_date: "",
-    seeding_method: "automatic",
+    // seeding_method: "automatic",
     stage_format: "",
     number_of_groups: 2,
     teams_qualifying_from_stage: 1,
-    discordId: "",
+    stage_discord_role_id: "",
   });
 
   const { user, token } = useAuth();
@@ -244,8 +244,8 @@ export default function Page() {
     if (existingStage) {
       setStageModalData({
         stage_name: existingStage.stage_name,
-        discordId: existingStage.discordId || "",
-        seeding_method: existingStage.seeding_method || "",
+        stage_discord_role_id: existingStage.stage_discord_role_id || "",
+        // seeding_method: existingStage.seeding_method || "",
         start_date: existingStage.start_date,
         end_date: existingStage.end_date,
         stage_format: existingStage.stage_format,
@@ -257,9 +257,9 @@ export default function Page() {
     } else {
       setStageModalData({
         stage_name: stageNames[stageIndex] || `Stage ${stageIndex + 1}`,
-        discordId: "",
+        stage_discord_role_id: "",
         start_date: "",
-        seeding_method: "automatic",
+        // seeding_method: "automatic",
         end_date: "",
         stage_format: "",
         number_of_groups: 2,
@@ -272,7 +272,7 @@ export default function Page() {
           playing_date: "",
           playing_time: "00:00",
           teams_qualifying: 1,
-          discordId: "",
+          group_discord_role_id: "",
         }))
       );
     }
@@ -303,7 +303,7 @@ export default function Page() {
         playing_date: stageModalData.start_date || "",
         playing_time: "00:00",
         teams_qualifying: 1,
-        discordId: "",
+        group_discord_role_id: "",
       };
     });
 
@@ -361,7 +361,7 @@ export default function Page() {
 
     const newStage: StageType = {
       stage_name: stageModalData.stage_name,
-      discordId: stageModalData.discordId,
+      stage_discord_role_id: stageModalData.stage_discord_role_id,
       start_date: stageModalData.start_date,
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
@@ -559,6 +559,7 @@ export default function Page() {
 
   const onSubmit = (data: EventFormType) => {
     startTransition(async () => {
+      console.log(data);
       try {
         // --- USE PURE FORMDATA APPROACH ---
         const formData = new FormData();
@@ -596,7 +597,10 @@ export default function Page() {
 
         // NOTE: Many APIs use an explicit 'is_draft: true/false' flag for simplicity.
         // If your backend API expects an explicit 'is_draft' boolean field:
-        formData.append("is_draft", data.save_to_drafts.toString());
+        formData.append(
+          "is_draft",
+          data.save_to_drafts.toString() === "true" ? "True" : "False"
+        );
         // If your backend API expects the status to be changed:
         formData.append("event_status", finalEventStatus);
         formData.append("number_of_stages", data.number_of_stages.toString());
@@ -1858,7 +1862,7 @@ export default function Page() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  {/* <div>
                     <label className="text-sm font-medium mb-2 block">
                       Seeding Method
                     </label>
@@ -1879,7 +1883,7 @@ export default function Page() {
                         <SelectItem value={"manual"}>Manual</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div> */}
 
                   {/* FIXED: teams_qualifying_from_stage controlled component for number input */}
                   <div>
@@ -1938,11 +1942,11 @@ export default function Page() {
                       Stage Discord Role ID{" "}
                     </label>
                     <Input
-                      value={stageModalData.discordId}
+                      value={stageModalData.stage_discord_role_id}
                       onChange={(e) =>
                         setStageModalData({
                           ...stageModalData,
-                          discordId: e.target.value,
+                          stage_discord_role_id: e.target.value,
                         })
                       }
                       placeholder="e.g: 1234567890"
@@ -2084,12 +2088,13 @@ export default function Page() {
                           Discord Role ID
                         </label>
                         <Input
-                          value={group.discordId}
+                          value={group.group_discord_role_id}
                           onChange={(e) =>
-                            setGroup({
-                              ...stageModalData,
-                              discordId: e.target.value,
-                            })
+                            updateGroupDetail(
+                              index,
+                              "group_discord_role_id",
+                              e.target.value
+                            )
                           }
                           placeholder="e.g: 1234567890"
                           className=""

@@ -74,6 +74,8 @@ import { Badge } from "@/components/ui/badge";
 import { GroupResultModal } from "../../_components/GroupResultModal";
 import { SeedStageModal } from "../../_components/SeedStageModal";
 import { formatDate } from "@/lib/utils";
+import { DisqualifyModal } from "../../_components/DisqualifyModal";
+import { ReactivateModal } from "../../_components/ReactivateModal";
 
 const formattedWord: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
@@ -96,7 +98,7 @@ interface RegisteredTeamType {
 // Define EventFormType and other schemas (omitted for brevity, assume they are present)
 const GroupSchema = z.object({
   group_name: z.string().min(1, "Group name required"),
-  discordId: z.string().optional(),
+  group_discord_role_id: z.string().optional(),
   playing_date: z.string().min(1, "Playing date required"),
   playing_time: z.string().min(1, "Playing time required"),
   teams_qualifying: z.coerce.number().min(1, "Must qualify at least 1 team"),
@@ -104,15 +106,26 @@ const GroupSchema = z.object({
 
 const StageSchema = z.object({
   stage_name: z.string().min(1, "Stage name required"),
-  discordId: z.string().optional(),
-  seeding_method: z.string().optional(),
+  stage_discord_role_id: z.string().default(""),
   start_date: z.string().min(1, "Start date required"),
   end_date: z.string().min(1, "End date required"),
   number_of_groups: z.coerce.number().min(1, "Must have at least 1 group"),
   stage_format: z.string().min(1, "Stage format required"),
   groups: z.array(GroupSchema).min(1, "At least one group required"),
-  teams_qualifying_from_stage: z.coerce.number().min(0).optional(),
+  teams_qualifying_from_stage: z.coerce.number().min(0).default(1),
 });
+
+// const StageSchema = z.object({
+//   stage_name: z.string().min(1, "Stage name required"),
+//   stage_discord_role_id: z.string().optional(),
+//   // seeding_method: z.string().optional(),
+//   start_date: z.string().min(1, "Start date required"),
+//   end_date: z.string().min(1, "End date required"),
+//   number_of_groups: z.coerce.number().min(1, "Must have at least 1 group"),
+//   stage_format: z.string().min(1, "Stage format required"),
+//   groups: z.array(GroupSchema).min(1, "At least one group required"),
+//   teams_qualifying_from_stage: z.coerce.number().min(0).optional(),
+// });
 
 const EventFormSchema = z
   .object({
@@ -213,8 +226,8 @@ interface EventDetails {
   stages: Array<{
     id: number;
     stage_name: string;
-    discordId: string;
-    seeding_method: string;
+    stage_discord_role_id: string;
+    // seeding_method: string;
     start_date: string;
     end_date: string;
     number_of_groups: number;
@@ -223,7 +236,7 @@ interface EventDetails {
     groups: Array<{
       id: number;
       group_name: string;
-      discordId: string;
+      group_discord_role_id: string;
       playing_date: string;
       playing_time: string;
       teams_qualifying: number;
@@ -270,8 +283,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     stage_format: "",
     number_of_groups: 2,
     teams_qualifying_from_stage: 1,
-    seeding_method: "automatic",
-    discordId: "",
+    // seeding_method: "automatic",
+    stage_discord_role_id: "",
   });
 
   const { token } = useAuth();
@@ -314,9 +327,28 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       stream_channels: [""],
       event_mode: "",
       number_of_stages: 1,
-      stages: [],
+      stages: [
+        {
+          stage_name: "Stage 1",
+          stage_discord_role_id: "",
+          start_date: "",
+          end_date: "",
+          number_of_groups: 1,
+          stage_format: "",
+          groups: [
+            {
+              group_name: "Group 1",
+              group_discord_role_id: "",
+              playing_date: "",
+              playing_time: "00:00",
+              teams_qualifying: 1,
+            },
+          ],
+          teams_qualifying_from_stage: 1,
+        },
+      ], // Initialize with one empty stage
       prizepool: "",
-      prize_distribution: { "1": 0, "2": 0, "3": 0 }, // <-- FIXED SIMPLE KEYS      event_rules: "",
+      prize_distribution: { "1": 0, "2": 0, "3": 0 },
       rules_document: "",
       start_date: "",
       end_date: "",
@@ -330,30 +362,79 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     },
   });
 
+  // const form = useForm<EventFormType>({
+  //   resolver: zodResolver(EventFormSchema),
+  //   defaultValues: {
+  //     event_name: "",
+  //     competition_type: "",
+  //     participant_type: "",
+  //     event_type: "",
+  //     max_teams_or_players: 1,
+  //     banner: "",
+  //     stream_channels: [""],
+  //     event_mode: "",
+  //     number_of_stages: 1,
+  //     stages: [],
+  //     prizepool: "",
+  //     prize_distribution: { "1": 0, "2": 0, "3": 0 },
+  //     rules_document: "",
+  //     start_date: "",
+  //     end_date: "",
+  //     registration_open_date: "",
+  //     registration_end_date: "",
+  //     registration_link: "",
+  //     event_status: "upcoming",
+  //     publish_to_tournaments: false,
+  //     publish_to_news: false,
+  //     save_to_drafts: false,
+  //   },
+  // });
+
   useEffect(() => {
     if (!id) return;
 
     startTransition(async () => {
       try {
         const decodedId = decodeURIComponent(id);
-        const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-          { event_id: decodedId },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const fetchedDetails: EventDetails = res.data.event_details;
+        const commonConfig = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        };
 
-        if (fetchedDetails.stages) {
-          const names = fetchedDetails.stages.map((s: any) => s.stage_name);
+        // 1. Fire both requests (Promise.all is faster as they run in parallel)
+        const [res, resAdmin] = await Promise.all([
+          axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+            { event_id: decodedId },
+            commonConfig
+          ),
+          axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
+            { event_id: decodedId },
+            commonConfig
+          ),
+        ]);
+
+        // 2. Extract admin stages (using the nested path based on your JSON example)
+        // Assuming resAdmin.data.event_details contains the stages
+        const adminStages =
+          resAdmin.data.event_details?.stages || resAdmin.data.stages || [];
+
+        // 3. Merge the data
+        const mergedDetails: EventDetails = {
+          ...res.data.event_details, // Everything else
+          stages: adminStages, // Use the admin stages specifically
+        };
+
+        // 4. Update states
+        if (adminStages.length > 0) {
+          const names = adminStages.map((s: any) => s.stage_name);
           setStageNames(names);
         }
 
-        setEventDetails(fetchedDetails);
+        setEventDetails(mergedDetails);
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.message ||
@@ -363,7 +444,55 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         router.push("/login");
       }
     });
-  }, [id]);
+  }, [id, token]); // Added token to dependencies for safety
+
+  // useEffect(() => {
+  //   if (!id) return;
+
+  //   startTransition(async () => {
+  //     try {
+  //       const decodedId = decodeURIComponent(id);
+  //       const res = await axios.post(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+  //         { event_id: decodedId },
+  //         {
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+  //       const resAdmin = await axios.post(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
+  //         { event_id: decodedId },
+  //         {
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+
+  //       console.log(resAdmin);
+
+  //       const fetchedDetails: EventDetails = res.data.event_details;
+
+  //       if (resAdmin.data.stages) {
+  //         const names = resAdmin.data.stages.map((s: any) => s.stage_name);
+  //         setStageNames(names);
+  //       }
+
+  //       setEventDetails(fetchedDetails);
+  //     } catch (error: any) {
+  //       const errorMessage =
+  //         error.response?.data?.message ||
+  //         error.response?.data?.detail ||
+  //         "Failed to fetch event details.";
+  //       toast.error(errorMessage);
+  //       router.push("/login");
+  //     }
+  //   });
+  // }, [id]);
 
   // Update form values when teamDetails changes
   useEffect(() => {
@@ -421,9 +550,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   const stages = form.watch("stages") || [];
 
-  // --- START FIX: Synchronize stages array when count changes ---
   const handleStageCountChangeLogic = (count: number) => {
-    const newCount = Math.max(0, count); // Allow 0 for clean typing
+    const newCount = Math.max(1, count); // At least 1 stage required
 
     // 1. Update form value for number_of_stages
     form.setValue("number_of_stages", newCount);
@@ -435,18 +563,69 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     );
     setStageNames(newNames);
 
-    // 3. CRITICAL: Synchronize the 'stages' data array
+    // 3. CRITICAL FIX: Synchronize the 'stages' data array
     const currentStages = form.getValues("stages") || [];
 
-    // Truncate the array to the new count. This discards removed stage data.
-    const newStages = currentStages.slice(0, newCount);
+    // Create properly initialized stages array
+    const newStages = Array.from({ length: newCount }, (_, i) => {
+      // Keep existing stage data if it exists
+      if (currentStages[i]) {
+        return currentStages[i];
+      }
+      // Initialize new stage with proper default values
+      return {
+        stage_name: newNames[i],
+        stage_discord_role_id: "",
+        start_date: "",
+        end_date: "",
+        number_of_groups: 1,
+        stage_format: "",
+        groups: [
+          {
+            group_name: "Group 1",
+            group_discord_role_id: "",
+            playing_date: "",
+            playing_time: "00:00",
+            teams_qualifying: 1,
+          },
+        ],
+        teams_qualifying_from_stage: 1,
+      } as StageType;
+    });
 
     // Update the stages array in RHF state
     form.setValue("stages", newStages, {
       shouldDirty: true,
-      shouldValidate: true,
+      shouldValidate: false, // Don't validate yet - stages are incomplete
     });
   };
+
+  // --- START FIX: Synchronize stages array when count changes ---
+  // const handleStageCountChangeLogic = (count: number) => {
+  //   const newCount = Math.max(0, count); // Allow 0 for clean typing
+
+  //   // 1. Update form value for number_of_stages
+  //   form.setValue("number_of_stages", newCount);
+
+  //   // 2. Synchronize stageNames array (UI display list)
+  //   const newNames = Array.from(
+  //     { length: newCount },
+  //     (_, i) => stageNames[i] || `Stage ${i + 1}`
+  //   );
+  //   setStageNames(newNames);
+
+  //   // 3. CRITICAL: Synchronize the 'stages' data array
+  //   const currentStages = form.getValues("stages") || [];
+
+  //   // Truncate the array to the new count. This discards removed stage data.
+  //   const newStages = currentStages.slice(0, newCount);
+
+  //   // Update the stages array in RHF state
+  //   form.setValue("stages", newStages, {
+  //     shouldDirty: true,
+  //     shouldValidate: true,
+  //   });
+  // };
   // --- END FIX ---
 
   const handleStageNameChangeLogic = (index: number, name: string) => {
@@ -467,7 +646,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         playing_date: stageModalData.start_date || "",
         playing_time: "00:00",
         teams_qualifying: 1,
-        discordId: "",
+        group_discord_role_id: "",
       };
     });
 
@@ -494,12 +673,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const eventType = form.watch("event_type") === "external";
 
   const handleSaveStageLogic = async () => {
+    console.log("yess");
     // 1. Stage/Group Validation (Keep this local validation)
     if (
       !stageModalData.stage_name ||
       !stageModalData.stage_format ||
       !stageModalData.start_date ||
       !stageModalData.end_date ||
+      !stageModalData.stage_discord_role_id ||
       stageModalData.teams_qualifying_from_stage === undefined
     ) {
       toast.error("Please fill all required stage fields (Step 1)");
@@ -509,6 +690,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       (g) =>
         !g.playing_date ||
         !g.playing_time ||
+        !g.group_discord_role_id ||
         !g.group_name.trim() ||
         g.teams_qualifying < 1
     );
@@ -530,12 +712,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       number_of_groups: stageModalData.number_of_groups,
       stage_format: stageModalData.stage_format,
       groups: tempGroups,
-      seeding_method: stageModalData.seeding_method,
-      discordId: stageModalData.discordId,
+      // seeding_method: stageModalData.seeding_method,
+      stage_discord_role_id: stageModalData.stage_discord_role_id,
       teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
     };
 
-    const currentStages = [...stages];
+    // const currentStages = [...stages];
+    const currentStages = [...form.getValues("stages")];
+    // currentStages[editingStageIndex!] = newStage;
     currentStages[editingStageIndex!] = newStage;
 
     // A. Update form value
@@ -609,8 +793,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         end_date: existingStage.end_date,
         stage_format: existingStage.stage_format,
         number_of_groups: existingStage.number_of_groups,
-        seeding_method: existingStage.seeding_method || "automatic",
-        discordId: existingStage.discordId || "",
+        // seeding_method: existingStage.seeding_method || "automatic",
+        stage_discord_role_id: existingStage.stage_discord_role_id || "",
         teams_qualifying_from_stage:
           existingStage.teams_qualifying_from_stage || 1,
       });
@@ -620,8 +804,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         stage_name: stageNames[stageIndex] || `Stage ${stageIndex + 1}`,
         start_date: "",
         end_date: "",
-        seeding_method: "automatic",
-        discordId: "",
+        // seeding_method: "automatic",
+        stage_discord_role_id: "",
         stage_format: "",
         number_of_groups: 2,
         teams_qualifying_from_stage: 1,
@@ -632,6 +816,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           playing_date: "",
           playing_time: "00:00",
           teams_qualifying: 1,
+          group_discord_role_id: "",
         }))
       );
     }
@@ -667,6 +852,18 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     });
   };
 
+  const updateCompetitorStatus = (playerId: number, newStatus: string) => {
+    setEventDetails((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        registered_competitors: prev.registered_competitors.map((comp) =>
+          comp.player_id === playerId ? { ...comp, status: newStatus } : comp
+        ),
+      };
+    });
+  };
+
   const removePrizePositionLogic = (key: string) => {
     if (Object.keys(prizeDistribution).length <= 1) return;
     const current = { ...prizeDistribution };
@@ -692,6 +889,18 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     }
   };
 
+  const handleRemoveCompetitor = (playerId: number) => {
+    setEventDetails((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        registered_competitors: prev.registered_competitors.filter(
+          (c) => c.player_id !== playerId
+        ),
+      };
+    });
+  };
+
   const formatPrizeKey = (key: string) => {
     if (key.endsWith("Place")) {
       key = key.split(" ")[0];
@@ -710,6 +919,58 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     return `${numericPart}${suffix} Place`;
   };
 
+  const addNewStage = () => {
+    const currentCount = form.getValues("number_of_stages") || 0;
+    const newCount = currentCount + 1;
+
+    // Get current stages
+    const currentStages = form.getValues("stages") || [];
+
+    // Create a new empty stage with proper structure
+    const newStage: StageType = {
+      stage_name: `Stage ${newCount}`,
+      stage_discord_role_id: "",
+      start_date: "",
+      end_date: "",
+      number_of_groups: 2,
+      stage_format: "",
+      groups: Array.from({ length: 2 }, (_, i) => ({
+        group_name: `Group ${i + 1}`,
+        group_discord_role_id: "",
+        playing_date: "",
+        playing_time: "00:00",
+        teams_qualifying: 1,
+      })),
+      teams_qualifying_from_stage: 1,
+    };
+
+    // Add the new stage to the array
+    const updatedStages = [...currentStages, newStage];
+
+    // Update form
+    form.setValue("stages", updatedStages, { shouldValidate: false });
+    form.setValue("number_of_stages", newCount);
+
+    // Update stage names
+    const newNames = [...stageNames, `Stage ${newCount}`];
+    setStageNames(newNames);
+
+    // Open modal for the newly created stage
+    openAddStageModalLogic(currentCount);
+  };
+
+  // const addNewStage = () => {
+  //   const currentCount = form.getValues("number_of_stages") || 0;
+  //   const newCount = currentCount + 1;
+
+  //   // 1. Update the numeric count in the form
+  //   handleStageCountChangeLogic(newCount);
+
+  //   // 2. Open the modal for the newly created index (which is currentCount)
+  //   // Because index is 0-based, if count was 1, the new stage is index 1.
+  //   openAddStageModalLogic(currentCount);
+  // };
+
   const onSubmit = async (data: EventFormType) => {
     if (!eventDetails?.event_id) return toast.error("Event ID is missing");
 
@@ -721,6 +982,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     startTransition(async () => {
       try {
+        console.log(data);
         const formData = new FormData();
 
         let finalEventStatus = data.event_status;
@@ -729,15 +991,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           // Assuming your backend recognizes 'draft'
           finalEventStatus = "draft";
         } else if (finalEventStatus === "draft") {
-          // If the initial state was 'draft' and the user did NOT check 'Save as Draft',
-          // but a different status hasn't been set, revert to 'upcoming' or keep original state.
-          // For editing, let's keep the user-selected/default status unless 'Save as Draft' is explicitly checked.
-          // We keep the logic simple: if 'save_to_drafts' is checked, it's a draft. Otherwise, use the form's status.
         }
 
-        // NOTE: Many APIs use an explicit 'is_draft: true/false' flag for simplicity.
-        // If your backend API expects an explicit 'is_draft' boolean field:
-        formData.append("is_draft", data.save_to_drafts.toString());
+        formData.append(
+          "is_draft",
+          data.save_to_drafts.toString() === "true" ? "True" : "False"
+        );
         // If your backend API expects the status to be changed:
         formData.append("event_status", finalEventStatus);
         // =======================================================
@@ -847,6 +1106,60 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         toast.error("An unexpected error occurred during submission.");
       }
     });
+  };
+
+  // Add this state at the top of your component
+  const [stageToRemove, setStageToRemove] = useState<number | null>(null);
+  const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
+
+  // Add this improved handler
+  const handleRemoveStage = (indexToRemove: number) => {
+    const currentStages = form.getValues("stages") || [];
+
+    // Prevent removing the last stage
+    if (currentStages.length <= 1) {
+      toast.error("An event must have at least one stage.");
+      return;
+    }
+
+    // Open confirmation modal
+    setStageToRemove(indexToRemove);
+    setIsRemoveConfirmOpen(true);
+  };
+
+  const confirmRemoveStage = () => {
+    if (stageToRemove === null) return;
+
+    const currentStages = form.getValues("stages") || [];
+    const currentCount = form.getValues("number_of_stages") || 0;
+
+    // Remove the stage from the array
+    const updatedStages = currentStages.filter(
+      (_, idx) => idx !== stageToRemove
+    );
+
+    // Update stage names
+    const updatedNames = stageNames.filter((_, idx) => idx !== stageToRemove);
+
+    // Update form values
+    form.setValue("stages", updatedStages, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+
+    form.setValue("number_of_stages", currentCount - 1);
+
+    setStageNames(updatedNames);
+
+    toast.success(
+      `Stage "${
+        currentStages[stageToRemove]?.stage_name || `Stage ${stageToRemove + 1}`
+      }" removed successfully`
+    );
+
+    // Close modal and reset
+    setIsRemoveConfirmOpen(false);
+    setStageToRemove(null);
   };
 
   const saveToDraftsWatch = form.watch("save_to_drafts");
@@ -1378,14 +1691,56 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       />
                     </div>
 
-                    {/* CRITICAL FIX: Change to type="button" and manually call handleSubmit */}
                     <Button
                       type="button"
-                      onClick={form.handleSubmit(onSubmit)}
+                      onClick={async () => {
+                        // Check for undefined stages
+                        const currentStages = form.getValues("stages");
+                        const hasUndefined = currentStages.some(
+                          (stage) => !stage || stage === undefined
+                        );
+
+                        if (hasUndefined) {
+                          toast.error(
+                            "Please configure all stages before saving"
+                          );
+                          return;
+                        }
+
+                        form.handleSubmit(
+                          (data) => onSubmit(data),
+                          (errors) => {
+                            console.error("Validation Errors:", errors);
+                            toast.error(
+                              "Cannot save: some fields are missing or invalid."
+                            );
+                          }
+                        )();
+                      }}
                       disabled={isPending}
                     >
                       Save Changes
                     </Button>
+
+                    {/* CRITICAL FIX: Change to type="button" and manually call handleSubmit */}
+                    {/* <Button
+                      type="button"
+                      onClick={() => {
+                        form.handleSubmit(
+                          (data) => onSubmit(data), // Success handler
+                          (errors) => {
+                            // Error handler
+                            console.error("Validation Errors:", errors);
+                            toast.error(
+                              "Cannot save: some fields are missing or invalid."
+                            );
+                          }
+                        )();
+                      }}
+                      disabled={isPending}
+                    >
+                      Save Changes
+                    </Button> */}
                     {/* END CRITICAL FIX */}
                   </CardContent>
                 </Card>
@@ -1419,11 +1774,35 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               <TableCell className="capitalize">
                                 {comp.status}
                               </TableCell>
-                              <TableCell>
-                                <Button variant={"destructive"}>
-                                  <IconUserMinus />
-                                  Disqualify
-                                </Button>
+                              <TableCell className="text-right">
+                                {/* Toggle Modals based on status */}
+                                {comp.status === "registered" ? (
+                                  <DisqualifyModal
+                                    competitor_id={comp.player_id}
+                                    event_id={eventDetails.event_id}
+                                    name={comp.username}
+                                    showLabel
+                                    onSuccess={() =>
+                                      updateCompetitorStatus(
+                                        comp.player_id,
+                                        "disqualified"
+                                      )
+                                    }
+                                  />
+                                ) : (
+                                  <ReactivateModal
+                                    competitor_id={comp.player_id}
+                                    event_id={eventDetails.event_id}
+                                    name={comp.username}
+                                    showLabel
+                                    onSuccess={() =>
+                                      updateCompetitorStatus(
+                                        comp.player_id,
+                                        "registered"
+                                      )
+                                    }
+                                  />
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -1435,86 +1814,143 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               </TabsContent>
 
               <TabsContent value="stages_groups" className="space-y-4">
-                {form.watch("stages").map((stage, sIdx) => (
-                  <Card key={sIdx} className="bg-primary/10">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                      <div className="space-y-1 w-full">
-                        <CardTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-2">
-                          <span>
-                            <IconTrophy className="inline-block mr-2" />
-                            {stage.stage_name}{" "}
-                            <Badge className="capitalize">
-                              {sIdx === 0 ? "completed" : "upcoming"}
-                            </Badge>
-                          </span>
-
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full md:w-auto"
-                            onClick={() => openAddStageModalLogic(sIdx)}
-                          >
-                            <Edit className="w-3 h-3 mr-1" />
-                            Edit Details
-                          </Button>
-                        </CardTitle>
-                        <p className="text-xs text-slate-400">
-                          {formatDate(stage.start_date)} →{" "}
-                          {formatDate(stage.end_date)} |{" "}
-                          {formattedWord[stage.stage_format]} |{" "}
-                          {stage.teams_qualifying_from_stage} teams qualify
-                        </p>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="space-y-2">
-                      {stage.groups.map((group, gIdx) => (
-                        <Card key={gIdx} className="bg-primary/10 gap-0">
-                          <CardHeader>
-                            <CardTitle>{group.group_name}</CardTitle>
-                          </CardHeader>
-                          <CardContent className="pt-2 text-muted-foreground text-sm flex flex-col md:flex-row items-start justify-between gap-4 md:gap-2">
-                            <div className="space-y-1">
-                              <p>
-                                {formatDate(group.playing_date)} at{" "}
-                                {group.playing_time}
+                {form.watch("stages").map((stage, sIdx) => {
+                  if (!stage || typeof stage !== "object") {
+                    return (
+                      <Card
+                        key={sIdx}
+                        className="bg-yellow-50 border-yellow-200"
+                      >
+                        <CardContent className="p-4">
+                          <p className="text-yellow-800">
+                            ⚠️ Stage {sIdx + 1} is not configured.
+                            <Button
+                              type="button"
+                              variant="link"
+                              onClick={() => openAddStageModalLogic(sIdx)}
+                            >
+                              Click here to configure
+                            </Button>
+                          </p>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+                  return (
+                    <Card key={sIdx} className="bg-primary/10">
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div className="space-y-1 w-full">
+                          <CardTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-2">
+                            <div>
+                              <span>
+                                <IconTrophy className="inline-block mr-2" />
+                                {stage.stage_name}{" "}
+                                <Badge className="capitalize">
+                                  {sIdx === 0 ? "completed" : "upcoming"}
+                                </Badge>
+                              </span>
+                              <p className="text-xs mt-1 text-muted-foreground">
+                                {formatDate(stage.start_date)} →{" "}
+                                {formatDate(stage.end_date)} |{" "}
+                                {formattedWord[stage.stage_format]} |{" "}
+                                {stage.teams_qualifying_from_stage} teams
+                                qualify
                               </p>
-                              <p className="text-primary">
-                                Maps: Bermuda, Kalahari, Purgatory
-                              </p>
-                              <p>8 teams | {group.teams_qualifying} qualify</p>
                             </div>
-                            <div className="flex w-full md:w-auto items-start gap-2">
+
+                            <div className="flex items-center gap-2 w-full md:w-auto">
                               <Button
-                                variant="secondary"
                                 type="button"
-                                size="md"
-                                className="flex-1"
-                                onClick={() => {
-                                  setSelectedGroupForResult(group); // Set the specific group data
-                                  setIsResultsModalOpen(true); // Open the modal
-                                }}
+                                variant="outline"
+                                className="flex-1 md:flex-none"
+                                onClick={() => openAddStageModalLogic(sIdx)}
                               >
-                                View Results
+                                <Edit className="w-3 h-3 mr-1" />
+                                Edit Details
                               </Button>
+
+                              {/* NEW: Remove Stage Button */}
                               <Button
-                                size="md"
                                 type="button"
-                                className="flex-1"
-                                onClick={() => {
-                                  setSelectedGroupForSeed(group); // Set the active group context
-                                  setIsSeedModalOpen(true); // Show the modal
-                                }}
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => handleRemoveStage(sIdx)}
+                                disabled={form.watch("stages").length <= 1}
+                                title={
+                                  form.watch("stages").length <= 1
+                                    ? "Cannot remove the last stage"
+                                    : "Remove this stage"
+                                }
                               >
-                                Seed to Next Stage
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </CardContent>
-                  </Card>
-                ))}
+                          </CardTitle>
+                        </div>
+                      </CardHeader>
+
+                      <CardContent className="space-y-2">
+                        {stage.groups.map((group, gIdx) => (
+                          <Card key={gIdx} className="bg-primary/10 gap-0">
+                            <CardHeader>
+                              <CardTitle>{group.group_name}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-2 text-muted-foreground text-sm flex flex-col lg:flex-row items-start justify-between gap-4 md:gap-2">
+                              <div className="space-y-1">
+                                <p>
+                                  {formatDate(group.playing_date)} at{" "}
+                                  {group.playing_time}
+                                </p>
+                                <p className="text-primary">
+                                  Maps: Bermuda, Kalahari, Purgatory
+                                </p>
+                                <p>
+                                  8 teams | {group.teams_qualifying} qualify
+                                </p>
+                              </div>
+                              <div className="flex w-full lg:w-auto items-start gap-2">
+                                <Button
+                                  variant="secondary"
+                                  type="button"
+                                  size="md"
+                                  className="flex-1"
+                                  onClick={() => {
+                                    setSelectedGroupForResult(group); // Set the specific group data
+                                    setIsResultsModalOpen(true); // Open the modal
+                                  }}
+                                >
+                                  View Results
+                                </Button>
+                                <Button
+                                  size="md"
+                                  type="button"
+                                  className="flex-1"
+                                  onClick={() => {
+                                    setSelectedGroupForSeed(group); // Set the active group context
+                                    setIsSeedModalOpen(true); // Show the modal
+                                  }}
+                                >
+                                  Seed to Next Stage
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                <div className="flex justify-center p-4 border-2 border-dashed rounded-lg border-primary/20 hover:border-primary/50 transition-colors">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full h-full py-4 text-primary"
+                    onClick={addNewStage}
+                  >
+                    <IconTrophy className="mr-2 h-5 w-5" />
+                    Add New Stage
+                  </Button>
+                </div>
                 <Button
                   type="button"
                   onClick={form.handleSubmit(onSubmit)}
@@ -1945,12 +2381,30 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </div>
 
                     {/* CRITICAL FIX: Change to type="button" and manually call handleSubmit */}
-                    <Button
+                    {/* <Button
                       type="button"
                       onClick={form.handleSubmit(onSubmit)}
                       disabled={isPending}
                     >
                       Save Changes
+                    </Button> */}
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        form.handleSubmit(
+                          (data) => onSubmit(data), // Runs if valid
+                          (errors) => {
+                            // Runs if invalid
+                            console.error("Validation failed:", errors);
+                            toast.error(
+                              "Form invalid. Check console for details."
+                            );
+                          }
+                        )();
+                      }}
+                      disabled={isPending}
+                    >
+                      {isPending ? "Saving..." : "Save Changes"}
                     </Button>
                     {/* END CRITICAL FIX */}
                   </CardContent>
@@ -2118,11 +2572,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       Stage Discord Role ID{" "}
                     </label>
                     <Input
-                      value={stageModalData.discordId}
+                      value={stageModalData.stage_discord_role_id}
                       onChange={(e) =>
                         setStageModalData({
                           ...stageModalData,
-                          discordId: e.target.value,
+                          stage_discord_role_id: e.target.value,
                         })
                       }
                       placeholder="e.g: 1234567890"
@@ -2264,12 +2718,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           Discord Role ID
                         </label>
                         <Input
-                          value={group.discordId}
+                          value={group.group_discord_role_id}
                           onChange={(e) =>
-                            setGroup({
-                              ...stageModalData,
-                              discordId: e.target.value,
-                            })
+                            updateGroupDetailLogic(
+                              index,
+                              "group_discord_role_id",
+                              e.target.value
+                            )
                           }
                           placeholder="e.g: 1234567890"
                           className=""
@@ -2315,6 +2770,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           !stageModalData.stage_format ||
                           !stageModalData.start_date ||
                           !stageModalData.end_date ||
+                          !stageModalData.stage_discord_role_id ||
                           stageModalData.teams_qualifying_from_stage ===
                             undefined
                         ) {
@@ -2343,6 +2799,75 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           </Dialog>
         </Form>
       </div>
+      {/* Remove Stage Confirmation Modal */}
+      <Dialog open={isRemoveConfirmOpen} onOpenChange={setIsRemoveConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              Remove Stage?
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-foreground">
+                "
+                {stageToRemove !== null
+                  ? form.watch("stages")[stageToRemove]?.stage_name ||
+                    `Stage ${stageToRemove + 1}`
+                  : ""}
+                "
+              </span>
+              ?
+            </p>
+
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <p className="text-sm text-destructive font-medium">
+                ⚠️ This action cannot be undone
+              </p>
+              <ul className="text-xs text-muted-foreground mt-2 space-y-1 ml-4 list-disc">
+                <li>All groups in this stage will be removed</li>
+                <li>All match data will be lost</li>
+                <li>Stage order will be updated automatically</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsRemoveConfirmOpen(false);
+                setStageToRemove(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              onClick={() => handleRemoveStage(sIdx)}
+              disabled={form.watch("stages").length <= 1}
+              className={
+                form.watch("stages").length <= 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }
+              title={
+                form.watch("stages").length <= 1
+                  ? "Cannot remove the last stage"
+                  : "Remove this stage"
+              }
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

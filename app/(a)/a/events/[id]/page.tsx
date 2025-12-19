@@ -82,6 +82,7 @@ interface EventDetails {
     end_date: string;
     number_of_groups: number;
     stage_format: string;
+    stage_discord_role_id: string;
     teams_qualifying_from_stage: number;
     groups: Array<{
       id: number;
@@ -89,6 +90,7 @@ interface EventDetails {
       playing_date: string;
       playing_time: string;
       teams_qualifying: number;
+      group_discord_role_id: string;
       matches: any[];
     }>;
   }>;
@@ -137,24 +139,55 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const [pending, startTransition] = useTransition();
   const [eventDetails, setEventDetails] = useState<EventDetails>();
 
+  const [stageNames, setStageNames] = useState<string[]>([]);
+
+  console.log(stageNames, eventDetails);
+
   useEffect(() => {
     if (!id) return;
 
     startTransition(async () => {
       try {
         const decodedId = decodeURIComponent(id);
-        const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-          { event_id: decodedId },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        // Ensure data path is correct based on your API response structure
-        setEventDetails(res.data.event_details);
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        };
+
+        // 1. Fetch both datasets in parallel
+        const [res, resAdmin] = await Promise.all([
+          axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+            { event_id: decodedId },
+            config
+          ),
+          axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
+            { event_id: decodedId },
+            config
+          ),
+        ]);
+
+        // 2. Extract data safely
+        const baseDetails = res.data.event_details;
+        // The admin endpoint usually returns the same structure, but we want its 'stages'
+        const adminStages =
+          resAdmin.data.event_details?.stages || resAdmin.data.stages || [];
+
+        // 3. Merge: Use base details but override the stages with admin data
+        const mergedDetails: EventDetails = {
+          ...baseDetails,
+          stages: adminStages,
+        };
+
+        // 4. Update states
+        setEventDetails(mergedDetails);
+
+        if (adminStages.length > 0) {
+          setStageNames(adminStages.map((s: any) => s.stage_name));
+        }
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.message ||
@@ -164,7 +197,36 @@ const Page = ({ params }: { params: Promise<Params> }) => {
         router.push("/login");
       }
     });
-  }, [id]);
+  }, [id, token, router]); // Added token and router to dependencies
+
+  // useEffect(() => {
+  //   if (!id) return;
+
+  //   startTransition(async () => {
+  //     try {
+  //       const decodedId = decodeURIComponent(id);
+  //       const res = await axios.post(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+  //         { event_id: decodedId },
+  //         {
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+  //       // Ensure data path is correct based on your API response structure
+  //       setEventDetails(res.data.event_details);
+  //     } catch (error: any) {
+  //       const errorMessage =
+  //         error.response?.data?.message ||
+  //         error.response?.data?.detail ||
+  //         "Failed to fetch event details.";
+  //       toast.error(errorMessage);
+  //       router.push("/login");
+  //     }
+  //   });
+  // }, [id]);
 
   if (pending || !eventDetails) return <FullLoader />;
 
@@ -832,7 +894,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       <p>{stage.stage_name}</p>
                       <p className="text-muted-foreground text-xs mt-1">
                         {formatDate(stage.start_date)} -{" "}
-                        {formatDate(stage.end_date)} |{" "}
+                        {formatDate(stage.end_date)}{" "}
                         {formattedWord[stage.stage_format] ||
                           stage.stage_format}
                       </p>
@@ -841,7 +903,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                     <Badge variant={"default"} className="capitalize">
                       {stage.start_date > new Date().toISOString().split("T")[0]
                         ? "Upcoming"
-                        : "Ongoing/Completed (Mock)"}
+                        : "Ongoing"}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
@@ -861,7 +923,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                           {formatDate(group.playing_date)} at{" "}
                           {group.playing_time}
                         </p>
-                        <p>Discord: 1223</p>
+                        <p>Discord: {group.group_discord_role_id}</p>
                         <p className="text-primary font-medium">
                           Maps: Bermuda, Kalahari, Purgatory
                         </p>
