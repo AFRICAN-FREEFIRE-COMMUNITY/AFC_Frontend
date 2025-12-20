@@ -90,42 +90,17 @@ export const GroupResultModal = ({
               <TableHead className="text-right ">Status</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="relative">
-            <ComingSoon />
-            {mockResults.map((res, i) => (
-              <TableRow key={i}>
-                <TableCell className="font-medium">{i + 1}</TableCell>
-                <TableCell className="font-bold">{res.team}</TableCell>
-                <TableCell className="text-center">{res.kills}</TableCell>
-                <TableCell className="text-center">{res.placement}</TableCell>
-                <TableCell className="text-center font-bold text-yellow-500">
-                  {res.points}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Badge
-                    className={cn(
-                      "capitalize",
-                      res.status === "qualified"
-                        ? "bg-white text-black"
-                        : "bg-red-500 text-white"
-                    )}
-                  >
-                    {res.status}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+          <TableBody></TableBody>
         </Table>
 
-        {/* <DialogFooter className="mt-4 gap-2">
+        <DialogFooter className="mt-4 gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          <Button>
+          <Button disabled>
             <Edit /> Edit Results
           </Button>
-        </DialogFooter> */}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

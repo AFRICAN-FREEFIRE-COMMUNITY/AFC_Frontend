@@ -25,9 +25,11 @@ export const ConfirmStartTournamentModal = ({
   onSuccess,
   open,
   onClose,
+  stageId,
 }: {
   eventName: string;
   eventId: number;
+  stageId: number;
   onSuccess?: () => void;
   onClose?: () => void;
   open?: boolean;
@@ -36,12 +38,14 @@ export const ConfirmStartTournamentModal = ({
   const { token } = useAuth();
   const router = useRouter();
 
+  console.log(eventId, stageId);
+
   const handleStart = () => {
     startTransition(async () => {
       try {
         const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/reactivate-registered-competitor/`,
-          { competitor_id: competitor_id, event_id: event_id },
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seed-solo-players-to-stage/`,
+          { event_id: `${eventId}`, stage_id: `${stageId}` },
           {
             headers: {
               Authorization: `Bearer ${token}`,

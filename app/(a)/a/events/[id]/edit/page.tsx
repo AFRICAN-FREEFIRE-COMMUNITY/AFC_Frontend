@@ -112,7 +112,8 @@ const GroupSchema = z.object({
   playing_date: z.string().min(1, "Playing date required"),
   playing_time: z.string().min(1, "Playing time required"),
   teams_qualifying: z.coerce.number().min(1, "Must qualify at least 1 team"),
-  maps: z.array(z.string()).min(1, "At least one map must be selected"),
+  match_count: z.coerce.number().min(1, "Must play at least 1 match"),
+  match_maps: z.array(z.string()).min(1, "At least one map must be selected"),
 });
 
 const StageSchema = z.object({
@@ -124,19 +125,8 @@ const StageSchema = z.object({
   stage_format: z.string().min(1, "Stage format required"),
   groups: z.array(GroupSchema).min(1, "At least one group required"),
   teams_qualifying_from_stage: z.coerce.number().min(0).default(1),
+  total_teams_in_stage: z.coerce.number().min(0).default(0),
 });
-
-// const StageSchema = z.object({
-//   stage_name: z.string().min(1, "Stage name required"),
-//   stage_discord_role_id: z.string().optional(),
-//   // seeding_method: z.string().optional(),
-//   start_date: z.string().min(1, "Start date required"),
-//   end_date: z.string().min(1, "End date required"),
-//   number_of_groups: z.coerce.number().min(1, "Must have at least 1 group"),
-//   stage_format: z.string().min(1, "Stage format required"),
-//   groups: z.array(GroupSchema).min(1, "At least one group required"),
-//   teams_qualifying_from_stage: z.coerce.number().min(0).optional(),
-// });
 
 const EventFormSchema = z
   .object({
@@ -252,7 +242,8 @@ interface EventDetails {
       playing_date: string;
       playing_time: string;
       teams_qualifying: number;
-      maps: string[];
+      match_count: number;
+      match_maps: string[];
       matches: any[];
     }>;
   }>;
@@ -359,7 +350,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               playing_date: "",
               playing_time: "00:00",
               teams_qualifying: 1,
-              maps: [],
+              match_count: 1,
+              match_maps: [],
             },
           ],
           teams_qualifying_from_stage: 1,
@@ -379,34 +371,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       save_to_drafts: false,
     },
   });
-
-  // const form = useForm<EventFormType>({
-  //   resolver: zodResolver(EventFormSchema),
-  //   defaultValues: {
-  //     event_name: "",
-  //     competition_type: "",
-  //     participant_type: "",
-  //     event_type: "",
-  //     max_teams_or_players: 1,
-  //     banner: "",
-  //     stream_channels: [""],
-  //     event_mode: "",
-  //     number_of_stages: 1,
-  //     stages: [],
-  //     prizepool: "",
-  //     prize_distribution: { "1": 0, "2": 0, "3": 0 },
-  //     rules_document: "",
-  //     start_date: "",
-  //     end_date: "",
-  //     registration_open_date: "",
-  //     registration_end_date: "",
-  //     registration_link: "",
-  //     event_status: "upcoming",
-  //     publish_to_tournaments: false,
-  //     publish_to_news: false,
-  //     save_to_drafts: false,
-  //   },
-  // });
 
   useEffect(() => {
     // Wait for auth context to load before making API calls
@@ -464,54 +428,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       }
     });
   }, [id, token, authLoading, router]);
-
-  // useEffect(() => {
-  //   if (!id) return;
-
-  //   startTransition(async () => {
-  //     try {
-  //       const decodedId = decodeURIComponent(id);
-  //       const res = await axios.post(
-  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-  //         { event_id: decodedId },
-  //         {
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-  //       const resAdmin = await axios.post(
-  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
-  //         { event_id: decodedId },
-  //         {
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-
-  //       console.log(resAdmin);
-
-  //       const fetchedDetails: EventDetails = res.data.event_details;
-
-  //       if (resAdmin.data.stages) {
-  //         const names = resAdmin.data.stages.map((s: any) => s.stage_name);
-  //         setStageNames(names);
-  //       }
-
-  //       setEventDetails(fetchedDetails);
-  //     } catch (error: any) {
-  //       const errorMessage =
-  //         error.response?.data?.message ||
-  //         error.response?.data?.detail ||
-  //         "Failed to fetch event details.";
-  //       toast.error(errorMessage);
-  //       router.push("/login");
-  //     }
-  //   });
-  // }, [id]);
 
   // Update form values when teamDetails changes
   useEffect(() => {
@@ -599,6 +515,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         end_date: "",
         number_of_groups: 1,
         stage_format: "",
+        total_teams_in_stage: 0,
         groups: [
           {
             group_name: "Group 1",
@@ -606,7 +523,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             playing_date: "",
             playing_time: "00:00",
             teams_qualifying: 1,
-            maps: [],
+            match_count: 1,
+            match_maps: [],
           },
         ],
         teams_qualifying_from_stage: 1,
@@ -619,34 +537,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       shouldValidate: false, // Don't validate yet - stages are incomplete
     });
   };
-
-  // --- START FIX: Synchronize stages array when count changes ---
-  // const handleStageCountChangeLogic = (count: number) => {
-  //   const newCount = Math.max(0, count); // Allow 0 for clean typing
-
-  //   // 1. Update form value for number_of_stages
-  //   form.setValue("number_of_stages", newCount);
-
-  //   // 2. Synchronize stageNames array (UI display list)
-  //   const newNames = Array.from(
-  //     { length: newCount },
-  //     (_, i) => stageNames[i] || `Stage ${i + 1}`
-  //   );
-  //   setStageNames(newNames);
-
-  //   // 3. CRITICAL: Synchronize the 'stages' data array
-  //   const currentStages = form.getValues("stages") || [];
-
-  //   // Truncate the array to the new count. This discards removed stage data.
-  //   const newStages = currentStages.slice(0, newCount);
-
-  //   // Update the stages array in RHF state
-  //   form.setValue("stages", newStages, {
-  //     shouldDirty: true,
-  //     shouldValidate: true,
-  //   });
-  // };
-  // --- END FIX ---
 
   const handleStageNameChangeLogic = (index: number, name: string) => {
     const newNames = [...stageNames];
@@ -666,8 +556,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         playing_date: stageModalData.start_date || "",
         playing_time: "00:00",
         teams_qualifying: 1,
+        match_count: 1,
         group_discord_role_id: "",
-        maps: [], // ADD THIS LINE
+        match_maps: [], // ADD THIS LINE
       };
     });
 
@@ -693,14 +584,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   const toggleMapSelection = (groupIndex: number, map: string) => {
     const newGroups = [...tempGroups];
-    const currentMaps = newGroups[groupIndex].maps || [];
+    const currentMaps = newGroups[groupIndex].match_maps || [];
 
     if (currentMaps.includes(map)) {
       // Remove map if already selected
-      newGroups[groupIndex].maps = currentMaps.filter((m) => m !== map);
+      newGroups[groupIndex].match_maps = currentMaps.filter((m) => m !== map);
     } else {
       // Add map if not selected
-      newGroups[groupIndex].maps = [...currentMaps, map];
+      newGroups[groupIndex].match_maps = [...currentMaps, map];
     }
 
     setTempGroups(newGroups);
@@ -729,8 +620,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         !g.group_discord_role_id ||
         !g.group_name.trim() ||
         g.teams_qualifying < 1 ||
-        !g.maps ||
-        g.maps.length === 0 // ADD THIS
+        g.match_count < 1 ||
+        !g.match_maps ||
+        g.match_maps.length === 0 // ADD THIS
     );
     if (invalidGroup) {
       toast.error(
@@ -755,6 +647,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       // seeding_method: stageModalData.seeding_method,
       stage_discord_role_id: stageModalData.stage_discord_role_id,
       teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
+      total_teams_in_stage: stageModalData.total_teams_in_stage,
     };
 
     // const currentStages = [...stages];
@@ -880,6 +773,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         stage_discord_role_id: existingStage.stage_discord_role_id || "",
         teams_qualifying_from_stage:
           existingStage.teams_qualifying_from_stage || 1,
+        total_teams_in_stage: existingStage.total_teams_in_stage || 0,
       });
       setTempGroups(existingStage.groups);
     } else {
@@ -892,6 +786,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         stage_format: "",
         number_of_groups: 2,
         teams_qualifying_from_stage: 1,
+        total_teams_in_stage: 0,
       });
       setTempGroups(
         Array.from({ length: 2 }, (_, i) => ({
@@ -899,8 +794,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           playing_date: "",
           playing_time: "00:00",
           teams_qualifying: 1,
+          match_count: 1,
           group_discord_role_id: "",
-          maps: [],
+          match_maps: [],
         }))
       );
     }
@@ -1024,7 +920,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         playing_date: "",
         playing_time: "00:00",
         teams_qualifying: 1,
-        maps: [],
+        match_count: 1,
+        match_maps: [],
       })),
       teams_qualifying_from_stage: 1,
     };
@@ -1166,7 +1063,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           if (!group.playing_time) {
             groupMissingFields.push("Playing Time");
           }
-          if (group.maps.length === 0) {
+          if (group.match_maps.length === 0) {
             groupMissingFields.push("Maps must be selected");
           }
           if (
@@ -1181,6 +1078,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             group.teams_qualifying < 1
           ) {
             groupMissingFields.push("Teams Qualifying (must be at least 1)");
+          }
+          if (
+            group.match_count === undefined ||
+            group.match_count === null ||
+            group.match_count < 1
+          ) {
+            groupMissingFields.push("Match count (must be at least 1)");
           }
 
           // If group has missing fields, show specific error
@@ -1964,6 +1868,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   // Add this state at the top of your component
   const [stageToRemove, setStageToRemove] = useState<number | null>(null);
   const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
+
+  console.log(eventDetails);
 
   // Add this improved handler
   const handleRemoveStage = (indexToRemove: number) => {
@@ -2836,7 +2742,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                 </p>
                                 <p className="text-primary">
                                   Maps:{" "}
-                                  {group.maps?.join(", ") || (
+                                  {group.match_maps?.join(", ") || (
                                     <span className="italic">
                                       No maps selected
                                     </span>
@@ -3018,8 +2924,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               "Teams Qualifying (must be at least 1)"
                             );
                           }
+                          if (
+                            group.match_count === undefined ||
+                            group.match_count === null ||
+                            group.match_count < 1
+                          ) {
+                            groupMissingFields.push(
+                              "Match count (must be at least 1)"
+                            );
+                          }
 
-                          if (group.maps.length === 0) {
+                          if (group.match_maps.length === 0) {
                             groupMissingFields.push("Maps must be selected");
                           }
 
@@ -3668,8 +3583,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                   "Teams Qualifying (must be at least 1)"
                                 );
                               }
+                              if (
+                                group.match_count === undefined ||
+                                group.match_count === null ||
+                                group.match_count < 1
+                              ) {
+                                groupMissingFields.push(
+                                  "Match count (must be at least 1)"
+                                );
+                              }
 
-                              if (group.maps.length === 0) {
+                              if (group.match_maps.length === 0) {
                                 groupMissingFields.push(
                                   "Maps must be selected"
                                 );
@@ -4049,6 +3973,28 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       </div>
                       <div>
                         <label className="text-sm font-medium mb-2 block">
+                          Match count
+                        </label>
+
+                        <Input
+                          type="number"
+                          min={1}
+                          // Value must be string, map 0/undefined/null to "" for clean typing
+                          value={
+                            group.match_count === 0 ? "" : group.match_count
+                          }
+                          onChange={(e) =>
+                            updateGroupDetailLogic(
+                              index,
+                              "match_count",
+                              // Convert to number, but use 0 if input is empty string
+                              e.target.value === "" ? 0 : Number(e.target.value)
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
                           Discord Role ID
                         </label>
                         <Input
@@ -4073,7 +4019,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         <div className="flex flex-wrap gap-2">
                           {AVAILABLE_MAPS.map((map) => {
                             const isSelected =
-                              group.maps?.includes(map) || false;
+                              group.match_maps?.includes(map) || false;
                             return (
                               <Badge
                                 key={map}
@@ -4093,14 +4039,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             );
                           })}
                         </div>
-                        {(!group.maps || group.maps.length === 0) && (
+                        {(!group.match_maps ||
+                          group.match_maps.length === 0) && (
                           <p className="text-xs text-red-500 mt-1">
                             Please select at least one map
                           </p>
                         )}
-                        {group.maps && group.maps.length > 0 && (
+                        {group.match_maps && group.match_maps.length > 0 && (
                           <p className="text-xs text-muted-foreground mt-2">
-                            Selected: {group.maps.join(", ")}
+                            Selected: {group.match_maps.join(", ")}
                           </p>
                         )}
                       </div>
@@ -4268,6 +4215,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           open={openConfirmStartTournamentModal}
           eventId={eventDetails.event_id}
           eventName={eventDetails.event_name}
+          stageId={eventDetails.stages[0].stage_id}
           onClose={() => setOpenConfirmStartTournamentModal(false)}
         />
       )}
