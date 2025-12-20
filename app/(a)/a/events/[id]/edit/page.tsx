@@ -76,6 +76,7 @@ import { SeedStageModal } from "../../_components/SeedStageModal";
 import { formatDate } from "@/lib/utils";
 import { DisqualifyModal } from "../../_components/DisqualifyModal";
 import { ReactivateModal } from "../../_components/ReactivateModal";
+import { ConfirmStartTournamentModal } from "../../_components/ConfirmStartTournamentModal";
 
 const formattedWord: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
@@ -88,6 +89,15 @@ const formattedWord: Record<string, string> = {
   "cs - double elimination": "Clash Squad - Double Elimination",
   "cs - round robin": "Clash Squad - Round Robin",
 };
+
+const AVAILABLE_MAPS = [
+  "Bermuda",
+  "Kalahari",
+  "Purgatory",
+  "Nexterra",
+  "Alpine",
+  "Solara",
+];
 
 interface RegisteredTeamType {
   team_name: string;
@@ -102,6 +112,7 @@ const GroupSchema = z.object({
   playing_date: z.string().min(1, "Playing date required"),
   playing_time: z.string().min(1, "Playing time required"),
   teams_qualifying: z.coerce.number().min(1, "Must qualify at least 1 team"),
+  maps: z.array(z.string()).min(1, "At least one map must be selected"),
 });
 
 const StageSchema = z.object({
@@ -228,6 +239,7 @@ interface EventDetails {
     stage_name: string;
     stage_discord_role_id: string;
     // seeding_method: string;
+    total_teams_in_stage: number;
     start_date: string;
     end_date: string;
     number_of_groups: number;
@@ -240,6 +252,7 @@ interface EventDetails {
       playing_date: string;
       playing_time: string;
       teams_qualifying: number;
+      maps: string[];
       matches: any[];
     }>;
   }>;
@@ -285,6 +298,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     teams_qualifying_from_stage: 1,
     // seeding_method: "automatic",
     stage_discord_role_id: "",
+    total_teams_in_stage: 0,
   });
 
   const { token, loading: authLoading } = useAuth();
@@ -292,6 +306,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [previewUrl, setPreviewUrl] = useState<string>(
     eventDetails?.event_banner_url ? eventDetails.event_banner_url : ""
   );
+
+  const [openConfirmStartTournamentModal, setOpenConfirmStartTournamentModal] =
+    useState(false);
 
   const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
   const [selectedGroupForResult, setSelectedGroupForResult] = useState(null);
@@ -342,6 +359,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               playing_date: "",
               playing_time: "00:00",
               teams_qualifying: 1,
+              maps: [],
             },
           ],
           teams_qualifying_from_stage: 1,
@@ -588,6 +606,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             playing_date: "",
             playing_time: "00:00",
             teams_qualifying: 1,
+            maps: [],
           },
         ],
         teams_qualifying_from_stage: 1,
@@ -648,6 +667,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         playing_time: "00:00",
         teams_qualifying: 1,
         group_discord_role_id: "",
+        maps: [], // ADD THIS LINE
       };
     });
 
@@ -661,13 +681,28 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const updateGroupDetailLogic = (
     index: number,
     field: keyof GroupType,
-    value: string | number
+    value: string | number | string[] // ADD string[] here
   ) => {
     const newGroups = [...tempGroups];
     newGroups[index] = {
       ...newGroups[index],
       [field]: value,
     };
+    setTempGroups(newGroups);
+  };
+
+  const toggleMapSelection = (groupIndex: number, map: string) => {
+    const newGroups = [...tempGroups];
+    const currentMaps = newGroups[groupIndex].maps || [];
+
+    if (currentMaps.includes(map)) {
+      // Remove map if already selected
+      newGroups[groupIndex].maps = currentMaps.filter((m) => m !== map);
+    } else {
+      // Add map if not selected
+      newGroups[groupIndex].maps = [...currentMaps, map];
+    }
+
     setTempGroups(newGroups);
   };
 
@@ -693,10 +728,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         !g.playing_time ||
         !g.group_discord_role_id ||
         !g.group_name.trim() ||
-        g.teams_qualifying < 1
+        g.teams_qualifying < 1 ||
+        !g.maps ||
+        g.maps.length === 0 // ADD THIS
     );
     if (invalidGroup) {
-      toast.error("Please complete all group details correctly (Step 2)");
+      toast.error(
+        "Please complete all group details correctly, including selecting at least one map per group (Step 2)"
+      );
       return;
     }
     // Final check on group count
@@ -861,6 +900,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           playing_time: "00:00",
           teams_qualifying: 1,
           group_discord_role_id: "",
+          maps: [],
         }))
       );
     }
@@ -984,6 +1024,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         playing_date: "",
         playing_time: "00:00",
         teams_qualifying: 1,
+        maps: [],
       })),
       teams_qualifying_from_stage: 1,
     };
@@ -1124,6 +1165,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           }
           if (!group.playing_time) {
             groupMissingFields.push("Playing Time");
+          }
+          if (group.maps.length === 0) {
+            groupMissingFields.push("Maps must be selected");
           }
           if (
             !group.group_discord_role_id ||
@@ -2008,7 +2052,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     form, // dependency for react-hook-form
   ]);
 
-  if (initialLoading) {
+  if (initialLoading || !eventDetails) {
     return <FullLoader />;
   }
 
@@ -2071,7 +2115,27 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="actions" className="px-6 relative">
+                  Event Actions
+                </TabsTrigger>
               </TabsList>
+
+              <TabsContent value="actions">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      type="button"
+                      onClick={() => setOpenConfirmStartTournamentModal(true)}
+                      className="w-full"
+                    >
+                      Start this tournament
+                    </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
               {/* ======================= TAB 1: BASIC INFO ======================= */}
               <TabsContent value="basic_info">
@@ -2273,7 +2337,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             variant="destructive"
                             size="md"
                             className="h-11"
-                            onClick={() => removeStreamChannel(index)}
+                            onClick={() => removeStreamChannelLogic(index)}
                           >
                             Remove
                           </Button>
@@ -2715,7 +2779,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                 <IconTrophy className="inline-block mr-2" />
                                 {stage.stage_name}{" "}
                                 <Badge className="capitalize">
-                                  {sIdx === 0 ? "completed" : "upcoming"}
+                                  {stage.status || "upcoming"}
                                 </Badge>
                               </span>
                               <p className="text-xs mt-1 text-muted-foreground">
@@ -2771,10 +2835,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                   {group.playing_time}
                                 </p>
                                 <p className="text-primary">
-                                  Maps: Bermuda, Kalahari, Purgatory
+                                  Maps:{" "}
+                                  {group.maps?.join(", ") || (
+                                    <span className="italic">
+                                      No maps selected
+                                    </span>
+                                  )}
                                 </p>
                                 <p>
-                                  8 teams | {group.teams_qualifying} qualify
+                                  {stage.total_teams_in_stage} teams |{" "}
+                                  {group.teams_qualifying} qualify
                                 </p>
                               </div>
                               <div className="flex w-full lg:w-auto items-start gap-2">
@@ -2947,6 +3017,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             groupMissingFields.push(
                               "Teams Qualifying (must be at least 1)"
                             );
+                          }
+
+                          if (group.maps.length === 0) {
+                            groupMissingFields.push("Maps must be selected");
                           }
 
                           // If group has missing fields, show specific error
@@ -3595,6 +3669,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                 );
                               }
 
+                              if (group.maps.length === 0) {
+                                groupMissingFields.push(
+                                  "Maps must be selected"
+                                );
+                              }
+
                               // If group has missing fields, show specific error
                               if (groupMissingFields.length > 0) {
                                 toast.error(
@@ -3984,6 +4064,46 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           className=""
                         />
                       </div>
+                      {/* MAP SELECTION SECTION */}
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Maps to be Played{" "}
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {AVAILABLE_MAPS.map((map) => {
+                            const isSelected =
+                              group.maps?.includes(map) || false;
+                            return (
+                              <Badge
+                                key={map}
+                                onClick={() => toggleMapSelection(index, map)}
+                                className={`
+            cursor-pointer
+            ${
+              isSelected
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-gray-300 bg-muted hover:border-primary/50"
+            }
+          `}
+                              >
+                                {map}
+                                {isSelected && <span>✓</span>}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                        {(!group.maps || group.maps.length === 0) && (
+                          <p className="text-xs text-red-500 mt-1">
+                            Please select at least one map
+                          </p>
+                        )}
+                        {group.maps && group.maps.length > 0 && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Selected: {group.maps.join(", ")}
+                          </p>
+                        )}
+                      </div>
                       {/* END FIX */}
                     </div>
                   ))}
@@ -4143,6 +4263,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           </DialogFooter> */}
         </DialogContent>
       </Dialog>
+      {openConfirmStartTournamentModal && (
+        <ConfirmStartTournamentModal
+          open={openConfirmStartTournamentModal}
+          eventId={eventDetails.event_id}
+          eventName={eventDetails.event_name}
+          onClose={() => setOpenConfirmStartTournamentModal(false)}
+        />
+      )}
     </div>
   );
 }

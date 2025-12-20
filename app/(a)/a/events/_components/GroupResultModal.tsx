@@ -1,3 +1,4 @@
+import { ComingSoon } from "@/components/ComingSoon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,7 +90,8 @@ export const GroupResultModal = ({
               <TableHead className="text-right ">Status</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="relative">
+            <ComingSoon />
             {mockResults.map((res, i) => (
               <TableRow key={i}>
                 <TableCell className="font-medium">{i + 1}</TableCell>
@@ -116,14 +118,14 @@ export const GroupResultModal = ({
           </TableBody>
         </Table>
 
-        <DialogFooter className="mt-4 gap-2">
+        {/* <DialogFooter className="mt-4 gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
           <Button>
             <Edit /> Edit Results
           </Button>
-        </DialogFooter>
+        </DialogFooter> */}
       </DialogContent>
     </Dialog>
   );

@@ -19,27 +19,24 @@ import { Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IconCheck, IconUserMinus } from "@tabler/icons-react";
 
-export const ReactivateModal = ({
-  competitor_id,
-  event_id,
-  name,
+export const ConfirmStartTournamentModal = ({
+  eventId,
+  eventName,
   onSuccess,
-  redirectTo,
-  showLabel = false,
+  open,
+  onClose,
 }: {
-  competitor_id: number;
-  event_id: number;
-  name: string;
+  eventName: string;
+  eventId: number;
   onSuccess?: () => void;
-  redirectTo?: string;
-  showLabel?: boolean;
+  onClose?: () => void;
+  open?: boolean;
 }) => {
-  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const { token } = useAuth();
   const router = useRouter();
 
-  const handleActivate = () => {
+  const handleStart = () => {
     startTransition(async () => {
       try {
         const res = await axios.post(
@@ -52,59 +49,42 @@ export const ReactivateModal = ({
           }
         );
 
-        toast.success(res.data.message || "Reactivated successfully");
-        setOpen(false);
-
-        if (redirectTo) {
-          router.push(redirectTo);
-        } else {
-          onSuccess?.();
-        }
+        toast.success(res.data.message || "Tournament started successfully");
+        onClose?.();
+        onSuccess?.();
       } catch (e: any) {
-        toast.error(e.response?.data?.message || "Failed to reactivate");
+        toast.error(e.response?.data?.message || "Failed to start");
       }
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className={cn("flex-1", showLabel ? "" : "px-8")}>
-          <IconUserMinus />
-
-          {showLabel && <span className="ml-2">Reactivate</span>}
-        </Button>
-      </DialogTrigger>
-
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[400px]">
         <div className="text-center">
           <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
             <AlertTriangle className="h-7 w-7 text-green-600" />
           </div>
 
-          <DialogTitle className="text-xl">Reactivate competitor</DialogTitle>
+          <DialogTitle className="text-xl">Start this tournament?</DialogTitle>
           <DialogDescription className="mt-2 text-base">
-            Are you sure you want to reactivate <b>"{name}"</b>?
+            Are you sure you want to start <b>"{eventName}"</b>?
           </DialogDescription>
           <div className="flex gap-3 mt-6">
             <Button
               variant="outline"
               className="flex-1"
               disabled={pending}
-              onClick={() => setOpen(false)}
+              onClick={onClose}
             >
               Cancel
             </Button>
-            <Button
-              className="flex-1"
-              onClick={handleActivate}
-              disabled={pending}
-            >
+            <Button className="flex-1" onClick={handleStart} disabled={pending}>
               {pending ? (
-                <Loader text="Reactivating..." />
+                <Loader text="Starting..." />
               ) : (
                 <>
-                  <IconCheck className="h-4 w-4 mr-2" /> Activate
+                  <IconCheck className="h-4 w-4 mr-2" /> Start now
                 </>
               )}
             </Button>

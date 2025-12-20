@@ -1679,21 +1679,23 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                   </p>
                 </div>
 
-                {registration_link && registration_link.trim().length > 0 && (
-                  <div>
-                    <p className="font-medium text-sm md:text-base">
-                      Registration Link
-                    </p>
-                    <Link
-                      href={registration_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline text-xs md:text-sm truncate"
-                    >
-                      {registration_link}
-                    </Link>
-                  </div>
-                )}
+                {eventDetails.event_type === "external" &&
+                  registration_link &&
+                  registration_link.trim().length > 0 && (
+                    <div>
+                      <p className="font-medium text-sm md:text-base">
+                        Registration Link
+                      </p>
+                      <Link
+                        href={registration_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline text-xs md:text-sm truncate"
+                      >
+                        {registration_link}
+                      </Link>
+                    </div>
+                  )}
               </div>
 
               <div>

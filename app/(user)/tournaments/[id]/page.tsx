@@ -920,7 +920,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             </Card>
           </div>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-h-96 overflow-auto custom-scroll">
-            {eventDetails.registered_competitors.map((reg, index) => (
+            {eventDetails.registered_competitors.map((reg: any, index: any) => (
               <Card key={index}>
                 <CardContent className="flex items-center justify-between gap-2">
                   <div className="flex items-center justify-start gap-2">
