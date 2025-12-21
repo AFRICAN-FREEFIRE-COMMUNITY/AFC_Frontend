@@ -17,7 +17,7 @@ import { IconBell, IconUser } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export function NotificationDropdown() {
+export function NotificationDropdown({ notifications }: any) {
   const router = useRouter();
 
   return (
@@ -34,84 +34,26 @@ export function NotificationDropdown() {
       <DropdownMenuContent align="end" className="min-w-xs">
         <DropdownMenuLabel className="flex items-center justify-between gap-2">
           <span>Notifications</span>
-          <Button variant={"ghost"} size={"sm"}>
+          <Button
+            disabled={notifications.length === 0}
+            variant={"ghost"}
+            size={"sm"}
+          >
             Clear all
           </Button>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup className="overflow-auto max-h-96">
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Logout</span>
-          </DropdownMenuItem>
+          {notifications.length === 0 && (
+            <DropdownMenuItem className="italic py-4 text-center" disabled>
+              No notifications yet
+            </DropdownMenuItem>
+          )}
+          {notifications.map((notification, index) => (
+            <DropdownMenuItem key={index}>
+              {notification.message}
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

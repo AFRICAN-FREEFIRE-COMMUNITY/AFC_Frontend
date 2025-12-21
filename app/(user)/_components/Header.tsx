@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { homeNavLinks } from "@/constants";
 import Link from "next/link";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { MobileNavbar } from "./MobileNavbar";
 import { IconShoppingCart } from "@tabler/icons-react";
 import { useCart } from "@/contexts/CartContext";
@@ -25,6 +25,8 @@ export const Header = () => {
 
   const { user, token } = useAuth();
 
+  const [notifications, setNotifications] = useState([]);
+
   useEffect(() => {
     if (!user || !token) return;
 
@@ -38,7 +40,7 @@ export const Header = () => {
           },
         }
       );
-      console.log(res);
+      setNotifications(res.data.notifications);
     };
     fetchNotifications();
   }, [user, token]);
@@ -77,7 +79,7 @@ export const Header = () => {
           </nav>
 
           <div className="flex items-center gap-3">
-            <NotificationDropdown />
+            <NotificationDropdown notifications={notifications} />
             <ThemeToggle />
             {user ? (
               <>

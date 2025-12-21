@@ -724,6 +724,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     });
   }, [id, token, authLoading, router]);
 
+  console.log(eventDetails);
+
   useEffect(() => {
     if (eventDetails) {
       // Map backend IDs to the field names backend expects
