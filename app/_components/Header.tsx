@@ -41,41 +41,6 @@ export const Header = () => {
             </Button>
           ))}
         </nav>
-        {/* <nav className="hidden md:flex items-center font-medium gap-2">
-          <Button disabled size={"sm"} variant={"ghost"}>
-            Tournaments
-          </Button>
-          <Button disabled size={"sm"} variant={"ghost"}>
-            Rankings
-          </Button>
-          <Button
-            size={"sm"}
-            asChild
-            className={isActive("teams") ? "text-primary" : ""}
-            variant={isActive("teams") ? "secondary" : "ghost"}
-          >
-            <Link
-              href="/teams"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Teams
-            </Link>
-          </Button>
-          <Button
-            size={"sm"}
-            asChild
-            className={isActive("news") ? "text-primary" : ""}
-            variant={isActive("news") ? "secondary" : "ghost"}
-          >
-            <Link
-              href="/news"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              News
-            </Link>
-          </Button>
-        </nav> */}
-
         <div className="flex items-center space-x-3">
           <ThemeToggle />
           <Link href="/login">
