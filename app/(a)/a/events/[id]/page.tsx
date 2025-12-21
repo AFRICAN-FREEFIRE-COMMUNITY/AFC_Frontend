@@ -1866,7 +1866,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       </Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="grid md:grid-cols-2 gap-2">
+                  <CardContent className="max-h-96 overflow-auto grid md:grid-cols-2 gap-2">
                     {stage.groups.map((group) => (
                       <Card
                         key={group.group_id}

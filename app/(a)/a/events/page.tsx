@@ -31,6 +31,7 @@ import { toast } from "sonner";
 export interface EventProp {
   event_id: string;
   number_of_participants: number;
+  registered_competitors: number;
   event_name: string;
   event_date: string;
   event_status: string;
@@ -314,6 +315,7 @@ const page = () => {
                       {event.event_status}
                     </TableCell>
                     <TableCell>
+                      {formatMoneyInput(event.registered_competitors)}/
                       {formatMoneyInput(event.number_of_participants)}
                     </TableCell>
                     <TableCell>

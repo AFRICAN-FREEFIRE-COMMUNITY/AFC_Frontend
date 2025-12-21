@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { homeNavLinks } from "@/constants";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect } from "react";
 import { MobileNavbar } from "./MobileNavbar";
 import { IconShoppingCart } from "@tabler/icons-react";
 import { useCart } from "@/contexts/CartContext";
@@ -13,6 +13,9 @@ import { CartSheet } from "@/components/CartSheet";
 import { Badge } from "@/components/ui/badge";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationDropdown } from "./NotificationDropdown";
+import axios from "axios";
+import { env } from "@/lib/env";
 
 export const Header = () => {
   const pathname = usePathname();
@@ -20,7 +23,25 @@ export const Header = () => {
   const { getItemCount, setIsCartOpen } = useCart();
   const itemCount = getItemCount();
 
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+
+  useEffect(() => {
+    if (!user || !token) return;
+
+    const fetchNotifications = async () => {
+      const res = await axios(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-notifications/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(res);
+    };
+    fetchNotifications();
+  }, [user, token]);
 
   const isActive = (slug: string) =>
     pathname === slug || pathname.startsWith(`${slug}/`);
@@ -56,6 +77,7 @@ export const Header = () => {
           </nav>
 
           <div className="flex items-center gap-3">
+            <NotificationDropdown />
             <ThemeToggle />
             {user ? (
               <>
