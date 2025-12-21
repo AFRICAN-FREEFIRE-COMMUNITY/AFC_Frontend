@@ -38,8 +38,6 @@ export const ConfirmStartTournamentModal = ({
   const { token } = useAuth();
   const router = useRouter();
 
-  console.log(eventId, stageId);
-
   const handleStart = () => {
     startTransition(async () => {
       try {

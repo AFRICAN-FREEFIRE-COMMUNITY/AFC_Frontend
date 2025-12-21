@@ -83,7 +83,7 @@ const page = () => {
 
   return (
     <div>
-      <PageHeader back title={`Player Profile: ${user.full_name}`} />
+      <PageHeader back title={`Player Profile`} />
       {user.isBanned && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
@@ -93,7 +93,7 @@ const page = () => {
           </AlertDescription>
         </Alert>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="md:col-span-1">
           <CardContent className="flex flex-col items-center">
             <Avatar className="w-32 h-32 mb-4">
@@ -104,7 +104,9 @@ const page = () => {
               />
               <AvatarFallback>{user.full_name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <h2 className="text-2xl font-bold mb-2">{user.full_name}</h2>
+            <h2 className="text-2xl font-semibold text-center mb-2">
+              {user.full_name}
+            </h2>
             <p className="text-sm text-muted-foreground mb-2">
               @{user.in_game_name}
             </p>

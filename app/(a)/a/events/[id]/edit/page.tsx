@@ -724,8 +724,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     });
   }, [id, token, authLoading, router]);
 
-  console.log(eventDetails);
-
   useEffect(() => {
     if (eventDetails) {
       // Map backend IDs to the field names backend expects
@@ -1542,8 +1540,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       return;
     }
 
-    console.log(currentStages);
-
     // Validate event-level dates
     const eventStart = new Date(data.start_date);
     const eventEnd = new Date(data.end_date);
@@ -1569,19 +1565,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       setCurrentTab("basic_info");
       return;
     }
-
-    // CRITICAL: Log stages to verify IDs are present
-    console.log("=== STAGES BEING SENT ===");
-    currentStages.forEach((stage, idx) => {
-      console.log(`Stage ${idx + 1}: "${stage.stage_name}"`);
-      console.log(`  - stage_id: ${stage.stage_id || "NEW (no ID)"}`);
-      console.log(`  - Groups:`);
-      stage.groups.forEach((group, gIdx) => {
-        console.log(`    Group ${gIdx + 1}: "${group.group_name}"`);
-        console.log(`      - group_id: ${group.group_id || "NEW (no ID)"}`);
-      });
-    });
-    console.log("=========================");
 
     // // Run form validation
     // const isValid = await form.trigger();
@@ -1654,7 +1637,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     // Submit
     startTransition(async () => {
       try {
-        console.log("buss");
         const formData = new FormData();
 
         let finalEventStatus = data.event_status;
@@ -2500,9 +2482,36 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                 )}
                               </p>
                               <p>
-                                {stage.total_teams_in_stage} teams |{" "}
-                                {group.teams_qualifying} qualify
+                                {group.total_teams_in_group ||
+                                  group.competitors_in_group.length}{" "}
+                                {group.total_teams_in_group === 0
+                                  ? "Players"
+                                  : "Teams"}{" "}
+                                | {group.teams_qualifying} qualify
                               </p>
+                            </div>
+                            <div className="w-full">
+                              <Card className="bg-primary/10 gap-0">
+                                <CardHeader>
+                                  <CardTitle>Players</CardTitle>
+                                </CardHeader>
+                                <CardContent className="pt-1 max-h-40 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-1 mt-1.5">
+                                  {group.competitors_in_group.map(
+                                    (competitor, index) => (
+                                      <Card
+                                        className="w-full py-4 px-0 bg-primary/10"
+                                        key={index}
+                                      >
+                                        <CardContent>
+                                          <CardTitle className="text-sm">
+                                            {competitor}
+                                          </CardTitle>
+                                        </CardContent>
+                                      </Card>
+                                    )
+                                  )}
+                                </CardContent>
+                              </Card>
                             </div>
                             <div className="flex w-full lg:w-auto items-start gap-2">
                               <Button

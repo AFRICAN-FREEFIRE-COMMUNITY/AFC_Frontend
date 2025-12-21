@@ -113,7 +113,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Map the database user to your User interface
       const dbUser = res.data;
-      console.log(dbUser);
       const mappedUser: User = {
         id: dbUser.user_id.toString(), // Convert user_id to string for id
         user_id: dbUser.user_id,
