@@ -1,72 +1,99 @@
 "use client";
 
-import { description } from "@/components/chart-area-interactive";
+import React, { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { IconPhoto, IconUpload, IconUsers } from "@tabler/icons-react";
+import { SelectionMethodStep } from "../_components/SelctionMethodStep";
+import { BasicInfoStep } from "../_components/BasicInfoStep";
+import { ConfigurePointSystem } from "../_components/ConfigurePointSystem";
+import { FileUploadStep } from "../_components/FileUploadStep";
+import { SuccessStep } from "../_components/SuccessStep";
 
-const page = () => {
-  const methods = [
-    {
-      name: "Manual Creation",
-      icon: IconUsers,
-      smallDescription: "Manually input placement and kills for each player",
-      step: 1,
-      longDescription: `Directly enter match data for teams and players. You'll input placement, kills, assists, and damage for each map, and the system will generate the leaderboard automatically.`,
-      link: "/a/leaderboards/create/manual",
-    },
-    {
-      name: "Image Upload",
-      icon: IconPhoto, // You might want a different icon for CSV import
-      smallDescription: "Upload match result screenshot",
-      step: 2,
-      longDescription: `Upload screenshots or images of match results from games. The system will parse the image data to generate the leaderboard automatically.`,
-      link: "/a/leaderboards/create/image",
-    },
-    {
-      name: "3D Room File Upload",
-      icon: IconUpload, // You might want a different icon for API
-      smallDescription: "Upload .txt and debugger files",
-      step: 3,
-      longDescription: `Upload specific .txt format and debugger files from the 3D game environment to automatically extract match data and generate leaderboards.`,
-      link: "/a/leaderboards/create/api",
-    },
-  ];
+export type Method = "manual" | "image_upload" | "room_file_upload";
+
+export default function CreateLeaderboardPage() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    event_id: "",
+    stage_id: "",
+    group_id: "",
+    leaderboard_method: "" as Method,
+    file_type: "match_result_file",
+  });
+
+  const totalSteps = 5; // Reduced total steps
+
+  const updateFormData = (newData: Partial<typeof formData>) => {
+    setFormData((prev) => ({ ...prev, ...newData }));
+  };
+
+  const nextStep = () => setCurrentStep((prev) => prev + 1);
+  const prevStep = () => setCurrentStep((prev) => prev - 1);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 min-h-screen">
       <PageHeader
-        back
+        back={currentStep > 1 && currentStep < 5} // Disable back button on success screen
         title="Create Leaderboard"
-        description={"Step 1: Select Creation Method"}
+        description={
+          currentStep < 5
+            ? `Step ${currentStep} of ${totalSteps}: ${getStepTitle(
+                currentStep
+              )}`
+            : ""
+        }
       />
-      <div className="grid grid-cols-2 2xl:grid-cols-3 gap-2">
-        {methods.map((method, index) => (
-          <Card key={index}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-start gap-2">
-                <method.icon className="size-4" />
-                {method.name}
-              </CardTitle>
-              <CardDescription className="text-xs">
-                {method.smallDescription}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm">{method.longDescription}</p>
-              <Button className="w-full mt-4">Select method</Button>
-            </CardContent>
-          </Card>
-        ))}
+
+      <div className="mt-4">
+        {currentStep === 1 && (
+          <SelectionMethodStep
+            onSelect={(method) => {
+              const methodMap: Record<string, Method> = {
+                manual: "manual",
+                image: "image_upload",
+                file: "room_file_upload",
+              };
+              updateFormData({
+                leaderboard_method: methodMap[method] || "manual",
+              });
+              nextStep();
+            }}
+          />
+        )}
+
+        {currentStep === 2 && (
+          <BasicInfoStep
+            onNext={nextStep}
+            onBack={prevStep}
+            updateData={updateFormData}
+          />
+        )}
+
+        {currentStep === 3 && (
+          <FileUploadStep
+            onNext={nextStep}
+            onBack={prevStep}
+            updateData={updateFormData}
+          />
+        )}
+
+        {currentStep === 4 && (
+          <ConfigurePointSystem
+            onNext={nextStep}
+            onBack={prevStep}
+            formData={formData}
+          />
+        )}
+
+        {currentStep === 5 && <SuccessStep />}
       </div>
     </div>
   );
-};
+}
 
-export default page;
+function getStepTitle(step: number) {
+  if (step === 1) return "Select Creation Method";
+  if (step === 2) return "Basic Information";
+  if (step === 3) return "Select File Type";
+  if (step === 4) return "Configure Point System";
+  return "Process Complete";
+}

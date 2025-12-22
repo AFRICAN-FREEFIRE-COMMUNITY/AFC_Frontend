@@ -7,6 +7,7 @@ import { formatDate, formatMoneyInput } from "@/lib/utils";
 import {
   IconCalendar,
   IconClock,
+  IconPencil,
   IconPlus,
   IconTrendingUp,
   IconTrophy,
@@ -28,9 +29,37 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+interface LeaderboardProps {
+  leaderboard_id: number;
+  leaderboard_name: string;
+  event: {
+    event_id: number;
+    event_name: string;
+  };
+  stage: {
+    stage_id: number;
+    stage_name: string;
+  };
+  group: {
+    group_id: number;
+    group_name: string;
+  };
+  creator: {
+    user_id: number;
+    username: string;
+  };
+  placement_points: any;
+  kill_point: number;
+  file_type: string;
+  leaderboard_method: string;
+  created_at: Date;
+}
+
 const page = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchLeaderboardQuery, setSearchLeaderboardQuery] = useState("");
   const [events, setEvents] = useState<EventProp[]>([]);
+  const [leaderboards, setLeaderboards] = useState<LeaderboardProps[]>([]);
 
   const [pending, startTransition] = useTransition();
 
@@ -40,8 +69,15 @@ const page = () => {
         const eventsResponse = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`
         );
-        if (eventsResponse.statusText === "OK") {
+        const leaderboardResponse = await axios(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboards/`
+        );
+        if (
+          eventsResponse.statusText === "OK" ||
+          leaderboardResponse.statusText === "OK"
+        ) {
           setEvents(eventsResponse.data.events);
+          setLeaderboards(leaderboardResponse.data.leaderboards);
         } else {
           toast.error("Oops! An error occurred");
         }
@@ -69,6 +105,18 @@ const page = () => {
       event.event_status.toLowerCase().includes(lowerCaseQuery)
     );
   });
+
+  // --- Search Filtering Logic ---
+  const filteredLeaderboards = leaderboards.filter((leaderboard) => {
+    const lowerCaseQuery = searchLeaderboardQuery.toLowerCase();
+
+    // Check if the search query is found in the leaderboard name or competition type
+    return (
+      leaderboard.leaderboard_name.toLowerCase().includes(lowerCaseQuery) ||
+      leaderboard.event.event_name.toLowerCase().includes(lowerCaseQuery) ||
+      leaderboard.group.group_name.toLowerCase().includes(lowerCaseQuery)
+    );
+  });
   // ------------------------------
 
   if (pending) return <FullLoader />;
@@ -93,7 +141,9 @@ const page = () => {
             <IconTrophy className="size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMoneyInput(7)}</div>
+            <div className="text-2xl font-bold">
+              {formatMoneyInput(leaderboards.length)}
+            </div>
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 Overall count
@@ -109,7 +159,7 @@ const page = () => {
             <IconTrendingUp className="size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMoneyInput(7)}</div>
+            <div className="text-2xl font-bold">{formatMoneyInput(0)}</div>
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 From tournaments
@@ -125,7 +175,7 @@ const page = () => {
             <IconTrendingUp className="size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMoneyInput(7)}</div>
+            <div className="text-2xl font-bold">{formatMoneyInput(0)}</div>
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 From scrims
@@ -141,7 +191,7 @@ const page = () => {
             <IconUsers className="size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMoneyInput(7)}</div>
+            <div className="text-2xl font-bold">{formatMoneyInput(0)}</div>
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 Average participants
@@ -157,7 +207,7 @@ const page = () => {
             <IconCalendar className="size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMoneyInput(7)}</div>
+            <div className="text-2xl font-bold">{formatMoneyInput(0)}</div>
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 New leaderboards
@@ -173,7 +223,7 @@ const page = () => {
             <IconClock className="size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMoneyInput(7)}</div>
+            <div className="text-2xl font-bold">{formatMoneyInput(0)}</div>
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 Last leaderboard activity
@@ -254,7 +304,74 @@ const page = () => {
         <CardHeader>
           <CardTitle>All Leaderboards</CardTitle>
         </CardHeader>
-        <CardContent></CardContent>
+        <CardContent>
+          <div className="flex items-center justify-start gap-2">
+            <Input
+              type="search"
+              placeholder="Search leaderboard by name, type, or status..."
+              value={searchLeaderboardQuery}
+              onChange={(e) => setSearchLeaderboardQuery(e.target.value)}
+              className="bg-background/50 backdrop-blur-sm block"
+            />
+            <Button>Search</Button>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Leaderboard Name</TableHead>
+                <TableHead>Event</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {/* Use the filteredEvents list here */}
+              {filteredLeaderboards?.length > 0 ? (
+                filteredLeaderboards.map((leaderboard) => (
+                  <TableRow key={leaderboard.leaderboard_id}>
+                    <TableCell className="font-medium">
+                      {leaderboard.leaderboard_name}
+                    </TableCell>
+                    <TableCell>{leaderboard.event.event_name}</TableCell>
+                    <TableCell className="capitalize">
+                      {leaderboard.stage.stage_name}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 justify-center">
+                        <Button asChild variant={"outline"} size="md">
+                          <Link
+                            href={`/a/leaderboards/${leaderboard.leaderboard_id}/edit`}
+                          >
+                            <IconPencil />
+                            Edit
+                          </Link>
+                        </Button>
+                        <Button asChild variant={"outline"} size="md">
+                          <Link
+                            href={`/a/leaderboards/${leaderboard.leaderboard_id}`}
+                          >
+                            View
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    {searchQuery.length > 0
+                      ? "No events match your search query."
+                      : "No events available."}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
       </Card>
     </div>
   );
