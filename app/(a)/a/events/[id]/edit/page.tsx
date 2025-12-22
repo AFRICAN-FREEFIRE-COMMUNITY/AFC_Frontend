@@ -2465,29 +2465,29 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       {stage.groups.map((group, gIdx) => (
                         <Card key={gIdx} className="bg-primary/10 gap-0">
                           <CardHeader>
-                            <CardTitle>{group.group_name}</CardTitle>
+                            <CardTitle>{group?.group_name}</CardTitle>
                           </CardHeader>
-                          <CardContent className="pt-2 text-muted-foreground text-sm flex flex-col lg:flex-row items-start justify-between gap-4 md:gap-2">
+                          <CardContent className="pt-2 text-muted-foreground text-sm space-y-2">
                             <div className="space-y-1">
                               <p>
-                                {formatDate(group.playing_date)} at{" "}
-                                {group.playing_time}
+                                {formatDate(group?.playing_date)} at{" "}
+                                {group?.playing_time}
                               </p>
                               <p className="text-primary">
                                 Maps:{" "}
-                                {group.match_maps?.join(", ") || (
+                                {group?.match_maps?.join(", ") || (
                                   <span className="italic">
                                     No maps selected
                                   </span>
                                 )}
                               </p>
                               <p>
-                                {group.total_teams_in_group ||
-                                  group.competitors_in_group.length}{" "}
-                                {group.total_teams_in_group === 0
+                                {group?.total_teams_in_group ||
+                                  group?.competitors_in_group?.length}{" "}
+                                {group?.total_teams_in_group === 0
                                   ? "Players"
                                   : "Teams"}{" "}
-                                | {group.teams_qualifying} qualify
+                                | {group?.teams_qualifying} qualify
                               </p>
                             </div>
                             <div className="w-full">
@@ -2496,7 +2496,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                   <CardTitle>Players</CardTitle>
                                 </CardHeader>
                                 <CardContent className="pt-1 max-h-40 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-1 mt-1.5">
-                                  {group.competitors_in_group.map(
+                                  {group?.competitors_in_group?.map(
                                     (competitor, index) => (
                                       <Card
                                         className="w-full py-4 px-0 bg-primary/10"

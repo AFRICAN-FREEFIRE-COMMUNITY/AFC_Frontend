@@ -123,7 +123,7 @@ const page = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
         <PageHeader back title="Leaderboards Management" />
         <Button asChild>
           <Link href={"/a/leaderboards/create"}>

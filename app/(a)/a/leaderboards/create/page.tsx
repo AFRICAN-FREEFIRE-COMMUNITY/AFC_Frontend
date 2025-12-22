@@ -80,7 +80,7 @@ export default function CreateLeaderboardPage() {
           <ConfigurePointSystem
             onNext={nextStep}
             onBack={prevStep}
-            formData={formData}
+            parentFormData={formData}
           />
         )}
 
