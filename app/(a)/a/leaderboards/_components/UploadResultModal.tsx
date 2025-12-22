@@ -149,7 +149,7 @@ export const UploadResultModal = ({
             <IconUpload className="size-5 text-primary" />
             Upload Match Result
           </DialogTitle>
-          <DialogDescription className="truncate">
+          <DialogDescription className="text-left truncate">
             Target:{" "}
             <span className="text-white font-medium">
               {currentGroup?.group_name}

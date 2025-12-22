@@ -1516,15 +1516,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   const eventType = form.watch("event_type") === "external";
 
-  // ============================================================================
-  // SUBMIT HANDLER
-  // ============================================================================
+  console.log(eventDetails);
 
   const onSubmit = async (data: EventFormType) => {
     if (!eventDetails?.event_id) {
       toast.error("Event ID is missing");
       return;
     }
+
+    console.log(data);
 
     // Comprehensive validation
     const currentStages = form.getValues("stages");
@@ -1766,10 +1766,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       }
     });
   };
-
-  // ============================================================================
-  // RENDER
-  // ============================================================================
 
   if (initialLoading || !eventDetails) {
     return <FullLoader />;
