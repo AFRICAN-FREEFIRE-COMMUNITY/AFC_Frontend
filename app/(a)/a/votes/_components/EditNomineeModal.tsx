@@ -76,7 +76,6 @@ export function EditNomineeModal({
       setOpen(false);
       onNomineeUpdated(); // refresh nominees
     } catch (error: any) {
-      console.error(error);
       toast.error(error.response?.data?.message || "Failed to update nominee");
     } finally {
       setLoading(false);

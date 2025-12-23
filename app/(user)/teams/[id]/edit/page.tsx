@@ -207,7 +207,6 @@ export default function page({ params }: { params: Params }) {
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
-        console.error(error);
         toast.error(error?.response?.data?.message || "Internal server error");
       }
     });

@@ -80,9 +80,7 @@ export default function IndividualLeaderboardPage({
         setSelectedStageId(data.stages[0].stage_id.toString());
         setSelectedGroupId(data.stages[0].groups[0]?.group_id.toString());
       }
-    } catch (error) {
-      console.error("Fetch error:", error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -120,7 +118,11 @@ export default function IndividualLeaderboardPage({
           title={eventData.event_name}
           description={`Solo Tournament • ${eventData.stages.length} Stages`}
         />
-        <Button variant="outline" onClick={() => setOpenEditModal(true)}>
+        <Button
+          variant="outline"
+          className="w-full md:w-auto"
+          onClick={() => setOpenEditModal(true)}
+        >
           <IconSettings size={16} /> Edit Scoring
         </Button>
       </div>

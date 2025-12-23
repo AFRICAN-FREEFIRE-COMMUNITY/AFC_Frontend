@@ -99,7 +99,6 @@ export const AdjustScoreModal = ({
         toast.error("Failed to update scores");
       }
     } catch (error) {
-      console.error(error);
       toast.error("An error occurred");
     } finally {
       setLoading(false);

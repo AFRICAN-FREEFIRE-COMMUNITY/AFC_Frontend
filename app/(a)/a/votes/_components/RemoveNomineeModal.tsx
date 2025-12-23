@@ -69,7 +69,6 @@ export function RemoveNomineeModal({
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
-      console.error("Error removing nominee:", error);
     } finally {
       setLoading(false);
     }

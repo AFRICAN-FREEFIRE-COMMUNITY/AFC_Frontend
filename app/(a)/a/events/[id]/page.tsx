@@ -1239,8 +1239,6 @@ const Page = ({ params }: { params: Promise<Params> }) => {
         setEventDetails(res.data.event_details);
         setAdminDetails(resAdmin.data);
       } catch (error: any) {
-        console.error("Error fetching event details:", error);
-
         const errorMessage =
           error.response?.data?.message ||
           error.response?.data?.detail ||

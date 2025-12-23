@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -19,189 +18,312 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  IconTrophy,
-  IconUser,
-  IconFilter,
-  IconCalendar,
-} from "@tabler/icons-react";
+import { IconTrophy, IconUsers, IconMap } from "@tabler/icons-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Label } from "@/components/ui/label";
+import { env } from "@/lib/env";
+import { FullLoader } from "@/components/Loader";
+import { useAuth } from "@/contexts/AuthContext";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-const page = () => {
-  // States for filters
-  const [activeTab, setActiveTab] = useState("qualifiers");
+const LeaderboardPage = () => {
+  const { token } = useAuth();
+
+  // States
+  const [eventsList, setEventsList] = useState<any[]>([]); // List from /get-all-events/
+  const [eventDetails, setEventDetails] = useState<any>(null); // Details from /get-all-leaderboard-details-for-event/
+  const [loading, setLoading] = useState(true);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+
+  // Selection states
+  const [selectedEventId, setSelectedEventId] = useState<string>("");
+  const [activeStageId, setActiveStageId] = useState<string>("");
+  const [activeGroupId, setActiveGroupId] = useState<string>("");
+  const [selectedMatchId, setSelectedMatchId] = useState<string>("overall");
+
+  // 1. Initial Load: Fetch list of all events
+  useEffect(() => {
+    const fetchEventsList = async () => {
+      try {
+        const res = await fetch(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`
+        );
+        const data = await res.json();
+        setEventsList(data.events || []);
+
+        // Auto-select first event if available
+        if (data.events?.length > 0) {
+          const firstId = data.events[0].event_id.toString();
+          handleEventSelect(firstId);
+        }
+      } catch (error) {
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEventsList();
+  }, []);
+
+  // 2. Fetch specific Leaderboard details when an event is selected
+  const handleEventSelect = async (eventId: string) => {
+    setSelectedEventId(eventId);
+    setDetailsLoading(true);
+    setEventDetails(null); // Reset UI while loading
+
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboard-details-for-event/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ event_id: eventId }),
+        }
+      );
+
+      const data = await res.json();
+
+      // Validate if leaderboard data exists in the response
+      if (data && data.stages && data.stages.length > 0) {
+        setEventDetails(data);
+        const firstStage = data.stages[0];
+        setActiveStageId(firstStage.stage_id.toString());
+        if (firstStage.groups?.length > 0) {
+          setActiveGroupId(firstStage.groups[0].group_id.toString());
+        }
+        setSelectedMatchId("overall");
+      } else {
+        // Set a flag to show "No Leaderboard Exists"
+        setEventDetails("not_found");
+      }
+    } catch (error) {
+      setEventDetails("not_found");
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  // 3. Handle Stage/Tab Change
+  const handleStageChange = (stageId: string) => {
+    setActiveStageId(stageId);
+    const stage = eventDetails.stages.find(
+      (s: any) => s.stage_id.toString() === stageId
+    );
+    if (stage?.groups?.length > 0) {
+      setActiveGroupId(stage.groups[0].group_id.toString());
+    }
+    setSelectedMatchId("overall");
+  };
+
+  // Helper: Derived Selections
+  const currentStage =
+    eventDetails && eventDetails !== "not_found"
+      ? eventDetails.stages?.find(
+          (s: any) => s.stage_id.toString() === activeStageId
+        )
+      : null;
+
+  const currentGroup = currentStage?.groups?.find(
+    (g: any) => g.group_id.toString() === activeGroupId
+  );
+
+  const getTableData = () => {
+    if (selectedMatchId === "overall")
+      return currentGroup?.overall_leaderboard || [];
+    const match = currentGroup?.matches?.find(
+      (m: any) => m.match_id.toString() === selectedMatchId
+    );
+    return match?.stats || [];
+  };
+
+  if (loading) return <FullLoader />;
 
   return (
-    <div className="min-h-screen space-y-8">
+    <div className="min-h-screen space-y-8 pb-10">
       <PageHeader
         title="Leaderboards"
-        description={"Track tournament rankings and player performance"}
+        description="Select an event to view rankings"
       />
-      {/* <Card>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-        <div className="space-y-2">
-          <Label>Type</Label>
-          <Input placeholder="Search type..." />
-          <Select defaultValue="all">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="tournament">Tournament</SelectItem>
-              <SelectItem value="scrim">Scrim</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        <div className="space-y-2">
-          <Label>Name</Label>
-          <Input placeholder="Search name..." />
-          <Select defaultValue="all">
-            <SelectTrigger>
-              <SelectValue placeholder="All events" />
-            </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-              <SelectItem value="all">All Events</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Prizepool</Label>
-          <Input placeholder="Search prizepool..." />
-          <Select defaultValue="all">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-              <SelectItem value="all">All Ranges</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Select Field: List of Events */}
+      <div className="space-y-2">
+        <Label>Filter by Event</Label>
+        <Select value={selectedEventId} onValueChange={handleEventSelect}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select an event" />
+          </SelectTrigger>
+          <SelectContent>
+            {eventsList.map((evt) => (
+              <SelectItem key={evt.event_id} value={evt.event_id.toString()}>
+                {evt.event_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      </Card> */}
-      <Input placeholder="Search event name..." />
 
-      {/* --- Rankings Section (Ref: image_74b56e.png) --- */}
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-zinc-800 pb-4 gap-4">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold">Summer Showdown (Tournament)</h2>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400">
-              <span className="flex items-center gap-1">
-                <IconCalendar size={14} /> Date: 2023-07-15
-              </span>
-              <span>Prizepool: $10000</span>
-              <span className="text-primary font-medium">Stage: Finals</span>
+      {detailsLoading ? (
+        <div className="h-64 flex items-center justify-center">
+          <FullLoader />
+        </div>
+      ) : eventDetails === "not_found" ? (
+        <Card className="bg-zinc-900 border-zinc-800 p-20 text-center text-zinc-500">
+          No leaderboard configuration exists for this event yet.
+        </Card>
+      ) : eventDetails ? (
+        <div className="space-y-6 animate-in fade-in duration-500">
+          {/* Header & Tabs */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-zinc-800 pb-4 gap-4">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-semibold">
+                {eventDetails.event_name}
+              </h2>
+              <p className="text-sm text-muted-foreground uppercase">
+                {eventDetails.participant_type} | {currentStage?.stage_name}
+              </p>
+            </div>
+
+            <Tabs
+              value={activeStageId}
+              onValueChange={handleStageChange}
+              className="w-full md:w-auto"
+            >
+              <ScrollArea>
+                <TabsList>
+                  {eventDetails.stages.map((stage: any) => (
+                    <TabsTrigger
+                      key={stage.stage_id}
+                      value={stage.stage_id.toString()}
+                    >
+                      {stage.stage_name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </Tabs>
+          </div>
+
+          {/* Group and Match Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-2">
+            <div className="space-y-2">
+              <Label>
+                <IconUsers size={16} /> Group
+              </Label>
+              <Select
+                value={activeGroupId}
+                onValueChange={(val) => {
+                  setActiveGroupId(val);
+                  setSelectedMatchId("overall");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currentStage?.groups?.map((group: any) => (
+                    <SelectItem
+                      key={group.group_id}
+                      value={group.group_id.toString()}
+                    >
+                      {group.group_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>
+                <IconMap size={16} /> View Filter
+              </Label>
+              <Select
+                value={selectedMatchId}
+                onValueChange={setSelectedMatchId}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="overall">Overall Leaderboard</SelectItem>
+                  {currentGroup?.matches?.map((match: any) => (
+                    <SelectItem
+                      key={match.match_id}
+                      value={match.match_id.toString()}
+                    >
+                      Match {match.match_number} - {match.match_map}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full md:w-auto"
-          >
-            <TabsList>
-              <TabsTrigger value="qualifiers">Qualifiers</TabsTrigger>
-              <TabsTrigger value="finals">Finals</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-
-        {/* Team Rankings Table */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2 text-zinc-200">
-            <IconTrophy size={18} className="text-yellow-500" />
-            Team Rankings
-          </h3>
-          <div className="rounded-lg border border-zinc-800 overflow-hidden">
-            <Table>
-              <TableHeader className="bg-zinc-900/50">
-                <TableRow className="border-zinc-800">
-                  <TableHead className="w-20">Rank</TableHead>
-                  <TableHead>Team</TableHead>
-                  <TableHead>Kills</TableHead>
-                  <TableHead className="text-right">Points</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <RankingRow rank={1} team="Team Alpha" kills={45} points={95} />
-                <RankingRow
-                  rank={2}
-                  team="Omega Squad"
-                  kills={38}
-                  points={88}
-                />
-                <RankingRow
-                  rank={3}
-                  team="Phoenix Rising"
-                  kills={36}
-                  points={86}
-                />
-              </TableBody>
-            </Table>
+          {/* Statistics Table */}
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold flex items-center gap-2">
+              <IconTrophy size={18} className="text-yellow-500" />
+              {selectedMatchId === "overall"
+                ? "Overall Rankings"
+                : "Match Standings"}
+            </h3>
+            <Card className="overflow-hidden max-h-96 p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-20">Rank</TableHead>
+                    <TableHead>Competitor</TableHead>
+                    <TableHead>Kills</TableHead>
+                    <TableHead className="text-right">Points</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {getTableData().length > 0 ? (
+                    getTableData().map((row: any, idx: number) => (
+                      <RankingRow
+                        key={idx}
+                        rank={row.placement || idx + 1}
+                        name={
+                          row.competitor_name ||
+                          row.competitor__user__username ||
+                          row.username ||
+                          `Player ${row.competitor_id}`
+                        }
+                        kills={row.kills || row.total_kills || 0}
+                        points={row.total_pts || row.total_points || 0}
+                      />
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center py-10 text-muted-foreground italic"
+                      >
+                        No data recorded for this selection.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
           </div>
         </div>
-
-        {/* Top Players Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2 text-zinc-200">
-            <IconUser size={18} className="text-blue-500" />
-            Top Players
-          </h3>
-          <div className="rounded-lg border border-zinc-800 overflow-hidden">
-            <Table>
-              <TableHeader className="bg-zinc-900/50">
-                <TableRow className="border-zinc-800">
-                  <TableHead>Player</TableHead>
-                  <TableHead>Team</TableHead>
-                  <TableHead>Kills</TableHead>
-                  <TableHead className="text-right">MVPs</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <PlayerRow
-                  player="FireKing"
-                  team="Team Alpha"
-                  kills={18}
-                  mvps={2}
-                />
-                <PlayerRow
-                  player="ShadowSniper"
-                  team="Omega Squad"
-                  kills={15}
-                  mvps={1}
-                />
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 };
 
-// Sub-components for cleaner code
-const RankingRow = ({ rank, team, kills, points }: any) => (
-  <TableRow className="border-zinc-900 hover:bg-zinc-900/40 transition-colors">
-    <TableCell className="font-mono text-zinc-500">{rank}</TableCell>
-    <TableCell className="font-bold text-white">{team}</TableCell>
+const RankingRow = ({ rank, name, kills, points }: any) => (
+  <TableRow>
+    <TableCell>#{rank}</TableCell>
+    <TableCell className="font-medium">{name}</TableCell>
     <TableCell>{kills}</TableCell>
-    <TableCell className="text-right font-bold text-primary">
-      {points}
+    <TableCell className="text-right font-semibold text-primary">
+      {parseFloat(points).toFixed(1)}
     </TableCell>
   </TableRow>
 );
 
-const PlayerRow = ({ player, team, kills, mvps }: any) => (
-  <TableRow className="border-zinc-900 hover:bg-zinc-900/40 transition-colors">
-    <TableCell className="font-bold text-white">{player}</TableCell>
-    <TableCell className="text-zinc-400">{team}</TableCell>
-    <TableCell>{kills}</TableCell>
-    <TableCell className="text-right font-mono text-blue-400">{mvps}</TableCell>
-  </TableRow>
-);
-
-export default page;
+export default LeaderboardPage;

@@ -51,7 +51,6 @@ export function AddSectionModal({
       setOpen(false);
       onSectionAdded(); // refresh the section list
     } catch (err: any) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Failed to create section");
     } finally {
       setLoading(false);

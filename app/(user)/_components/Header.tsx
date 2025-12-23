@@ -41,9 +41,7 @@ export const Header = () => {
         }
       );
       setNotifications(res.data.notifications);
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-    }
+    } catch (error) {}
   }, [user, token]);
 
   useEffect(() => {

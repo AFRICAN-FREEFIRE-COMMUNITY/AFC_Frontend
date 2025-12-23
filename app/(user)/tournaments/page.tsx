@@ -80,7 +80,6 @@ const EventsPage = () => {
 
       setEvents(data.events || []);
     } catch (err) {
-      console.error("Failed to fetch events:", err);
       setError(
         "Failed to load events. Please check the API endpoint and try again."
       );

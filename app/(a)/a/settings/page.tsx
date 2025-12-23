@@ -263,7 +263,6 @@ const page = () => {
         setBackendRoles(response.data.roles);
       }
     } catch (error) {
-      console.error("Error fetching roles:", error);
       toast.error("Failed to fetch roles from server.");
     } finally {
       setRolesLoading(false);
@@ -288,7 +287,6 @@ const page = () => {
         setAdminUsers(transformedUsers);
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
       toast.error("Failed to fetch users from server.");
     } finally {
       setLoading(false);
@@ -415,7 +413,6 @@ const page = () => {
         );
       }
     } catch (error: any) {
-      console.error("Error creating user:", error);
       const errorMessage =
         error.response?.data?.message || "Failed to create admin user.";
       toast.error(errorMessage);
@@ -462,8 +459,6 @@ const page = () => {
           toast.error(response.data.message || "Failed to update user roles");
         }
       } catch (error: any) {
-        console.error("Error updating user roles:", error);
-
         if (error.response) {
           const errorMessage =
             error.response.data?.message ||
@@ -495,7 +490,6 @@ const page = () => {
         toast.success("User has been removed.");
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
       toast.error("Failed to delete user.");
     }
   };
@@ -531,7 +525,6 @@ const page = () => {
           );
         }
       } catch (error: any) {
-        console.error(`Error ${action.slice(0, -1)}ing user:`, error);
         toast.error(
           error.response?.data?.message ||
             `Failed to ${action.slice(0, -1)} user.`
@@ -574,7 +567,6 @@ const page = () => {
 
       toast.success("Excel file downloaded successfully");
     } catch (error) {
-      console.error("Export failed:", error);
       toast.error("Failed to export users to Excel");
     }
   };

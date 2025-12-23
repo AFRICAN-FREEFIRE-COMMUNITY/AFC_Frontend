@@ -730,7 +730,6 @@ export default function Page() {
         if (!contentType || !contentType.includes("application/json")) {
           const textResponse = await response.text();
 
-          console.error("Non-JSON Response:", textResponse);
           toast.error(
             "Server error: Received unexpected response format. Check console for details."
           );
@@ -743,7 +742,6 @@ export default function Page() {
           toast.success(res.message || "Event created successfully!");
           router.push(`/a/events`);
         } else {
-          console.error("Server Error:", res);
           toast.error(
             res.message ||
               res.detail ||
@@ -751,7 +749,6 @@ export default function Page() {
           );
         }
       } catch (error) {
-        console.error("Error:", error);
         toast.error("An unexpected error occurred during submission.");
       }
     });

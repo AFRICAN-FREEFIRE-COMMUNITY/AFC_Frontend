@@ -135,7 +135,6 @@ export const UploadResultModal = ({
           toast.error(error.message || "Failed to upload result");
         }
       } catch (error) {
-        console.error("Upload error:", error);
         toast.error("An unexpected error occurred");
       }
     });

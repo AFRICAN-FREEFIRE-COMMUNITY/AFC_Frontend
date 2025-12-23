@@ -27,7 +27,6 @@ async function getNewsData(newsId: string) {
     const data = await response.json();
     return data.news;
   } catch (error) {
-    console.error("Error fetching news data for SEO:", error);
     return null;
   }
 }
@@ -75,7 +74,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const contentPreview = extractPlainText(news.content);
   const description =
     contentPreview ||
-    `${news.news_title} - Read the latest ${news.category || "news"} from the African Freefire Community.`;
+    `${news.news_title} - Read the latest ${
+      news.category || "news"
+    } from the African Freefire Community.`;
 
   const categoryTags: Record<string, string[]> = {
     tournament: ["tournament", "esports", "competition"],

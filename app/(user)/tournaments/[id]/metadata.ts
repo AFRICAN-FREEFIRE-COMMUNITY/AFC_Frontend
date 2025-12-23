@@ -31,7 +31,6 @@ async function getEventDetails(id: string): Promise<EventDetailsSEO | null> {
     const result = await response.json();
     return result.event_details as EventDetailsSEO;
   } catch (error) {
-    console.error("Failed to fetch metadata event details:", error);
     return null;
   }
 }

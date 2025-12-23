@@ -1,5 +1,9 @@
 import { Metadata } from "next";
-import { generateDynamicMetadata, generateTeamSchema, siteConfig } from "@/lib/seo";
+import {
+  generateDynamicMetadata,
+  generateTeamSchema,
+  siteConfig,
+} from "@/lib/seo";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -27,7 +31,6 @@ async function getTeamData(teamName: string) {
     const data = await response.json();
     return data.team;
   } catch (error) {
-    console.error("Error fetching team data for SEO:", error);
     return null;
   }
 }
@@ -45,7 +48,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
 
-  const description = `${team.team_name} is a ${team.team_tier || "competitive"} Free Fire esports team from ${team.country || "Africa"} on AFC. View roster, stats, tournament history, and achievements.`;
+  const description = `${team.team_name} is a ${
+    team.team_tier || "competitive"
+  } Free Fire esports team from ${
+    team.country || "Africa"
+  } on AFC. View roster, stats, tournament history, and achievements.`;
 
   return {
     ...generateDynamicMetadata({

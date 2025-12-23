@@ -27,7 +27,6 @@ async function getPlayerData(username: string) {
     const data = await response.json();
     return data.player;
   } catch (error) {
-    console.error("Error fetching player data for SEO:", error);
     return null;
   }
 }
@@ -47,7 +46,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const roleText = player.in_game_role ? ` (${player.in_game_role})` : "";
   const teamText = player.team_name ? ` playing for ${player.team_name}` : "";
-  const description = `${player.username}${roleText} is a Free Fire player from ${player.country || "Africa"}${teamText}. View profile, stats, and achievements on AFC.`;
+  const description = `${
+    player.username
+  }${roleText} is a Free Fire player from ${
+    player.country || "Africa"
+  }${teamText}. View profile, stats, and achievements on AFC.`;
 
   return {
     ...generateDynamicMetadata({

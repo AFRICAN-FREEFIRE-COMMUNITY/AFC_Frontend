@@ -64,7 +64,6 @@ export function NotificationDropdown({
       // Refresh notifications
       onNotificationUpdate();
     } catch (error) {
-      console.error("Error marking notification as read:", error);
     } finally {
       setMarkingAsRead(null);
     }

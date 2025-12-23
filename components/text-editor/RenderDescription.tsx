@@ -7,53 +7,6 @@ import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import parse from "html-react-parser";
 
-// export const RenderDescription = ({
-//   json,
-//   className = "",
-// }: {
-//   json?: string | JSONContent | any;
-//   className?: string;
-// }) => {
-//   const output = useMemo(() => {
-//     if (!json) {
-//       return "<p></p>";
-//     }
-
-//     try {
-//       // If json is a string, parse it first
-//       let parsedJson: JSONContent;
-
-//       if (typeof json === "string") {
-//         parsedJson = JSON.parse(json);
-//       } else {
-//         parsedJson = json;
-//       }
-
-//       // Validate the parsed JSON structure
-//       if (!parsedJson || typeof parsedJson !== "object" || !parsedJson.type) {
-//         return "<p></p>";
-//       }
-
-//       return generateHTML(parsedJson, [
-//         StarterKit,
-//         TextAlign.configure({ types: ["heading", "paragraph"] }),
-//       ]);
-//     } catch (error) {
-//       console.error("Error parsing or generating HTML:", error);
-//       console.error("Original json:", json);
-//       return "<p>Content could not be rendered</p>";
-//     }
-//   }, [json]);
-
-//   return (
-//     <div
-//       className={`prose dark:prose-invert prose-li:marker:text-primary h-full`}
-//     >
-//       {parse(output)}
-//     </div>
-//   );
-// };
-
 export const RenderDescription = ({
   json,
   truncate = false,
@@ -86,12 +39,12 @@ export const RenderDescription = ({
         TextAlign.configure({ types: ["heading", "paragraph"] }),
       ]);
     } catch (error) {
-      console.error("Error parsing or generating HTML:", error);
       return "<p>Content could not be rendered</p>";
     }
   }, [json]);
 
-  const baseClasses = "prose dark:prose-invert prose-li:marker:text-primary max-w-none";
+  const baseClasses =
+    "prose dark:prose-invert prose-li:marker:text-primary max-w-none";
   const truncateClasses = truncate
     ? "line-clamp-2 overflow-hidden [&>*]:m-0 [&>p]:leading-tight [&>*]:break-words [&>*]:max-w-full"
     : "[&>p]:mb-4 [&>h1]:mb-4 [&>h2]:mb-4 [&>h3]:mb-4 [&>ul]:mb-4 [&>ol]:mb-4";
@@ -140,7 +93,6 @@ export const extractTiptapText = (jsonString: string | any): string => {
     // Clean up extra whitespace
     return fullText.replace(/\s+/g, " ").trim();
   } catch (error) {
-    console.error("Error extracting text from Tiptap JSON:", error);
     return "";
   }
 };

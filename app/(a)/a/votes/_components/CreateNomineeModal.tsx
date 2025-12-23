@@ -52,7 +52,6 @@ export function CreateNomineeModal({
       setOpen(false);
       onNomineeAdded(); // refresh nominees
     } catch (error: any) {
-      console.error(error);
       toast.error(error.response?.data?.message || "Failed to create nominee");
     } finally {
       setLoading(false);

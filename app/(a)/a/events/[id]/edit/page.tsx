@@ -843,7 +843,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const handleConfirmSeed = async (groupId: number) => {
     startPendingTransition(async () => {
       try {
-        console.log("Seeding teams for group:", groupId);
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/advance-group-competitors-to-next-stage/`,
           { event_id: eventDetails?.event_id, group_id: groupId },
@@ -855,11 +854,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
 
         toast.success(res.data.message || "Seeding successful");
-
-        console.log(res.data);
         setIsSeedModalOpen(false);
       } catch (error: any) {
-        console.log(error);
         toast.error(error.response.data.message || "Oops! An error occurred. ");
       }
       // toast.success("Teams seeded successfully!");
@@ -1425,7 +1421,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         // Optional: handle response
         // const data = await response.json();
       } catch (error) {
-        console.error("Error deleting stage:", error);
         toast.error("Failed to delete stage from server");
         return; // Exit early if API call fails
       } finally {
@@ -1698,7 +1693,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           const textResponse = await response.text();
-          console.error("Non-JSON Response:", textResponse);
           toast.error("Server error: Unexpected response format.", {
             duration: 5000,
           });
@@ -1737,12 +1731,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           } else {
             toast.error(errorMessage || "Failed to update event.");
           }
-
-          console.error("Server Error:", res);
         }
       } catch (error: any) {
-        console.error("Error:", error);
-
         if (
           error.message === "Failed to fetch" ||
           error.message.includes("NetworkError")

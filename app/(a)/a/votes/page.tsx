@@ -99,7 +99,6 @@ const fetchVotingMetrics = async (token: string) => {
       leastVotedCategory: "Best Rookie Player",
     };
   } catch (error) {
-    console.error("Error fetching voting metrics:", error);
     return {
       totalVotes: 0,
       totalVoters: 0,
@@ -137,7 +136,6 @@ const fetchVotesPerSection = async (token: string) => {
 
     return normalizedData;
   } catch (error) {
-    console.error("Error fetching votes per section:", error);
     return [];
   }
 };
@@ -166,7 +164,6 @@ const fetchVotesPerCategory = async (token: string) => {
       section_name: item.section_name || item.section || null,
     }));
   } catch (error) {
-    console.error("Error fetching votes per category:", error);
     return [];
   }
 };
@@ -204,7 +201,6 @@ const fetchVotesPerNominee = async (token: string) => {
 
     return votesArray;
   } catch (error) {
-    console.error("Error fetching votes per nominee-category:", error);
     return [];
   }
 };
@@ -222,7 +218,6 @@ const fetchVotingTimelineData = async (token: string) => {
     // API returns array directly, not wrapped in voting_timeline
     return Array.isArray(data) ? data : data.voting_timeline || [];
   } catch (error) {
-    console.error("Error fetching voting timeline:", error);
     return [];
   }
 };
@@ -405,7 +400,6 @@ export default function Page() {
       setAllCategoriesData(categoriesData); // Store for display
       setStats((prev) => ({ ...prev, totalCategories: categoriesData.length }));
     } catch (err) {
-      console.error("fetchCategories error:", err);
       toast.error("Failed to load categories");
     }
   }, [apiFetch]);
@@ -418,7 +412,6 @@ export default function Page() {
       setAllNomineesData(nomineesData); // Store for display
       setStats((prev) => ({ ...prev, totalNominees: nomineesData.length }));
     } catch (err) {
-      console.error("fetchNominees error:", err);
       toast.error("Failed to load nominees");
     }
   }, [apiFetch]);
@@ -430,7 +423,6 @@ export default function Page() {
       setSections(sectionsData);
       setAllSectionsData(sectionsData); // Store for display
     } catch (err) {
-      console.error("fetchSections error:", err);
       setSections([
         { id: "content", name: "Content Creator Awards" },
         { id: "esports", name: "Esports Awards" },
@@ -443,9 +435,7 @@ export default function Page() {
       const data = await apiFetch("/awards/activities/view/");
       const acts = data.activities || data || [];
       setRecentActivities(acts);
-    } catch (err) {
-      console.debug("No activities endpoint or failed to load activities.");
-    }
+    } catch (err) {}
   }, [apiFetch]);
 
   // Load all voting analytics data
@@ -554,7 +544,6 @@ export default function Page() {
 
       setTopNominees(topNomineesData);
     } catch (error) {
-      console.error("Error loading voting analytics:", error);
       toast.error("Failed to load voting analytics");
     } finally {
       setLoading(false);
@@ -572,7 +561,6 @@ export default function Page() {
         loadVotingAnalytics(),
       ]);
     } catch (err) {
-      console.error("fetchInitialData error:", err);
       toast.error("Failed to load initial data");
     } finally {
       setFetchingData(false);
@@ -692,7 +680,6 @@ export default function Page() {
       setShowNewCategoryForm(false);
       await fetchCategories();
     } catch (err) {
-      console.error("handleAddNewCategory error:", err);
       toast.error((err as Error).message || "Failed to create category");
     } finally {
       setLoadingCategory(false);
@@ -719,7 +706,6 @@ export default function Page() {
       await fetchCategories();
       await fetchNominees();
     } catch (err) {
-      console.error("handleDeleteCategory error:", err);
       toast.error((err as Error).message || "Failed to delete category");
     } finally {
       setDeletingId(null);
@@ -747,7 +733,6 @@ export default function Page() {
       setShowNewNomineeForm(false);
       await fetchNominees();
     } catch (err) {
-      console.error("handleAddNewNominee error:", err);
       toast.error((err as Error).message || "Failed to create nominee");
     } finally {
       setLoadingNominee(false);
@@ -770,7 +755,6 @@ export default function Page() {
       toast.success("Nominee deleted successfully!");
       await fetchNominees();
     } catch (err) {
-      console.error("handleDeleteNominee error:", err);
       toast.error((err as Error).message || "Failed to delete nominee");
     } finally {
       setDeletingId(null);
@@ -797,7 +781,6 @@ export default function Page() {
         totalAssignments: prev.totalAssignments + 1,
       }));
     } catch (err) {
-      console.error("handleAssignNominee error:", err);
       toast.error((err as Error).message || "Failed to assign nominee");
     } finally {
       setLoadingAssign(false);
