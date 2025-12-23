@@ -106,8 +106,6 @@ export const AdjustScoreModal = ({
     }
   };
 
-  console.log(rows);
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>

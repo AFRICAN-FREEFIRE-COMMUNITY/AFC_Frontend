@@ -553,6 +553,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   >({});
   const [eventDetails, setEventDetails] = useState<EventDetails>();
 
+  const [pendingSeeding, startPendingTransition] = useTransition();
+
   const [stageModalData, setStageModalData] = useState<{
     stage_id?: number; // ✅ CORRECT TYPE
     stage_name: string;
@@ -838,10 +840,30 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     }));
   };
 
-  const handleConfirmSeed = (groupId: number) => {
-    console.log("Seeding teams for group:", groupId);
-    setIsSeedModalOpen(false);
-    toast.success("Teams seeded successfully!");
+  const handleConfirmSeed = async (groupId: number) => {
+    startPendingTransition(async () => {
+      try {
+        console.log("Seeding teams for group:", groupId);
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/advance-group-competitors-to-next-stage/`,
+          { event_id: eventDetails?.event_id, group_id: groupId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        toast.success(res.data.message || "Seeding successful");
+
+        console.log(res.data);
+        setIsSeedModalOpen(false);
+      } catch (error: any) {
+        console.log(error);
+        toast.error(error.response.data.message || "Oops! An error occurred. ");
+      }
+      // toast.success("Teams seeded successfully!");
+    });
   };
 
   const updateCompetitorStatus = (playerId: number, newStatus: string) => {
@@ -1367,36 +1389,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setIsRemoveConfirmOpen(true);
   };
 
-  //   if (stageToRemove === null) return;
-
-  //   const currentStages = form.getValues("stages") || [];
-  //   const currentCount = form.getValues("number_of_stages") || 0;
-
-  //   const updatedStages = currentStages.filter(
-  //     (_, idx) => idx !== stageToRemove
-  //   );
-  //   const updatedNames = stageNames.filter((_, idx) => idx !== stageToRemove);
-
-  //   console.log(currentStages);
-
-  //   // form.setValue("stages", updatedStages, {
-  //   //   shouldDirty: true,
-  //   //   shouldValidate: true,
-  //   // });
-
-  //   // form.setValue("number_of_stages", currentCount - 1);
-  //   // setStageNames(updatedNames);
-
-  //   // toast.success(
-  //   //   `Stage "${
-  //   //     currentStages[stageToRemove]?.stage_name || `Stage ${stageToRemove + 1}`
-  //   //   }" removed successfully`
-  //   // );
-
-  //   // setIsRemoveConfirmOpen(false);
-  //   // setStageToRemove(null);
-  // };
-
   const [loadingRemove, setLoadingRemove] = useState(false);
 
   const confirmRemoveStage = async () => {
@@ -1516,15 +1508,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   const eventType = form.watch("event_type") === "external";
 
-  console.log(eventDetails);
-
   const onSubmit = async (data: EventFormType) => {
     if (!eventDetails?.event_id) {
       toast.error("Event ID is missing");
       return;
     }
-
-    console.log(data);
 
     // Comprehensive validation
     const currentStages = form.getValues("stages");
@@ -1780,9 +1768,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       />
       <SeedStageModal
         isOpen={isSeedModalOpen}
+        pendingSeeding={pendingSeeding}
         onOpenChange={setIsSeedModalOpen}
         activeGroup={selectedGroupForSeed}
-        onConfirm={handleConfirmSeed}
+        onConfirm={() => handleConfirmSeed(selectedGroupForSeed?.group_id)}
       />
 
       <PageHeader back title={eventTitle} />
@@ -2492,6 +2481,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                   <CardTitle>Players</CardTitle>
                                 </CardHeader>
                                 <CardContent className="pt-1 max-h-40 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-1 mt-1.5">
+                                  {group?.competitors_in_group?.length ===
+                                    0 && (
+                                    <p className="italic text-sm text-muted-foreground">
+                                      No players yet
+                                    </p>
+                                  )}
                                   {group?.competitors_in_group?.map(
                                     (competitor, index) => (
                                       <Card
@@ -2526,12 +2521,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                 size="md"
                                 type="button"
                                 className="flex-1"
+                                disabled={pendingSeeding}
                                 onClick={() => {
                                   setSelectedGroupForSeed(group);
                                   setIsSeedModalOpen(true);
                                 }}
                               >
-                                Seed to Next Stage
+                                {pendingSeeding ? (
+                                  <Loader text="Seeding..." />
+                                ) : (
+                                  "Seed to Next Stage"
+                                )}
                               </Button>
                             </div>
                           </CardContent>

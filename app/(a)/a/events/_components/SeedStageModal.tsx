@@ -8,12 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Loader } from "@/components/Loader";
 
 interface SeedStageModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   activeGroup: any;
   onConfirm: (groupId: number) => void;
+  pendingSeeding: boolean;
 }
 
 export const SeedStageModal = ({
@@ -21,6 +23,7 @@ export const SeedStageModal = ({
   onOpenChange,
   activeGroup,
   onConfirm,
+  pendingSeeding,
 }: SeedStageModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -29,7 +32,7 @@ export const SeedStageModal = ({
           <DialogTitle>Seed Teams to Next Stage</DialogTitle>
           <DialogDescription>
             This will seed all qualified teams from{" "}
-            <span className="font-medium text-white">
+            <span className="font-medium">
               {activeGroup?.group_name || "this group"}
             </span>{" "}
             to the next stage.
@@ -46,8 +49,15 @@ export const SeedStageModal = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={() => onConfirm(activeGroup?.id)}>
-            Confirm & Send Notifications
+          <Button
+            disabled={pendingSeeding}
+            onClick={() => onConfirm(activeGroup?.id)}
+          >
+            {pendingSeeding ? (
+              <Loader text="Seeding..." />
+            ) : (
+              "Confirm & Send Notifications"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -54,8 +54,6 @@ export default function IndividualLeaderboardPage({
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [selectedMatchId, setSelectedMatchId] = useState<string>("overall");
 
-  console.log(eventData);
-
   // Modal States
   const [openUploadModal, setOpenUploadModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
