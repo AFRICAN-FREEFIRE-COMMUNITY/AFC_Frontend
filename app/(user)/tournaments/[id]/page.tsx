@@ -49,8 +49,6 @@ import Image from "next/image";
 import { IconUsers } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 
-// --- Types for API Response ---
-
 type ModalStep =
   | "CLOSED"
   | "INFO"
@@ -109,24 +107,6 @@ interface EventDetails {
 interface ApiResponse {
   event_details: EventDetails;
 }
-
-// --- Mock Data for Stage Results Table (to match image) ---
-const MOCK_RESULTS_DATA = [
-  {
-    rank: 1,
-    team: "Team 1",
-    kill_points: 50,
-    placement_points: 50,
-    total_points: 100,
-  },
-  {
-    rank: 2,
-    team: "Team 2",
-    kill_points: 45,
-    placement_points: 45,
-    total_points: 90,
-  },
-];
 
 const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
   const [isDatesVisible, setIsDatesVisible] = useState(true);
@@ -194,7 +174,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
   const closeAll = () => setModalStep("CLOSED");
 
-  // Renders the appropriate dialog based on the current modalStep
   const renderDialog = () => {
     switch (modalStep) {
       case "INFO":
@@ -270,7 +249,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 </CardHeader>
               </Card>
               <Card
-                // Team registration is disabled for this flow
                 className={`cursor-pointer transition ${
                   isTeamDisabled
                     ? "bg-white opacity-50"
@@ -427,7 +405,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
             </DialogHeader>
             <div className="text-center p-4 bg-primary/10 rounded-lg space-y-4">
               {isDiscordConnected ? (
-                // Successfully connected, just need to proceed
                 <div className="space-y-4">
                   <CheckCircle className="w-8 h-8 text-primary mx-auto" />
                   <p className="font-semibold text-primary">
@@ -438,7 +415,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   </p>
                 </div>
               ) : (
-                // Needs to connect
                 <div className="space-y-4">
                   <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto" />
                   <p className="text-sm text-gray-300">
@@ -565,7 +541,6 @@ type Params = Promise<{
   id: string;
 }>;
 
-// --- Main Component ---
 const EventDetailPage = ({ params }: { params: Params }) => {
   const { id } = use(params);
   const { token } = useAuth();
@@ -585,46 +560,37 @@ const EventDetailPage = ({ params }: { params: Params }) => {
 
   const [pendingJoined, startJoinedTransition] = useTransition();
 
+  console.log(eventDetails);
+
   useEffect(() => {
     const discordStatus = searchParams.get("discord");
     const intendedStep = searchParams.get("step");
 
-    // Only run if we detect a Discord status AND it came from our registration flow
     if (discordStatus) {
-      // 1. Force the modal open to the starting point of the check
       setModalStep("DISCORD_LINK");
-
-      // Use a small delay to ensure the modal container has rendered
-      // before attempting the final step transition.
       setTimeout(() => {
         if (discordStatus === "connected") {
-          // Success detected: Set connected state, show success, and advance
           setDiscordConnected(true);
-          setModalStep("DISCORD_JOIN"); // <-- ADVANCE TO NEXT STEP
+          setModalStep("DISCORD_JOIN");
           toast.success(
             "Discord account linked successfully! Please join the server to complete registration."
           );
         } else {
-          // Error detected: Show error toast and stay on DISCORD_LINK
           setDiscordConnected(false);
           const errorMsg =
             searchParams.get("message") ||
             "Discord connection failed. Please try again.";
           toast.error(errorMsg);
-          // Modal stays on DISCORD_LINK for retry
         }
 
-        // 2. Clean up the URL (This is crucial for preventing repeated execution on refresh)
-        // We use replace to update the URL without adding a new history entry.
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.delete("discord");
         newSearchParams.delete("step");
-        // router.replace is preferred for cleaning params
         router.replace(
           `${window.location.pathname}?${newSearchParams.toString()}`,
           { scroll: false }
         );
-      }, 50); // Small delay for state consistency
+      }, 50);
     }
   }, [searchParams, router]);
 
@@ -677,23 +643,16 @@ const EventDetailPage = ({ params }: { params: Params }) => {
 
     // Only proceed if we have a connection status AND it came from the registration flow
     if (discordStatus && intendedStep === "discord") {
-      // We must make sure the modal is open before proceeding.
-      // Set the base step (DISCORD_LINK) so the modal context can render,
-      // then immediately check the status and advance/error.
       setModalStep("DISCORD_LINK");
 
-      // Timeout is used to ensure the modal state has rendered before the final move/toast
-      // This is often needed when changing multiple states involving complex UI transitions.
       setTimeout(() => {
         if (discordStatus === "connected") {
-          // 1. Success detected: Set the connected state, show success, and advance
           setDiscordConnected(true);
           setModalStep("DISCORD_JOIN"); // <-- ADVANCE TO NEXT STEP
           toast.success(
             "Discord account linked successfully! Please join the server to complete registration."
           );
         } else {
-          // 2. Error detected: Show error toast and stay on DISCORD_LINK
           setDiscordConnected(false);
           const errorMsg =
             searchParams.get("message") ||
@@ -702,7 +661,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           setModalStep("DISCORD_LINK"); // <-- STAY ON CURRENT STEP
         }
 
-        // 3. Clean up the URL (important to use `replace` to avoid breaking the Back button)
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.delete("discord");
         newSearchParams.delete("step");
@@ -711,19 +669,15 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           `${window.location.pathname}?${newSearchParams.toString()}`,
           { scroll: false }
         );
-      }, 50); // Small delay for state consistency
+      }, 50);
     }
   }, [searchParams, router]);
-  // --- END NEW LOGIC ---
 
-  // Handle Loading and Error states
   if (isLoading) return <FullLoader />;
 
   if (error || !eventDetails) {
     return notFound();
   }
-
-  // --- Event Handlers ---
 
   const handleRegisterClick = () => {
     setModalStep("TYPE");
@@ -736,7 +690,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
 
   const handleRulesContinue = () => {
     if (rulesAccepted) {
-      // If Discord is already connected, skip DISCORD_LINK step
       if (discordConnected) {
         setModalStep("DISCORD_JOIN");
       } else {
@@ -746,19 +699,13 @@ const EventDetailPage = ({ params }: { params: Params }) => {
   };
 
   const handleDiscordConnect = () => {
-    // The redirect URL needs to include the parameters the server will echo back
     const redirectUrl = encodeURIComponent(
       `${window.location.origin}${window.location.pathname}?id=${id}&discord=connected&step=discord`
     );
 
-    // Construct the URL for the server to initiate OAuth
     const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${id}&redirect_url=${redirectUrl}`;
 
-    // Open Discord auth URL in a new tab/window
     window.open(url, "_blank", "noopener,noreferrer");
-
-    // CRITICAL CHANGE: We do NOT set state or move the modal here.
-    // The modal transition is handled by the useEffect above once the URL changes (due to server redirect).
   };
 
   const handleJoinedServer = async () => {

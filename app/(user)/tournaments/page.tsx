@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Search } from "lucide-react";
+import Image from "next/image";
 
 // --- Types & Constants ---
 // Define the structure of an event

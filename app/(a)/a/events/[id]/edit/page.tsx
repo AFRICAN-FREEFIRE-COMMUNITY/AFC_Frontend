@@ -43,7 +43,9 @@ import axios from "axios";
 import {
   IconFile,
   IconFileText,
+  IconMap,
   IconPhoto,
+  IconPlayerPlay,
   IconTrophy,
   IconUpload,
   IconX,
@@ -65,6 +67,8 @@ import { formatDate } from "@/lib/utils";
 import { DisqualifyModal } from "../../_components/DisqualifyModal";
 import { ReactivateModal } from "../../_components/ReactivateModal";
 import { ConfirmStartTournamentModal } from "../../_components/ConfirmStartTournamentModal";
+import { DeleteMatchModal } from "../../_components/DeleteMatchModal";
+import { SeedToGroupModal } from "../../_components/SeedToGroupModal";
 
 // ============================================================================
 // CONSTANTS & TYPES
@@ -523,10 +527,6 @@ const showValidationErrors = (
   );
 };
 
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
 export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const resolvedParams = use(params);
   const { id } = resolvedParams;
@@ -677,6 +677,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   useEffect(() => {
     if (!id || authLoading || !token) return;
+    fetchEventDetails();
+  }, [id, token, authLoading, router]);
+
+  const fetchEventDetails = () => {
+    if (!id || authLoading || !token) return;
 
     startTransition(async () => {
       try {
@@ -724,10 +729,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         router.push("/login");
       }
     });
-  }, [id, token, authLoading, router]);
+  };
 
   useEffect(() => {
     if (eventDetails) {
+      const overview = eventDetails.overview;
       // Map backend IDs to the field names backend expects
       const mappedStages = eventDetails.stages.map((stage) => ({
         ...stage,
@@ -735,6 +741,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         groups: stage.groups.map((group) => ({
           ...group,
           group_id: group.group_id, // Map id to group_id
+          matches: group.matches || [],
         })),
       }));
       form.reset({
@@ -828,10 +835,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       form.setValue("save_to_drafts", false, { shouldDirty: false });
     }
   }, [saveToDraftsWatch, publishToTournamentsWatch, publishToNewsWatch, form]);
-
-  // ============================================================================
-  // HANDLERS
-  // ============================================================================
 
   const toggleVisibility = (groupIndex: number) => {
     setPasswordVisibility((prev) => ({
@@ -1026,7 +1029,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
       stage_format: stageModalData.stage_format,
-      groups: tempGroups, // Already has group_id preserved
+      groups: tempGroups.map((tg, i) => ({
+        ...tg,
+        matches: existingStage?.groups[i]?.matches || [], // ✅ This keeps the matches alive
+      })),
       stage_discord_role_id: stageModalData.stage_discord_role_id,
       teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
       total_teams_in_stage: stageModalData.total_teams_in_stage,
@@ -1112,185 +1118,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setIsStageModalOpen(true);
   };
 
-  // const openAddStageModalLogic = (stageIndex: number) => {
-  //   setEditingStageIndex(stageIndex);
-  //   setStageModalStep(1);
-  //   const existingStage = stages[stageIndex];
-
-  //   if (existingStage) {
-  //     setStageModalData({
-  //       stage_name: existingStage.stage_name,
-  //       start_date: existingStage.start_date,
-  //       end_date: existingStage.end_date,
-  //       stage_format: existingStage.stage_format,
-  //       number_of_groups: existingStage.number_of_groups,
-  //       stage_discord_role_id: existingStage.stage_discord_role_id || "",
-  //       teams_qualifying_from_stage:
-  //         existingStage.teams_qualifying_from_stage || 0,
-  //       total_teams_in_stage: existingStage.total_teams_in_stage || 0,
-  //     });
-
-  //     // CRITICAL FIX: Preserve group_id when loading groups
-  //     setTempGroups(
-  //       existingStage.groups.map((g) => ({
-  //         ...g,
-  //         // Ensure group_id is preserved
-  //         group_id: g.group_id,
-  //       }))
-  //     );
-  //   } else {
-  //     setStageModalData({
-  //       stage_name: stageNames[stageIndex] || `Stage ${stageIndex + 1}`,
-  //       start_date: "",
-  //       end_date: "",
-  //       stage_discord_role_id: "",
-  //       stage_format: "",
-  //       number_of_groups: 2,
-  //       teams_qualifying_from_stage: 0,
-  //       total_teams_in_stage: 0,
-  //     });
-  //     setTempGroups(
-  //       Array.from({ length: 2 }, (_, i) => ({
-  //         group_name: `Group ${i + 1}`,
-  //         playing_date: "",
-  //         playing_time: "00:00",
-  //         teams_qualifying: 1,
-  //         match_count: 1,
-  //         group_discord_role_id: "",
-  //         match_maps: [],
-  //         room_id: "",
-  //         room_name: "",
-  //         room_password: "",
-  //         // No group_id for new groups - backend will create them
-  //       }))
-  //     );
-  //   }
-
-  //   setPasswordVisibility({});
-  //   setIsStageModalOpen(true);
-  // };
-
-  // const handleSaveStageLogic = async () => {
-  //   // Validate stage data
-  //   if (
-  //     !stageModalData.stage_name ||
-  //     !stageModalData.stage_format ||
-  //     !stageModalData.start_date ||
-  //     !stageModalData.end_date ||
-  //     !stageModalData.stage_discord_role_id ||
-  //     stageModalData.teams_qualifying_from_stage === undefined
-  //   ) {
-  //     toast.error("Please fill all required stage fields (Step 1)");
-  //     return;
-  //   }
-
-  //   const invalidGroup = tempGroups.find(
-  //     (g) =>
-  //       !g.playing_date ||
-  //       !g.playing_time ||
-  //       !g.group_discord_role_id ||
-  //       !g.group_name.trim() ||
-  //       g.teams_qualifying < 1 ||
-  //       g.match_count < 1 ||
-  //       !g.match_maps ||
-  //       g.match_maps.length === 0
-  //   );
-
-  //   if (invalidGroup) {
-  //     toast.error(
-  //       "Please complete all group details correctly, including selecting at least one map per group (Step 2)"
-  //     );
-  //     return;
-  //   }
-
-  //   if (stageModalData.number_of_groups < 1) {
-  //     toast.error("A stage must have at least one group.");
-  //     return;
-  //   }
-
-  //   const newStage: StageType = {
-  //     stage_name: stageModalData.stage_name,
-  //     start_date: stageModalData.start_date,
-  //     end_date: stageModalData.end_date,
-  //     number_of_groups: stageModalData.number_of_groups,
-  //     stage_format: stageModalData.stage_format,
-  //     groups: tempGroups,
-  //     stage_discord_role_id: stageModalData.stage_discord_role_id,
-  //     teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
-  //     total_teams_in_stage: stageModalData.total_teams_in_stage,
-  //   };
-
-  //   const currentStages = [...form.getValues("stages")];
-  //   currentStages[editingStageIndex!] = newStage;
-
-  //   form.setValue("stages", currentStages, { shouldDirty: true });
-
-  //   const currentNames = [...stageNames];
-  //   if (currentNames[editingStageIndex!] !== newStage.stage_name) {
-  //     currentNames[editingStageIndex!] = newStage.stage_name;
-  //     setStageNames(currentNames);
-  //   }
-
-  //   await form.trigger();
-
-  //   setIsStageModalOpen(false);
-  //   setStageModalStep(1);
-  //   toast.success(
-  //     "Stage configuration updated. Click 'Save Changes' to finalize."
-  //   );
-  // };
-
-  // const openAddStageModalLogic = (stageIndex: number) => {
-  //   setEditingStageIndex(stageIndex);
-  //   setStageModalStep(1);
-  //   const existingStage = stages[stageIndex];
-
-  //   if (existingStage) {
-  //     setStageModalData({
-  //       stage_id: existingStage.stage_id,
-  //       stage_name: existingStage.stage_name,
-  //       start_date: existingStage.start_date,
-  //       end_date: existingStage.end_date,
-  //       stage_format: existingStage.stage_format,
-  //       number_of_groups: existingStage.number_of_groups,
-  //       stage_discord_role_id: existingStage.stage_discord_role_id || "",
-  //       teams_qualifying_from_stage:
-  //         existingStage.teams_qualifying_from_stage || 0,
-  //       total_teams_in_stage: existingStage.total_teams_in_stage || 0,
-  //     });
-  //     setTempGroups(existingStage.groups);
-  //   } else {
-  //     setStageModalData({
-  //       stage_id: "",
-  //       stage_name: stageNames[stageIndex] || `Stage ${stageIndex + 1}`,
-  //       start_date: "",
-  //       end_date: "",
-  //       stage_discord_role_id: "",
-  //       stage_format: "",
-  //       number_of_groups: 2,
-  //       teams_qualifying_from_stage: 0,
-  //       total_teams_in_stage: 0,
-  //     });
-  //     setTempGroups(
-  //       Array.from({ length: 2 }, (_, i) => ({
-  //         group_name: `Group ${i + 1}`,
-  //         playing_date: "",
-  //         playing_time: "00:00",
-  //         teams_qualifying: 1,
-  //         match_count: 1,
-  //         group_discord_role_id: "",
-  //         match_maps: [],
-  //         room_id: "",
-  //         room_name: "",
-  //         room_password: "",
-  //       }))
-  //     );
-  //   }
-
-  //   setPasswordVisibility({});
-  //   setIsStageModalOpen(true);
-  // };
-
   const addNewStage = () => {
     const currentCount = form.getValues("number_of_stages") || 0;
     const newCount = currentCount + 1;
@@ -1332,46 +1159,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     openAddStageModalLogic(currentCount);
   };
-
-  // const addNewStage = () => {
-  //   const currentCount = form.getValues("number_of_stages") || 0;
-  //   const newCount = currentCount + 1;
-
-  //   const currentStages = form.getValues("stages") || [];
-
-  //   const newStage: StageType = {
-  //     stage_name: `Stage ${newCount}`,
-  //     stage_discord_role_id: "",
-  //     start_date: "",
-  //     end_date: "",
-  //     number_of_groups: 2,
-  //     stage_format: "",
-  //     groups: Array.from({ length: 2 }, (_, i) => ({
-  //       group_name: `Group ${i + 1}`,
-  //       group_discord_role_id: "",
-  //       playing_date: "",
-  //       playing_time: "00:00",
-  //       teams_qualifying: 1,
-  //       match_count: 1,
-  //       match_maps: [],
-  //       room_id: "",
-  //       room_name: "",
-  //       room_password: "",
-  //     })),
-  //     teams_qualifying_from_stage: 0,
-  //     total_teams_in_stage: 0,
-  //   };
-
-  //   const updatedStages = [...currentStages, newStage];
-
-  //   form.setValue("stages", updatedStages, { shouldValidate: false });
-  //   form.setValue("number_of_stages", newCount);
-
-  //   const newNames = [...stageNames, `Stage ${newCount}`];
-  //   setStageNames(newNames);
-
-  //   openAddStageModalLogic(currentCount);
-  // };
 
   const handleRemoveStage = (indexToRemove: number) => {
     const currentStages = form.getValues("stages") || [];
@@ -1549,75 +1336,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       return;
     }
 
-    // // Run form validation
-    // const isValid = await form.trigger();
-    // if (!isValid) {
-    //   const errors = form.formState.errors;
-    //   const errorMessages: string[] = [];
-
-    //   if (errors.event_name) errorMessages.push("Event name is required");
-    //   if (errors.competition_type)
-    //     errorMessages.push("Competition type is required");
-    //   if (errors.participant_type)
-    //     errorMessages.push("Participant type is required");
-    //   if (errors.event_type) errorMessages.push("Event type is required");
-    //   if (errors.max_teams_or_players)
-    //     errorMessages.push("Max teams/players is required");
-    //   if (errors.event_mode) errorMessages.push("Event mode is required");
-    //   if (errors.start_date) errorMessages.push("Event start date is required");
-    //   if (errors.end_date) errorMessages.push("Event end date is required");
-    //   if (errors.registration_open_date)
-    //     errorMessages.push("Registration open date is required");
-    //   if (errors.registration_end_date)
-    //     errorMessages.push("Registration end date is required");
-    //   if (errors.prizepool) errorMessages.push("Prize pool is required");
-    //   if (errors.prize_distribution)
-    //     errorMessages.push("Prize distribution is incomplete");
-
-    //   if (errorMessages.length > 0) {
-    //     const displayErrors = errorMessages.slice(0, 4);
-    //     const remaining = errorMessages.length - 4;
-
-    //     toast.error(
-    //       <div className="space-y-2">
-    //         <p className="font-semibold">Please fix the following errors:</p>
-    //         <ul className="list-disc list-inside text-sm space-y-1">
-    //           {displayErrors.map((msg, idx) => (
-    //             <li key={idx}>{msg}</li>
-    //           ))}
-    //         </ul>
-    //         {remaining > 0 && (
-    //           <p className="text-xs text-muted-foreground mt-2">
-    //             ...and {remaining} more error(s)
-    //           </p>
-    //         )}
-    //       </div>,
-    //       { duration: 6000 }
-    //     );
-    //   }
-
-    //   // Navigate to first tab with errors
-    //   if (
-    //     errors.event_name ||
-    //     errors.competition_type ||
-    //     errors.participant_type ||
-    //     errors.event_type ||
-    //     errors.max_teams_or_players ||
-    //     errors.event_mode ||
-    //     errors.start_date ||
-    //     errors.end_date ||
-    //     errors.registration_open_date ||
-    //     errors.registration_end_date
-    //   ) {
-    //     setCurrentTab("basic_info");
-    //   } else if (errors.prizepool || errors.prize_distribution) {
-    //     setCurrentTab("prize_rules");
-    //   }
-
-    //   return;
-    // }
-
-    // Submit
     startTransition(async () => {
       try {
         const formData = new FormData();
@@ -1751,11 +1469,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   return (
     <div>
-      <GroupResultModal
-        isOpen={isResultsModalOpen}
-        onOpenChange={setIsResultsModalOpen}
-        activeGroup={selectedGroupForResult}
-      />
       <SeedStageModal
         isOpen={isSeedModalOpen}
         pendingSeeding={pendingSeeding}
@@ -1824,7 +1537,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
             {/* BASIC INFO TAB */}
             <TabsContent value="basic_info">
-              <Card className="bg-primary/10">
+              <Card className="">
                 <CardHeader>
                   <CardTitle>Event Details</CardTitle>
                 </CardHeader>
@@ -2082,7 +1795,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                 onClick={() => fileInputRef.current?.click()}
                               >
                                 <div className="flex flex-col items-center gap-3">
-                                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                                  <div className="w-16 h-16 rounded-full flex items-center justify-center">
                                     <IconPhoto
                                       size={32}
                                       className="text-primary dark:text-white"
@@ -2386,7 +2099,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 }
 
                 return (
-                  <Card key={sIdx} className="bg-primary/10">
+                  <Card key={sIdx} className=" ">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <div className="space-y-1 w-full">
                         <CardTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-2">
@@ -2407,14 +2120,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           </div>
 
                           <div className="flex items-center gap-2 w-full md:w-auto">
+                            <SeedToGroupModal
+                              onSuccess={() => fetchEventDetails()}
+                              stageId={stage?.stage_id}
+                            />
                             <Button
                               type="button"
                               variant="outline"
-                              className="flex-1 md:flex-none"
+                              size={"icon"}
                               onClick={() => openAddStageModalLogic(sIdx)}
                             >
-                              <Edit className="w-3 h-3 mr-1" />
-                              Edit Details
+                              <Edit />
                             </Button>
 
                             <Button
@@ -2438,7 +2154,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
                     <CardContent className="space-y-2 max-h-96 overflow-auto">
                       {stage.groups.map((group, gIdx) => (
-                        <Card key={gIdx} className="bg-primary/10 gap-0">
+                        <Card key={gIdx} className="gap-0">
                           <CardHeader>
                             <CardTitle>{group?.group_name}</CardTitle>
                           </CardHeader>
@@ -2466,7 +2182,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               </p>
                             </div>
                             <div className="w-full">
-                              <Card className="bg-primary/10 gap-0">
+                              <Card className="  gap-0">
                                 <CardHeader>
                                   <CardTitle>Players</CardTitle>
                                 </CardHeader>
@@ -2480,7 +2196,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                   {group?.competitors_in_group?.map(
                                     (competitor, index) => (
                                       <Card
-                                        className="w-full py-4 px-0 bg-primary/10"
+                                        className="w-full py-4 px-0  "
                                         key={index}
                                       >
                                         <CardContent>
@@ -2494,19 +2210,106 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                 </CardContent>
                               </Card>
                             </div>
+                            <div className="w-full">
+                              <Card className="gap-0">
+                                <CardHeader>
+                                  <CardTitle className="flex items-center justify-start gap-2">
+                                    <IconMap
+                                      size={16}
+                                      className="text-primary"
+                                    />
+                                    Match Schedule & Status
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow className="border-zinc-800">
+                                        <TableHead className="h-8 text-[10px] uppercase font-bold">
+                                          No.
+                                        </TableHead>
+                                        <TableHead className="h-8 text-[10px] uppercase font-bold">
+                                          Map
+                                        </TableHead>
+                                        <TableHead className="h-8 text-[10px] uppercase font-bold">
+                                          Status
+                                        </TableHead>
+                                        <TableHead className="h-8 text-[10px] uppercase font-bold text-right">
+                                          Actions
+                                        </TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {group?.matches?.length > 0 ? (
+                                        group?.matches?.map(
+                                          (match: any, mIdx: number) => (
+                                            <TableRow
+                                              key={match.match_id || mIdx}
+                                              className="border-zinc-900"
+                                            >
+                                              <TableCell className="py-2 text-xs font-mono">
+                                                #{match.match_number}
+                                              </TableCell>
+                                              <TableCell className="py-2 text-xs font-medium">
+                                                {match.match_map}
+                                              </TableCell>
+                                              <TableCell className="py-2">
+                                                <Badge
+                                                  variant={
+                                                    match.result_inputted
+                                                      ? "default"
+                                                      : "outline"
+                                                  }
+                                                  className={
+                                                    match.result_inputted
+                                                      ? "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/10"
+                                                      : "text-orange-500 border-orange-500/20"
+                                                  }
+                                                >
+                                                  {match.result_inputted
+                                                    ? "Resulted"
+                                                    : "Pending"}
+                                                </Badge>
+                                              </TableCell>
+                                              <TableCell className="py-2 text-right space-x-1">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="icon"
+                                                  className="h-7 w-7 text-zinc-400 hover:text-white"
+                                                >
+                                                  <Edit className="size-3" />
+                                                </Button>
+                                                <DeleteMatchModal
+                                                  matchId={match.match_id}
+                                                  onSuccess={() =>
+                                                    fetchEventDetails()
+                                                  }
+                                                />
+                                              </TableCell>
+                                            </TableRow>
+                                          )
+                                        )
+                                      ) : (
+                                        <TableRow>
+                                          <TableCell
+                                            colSpan={4}
+                                            className="text-center py-4 text-xs text-muted-foreground italic"
+                                          >
+                                            No matches generated for this group
+                                            yet.
+                                          </TableCell>
+                                        </TableRow>
+                                      )}
+                                    </TableBody>
+                                  </Table>
+                                </CardContent>
+                              </Card>
+                            </div>
                             <div className="flex w-full lg:w-auto items-start gap-2">
-                              <Button
-                                variant="secondary"
-                                type="button"
-                                size="md"
-                                className="flex-1"
-                                onClick={() => {
-                                  setSelectedGroupForResult(group);
-                                  setIsResultsModalOpen(true);
-                                }}
-                              >
-                                View Results
-                              </Button>
+                              <GroupResultModal
+                                activeGroup={group}
+                                stageName={stage.stage_name}
+                              />
                               <Button
                                 size="md"
                                 type="button"
@@ -2735,7 +2538,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                     }
                                   >
                                     <div className="flex flex-col items-center gap-3">
-                                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                                      <div className="w-16 h-16   rounded-full flex items-center justify-center">
                                         <IconFileText
                                           size={32}
                                           className="text-primary dark:text-white"
@@ -3045,7 +2848,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       .map((group, i) => (
                         <div
                           key={i}
-                          className="px-3 py-1 bg-primary/10 border border-primary rounded-md text-xs"
+                          className="px-3 py-1   border border-primary rounded-md text-xs"
                         >
                           {group.group_name}
                         </div>
@@ -3057,7 +2860,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
             {stageModalStep === 2 && (
               <div className="space-y-2">
-                <div className="bg-primary/10 border border-primary/50 rounded-lg p-4">
+                <div className="  border border-primary/50 rounded-lg p-4">
                   <p className="text-sm">
                     <span className="font-semibold">Stage:</span>{" "}
                     {stageModalData.stage_name}
@@ -3201,7 +3004,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               onClick={() => toggleMapSelection(index, map)}
                               className={`cursor-pointer ${
                                 isSelected
-                                  ? "border-primary bg-primary/10 text-primary"
+                                  ? "border-primary   text-primary"
                                   : "border-gray-300 bg-muted hover:border-primary/50"
                               }`}
                             >

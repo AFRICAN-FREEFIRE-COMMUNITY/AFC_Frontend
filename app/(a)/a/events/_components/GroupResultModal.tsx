@@ -3,10 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -22,60 +24,40 @@ import React from "react";
 
 // Added Props interface for type safety
 interface GroupResultModalProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
   activeGroup: any;
+  stageName: string;
 }
 
 export const GroupResultModal = ({
-  isOpen,
-  onOpenChange,
   activeGroup,
+  stageName,
 }: GroupResultModalProps) => {
-  const mockResults = [
-    {
-      team: "Phoenix Rising",
-      kills: 45,
-      placement: 1,
-      points: 120,
-      status: "qualified",
-    },
-    {
-      team: "Storm Breakers",
-      kills: 38,
-      placement: 2,
-      points: 105,
-      status: "qualified",
-    },
-    {
-      team: "Shadow Hunters",
-      kills: 22,
-      placement: 7,
-      points: 55,
-      status: "eliminated",
-    },
-  ];
-
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="secondary" type="button" size="md" className="flex-1">
+          View Results
+        </Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {activeGroup?.group_name || "Group"} Results - Qualifiers
+            {activeGroup?.group_name || "Group"} Results - {stageName}
           </DialogTitle>
         </DialogHeader>
 
         <div className="bg-primary/10 p-4 rounded-lg mb-1 text-xs space-y-1.5">
           <p>
             <span className="font-medium">Date:</span>{" "}
-            {formatDate(new Date("2024-02-01"))} at 14:00
+            {formatDate(activeGroup.playing_date)} at {activeGroup.playing_time}
+          </p>
+          <p className="flex items-center justify-start gap-1">
+            <span className="font-medium">Maps:</span>{" "}
+            {activeGroup.match_maps.join(", ")}
           </p>
           <p>
-            <span className="font-medium">Maps:</span> Bermuda, Kalahari,
-            Purgatory
-          </p>
-          <p>
-            <span className="font-medium text-white">Teams Qualify:</span> 6
+            <span className="font-medium text-white">Teams Qualify:</span>{" "}
+            {activeGroup.teams_qualifying}
           </p>
         </div>
 
@@ -94,9 +76,9 @@ export const GroupResultModal = ({
         </Table>
 
         <DialogFooter className="mt-4 gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
+          <DialogClose asChild>
+            <Button variant={"outline"}>Close</Button>
+          </DialogClose>
           <Button disabled>
             <Edit /> Edit Results
           </Button>
