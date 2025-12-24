@@ -43,12 +43,12 @@ export const Header = () => {
         </nav>
         <div className="flex items-center space-x-3">
           <ThemeToggle />
-          <Button asChild variant="ghost" size="md" className="hidden md:block">
+          <Button asChild variant="ghost" size="md" className="hidden md:flex">
             <Link href="/login">Sign In</Link>
           </Button>
           <Button
             asChild
-            className="hidden md:block"
+            className="hidden md:flex"
             size="md"
             variant={"gradient"}
           >

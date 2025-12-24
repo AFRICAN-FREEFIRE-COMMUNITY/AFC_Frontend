@@ -156,7 +156,12 @@ export const homeNavLinks = [
 export const homeNavLinksMobile = [
   { slug: "/home", label: "Home", icon: IconHome, onlyMobile: false },
   { slug: "/teams", label: "Teams", icon: IconUsers },
-  { slug: "/leaderboards", label: "Leaderboards", icon: IconTrophy },
+  {
+    slug: "/leaderboards",
+    label: "Leaderboards",
+    icon: IconTrophy,
+    beta: true,
+  },
   {
     slug: "/tournaments",
     label: "Tournaments & Scrims",
@@ -169,6 +174,7 @@ export const homeNavLinksMobile = [
     comingSoon: true,
   },
   { slug: "/news", label: "News & Updates", icon: IconArticle },
+  { slug: "/rules", label: "Rules", icon: IconArticle, newLink: true },
   {
     slug: "/shop",
     label: "Shop",

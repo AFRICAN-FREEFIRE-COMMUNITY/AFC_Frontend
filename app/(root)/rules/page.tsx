@@ -23,10 +23,10 @@ import {
   IconShieldCheck,
   IconMessageExclamation,
 } from "@tabler/icons-react";
-import { Header } from "@/app/_components/Header";
 import { Footer } from "@/app/_components/Footer";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Header } from "@/app/(user)/_components/Header";
 
 // 1. Define your categories and rules data
 const AFC_RULES = [
