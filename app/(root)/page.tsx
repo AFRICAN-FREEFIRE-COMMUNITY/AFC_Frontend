@@ -23,6 +23,7 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { Footer } from "../_components/Footer";
 import { Header } from "../(user)/_components/Header";
+// import { Header } from "../(user)/_components/Header";
 
 const page = () => {
   const [isVisible, setIsVisible] = useState(false);

@@ -1,11 +1,11 @@
 import React, { ReactNode } from "react";
 import { Metadata } from "next";
-import { Header } from "../_components/Header";
 import { Footer } from "../_components/Footer";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { AuthGuard } from "./_components/AuthGuard";
 import { siteConfig } from "@/lib/seo";
+import { Header } from "../(user)/_components/Header";
 
 export const metadata: Metadata = {
   title: {

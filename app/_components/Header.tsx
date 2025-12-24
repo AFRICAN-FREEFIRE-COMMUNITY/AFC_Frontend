@@ -43,16 +43,20 @@ export const Header = () => {
         </nav>
         <div className="flex items-center space-x-3">
           <ThemeToggle />
-          <Link href="/login">
-            <Button variant="ghost" size="md" className="hidden md:block">
-              Sign In
-            </Button>
-          </Link>
-          <Link href="/create-account">
-            <Button size="md" variant={"gradient"}>
-              Join Now
-            </Button>
-          </Link>
+          <Button asChild variant="ghost" size="md" className="hidden md:block">
+            <Link href="/login">Sign In</Link>
+          </Button>
+          <Button
+            asChild
+            className="hidden md:block"
+            size="md"
+            variant={"gradient"}
+          >
+            <Link href="/create-account">Join Now</Link>
+          </Button>
+          <Button asChild className="md:hidden" size="md" variant={"gradient"}>
+            <Link href="/login">Login</Link>
+          </Button>
         </div>
       </div>
     </header>

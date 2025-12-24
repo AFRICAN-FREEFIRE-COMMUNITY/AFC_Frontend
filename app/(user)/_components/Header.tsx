@@ -120,8 +120,21 @@ export const Header = () => {
                 >
                   <Link href="/login">Sign In</Link>
                 </Button>
-                <Button asChild size="md" variant={"gradient"}>
+                <Button
+                  className="hidden md:flex"
+                  asChild
+                  size="md"
+                  variant={"gradient"}
+                >
                   <Link href="/create-account">Join Now</Link>
+                </Button>
+                <Button
+                  asChild
+                  className="md:hidden"
+                  size="md"
+                  variant={"gradient"}
+                >
+                  <Link href="/login">Login</Link>
                 </Button>
               </>
             )}

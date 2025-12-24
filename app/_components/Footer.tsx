@@ -98,6 +98,14 @@ export const Footer = () => {
                   Teams
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/rules"
+                  className="hover:text-primary transition-colors"
+                >
+                  Rules
+                </Link>
+              </li>
               {/* <li>
                   <Link
                     href="/shop"
