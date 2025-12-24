@@ -22,74 +22,131 @@ import {
   IconGavel,
   IconShieldCheck,
   IconMessageExclamation,
+  IconTrophy,
+  IconDeviceMobile,
+  IconClipboardList,
+  IconBriefcase,
 } from "@tabler/icons-react";
 import { Footer } from "@/app/_components/Footer";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Header } from "@/app/(user)/_components/Header";
 
-// 1. Define your categories and rules data
-const AFC_RULES = [
+const AFC_RULES_DATA = [
   {
-    id: "general-conduct",
-    category: "General Conduct",
+    id: "general-eligibility",
+    category: "General Eligibility & Registration",
     icon: <IconShieldCheck className="text-green-500" />,
     rules: [
       {
-        title: "Fair Play Policy",
+        title: "Player Eligibility",
         content:
-          "All participants must adhere to the highest standards of sportsmanship. Exploiting glitches, using third-party software, or intentional teaming is strictly prohibited.",
+          "Players must operate an official FreeFire account (Level 20+, Platinum IV rank). Participants must be at least 16 years old or possess parental consent for LAN events. Regional eligibility is restricted to tournament-approved regions; Nigerian-only tournaments require Nigerian nationality, allowing only one player residing outside Nigeria per team.",
       },
       {
-        title: "Account Integrity",
+        title: "Team Registration & Roster",
         content:
-          "Players must use their registered accounts only. Account sharing during active tournament windows results in immediate disqualification.",
+          "Teams must register on the official platform with full roster details (starters and substitutes). Initial rosters must be finalized before the competition begins using provided official tools.",
       },
     ],
   },
   {
-    id: "gameplay-mechanics",
-    category: "Gameplay & Mechanics",
-    icon: <IconScale className="text-blue-500" />,
-    rules: [
-      {
-        title: "Point System",
-        content:
-          "Placement points and kill points are calculated based on the specific configuration set for each group. Ensure you review the scoring system before the match starts.",
-      },
-      {
-        title: "Disconnection Policy",
-        content:
-          "In the event of a player disconnection, the match will continue unless the disconnection occurs during the lobby phase for more than 30% of participants.",
-      },
-    ],
-  },
-  {
-    id: "disciplinary",
-    category: "Disciplinary Actions",
+    id: "conduct-standards",
+    category: "Code of Conduct & Professionalism",
     icon: <IconGavel className="text-red-500" />,
     rules: [
       {
-        title: "Strike System",
+        title: "Cheating and Exploits",
         content:
-          "AFC operates on a 3-strike system. Minor infractions result in a strike; 3 strikes lead to a seasonal ban.",
+          "Prohibited activities include stream sniping, using VPNs, forming alliances (teaming), and using unauthorized software like emulators or hacking tools. Violation leads to immediate disqualification.",
       },
       {
-        title: "Toxic Behavior",
+        title: "Scandal Management & Reputation",
         content:
-          "Verbal abuse, harassment, or hate speech toward other competitors or staff will result in an immediate permanent ban from all AFC events.",
+          "Players must maintain high conduct standards. Involvement in scandals harming tournament reputation may result in bans for the player and sanctions for the team. Spreading false rumors is strictly prohibited.",
+      },
+      {
+        title: "Substance Policy",
+        content:
+          "The use, possession, or distribution of controlled substances is strictly prohibited. Prescription drugs must only be used as directed.",
       },
     ],
   },
   {
-    id: "appeals",
-    category: "Appeals & Disputes",
-    icon: <IconMessageExclamation className="text-yellow-500" />,
+    id: "team-regulations",
+    category: "Team Ownership & Obligations",
+    icon: <IconBriefcase className="text-blue-500" />,
     rules: [
       {
-        title: "Reporting a Violation",
+        title: "Ownership & Slots",
         content:
-          "Disputes must be raised via the support ticket system within 30 minutes of the match completion with valid video evidence (POV recording).",
+          "Registered Owners retain sole rights to team slots and roster progression. Owners cannot control more than one team per region (max two across all regions). Ownership transfers require written approval from organizers.",
+      },
+      {
+        title: "Transfer & Loan Policy",
+        content:
+          "Roster changes are only allowed during pre-scheduled transfer periods. Teams may take only one player on loan per season. Loans cannot be taken from teams already participating in the current tournament.",
+      },
+      {
+        title: "Marketing & Exclusivity",
+        content:
+          "Teams must have a team Instagram account following sponsors/organizers. Teams require written approval for advertising and may not participate in third-party events during the tournament timeframe without permission.",
+      },
+    ],
+  },
+  {
+    id: "competition-structure",
+    category: "Competition & Technical Rules",
+    icon: <IconClipboardList className="text-orange-500" />,
+    rules: [
+      {
+        title: "Match Format & Scheduling",
+        content:
+          "Matches follow round-robin or knockout formats. Teams must adhere to the announced schedule and attend mandatory rehearsals/test matches.",
+      },
+      {
+        title: "Game Participation & Evidence",
+        content:
+          "Teams must provide result screenshots and full game recordings (not replays) of all players upon request. Recordings must continue until the team is eliminated.",
+      },
+      {
+        title: "During Match Conduct",
+        content:
+          "Players must be logged in and correctly positioned before the start. No pauses or breaks are permitted once gameplay begins, except for extreme technical failures.",
+      },
+    ],
+  },
+  {
+    id: "equipment-attire",
+    category: "Equipment & Dress Code",
+    icon: <IconDeviceMobile className="text-purple-500" />,
+    rules: [
+      {
+        title: "Approved Devices",
+        content:
+          "Participants must use handheld Android or iOS devices. Emulators, PCs, and peripheral adapters (keyboards, mice, controllers, air triggers) are strictly forbidden.",
+      },
+      {
+        title: "Uniform Requirements",
+        content:
+          "Official team jerseys, long pants, and closed-toe shoes are mandatory for LAN events. Coaches must wear business attire or team merchandise.",
+      },
+    ],
+  },
+  {
+    id: "prizes-disciplinary",
+    category: "Prizes & Disciplinary Actions",
+    icon: <IconTrophy className="text-yellow-500" />,
+    rules: [
+      {
+        title: "Offence Categories",
+        content:
+          "Minor offences include late media submissions or inappropriate nicknames. Major offences include use of hacks, bribery, non-registered accounts, or leaking pre-recorded results.",
+      },
+      {
+        title: "Prize Distribution",
+        content:
+          "Prize money is disbursed to the team contact within 90 days of the finals. Prize info must be submitted within 3 days of request, or the prize is forfeited.",
       },
     ],
   },
@@ -99,7 +156,7 @@ const RulesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   // 2. Filter logic for the search bar
-  const filteredRules = AFC_RULES.filter(
+  const filteredRules = AFC_RULES_DATA.filter(
     (cat) =>
       cat.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       cat.rules.some((r) =>
