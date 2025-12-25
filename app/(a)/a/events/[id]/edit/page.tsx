@@ -71,6 +71,7 @@ import { ConfirmStartTournamentModal } from "../../_components/ConfirmStartTourn
 import { DeleteMatchModal } from "../../_components/DeleteMatchModal";
 import { SeedToGroupModal } from "../../_components/SeedToGroupModal";
 import { Label } from "@/components/ui/label";
+import { EditMatchModal } from "../../_components/EditMatchModal";
 
 // ============================================================================
 // CONSTANTS & TYPES
@@ -2275,13 +2276,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                                 </Badge>
                                               </TableCell>
                                               <TableCell className="py-2 text-right space-x-1">
-                                                <Button
-                                                  variant="ghost"
-                                                  size="icon"
-                                                  className="h-7 w-7 text-zinc-400 hover:text-white"
-                                                >
-                                                  <Edit className="size-3" />
-                                                </Button>
+                                                <EditMatchModal
+                                                  matchId={match.match_id}
+                                                  onSuccess={() =>
+                                                    fetchEventDetails()
+                                                  }
+                                                  roomId={match.room_id}
+                                                  roomPassword={
+                                                    match.room_password
+                                                  }
+                                                  roomName={match.room_name}
+                                                />
                                                 <DeleteMatchModal
                                                   matchId={match.match_id}
                                                   onSuccess={() =>

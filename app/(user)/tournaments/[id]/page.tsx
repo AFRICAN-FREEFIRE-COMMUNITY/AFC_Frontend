@@ -560,8 +560,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
 
   const [pendingJoined, startJoinedTransition] = useTransition();
 
-  console.log(eventDetails);
-
   useEffect(() => {
     const discordStatus = searchParams.get("discord");
     const intendedStep = searchParams.get("step");
