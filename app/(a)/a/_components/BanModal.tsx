@@ -249,7 +249,7 @@ export const BanModal = ({
                   name="ban_duration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2 font-semibold">
+                      <FormLabel className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         Ban Duration
                       </FormLabel>
@@ -293,12 +293,12 @@ export const BanModal = ({
 
                 {/* Quick Reasons */}
                 <div className="space-y-2">
-                  <FormLabel className="flex items-center gap-2 font-semibold">
+                  <FormLabel className="flex items-start md:items-center gap-2 font-semibold">
                     <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                     Reason (optional)
                   </FormLabel>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {quickReasons.map((r) => {
                       const Icon = r.icon;
                       const selected = reasonValue === r.label;
@@ -309,7 +309,7 @@ export const BanModal = ({
                           key={r.id}
                           onClick={() => handleQuickReasonSelect(r.label)}
                           className={cn(
-                            "flex items-center gap-2 border p-3 rounded-md text-sm",
+                            "flex justify-start md:justify-center text-left md:text-center items-center gap-2 border p-3 rounded-md text-sm",
                             selected
                               ? "border-red-500 bg-red-50 text-red-700"
                               : "hover:bg-red-50/60"
@@ -336,7 +336,7 @@ export const BanModal = ({
                   name="reason"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-muted-foreground text-sm">
+                      <FormLabel className="text-muted-foreground">
                         Additional details (optional)
                       </FormLabel>
                       <FormControl>

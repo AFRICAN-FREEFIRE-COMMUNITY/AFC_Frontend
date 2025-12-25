@@ -39,7 +39,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatDate, formatMoneyInput } from "@/lib/utils";
+import { formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
 import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -114,13 +114,13 @@ const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">
-          {stage.stage_name} - {stage.stage_format.toUpperCase()}
+        <CardTitle>
+          {stage.stage_name} - {formattedWord[stage.stage_format]}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div
-          className="flex items-center justify-between cursor-pointer text-base font-semibold hover:text-primary"
+          className="flex items-start justify-between cursor-pointer text-sm md:text-base font-semibold hover:text-primary"
           onClick={() => setIsDatesVisible(!isDatesVisible)}
         >
           View Stage Dates
@@ -741,62 +741,58 @@ const EventDetailPage = ({ params }: { params: Params }) => {
 
   return (
     <div>
-      <Card>
-        <CardHeader className="space-y-2">
-          <PageHeader title={eventDetails.event_name} back />
-          <div className="space-y-2">
-            <Image
-              src={eventDetails.event_banner_url || DEFAULT_IMAGE}
-              alt={eventDetails.event_name || "Event Banner"}
-              width={1000}
-              height={1000}
-              className="aspect-video size-full object-cover rounded-md"
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <p>Date: {formatDate(eventDetails.start_date)}</p>
-            <p>
-              Prize Pool: ${parseFloat(eventDetails.prizepool).toLocaleString()}
-            </p>
-            <p>Location: Online</p>
-            <p>Format: {formatText}</p>
-          </div>
-          <p className="text-xs md:text-sm">Participants: {participantText}</p>
-        </CardHeader>
-        <CardContent>
-          {eventDetails.stages.length > 0 ? (
-            <Tabs
-              value={activeStageTab}
-              onValueChange={setActiveStageTab}
-              className="w-full"
-            >
-              <ScrollArea>
-                <TabsList className="w-full">
-                  {eventDetails.stages.map((stage) => (
-                    <TabsTrigger
-                      key={stage.id}
-                      value={stage.stage_name}
-                      className="data-[state=active]:bg-gray-700 data-[state=active]:text-white data-[state=inactive]:"
-                    >
-                      {stage.stage_name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-              {eventDetails.stages.map((stage) => (
-                <TabsContent key={stage.id} value={stage.stage_name}>
-                  <StageResultsTable stage={stage} />
-                </TabsContent>
-              ))}
-            </Tabs>
-          ) : (
-            <p className="text-center text-gray-500">
-              No stages or results defined for this event yet.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      {/* <Card> */}
+      <CardHeader className="space-y-1">
+        <PageHeader title={eventDetails.event_name} back />
+        <div className="space-y-2">
+          <Image
+            src={eventDetails.event_banner_url || DEFAULT_IMAGE}
+            alt={eventDetails.event_name || "Event Banner"}
+            width={1000}
+            height={1000}
+            className="aspect-video size-full object-cover rounded-md"
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <p>Date: {formatDate(eventDetails.start_date)}</p>
+          <p>
+            Prize Pool: ${parseFloat(eventDetails.prizepool).toLocaleString()}
+          </p>
+          <p>Location: Online</p>
+          <p>Format: {formatText}</p>
+        </div>
+        <p>Participants: {participantText}</p>
+      </CardHeader>
+      <CardContent className="pt-4">
+        {eventDetails.stages.length > 0 ? (
+          <Tabs
+            value={activeStageTab}
+            onValueChange={setActiveStageTab}
+            className="w-full"
+          >
+            <ScrollArea>
+              <TabsList className="w-full">
+                {eventDetails.stages.map((stage) => (
+                  <TabsTrigger key={stage.id} value={stage.stage_name}>
+                    {stage.stage_name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+            {eventDetails.stages.map((stage) => (
+              <TabsContent key={stage.id} value={stage.stage_name}>
+                <StageResultsTable stage={stage} />
+              </TabsContent>
+            ))}
+          </Tabs>
+        ) : (
+          <p className="text-center text-gray-500">
+            No stages or results defined for this event yet.
+          </p>
+        )}
+      </CardContent>
+      {/* </Card> */}
 
       <div className="text-center mt-6">
         {!eventDetails.is_registered ? (

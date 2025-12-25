@@ -22,6 +22,8 @@ import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
 import { BanModal } from "../../_components/BanModal";
 import { PageHeader } from "@/components/PageHeader";
+import { Separator } from "@/components/ui/separator";
+import { NothingFound } from "@/components/NothingFound";
 
 type Params = Promise<{
   id: string;
@@ -77,40 +79,42 @@ const page = ({ params }: { params: Params }) => {
               <CardTitle>Team Overview</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-3 font-medium text-sm">
+                <p>Tier: {teamDetails.team_tier}</p>
+                <Separator />
                 <p>
-                  <strong>Tier:</strong> {teamDetails.team_tier}
-                </p>
-                <p>
-                  <strong>Total Wins:</strong>{" "}
+                  Total Wins:{" "}
                   {teamDetails.total_wins ? teamDetails.total_wins : 0}
-                </p>
+                </p>{" "}
+                <Separator />
                 <p>
-                  <strong>Total Losses:</strong>{" "}
+                  Total Losses:{" "}
                   {teamDetails.total_losses ? teamDetails.total_losses : 0}
-                </p>
+                </p>{" "}
+                <Separator />
                 <p>
-                  <strong>Win Rate:</strong>{" "}
-                  {teamDetails.win_rate ? teamDetails.win_rate : 0}
-                </p>
+                  Win Rate: {teamDetails.win_rate ? teamDetails.win_rate : 0}
+                </p>{" "}
+                <Separator />
                 <p>
-                  <strong>Total Earnings:</strong>$
+                  Total Earnings:$
                   {teamDetails.total_earnings ? teamDetails.total_earnings : 0}
-                </p>
+                </p>{" "}
+                <Separator />
                 <p>
-                  <strong>Average Kills:</strong>{" "}
+                  Average Kills:{" "}
                   {teamDetails.average_kills ? teamDetails.average_kills : 0}
-                </p>
+                </p>{" "}
+                <Separator />
                 <p>
-                  <strong>Average Placement:</strong>{" "}
+                  Average Placement:{" "}
                   {teamDetails.average_placement
                     ? teamDetails.average_placement
                     : 0}
-                </p>
+                </p>{" "}
+                <Separator />
                 <div className="flex items-center justify-start gap-2">
-                  <p>
-                    <strong>Status:</strong>
-                  </p>
+                  <p>Status:</p>
                   {teamDetails.isBanned ? (
                     <Badge variant="destructive">Banned</Badge>
                   ) : (
@@ -118,9 +122,10 @@ const page = ({ params }: { params: Params }) => {
                   )}
                 </div>
                 {teamDetails.is_banned && (
-                  <p>
-                    <strong>Ban Reason:</strong> {teamDetails.ban_reason}
-                  </p>
+                  <>
+                    <Separator />
+                    <p>Ban Reason: {teamDetails.ban_reason}</p>
+                  </>
                 )}
               </div>
             </CardContent>
@@ -142,15 +147,15 @@ const page = ({ params }: { params: Params }) => {
                   {teamDetails?.members?.map((member: any) => (
                     <TableRow key={member.id}>
                       <TableCell>{member.username}</TableCell>
-                      <TableCell>{member.in_game_role}</TableCell>
+                      <TableCell className="capitalize">
+                        {member.in_game_role}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
               {teamDetails?.members === undefined && (
-                <p className="italic py-4 text-center text-sm">
-                  No team member yet
-                </p>
+                <NothingFound text="No team member yet" />
               )}
             </CardContent>
           </Card>
@@ -181,9 +186,7 @@ const page = ({ params }: { params: Params }) => {
                 </TableBody>
               </Table>
               {teamDetails?.tournament_performance === undefined && (
-                <p className="italic py-4 text-center text-sm">
-                  No performance metrics yet
-                </p>
+                <NothingFound text="No performance metrics yet" />
               )}
             </CardContent>
           </Card>
@@ -214,9 +217,7 @@ const page = ({ params }: { params: Params }) => {
                 </TableBody>
               </Table>
               {teamDetails?.recent_matches === undefined && (
-                <p className="italic py-4 text-center text-sm">
-                  No matches yet
-                </p>
+                <NothingFound text="No matches yet" />
               )}
             </CardContent>
           </Card>

@@ -116,7 +116,7 @@ function page() {
 
   return (
     <div>
-      <div className="flex items-start md:items-center justify-between gap-2 flex-col md:flex-row">
+      <div className="flex items-start mb-4 md:items-center justify-between gap-2 flex-col md:flex-row">
         <PageHeader
           title="Teams"
           description="Explore and manage Freefire teams"
@@ -236,10 +236,10 @@ function page() {
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
-                                  <div className="grid grid-cols-4 items-center gap-4">
+                                  <div>
                                     <Label
                                       htmlFor="application-message"
-                                      className="text-right"
+                                      className="mb-2.5"
                                     >
                                       Message
                                     </Label>
@@ -249,7 +249,6 @@ function page() {
                                       onChange={(e) =>
                                         setApplicationMessage(e.target.value)
                                       }
-                                      className="col-span-3"
                                       placeholder="Tell the team owner why you want to join..."
                                     />
                                   </div>

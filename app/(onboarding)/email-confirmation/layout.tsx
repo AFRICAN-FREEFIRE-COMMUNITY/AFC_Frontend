@@ -1,9 +1,10 @@
 import React, { ReactNode } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
-import { Header } from "@/app/_components/Header";
+
 import { AuthGuard } from "@/app/(auth)/_components/AuthGuard";
 import { Footer } from "@/app/_components/Footer";
+import { Header } from "@/app/(user)/_components/Header";
 
 const Layout = ({ children }: { children: ReactNode }) => {
   return (

@@ -112,7 +112,7 @@ export default function IndividualLeaderboardPage({
 
   return (
     <div className="space-y-2 pb-20">
-      <div className="flex flex-col md:flex-row justify-between gap-4">
+      <div className="flex flex-col md:flex-row justify-between gap-2 mb-4">
         <PageHeader
           back
           title={eventData.event_name}
@@ -235,9 +235,9 @@ export default function IndividualLeaderboardPage({
             </TableBody>
           </Table>
           {getTableData().length === 0 && (
-            <p className="text-center text-sm text-shadow-muted py-2">
-              Nothing found!
-            </p>
+            <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+              No result found!
+            </div>
           )}
 
           <div className="flex gap-2">

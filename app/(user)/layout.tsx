@@ -10,9 +10,7 @@ const layout = ({ children }: { children: ReactNode }) => {
       <div className="min-h-screen">
         <div className="relative z-10">
           <Header />
-          <div className="py-10 container min-h-[60vh] mx-auto px-4">
-            {children}
-          </div>
+          <div className="py-10 container min-h-[60vh]">{children}</div>
           <Footer />
         </div>
       </div>

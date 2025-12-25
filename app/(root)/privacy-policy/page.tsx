@@ -1,5 +1,6 @@
+import { Header } from "@/app/(user)/_components/Header";
 import { Footer } from "@/app/_components/Footer";
-import { Header } from "@/app/_components/Header";
+
 import { PageHeader } from "@/components/PageHeader";
 import React from "react";
 

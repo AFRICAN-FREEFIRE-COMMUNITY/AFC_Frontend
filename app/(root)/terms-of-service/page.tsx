@@ -1,5 +1,5 @@
+import { Header } from "@/app/(user)/_components/Header";
 import { Footer } from "@/app/_components/Footer";
-import { Header } from "@/app/_components/Header";
 import { PageHeader } from "@/components/PageHeader";
 import React from "react";
 
@@ -7,7 +7,7 @@ const page = () => {
   return (
     <div>
       <Header />
-      <div className="container py-16">
+      <div className="container py-10">
         <PageHeader title="AFC Terms of Service" />
 
         {/* --- START OF TERMS OF SERVICE CONTENT --- */}

@@ -78,7 +78,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { formatWord } from "@/lib/utils";
+import { formatDate, formatWord } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { IconArrowLeft, IconCopy } from "@tabler/icons-react";
 import { BanModal } from "@/app/(a)/a/_components/BanModal";
@@ -626,9 +626,7 @@ const Page = ({ params }: { params: Params }) => {
                           Creation Date
                         </p>
                         <p className="text-lg md:text-xl font-semibold">
-                          {new Date(
-                            teamDetails?.creation_date
-                          ).toLocaleDateString()}
+                          {formatDate(teamDetails?.creation_date)}
                         </p>
                       </div>
                     </div>
@@ -669,9 +667,9 @@ const Page = ({ params }: { params: Params }) => {
                                 {formatWord(member.management_role)}
                               </TableCell>
                               <TableCell>
-                                <Button variant="outline" asChild>
+                                <Button size="sm" variant="outline" asChild>
                                   <Link href={`/players/${member.username}`}>
-                                    View Profile
+                                    View
                                   </Link>
                                 </Button>
                               </TableCell>
@@ -874,6 +872,11 @@ const Page = ({ params }: { params: Params }) => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
+                      {teamDetails?.social_media_links.length === 0 && (
+                        <div className="text-center py-14 text-sm text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                          No link found
+                        </div>
+                      )}
                       {teamDetails?.social_media_links?.map(
                         (link: any, index: any) => (
                           <Link

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generatePageMetadata } from "@/lib/seo";
+import { PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = generatePageMetadata({
   title: "About Us",
@@ -18,7 +19,7 @@ export const metadata: Metadata = generatePageMetadata({
 export default function AboutPage() {
   return (
     <div>
-      <h1 className="text-3xl md:text-4xl mb-8 font-bold">About AFC</h1>
+      <PageHeader title="About AFC" />
       <div className="space-y-4">
         <Card className="gap-1.5">
           <CardHeader>

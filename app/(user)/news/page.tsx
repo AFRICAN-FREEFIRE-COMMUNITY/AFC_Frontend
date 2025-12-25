@@ -161,7 +161,7 @@ const page = () => {
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full ">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -172,43 +172,6 @@ const page = () => {
               ))}
             </SelectContent>
           </Select>
-
-          <div className="flex items-center gap-4">
-            {/* Active Filters */}
-            {(searchQuery || dateFilter || selectedCategory !== "all") && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Filters:</span>
-                {searchQuery && (
-                  <Badge variant="secondary" className="text-xs">
-                    Search: "{searchQuery}"
-                  </Badge>
-                )}
-                {dateFilter && (
-                  <Badge variant="secondary" className="text-xs">
-                    Date: {new Date(dateFilter).toLocaleDateString()}
-                  </Badge>
-                )}
-                {selectedCategory !== "all" && (
-                  <Badge variant="secondary" className="text-xs">
-                    {getCategoryLabel(selectedCategory)}
-                  </Badge>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="h-6 text-xs"
-                >
-                  Clear all
-                </Button>
-              </div>
-            )}
-
-            {/* Results count */}
-            <div className="text-sm text-muted-foreground">
-              Showing {filteredNews.length} of {news?.length || 0} articles
-            </div>
-          </div>
         </div>
       </div>
 

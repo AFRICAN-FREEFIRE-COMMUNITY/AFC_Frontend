@@ -8,6 +8,7 @@ import {
   IconBrandYoutube,
 } from "@tabler/icons-react";
 import { generatePageMetadata } from "@/lib/seo";
+import { PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = generatePageMetadata({
   title: "Contact Us",
@@ -25,7 +26,7 @@ export const metadata: Metadata = generatePageMetadata({
 export default function ContactPage() {
   return (
     <div>
-      <h1 className="text-3xl md:text-4xl font-bold mb-4">Contact Us</h1>
+      <PageHeader title="Contact Us" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-2">
         <div className="col-span-4">

@@ -9,6 +9,7 @@ import {
   IconClock,
   IconPencil,
   IconPlus,
+  IconSearch,
   IconTrendingUp,
   IconTrophy,
   IconUsers,
@@ -125,7 +126,7 @@ const page = () => {
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
         <PageHeader back title="Leaderboards Management" />
-        <Button asChild>
+        <Button className="w-full md:w-auto" asChild>
           <Link href={"/a/leaderboards/create"}>
             <IconPlus />
             Create Leaderboard
@@ -245,7 +246,10 @@ const page = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-background/50 backdrop-blur-sm block"
             />
-            <Button>Search</Button>
+            <Button className="w-9 h-9 md:h-12 md:w-auto">
+              <IconSearch />
+              <span className="hidden md:inline-block">Search</span>
+            </Button>
           </div>
           <Table>
             <TableHeader>

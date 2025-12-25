@@ -59,15 +59,15 @@ export default function Page({ params }: { params: Params }) {
         description={
           <>
             <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-2">
-              <Avatar className="h-8 w-8">
+              {/* <Avatar className="h-8 w-8">
                 <AvatarImage
                   src={newsDetails.author.picture}
                   alt={newsDetails.author}
                 />
                 <AvatarFallback>{newsDetails.author}</AvatarFallback>
-              </Avatar>
-              <span>{newsDetails.author}</span>
-              <span>•</span>
+              </Avatar> */}
+              {/* <span>{newsDetails.author}</span> */}
+              {/* <span>•</span> */}
               <span>{formatDate(newsDetails.created_at)}</span>
               <span>•</span>
               <Badge variant="secondary" className="capitalize">

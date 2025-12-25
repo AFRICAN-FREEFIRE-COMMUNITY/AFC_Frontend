@@ -57,7 +57,7 @@ export const Header = () => {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+        <div className="container mx-auto h-20 flex items-center justify-between">
           <Link href={"/home"} className="flex items-center space-x-2">
             <Logo size="small" />
             <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">

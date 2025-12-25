@@ -4,7 +4,7 @@ import React from "react";
 
 export const Footer = () => {
   return (
-    <footer className="border-t border-border/40 bg-background/50 backdrop-blur-sm mt-12">
+    <footer className="border-t border-border/40 bg-background/50 backdrop-blur-sm mt-8">
       <div className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
@@ -98,14 +98,6 @@ export const Footer = () => {
                   Teams
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/rules"
-                  className="hover:text-primary transition-colors"
-                >
-                  Rules
-                </Link>
-              </li>
               {/* <li>
                   <Link
                     href="/shop"
@@ -134,6 +126,14 @@ export const Footer = () => {
                   className="hover:text-primary transition-colors"
                 >
                   Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/rules"
+                  className="hover:text-primary transition-colors"
+                >
+                  Rules
                 </Link>
               </li>
             </ul>

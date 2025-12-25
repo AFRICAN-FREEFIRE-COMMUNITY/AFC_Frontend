@@ -1177,28 +1177,23 @@ export default function Page() {
           </Card>
         </TabsContent>
         <TabsContent value="categories" className="space-y-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <Select
-                value={selectedSection}
-                onValueChange={setSelectedSection}
-              >
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Filter by section" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sections</SelectItem>
-                  {allSectionsData.map((section) => (
-                    <SelectItem
-                      key={section.id || section._id}
-                      value={section.id || section._id}
-                    >
-                      {section.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex items-center justify-between w-full mb-4">
+            <Select value={selectedSection} onValueChange={setSelectedSection}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by section" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sections</SelectItem>
+                {allSectionsData.map((section) => (
+                  <SelectItem
+                    key={section.id || section._id}
+                    value={section.id || section._id}
+                  >
+                    {section.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Card>
@@ -1294,7 +1289,7 @@ export default function Page() {
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className="w-64">
+              <SelectTrigger>
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>

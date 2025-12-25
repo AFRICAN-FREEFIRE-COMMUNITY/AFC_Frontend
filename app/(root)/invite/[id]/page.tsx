@@ -14,8 +14,8 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { Check, X, Users, Trophy, Calendar, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
-import { Header } from "@/app/_components/Header";
 import { Footer } from "@/app/_components/Footer";
+import { Header } from "@/app/(user)/_components/Header";
 
 export default function page() {
   const params = useParams();
@@ -156,7 +156,8 @@ export default function page() {
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>This team is currently banned</AlertTitle>
                 <AlertDescription>
-                  You cannot join a banned team. The invite link is no longer valid.
+                  You cannot join a banned team. The invite link is no longer
+                  valid.
                   {teamDetails?.ban_reason && (
                     <>
                       <br />

@@ -123,13 +123,19 @@ const page = () => {
 
   return (
     <div>
-      <PageHeader back title={"Events Management"} />
-      <div className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
+      <div className="flex items-start md:items-center justify-between flex-col md:flex-row gap-2">
+        <PageHeader back title={"Events Management"} />
+        <Button className="w-full md:w-auto" asChild>
+          <Link href={"/a/events/create"}>Create new event</Link>
+        </Button>
+      </div>
+
+      <div className="mt-4 grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
         {/* ... (Your Card components remain here) ... */}
         <Card className="hover:shadow-lg transition-shadow gap-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-            <IconCalendar className="h-4 w-4 text-purple-600" />
+            <IconCalendar className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -147,7 +153,7 @@ const page = () => {
             <CardTitle className="text-sm font-medium">
               Total Tournaments
             </CardTitle>
-            <IconTrophy className="h-4 w-4 text-purple-600" />
+            <IconTrophy className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -163,7 +169,7 @@ const page = () => {
         <Card className="hover:shadow-lg transition-shadow gap-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Scrims</CardTitle>
-            <IconSwords className="h-4 w-4 text-purple-600" />
+            <IconSwords className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -181,7 +187,7 @@ const page = () => {
             <CardTitle className="text-sm font-medium">
               Upcoming Events
             </CardTitle>
-            <IconClock className="h-4 w-4 text-purple-600" />
+            <IconClock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -199,7 +205,7 @@ const page = () => {
             <CardTitle className="text-sm font-medium">
               Ongoing Events
             </CardTitle>
-            <IconTrendingUp className="h-4 w-4 text-purple-600" />
+            <IconTrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -217,7 +223,7 @@ const page = () => {
             <CardTitle className="text-sm font-medium">
               Completed Events
             </CardTitle>
-            <CheckCircle2Icon className="h-4 w-4 text-purple-600" />
+            <CheckCircle2Icon className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -235,7 +241,7 @@ const page = () => {
             <CardTitle className="text-sm font-medium">
               Avg. Participants
             </CardTitle>
-            <IconUsers className="h-4 w-4 text-purple-600" />
+            <IconUsers className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -253,7 +259,7 @@ const page = () => {
             <CardTitle className="text-sm font-medium">
               Most Popular Format
             </CardTitle>
-            <IconTrophy className="h-4 w-4 text-purple-600" />
+            <IconTrophy className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -269,7 +275,7 @@ const page = () => {
           </CardContent>
         </Card>
       </div>
-      <div className="mt-4 flex items-center justify-start gap-2">
+      <div className="mt-4">
         <Input
           type="search"
           placeholder="Search events by name, type, or status..."
@@ -279,9 +285,6 @@ const page = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-background/50 backdrop-blur-sm block"
         />
-        <Button asChild>
-          <Link href={"/a/events/create"}>Create new event</Link>
-        </Button>
       </div>
       <Card className="mt-4">
         <CardHeader>
@@ -315,7 +318,7 @@ const page = () => {
                       {event.event_status}
                     </TableCell>
                     <TableCell>
-                      {formatMoneyInput(event.registered_competitors)}/
+                      {/* {formatMoneyInput(event.registered_competitors)}/ */}
                       {formatMoneyInput(event.number_of_participants)}
                     </TableCell>
                     <TableCell>

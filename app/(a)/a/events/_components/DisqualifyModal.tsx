@@ -69,10 +69,7 @@ export const DisqualifyModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="destructive"
-          className={cn("flex-1", showLabel ? "" : "px-8")}
-        >
+        <Button variant="destructive" size="sm">
           <IconUserMinus />
 
           {showLabel && <span className="ml-2">Disqualify</span>}

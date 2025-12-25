@@ -46,6 +46,7 @@ import {
   IconMap,
   IconPhoto,
   IconPlayerPlay,
+  IconTrash,
   IconTrophy,
   IconUpload,
   IconX,
@@ -69,6 +70,7 @@ import { ReactivateModal } from "../../_components/ReactivateModal";
 import { ConfirmStartTournamentModal } from "../../_components/ConfirmStartTournamentModal";
 import { DeleteMatchModal } from "../../_components/DeleteMatchModal";
 import { SeedToGroupModal } from "../../_components/SeedToGroupModal";
+import { Label } from "@/components/ui/label";
 
 // ============================================================================
 // CONSTANTS & TYPES
@@ -1729,11 +1731,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         <Button
                           type="button"
                           variant="destructive"
-                          size="md"
-                          className="h-11"
+                          // size="md"
+                          className="size-9 md:h-11 md:w-auto"
                           onClick={() => removeStreamChannel(index)}
                         >
-                          Remove
+                          <IconTrash />
+                          <span className="hidden md:inline-block">Remove</span>
                         </Button>
                       </div>
                     ))}
@@ -2702,9 +2705,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             {stageModalStep === 1 && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Stage Name
-                  </label>
+                  <Label className="mb-2.5">Stage Name</Label>
                   <Input
                     value={stageModalData.stage_name}
                     onChange={(e) =>
@@ -2717,11 +2718,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Start Date
-                    </label>
+                    <Label className="mb-2.5">Start Date</Label>
                     <Input
                       type="date"
                       value={stageModalData.start_date}
@@ -2734,9 +2733,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      End Date
-                    </label>
+                    <Label className="mb-2.5">End Date</Label>
                     <Input
                       type="date"
                       value={stageModalData.end_date}
@@ -2751,9 +2748,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Stage Format
-                  </label>
+                  <Label className="mb-2.5">Stage Format</Label>
                   <Select
                     value={stageModalData.stage_format}
                     onValueChange={(value) =>
@@ -2777,9 +2772,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <Label className="mb-2.5">
                     Teams Qualifying from this Stage
-                  </label>
+                  </Label>
                   <Input
                     type="number"
                     min={0}
@@ -2802,9 +2797,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Number of Groups
-                  </label>
+                  <Label className="mb-2.5">Number of Groups</Label>
                   <Input
                     type="number"
                     min={1}
@@ -2822,9 +2815,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Stage Discord Role ID
-                  </label>
+                  <Label className="mb-2.5">Stage Discord Role ID</Label>
                   <Input
                     value={stageModalData.stage_discord_role_id}
                     onChange={(e) =>
@@ -2860,13 +2851,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
             {stageModalStep === 2 && (
               <div className="space-y-2">
-                <div className="  border border-primary/50 rounded-lg p-4">
+                <div className="border border-primary/50 rounded-lg p-4">
                   <p className="text-sm">
                     <span className="font-semibold">Stage:</span>{" "}
                     {stageModalData.stage_name}
                   </p>
-                  <p className="text-sm text-zinc-400">
-                    {stageModalData.start_date} to {stageModalData.end_date} •{" "}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {formatDate(stageModalData.start_date)} to{" "}
+                    {formatDate(stageModalData.end_date)} •{" "}
                     {formattedWord[stageModalData.stage_format]}
                   </p>
                 </div>
@@ -2874,16 +2866,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 {tempGroups.map((group, index) => (
                   <div key={index} className="border rounded-lg p-4 space-y-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold">Group {index + 1}</h4>
-                      <span className="text-xs text-zinc-500">
+                      <h4 className="font-semibold text-sm md:text-base">
+                        Group {index + 1}
+                      </h4>
+                      <span className="text-xs text-muted-foreground">
                         {group.group_name}
                       </span>
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Group Name
-                      </label>
+                      <Label className="mb-2.5">Group Name</Label>
                       <Input
                         value={group.group_name}
                         onChange={(e) =>
@@ -2897,11 +2889,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Playing Date
-                        </label>
+                        <Label className="mb-2.5">Playing Date</Label>
                         <Input
                           type="date"
                           value={group.playing_date}
@@ -2915,9 +2905,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Playing Time
-                        </label>
+                        <Label className="mb-2.5">Playing Time</Label>
                         <Input
                           type="time"
                           value={group.playing_time}
@@ -2933,9 +2921,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block">
+                      <Label className="mb-2.5">
                         Teams Qualifying from this Group
-                      </label>
+                      </Label>
                       <Input
                         type="number"
                         min={1}
@@ -2955,9 +2943,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Match count
-                      </label>
+                      <Label className="mb-2.5">Match count</Label>
                       <Input
                         type="number"
                         min={1}
@@ -2973,9 +2959,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Discord Role ID
-                      </label>
+                      <Label className="mb-2.5">Discord Role ID</Label>
                       <Input
                         value={group.group_discord_role_id}
                         onChange={(e) =>
@@ -2990,10 +2974,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block">
+                      <Label className="mb-2.5">
                         Maps to be Played{" "}
                         <span className="text-red-500">*</span>
-                      </label>
+                      </Label>
                       <div className="flex flex-wrap gap-2">
                         {AVAILABLE_MAPS.map((map) => {
                           const isSelected =
@@ -3001,11 +2985,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           return (
                             <Badge
                               key={map}
+                              variant={"outline"}
                               onClick={() => toggleMapSelection(index, map)}
                               className={`cursor-pointer ${
                                 isSelected
-                                  ? "border-primary   text-primary"
-                                  : "border-gray-300 bg-muted hover:border-primary/50"
+                                  ? "border-primary text-primary"
+                                  : "hover:border-primary/50"
                               }`}
                             >
                               {map}
@@ -3027,9 +3012,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Room ID
-                      </label>
+                      <Label className="mb-2.5">Room ID</Label>
                       <Input
                         value={group.room_id}
                         onChange={(e) =>
@@ -3044,9 +3027,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Room name
-                      </label>
+                      <Label className="mb-2.5">Room name</Label>
                       <Input
                         value={group.room_name}
                         onChange={(e) =>
@@ -3061,9 +3042,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Room password
-                      </label>
+                      <Label className="mb-2.5">Room password</Label>
                       <div className="relative">
                         <Input
                           type={passwordVisibility[index] ? "text" : "password"}

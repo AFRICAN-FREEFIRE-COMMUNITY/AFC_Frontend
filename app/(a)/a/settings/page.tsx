@@ -575,7 +575,7 @@ const page = () => {
   return (
     <div className="space-y-6">
       {suspendPending && <FullLoader />}
-      <div className="flex items-start md:items-center justify-between gap-2">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
         <PageHeader
           title="Admin Settings"
           description={`Manage administrator roles and permissions (${adminUsers.length}
@@ -584,124 +584,12 @@ const page = () => {
         <Button
           variant="outline"
           onClick={exportToExcel}
-          className="flex items-center gap-2"
+          className="w-full md:w-auto"
         >
-          <IconDownload className="h-4 w-4" />
+          <IconDownload />
           Export to Excel
         </Button>
       </div>
-      {/* <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add Admin
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[700px]">
-            <DialogHeader>
-              <DialogTitle>Add New Admin</DialogTitle>
-              <DialogDescription>
-                Create a new administrator account with specific roles and
-                permissions. You can assign multiple roles.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="username" className="text-right">
-                  Username
-                </Label>
-                <Input
-                  id="username"
-                  value={newUser.username}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, username: e.target.value })
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newUser.email}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, email: e.target.value })
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label className="text-right pt-2">Roles</Label>
-                <div className="col-span-3 space-y-3">
-                  {rolesLoading ? (
-                    <div className="flex items-center space-x-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">
-                        Loading roles...
-                      </span>
-                    </div>
-                  ) : (
-                    getDisplayRoles().map((role) => (
-                      <div key={role.id} className="flex items-start space-x-3">
-                        <Checkbox
-                          id={`new-role-${role.id}`}
-                          checked={newUser.roles.includes(role.name)}
-                          onCheckedChange={(checked) =>
-                            handleRoleChange(
-                              role.name,
-                              checked as boolean,
-                              true
-                            )
-                          }
-                        />
-                        <div className="grid gap-1.5 leading-none">
-                          <Label
-                            htmlFor={`new-role-${role.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {role.name}
-                          </Label>
-                          <p className="text-xs text-muted-foreground">
-                            {role.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-              {newUser.permissions.length > 0 && (
-                <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="text-right pt-2">Permissions</Label>
-                  <div className="col-span-3 space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Based on selected roles ({newUser.roles.length} role(s)):
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {newUser.permissions.map((permissionId) => (
-                        <Badge
-                          key={permissionId}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {getPermissionName(permissionId)}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button type="submit" onClick={handleAddUser}>
-                Create Admin
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog> */}
       <Tabs defaultValue="admins" className="space-y-4">
         <ScrollArea>
           <TabsList className="w-full">
