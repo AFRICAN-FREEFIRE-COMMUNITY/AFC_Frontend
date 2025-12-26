@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -145,12 +146,16 @@ export function MobileNavbar() {
         <SheetFooter className="mb-10">
           {user === null ? (
             <>
-              <Button variant={"secondary"}>
-                <Link href="/login">Sign in</Link>
-              </Button>
-              <Button variant={"gradient"} asChild>
-                <Link href={"/create-account"}>Join now</Link>
-              </Button>
+              <SheetClose asChild>
+                <Button variant={"secondary"}>
+                  <Link href="/login">Log in</Link>
+                </Button>
+              </SheetClose>
+              <SheetClose asChild>
+                <Button variant={"gradient"} asChild>
+                  <Link href={"/create-account"}>Join now</Link>
+                </Button>
+              </SheetClose>
             </>
           ) : (
             <>
