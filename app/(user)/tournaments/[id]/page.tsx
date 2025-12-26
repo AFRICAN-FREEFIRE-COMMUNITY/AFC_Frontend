@@ -18,14 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ChevronDown,
-  ChevronUp,
-  CheckCircle,
-  Users,
-  AlertTriangle,
-  User,
-} from "lucide-react";
+import { CheckCircle, Users, AlertTriangle, User, Trophy } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
@@ -39,7 +32,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
+import { formatDate, formatMoneyInput } from "@/lib/utils";
 import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,6 +41,22 @@ import axios from "axios";
 import Image from "next/image";
 import { IconUsers } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
 
 type ModalStep =
   | "CLOSED"
@@ -60,19 +69,20 @@ type ModalStep =
 type RegistrationType = "solo" | "team";
 
 interface StageGroup {
-  id: number;
+  group_id: number;
   group_name: string;
   playing_date: string;
   playing_time: string;
   teams_qualifying: number;
+  overall_leaderboard?: any[];
+  matches?: any[];
 }
 
 interface Stage {
-  id: number;
+  stage_id: number;
   stage_name: string;
   start_date: string;
   end_date: string;
-  number_of_groups: number;
   stage_format: string;
   teams_qualifying_from_stage: number;
   groups: StageGroup[];
@@ -82,7 +92,7 @@ interface EventDetails {
   event_id: number;
   competition_type: string;
   participant_type: string;
-  registered_competitors: any;
+  registered_competitors: any[];
   event_type: string;
   max_teams_or_players: number;
   event_name: string;
@@ -109,34 +119,165 @@ interface ApiResponse {
 }
 
 const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
-  const [isDatesVisible, setIsDatesVisible] = useState(true);
+  // Initialize with first group's ID
+  const [selectedGroupId, setSelectedGroupId] = useState<string>(
+    stage?.groups?.[0]?.group_id?.toString() || ""
+  );
+  const [selectedMatchId, setSelectedMatchId] = useState<string>("overall");
+
+  // Find active group
+  const activeGroup = useMemo(() => {
+    if (!stage?.groups || !selectedGroupId) return null;
+    return stage.groups.find(
+      (g) => g?.group_id?.toString() === selectedGroupId
+    );
+  }, [stage.groups, selectedGroupId]);
+
+  // Find active match
+  const activeMatch = useMemo(() => {
+    if (selectedMatchId === "overall" || !activeGroup?.matches) return null;
+    return activeGroup.matches.find(
+      (m: any) => m?.match_id?.toString() === selectedMatchId
+    );
+  }, [activeGroup, selectedMatchId]);
+
+  // Get table data
+  const tableRows = useMemo(() => {
+    if (selectedMatchId === "overall") {
+      const rawData = activeGroup?.overall_leaderboard;
+      return Array.isArray(rawData) ? rawData : [];
+    } else {
+      // API returns 'stats' not 'solo_stats'
+      const rawData = activeMatch?.stats || activeMatch?.solo_stats;
+      return Array.isArray(rawData) ? rawData : [];
+    }
+  }, [selectedMatchId, activeGroup, activeMatch]);
+
+  if (!stage?.groups || stage.groups.length === 0) {
+    return (
+      <Card className="">
+        <CardContent className="p-10 text-center">
+          <p className="text-zinc-500">No groups defined for this stage yet.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {stage.stage_name} - {formattedWord[stage.stage_format]}
-        </CardTitle>
+    <Card className=" overflow-hidden">
+      <CardHeader className="space-y-4">
+        <div className="flex flex-col md:flex-row gap-2">
+          {/* Group Selector */}
+          <div className="flex-1 space-y-2">
+            <Label>Select Group</Label>
+            <Select
+              value={selectedGroupId}
+              onValueChange={(val) => {
+                setSelectedGroupId(val);
+                setSelectedMatchId("overall");
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a group" />
+              </SelectTrigger>
+              <SelectContent>
+                {stage.groups.map((g) => (
+                  <SelectItem key={g.group_id} value={g.group_id?.toString()}>
+                    {g.group_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Result View Selector */}
+          <div className="flex-1 space-y-2">
+            <Label>View Type</Label>
+            <Select value={selectedMatchId} onValueChange={setSelectedMatchId}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="overall">
+                  Consolidated Leaderboard
+                </SelectItem>
+                {activeGroup?.matches?.map((m: any) => (
+                  <SelectItem key={m.match_id} value={m.match_id?.toString()}>
+                    Match {m.match_number} ({m.match_map})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardHeader>
+
       <CardContent>
-        <div
-          className="flex items-start justify-between cursor-pointer text-sm md:text-base font-semibold hover:text-primary"
-          onClick={() => setIsDatesVisible(!isDatesVisible)}
-        >
-          View Stage Dates
-          {isDatesVisible ? (
-            <ChevronUp className="w-4 h-4 ml-1" />
-          ) : (
-            <ChevronDown className="w-4 h-4 ml-1" />
-          )}
+        <div className="flex items-center gap-2 mb-2">
+          <Trophy className="size-4 text-yellow-500" />
+          <h3 className="text-sm font-semibold uppercase">
+            {selectedMatchId === "overall"
+              ? `${activeGroup?.group_name || "Group"} Standings`
+              : `Match ${activeMatch?.match_number}: ${activeMatch?.match_map}`}
+          </h3>
         </div>
 
-        {isDatesVisible && (
-          <div className="space-y-4 text-sm text-muted-foreground mt-2">
-            <p>Stage Start: {formatDate(stage.start_date)}</p>
-            <p>Stage End: {formatDate(stage.end_date)}</p>
-          </div>
-        )}
+        <div className="rounded-md border overflow-hidden shadow-inner">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16 text-center ">Rank</TableHead>
+                <TableHead className="">Competitor</TableHead>
+                <TableHead className="text-center ">Kills</TableHead>
+                <TableHead className="text-right text-[10px] uppercase font-semibold pr-6">
+                  Total Points
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tableRows.length > 0 ? (
+                tableRows.map((row: any, idx: number) => {
+                  const username =
+                    row.username ||
+                    row.competitor__user__username ||
+                    `Player ${row.competitor_id || idx + 1}`;
+                  const kills = row.total_kills ?? row.kills ?? 0;
+                  const points = row.total_points ?? row.total_pts ?? 0;
+                  const placement = row.placement ?? idx + 1;
+
+                  return (
+                    <TableRow
+                      key={`${
+                        row.competitor_id || row.id
+                      }-${selectedMatchId}-${idx}`}
+                      className="group"
+                    >
+                      <TableCell className="text-center font-semibold">
+                        #{placement}
+                      </TableCell>
+                      <TableCell className="font-bold">{username}</TableCell>
+                      <TableCell className="text-center group-hover:text-white font-medium">
+                        {kills}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold text-primary pr-6">
+                        {parseFloat(points).toFixed(1)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="h-40 text-center text-muted-foreground italic"
+                  >
+                    No results available for this selection.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
@@ -171,7 +312,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
 }) => {
   const isSoloDisabled = eventDetails.participant_type === "squad";
   const isTeamDisabled = eventDetails.participant_type === "solo";
-
   const closeAll = () => setModalStep("CLOSED");
 
   const renderDialog = () => {
@@ -205,8 +345,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   </p>
                   <p className="text-xs">
                     A connected Discord account is required to participate.
-                    Players without Discord OAUTH cannot be seeded or placed
-                    into groups.
                   </p>
                 </div>
               </div>
@@ -310,8 +448,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   Official Rules Document Available
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  There are no embedded text rules. Please click the button
-                  below to download and review the official document.
+                  Please click the button below to download and review the
+                  official document.
                 </p>
                 <Button
                   type="button"
@@ -332,7 +470,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               </p>
               <p className="text-xs">
                 Tournament rules are currently unavailable. Contact tournament
-                admins for clarification.
+                admins.
               </p>
             </div>
           );
@@ -345,27 +483,18 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 Tournament Rules & Policies
               </DialogTitle>
             </DialogHeader>
-
             <div className="max-h-80 p-4 bg-primary/10 rounded-md overflow-y-auto pr-4 space-y-4 text-sm text-gray-300">
               {renderRulesContent()}
-
               <Separator className="my-4 bg-gray-700" />
               <div>
                 <p className="font-medium text-primary">Conduct Policy:</p>
-                <p>
-                  Maintain professional conduct at all times. Harassment or
-                  toxicity will result in disqualification.
-                </p>
+                <p>Maintain professional conduct at all times.</p>
               </div>
               <div>
                 <p className="font-medium text-primary">Device Policy:</p>
-                <p>
-                  The device you use must remain consistent throughout the
-                  tournament.
-                </p>
+                <p>Device must remain consistent throughout the tournament.</p>
               </div>
             </div>
-
             <div className="flex items-center space-x-2 mt-2">
               <Checkbox
                 id="rules"
@@ -375,10 +504,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
               />
               <label
                 htmlFor="rules"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
+                className="text-sm font-medium text-gray-300"
               >
-                I agree to the tournament rules, conduct policies, device
-                policies, and participation requirements.
+                I agree to all tournament rules and policies.
               </label>
             </div>
             <DialogFooter className="mt-2 flex sm:justify-between">
@@ -418,16 +546,11 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 <div className="space-y-4">
                   <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto" />
                   <p className="text-sm text-gray-300">
-                    Your Discord account is not yet linked. Click below to open
-                    the authentication window and link your account.
+                    Click below to link your Discord account.
                   </p>
                   <Button onClick={handleDiscordConnect} className="w-full">
                     Connect Discord Account
                   </Button>
-                  <p className="text-xs text-primary pt-2">
-                    After connecting, this page will reload. If successful, you
-                    will automatically advance.
-                  </p>
                 </div>
               )}
             </div>
@@ -456,8 +579,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
             </DialogHeader>
             <div className="text-center p-4 bg-primary/10 rounded-lg space-y-4">
               <p className="text-sm text-gray-300">
-                You must join the AFC Discord server to complete your
-                registration and receive match details.
+                Join the AFC Discord server to complete registration.
               </p>
               <Button
                 onClick={() =>
@@ -472,10 +594,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
               >
                 Join AFC Discord Server
               </Button>
-              <p className="text-xs text-gray-400 pt-2">
-                After joining, click the button below to confirm your
-                registration.
-              </p>
             </div>
             <DialogFooter className="mt-4 flex sm:justify-between">
               <Button
@@ -490,7 +608,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 className="bg-green-600 hover:bg-green-500"
               >
                 {pendingJoined ? (
-                  <Loader text="Completing Registration..." />
+                  <Loader text="Completing..." />
                 ) : (
                   "I've Joined the Server"
                 )}
@@ -507,12 +625,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 <CheckCircle className="w-12 h-12 text-primary mx-auto mb-2" />
               </DialogHeader>
               <p className="text-sm font-semibold">
-                Welcome to the tournament! You'll receive match details in the
-                AFC Discord server.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Your registration is complete. Check your Discord for further
-                instructions.
+                Welcome to the tournament! Check Discord for match details.
               </p>
             </div>
             <DialogFooter>
@@ -537,9 +650,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
   );
 };
 
-type Params = Promise<{
-  id: string;
-}>;
+type Params = Promise<{ id: string }>;
 
 const EventDetailPage = ({ params }: { params: Params }) => {
   const { id } = use(params);
@@ -551,18 +662,14 @@ const EventDetailPage = ({ params }: { params: Params }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeStageTab, setActiveStageTab] = useState<string>("");
-
   const [modalStep, setModalStep] = useState<ModalStep>("CLOSED");
   const [regType, setRegType] = useState<RegistrationType | null>(null);
   const [rulesAccepted, setRulesAccepted] = useState(false);
-
   const [discordConnected, setDiscordConnected] = useState(false);
-
   const [pendingJoined, startJoinedTransition] = useTransition();
 
   useEffect(() => {
     const discordStatus = searchParams.get("discord");
-    const intendedStep = searchParams.get("step");
 
     if (discordStatus) {
       setModalStep("DISCORD_LINK");
@@ -570,15 +677,12 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         if (discordStatus === "connected") {
           setDiscordConnected(true);
           setModalStep("DISCORD_JOIN");
-          toast.success(
-            "Discord account linked successfully! Please join the server to complete registration."
-          );
+          toast.success("Discord account linked successfully!");
         } else {
           setDiscordConnected(false);
-          const errorMsg =
-            searchParams.get("message") ||
-            "Discord connection failed. Please try again.";
-          toast.error(errorMsg);
+          toast.error(
+            searchParams.get("message") || "Discord connection failed."
+          );
         }
 
         const newSearchParams = new URLSearchParams(searchParams.toString());
@@ -609,122 +713,63 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         }
       );
 
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const result: ApiResponse = await response.json();
       const details = result.event_details;
 
       setEventDetails(details);
 
-      if (details.stages.length > 0) {
+      if (details?.stages?.length > 0) {
         setActiveStageTab(details.stages[0].stage_name);
       }
     } catch (err) {
       toast.error("Failed to load event details");
+      setError("Failed to load event details");
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, token]);
 
   useEffect(() => {
-    if (id) {
+    if (id && token) {
       fetchEventDetails();
     }
-  }, [fetchEventDetails, id]);
-
-  // --- NEW LOGIC: Check URL for Discord Connection Status ---
-  useEffect(() => {
-    const discordStatus = searchParams.get("discord");
-    const intendedStep = searchParams.get("step");
-
-    // Only proceed if we have a connection status AND it came from the registration flow
-    if (discordStatus && intendedStep === "discord") {
-      setModalStep("DISCORD_LINK");
-
-      setTimeout(() => {
-        if (discordStatus === "connected") {
-          setDiscordConnected(true);
-          setModalStep("DISCORD_JOIN"); // <-- ADVANCE TO NEXT STEP
-          toast.success(
-            "Discord account linked successfully! Please join the server to complete registration."
-          );
-        } else {
-          setDiscordConnected(false);
-          const errorMsg =
-            searchParams.get("message") ||
-            "Discord connection failed. Please try again.";
-          toast.error(errorMsg);
-          setModalStep("DISCORD_LINK"); // <-- STAY ON CURRENT STEP
-        }
-
-        const newSearchParams = new URLSearchParams(searchParams.toString());
-        newSearchParams.delete("discord");
-        newSearchParams.delete("step");
-        // Important: Replace history without reloading the page
-        router.replace(
-          `${window.location.pathname}?${newSearchParams.toString()}`,
-          { scroll: false }
-        );
-      }, 50);
-    }
-  }, [searchParams, router]);
+  }, [fetchEventDetails, id, token]);
 
   if (isLoading) return <FullLoader />;
+  if (error || !eventDetails) return notFound();
 
-  if (error || !eventDetails) {
-    return notFound();
-  }
-
-  const handleRegisterClick = () => {
-    setModalStep("TYPE");
-  };
-
+  const handleRegisterClick = () => setModalStep("TYPE");
   const handleSelectType = (type: RegistrationType) => {
     setRegType(type);
     setModalStep("RULES");
   };
-
   const handleRulesContinue = () => {
     if (rulesAccepted) {
-      if (discordConnected) {
-        setModalStep("DISCORD_JOIN");
-      } else {
-        setModalStep("DISCORD_LINK");
-      }
+      setModalStep(discordConnected ? "DISCORD_JOIN" : "DISCORD_LINK");
     }
   };
-
   const handleDiscordConnect = () => {
     const redirectUrl = encodeURIComponent(
       `${window.location.origin}${window.location.pathname}?id=${id}&discord=connected&step=discord`
     );
-
     const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${id}&redirect_url=${redirectUrl}`;
-
     window.open(url, "_blank", "noopener,noreferrer");
   };
-
   const handleJoinedServer = async () => {
     startJoinedTransition(async () => {
       try {
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/register-for-event/`,
-          {
-            event_id: id,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { event_id: id },
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-
         toast.success(res.data.message);
         setModalStep("SUCCESS");
       } catch (error: any) {
-        toast.error(error.response.data.message || "Oops! An error occurred");
+        toast.error(error.response?.data?.message || "An error occurred");
       }
     });
   };
@@ -739,7 +784,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
 
   return (
     <div>
-      {/* <Card> */}
       <CardHeader className="space-y-1">
         <PageHeader title={eventDetails.event_name} back />
         <div className="space-y-2">
@@ -761,8 +805,9 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         </div>
         <p>Participants: {participantText}</p>
       </CardHeader>
+
       <CardContent className="pt-4">
-        {eventDetails.stages.length > 0 ? (
+        {eventDetails.stages?.length > 0 ? (
           <Tabs
             value={activeStageTab}
             onValueChange={setActiveStageTab}
@@ -771,38 +816,46 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             <ScrollArea>
               <TabsList className="w-full">
                 {eventDetails.stages.map((stage) => (
-                  <TabsTrigger key={stage.id} value={stage.stage_name}>
+                  <TabsTrigger
+                    key={stage.stage_id}
+                    value={stage.stage_name}
+                    className="flex-1"
+                  >
                     {stage.stage_name}
                   </TabsTrigger>
                 ))}
               </TabsList>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
+
             {eventDetails.stages.map((stage) => (
-              <TabsContent key={stage.id} value={stage.stage_name}>
+              <TabsContent
+                key={stage.stage_id}
+                value={stage.stage_name}
+                className="mt-4 animate-in fade-in slide-in-from-bottom-2"
+              >
                 <StageResultsTable stage={stage} />
               </TabsContent>
             ))}
           </Tabs>
         ) : (
-          <p className="text-center text-gray-500">
-            No stages or results defined for this event yet.
-          </p>
+          <div className="p-10 text-center border-2 border-dashed border-zinc-900 rounded-2xl text-zinc-500">
+            Tournament hasn't started yet. Results will appear here.
+          </div>
         )}
       </CardContent>
-      {/* </Card> */}
 
       <div className="text-center mt-6">
-        {!eventDetails.is_registered ? (
+        {!eventDetails?.is_registered ? (
           <Button disabled>You've registered already</Button>
         ) : eventDetails.event_type === "external" ? (
           <Button
             onClick={() =>
-              window.open(eventDetails.registration_link, "_blank")
+              window.open(eventDetails?.registration_link, "_blank")
             }
             disabled={
               eventDetails.event_status !== "upcoming" ||
-              eventDetails.is_registered
+              !eventDetails.is_registered
             }
           >
             {eventDetails.event_status === "upcoming"
@@ -813,12 +866,12 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           <Button
             onClick={handleRegisterClick}
             disabled={
-              eventDetails.event_status !== "upcoming" ||
-              !eventDetails.is_registered ||
-              new Date(eventDetails.registration_end_date) < new Date()
+              eventDetails?.event_status !== "upcoming" ||
+              !eventDetails?.is_registered ||
+              new Date(eventDetails?.registration_end_date) < new Date()
             }
           >
-            {new Date(eventDetails.registration_end_date) < new Date()
+            {new Date(eventDetails?.registration_end_date) < new Date()
               ? "Registration closed"
               : "Register for Tournament"}
           </Button>
@@ -843,7 +896,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             <Card>
               <CardContent className="flex flex-col items-center justify-center gap-2">
                 <p className="font-semibold text-lg md:text-2xl">
-                  {eventDetails.registered_competitors.length}
+                  {eventDetails?.registered_competitors?.length || 0}
                 </p>
                 <p className="text-xs md:text-sm">Players</p>
               </CardContent>
@@ -852,8 +905,8 @@ const EventDetailPage = ({ params }: { params: Params }) => {
               <CardContent className="flex flex-col items-center justify-center gap-2">
                 <p className="font-semibold text-lg md:text-2xl">
                   {formatMoneyInput(
-                    eventDetails.max_teams_or_players -
-                      eventDetails.registered_competitors.length
+                    eventDetails?.max_teams_or_players -
+                      (eventDetails?.registered_competitors?.length || 0)
                   )}
                 </p>
                 <p className="text-xs md:text-sm">Slot left</p>
@@ -861,26 +914,28 @@ const EventDetailPage = ({ params }: { params: Params }) => {
             </Card>
           </div>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-h-96 overflow-auto custom-scroll">
-            {eventDetails.registered_competitors.map((reg: any, index: any) => (
-              <Card key={index}>
-                <CardContent className="flex items-center justify-between gap-2">
-                  <div className="flex items-center justify-start gap-2">
-                    <div className="px-4 py-2 rounded-full bg-primary text-white font-semibold text-base">
-                      {index + 1}
+            {eventDetails?.registered_competitors?.map(
+              (reg: any, index: number) => (
+                <Card key={`competitor-${reg.id || index}`}>
+                  <CardContent className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-start gap-2">
+                      <div className="px-4 py-2 rounded-full bg-primary text-white font-semibold text-base">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-white font-semibold text-base">
+                          {reg.username}
+                        </p>
+                        <p className="font-white text-xs capitalize">
+                          {reg.status}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-white font-semibold text-base">
-                        {reg.username}
-                      </p>
-                      <p className="font-white text-xs capitalize">
-                        {reg.status}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge>Confirmed</Badge>
-                </CardContent>
-              </Card>
-            ))}
+                    <Badge>Confirmed</Badge>
+                  </CardContent>
+                </Card>
+              )
+            )}
           </div>
         </CardContent>
       </Card>
@@ -920,7 +975,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
               } else {
                 return (
                   <p className="text-sm text-gray-500">
-                    Rules document pending. Please check back later.
+                    Rules document pending.
                   </p>
                 );
               }
@@ -934,7 +989,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
           </CardHeader>
           <CardContent>
             <ul className="text-sm space-y-1">
-              {Object.entries(eventDetails.prize_distribution).map(
+              {Object.entries(eventDetails.prize_distribution)?.map(
                 ([place, prize]) => (
                   <li key={place}>
                     {place.toUpperCase()}: ${prize.toLocaleString()}
@@ -946,7 +1001,6 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         </Card>
       </div>
 
-      {/* --- Registration Modals --- */}
       <RegistrationModals
         eventDetails={eventDetails}
         modalStep={modalStep}

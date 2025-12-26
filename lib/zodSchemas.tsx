@@ -36,14 +36,14 @@ export const LoginFormSchema = z.object({
 });
 
 export const EditMatchFormSchema = z.object({
-  roomId: z.string().min(2, {
-    message: "ID must be at least 2 characters.",
+  roomId: z.string().min(1, {
+    message: "ID must be at least 1 characters.",
   }),
-  roomName: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+  roomName: z.string().min(1, {
+    message: "Name must be at least 1 characters.",
   }),
-  roomPassword: z.string().min(2, {
-    message: "Password must be at least 2 characters.",
+  roomPassword: z.string().min(1, {
+    message: "Password must be at least 1 characters.",
   }),
 });
 

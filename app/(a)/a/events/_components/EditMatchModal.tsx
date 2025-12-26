@@ -55,18 +55,23 @@ export const EditMatchModal = ({
   const form = useForm<EditMatchFormSchemaType>({
     resolver: zodResolver(EditMatchFormSchema),
     defaultValues: {
-      roomId: "",
-      roomName: "",
-      roomPassword: "",
+      roomId: roomId || "",
+      roomName: roomName || "",
+      roomPassword: roomPassword || "",
     },
   });
 
-  const onSubmit = () => {
+  const onSubmit = (data: EditMatchFormSchemaType) => {
     startTransition(async () => {
       try {
         const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match/`,
-          { room_id: roomId, room_name: roomName, room_password: roomPassword },
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-details/`,
+          {
+            room_id: data.roomId,
+            room_name: data.roomName,
+            room_password: data.roomPassword,
+            match_id: matchId,
+          },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -74,11 +79,14 @@ export const EditMatchModal = ({
           }
         );
 
+        // if(res.statusText === 'OK')
+
         toast.success(res.data.message || "Match edit successfully");
         setOpen(false);
 
         onSuccess?.();
       } catch (e: any) {
+        console.log(e);
         toast.error(e.response?.data?.message || "Failed to edited match");
       }
     });

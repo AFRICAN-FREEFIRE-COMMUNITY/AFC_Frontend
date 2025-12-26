@@ -72,6 +72,7 @@ import { DeleteMatchModal } from "../../_components/DeleteMatchModal";
 import { SeedToGroupModal } from "../../_components/SeedToGroupModal";
 import { Label } from "@/components/ui/label";
 import { EditMatchModal } from "../../_components/EditMatchModal";
+import { SendNotificationModal } from "../../_components/SendNotificationModal";
 
 // ============================================================================
 // CONSTANTS & TYPES
@@ -538,7 +539,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [stageModalStep, setStageModalStep] = useState(1);
   const [tempGroups, setTempGroups] = useState<GroupType[]>([]);
   const [currentTab, setCurrentTab] = useState("basic_info");
-  const [isPending, startTransition] = useTransition();
+  // const [loadingEvent, startTransition] = useTransition();
+  const [loadingEvent, setLoadingEvent] = useState(true);
+  const [pendingSubmit, startSubmitTransition] = useTransition();
   const [rulesInputMethod, setRulesInputMethod] = useState<"type" | "upload">(
     "type"
   );
@@ -683,55 +686,57 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     fetchEventDetails();
   }, [id, token, authLoading, router]);
 
-  const fetchEventDetails = () => {
+  const fetchEventDetails = async () => {
     if (!id || authLoading || !token) return;
 
-    startTransition(async () => {
-      try {
-        const decodedId = decodeURIComponent(id);
-        const commonConfig = {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        };
+    try {
+      setLoadingEvent(true);
+      const decodedId = decodeURIComponent(id);
+      const commonConfig = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
 
-        const [res, resAdmin] = await Promise.all([
-          axios.post(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-            { event_id: decodedId },
-            commonConfig
-          ),
-          axios.post(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
-            { event_id: decodedId },
-            commonConfig
-          ),
-        ]);
+      const [res, resAdmin] = await Promise.all([
+        axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+          { event_id: decodedId },
+          commonConfig
+        ),
+        axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
+          { event_id: decodedId },
+          commonConfig
+        ),
+      ]);
 
-        const adminStages =
-          resAdmin.data.event_details?.stages || resAdmin.data.stages || [];
+      const adminStages =
+        resAdmin.data.event_details?.stages || resAdmin.data.stages || [];
 
-        const mergedDetails: EventDetails = {
-          ...res.data.event_details,
-          stages: adminStages,
-        };
+      const mergedDetails: EventDetails = {
+        ...res.data.event_details,
+        stages: adminStages,
+      };
 
-        if (adminStages.length > 0) {
-          const names = adminStages.map((s: any) => s.stage_name);
-          setStageNames(names);
-        }
-
-        setEventDetails(mergedDetails);
-      } catch (error: any) {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.response?.data?.detail ||
-          "Failed to fetch event details.";
-        toast.error(errorMessage);
-        router.push("/login");
+      if (adminStages.length > 0) {
+        const names = adminStages.map((s: any) => s.stage_name);
+        setStageNames(names);
       }
-    });
+
+      setEventDetails(mergedDetails);
+      setLoadingEvent(false);
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to fetch event details.";
+      toast.error(errorMessage);
+      router.push("/login");
+    } finally {
+      setLoadingEvent(false);
+    }
   };
 
   useEffect(() => {
@@ -1121,6 +1126,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setIsStageModalOpen(true);
   };
 
+  console.log(eventDetails);
+
   const addNewStage = () => {
     const currentCount = form.getValues("number_of_stages") || 0;
     const newCount = currentCount + 1;
@@ -1339,7 +1346,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       return;
     }
 
-    startTransition(async () => {
+    startSubmitTransition(async () => {
       try {
         const formData = new FormData();
 
@@ -1466,7 +1473,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     });
   };
 
-  if (initialLoading || !eventDetails) {
+  if (initialLoading || loadingEvent || !eventDetails) {
     return <FullLoader />;
   }
 
@@ -2006,9 +2013,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
                       await onSubmit(form.getValues());
                     }}
-                    disabled={isPending}
+                    disabled={loadingEvent || pendingSubmit}
                   >
-                    {isPending ? <Loader text="Saving..." /> : "Save Changes"}
+                    {loadingEvent || pendingSubmit ? (
+                      <Loader text="Saving..." />
+                    ) : (
+                      "Save Changes"
+                    )}
                   </Button>
                 </CardContent>
               </Card>
@@ -2020,7 +2031,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 <CardHeader>
                   <CardTitle>
                     Registered Teams/Players (
-                    {eventDetails?.registered_competitors.length})
+                    {eventDetails?.registered_competitors?.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="relative">
@@ -2034,7 +2045,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {eventDetails?.registered_competitors.map((comp) => (
+                        {eventDetails?.registered_competitors?.map((comp) => (
                           <TableRow key={comp.player_id}>
                             <TableCell className="capitalize">
                               {comp.username}
@@ -2160,9 +2171,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       {stage.groups.map((group, gIdx) => (
                         <Card key={gIdx} className="gap-0">
                           <CardHeader>
-                            <CardTitle>{group?.group_name}</CardTitle>
+                            <CardTitle className="flex items-center justify-between gap-2">
+                              {group?.group_name}{" "}
+                              <SendNotificationModal
+                                eventId={eventDetails.event_id}
+                                groupId={group.group_id}
+                                onSuccess={() => fetchEventDetails()}
+                              />
+                            </CardTitle>
                           </CardHeader>
-                          <CardContent className="pt-2 text-muted-foreground text-sm space-y-2">
+                          <CardContent className="text-muted-foreground text-sm space-y-2">
                             <div className="space-y-1">
                               <p>
                                 {formatDate(group?.playing_date)} at{" "}
@@ -2372,9 +2390,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
                   await onSubmit(form.getValues());
                 }}
-                disabled={isPending}
+                disabled={loadingEvent || pendingSubmit}
               >
-                {isPending ? <Loader text="Saving..." /> : "Save Changes"}
+                {loadingEvent || pendingSubmit ? (
+                  <Loader text="Saving..." />
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
             </TabsContent>
 
@@ -2681,9 +2703,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
                       await onSubmit(form.getValues());
                     }}
-                    disabled={isPending}
+                    disabled={loadingEvent || pendingSubmit}
                   >
-                    {isPending ? <Loader text="Saving..." /> : "Save Changes"}
+                    {loadingEvent || pendingSubmit ? (
+                      <Loader text="Saving..." />
+                    ) : (
+                      "Save Changes"
+                    )}
                   </Button>
                 </CardContent>
               </Card>
