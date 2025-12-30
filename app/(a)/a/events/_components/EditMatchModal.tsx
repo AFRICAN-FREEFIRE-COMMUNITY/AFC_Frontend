@@ -86,7 +86,6 @@ export const EditMatchModal = ({
 
         onSuccess?.();
       } catch (e: any) {
-        console.log(e);
         toast.error(e.response?.data?.message || "Failed to edited match");
       }
     });

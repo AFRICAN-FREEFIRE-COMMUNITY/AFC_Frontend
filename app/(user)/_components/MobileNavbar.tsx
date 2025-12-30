@@ -30,6 +30,46 @@ export function MobileNavbar() {
 
   const { user, isAdmin } = useAuth();
 
+  // 1. Helper function to check permissions
+  // const canAccess = (linkAllowedRoles?: string[]) => {
+  //   console.log(linkAllowedRoles);
+
+  //   // If no roles are specified, all admins can see it
+  //   if (!linkAllowedRoles) return true;
+
+  //   // Check if current user's role is in the allowed list
+  //   return user?.role || user?.roles.includes && linkAllowedRoles.includes(user.role);
+  // };
+
+  const canAccess = (linkAllowedRoles?: string[]) => {
+    // 1. If the user is a top-level admin, bypass all checks
+    if (
+      user?.role === "super_admin" ||
+      user?.role === "head_admin" ||
+      isAdmin
+    ) {
+      return true;
+    }
+
+    // 2. If the link has no restrictions, any admin who reached this block can see it
+    if (!linkAllowedRoles || linkAllowedRoles.length === 0) {
+      return true;
+    }
+
+    // 3. Check for single role (user.role)
+    if (user?.role && linkAllowedRoles.includes(user.role)) {
+      return true;
+    }
+
+    // 4. Check for multiple roles (user.roles array)
+    if (user?.roles && Array.isArray(user.roles)) {
+      // Check if ANY of the user's roles exist in the link's allowed list
+      return user.roles.some((role: string) => linkAllowedRoles.includes(role));
+    }
+
+    return false;
+  };
+
   const handleLinkClick = () => {
     setOpen(false);
   };
@@ -103,13 +143,76 @@ export function MobileNavbar() {
                 );
               }
             )}
-            {(user?.role === "moderator" ||
+            {/* {(user?.role === "moderator" ||
               user?.role === "super_admin" ||
               user?.role === "admin" ||
               isAdmin) && (
+              <> */}
+            {(user?.roles?.length > 0 || isAdmin) && (
               <>
                 <Separator />
-                {adminNavLinks.map(
+                {adminNavLinks
+                  .filter((link) => canAccess(link.allowedRoles)) // Core filtering logic
+                  .map(({ icon: Icon, slug, label, comingSoon }, index) =>
+                    comingSoon ? (
+                      <Button
+                        key={index}
+                        className="justify-start"
+                        variant="ghost"
+                        disabled
+                      >
+                        <Icon size={18} className="mr-2" />
+                        {label}
+                        <Badge variant={"secondary"} className="ml-auto">
+                          Soon
+                        </Badge>
+                      </Button>
+                    ) : (
+                      <Button
+                        key={index}
+                        className="justify-start"
+                        asChild
+                        variant={isActive(slug) ? "default" : "ghost"}
+                        onClick={handleLinkClick}
+                      >
+                        <Link href={slug}>
+                          <Icon size={18} className="mr-2" />
+                          {label}
+                        </Link>
+                      </Button>
+                    )
+                  )}
+                {/* {adminNavLinks
+                  .filter((link) => canAccess(link.allowedRoles)) // Filter links based on role
+                  .map(({ icon, slug, label, comingSoon }, index) => {
+                    const Icon = icon;
+                    return comingSoon ? (
+                      <Button
+                        className="justify-start"
+                        key={index}
+                        variant="ghost"
+                        disabled
+                      >
+                        <Icon />
+                        {label}
+                        <Badge variant={"secondary"}>Soon</Badge>
+                      </Button>
+                    ) : (
+                      <Button
+                        className="justify-start"
+                        key={index}
+                        asChild
+                        variant={isActive(slug) ? "default" : "ghost"}
+                        onClick={handleLinkClick}
+                      >
+                        <Link href={slug}>
+                          <Icon />
+                          {label}
+                        </Link>
+                      </Button>
+                    );
+                  })} */}
+                {/* {adminNavLinks.map(
                   ({ icon, slug, label, comingSoon }, index) => {
                     const Icon = icon;
                     return comingSoon ? (
@@ -138,7 +241,7 @@ export function MobileNavbar() {
                       </Button>
                     );
                   }
-                )}
+                )} */}
               </>
             )}
           </div>

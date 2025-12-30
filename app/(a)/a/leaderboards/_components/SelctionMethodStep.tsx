@@ -22,6 +22,7 @@ export const SelectionMethodStep = ({ onSelect }: Props) => {
       icon: IconUsers,
       small: "Manually input placement and kills for each player",
       long: "Directly enter match data for teams and players. You'll input placement, kills, assists, and damage for each map, and the system will generate the leaderboard automatically.",
+      disabled: true,
     },
     {
       id: "image" as Method,
@@ -29,6 +30,7 @@ export const SelectionMethodStep = ({ onSelect }: Props) => {
       icon: IconPhoto,
       small: "Upload match result screenshots",
       long: "Upload screenshots or images of match results from games. The system will parse the image data to generate the leaderboard automatically.",
+      disabled: true,
     },
     {
       id: "file" as Method,
@@ -55,7 +57,11 @@ export const SelectionMethodStep = ({ onSelect }: Props) => {
             <p className="text-sm text-muted-foreground flex-1 leading-relaxed">
               {m.long}
             </p>
-            <Button className="w-full" onClick={() => onSelect(m.id)}>
+            <Button
+              disabled={m.disabled}
+              className="w-full"
+              onClick={() => onSelect(m.id)}
+            >
               Select Method
             </Button>
           </CardContent>

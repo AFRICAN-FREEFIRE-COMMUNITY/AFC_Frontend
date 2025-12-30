@@ -25,6 +25,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useSignout } from "@/hooks/use-signout";
+import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 
 export function NavUser({
   user,
@@ -56,10 +57,10 @@ export function NavUser({
               <Avatar className="h-8 w-8 rounded-md">
                 <AvatarImage
                   className="object-cover"
-                  src={user.avatar}
+                  src={user.avatar || DEFAULT_PROFILE_PICTURE}
                   alt={user.name}
                 />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">AFC</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>

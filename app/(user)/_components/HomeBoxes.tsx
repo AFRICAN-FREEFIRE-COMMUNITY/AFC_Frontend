@@ -55,7 +55,7 @@ export const HomeBoxes = () => {
       <Card className="border-primary">
         <CardHeader>
           <IconCalendar className="h-8 w-8 text-gold mb-1" />
-          <CardTitle>Upcoming Tournaments</CardTitle>
+          <CardTitle>Hosted Tournaments</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-4xl font-bold text-gold">

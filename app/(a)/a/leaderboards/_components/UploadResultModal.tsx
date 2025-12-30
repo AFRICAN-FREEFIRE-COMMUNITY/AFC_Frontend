@@ -37,10 +37,12 @@ export const UploadResultModal = ({
   onClose,
   open,
   currentGroup,
+  onSuccess,
 }: {
   open: boolean;
   onClose: () => void;
   currentGroup: any;
+  onSuccess: () => void; // <--- 2. Add type definition
 }) => {
   const { token } = useAuth();
   const [selectedMatchId, setSelectedMatchId] = useState<string>("");
@@ -105,6 +107,15 @@ export const UploadResultModal = ({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  // Helper to reset modal state for the next time it opens
+  const resetAndClose = () => {
+    setFile(null);
+    setUploadProgress(0);
+    setIsCompleted(false);
+    setSelectedMatchId("");
+    onClose();
+  };
+
   const handleUpload = async () => {
     if (!selectedMatchId || !file) {
       toast.error("Please select a match and a file");
@@ -128,8 +139,9 @@ export const UploadResultModal = ({
 
         if (res.ok) {
           toast.success("Result uploaded successfully!");
-          onClose();
-          window.location.reload();
+          // --- 3. THE MAGIC PART ---
+          onSuccess(); // This triggers the fetch in the background
+          resetAndClose(); // Closes the modal and clears the inputs
         } else {
           const error = await res.json();
           toast.error(error.message || "Failed to upload result");

@@ -1,139 +1,172 @@
-"use client";
-import { use } from "react";
-import { Button } from "@/components/ui/button";
-import { FullLoader } from "@/components/Loader";
-import { toast } from "sonner";
-import { useEffect, useState } from "react";
+// // app/news/[id]/page.tsx
+// import { Metadata } from "next";
+// import axios from "axios";
+// import { env } from "@/lib/env";
+// import { NewsClient } from "./_components/NewsClient";
+// import { generateDynamicMetadata, generateArticleSchema } from "@/lib/seo"; // Your SEO helper
+
+// type Props = {
+//   params: Promise<{ id: string }>;
+// };
+
+// // --- SEO GENERATION ---
+// export async function generateMetadata({ params }: Props): Promise<Metadata> {
+//   const { id } = await params;
+//   const decodedId = decodeURIComponent(id);
+
+//   try {
+//     const res = await axios.post(
+//       `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
+//       {
+//         news_id: decodedId,
+//       }
+//     );
+//     const news = res.data.news;
+
+//     return generateDynamicMetadata({
+//       title: news.news_title,
+//       description: news.news_title, // Or a truncated version of content
+//       image: news.images_url,
+//       url: `/news/${id}`,
+//       type: "article",
+//       publishedTime: news.created_at,
+//       authors: [news.author || "AFC"],
+//     });
+//   } catch (error) {
+//     return { title: "News Not Found" };
+//   }
+// }
+
+// export default async function Page({ params }: Props) {
+//   const { id } = await params;
+//   const decodedId = decodeURIComponent(id);
+
+//   // Initial fetch for the schema and to pass to client if you want to avoid a second loader
+//   let initialData = null;
+//   try {
+//     const res = await axios.post(
+//       `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
+//       {
+//         news_id: decodedId,
+//       }
+//     );
+//     initialData = res.data.news;
+//   } catch (e) {
+//     console.error(e);
+//   }
+
+//   const articleSchema = initialData
+//     ? generateArticleSchema({
+//         title: initialData.news_title,
+//         description: initialData.news_title,
+//         image: initialData.images_url,
+//         url: `/news/${id}`,
+//         publishedTime: initialData.created_at,
+//         author: initialData.author || "AFC Admin",
+//       })
+//     : null;
+
+//   return (
+//     <>
+//       {articleSchema && (
+//         <script
+//           type="application/ld+json"
+//           dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+//         />
+//       )}
+//       <NewsClient params={params} initialData={initialData} />
+//     </>
+//   );
+// }
+
+// app/news/[id]/page.tsx
+import { Metadata } from "next";
 import axios from "axios";
 import { env } from "@/lib/env";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDate } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
-import { RenderDescription } from "@/components/text-editor/RenderDescription";
-import { ExternalLink } from "lucide-react";
-import { PageHeader } from "@/components/PageHeader";
-import Link from "next/link";
+import { NewsClient } from "./_components/NewsClient";
+import { generateDynamicMetadata, generateArticleSchema } from "@/lib/seo";
 import { notFound } from "next/navigation";
-import { DEFAULT_IMAGE } from "@/constants";
 
-type Params = Promise<{
-  id: string;
-}>;
+type Props = {
+  params: Promise<{ id: string }>;
+};
 
-export default function Page({ params }: { params: Params }) {
-  const { id } = use(params);
+/**
+ * Shared data fetcher to maintain consistency
+ * and handle URL decoding in one place.
+ */
+async function getNewsData(id: string) {
+  try {
+    const decodedId = decodeURIComponent(id);
+    const res = await axios.post(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
+      { news_id: decodedId }
+    );
+    return res.data.news;
+  } catch (error) {
+    console.error("Error fetching news for SEO/Render:", error);
+    return null;
+  }
+}
 
-  const [loading, setLoading] = useState(true);
-  const [newsDetails, setNewsDetails] = useState<any>(null);
+// --- SEO GENERATION ---
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const news = await getNewsData(id);
 
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchNews = async () => {
-      try {
-        const decodedId = decodeURIComponent(id);
-        const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
-          { news_id: decodedId }
-        );
-        setNewsDetails(res.data.news);
-      } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Failed to load news");
-      } finally {
-        setLoading(false);
-      }
+  if (!news) {
+    return {
+      title: "News Not Found | AFC",
+      description: "The requested news article could not be found.",
     };
+  }
 
-    fetchNews();
-  }, [id]);
+  // Ensure image URL is absolute for social crawlers
+  const imageUrl = news.images_url?.startsWith("http")
+    ? news.images_url
+    : `${env.NEXT_PUBLIC_URL}${news.images_url}`;
 
-  if (loading) return <FullLoader />;
+  return generateDynamicMetadata({
+    title: news.news_title,
+    description: news.news_title, // Consider extracting a plain text snippet here
+    image: imageUrl,
+    url: `/news/${id}`,
+    type: "article",
+    publishedTime: news.created_at,
+    authors: [news.author || "AFC Admin"],
+  });
+}
 
-  if (!newsDetails) notFound();
+// --- PAGE RENDER ---
+export default async function Page({ params }: Props) {
+  const { id } = await params;
+  const news = await getNewsData(id);
+
+  // If the news doesn't exist, trigger the Next.js 404 page
+  if (!news) {
+    notFound();
+  }
+
+  // Generate the JSON-LD Article Schema for Google Search rich results
+  const articleSchema = generateArticleSchema({
+    title: news.news_title,
+    description: news.news_title,
+    image: news.images_url,
+    url: `/news/${id}`,
+    publishedTime: news.created_at,
+    author: news.author || "AFC Admin",
+  });
 
   return (
-    <div className="">
-      <PageHeader
-        description={
-          <>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-2">
-              {/* <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={newsDetails.author.picture}
-                  alt={newsDetails.author}
-                />
-                <AvatarFallback>{newsDetails.author}</AvatarFallback>
-              </Avatar> */}
-              {/* <span>{newsDetails.author}</span> */}
-              {/* <span>•</span> */}
-              <span>{formatDate(newsDetails.created_at)}</span>
-              <span>•</span>
-              <Badge variant="secondary" className="capitalize">
-                {newsDetails.category}
-              </Badge>
-            </div>
-          </>
-        }
-        title={`${newsDetails.news_title} Details`}
-        back
-      />
-      <div>
-        <Image
-          src={newsDetails.images_url || DEFAULT_IMAGE}
-          alt={newsDetails.news_title}
-          width={800}
-          height={400}
-          className="w-full h-auto rounded-md mb-6"
+    <>
+      {articleSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
         />
-        {/* <div
-              className="prose max-w-none mb-6"
-              dangerouslySetInnerHTML={{ __html: newsDetails.content }}
-            /> */}
-        {/* {extractTiptapText(newsDetails.content)} */}
-        <RenderDescription json={newsDetails?.content} />
-        {newsDetails.category === "tournament" && (
-          <Card className="my-6">
-            <CardHeader>
-              <CardTitle>Tournament Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <dt className="font-semibold">Tournament Name</dt>
-                  <dd>{newsDetails.tournamentName}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Format</dt>
-                  <dd>{newsDetails.format}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Prize Pool</dt>
-                  <dd>{newsDetails.prizePool}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Location</dt>
-                  <dd>{newsDetails.location}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-        )}
-        {newsDetails.category === "tournament" &&
-          newsDetails.registrationLink && (
-            <Button asChild className="mt-4">
-              <a
-                href={newsDetails.registrationLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Register for Tournament{" "}
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </a>
-            </Button>
-          )}
-      </div>
-    </div>
+      )}
+      {/* Pass the already fetched data to the client to prevent a double loader */}
+      <NewsClient params={params} initialData={news} />
+    </>
   );
 }

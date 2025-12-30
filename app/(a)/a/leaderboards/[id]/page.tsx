@@ -262,6 +262,7 @@ export default function IndividualLeaderboardPage({
         open={openUploadModal}
         onClose={() => setOpenUploadModal(false)}
         currentGroup={currentGroup}
+        onSuccess={fetchLeaderboard} // <--- Add this
       />
 
       {openAdjustModal && (

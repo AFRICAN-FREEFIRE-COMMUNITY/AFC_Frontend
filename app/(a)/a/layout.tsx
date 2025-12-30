@@ -13,7 +13,7 @@ import { ProtectedRoute } from "@/app/(user)/_components/ProtectedRoute";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute adminOnly={true}>
       <SidebarProvider
         style={
           {

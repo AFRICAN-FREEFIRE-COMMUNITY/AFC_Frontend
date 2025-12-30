@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,63 +28,99 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, formatDate } from "@/lib/utils";
-import { IconEdit, IconTrophy, IconMap } from "@tabler/icons-react";
+import { IconTrophy, IconLoader2 } from "@tabler/icons-react";
+import axios from "axios";
+import { useAuth } from "@/contexts/AuthContext";
+import { env } from "@/lib/env";
+import { toast } from "sonner";
 
 interface GroupResultModalProps {
-  activeGroup: any;
+  activeGroup: any; // The group object from the parent component
   stageName: string;
+  eventId: number;
 }
 
 export const GroupResultModal = ({
   activeGroup,
   stageName,
+  eventId,
 }: GroupResultModalProps) => {
-  // 1. State to track if we are viewing "overall" or a specific "match_id"
+  const [loading, setLoading] = useState(false);
   const [viewMatchId, setViewMatchId] = useState<string>("overall");
 
-  // 2. Logic to get data based on selection
-  const getStandings = () => {
-    if (viewMatchId === "overall") {
-      // --- AGGREGATION LOGIC (Sum of all matches) ---
-      const standings: Record<string, any> = {};
-      activeGroup.matches?.forEach((match: any) => {
-        if (!match.result_inputted || !match.stats) return;
+  // This will store ONLY the specific group data found in the big API response
+  const [groupDetails, setGroupDetails] = useState<any>(null);
+  const { token } = useAuth();
 
-        match.stats.forEach((stat: any) => {
-          const username = stat.competitor__user__username;
-          if (!standings[username]) {
-            standings[username] = {
-              username,
-              totalKills: 0,
-              totalPoints: 0,
-              matchesPlayed: 0,
-            };
-          }
-          standings[username].totalKills += stat.kills || 0;
-          standings[username].totalPoints += stat.total_points || 0;
-          standings[username].matchesPlayed += 1;
-        });
+  const fetchLeaderboard = async () => {
+    if (!activeGroup?.group_id) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboard-details-for-event/`,
+        { event_id: eventId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // --- FILTER LOGIC ---
+      // The API returns the whole event. We need to find the specific group matching activeGroup.group_id
+      let foundGroup = null;
+      response.data.stages?.forEach((stage: any) => {
+        const match = stage.groups?.find(
+          (g: any) => g.group_id === activeGroup.group_id
+        );
+        if (match) foundGroup = match;
       });
 
-      return Object.values(standings).sort(
-        (a, b) => b.totalPoints - a.totalPoints
+      if (foundGroup) {
+        setGroupDetails(foundGroup);
+      } else {
+        toast.error("Group data not found in leaderboard");
+      }
+    } catch (error: any) {
+      toast.error("Failed to load leaderboard details");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Trigger fetch when modal is likely to be interacted with or activeGroup changes
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [activeGroup?.group_id]);
+
+  const getStandings = () => {
+    if (!groupDetails) return [];
+
+    if (viewMatchId === "overall") {
+      return (groupDetails.overall_leaderboard || []).map(
+        (entry: any, index: number) => ({
+          rank: index + 1,
+          username: entry.competitor__user__username,
+          kills: entry.total_kills,
+          points: entry.total_points,
+          isQualified: index < groupDetails.teams_qualifying,
+        })
       );
     } else {
-      // --- SINGLE MATCH LOGIC ---
-      const match = activeGroup.matches?.find(
+      const match = groupDetails.matches?.find(
         (m: any) => m.match_id.toString() === viewMatchId
       );
       if (!match || !match.stats) return [];
 
       return match.stats
         .map((s: any) => ({
-          username: s.competitor__user__username,
-          totalKills: s.kills,
-          totalPoints: s.total_points,
-          placement: s.placement,
-          matchesPlayed: 1,
+          rank: s.placement,
+          username: s.username,
+          kills: s.kills,
+          points: s.total_points,
+          isQualified: false,
         }))
-        .sort((a, b) => (a.placement || 0) - (b.placement || 0));
+        .sort((a: any, b: any) => a.rank - b.rank);
     }
   };
 
@@ -108,128 +144,118 @@ export const GroupResultModal = ({
           </div>
         </DialogHeader>
 
-        {/* Group Metadata */}
-        <div className="bg-primary/5 p-3 rounded-lg flex flex-wrap gap-x-6 gap-y-2 text-[11px] border border-primary/10">
-          <p>
-            <span className="text-zinc-500 uppercase font-bold mr-1">
-              Date:
-            </span>{" "}
-            {formatDate(activeGroup.playing_date)}
-          </p>
-          <p>
-            <span className="text-zinc-500 uppercase font-bold mr-1">
-              Qualification:
-            </span>{" "}
-            Top {activeGroup.teams_qualifying} Advance
-          </p>
-          <p>
-            <span className="text-zinc-500 uppercase font-bold mr-1">
-              Status:
-            </span>
-            <span className="text-primary ml-1 font-bold">
-              {viewMatchId === "overall" ? "Consolidated" : "Single Match View"}
-            </span>
-          </p>
-        </div>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-64 gap-2">
+            <IconLoader2 className="animate-spin text-primary" size={32} />
+            <p className="text-sm text-muted-foreground">
+              Loading standings...
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Group Metadata */}
+            <div className="bg-primary/5 p-3 rounded-lg flex flex-wrap gap-x-6 gap-y-2 text-[11px] border border-primary/10">
+              <p>
+                <span className="text-zinc-500 font-bold uppercase mr-1">
+                  Advance:
+                </span>{" "}
+                Top{" "}
+                {groupDetails?.teams_qualifying || activeGroup.teams_qualifying}{" "}
+                Advance
+              </p>
+              <p>
+                <span className="text-zinc-500 font-bold uppercase mr-1">
+                  Matches:
+                </span>{" "}
+                {groupDetails?.match_count || 0} Total
+              </p>
+            </div>
 
-        <Select value={viewMatchId} onValueChange={setViewMatchId}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select View" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="overall">Overall Standing</SelectItem>
-            {activeGroup.matches?.map((m: any) => (
-              <SelectItem key={m.match_id} value={m.match_id.toString()}>
-                Match {m.match_number} ({m.match_map})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            <Select value={viewMatchId} onValueChange={setViewMatchId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select View" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="overall">Overall Leaderboard</SelectItem>
+                {groupDetails?.matches?.map((m: any) => (
+                  <SelectItem key={m.match_id} value={m.match_id.toString()}>
+                    Match {m.match_number} ({m.match_map})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-        {/* Scrollable Table Area */}
-        <div className="flex-1 overflow-auto mt-2 rounded-md border">
-          <Table>
-            <TableHeader className=" sticky top-0 z-10">
-              <TableRow>
-                <TableHead className="w-14 text-center">Rank</TableHead>
-                <TableHead>Competitor</TableHead>
-                <TableHead className="text-center w-24">Kills</TableHead>
-                <TableHead className="text-right w-24">Points</TableHead>
-                <TableHead className="text-right w-32">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tableStandings.length > 0 ? (
-                tableStandings.map((row, idx) => {
-                  // If viewing overall, qualify based on index. If viewing match, show actual placement.
-                  const displayRank =
-                    viewMatchId === "overall" ? idx + 1 : row.placement;
-                  const isQualifying =
-                    viewMatchId === "overall" &&
-                    idx < activeGroup.teams_qualifying;
-
-                  return (
-                    <TableRow
-                      key={row.username}
-                      className="border-zinc-900 group"
-                    >
-                      <TableCell className="text-center font-semibold text-muted-foreground">
-                        #{displayRank}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {row.username}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {row.totalKills}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold text-primary">
-                        {row.totalPoints.toFixed(1)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {viewMatchId === "overall" ? (
-                          <Badge
-                            variant={isQualifying ? "default" : "outline"}
-                            className={cn(
-                              "text-[10px] uppercase tracking-tighter",
-                              isQualifying
-                                ? "bg-green-600"
-                                : "text-zinc-500 border-zinc-800"
-                            )}
-                          >
-                            {isQualifying ? "Qualified" : "Eliminated"}
-                          </Badge>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground italic">
-                            Match Stats
-                          </span>
-                        )}
+            <div className="flex-1 overflow-auto rounded-md border border-zinc-800">
+              <Table>
+                <TableHeader className="bg-zinc-950 sticky top-0 z-10">
+                  <TableRow>
+                    <TableHead className="w-16 text-center">Rank</TableHead>
+                    <TableHead>Competitor</TableHead>
+                    <TableHead className="text-center w-20">Kills</TableHead>
+                    <TableHead className="text-center w-20">Points</TableHead>
+                    <TableHead className="text-right w-32">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tableStandings.length > 0 ? (
+                    tableStandings.map((row) => (
+                      <TableRow
+                        key={row.username}
+                        className="hover:bg-zinc-900/50"
+                      >
+                        <TableCell className="text-center font-bold">
+                          #{row.rank}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {row.username}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {row.kills}
+                        </TableCell>
+                        <TableCell className="text-center font-bold text-primary">
+                          {row.points}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {viewMatchId === "overall" ? (
+                            <Badge
+                              variant={row.isQualified ? "default" : "outline"}
+                              className={cn(
+                                "text-[10px] uppercase",
+                                row.isQualified
+                                  ? "bg-green-600"
+                                  : "text-zinc-500"
+                              )}
+                            >
+                              {row.isQualified ? "Qualified" : "Eliminated"}
+                            </Badge>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground italic">
+                              Match Stats
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="h-32 text-center text-muted-foreground italic"
+                      >
+                        No match results found.
                       </TableCell>
                     </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="h-32 text-center text-muted-foreground italic"
-                  >
-                    {viewMatchId === "overall"
-                      ? "No match results found to calculate standings."
-                      : "Results for this match haven't been uploaded yet."}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        )}
 
-        <DialogFooter className="mt-2 border-t pt-2">
+        <DialogFooter className="mt-4 border-t pt-4">
           <DialogClose asChild>
             <Button variant="ghost">Close</Button>
           </DialogClose>
-          {/* <Button variant="default" className="gap-2 font-bold">
-            <IconEdit size={16} /> Export results
-          </Button> */}
         </DialogFooter>
       </DialogContent>
     </Dialog>

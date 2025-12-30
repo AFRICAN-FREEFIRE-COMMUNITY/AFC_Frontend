@@ -83,6 +83,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { IconArrowLeft, IconCopy } from "@tabler/icons-react";
 import { BanModal } from "@/app/(a)/a/_components/BanModal";
 import { PageHeader } from "@/components/PageHeader";
+import { NothingFound } from "@/components/NothingFound";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -215,43 +216,121 @@ const Page = ({ params }: { params: Params }) => {
   };
 
   const handleApproveJoinRequest = (requestId: string) => {
-    // In a real app, you would make an API call to approve the request
     startApproveRequestTransition(async () => {
       try {
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
           { request_id: requestId, decision: "approved" },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
+
         toast.success(res.data.message);
-        router.refresh();
+
+        // Update the local state to show "Approved" for this specific row
+        setJoinRequests((prev: any) =>
+          prev.map((req: any) =>
+            req.request_id === requestId
+              ? { ...req, isProcessed: "approved" }
+              : req
+          )
+        );
+
+        // Silently update team members in the background so the "Members" tab is current
+        refreshTeamDetails();
       } catch (error: any) {
-        error;
-        toast.error(error.response.data.message);
+        toast.error(
+          error.response?.data?.message || "Failed to approve request"
+        );
       }
     });
   };
 
+  // const handleApproveJoinRequest = (requestId: string) => {
+  //   startApproveRequestTransition(async () => {
+  //     try {
+  //       const res = await axios.post(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
+  //         { request_id: requestId, decision: "approved" },
+  //         { headers: { Authorization: `Bearer ${token}` } }
+  //       );
+
+  //       toast.success(res.data.message);
+
+  //       // OPTIMISTIC UI UPDATE:
+  //       // 1. Remove from join requests list
+  //       setJoinRequests((prev: any) =>
+  //         prev.filter((req: any) => req.request_id !== requestId)
+  //       );
+
+  //       // 2. Refresh team details to show the new member in the "Members" tab
+  //       refreshTeamDetails();
+  //     } catch (error: any) {
+  //       toast.error(
+  //         error.response?.data?.message || "Failed to approve request"
+  //       );
+  //     }
+  //   });
+  // };
+
   const handleDenyJoinRequest = (requestId: string) => {
-    // In a real app, you would make an API call to approve the request
     startDenyRequestTransition(async () => {
       try {
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
           { request_id: requestId, decision: "denied" },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
+
         toast.success(res.data.message);
-        router.refresh();
+
+        // OPTIMISTIC UI UPDATE: Just remove the request from the list
+        setJoinRequests((prev: any) =>
+          prev.filter((req: any) => req.request_id !== requestId)
+        );
       } catch (error: any) {
-        toast.error(error.response.data.message);
+        toast.error(error.response?.data?.message || "Failed to deny request");
       }
     });
   };
+
+  // const handleApproveJoinRequest = (requestId: string) => {
+  //   // In a real app, you would make an API call to approve the request
+  //   startApproveRequestTransition(async () => {
+  //     try {
+  //       const res = await axios.post(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
+  //         { request_id: requestId, decision: "approved" },
+  //         {
+  //           headers: { Authorization: `Bearer ${token}` },
+  //         }
+  //       );
+  //       toast.success(res.data.message);
+  //       router.refresh();
+  //     } catch (error: any) {
+  //       error;
+  //       toast.error(error.response.data.message);
+  //     }
+  //   });
+  // };
+
+  // const handleDenyJoinRequest = (requestId: string) => {
+  //   // In a real app, you would make an API call to approve the request
+  //   startDenyRequestTransition(async () => {
+  //     try {
+  //       const res = await axios.post(
+  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
+  //         { request_id: requestId, decision: "denied" },
+  //         {
+  //           headers: { Authorization: `Bearer ${token}` },
+  //         }
+  //       );
+  //       toast.success(res.data.message);
+  //       router.refresh();
+  //     } catch (error: any) {
+  //       toast.error(error.response.data.message);
+  //     }
+  //   });
+  // };
 
   const handleAddNewMember = () => {
     if (!newMemberSearch)
@@ -926,7 +1005,7 @@ const Page = ({ params }: { params: Params }) => {
                     </CardHeader>
                     <CardContent>
                       {joinRequests?.length === 0 ? (
-                        <p>No pending join requests.</p>
+                        <NothingFound text="No pending join requests." />
                       ) : (
                         <Table>
                           <TableHeader>
@@ -944,6 +1023,58 @@ const Page = ({ params }: { params: Params }) => {
                                 <TableCell>{request.requester}</TableCell>
                                 <TableCell>{request.uid}</TableCell>
                                 <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      disabled={
+                                        pendingApproveRequest ||
+                                        pendingDenyRequest
+                                      }
+                                      onClick={() =>
+                                        handleApproveJoinRequest(
+                                          request.request_id
+                                        )
+                                      }
+                                    >
+                                      {pendingApproveRequest ? (
+                                        <Loader text="" />
+                                      ) : (
+                                        "Approve"
+                                      )}
+                                    </Button>
+
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                      disabled={
+                                        pendingApproveRequest ||
+                                        pendingDenyRequest
+                                      }
+                                      onClick={() =>
+                                        handleDenyJoinRequest(
+                                          request.request_id
+                                        )
+                                      }
+                                    >
+                                      {pendingDenyRequest ? (
+                                        <Loader text="" />
+                                      ) : (
+                                        "Deny"
+                                      )}
+                                    </Button>
+
+                                    <Button size="sm" variant="ghost" asChild>
+                                      <Link
+                                        href={`/players/${request.requester}`}
+                                      >
+                                        View Profile
+                                      </Link>
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                                {/* <TableCell>
                                   <div className="space-x-2">
                                     <Button
                                       size="md"
@@ -990,7 +1121,7 @@ const Page = ({ params }: { params: Params }) => {
                                       </Link>
                                     </Button>
                                   </div>
-                                </TableCell>
+                                </TableCell> */}
                               </TableRow>
                             ))}
                           </TableBody>

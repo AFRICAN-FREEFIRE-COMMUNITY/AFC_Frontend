@@ -885,6 +885,39 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     });
   };
 
+  const [leaderboardData, setLeaderboardData] = useState<any>(null);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+
+  console.log(eventDetails);
+
+  const fetchGroupLeaderboard = async (groupId: number) => {
+    try {
+      setLoadingLeaderboard(true);
+      const response = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-group-leaderboard/`,
+        {
+          event_id: eventDetails?.event_id,
+          group_id: groupId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setLeaderboardData(response.data.leaderboard);
+      toast.success("Leaderboard updated");
+      return response.data;
+    } catch (error: any) {
+      const msg =
+        error.response?.data?.message || "Failed to fetch leaderboard";
+      toast.error(msg);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
+
   const handleStageCountChangeLogic = (count: number) => {
     const newCount = Math.max(1, count);
     form.setValue("number_of_stages", newCount);
@@ -1125,8 +1158,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setPasswordVisibility({});
     setIsStageModalOpen(true);
   };
-
-  console.log(eventDetails);
 
   const addNewStage = () => {
     const currentCount = form.getValues("number_of_stages") || 0;
@@ -1523,7 +1554,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             </TabsList>
 
             {/* ACTIONS TAB */}
-            <TabsContent value="actions">
+            {/* <TabsContent value="actions">
               <Card>
                 <CardHeader>
                   <CardTitle>Actions</CardTitle>
@@ -1534,13 +1565,87 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     onClick={() => setOpenConfirmStartTournamentModal(true)}
                     className="w-full"
                     disabled={
+                      eventDetails.event_status !== "upcoming" ||
                       eventDetails.stages[0]?.stage_status === "ongoing"
                     }
                   >
-                    {eventDetails.stages[0]?.stage_status === "ongoing"
+                    {eventDetails.event_status !== "upcoming" ||
+                    eventDetails.stages[0]?.stage_status === "ongoing"
                       ? "Tournament started"
                       : "Start this tournament"}
                   </Button>
+                </CardContent>
+              </Card>
+            </TabsContent> */}
+
+            <TabsContent value="actions">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tournament Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {(() => {
+                    // Define configuration for each status
+                    const statusConfig: Record<
+                      string,
+                      { text: string; disabled: boolean; variant: any }
+                    > = {
+                      upcoming: {
+                        text: "Start this tournament",
+                        disabled: false,
+                        variant: "default",
+                      },
+                      ongoing: {
+                        text: "Tournament in Progress",
+                        disabled: true,
+                        variant: "secondary",
+                      },
+                      completed: {
+                        text: "Tournament Completed",
+                        disabled: true,
+                        variant: "outline",
+                      },
+                      cancelled: {
+                        text: "Tournament Cancelled",
+                        disabled: true,
+                        variant: "destructive",
+                      },
+                    };
+
+                    // Fallback for unknown statuses
+                    const currentStatus =
+                      eventDetails.event_status || "upcoming";
+                    const config =
+                      statusConfig[currentStatus] || statusConfig.upcoming;
+
+                    // Additional logic: If the first stage is already ongoing, force disable the start button
+                    const isFirstStageOngoing =
+                      eventDetails.stages[0]?.stage_status === "ongoing";
+                    const finalDisabled =
+                      config.disabled || isFirstStageOngoing;
+                    const finalText = isFirstStageOngoing
+                      ? "Stage 1 in Progress"
+                      : config.text;
+
+                    return (
+                      <Button
+                        type="button"
+                        variant={config.variant}
+                        onClick={() => setOpenConfirmStartTournamentModal(true)}
+                        className="w-full font-bold"
+                        disabled={finalDisabled}
+                      >
+                        {finalText}
+                      </Button>
+                    );
+                  })()}
+
+                  {/* Optional: Show a message if completed */}
+                  {eventDetails.event_status === "completed" && (
+                    <p className="text-xs text-center text-muted-foreground italic">
+                      This tournament has ended. Results are now locked.
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -2112,7 +2217,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     </Card>
                   );
                 }
-
                 return (
                   <Card key={sIdx} className=" ">
                     <CardHeader className="flex flex-row items-center justify-between">
@@ -2123,7 +2227,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               <IconTrophy className="inline-block mr-2" />
                               {stage.stage_name}{" "}
                               <Badge className="capitalize">
-                                {stage.stage_status || "upcoming"}
+                                {stage.stage_status}
                               </Badge>
                             </span>
                             <p className="text-xs mt-1 text-muted-foreground">
@@ -2270,7 +2374,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                               className="border-zinc-900"
                                             >
                                               <TableCell className="py-2 text-xs font-mono">
-                                                #{match.match_number}
+                                                #{mIdx + 1}
                                               </TableCell>
                                               <TableCell className="py-2 text-xs font-medium">
                                                 {match.match_map}
@@ -2335,7 +2439,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               <GroupResultModal
                                 activeGroup={group}
                                 stageName={stage.stage_name}
+                                eventId={eventDetails.event_id}
                               />
+
                               <Button
                                 size="md"
                                 type="button"
