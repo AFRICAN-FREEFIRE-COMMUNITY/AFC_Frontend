@@ -118,7 +118,7 @@ export const Header = () => {
                   size="md"
                   className="hidden md:flex"
                 >
-                  <Link href="/login">Sign In</Link>
+                  <Link href="/login">Log in</Link>
                 </Button>
                 <Button
                   className="hidden md:flex"

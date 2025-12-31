@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { generateDynamicMetadata, generatePlayerSchema } from "@/lib/seo";
+import { generateDynamicMetadata, generateTeamSchema } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ username: string }>;
@@ -69,12 +69,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }),
     other: {
       "script:ld+json": JSON.stringify(
-        generatePlayerSchema({
+        generateTeamSchema({
           name: player.username,
           description,
           image: player.profile_picture || player.esports_picture,
           url: `/players/${encodeURIComponent(player.username)}`,
-          team: player.team_name,
+          // team: player.team_name,
           country: player.country,
         })
       ),

@@ -44,7 +44,7 @@ export const Header = () => {
         <div className="flex items-center space-x-3">
           <ThemeToggle />
           <Button asChild variant="ghost" size="md" className="hidden md:flex">
-            <Link href="/login">Sign In</Link>
+            <Link href="/login">Log in</Link>
           </Button>
           <Button
             asChild
