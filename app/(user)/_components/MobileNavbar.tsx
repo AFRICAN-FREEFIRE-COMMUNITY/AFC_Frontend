@@ -167,7 +167,6 @@ export function MobileNavbar() {
                           New
                         </Badge>
                       )}{" "}
-                      {beta && <Badge variant={"secondary"}>Beta</Badge>}
                     </Link>
                   </Button>
                 );
