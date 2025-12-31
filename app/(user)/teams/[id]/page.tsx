@@ -36,7 +36,6 @@ import {
   Twitch,
   AlertTriangle,
   Search,
-  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -80,7 +79,13 @@ import {
 } from "@/components/ui/form";
 import { formatDate, formatWord } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { IconArrowLeft, IconCopy } from "@tabler/icons-react";
+import {
+  IconAlertTriangle,
+  IconArrowLeft,
+  IconCopy,
+  IconLogout,
+  IconSearch,
+} from "@tabler/icons-react";
 import { BanModal } from "@/app/(a)/a/_components/BanModal";
 import { PageHeader } from "@/components/PageHeader";
 import { NothingFound } from "@/components/NothingFound";
@@ -170,16 +175,29 @@ const Page = ({ params }: { params: Params }) => {
   );
 
   const handleJoinTeam = () => {
+    console.log(teamDetails);
     startRequestTransition(async () => {
       try {
-        const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/send-join-request/`,
-          { team_id: teamDetails.team_id, message: "" },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        toast.success(res.data.message);
+        if (teamDetails.join_settings === "open") {
+          const res = await axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/join-team/`,
+            { team_id: teamDetails.team_id },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          toast.success(res.data.message);
+          await refreshTeamDetails();
+        } else {
+          const res = await axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/send-join-request/`,
+            { team_id: teamDetails.team_id, message: "" },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          toast.success(res.data.message);
+        }
         setSuccessRequest(true);
       } catch (error: any) {
         toast.error(error.response.data.message);
@@ -575,7 +593,7 @@ const Page = ({ params }: { params: Params }) => {
                         variant="destructive"
                         className="w-full md:w-auto"
                       >
-                        <LogOut />
+                        <IconLogout />
                         Exit Team
                       </Button>
                     </DialogTrigger>
@@ -613,7 +631,7 @@ const Page = ({ params }: { params: Params }) => {
           <CardContent>
             {teamDetails?.is_banned && (
               <Alert variant="destructive" className="mb-6">
-                <AlertTriangle className="h-4 w-4" />
+                <IconAlertTriangle className="h-4 w-4" />
                 <AlertTitle>This team is currently banned</AlertTitle>
                 <AlertDescription>
                   Reason: {teamDetails?.ban_reason}
@@ -778,7 +796,7 @@ const Page = ({ params }: { params: Params }) => {
                               <Loader text=" " />
                             ) : (
                               <>
-                                <Search />
+                                <IconSearch />
                                 Invite
                               </>
                             )}

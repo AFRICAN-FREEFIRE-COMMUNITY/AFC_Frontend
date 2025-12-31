@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { env } from "@/lib/env";
-import { formatMoneyInput } from "@/lib/utils";
+import { formatDate, formatMoneyInput } from "@/lib/utils";
 import {
   IconActivity,
   IconArticle,
@@ -66,39 +66,7 @@ const page = () => {
   const [totalNews, setTotalNews] = useState<number>(0);
   const [totalTournaments, setTotalTournaments] = useState<number>(0);
   const [totalScrims, setTotalScrims] = useState<number>(0);
-
-  const recentActivities = [
-    {
-      id: 1,
-      user: "John Doe",
-      action: "Updated tournament results for AFC Championship",
-      timestamp: "2023-07-01 14:30",
-    },
-    {
-      id: 2,
-      user: "Jane Smith",
-      action: "Created new announcement about Season 2",
-      timestamp: "2023-07-01 13:15",
-    },
-    {
-      id: 3,
-      user: "Mike Johnson",
-      action: "Banned player #12345 for cheating",
-      timestamp: "2023-07-01 11:45",
-    },
-    {
-      id: 4,
-      user: "Sarah Wilson",
-      action: "Added new diamond bundle to shop",
-      timestamp: "2023-07-01 10:20",
-    },
-    {
-      id: 5,
-      user: "Alex Brown",
-      action: "Approved team registration for Team Phoenix",
-      timestamp: "2023-07-01 09:15",
-    },
-  ];
+  const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -118,12 +86,16 @@ const page = () => {
         const scrims = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`
         );
+        const activities = await axios(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-admin-history/`
+        );
 
         setTotalUsers(users?.data?.total_users);
         setTotalTeams(teams?.data?.teams.length);
         setTotalNews(news.data.news?.length);
         setTotalTournaments(tournaments?.data?.total_tournaments);
         setTotalScrims(scrims?.data?.total_scrims);
+        setRecentActivities(activities?.data?.admin_history);
       } catch (error) {
         setTotalUsers(0);
         setTotalTeams(0);
@@ -381,28 +353,29 @@ const page = () => {
                   <TableHead>Timestamp</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody className="relative">
-                <ComingSoon />
-                {recentActivities.map((activity: any) => (
+              <TableBody>
+                {recentActivities.slice(0, 10).map((activity: any) => (
                   <TableRow key={activity.id}>
                     <TableCell className="font-medium">
-                      {activity.user}
+                      {activity.admin_user}
                     </TableCell>
-                    <TableCell>{activity.action}</TableCell>
+                    <TableCell>{activity.description}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {activity.timestamp}
+                      {formatDate(activity.timestamp)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-            {/* <div className="mt-4 text-right">
-              <Button asChild variant="outline">
-                <Link href="/a/history">
-                  View All Activities <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div> */}
+            {recentActivities.length > 10 && (
+              <div className="mt-4">
+                <Button className="w-full" asChild variant="outline">
+                  <Link href="/a/history">
+                    View All Activities <ArrowRight />
+                  </Link>
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

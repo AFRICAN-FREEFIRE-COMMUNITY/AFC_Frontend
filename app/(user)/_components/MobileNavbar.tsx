@@ -88,6 +88,28 @@ export function MobileNavbar() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
+      <style jsx global>{`
+        @keyframes glow-pulse {
+          0%,
+          100% {
+            box-shadow: 0 0 5px rgba(34, 197, 94, 0.5),
+              0 0 10px rgba(34, 197, 94, 0.3), 0 0 15px rgba(34, 197, 94, 0.2);
+            transform: scale(1);
+          }
+          50% {
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.8),
+              0 0 20px rgba(34, 197, 94, 0.5), 0 0 30px rgba(34, 197, 94, 0.3);
+            transform: scale(1.05);
+          }
+        }
+
+        .glow-new-badge {
+          animation: glow-pulse 2s ease-in-out infinite;
+          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+          font-weight: 600;
+          border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+      `}</style>
       <SheetTrigger asChild>
         <Button size={"icon"} variant="ghost">
           <IconMenu2 />
@@ -113,7 +135,7 @@ export function MobileNavbar() {
         <ScrollArea className="overflow-y-auto">
           <div className="grid gap-1 container">
             {homeNavLinksMobile.map(
-              ({ icon, slug, label, comingSoon, newLink, beta }, index) => {
+              ({ icon, slug, label, comingSoon, newLink }, index) => {
                 const Icon = icon;
                 return comingSoon ? (
                   <Button
@@ -136,7 +158,15 @@ export function MobileNavbar() {
                   >
                     <Link href={slug}>
                       <Icon />
-                      {label} {newLink && <Badge>New</Badge>}{" "}
+                      {label}{" "}
+                      {newLink && (
+                        <Badge
+                          variant="default"
+                          className="glow-new-badge text-xs text-white"
+                        >
+                          New
+                        </Badge>
+                      )}{" "}
                       {beta && <Badge variant={"secondary"}>Beta</Badge>}
                     </Link>
                   </Button>
@@ -148,7 +178,7 @@ export function MobileNavbar() {
               user?.role === "admin" ||
               isAdmin) && (
               <> */}
-            {(user?.roles?.length > 0 || isAdmin) && (
+            {((user && user?.roles?.length > 0) || isAdmin) && (
               <>
                 <Separator />
                 {adminNavLinks

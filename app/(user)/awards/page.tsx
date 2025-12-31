@@ -64,6 +64,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { FullLoader } from "@/components/Loader";
+import { Badge } from "@/components/ui/badge";
 
 // Using your existing interface structure
 interface WinnerNominee {
@@ -84,131 +85,170 @@ interface SectionWinners {
   categories: CategoryWinner[];
 }
 
-export default function WinnersPage() {
-  const [winnersData, setWinnersData] = useState<SectionWinners[]>([]);
+const MANUAL_WINNERS: SectionWinners[] = [
+  {
+    id: "content-creators",
+    name: "Content Creators",
+    categories: [
+      {
+        id: "1",
+        name: "Overall Content Creator",
+        winner: { id: "w1", name: "JOKKIE", votes: 310 },
+      },
+      {
+        id: "2",
+        name: "Overall best creator (Female)",
+        winner: { id: "w2", name: "Scarlett", votes: 281 },
+      },
+      {
+        id: "3",
+        name: "Best Streamer (Female)",
+        winner: { id: "w3", name: "Scarlett", votes: 259 },
+      },
+      {
+        id: "4",
+        name: "Funniest Content Creator (Female)",
+        winner: { id: "w4", name: "Success", votes: 259 },
+      },
+      {
+        id: "5",
+        name: "Best Video Editor (Female)",
+        winner: { id: "w5", name: "Success", votes: 317 },
+      },
+      {
+        id: "6",
+        name: "Top Upcoming Creators (Female)",
+        winner: { id: "w6", name: "Luna (Editedby_luna)", votes: 197 },
+      },
+      {
+        id: "7",
+        name: "Most Attractive Creator (Female)",
+        winner: { id: "w7", name: "Scarlett", votes: 272 },
+      },
+      {
+        id: "9",
+        name: "Overall best creator (Male)",
+        winner: { id: "w8", name: "JOKKIE", votes: 333 },
+      },
+      {
+        id: "10",
+        name: "Best Streamer (Male)",
+        winner: { id: "w9", name: "JOKKIE", votes: 229 },
+      },
+      {
+        id: "11",
+        name: "Funniest Content Creator (Male)",
+        winner: { id: "w10", name: "RUDY", votes: 142 },
+      },
+      {
+        id: "12",
+        name: "Best Video Editor (Male)",
+        winner: { id: "w11", name: "JOKKIE", votes: 251 },
+      },
+      {
+        id: "13",
+        name: "Top Upcoming Creators (Male)",
+        winner: { id: "w12", name: "THABANG", votes: 235 },
+      },
+      {
+        id: "14",
+        name: "Most Attractive Creator (Male)",
+        winner: { id: "w13", name: "DMS", votes: 282 },
+      },
+      {
+        id: "15",
+        name: "Best Educational Content Creator (Male)",
+        winner: { id: "w14", name: "JOKKIE", votes: 258 },
+      },
+      {
+        id: "16",
+        name: "Best Music Content Creator (Male)",
+        winner: { id: "w15", name: "ARMYKID", votes: 271 },
+      },
+      {
+        id: "17",
+        name: "Best Voiceover Artist (Male)",
+        winner: { id: "w16", name: "VIC VIX", votes: 208 },
+      },
+      {
+        id: "18",
+        name: "Favorite DUO Creators",
+        winner: { id: "w17", name: "JOKKIE & XIXSCO", votes: 313 },
+      },
+    ],
+  },
+  {
+    id: "esports-awards",
+    name: "Esports Awards",
+    categories: [
+      {
+        id: "19",
+        name: "Best esports team",
+        winner: { id: "w18", name: "V-ENT ESPORTS", votes: 143 },
+      },
+      {
+        id: "20",
+        name: "AWARD FOR BEST PLAYER",
+        winner: { id: "w19", name: "VT HABEEB (V-ENT ESPORTS)", votes: 133 },
+      },
+      {
+        id: "21",
+        name: "AWARD FOR BEST ESPORTS RUSHER",
+        winner: { id: "w20", name: "SMITH (3CROWNESPORTS)", votes: 115 },
+      },
+      {
+        id: "22",
+        name: "AWARD FOR BEST ESPORT GRENADIER/BOMBER",
+        winner: { id: "w21", name: "AKT VOID (AKATSUKI)", votes: 142 },
+      },
+      {
+        id: "23",
+        name: "AWARD FOR BEST ESPORTS SNIPER",
+        winner: { id: "w22", name: "ATHL RORO (ATHLEGAME)", votes: 128 },
+      },
+      {
+        id: "24",
+        name: "AWARD FOR BEST ESPORTS CASTER",
+        winner: { id: "w23", name: "ZORO", votes: 240 },
+      },
+      {
+        id: "25",
+        name: "AWARD FOR BEST ESPORTS CREATOR",
+        winner: { id: "w24", name: "VIC VIX", votes: 129 },
+      },
+      {
+        id: "26",
+        name: "AWARD FOR BEST ESPORTS MODERATOR",
+        winner: { id: "w25", name: "LORD_JAY_FF", votes: 125 },
+      },
+      {
+        id: "27",
+        name: "BEST ESPORTS TOURNAMENT OF 2024",
+        winner: { id: "w26", name: "DECA CUP by 10N8E", votes: 224 },
+      },
+      {
+        id: "28",
+        name: "AWARD FOR BEST ESPORTS ORGANIZATION",
+        winner: { id: "w27", name: "10N8E", votes: 161 },
+      },
+      {
+        id: "29",
+        name: "BEST UPCOMING/NEXT RATED TEAM",
+        winner: { id: "w28", name: "ATHLEGAME", votes: 122 },
+      },
+    ],
+  },
+];
+
+export default function page() {
+  const [winnersData] = useState<SectionWinners[]>(MANUAL_WINNERS);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("");
-
-  const fakeWinnersData = [
-    {
-      id: "1",
-      name: "Content Creators",
-      categories: [
-        {
-          id: "cat1",
-          name: "Best YouTube Creator",
-          winner: {
-            id: "nom1",
-            name: "Legendary FF Gaming",
-            votes: 1250,
-          },
-        },
-        {
-          id: "cat2",
-          name: "Most Entertaining Streamer",
-          winner: {
-            id: "nom2",
-            name: "Queen Fire YT",
-            votes: 980,
-          },
-        },
-        {
-          id: "cat3",
-          name: "Breakout Creator of the Year",
-          winner: {
-            id: "nom3",
-            name: "Swift Shot Nigeria",
-            votes: 750,
-          },
-        },
-        {
-          id: "cat4",
-          name: "Best Short-Form Content",
-          winner: {
-            id: "nom4",
-            name: "TikTok King FF",
-            votes: 1100,
-          },
-        },
-      ],
-    },
-    {
-      id: "2",
-      name: "Esports Awards",
-      categories: [
-        {
-          id: "cat5",
-          name: "Most Valuable Player (MVP)",
-          winner: {
-            id: "nom5",
-            name: "Sniper Ghost",
-            votes: 1500,
-          },
-        },
-        {
-          id: "cat6",
-          name: "Team of the Year",
-          winner: {
-            id: "nom6",
-            name: "Elite Squad Nigeria",
-            votes: 2100,
-          },
-        },
-        {
-          id: "cat7",
-          name: "Best IGL (In-Game Leader)",
-          winner: {
-            id: "nom7",
-            name: "Captain Rex",
-            votes: 890,
-          },
-        },
-        {
-          id: "cat8",
-          name: "Clutch King",
-          winner: {
-            id: "nom8",
-            name: "OneTap Wonder",
-            votes: 1340,
-          },
-        },
-      ],
-    },
-  ];
-
-  useEffect(() => {
-    const loadWinners = async () => {
-      try {
-        setLoading(true);
-        // Assuming your backend has a /winners endpoint or you filter the /all endpoint
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/awards/winners/`
-        );
-        const data = await response.json();
-
-        // Transform logic would go here, similar to your voting page
-        setWinnersData(data);
-        if (data.length > 0)
-          setActiveTab(data[0].section_name.toLowerCase().replace(/\s+/g, "-"));
-      } catch (err) {
-        console.error("Error loading winners:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadWinners();
-  }, []);
-
-  if (loading) return <FullLoader />;
+  const [activeTab, setActiveTab] = useState<string>(MANUAL_WINNERS[0].id);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-primary/20 via-background to-background pt-16 pb-12">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-yellow-500/10 via-transparent to-transparent opacity-50" />
-
-        <div className="container relative mx-auto px-4 text-center">
+    <div className="py-10">
+      <div>
+        <div className="text-center">
           <div className="flex items-center justify-center gap-4 mb-6">
             <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
@@ -217,44 +257,43 @@ export default function WinnersPage() {
             <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />
           </div>
 
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
+          <p className="text-muted-foreground text-base max-w-2xl mx-auto mb-8">
             The people have spoken. Join us in celebrating the elite creators
             and players who defined excellence in the Nigerian Free Fire
             community this year.
           </p>
 
           <div className="flex flex-wrap justify-center gap-4">
-            <Button asChild variant="default" className="rounded-full px-8">
+            <Button className="rounded-full" asChild variant="default">
               <Link href="/home">
-                <Home className="mr-2 h-4 w-4" /> Home
+                <Home /> Home
               </Link>
             </Button>
             <Button
               variant="outline"
-              className="rounded-full px-8 border-yellow-500/50 hover:bg-yellow-500/10"
+              className="rounded-full"
               onClick={() => window.print()}
             >
-              <Share2 className="mr-2 h-4 w-4" /> Share Results
+              <Share2 /> Share Results
             </Button>
           </div>
         </div>
       </div>
 
-      <main className="container mx-auto px-4">
+      <main className="mt-10">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-12 bg-muted/50 p-1 rounded-full">
-            {fakeWinnersData.map((section) => (
+          <TabsList className="w-full max-w-md mx-auto mb-12">
+            {winnersData.map((section) => (
               <TabsTrigger
                 key={section.id}
                 value={section.name.toLowerCase().replace(/\s+/g, "-")}
-                className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 {section.name}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {fakeWinnersData.map((section) => (
+          {winnersData.map((section) => (
             <TabsContent
               key={section.id}
               value={section.name.toLowerCase().replace(/\s+/g, "-")}
@@ -277,13 +316,13 @@ export default function WinnersPage() {
 
                     <CardContent className="pt-4">
                       <div className="relative z-10">
-                        <h3 className="text-2xl font-bold text-foreground mb-1">
+                        <h3 className="text-xl md:text-xl font-semibold text-foreground mb-1">
                           {category.winner.name}
                         </h3>
-                        <div className="flex items-center text-yellow-600 font-semibold bg-yellow-500/10 w-fit px-3 py-1 rounded-full text-sm">
+                        <Badge className="flex items-center text-yellow-600 bg-yellow-500/10">
                           <Trophy className="h-4 w-4 mr-2" />
                           Official Winner
-                        </div>
+                        </Badge>
                       </div>
 
                       {/* Stats/Votes bar (Optional) */}

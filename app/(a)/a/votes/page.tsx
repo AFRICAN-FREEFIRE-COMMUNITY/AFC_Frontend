@@ -1667,6 +1667,7 @@ export default function Page() {
                                 key={winner.category_id}
                                 className="text-base md:text-base hover:shadow-lg transition-shadow"
                               >
+                                {console.log(winners)}
                                 <CardHeader className="pb-3">
                                   <CardTitle className="text-base md:text-base flex items-start justify-between gap-2">
                                     <span className="flex-1">

@@ -160,7 +160,6 @@ export const homeNavLinksMobile = [
   //   slug: "/leaderboards",
   //   label: "Leaderboards",
   //   icon: IconTrophy,
-  //   beta: true,
   // },
   {
     slug: "/tournaments",
@@ -181,7 +180,7 @@ export const homeNavLinksMobile = [
     icon: IconShoppingCart,
     comingSoon: true,
   },
-  { slug: "/awards", label: "Awards", icon: Award },
+  { slug: "/awards", label: "Awards", icon: Award, newLink: true },
   { slug: "/about", label: "About Us", icon: IconInfoCircle },
   { slug: "/contact", label: "Contact", icon: IconMessage },
 ];
@@ -244,6 +243,12 @@ export const adminNavLinks: AdminNavLink[] = [
     slug: "/a/shop",
     icon: IconShoppingCart,
     allowedRoles: ["head_admin", "shop_admin"],
+  },
+  {
+    label: "Votes",
+    slug: "/a/votes",
+    icon: Award,
+    allowedRoles: ["head_admin"],
   },
   {
     label: "Settings",
