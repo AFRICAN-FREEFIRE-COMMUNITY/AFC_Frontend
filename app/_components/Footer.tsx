@@ -141,7 +141,7 @@ export const Footer = () => {
         </div>
 
         <div className="border-t text-sm border-border/40 mt-8 pt-6 flex flex-col md:flex-row justify-between text-muted-foreground font-medium items-center">
-          <p>© 2025 African Freefire Community. All rights reserved.</p>
+          <p>© 2026 African Freefire Community. All rights reserved.</p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
             <span>Powered by AFC Gaming</span>
           </div>
