@@ -279,7 +279,7 @@ export function MobileNavbar() {
           {user === null ? (
             <>
               <SheetClose asChild>
-                <Button variant={"secondary"}>
+                <Button asChild variant={"secondary"}>
                   <Link href="/login">Log in</Link>
                 </Button>
               </SheetClose>
