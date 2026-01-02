@@ -157,7 +157,11 @@ const EventFormSchema = z
     number_of_stages: z.coerce.number().min(1, "At least 1 stage required"),
     stages: z.array(StageSchema).min(1, "At least one stage required"),
     prizepool: z.string().min(1, "Prize pool required"),
-    prize_distribution: z.record(z.string(), z.coerce.number()),
+    // prize_distribution: z.record(z.string(), z.coerce.number()),
+    prize_distribution: z.record(
+      z.string(),
+      z.string().min(1, "Prize amount required")
+    ),
     event_rules: z.string().optional(),
     rules_document: z.any().optional(),
     start_date: z.string().min(1, "Start date required"),
@@ -652,7 +656,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         },
       ],
       prizepool: "",
-      prize_distribution: { "1": 0, "2": 0, "3": 0 },
+      // prize_distribution: { "1": 0, "2": 0, "3": 0 },
+      prize_distribution: { "1": "", "2": "", "3": "" },
       rules_document: "",
       start_date: "",
       end_date: "",
@@ -1291,9 +1296,22 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     form.setValue("prize_distribution", {
       ...current,
-      [`${nextPos}`]: 0,
+      [`${nextPos}`]: "",
     });
   };
+
+  // const addPrizePosition = () => {
+  //   const current = { ...prizeDistribution };
+  //   const numericKeys = Object.keys(current)
+  //     .map((key) => parseInt(key.replace(/[^0-9]/g, "")))
+  //     .filter((n) => !isNaN(n));
+  //   const nextPos = (numericKeys.length > 0 ? Math.max(...numericKeys) : 0) + 1;
+
+  //   form.setValue("prize_distribution", {
+  //     ...current,
+  //     [`${nextPos}`]: 0,
+  //   });
+  // };
 
   const removePrizePosition = (key: string) => {
     if (Object.keys(prizeDistribution).length <= 1) return;
@@ -1317,7 +1335,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         : numericPart === 3
         ? "rd"
         : "th";
-    return `${numericPart}${suffix} Place`;
+    return `${numericPart}${suffix}`;
   };
 
   const addStreamChannel = () => appendStream("");
@@ -2520,7 +2538,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         <Input
                           type="text"
                           {...field}
-                          placeholder="e.g., 50000"
+                          placeholder="e.g., $5,000 USD or 5000 Diamonds"
                         />
                         <FormMessage />
                       </FormItem>
@@ -2540,7 +2558,42 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         />
                         <div className="col-span-3 flex items-center justify-end gap-1">
                           <Input
-                            type="number"
+                            type="text"
+                            value={value || ""}
+                            onChange={(e) => {
+                              const inputVal = e.target.value;
+                              const updated = { ...prizeDistribution };
+                              updated[key] = inputVal;
+                              form.setValue("prize_distribution", updated, {
+                                shouldDirty: true,
+                              });
+                            }}
+                            placeholder="e.g., $2,000 or 2000 Diamonds"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removePrizePosition(key)}
+                            disabled={
+                              Object.keys(prizeDistribution).length <= 1
+                            }
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {/* {Object.entries(prizeDistribution).map(([key, value]) => (
+                      <div key={key} className="grid grid-cols-4 gap-2">
+                        <Input
+                          value={formatPrizeKey(key)}
+                          disabled
+                          className="col-span-1"
+                        />
+                        <div className="col-span-3 flex items-center justify-end gap-1">
+                          <Input
+                            type="text"
                             value={value === 0 ? "" : value}
                             onChange={(e) => {
                               const inputVal = e.target.value;
@@ -2548,7 +2601,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               updated[key] =
                                 inputVal === "" ? 0 : Number(inputVal);
                               form.setValue("prize_distribution", updated, {
-                                shouldDirty: true,
+                                // shouldDirty: true,
                               });
                             }}
                             placeholder="Earnings"
@@ -2566,7 +2619,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           </Button>
                         </div>
                       </div>
-                    ))}
+                    ))} */}
                     <Button
                       type="button"
                       variant="outline"

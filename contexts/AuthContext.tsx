@@ -172,14 +172,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     ? user.role === "admin" ||
       (user.role === "player" &&
         user.roles?.some((role) =>
-          ["Head Admin", "Shop Admin", "News Admin"].includes(role)
+          [
+            "head_admin",
+            "shop_admin",
+            "news_admin",
+            "teams_admin",
+            "event_admin",
+            "partner_admin",
+          ].includes(role)
         ))
     : false;
 
   // Check if user is admin (has any admin role)
   const isAdmin = user
     ? user.role === "admin" ||
-      hasAnyRole(["Head Admin", "Shop Admin", "News Admin", "admin"])
+      (user.role === "player" &&
+        hasAnyRole([
+          "head_admin",
+          "shop_admin",
+          "news_admin",
+          "teams_admin",
+          "event_admin",
+          "partner_admin",
+        ]))
     : false;
 
   return (
