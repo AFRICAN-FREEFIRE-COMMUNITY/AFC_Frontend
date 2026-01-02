@@ -82,7 +82,6 @@ export const GroupResultModal = ({
       }
     } catch (error: any) {
       toast.error("Failed to load leaderboard details");
-      console.error(error);
     } finally {
       setLoading(false);
     }

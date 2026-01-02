@@ -888,8 +888,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [leaderboardData, setLeaderboardData] = useState<any>(null);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 
-  console.log(eventDetails);
-
   const fetchGroupLeaderboard = async (groupId: number) => {
     try {
       setLoadingLeaderboard(true);

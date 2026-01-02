@@ -92,89 +92,94 @@ const MANUAL_WINNERS: SectionWinners[] = [
     categories: [
       {
         id: "1",
-        name: "Overall Content Creator",
+        name: "Best Overall Creator (Male)",
         winner: { id: "w1", name: "JOKKIE", votes: 310 },
       },
       {
         id: "2",
-        name: "Overall best creator (Female)",
-        winner: { id: "w2", name: "Scarlett", votes: 281 },
+        name: "Best Overall Creator (Female)",
+        winner: { id: "w2", name: "SCARLETT", votes: 281 },
       },
       {
         id: "3",
-        name: "Best Streamer (Female)",
-        winner: { id: "w3", name: "Scarlett", votes: 259 },
+        name: "Best Streamer (Male)",
+        winner: { id: "w3", name: "RUDY", votes: 229 },
       },
       {
         id: "4",
-        name: "Funniest Content Creator (Female)",
-        winner: { id: "w4", name: "Success", votes: 259 },
+        name: "Best Streamer (Female)",
+        winner: { id: "w4", name: "SCARLETT", votes: 259 },
       },
       {
         id: "5",
-        name: "Best Video Editor (Female)",
-        winner: { id: "w5", name: "Success", votes: 317 },
+        name: "Funniest Creator (Male)",
+        winner: { id: "w5", name: "NNAYIZOOM", votes: 142 },
       },
       {
         id: "6",
-        name: "Top Upcoming Creators (Female)",
-        winner: { id: "w6", name: "Luna (Editedby_luna)", votes: 197 },
+        name: "Funniest Creator (Female)",
+        winner: { id: "w6", name: "SUCCESS", votes: 259 },
       },
       {
         id: "7",
-        name: "Most Attractive Creator (Female)",
-        winner: { id: "w7", name: "Scarlett", votes: 272 },
+        name: "Best Editor (Male)",
+        winner: { id: "w7", name: "DARKSEIDFF", votes: 251 },
+      },
+      {
+        id: "8",
+        name: "Best Editor (Female)",
+        winner: { id: "w8", name: "STEPHHATESPEOPLE", votes: 317 },
       },
       {
         id: "9",
-        name: "Overall best creator (Male)",
-        winner: { id: "w8", name: "JOKKIE", votes: 333 },
+        name: "Upcoming Creator (Male)",
+        winner: { id: "w9", name: "THABANG", votes: 235 },
       },
       {
         id: "10",
-        name: "Best Streamer (Male)",
-        winner: { id: "w9", name: "JOKKIE", votes: 229 },
+        name: "Upcoming Creator (Female)",
+        winner: { id: "w10", name: "LUNA", votes: 197 },
       },
       {
         id: "11",
-        name: "Funniest Content Creator (Male)",
-        winner: { id: "w10", name: "RUDY", votes: 142 },
+        name: "Attractive Creator (Male)",
+        winner: { id: "w11", name: "DMS", votes: 282 },
       },
       {
         id: "12",
-        name: "Best Video Editor (Male)",
-        winner: { id: "w11", name: "JOKKIE", votes: 251 },
+        name: "Attractive Creator (Female)",
+        winner: { id: "w12", name: "SCARLETT", votes: 272 },
       },
       {
         id: "13",
-        name: "Top Upcoming Creators (Male)",
-        winner: { id: "w12", name: "THABANG", votes: 235 },
+        name: "Educational Content (Male)",
+        winner: { id: "w13", name: "VIC VIX", votes: 258 },
       },
       {
         id: "14",
-        name: "Most Attractive Creator (Male)",
-        winner: { id: "w13", name: "DMS", votes: 282 },
+        name: "Best Music Creator (Male)",
+        winner: { id: "w14", name: "ELVICCI", votes: 271 },
       },
       {
         id: "15",
-        name: "Best Educational Content Creator (Male)",
-        winner: { id: "w14", name: "JOKKIE", votes: 258 },
+        name: "Best Voiceover (Male)",
+        winner: { id: "w15", name: "BAYMAX", votes: 208 },
       },
       {
         id: "16",
-        name: "Best Music Content Creator (Male)",
-        winner: { id: "w15", name: "ARMYKID", votes: 271 },
+        name: "Favorite DUO (Male)",
+        winner: { id: "w16", name: "JOKKIE", votes: 313 },
       },
       {
         id: "17",
-        name: "Best Voiceover Artist (Male)",
-        winner: { id: "w16", name: "VIC VIX", votes: 208 },
+        name: "Favorite DUO (MALE)",
+        winner: { id: "w17", name: "XIXSCO", votes: 313 },
       },
-      {
-        id: "18",
-        name: "Favorite DUO Creators",
-        winner: { id: "w17", name: "JOKKIE & XIXSCO", votes: 313 },
-      },
+      // {
+      //   id: "18",
+      //   name: "AI Reactive Creator (Female)",
+      //   winner: { id: "w18", name: "SDARLETT", votes: 313 },
+      // },
     ],
   },
   {
@@ -183,62 +188,217 @@ const MANUAL_WINNERS: SectionWinners[] = [
     categories: [
       {
         id: "19",
-        name: "Best esports team",
-        winner: { id: "w18", name: "V-ENT ESPORTS", votes: 143 },
+        name: "Best Esports Team",
+        winner: { id: "w19", name: "V-ENT ESPORTS", votes: 143 },
       },
       {
         id: "20",
-        name: "AWARD FOR BEST PLAYER",
-        winner: { id: "w19", name: "VT HABEEB (V-ENT ESPORTS)", votes: 133 },
+        name: "Best Esports Player",
+        winner: { id: "w20", name: "VT HYDRA", votes: 133 },
       },
       {
         id: "21",
-        name: "AWARD FOR BEST ESPORTS RUSHER",
-        winner: { id: "w20", name: "SMITH (3CROWNESPORTS)", votes: 115 },
+        name: "Best Esports Rusher",
+        winner: { id: "w21", name: "3C SMITH", votes: 115 },
       },
       {
         id: "22",
-        name: "AWARD FOR BEST ESPORT GRENADIER/BOMBER",
-        winner: { id: "w21", name: "AKT VOID (AKATSUKI)", votes: 142 },
+        name: "Best Esports Bomber",
+        winner: { id: "w22", name: "3C MACIEN", votes: 142 },
       },
       {
         id: "23",
-        name: "AWARD FOR BEST ESPORTS SNIPER",
-        winner: { id: "w22", name: "ATHL RORO (ATHLEGAME)", votes: 128 },
+        name: "Best Esports Sniper",
+        winner: { id: "w23", name: "ATH RORO", votes: 128 },
       },
       {
         id: "24",
-        name: "AWARD FOR BEST ESPORTS CASTER",
-        winner: { id: "w23", name: "ZORO", votes: 240 },
+        name: "Best Esports Caster",
+        winner: { id: "w24", name: "WHOISZINO", votes: 240 },
       },
       {
         id: "25",
-        name: "AWARD FOR BEST ESPORTS CREATOR",
-        winner: { id: "w24", name: "VIC VIX", votes: 129 },
+        name: "Best Esports Creator",
+        winner: { id: "w25", name: "VT HYDRA", votes: 129 },
       },
       {
         id: "26",
-        name: "AWARD FOR BEST ESPORTS MODERATOR",
-        winner: { id: "w25", name: "LORD_JAY_FF", votes: 125 },
+        name: "Best Esports Moderator",
+        winner: { id: "w26", name: "LORD JAY", votes: 125 },
       },
       {
         id: "27",
-        name: "BEST ESPORTS TOURNAMENT OF 2024",
-        winner: { id: "w26", name: "DECA CUP by 10N8E", votes: 224 },
+        name: "Best Esports Tournament",
+        winner: { id: "w27", name: "DECA CUP", votes: 224 },
       },
       {
         id: "28",
-        name: "AWARD FOR BEST ESPORTS ORGANIZATION",
-        winner: { id: "w27", name: "10N8E", votes: 161 },
+        name: "Best Esports Organization",
+        winner: { id: "w28", name: "10N8E ESPORTS", votes: 161 },
       },
       {
         id: "29",
-        name: "BEST UPCOMING/NEXT RATED TEAM",
-        winner: { id: "w28", name: "ATHLEGAME", votes: 122 },
+        name: "Best Upcoming/Next Rated Team",
+        winner: { id: "w29", name: "ATHLEGAME", votes: 122 },
       },
     ],
   },
 ];
+
+// const MANUAL_WINNERS: SectionWinners[] = [
+//   {
+//     id: "content-creators",
+//     name: "Content Creators",
+//     categories: [
+//       {
+//         id: "1",
+//         name: "Best Overall Content Creator",
+//         winner: { id: "w1", name: "JOKKIE", votes: 310 },
+//       },
+//       {
+//         id: "2",
+//         name: "Overall best creator (Female)",
+//         winner: { id: "w2", name: "Scarlett", votes: 281 },
+//       },
+//       {
+//         id: "3",
+//         name: "Best Streamer (Female)",
+//         winner: { id: "w3", name: "Scarlett", votes: 259 },
+//       },
+//       {
+//         id: "4",
+//         name: "Funniest Content Creator (Female)",
+//         winner: { id: "w4", name: "Success", votes: 259 },
+//       },
+//       {
+//         id: "5",
+//         name: "Best Video Editor (Female)",
+//         winner: { id: "w5", name: "Success", votes: 317 },
+//       },
+//       {
+//         id: "6",
+//         name: "Top Upcoming Creators (Female)",
+//         winner: { id: "w6", name: "Luna (Editedby_luna)", votes: 197 },
+//       },
+//       {
+//         id: "7",
+//         name: "Most Attractive Creator (Female)",
+//         winner: { id: "w7", name: "Scarlett", votes: 272 },
+//       },
+//       {
+//         id: "9",
+//         name: "Overall best creator (Male)",
+//         winner: { id: "w8", name: "JOKKIE", votes: 333 },
+//       },
+//       {
+//         id: "10",
+//         name: "Best Streamer (Male)",
+//         winner: { id: "w9", name: "JOKKIE", votes: 229 },
+//       },
+//       {
+//         id: "11",
+//         name: "Funniest Content Creator (Male)",
+//         winner: { id: "w10", name: "RUDY", votes: 142 },
+//       },
+//       {
+//         id: "12",
+//         name: "Best Video Editor (Male)",
+//         winner: { id: "w11", name: "JOKKIE", votes: 251 },
+//       },
+//       {
+//         id: "13",
+//         name: "Top Upcoming Creators (Male)",
+//         winner: { id: "w12", name: "THABANG", votes: 235 },
+//       },
+//       {
+//         id: "14",
+//         name: "Most Attractive Creator (Male)",
+//         winner: { id: "w13", name: "DMS", votes: 282 },
+//       },
+//       {
+//         id: "15",
+//         name: "Best Educational Content Creator (Male)",
+//         winner: { id: "w14", name: "JOKKIE", votes: 258 },
+//       },
+//       {
+//         id: "16",
+//         name: "Best Music Content Creator (Male)",
+//         winner: { id: "w15", name: "ARMYKID", votes: 271 },
+//       },
+//       {
+//         id: "17",
+//         name: "Best Voiceover Artist (Male)",
+//         winner: { id: "w16", name: "VIC VIX", votes: 208 },
+//       },
+//       {
+//         id: "18",
+//         name: "Favorite DUO Creators",
+//         winner: { id: "w17", name: "JOKKIE & XIXSCO", votes: 313 },
+//       },
+//     ],
+//   },
+//   {
+//     id: "esports-awards",
+//     name: "Esports Awards",
+//     categories: [
+//       {
+//         id: "19",
+//         name: "Best esports team",
+//         winner: { id: "w18", name: "V-ENT ESPORTS", votes: 143 },
+//       },
+//       {
+//         id: "20",
+//         name: "AWARD FOR BEST PLAYER",
+//         winner: { id: "w19", name: "VT HABEEB (V-ENT ESPORTS)", votes: 133 },
+//       },
+//       {
+//         id: "21",
+//         name: "AWARD FOR BEST ESPORTS RUSHER",
+//         winner: { id: "w20", name: "SMITH (3CROWNESPORTS)", votes: 115 },
+//       },
+//       {
+//         id: "22",
+//         name: "AWARD FOR BEST ESPORT GRENADIER/BOMBER",
+//         winner: { id: "w21", name: "AKT VOID (AKATSUKI)", votes: 142 },
+//       },
+//       {
+//         id: "23",
+//         name: "AWARD FOR BEST ESPORTS SNIPER",
+//         winner: { id: "w22", name: "ATHL RORO (ATHLEGAME)", votes: 128 },
+//       },
+//       {
+//         id: "24",
+//         name: "AWARD FOR BEST ESPORTS CASTER",
+//         winner: { id: "w23", name: "ZORO", votes: 240 },
+//       },
+//       {
+//         id: "25",
+//         name: "AWARD FOR BEST ESPORTS CREATOR",
+//         winner: { id: "w24", name: "VIC VIX", votes: 129 },
+//       },
+//       {
+//         id: "26",
+//         name: "AWARD FOR BEST ESPORTS MODERATOR",
+//         winner: { id: "w25", name: "LORD_JAY_FF", votes: 125 },
+//       },
+//       {
+//         id: "27",
+//         name: "BEST ESPORTS TOURNAMENT OF 2024",
+//         winner: { id: "w26", name: "DECA CUP by 10N8E", votes: 224 },
+//       },
+//       {
+//         id: "28",
+//         name: "AWARD FOR BEST ESPORTS ORGANIZATION",
+//         winner: { id: "w27", name: "10N8E", votes: 161 },
+//       },
+//       {
+//         id: "29",
+//         name: "BEST UPCOMING/NEXT RATED TEAM",
+//         winner: { id: "w28", name: "ATHLEGAME", votes: 122 },
+//       },
+//     ],
+//   },
+// ];
 
 export default function page() {
   const [winnersData] = useState<SectionWinners[]>(MANUAL_WINNERS);
@@ -263,7 +423,7 @@ export default function page() {
             community this year.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4">
+          {/* <div className="flex flex-wrap justify-center gap-4">
             <Button className="rounded-full" asChild variant="default">
               <Link href="/home">
                 <Home /> Home
@@ -276,7 +436,7 @@ export default function page() {
             >
               <Share2 /> Share Results
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
 

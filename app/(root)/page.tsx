@@ -123,7 +123,7 @@ const page = () => {
           >
             <Badge className="mb-6 bg-primary/20 text-primary border-primary/30 hover:bg-primary/30">
               <Flame className="w-4 h-4 mr-2" />
-              Season 2025 Now Live
+              Season 2026 Now Live
             </Badge>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-4">

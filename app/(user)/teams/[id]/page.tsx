@@ -175,7 +175,6 @@ const Page = ({ params }: { params: Params }) => {
   );
 
   const handleJoinTeam = () => {
-    console.log(teamDetails);
     startRequestTransition(async () => {
       try {
         if (teamDetails.join_settings === "open") {

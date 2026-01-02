@@ -635,8 +635,6 @@ const page = () => {
       const endpoint = isSuspending ? "suspend-user" : "activate-user";
       const action = isSuspending ? "suspended" : "activated";
 
-      console.log(userId);
-
       try {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/${endpoint}/`,
@@ -650,8 +648,6 @@ const page = () => {
           }
         );
 
-        console.log(response);
-
         if (response.data.success || response.status === 200) {
           await fetchUsers();
           toast.success(`User has been ${action}.`);
@@ -661,7 +657,6 @@ const page = () => {
           );
         }
       } catch (error: any) {
-        console.log(error);
         toast.error(
           error.response?.data?.message ||
             `Failed to ${action.slice(0, -1)} user.`
@@ -707,8 +702,6 @@ const page = () => {
       toast.error("Failed to export users to Excel");
     }
   };
-
-  console.log(adminUsers);
 
   if (loading) return <FullLoader />;
   return (

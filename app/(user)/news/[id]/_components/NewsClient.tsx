@@ -56,8 +56,6 @@ export function NewsClient({
 
   if (!newsDetails) notFound();
 
-  console.log(newsDetails);
-
   return (
     <div className="">
       <PageHeader
