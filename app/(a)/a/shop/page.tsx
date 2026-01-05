@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +28,24 @@ import {
 } from "@tabler/icons-react";
 import { TrendingUp, Eye } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
+import axios from "axios";
+import { env } from "@/lib/env";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { ComingSoon } from "@/components/ComingSoon";
+
+interface StockItem {
+  product_id: number;
+  product_name: string;
+  variant_id: number;
+  sku: string;
+  variant_title: string;
+  is_limited_stock: boolean;
+  stock_qty: number;
+  in_stock: boolean;
+  active: boolean;
+}
 
 // Mock data for orders
 const mockOrders = [
@@ -122,7 +146,37 @@ const mockNotifications = [
 ];
 
 export default function AdminShopPage() {
+  const { token } = useAuth();
+  const [stockStatus, setStockStatus] = useState<StockItem[]>([]);
+  const [isStockLoading, setIsStockLoading] = useState(true);
   const [orderFilter, setOrderFilter] = useState("week");
+
+  const fetchStockStatus = async () => {
+    try {
+      setIsStockLoading(true);
+      const response = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-current-stock-status/`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setStockStatus(response.data.stock);
+    } catch (error) {
+      console.error("Error fetching stock:", error);
+    } finally {
+      setIsStockLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStockStatus();
+  }, []);
+
+  const getStockBadgeStyles = (item: StockItem) => {
+    if (!item.in_stock || item.stock_qty === 0) return "bg-red-500 text-white";
+    if (item.stock_qty < 10) return "bg-yellow-500 text-black"; // Warning level
+    return "bg-green-500 text-white";
+  };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -151,15 +205,15 @@ export default function AdminShopPage() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <PageHeader title="Shop Dashboard" />
+    <div className="flex flex-col gap-2">
+      <PageHeader back title="Shop Dashboard" />
 
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
         {/* Your Orders Card */}
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">Your Orders</CardTitle>
+            <CardTitle>Your Orders</CardTitle>
             <p className="text-sm text-muted-foreground">
               Introducing our new dashboard for a more streamlined order
               management.
@@ -204,77 +258,132 @@ export default function AdminShopPage() {
       </div>
 
       {/* Main Content Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
         {/* Orders Table */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Orders This Week</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Recent orders from your store
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Tabs value={orderFilter} onValueChange={setOrderFilter}>
-                <TabsList>
-                  <TabsTrigger value="day">Day</TabsTrigger>
-                  <TabsTrigger value="week">Week</TabsTrigger>
-                  <TabsTrigger value="month">Month</TabsTrigger>
-                </TabsList>
-              </Tabs>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/a/shop/orders">
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Orders
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{order.customer}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {order.email}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{order.type}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(order.status)}>
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{order.date}</TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(order.amount)}
-                    </TableCell>
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Orders This Week</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Recent orders from your store
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Tabs value={orderFilter} onValueChange={setOrderFilter}>
+                  <TabsList>
+                    <TabsTrigger value="day">Day</TabsTrigger>
+                    <TabsTrigger value="week">Week</TabsTrigger>
+                    <TabsTrigger value="month">Month</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/a/shop/orders">
+                    <Eye className="mr-2 h-4 w-4" />
+                    View Orders
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="relative">
+              <ComingSoon />
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {mockOrders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{order.customer}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {order.email}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{order.type}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(order.status)}>
+                          {order.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{order.date}</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(order.amount)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Sidebar Cards */}
-        <div className="space-y-4">
+        <div className="space-y-2">
           {/* Current Stock Status */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Current Stock Status</CardTitle>
+              <CardTitle>Current Stock Status</CardTitle>
+              <CardDescription>
+                Overview of your virtual diamond inventory.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {isStockLoading ? (
+                  // Loading Skeletons
+                  [1, 2, 5].map((i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                  ))
+                ) : stockStatus.length === 0 ? (
+                  <p className="text-xs text-center text-muted-foreground">
+                    No stock data available.
+                  </p>
+                ) : (
+                  stockStatus.slice(0, 6).map((item) => (
+                    <div
+                      key={`${item.product_id}-${item.variant_id}`}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium truncate max-w-[120px]">
+                          {item.product_name}
+                        </span>
+                        <span className="text-xs text-muted-foreground uppercase">
+                          {item.sku}
+                        </span>
+                      </div>
+                      <Badge className={cn(getStockBadgeStyles(item))}>
+                        {item.stock_qty}{" "}
+                        {item.is_limited_stock ? "Left" : "Units"}
+                      </Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <Button variant="outline" className="w-full mt-4" asChild>
+                <Link href="/a/shop/inventory">
+                  <IconPackage className="mr-2 h-4 w-4" />
+                  Manage Inventory
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+          {/* <Card>
+            <CardHeader>
+              <CardTitle>Current Stock Status</CardTitle>
               <p className="text-sm text-muted-foreground">
                 Overview of your virtual diamond inventory.
               </p>
@@ -302,17 +411,16 @@ export default function AdminShopPage() {
                 </Link>
               </Button>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Notifications */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Notifications</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Recent activities and alerts.
-              </p>
+              <CardTitle>Notifications</CardTitle>
+              <CardDescription>Recent activities and alerts.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative">
+              <ComingSoon />
               <div className="space-y-4">
                 {mockNotifications.map((notification) => (
                   <div key={notification.id} className="flex gap-3">

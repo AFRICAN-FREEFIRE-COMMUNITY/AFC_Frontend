@@ -1323,7 +1323,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     regDurationDays,
   } = calculatedData;
 
-  const formattedPrizepool = formatMoneyInput(prizepool);
+  const formattedPrizepool = /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
+    ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+    : eventDetails.prizepool;
 
   // Get stage status
   const stageStatus = adminDetails.stage_progress;
@@ -1404,7 +1406,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                 <IconCurrencyDollar className="h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${formattedPrizepool}</div>
+                <div className="text-2xl font-bold">{formattedPrizepool}</div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-shadow gap-1">

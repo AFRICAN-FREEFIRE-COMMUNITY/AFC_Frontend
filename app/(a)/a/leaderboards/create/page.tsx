@@ -26,7 +26,7 @@ export default function CreateLeaderboardPage() {
     setFormData((prev) => ({ ...prev, ...newData }));
   };
 
-  const nextStep = () => setCurrentStep((prev) => prev + 1);
+  const nextStep = (value = 1) => setCurrentStep((prev) => prev + value);
   const prevStep = () => setCurrentStep((prev) => prev - 1);
 
   return (
@@ -62,7 +62,13 @@ export default function CreateLeaderboardPage() {
 
         {currentStep === 2 && (
           <BasicInfoStep
-            onNext={nextStep}
+            onNext={() => {
+              if (formData.leaderboard_method === "manual") {
+                nextStep(2);
+              } else {
+                nextStep();
+              }
+            }}
             onBack={prevStep}
             updateData={updateFormData}
           />

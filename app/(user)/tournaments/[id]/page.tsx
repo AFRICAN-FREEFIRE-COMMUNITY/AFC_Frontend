@@ -798,7 +798,10 @@ const EventDetailPage = ({ params }: { params: Params }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <p>Date: {formatDate(eventDetails.start_date)}</p>
           <p>
-            Prize Pool: ${parseFloat(eventDetails.prizepool).toLocaleString()}
+            Prize Pool:{" "}
+            {/^\d+(\.\d+)?$/.test(eventDetails.prizepool)
+              ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+              : eventDetails.prizepool}
           </p>
           <p>Location: Online</p>
           <p>Format: {formatText}</p>

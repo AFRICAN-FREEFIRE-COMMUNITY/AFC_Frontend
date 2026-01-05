@@ -22,7 +22,6 @@ export const SelectionMethodStep = ({ onSelect }: Props) => {
       icon: IconUsers,
       small: "Manually input placement and kills for each player",
       long: "Directly enter match data for teams and players. You'll input placement, kills, assists, and damage for each map, and the system will generate the leaderboard automatically.",
-      disabled: true,
     },
     {
       id: "image" as Method,

@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Label } from "@/components/ui/label";
 import { FormDescription } from "@/components/ui/form";
 import { Loader } from "@/components/Loader";
+import { toast } from "sonner";
 
 export function ConfigurePointSystem({ onNext, onBack, parentFormData }: any) {
   const { token } = useAuth();
@@ -63,22 +64,25 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: any) {
       console.log(`${key}:`, value);
     }
 
+    const endpoint =
+      parentFormData.leaderboard_method === "manual"
+        ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-leaderboard-manually/`
+        : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-leaderboard/`;
+
     try {
-      const res = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-leaderboard/`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: submissionData,
-        }
-      );
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: submissionData,
+      });
 
       if (res.ok) onNext();
       else alert("Creation failed. Please check IDs.");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      toast.error(err.response.data.message);
     } finally {
       setLoading(false);
     }

@@ -484,5 +484,41 @@ export const tournamentSchema = z.object({
   stages: z.array(stageSchema),
 });
 
+export const AddProductSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
+  product_type: z.string().min(1, "Type is required"),
+  description: z.string().default(""), // Added default
+  is_limited_stock: z.boolean().default(false),
+  status: z.string().default("active"),
+  variants: z
+    .array(
+      z.object({
+        sku: z.string().min(1, "SKU is required"),
+        price: z.coerce.number().min(0),
+        title: z.string().min(1, "Title is required"),
+        diamonds_amount: z.coerce.number().min(0),
+        stock_qty: z.coerce.number().min(0),
+        is_active: z.boolean().default(true),
+        meta: z.record(z.string(), z.any()).default({}),
+      })
+    )
+    .min(1),
+});
+
+export const CreateCouponSchema = z.object({
+  code: z.string().min(3, "Code must be at least 3 characters").toUpperCase(),
+  discount_type: z.enum(["percentage", "fixed"]),
+  discount_value: z.coerce.number().min(1, "Value must be greater than 0"),
+  active: z.boolean().default(true),
+  min_order_amount: z.coerce.number().min(0).default(0),
+  max_uses: z.coerce.number().min(1, "Must allow at least 1 use"),
+  start_at: z.string().min(1, "Start date is required"),
+  end_at: z.string().min(1, "Expiry date is required"),
+});
+
+export type CreateCouponSchemaType = z.infer<typeof CreateCouponSchema>;
+
 export type TournamentFormData = z.infer<typeof tournamentSchema>;
 export type EditMatchFormSchemaType = z.infer<typeof EditMatchFormSchema>;
+export type AddProductSchemaType = z.infer<typeof AddProductSchema>;

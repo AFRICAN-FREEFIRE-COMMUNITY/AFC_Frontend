@@ -17,6 +17,7 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         black: "bg-black text-white hover:bg-black/80",
+        warning: "bg-yellow-500 text-white hover:bg-yellow-500/80",
         white: "bg-white text-primary hover:bg-white/90",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",

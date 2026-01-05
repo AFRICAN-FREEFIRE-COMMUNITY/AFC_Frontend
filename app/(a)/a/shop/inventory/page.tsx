@@ -1,10 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useFieldArray } from "react-hook-form";
+
+import { useEffect, useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,10 +57,48 @@ import {
   IconFilter,
   IconUpload,
   IconDiamond,
+  IconDots,
+  IconPencil,
+  IconTrash,
+  IconFlameOff,
+  IconBan,
 } from "@tabler/icons-react";
-import { MoreHorizontal, ArrowLeft } from "lucide-react";
+import { MoreHorizontal, ArrowLeft, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { AddProductModal } from "../_components/AddProductModal";
+
+import { Skeleton } from "@/components/ui/skeleton"; // For loading states
+import axios from "axios";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { formatDate } from "@/lib/utils";
+import { DeleteProductModal } from "../_components/DeleteProductModal";
+import { ToggleProductStatusModal } from "../_components/ToggleProductStatusModal";
+import { CreateCouponSchema, CreateCouponSchemaType } from "@/lib/zodSchemas";
+import { Label } from "@/components/ui/label";
+import { Loader } from "@/components/Loader";
+
+interface Variant {
+  id: number;
+  sku: string;
+  title: string;
+  price: string;
+  diamonds_amount: number;
+  stock_qty: number;
+  is_active: boolean;
+  in_stock: boolean;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  type: string;
+  status: string;
+  is_limited_stock: boolean;
+  variants: Variant[];
+}
 
 // Mock data for products
 const mockProducts = [
@@ -125,9 +173,99 @@ const mockCoupons = [
 ];
 
 export default function InventoryManagementPage() {
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [addProductOpen, setAddProductOpen] = useState(false);
+  const { token } = useAuth();
+  const [isPending, startTransition] = useTransition();
+
+  // Initialize the Form
+  const form = useForm<CreateCouponSchemaType>({
+    resolver: zodResolver(CreateCouponSchema),
+    defaultValues: {
+      code: "",
+      discount_type: "percentage",
+      discount_value: 0,
+      active: true,
+      min_order_amount: 0,
+      max_uses: 100,
+      start_at: new Date().toISOString().split("T")[0], // Today
+      end_at: "",
+    },
+  });
+
   const [couponTab, setCouponTab] = useState("active");
+  const [isLoading, setIsLoading] = useState(true);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openStatusModal, setOpenStatusModal] = useState(false); // Rename state for clarity
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const onSubmitCoupon = (data: CreateCouponSchemaType) => {
+    startTransition(async () => {
+      try {
+        await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/create-coupon/`,
+          data,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success("Coupon created successfully!");
+        form.reset();
+        setCouponTab("active"); // Switch back to list view
+        // Optional: fetchCoupons() if you have a real list endpoint
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || "Failed to create coupon");
+      }
+    });
+  };
+
+  const handleDeleteSuccess = () => {
+    setOpenDeleteModal(false);
+    setSelectedProduct(null);
+    fetchProducts(); // Refresh the table
+  };
+
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-all-products/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setProducts(response.data.products);
+    } catch (error: any) {
+      toast.error(error.response.data.message);
+      console.error("Error fetching products:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter((product) => {
+    if (statusFilter === "all") return true;
+    return product.status.toLowerCase() === statusFilter.toLowerCase();
+  });
+
+  // Helper to calculate total stock from variants
+  const getTotalStock = (variants: Variant[]) =>
+    variants.reduce((acc, curr) => acc + curr.stock_qty, 0);
+
+  // Helper to get price range
+  const getPriceDisplay = (variants: Variant[]) => {
+    if (variants.length === 0) return "$0.00";
+    const prices = variants.map((v) => parseFloat(v.price));
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max
+      ? `$${min.toFixed(2)}`
+      : `$${min.toFixed(2)} - $${max.toFixed(2)}`;
+  };
 
   // New product form state
   const [newProduct, setNewProduct] = useState({
@@ -152,13 +290,6 @@ export default function InventoryManagementPage() {
     description: "",
   });
 
-  const filteredProducts = mockProducts.filter((product) => {
-    if (statusFilter === "all") return true;
-    if (statusFilter === "active") return product.status === "Active";
-    if (statusFilter === "inactive") return product.status === "Inactive";
-    return true;
-  });
-
   const getStatusBadgeVariant = (status: string) => {
     return status === "Active" ? "default" : "secondary";
   };
@@ -175,8 +306,8 @@ export default function InventoryManagementPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <PageHeader back title="Inventory Management" />
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" asChild>
+        <div className="w-full md:w-auto flex flex-wrap gap-2">
+          {/* <Button variant="outline" asChild>
             <Link href="/a/shop/coupons">
               <IconChartBar className="mr-2 h-4 w-4" />
               Coupon Metrics
@@ -185,166 +316,8 @@ export default function InventoryManagementPage() {
           <Button variant="outline">
             <IconDownload className="mr-2 h-4 w-4" />
             Export
-          </Button>
-          <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <IconCirclePlus className="mr-2 h-4 w-4" />
-                Add Product
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add New Product</DialogTitle>
-                <DialogDescription>
-                  Fill in the details for the new virtual diamond product.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="productName">Product Name *</Label>
-                    <Input
-                      id="productName"
-                      placeholder="e.g., 2500 Diamonds"
-                      value={newProduct.name}
-                      onChange={(e) =>
-                        setNewProduct({ ...newProduct, name: e.target.value })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="price">Price ($) *</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      placeholder="25.00"
-                      value={newProduct.price}
-                      onChange={(e) =>
-                        setNewProduct({ ...newProduct, price: e.target.value })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="initialStock">Initial Stock *</Label>
-                    <Input
-                      id="initialStock"
-                      type="number"
-                      placeholder="0"
-                      value={newProduct.initialStock}
-                      onChange={(e) =>
-                        setNewProduct({
-                          ...newProduct,
-                          initialStock: e.target.value,
-                        })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="category">Category</Label>
-                    <Select
-                      value={newProduct.category}
-                      onValueChange={(value) =>
-                        setNewProduct({ ...newProduct, category: value })
-                      }
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="diamonds">Diamonds</SelectItem>
-                        <SelectItem value="bundles">Bundles</SelectItem>
-                        <SelectItem value="skins">Skins</SelectItem>
-                        <SelectItem value="characters">Characters</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Brief description of the product and its benefits"
-                    value={newProduct.description}
-                    onChange={(e) =>
-                      setNewProduct({
-                        ...newProduct,
-                        description: e.target.value,
-                      })
-                    }
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="productImage">Product Image</Label>
-                  <Input id="productImage" type="file" className="mt-1" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Upload a product image (PNG, JPG, or GIF)
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="tags">Tags</Label>
-                    <Input
-                      id="tags"
-                      placeholder="popular, best-value, limited"
-                      value={newProduct.tags}
-                      onChange={(e) =>
-                        setNewProduct({ ...newProduct, tags: e.target.value })
-                      }
-                      className="mt-1"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Comma-separated tags
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="sortOrder">Sort Order</Label>
-                    <Input
-                      id="sortOrder"
-                      type="number"
-                      placeholder="1"
-                      value={newProduct.sortOrder}
-                      onChange={(e) =>
-                        setNewProduct({
-                          ...newProduct,
-                          sortOrder: e.target.value,
-                        })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="featured"
-                    checked={newProduct.featured}
-                    onCheckedChange={(checked) =>
-                      setNewProduct({ ...newProduct, featured: checked })
-                    }
-                  />
-                  <Label htmlFor="featured">Featured Product</Label>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setAddProductOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={() => setAddProductOpen(false)}>
-                  Save Product
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          </Button> */}
+          <AddProductModal onSuccess={() => fetchProducts()} />
         </div>
       </div>
 
@@ -376,50 +349,117 @@ export default function InventoryManagementPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Stock</TableHead>
                 <TableHead>Price</TableHead>
+                <TableHead>Variants</TableHead>
                 <TableHead>Last Updated</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <IconDiamond className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{product.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(product.status)}>
-                      {product.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{product.stock}</TableCell>
-                  <TableCell>{formatCurrency(product.price)}</TableCell>
-                  <TableCell>{product.lastUpdated}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>
-                          {product.status === "Active"
-                            ? "Deactivate"
-                            : "Activate"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {isLoading ? (
+                // Simple loading skeleton
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">
+                    Loading products...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filteredProducts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">
+                    No products found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <IconDiamond className="h-4 w-4 text-primary" />
+                          <span className="font-medium">{product.name}</span>
+                        </div>
+                        <span className="capitalize text-xs text-muted-foreground ml-6">
+                          Type: {product.type}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          product.status === "active" ? "default" : "secondary"
+                        }
+                        className="capitalize"
+                      >
+                        {product.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-start gap-1">
+                        <span>{getTotalStock(product.variants)}</span>
+                        {product.is_limited_stock && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] w-fit"
+                          >
+                            Limited
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{getPriceDisplay(product.variants)}</TableCell>
+                    <TableCell>
+                      <span className="text-xs">
+                        {product.variants.length} Variant(s)
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {product.updatedAt || formatDate(new Date())}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <IconDots />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/a/shop/inventory/${product.id}`}>
+                              <IconPencil />
+                              Edit
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedProduct(product);
+                              setOpenDeleteModal(true);
+                            }}
+                            className="text-destructive"
+                          >
+                            <IconTrash className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedProduct(product);
+                              setOpenStatusModal(true);
+                            }}
+                          >
+                            {product.status === "active" ? (
+                              <>
+                                <IconBan className="mr-2 h-4 w-4" /> Deactivate
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="mr-2 h-4 w-4" />{" "}
+                                Activate
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
           <p className="text-sm text-muted-foreground mt-4">
@@ -549,121 +589,160 @@ export default function InventoryManagementPage() {
             </TabsContent>
 
             <TabsContent value="create" className="mt-4">
-              <div className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="couponCode">Coupon Code *</Label>
-                    <Input
-                      id="couponCode"
-                      placeholder="e.g., SUMMER20"
-                      value={newCoupon.code}
-                      onChange={(e) =>
-                        setNewCoupon({ ...newCoupon, code: e.target.value })
-                      }
-                      className="mt-1"
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmitCoupon)}
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols- 1 md:grid-cols-2 gap-2">
+                    <FormField
+                      control={form.control}
+                      name="code"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Coupon Code *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="SUMMER20" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="discount_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Discount Type *</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="percentage">
+                                Percentage (%)
+                              </SelectItem>
+                              <SelectItem value="fixed">
+                                Fixed Amount ($)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="discount_value"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Discount Value *</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="max_uses"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Maximum Uses *</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="min_order_amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Min Order Amount ($)</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="end_at"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Expiry Date (End At) *</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="discountType">Discount Type *</Label>
-                    <Select
-                      value={newCoupon.discountType}
-                      onValueChange={(value) =>
-                        setNewCoupon({ ...newCoupon, discountType: value })
-                      }
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select discount type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="percentage">Percentage</SelectItem>
-                        <SelectItem value="fixed">Fixed Amount</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="discountValue">Discount Value *</Label>
-                    <Input
-                      id="discountValue"
-                      placeholder="e.g., 10% or $5"
-                      value={newCoupon.discountValue}
-                      onChange={(e) =>
-                        setNewCoupon({
-                          ...newCoupon,
-                          discountValue: e.target.value,
-                        })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="maxUses">Maximum Uses *</Label>
-                    <Input
-                      id="maxUses"
-                      type="number"
-                      placeholder="100"
-                      value={newCoupon.maxUses}
-                      onChange={(e) =>
-                        setNewCoupon({ ...newCoupon, maxUses: e.target.value })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="minOrder" className="text-primary">
-                      Minimum Order Amount ($)
-                    </Label>
-                    <Input
-                      id="minOrder"
-                      type="number"
-                      placeholder="0"
-                      value={newCoupon.minOrder}
-                      onChange={(e) =>
-                        setNewCoupon({ ...newCoupon, minOrder: e.target.value })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="expiryDate">Expiry Date *</Label>
-                    <Input
-                      id="expiryDate"
-                      type="date"
-                      value={newCoupon.expiryDate}
-                      onChange={(e) =>
-                        setNewCoupon({
-                          ...newCoupon,
-                          expiryDate: e.target.value,
-                        })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="couponDescription">Description</Label>
-                  <Textarea
-                    id="couponDescription"
-                    placeholder="Brief description of the coupon offer"
-                    value={newCoupon.description}
-                    onChange={(e) =>
-                      setNewCoupon({
-                        ...newCoupon,
-                        description: e.target.value,
-                      })
-                    }
-                    className="mt-1"
+
+                  <FormField
+                    control={form.control}
+                    name="active"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel>Activate Coupon immediately</FormLabel>
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <Button className="w-full">Create Coupon</Button>
-              </div>
+
+                  <Button type="submit" className="w-full" disabled={isPending}>
+                    {isPending ? (
+                      <Loader text="Creating..." />
+                    ) : (
+                      "Create Coupon"
+                    )}
+                  </Button>
+                </form>
+              </Form>
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+      {openDeleteModal && selectedProduct && (
+        <DeleteProductModal
+          productId={String(selectedProduct.id)}
+          productName={selectedProduct.name}
+          open={openDeleteModal}
+          onOpenChange={setOpenDeleteModal}
+          onSuccess={handleDeleteSuccess}
+        />
+      )}
+      {openStatusModal && selectedProduct && (
+        <ToggleProductStatusModal
+          productId={String(selectedProduct.id)}
+          productName={selectedProduct.name}
+          currentStatus={selectedProduct.status}
+          open={openStatusModal}
+          onOpenChange={setOpenStatusModal}
+          onSuccess={() => {
+            setOpenStatusModal(false);
+            fetchProducts();
+          }}
+        />
+      )}
     </div>
   );
 }
