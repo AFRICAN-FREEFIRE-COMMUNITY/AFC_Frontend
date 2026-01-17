@@ -389,8 +389,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <Card
                 className={`cursor-pointer transition ${
                   isTeamDisabled
-                    ? "bg-white opacity-50"
-                    : "bg-white hover:bg-white/90 opacity-50"
+                    ? "bg-white text-primary border-white opacity-50"
+                    : "bg-white hover:bg-white/90"
                 }`}
               >
                 <CardHeader>
@@ -782,6 +782,8 @@ const EventDetailPage = ({ params }: { params: Params }) => {
     eventDetails.participant_type.slice(1)
   }s`;
 
+  console.log(eventDetails);
+
   return (
     <div>
       <CardHeader className="space-y-1">
@@ -849,7 +851,39 @@ const EventDetailPage = ({ params }: { params: Params }) => {
       </CardContent>
 
       <div className="text-center mt-6">
-        {!eventDetails?.is_registered ? (
+        {eventDetails.is_registered ? (
+          // Case 1: Already Registered
+          <Button disabled>You've registered already</Button>
+        ) : eventDetails.event_type === "external" ? (
+          // Case 2: External Tournament (Link out)
+          <Button
+            onClick={() =>
+              window.open(eventDetails.registration_link, "_blank")
+            }
+            disabled={eventDetails.event_status !== "upcoming"}
+          >
+            {eventDetails.event_status === "upcoming"
+              ? "Register (External Link)"
+              : "Registration Closed"}
+          </Button>
+        ) : (
+          // Case 3: Internal Tournament (Open Modal)
+          <Button
+            onClick={handleRegisterClick}
+            disabled={
+              eventDetails.event_status !== "upcoming" ||
+              new Date() > new Date(eventDetails.registration_end_date)
+            }
+          >
+            {new Date() > new Date(eventDetails.registration_end_date)
+              ? "Registration Closed"
+              : "Register for Tournament"}
+          </Button>
+        )}
+      </div>
+
+      {/* <div className="text-center mt-6">
+        {eventDetails?.is_registered ? (
           <Button disabled>You've registered already</Button>
         ) : eventDetails.event_type === "external" ? (
           <Button
@@ -879,7 +913,7 @@ const EventDetailPage = ({ params }: { params: Params }) => {
               : "Register for Tournament"}
           </Button>
         )}
-      </div>
+      </div> */}
 
       <Card className="mt-4">
         <CardHeader>

@@ -1,33 +1,10 @@
 import {
-  IconLayout,
-  IconUserCheck,
-  IconSchool,
   IconCalendar,
-  IconBook,
   IconUsers,
-  IconUserCog,
   IconShield,
-  IconClipboardList,
-  IconClock,
-  IconCreditCard,
-  IconChartHistogram,
   IconSettings,
-  IconDownload,
-  IconDeviceLaptop,
-  IconDeviceImacUp,
-  IconAlertCircle,
-  IconFileDescription,
   IconMessage,
-  IconServerBolt,
   IconUsersGroup,
-  IconCurrencyDollar,
-  IconChartInfographic,
-  IconNotebook,
-  IconTrendingUp,
-  IconWallet,
-  IconChalkboardTeacher,
-  IconFileCertificate,
-  IconFileText,
   IconHome,
   IconChartBarPopular,
   IconArticle,
@@ -102,8 +79,6 @@ export const newsCategories = [
   { value: "general", label: "General News" },
   { value: "tournament", label: "Tournament Updates" },
   { value: "bans", label: "Banned Player/Team Updates" },
-  // { value: "maintenance", label: "Maintenance Updates" },
-  // { value: "events", label: "Event Announcements" },
 ];
 
 export const relatedEvents = [
@@ -173,14 +148,26 @@ export const homeNavLinksMobile = [
     comingSoon: true,
   },
   { slug: "/news", label: "News & Updates", icon: IconArticle },
-  { slug: "/rules", label: "Rules", icon: IconArticle, newLink: true },
+  {
+    slug: "/rules",
+    label: "Rules",
+    icon: IconArticle,
+    newLink: true,
+    addedAt: "2026-01-01",
+  },
   {
     slug: "/shop",
     label: "Shop",
     icon: IconShoppingCart,
     comingSoon: true,
   },
-  { slug: "/awards", label: "Awards", icon: Award, newLink: true },
+  {
+    slug: "/awards",
+    label: "Awards",
+    icon: Award,
+    newLink: true,
+    addedAt: "2026-01-10",
+  },
   { slug: "/about", label: "About Us", icon: IconInfoCircle },
   { slug: "/contact", label: "Contact", icon: IconMessage },
 ];
@@ -2350,3 +2337,5 @@ export const teamRankings = [
   { rank: 115, team: "NIGHT RAIDERS", points: 0, tournamentWins: 0, kills: 0 },
   { rank: 116, team: "WOLF PROJECT", points: 0, tournamentWins: 0, kills: 0 },
 ];
+
+export const shopProductTypes = ["diamonds"];

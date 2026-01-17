@@ -86,19 +86,39 @@ export function MobileNavbar() {
   const isActive = (slug: string) =>
     pathname === slug || pathname.startsWith(`${slug}/`);
 
+  const isNewLink = (addedAt?: string) => {
+    if (!addedAt) return false;
+
+    const dateAdded = new Date(addedAt);
+    const today = new Date();
+
+    // Calculate difference in milliseconds
+    const diffInTime = today.getTime() - dateAdded.getTime();
+
+    // Convert to days
+    const diffInDays = diffInTime / (1000 * 3600 * 24);
+
+    // Return true if it's between 0 and 5 days old
+    return diffInDays >= 0 && diffInDays <= 5;
+  };
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <style jsx global>{`
         @keyframes glow-pulse {
           0%,
           100% {
-            box-shadow: 0 0 5px rgba(34, 197, 94, 0.5),
-              0 0 10px rgba(34, 197, 94, 0.3), 0 0 15px rgba(34, 197, 94, 0.2);
+            box-shadow:
+              0 0 5px rgba(34, 197, 94, 0.5),
+              0 0 10px rgba(34, 197, 94, 0.3),
+              0 0 15px rgba(34, 197, 94, 0.2);
             transform: scale(1);
           }
           50% {
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.8),
-              0 0 20px rgba(34, 197, 94, 0.5), 0 0 30px rgba(34, 197, 94, 0.3);
+            box-shadow:
+              0 0 10px rgba(34, 197, 94, 0.8),
+              0 0 20px rgba(34, 197, 94, 0.5),
+              0 0 30px rgba(34, 197, 94, 0.3);
             transform: scale(1.05);
           }
         }
@@ -135,8 +155,9 @@ export function MobileNavbar() {
         <ScrollArea className="overflow-y-auto">
           <div className="grid gap-1 container">
             {homeNavLinksMobile.map(
-              ({ icon, slug, label, comingSoon, newLink }, index) => {
+              ({ icon, slug, label, comingSoon, newLink, addedAt }, index) => {
                 const Icon = icon;
+                const showNewBadge = isNewLink(addedAt);
                 return comingSoon ? (
                   <Button
                     className="justify-start"
@@ -159,7 +180,7 @@ export function MobileNavbar() {
                     <Link href={slug}>
                       <Icon />
                       {label}{" "}
-                      {newLink && (
+                      {showNewBadge && (
                         <Badge
                           variant="default"
                           className="glow-new-badge text-xs text-white"
@@ -170,7 +191,7 @@ export function MobileNavbar() {
                     </Link>
                   </Button>
                 );
-              }
+              },
             )}
             {/* {(user?.role === "moderator" ||
               user?.role === "super_admin" ||
@@ -209,7 +230,7 @@ export function MobileNavbar() {
                           {label}
                         </Link>
                       </Button>
-                    )
+                    ),
                   )}
                 {/* {adminNavLinks
                   .filter((link) => canAccess(link.allowedRoles)) // Filter links based on role

@@ -40,6 +40,7 @@ import { AddProductSchema, AddProductSchemaType } from "@/lib/zodSchemas";
 import { env } from "@/lib/env";
 import { Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
+import { shopProductTypes } from "@/constants";
 
 export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
   const [isPending, startTransition] = useTransition();
@@ -149,8 +150,15 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="diamonds">Diamonds</SelectItem>
-                        <SelectItem value="bundles">Bundles</SelectItem>
+                        {shopProductTypes.map((type, index) => (
+                          <SelectItem
+                            key={index}
+                            className="capitalize"
+                            value={type}
+                          >
+                            {type}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

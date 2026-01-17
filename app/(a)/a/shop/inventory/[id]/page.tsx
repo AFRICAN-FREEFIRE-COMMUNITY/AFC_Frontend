@@ -42,6 +42,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader } from "@/components/Loader";
+import { shopProductTypes } from "@/constants";
 
 type Params = Promise<{
   id: string;
@@ -199,8 +200,15 @@ const page = ({ params }: { params: Params }) => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="diamonds">Diamonds</SelectItem>
-                              <SelectItem value="bundles">Bundles</SelectItem>
+                              {shopProductTypes.map((type, index) => (
+                                <SelectItem
+                                  key={index}
+                                  className="capitalize"
+                                  value={type}
+                                >
+                                  {type}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />
