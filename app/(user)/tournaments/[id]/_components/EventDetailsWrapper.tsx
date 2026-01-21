@@ -779,8 +779,6 @@ export const EventDetailsWrapper = ({ id }: { id: string }) => {
     eventDetails.participant_type.slice(1)
   }s`;
 
-  console.log(eventDetails);
-
   return (
     <div>
       <CardHeader className="space-y-1">

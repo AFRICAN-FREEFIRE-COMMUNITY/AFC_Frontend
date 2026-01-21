@@ -235,8 +235,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const news = await getNewsData(id, token);
 
-  console.log(news);
-
   if (!news) {
     return {
       title: "News Not Found | AFC",
