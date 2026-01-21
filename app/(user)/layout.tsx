@@ -4,6 +4,12 @@ import { Header } from "./_components/Header";
 import { ProtectedRoute } from "./_components/ProtectedRoute";
 import { CartProvider } from "@/contexts/CartContext";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Teams | Africa Freefire Community Tomiwa",
+};
+
 const layout = ({ children }: { children: ReactNode }) => {
   return (
     <ProtectedRoute>

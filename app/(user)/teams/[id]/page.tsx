@@ -141,11 +141,11 @@ const Page = ({ params }: { params: Params }) => {
         const decodedId = decodeURIComponent(id);
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-          { team_name: decodedId }
+          { team_name: decodedId },
         );
         const requestResponse = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
-          { team_id: res.data.team.team_id }
+          { team_id: res.data.team.team_id },
         );
         setTeamDetails(res.data.team);
         setIsTeamCreator(res.data.team.team_creator === user?.in_game_name);
@@ -171,7 +171,7 @@ const Page = ({ params }: { params: Params }) => {
 
   // inside your component after you fetch teamDetails
   const isMember = teamDetails?.members?.some(
-    (member: any) => member.username === user?.in_game_name
+    (member: any) => member.username === user?.in_game_name,
   );
 
   const handleJoinTeam = () => {
@@ -183,7 +183,7 @@ const Page = ({ params }: { params: Params }) => {
             { team_id: teamDetails.team_id },
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
           toast.success(res.data.message);
           await refreshTeamDetails();
@@ -193,7 +193,7 @@ const Page = ({ params }: { params: Params }) => {
             { team_id: teamDetails.team_id, message: "" },
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
           toast.success(res.data.message);
         }
@@ -215,13 +215,13 @@ const Page = ({ params }: { params: Params }) => {
           { team_id: teamDetails.team_id },
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         setInviteLink(response.data.invite_link);
         toast.success("Invite link generated successfully!");
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Failed to generate invite link"
+          error?.response?.data?.message || "Failed to generate invite link",
         );
       }
     });
@@ -238,7 +238,7 @@ const Page = ({ params }: { params: Params }) => {
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
           { request_id: requestId, decision: "approved" },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
 
         toast.success(res.data.message);
@@ -248,15 +248,15 @@ const Page = ({ params }: { params: Params }) => {
           prev.map((req: any) =>
             req.request_id === requestId
               ? { ...req, isProcessed: "approved" }
-              : req
-          )
+              : req,
+          ),
         );
 
         // Silently update team members in the background so the "Members" tab is current
         refreshTeamDetails();
       } catch (error: any) {
         toast.error(
-          error.response?.data?.message || "Failed to approve request"
+          error.response?.data?.message || "Failed to approve request",
         );
       }
     });
@@ -295,14 +295,14 @@ const Page = ({ params }: { params: Params }) => {
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
           { request_id: requestId, decision: "denied" },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
 
         toast.success(res.data.message);
 
         // OPTIMISTIC UI UPDATE: Just remove the request from the list
         setJoinRequests((prev: any) =>
-          prev.filter((req: any) => req.request_id !== requestId)
+          prev.filter((req: any) => req.request_id !== requestId),
         );
       } catch (error: any) {
         toast.error(error.response?.data?.message || "Failed to deny request");
@@ -366,7 +366,7 @@ const Page = ({ params }: { params: Params }) => {
           },
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         toast.success(res.data.message);
         setNewMemberSearch("");
@@ -386,7 +386,7 @@ const Page = ({ params }: { params: Params }) => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
         if (response.statusText === "OK") {
           toast.success(response.data.message);
@@ -410,10 +410,10 @@ const Page = ({ params }: { params: Params }) => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
         toast.success(
-          response.data.message || "You have left the team successfully"
+          response.data.message || "You have left the team successfully",
         );
         router.push("/teams");
       } catch (error: any) {
@@ -432,12 +432,12 @@ const Page = ({ params }: { params: Params }) => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (response.statusText === "OK") {
           toast.success(
-            response.data.message || "Ownership transferred successfully!"
+            response.data.message || "Ownership transferred successfully!",
           );
           router.push("/teams");
         } else {
@@ -445,7 +445,7 @@ const Page = ({ params }: { params: Params }) => {
         }
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Failed to transfer ownership"
+          error?.response?.data?.message || "Failed to transfer ownership",
         );
       }
     });
@@ -459,11 +459,11 @@ const Page = ({ params }: { params: Params }) => {
         const decodedId = decodeURIComponent(id);
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-          { team_name: decodedId }
+          { team_name: decodedId },
         );
         const requestResponse = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
-          { team_id: res.data.team.team_id }
+          { team_id: res.data.team.team_id },
         );
         setTeamDetails(res.data.team);
         setIsTeamCreator(res.data.team.team_creator === user?.in_game_name);
@@ -770,7 +770,7 @@ const Page = ({ params }: { params: Params }) => {
                                 </Button>
                               </TableCell>
                             </TableRow>
-                          )
+                          ),
                         )}
                       </TableBody>
                       {teamDetails?.members === undefined && (
@@ -1002,7 +1002,7 @@ const Page = ({ params }: { params: Params }) => {
                                 link.platform.slice(1)}
                             </span>
                           </Link>
-                        )
+                        ),
                       )}
                       {teamDetails?.social_media_links === undefined && (
                         <p className="text-sm text-center italic">
@@ -1050,7 +1050,7 @@ const Page = ({ params }: { params: Params }) => {
                                       }
                                       onClick={() =>
                                         handleApproveJoinRequest(
-                                          request.request_id
+                                          request.request_id,
                                         )
                                       }
                                     >
@@ -1071,7 +1071,7 @@ const Page = ({ params }: { params: Params }) => {
                                       }
                                       onClick={() =>
                                         handleDenyJoinRequest(
-                                          request.request_id
+                                          request.request_id,
                                         )
                                       }
                                     >
@@ -1246,7 +1246,7 @@ const Page = ({ params }: { params: Params }) => {
                                           ?.filter(
                                             (member: any) =>
                                               member.username !==
-                                              user?.in_game_name
+                                              user?.in_game_name,
                                           )
                                           ?.map((member: any) => (
                                             <SelectItem

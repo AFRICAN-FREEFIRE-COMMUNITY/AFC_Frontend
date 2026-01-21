@@ -1,167 +1,204 @@
-import React from "react";
-import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
-import { Metadata, ResolvingMetadata } from "next";
-import { cookies } from "next/headers";
-import { env } from "@/lib/env";
+// import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
+// import { Metadata, ResolvingMetadata } from "next";
+// import { cookies } from "next/headers";
+// import { env } from "@/lib/env";
+// import { generateDynamicMetadata } from "@/lib/seo";
 
-type Params = Promise<{
-  id: string;
-}>;
+// type Props = {
+//   params: Promise<{ id: string }>;
+// };
 
-// export async function generateMetadata(
-//   { params }: { params: Params },
-//   parent: ResolvingMetadata,
-// ): Promise<Metadata> {
-//   const { id } = await params;
-
-//   // Read token from cookies
-//   const cookieStore = await cookies();
-//   const token = cookieStore.get("auth_token")?.value;
-
+// async function getTeamData(teamName: string) {
 //   try {
-//     // Fetch data from your API with authentication
 //     const response = await fetch(
 //       `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
 //       {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
-//           ...(token && { Authorization: `Bearer ${token}` }),
 //         },
-//         body: JSON.stringify({ event_id: id }),
-//         // Add cache options for better performance
-//         cache: "no-store", // or 'force-cache' depending on your needs
+//         body: JSON.stringify({ event_id: decodeURIComponent(teamName) }),
+//         next: { revalidate: 60 },
 //       },
 //     );
 
 //     if (!response.ok) {
-//       console.error(
-//         "Failed to fetch event details for metadata:",
-//         response.status,
-//       );
-//       return {
-//         title: "Event Not Found | AFC",
-//         description: "The requested tournament could not be found.",
-//       };
+//       console.log("sss");
+//       return null;
 //     }
 
-//     const result = await response.json();
-//     const event = result.event_details;
-
-//     if (!event) {
-//       return {
-//         title: "Event Not Found | AFC",
-//         description: "The requested tournament could not be found.",
-//       };
-//     }
-
-//     // Create description from available fields
-//     const description =
-//       event.event_rules ||
-//       `Join us for ${event.event_name}. ${event.competition_type} tournament with $${event.prizepool} prize pool.` ||
-//       "Join us for this amazing tournament!";
-
-//     return {
-//       title: `${event.event_name} | AFC Tournaments`,
-//       description: description,
-//       openGraph: {
-//         title: event.event_name,
-//         description: description,
-//         images: [
-//           {
-//             url: event.event_banner_url || "/default-event-image.jpg",
-//             width: 1200,
-//             height: 630,
-//             alt: event.event_name,
-//           },
-//         ],
-//         type: "website",
-//         siteName: "AFC Tournaments",
-//       },
-//       twitter: {
-//         card: "summary_large_image",
-//         title: event.event_name,
-//         description: description,
-//         images: [event.event_banner_url || "/default-event-image.jpg"],
-//       },
-//       // Additional metadata for better SEO
-//       keywords: [
-//         event.event_name,
-//         event.event_mode,
-//         event.competition_type,
-//         "gaming tournament",
-//         "esports",
-//       ].filter(Boolean),
-//     };
+//     const data = await response.json();
+//     console.log(data);
+//     // return data.team;
 //   } catch (error) {
-//     console.error("Error generating metadata:", error);
-//     return {
-//       title: "Tournament Details | AFC",
-//       description:
-//         "View tournament details, standings, and registration information.",
-//     };
+//     return null;
 //   }
 // }
 
-export async function generateMetadata(
-  { params }: { params: Params },
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const { id } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
+// export async function generateMetadata({ params }: Props): Promise<Metadata> {
+//   const { id } = await params;
+//   const teamName = decodeURIComponent(id);
+//   const team = await getTeamData(id);
 
+//   if (!team) {
+//     return generateDynamicMetadata({
+//       title: teamName,
+//       description: `View ${teamName} team profile on the African Freefire Community. See roster, stats, and achievements.`,
+//       url: `/teams/${id}`,
+//     });
+//   }
+
+//   const description = `${team.team_name} is a ${
+//     team.team_tier || "competitive"
+//   } Free Fire esports team from ${
+//     team.country || "Africa"
+//   } on AFC. View roster, stats, tournament history, and achievements.`;
+
+//   return {
+//     ...generateDynamicMetadata({
+//       title: team.team_name,
+//       description,
+//       image: team.team_logo || undefined,
+//       url: `/teams/${encodeURIComponent(team.team_name)}`,
+//       tags: [
+//         team.team_name,
+//         "Free Fire team",
+//         team.country,
+//         team.team_tier,
+//         "esports team",
+//       ].filter(Boolean) as string[],
+//     }),
+//     other: {
+//       "script:ld+json": JSON.stringify(
+//         generateTeamSchema({
+//           name: team.team_name,
+//           description,
+//           image: team.team_logo,
+//           url: `/teams/${encodeURIComponent(team.team_name)}`,
+//           memberCount: team.member_count,
+//           country: team.country,
+//         }),
+//       ),
+//     },
+//   };
+// }
+// const Page = async ({ params }: Props) => {
+//   const { id } = await params;
+
+//   return (
+//     <div>
+//       <EventDetailsWrapper id={id} />
+//     </div>
+//   );
+// };
+
+// export default Page;
+
+import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
+import { Metadata } from "next";
+import { cookies } from "next/headers";
+import { env } from "@/lib/env";
+import { generateDynamicMetadata } from "@/lib/seo";
+
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+// 1. Centralized Fetch Function
+async function getEventData(id: string) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+
     const response = await fetch(
       `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
       {
-        method: "POST", // Consider changing to GET if backend allows
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // If token is missing (crawler), the API must still return public data
+          // Pass the token if it exists (for users),
+          // but the API should ideally allow public access for crawlers
           ...(token && { Authorization: `Bearer ${token}` }),
         },
-        body: JSON.stringify({ event_id: id }),
-        next: { revalidate: 60 }, // Better than no-store for SEO performance
+        body: JSON.stringify({ event_id: decodeURIComponent(id) }),
+        next: { revalidate: 60 },
       },
     );
 
-    if (!response.ok) {
-      // Fallback metadata if API fails or is restricted
-      return { title: "Tournament Details | AFC" };
-    }
+    if (!response.ok) return null;
 
-    const result = await response.json();
-    const event = result.event_details;
-
-    // Ensure image is absolute
-    const ogImage =
-      event.event_banner_url ||
-      env.NEXT_PUBLIC_URL ||
-      "https://africanfreefirecommunity.com";
-
-    return {
-      title: `${event.event_name} | AFC`,
-      description: event.event_rules || "Join this tournament!",
-      openGraph: {
-        title: event.event_name,
-        description: event.event_rules,
-        images: [ogImage], // Ensure this is a full URL
-      },
-      // ... rest of your config
-    };
-  } catch (e) {
-    return { title: "Tournament Details | AFC" };
+    const data = await response.json();
+    // Adjusted to match your previous result structure
+    return data.event_details || data.team || null;
+  } catch (error) {
+    console.error("Metadata Fetch Error:", error);
+    return null;
   }
 }
 
-const Page = async ({ params }: { params: Params }) => {
+// 2. Metadata Generation
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const decodedId = decodeURIComponent(id);
+  const data = await getEventData(id);
+
+  // Fallback if the API fails or the bot can't authenticate
+  if (!data) {
+    return generateDynamicMetadata({
+      title: "Tournament Details",
+      description: `View tournament details and registration information on AFC.`,
+      url: `/events/${id}`,
+    });
+  }
+
+  const title = data.event_name || data.team_name;
+  const description =
+    data.event_rules ||
+    `${title} is a competitive tournament on African Freefire Community. Join now!`;
+
+  // CRITICAL: Ensure image URL is absolute for OG tags
+  const rawImage = data.event_banner_url || data.team_logo;
+  const absoluteImageUrl = rawImage?.startsWith("http")
+    ? rawImage
+    : `${env.NEXT_PUBLIC_APP_URL}${rawImage}`;
+
+  const baseMetadata = generateDynamicMetadata({
+    title: title,
+    description: description,
+    image: absoluteImageUrl,
+    url: `/events/${id}`,
+    tags: [title, "AFC", "Free Fire", "Gaming"].filter(Boolean),
+  });
+
+  return {
+    ...baseMetadata,
+    // Ensure OpenGraph is explicitly defined if your helper doesn't do it perfectly
+    openGraph: {
+      ...baseMetadata.openGraph,
+      images: [{ url: absoluteImageUrl }],
+      type: "website",
+    },
+    // Optional: Add Structured Data for Google
+    other: {
+      "script:ld+json": JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Event",
+        name: title,
+        description: description,
+        image: absoluteImageUrl,
+      }),
+    },
+  };
+}
+
+// 3. Page Component
+const Page = async ({ params }: Props) => {
   const { id } = await params;
 
   return (
-    <div>
+    <main>
       <EventDetailsWrapper id={id} />
-    </div>
+    </main>
   );
 };
 
