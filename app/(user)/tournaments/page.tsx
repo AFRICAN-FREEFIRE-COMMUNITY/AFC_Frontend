@@ -72,7 +72,7 @@ const EventsPage = () => {
 
     try {
       const response = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-tournaments-and-scrims/`
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-tournaments-and-scrims/`,
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -82,7 +82,7 @@ const EventsPage = () => {
       setEvents(data.events || []);
     } catch (err) {
       setError(
-        "Failed to load events. Please check the API endpoint and try again."
+        "Failed to load events. Please check the API endpoint and try again.",
       );
     } finally {
       setIsLoading(false);

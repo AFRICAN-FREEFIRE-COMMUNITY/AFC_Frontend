@@ -81,7 +81,7 @@ export default function page({ params }: { params: Params }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string>(
-    teamDetails?.team_logo ? teamDetails.team_logo : ""
+    teamDetails?.team_logo ? teamDetails.team_logo : "",
   );
 
   const [isDragging, setIsDragging] = useState(false);
@@ -115,15 +115,15 @@ export default function page({ params }: { params: Params }) {
       try {
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-          { team_name: decodedId }
+          { team_name: decodedId },
         );
         setTeamDetails(res.data.team);
         setPreviewUrl(
-          res?.data?.team?.team_logo ? res?.data?.team?.team_logo : ""
+          res?.data?.team?.team_logo ? res?.data?.team?.team_logo : "",
         );
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Error fetching team details"
+          error?.response?.data?.message || "Error fetching team details",
         );
       }
     });
@@ -188,7 +188,7 @@ export default function page({ params }: { params: Params }) {
         if (socialMediaLinks.length > 0) {
           formData.append(
             "social_media_links",
-            JSON.stringify(socialMediaLinks)
+            JSON.stringify(socialMediaLinks),
           );
         }
 
@@ -197,7 +197,7 @@ export default function page({ params }: { params: Params }) {
           formData,
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
 
         if (response.status === 200) {
@@ -275,7 +275,7 @@ export default function page({ params }: { params: Params }) {
                                   ].includes(file.type)
                                 ) {
                                   toast.error(
-                                    "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                    "Only PNG, JPG, JPEG, or WEBP files are supported.",
                                   );
                                   return;
                                 }
@@ -369,7 +369,7 @@ export default function page({ params }: { params: Params }) {
                               ].includes(file.type)
                             ) {
                               toast.error(
-                                "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                "Only PNG, JPG, JPEG, or WEBP files are supported.",
                               );
                               return;
                             }

@@ -1,314 +1,435 @@
-"use client";
+// "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
+// import { useEffect, useState, useTransition } from "react";
+// import { useParams, useRouter } from "next/navigation";
+// import axios from "axios";
+// import { env } from "@/lib/env";
+// import { useAuth } from "@/contexts/AuthContext";
+// import { toast } from "sonner";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { Badge } from "@/components/ui/badge";
+// import { FullLoader, Loader } from "@/components/Loader";
+// import { Check, X, Users, Trophy, Calendar, AlertTriangle } from "lucide-react";
+// import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+// import Link from "next/link";
+// import { Footer } from "@/app/_components/Footer";
+// import { Header } from "@/app/(user)/_components/Header";
+
+// export default function page() {
+//   const params = useParams();
+//   const router = useRouter();
+//   const { user, token } = useAuth();
+//   const inviteId = params.id as string;
+
+//   const [teamDetails, setTeamDetails] = useState<any>(null);
+//   const [loading, setLoading] = useState(true);
+//   const [pendingAccept, startAcceptTransition] = useTransition();
+//   const [pendingReject, startRejectTransition] = useTransition();
+
+//   useEffect(() => {
+//     if (!inviteId) return;
+
+//     const fetchTeamDetails = async () => {
+//       try {
+//         // Extract invite ID from the URL and fetch team details
+//         const response = await axios(
+//           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details-based-on-invite/${inviteId}`
+//         );
+//         setTeamDetails(response.data.team);
+//       } catch (error: any) {
+//         toast.error(
+//           error?.response?.data?.message || "Failed to fetch team details"
+//         );
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchTeamDetails();
+//   }, [inviteId]);
+
+//   const handleAcceptInvite = () => {
+//     startAcceptTransition(async () => {
+//       try {
+//         const response = await axios.post(
+//           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/respond-invite/${inviteId}/`,
+//           { action: "accept" },
+//           {
+//             headers: { Authorization: `Bearer ${token}` },
+//           }
+//         );
+//         toast.success(response.data.message || "Successfully joined the team!");
+//         router.push(`/teams/${teamDetails?.team_name}`);
+//       } catch (error: any) {
+//         toast.error(
+//           error?.response?.data?.message || "Failed to accept invite"
+//         );
+//       }
+//     });
+//   };
+
+//   const handleRejectInvite = () => {
+//     startRejectTransition(async () => {
+//       try {
+//         const response = await axios.post(
+//           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/respond-invite/${inviteId}/`,
+//           { action: "decline" },
+//           {
+//             headers: { Authorization: `Bearer ${token}` },
+//           }
+//         );
+//         toast.success(response.data.message || "Invite declined");
+//         router.push("/teams");
+//       } catch (error: any) {
+//         toast.error(
+//           error?.response?.data?.message || "Failed to decline invite"
+//         );
+//       }
+//     });
+//   };
+
+//   if (loading) {
+//     return <FullLoader />;
+//   }
+
+//   if (!teamDetails) {
+//     return (
+//       <div className="container mx-auto px-4 py-8">
+//         <Card>
+//           <CardContent className="py-12 text-center">
+//             <h2 className="text-2xl font-bold mb-4">Invalid Invite</h2>
+//             <p className="text-muted-foreground mb-6">
+//               This invite link is invalid or has expired.
+//             </p>
+//             <Button asChild>
+//               <Link href="/teams">Browse Teams</Link>
+//             </Button>
+//           </CardContent>
+//         </Card>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div>
+//       <Header />
+//       <Card className="container my-20 mx-auto">
+//         <CardHeader>
+//           <CardTitle className="text-center text-2xl">
+//             Team Invitation
+//           </CardTitle>
+//         </CardHeader>
+//         <CardContent>
+//           <div className="space-y-6">
+//             {/* Team Info */}
+//             <div className="flex flex-col items-center text-center space-y-4">
+//               <Avatar className="w-24 h-24">
+//                 <AvatarImage
+//                   src={teamDetails?.team_logo}
+//                   alt={teamDetails?.team_name}
+//                   className="object-cover"
+//                 />
+//                 <AvatarFallback className="text-2xl">
+//                   {teamDetails?.team_name?.[0]}
+//                 </AvatarFallback>
+//               </Avatar>
+//               <div>
+//                 <h2 className="text-3xl font-bold mb-2">
+//                   {teamDetails?.team_name}
+//                 </h2>
+//                 {teamDetails?.team_tag && (
+//                   <Badge variant="secondary" className="mb-2">
+//                     {teamDetails?.team_tag}
+//                   </Badge>
+//                 )}
+//                 <p className="text-muted-foreground">
+//                   You have been invited to join this team!
+//                 </p>
+//               </div>
+//             </div>
+
+//             {/* Banned Team Alert */}
+//             {teamDetails?.is_banned && (
+//               <Alert variant="destructive">
+//                 <AlertTriangle className="h-4 w-4" />
+//                 <AlertTitle>This team is currently banned</AlertTitle>
+//                 <AlertDescription>
+//                   You cannot join a banned team. The invite link is no longer
+//                   valid.
+//                   {teamDetails?.ban_reason && (
+//                     <>
+//                       <br />
+//                       Reason: {teamDetails.ban_reason}
+//                     </>
+//                   )}
+//                 </AlertDescription>
+//               </Alert>
+//             )}
+
+//             {/* Team Description */}
+//             {teamDetails?.team_description && (
+//               <div className="bg-muted p-4 rounded-md">
+//                 <h3 className="font-semibold mb-2">About the Team</h3>
+//                 <p className="text-sm text-muted-foreground">
+//                   {teamDetails?.team_description}
+//                 </p>
+//               </div>
+//             )}
+
+//             {/* Team Stats */}
+//             <div className="grid grid-cols-2 2xl:grid-cols-4 gap-2">
+//               <div className="text-center p-4 bg-muted rounded-md">
+//                 <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+//                 <p className="text-2xl font-bold">
+//                   {teamDetails?.members?.length || 0}/6
+//                 </p>
+//                 <p className="text-xs text-muted-foreground">Members</p>
+//               </div>
+//               <div className="text-center p-4 bg-muted rounded-md">
+//                 <Trophy className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+//                 <p className="text-2xl font-bold">
+//                   {teamDetails?.stats?.tournament_wins || 0}
+//                 </p>
+//                 <p className="text-xs text-muted-foreground">Wins</p>
+//               </div>
+//               <div className="text-center p-4 bg-muted rounded-md">
+//                 <Badge
+//                   variant="outline"
+//                   className="h-6 w-6 mx-auto mb-2 flex items-center justify-center"
+//                 >
+//                   T{teamDetails?.team_tier || 1}
+//                 </Badge>
+//                 <p className="text-2xl font-bold">
+//                   {teamDetails?.team_tier || 1}
+//                 </p>
+//                 <p className="text-xs text-muted-foreground">Tier</p>
+//               </div>
+//               <div className="text-center p-4 bg-muted rounded-md">
+//                 <Calendar className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+//                 <p className="text-2xl font-bold">{teamDetails?.country}</p>
+//                 <p className="text-xs text-muted-foreground">Country</p>
+//               </div>
+//             </div>
+
+//             {/* Current Members */}
+//             {teamDetails?.members && teamDetails?.members.length > 0 && (
+//               <div>
+//                 <h3 className="font-semibold mb-3">Current Members</h3>
+//                 <div className="space-y-2">
+//                   {teamDetails?.members.map((member: any, index: number) => (
+//                     <div
+//                       key={index}
+//                       className="flex items-center justify-between p-3 bg-muted rounded-md"
+//                     >
+//                       <div className="flex items-center space-x-3">
+//                         <Avatar className="h-8 w-8">
+//                           <AvatarImage src={member.avatar} />
+//                           <AvatarFallback>
+//                             {member.username?.[0]}
+//                           </AvatarFallback>
+//                         </Avatar>
+//                         <div>
+//                           <p className="font-medium text-sm">
+//                             {member.username}
+//                           </p>
+//                           {member.management_role && (
+//                             <p className="text-xs text-muted-foreground">
+//                               {member.management_role}
+//                             </p>
+//                           )}
+//                         </div>
+//                       </div>
+//                       {member.in_game_role && (
+//                         <Badge variant="outline" className="text-xs">
+//                           {member.in_game_role}
+//                         </Badge>
+//                       )}
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* Action Buttons */}
+//             {teamDetails?.is_banned ? (
+//               <div className="pt-4">
+//                 <Button asChild className="w-full">
+//                   <Link href="/teams">Browse Other Teams</Link>
+//                 </Button>
+//               </div>
+//             ) : (
+//               <div className="flex gap-4 pt-4">
+//                 <Button
+//                   variant="outline"
+//                   className="flex-1"
+//                   onClick={handleRejectInvite}
+//                   disabled={pendingAccept || pendingReject}
+//                 >
+//                   {pendingReject ? (
+//                     <Loader text="Declining..." />
+//                   ) : (
+//                     <>
+//                       <X className="mr-2 h-4 w-4" />
+//                       Decline
+//                     </>
+//                   )}
+//                 </Button>
+//                 <Button
+//                   className="flex-1"
+//                   onClick={handleAcceptInvite}
+//                   disabled={pendingAccept || pendingReject}
+//                 >
+//                   {pendingAccept ? (
+//                     <Loader text="Joining..." />
+//                   ) : (
+//                     <>
+//                       <Check className="mr-2 h-4 w-4" />
+//                       Accept & Join
+//                     </>
+//                   )}
+//                 </Button>
+//               </div>
+//             )}
+
+//             {!user && (
+//               <p className="text-center text-sm text-muted-foreground">
+//                 You need to{" "}
+//                 <Link
+//                   href={`/login?redirect=/invite/${inviteId}`}
+//                   className="text-primary underline"
+//                 >
+//                   log in
+//                 </Link>{" "}
+//                 to accept this invite
+//               </p>
+//             )}
+//           </div>
+//         </CardContent>
+//       </Card>
+//       <Footer />
+//     </div>
+//   );
+// }
+
+import { Metadata } from "next";
 import { env } from "@/lib/env";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { FullLoader, Loader } from "@/components/Loader";
-import { Check, X, Users, Trophy, Calendar, AlertTriangle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Link from "next/link";
-import { Footer } from "@/app/_components/Footer";
-import { Header } from "@/app/(user)/_components/Header";
+import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { TeamInviteClient } from "../_components/TeamInviteClient";
 
-export default function page() {
-  const params = useParams();
-  const router = useRouter();
-  const { user, token } = useAuth();
-  const inviteId = params.id as string;
+type Props = {
+  params: Promise<{ id: string }>;
+};
 
-  const [teamDetails, setTeamDetails] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [pendingAccept, startAcceptTransition] = useTransition();
-  const [pendingReject, startRejectTransition] = useTransition();
-
-  useEffect(() => {
-    if (!inviteId) return;
-
-    const fetchTeamDetails = async () => {
-      try {
-        // Extract invite ID from the URL and fetch team details
-        const response = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details-based-on-invite/${inviteId}`
-        );
-        setTeamDetails(response.data.team);
-      } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Failed to fetch team details"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeamDetails();
-  }, [inviteId]);
-
-  const handleAcceptInvite = () => {
-    startAcceptTransition(async () => {
-      try {
-        const response = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/respond-invite/${inviteId}/`,
-          { action: "accept" },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        toast.success(response.data.message || "Successfully joined the team!");
-        router.push(`/teams/${teamDetails?.team_name}`);
-      } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Failed to accept invite"
-        );
-      }
-    });
-  };
-
-  const handleRejectInvite = () => {
-    startRejectTransition(async () => {
-      try {
-        const response = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/respond-invite/${inviteId}/`,
-          { action: "decline" },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        toast.success(response.data.message || "Invite declined");
-        router.push("/teams");
-      } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Failed to decline invite"
-        );
-      }
-    });
-  };
-
-  if (loading) {
-    return <FullLoader />;
-  }
-
-  if (!teamDetails) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <h2 className="text-2xl font-bold mb-4">Invalid Invite</h2>
-            <p className="text-muted-foreground mb-6">
-              This invite link is invalid or has expired.
-            </p>
-            <Button asChild>
-              <Link href="/teams">Browse Teams</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+/**
+ * Fetch team details based on invite ID
+ * This endpoint doesn't require authentication to view basic team info
+ */
+async function getTeamInviteData(inviteId: string) {
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details-based-on-invite/${inviteId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // Don't cache invite pages - they may expire
+        cache: "no-store",
+      },
     );
+
+    if (!response.ok) {
+      console.error(
+        "Failed to fetch team invite:",
+        response.status,
+        response.statusText,
+      );
+      return null;
+    }
+
+    const data = await response.json();
+    return data.team;
+  } catch (error) {
+    console.error("Error fetching team invite:", error);
+    return null;
+  }
+}
+
+// --- SEO GENERATION ---
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+
+  const team = await getTeamInviteData(id);
+
+  if (!team) {
+    return {
+      title: "Invalid Invite | AFC",
+      description: "This team invite link is invalid or has expired.",
+    };
   }
 
-  return (
-    <div>
-      <Header />
-      <Card className="container my-20 mx-auto">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">
-            Team Invitation
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {/* Team Info */}
-            <div className="flex flex-col items-center text-center space-y-4">
-              <Avatar className="w-24 h-24">
-                <AvatarImage
-                  src={teamDetails?.team_logo}
-                  alt={teamDetails?.team_name}
-                  className="object-cover"
-                />
-                <AvatarFallback className="text-2xl">
-                  {teamDetails?.team_name?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h2 className="text-3xl font-bold mb-2">
-                  {teamDetails?.team_name}
-                </h2>
-                {teamDetails?.team_tag && (
-                  <Badge variant="secondary" className="mb-2">
-                    {teamDetails?.team_tag}
-                  </Badge>
-                )}
-                <p className="text-muted-foreground">
-                  You have been invited to join this team!
-                </p>
-              </div>
-            </div>
+  // Create description based on team info
+  const memberCount = team.members?.length || 0;
+  const description = team.is_banned
+    ? `Team invitation for ${team.team_name} - This team is currently banned and cannot accept new members.`
+    : `You've been invited to join ${team.team_name}! ${memberCount} members, Tier ${team.team_tier || 1}. ${team.team_description || ""}`.substring(
+        0,
+        160,
+      );
 
-            {/* Banned Team Alert */}
-            {teamDetails?.is_banned && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>This team is currently banned</AlertTitle>
-                <AlertDescription>
-                  You cannot join a banned team. The invite link is no longer
-                  valid.
-                  {teamDetails?.ban_reason && (
-                    <>
-                      <br />
-                      Reason: {teamDetails.ban_reason}
-                    </>
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
+  return {
+    title: `Join ${team.team_name} | Team Invite - AFC`,
+    description: description,
+    openGraph: {
+      title: `You're invited to join ${team.team_name}`,
+      description: description,
+      type: "website",
+      images: team.team_logo
+        ? [
+            {
+              url: team.team_logo.startsWith("http")
+                ? team.team_logo
+                : `${env.NEXT_PUBLIC_URL || ""}${team.team_logo}`,
+              width: 400,
+              height: 400,
+              alt: `${team.team_name} logo`,
+            },
+          ]
+        : [],
+    },
+    twitter: {
+      card: "summary",
+      title: `Join ${team.team_name}`,
+      description: description,
+      images: team.team_logo
+        ? [
+            team.team_logo.startsWith("http")
+              ? team.team_logo
+              : `${env.NEXT_PUBLIC_URL || ""}${team.team_logo}`,
+          ]
+        : [],
+    },
+    // Prevent indexing of invite pages (they're private/temporary)
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
-            {/* Team Description */}
-            {teamDetails?.team_description && (
-              <div className="bg-muted p-4 rounded-md">
-                <h3 className="font-semibold mb-2">About the Team</h3>
-                <p className="text-sm text-muted-foreground">
-                  {teamDetails?.team_description}
-                </p>
-              </div>
-            )}
+// --- PAGE RENDER ---
+export default async function Page({ params }: Props) {
+  const { id } = await params;
 
-            {/* Team Stats */}
-            <div className="grid grid-cols-2 2xl:grid-cols-4 gap-2">
-              <div className="text-center p-4 bg-muted rounded-md">
-                <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-2xl font-bold">
-                  {teamDetails?.members?.length || 0}/6
-                </p>
-                <p className="text-xs text-muted-foreground">Members</p>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-md">
-                <Trophy className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-2xl font-bold">
-                  {teamDetails?.stats?.tournament_wins || 0}
-                </p>
-                <p className="text-xs text-muted-foreground">Wins</p>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-md">
-                <Badge
-                  variant="outline"
-                  className="h-6 w-6 mx-auto mb-2 flex items-center justify-center"
-                >
-                  T{teamDetails?.team_tier || 1}
-                </Badge>
-                <p className="text-2xl font-bold">
-                  {teamDetails?.team_tier || 1}
-                </p>
-                <p className="text-xs text-muted-foreground">Tier</p>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-md">
-                <Calendar className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-2xl font-bold">{teamDetails?.country}</p>
-                <p className="text-xs text-muted-foreground">Country</p>
-              </div>
-            </div>
+  const team = await getTeamInviteData(id);
 
-            {/* Current Members */}
-            {teamDetails?.members && teamDetails?.members.length > 0 && (
-              <div>
-                <h3 className="font-semibold mb-3">Current Members</h3>
-                <div className="space-y-2">
-                  {teamDetails?.members.map((member: any, index: number) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-muted rounded-md"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={member.avatar} />
-                          <AvatarFallback>
-                            {member.username?.[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {member.username}
-                          </p>
-                          {member.management_role && (
-                            <p className="text-xs text-muted-foreground">
-                              {member.management_role}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      {member.in_game_role && (
-                        <Badge variant="outline" className="text-xs">
-                          {member.in_game_role}
-                        </Badge>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+  // If the invite doesn't exist, trigger the Next.js 404 page
+  if (!team) {
+    notFound();
+  }
 
-            {/* Action Buttons */}
-            {teamDetails?.is_banned ? (
-              <div className="pt-4">
-                <Button asChild className="w-full">
-                  <Link href="/teams">Browse Other Teams</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="flex gap-4 pt-4">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={handleRejectInvite}
-                  disabled={pendingAccept || pendingReject}
-                >
-                  {pendingReject ? (
-                    <Loader text="Declining..." />
-                  ) : (
-                    <>
-                      <X className="mr-2 h-4 w-4" />
-                      Decline
-                    </>
-                  )}
-                </Button>
-                <Button
-                  className="flex-1"
-                  onClick={handleAcceptInvite}
-                  disabled={pendingAccept || pendingReject}
-                >
-                  {pendingAccept ? (
-                    <Loader text="Joining..." />
-                  ) : (
-                    <>
-                      <Check className="mr-2 h-4 w-4" />
-                      Accept & Join
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-
-            {!user && (
-              <p className="text-center text-sm text-muted-foreground">
-                You need to{" "}
-                <Link
-                  href={`/login?redirect=/invite/${inviteId}`}
-                  className="text-primary underline"
-                >
-                  log in
-                </Link>{" "}
-                to accept this invite
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-      <Footer />
-    </div>
-  );
+  return <TeamInviteClient inviteId={id} initialData={team} />;
 }

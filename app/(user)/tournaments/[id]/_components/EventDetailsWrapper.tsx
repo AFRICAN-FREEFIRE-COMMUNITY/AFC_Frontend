@@ -121,7 +121,7 @@ interface ApiResponse {
 const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
   // Initialize with first group's ID
   const [selectedGroupId, setSelectedGroupId] = useState<string>(
-    stage?.groups?.[0]?.group_id?.toString() || ""
+    stage?.groups?.[0]?.group_id?.toString() || "",
   );
   const [selectedMatchId, setSelectedMatchId] = useState<string>("overall");
 
@@ -129,7 +129,7 @@ const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
   const activeGroup = useMemo(() => {
     if (!stage?.groups || !selectedGroupId) return null;
     return stage.groups.find(
-      (g) => g?.group_id?.toString() === selectedGroupId
+      (g) => g?.group_id?.toString() === selectedGroupId,
     );
   }, [stage.groups, selectedGroupId]);
 
@@ -137,7 +137,7 @@ const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
   const activeMatch = useMemo(() => {
     if (selectedMatchId === "overall" || !activeGroup?.matches) return null;
     return activeGroup.matches.find(
-      (m: any) => m?.match_id?.toString() === selectedMatchId
+      (m: any) => m?.match_id?.toString() === selectedMatchId,
     );
   }, [activeGroup, selectedMatchId]);
 
@@ -389,8 +389,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <Card
                 className={`cursor-pointer transition ${
                   isTeamDisabled
-                    ? "bg-white opacity-50"
-                    : "bg-white hover:bg-white/90 opacity-50"
+                    ? "bg-white text-primary border-white opacity-50"
+                    : "bg-white hover:bg-white/90"
                 }`}
               >
                 <CardHeader>
@@ -586,7 +586,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   window.open(
                     AFC_DISCORD_SERVER,
                     "_blank",
-                    "noopener,noreferrer"
+                    "noopener,noreferrer",
                   )
                 }
                 disabled={pendingJoined}
@@ -650,24 +650,13 @@ const RegistrationModals: React.FC<ModalProps> = ({
   );
 };
 
-type Params = Promise<{ id: string }>;
-
-export const EventDetailPage = ({
-  params,
-  initialData,
-}: {
-  params: Params;
-  initialData?: EventDetails;
-}) => {
-  const { id } = use(params);
+export const EventDetailsWrapper = ({ id }: { id: string }) => {
   const { token } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [eventDetails, setEventDetails] = useState<EventDetails | null>(
-    initialData || null
-  );
-  const [isLoading, setIsLoading] = useState(!initialData);
+  const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeStageTab, setActiveStageTab] = useState<string>("");
   const [modalStep, setModalStep] = useState<ModalStep>("CLOSED");
@@ -689,7 +678,7 @@ export const EventDetailPage = ({
         } else {
           setDiscordConnected(false);
           toast.error(
-            searchParams.get("message") || "Discord connection failed."
+            searchParams.get("message") || "Discord connection failed.",
           );
         }
 
@@ -698,7 +687,7 @@ export const EventDetailPage = ({
         newSearchParams.delete("step");
         router.replace(
           `${window.location.pathname}?${newSearchParams.toString()}`,
-          { scroll: false }
+          { scroll: false },
         );
       }, 50);
     }
@@ -718,7 +707,7 @@ export const EventDetailPage = ({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ event_id: id }),
-        }
+        },
       );
 
       if (!response.ok)
@@ -741,10 +730,10 @@ export const EventDetailPage = ({
   }, [id, token]);
 
   useEffect(() => {
-    if (!initialData && token) {
+    if (id && token) {
       fetchEventDetails();
     }
-  }, [initialData, id, token]);
+  }, [fetchEventDetails, id, token]);
 
   if (isLoading) return <FullLoader />;
   if (error || !eventDetails) return notFound();
@@ -761,7 +750,7 @@ export const EventDetailPage = ({
   };
   const handleDiscordConnect = () => {
     const redirectUrl = encodeURIComponent(
-      `${window.location.origin}${window.location.pathname}?id=${id}&discord=connected&step=discord`
+      `${window.location.origin}${window.location.pathname}?id=${id}&discord=connected&step=discord`,
     );
     const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${id}&redirect_url=${redirectUrl}`;
     window.open(url, "_blank", "noopener,noreferrer");
@@ -772,7 +761,7 @@ export const EventDetailPage = ({
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/register-for-event/`,
           { event_id: id },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         toast.success(res.data.message);
         setModalStep("SUCCESS");
@@ -784,11 +773,13 @@ export const EventDetailPage = ({
 
   const formatText = `${eventDetails.event_mode.toUpperCase()} / ${eventDetails.competition_type.toUpperCase()}`;
   const participantText = `${formatMoneyInput(
-    eventDetails.max_teams_or_players
+    eventDetails.max_teams_or_players,
   )} ${
     eventDetails.participant_type.charAt(0).toUpperCase() +
     eventDetails.participant_type.slice(1)
   }s`;
+
+  console.log(eventDetails);
 
   return (
     <div>
@@ -806,7 +797,10 @@ export const EventDetailPage = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <p>Date: {formatDate(eventDetails.start_date)}</p>
           <p>
-            Prize Pool: ${parseFloat(eventDetails.prizepool).toLocaleString()}
+            Prize Pool:{" "}
+            {/^\d+(\.\d+)?$/.test(eventDetails.prizepool)
+              ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+              : eventDetails.prizepool}
           </p>
           <p>Location: Online</p>
           <p>Format: {formatText}</p>
@@ -854,7 +848,39 @@ export const EventDetailPage = ({
       </CardContent>
 
       <div className="text-center mt-6">
-        {!eventDetails?.is_registered ? (
+        {eventDetails.is_registered ? (
+          // Case 1: Already Registered
+          <Button disabled>You've registered already</Button>
+        ) : eventDetails.event_type === "external" ? (
+          // Case 2: External Tournament (Link out)
+          <Button
+            onClick={() =>
+              window.open(eventDetails.registration_link, "_blank")
+            }
+            disabled={eventDetails.event_status !== "upcoming"}
+          >
+            {eventDetails.event_status === "upcoming"
+              ? "Register (External Link)"
+              : "Registration Closed"}
+          </Button>
+        ) : (
+          // Case 3: Internal Tournament (Open Modal)
+          <Button
+            onClick={handleRegisterClick}
+            disabled={
+              eventDetails.event_status !== "upcoming" ||
+              new Date() > new Date(eventDetails.registration_end_date)
+            }
+          >
+            {new Date() > new Date(eventDetails.registration_end_date)
+              ? "Registration Closed"
+              : "Register for Tournament"}
+          </Button>
+        )}
+      </div>
+
+      {/* <div className="text-center mt-6">
+        {eventDetails?.is_registered ? (
           <Button disabled>You've registered already</Button>
         ) : eventDetails.event_type === "external" ? (
           <Button
@@ -884,7 +910,7 @@ export const EventDetailPage = ({
               : "Register for Tournament"}
           </Button>
         )}
-      </div>
+      </div> */}
 
       <Card className="mt-4">
         <CardHeader>
@@ -914,7 +940,7 @@ export const EventDetailPage = ({
                 <p className="font-semibold text-lg md:text-2xl">
                   {formatMoneyInput(
                     eventDetails?.max_teams_or_players -
-                      (eventDetails?.registered_competitors?.length || 0)
+                      (eventDetails?.registered_competitors?.length || 0),
                   )}
                 </p>
                 <p className="text-xs md:text-sm">Slot left</p>
@@ -942,7 +968,7 @@ export const EventDetailPage = ({
                     <Badge>Confirmed</Badge>
                   </CardContent>
                 </Card>
-              )
+              ),
             )}
           </div>
         </CardContent>
@@ -1002,7 +1028,7 @@ export const EventDetailPage = ({
                   <li key={place}>
                     {place.toUpperCase()}: ${prize.toLocaleString()}
                   </li>
-                )
+                ),
               )}
             </ul>
           </CardContent>
