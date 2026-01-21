@@ -12,6 +12,7 @@ import {
   generateWebsiteSchema,
 } from "@/lib/seo";
 import { CartProvider } from "@/contexts/CartContext";
+import Script from "next/script";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({
           content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
         />
       </Head>
+
       <head>
         <script
           type="application/ld+json"
@@ -66,6 +68,18 @@ export default function RootLayout({
         />
       </head>
       <body className={`${dmSans.className} antialiased relative`}>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-E21CNCZKFL"
+          strategy="afterInteractive"
+        />
+        <Script id="ga-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-E21CNCZKFL');
+          `}
+        </Script>
         <AuthProvider>
           <ThemeProvider
             attribute="class"
