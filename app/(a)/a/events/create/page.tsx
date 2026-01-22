@@ -122,7 +122,10 @@ const EventFormSchema = z
     number_of_stages: z.coerce.number().min(1, "At least 1 stage required"),
     stages: z.array(StageSchema).min(1, "At least one stage required"),
     prizepool: z.string().min(1, "Prize pool required"),
-    prize_distribution: z.record(z.string(), z.coerce.number()),
+    prize_distribution: z.record(
+      z.string(),
+      z.string().min(1, "Prize amount required"),
+    ),
     event_rules: z.string().optional(),
     rules_document: z.any().optional(),
     start_date: z.string().min(1, "Start date required"),
@@ -153,7 +156,7 @@ const EventFormSchema = z
       message:
         "An event cannot be saved as a draft and published simultaneously.",
       path: ["save_to_drafts"], // The error will be attached to the 'save_to_drafts' field
-    }
+    },
   );
 
 type EventFormType = z.infer<typeof EventFormSchema>;
@@ -179,7 +182,7 @@ export default function Page() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isPending, startTransition] = useTransition();
   const [rulesInputMethod, setRulesInputMethod] = useState<"type" | "upload">(
-    "type"
+    "type",
   );
   const [bannerPreview, setBannerPreview] = useState<string>("");
 
@@ -187,7 +190,7 @@ export default function Page() {
 
   const [isStageModalOpen, setIsStageModalOpen] = useState(false);
   const [editingStageIndex, setEditingStageIndex] = useState<number | null>(
-    null
+    null,
   );
 
   // ADD: State for password visibility for each group
@@ -264,7 +267,7 @@ export default function Page() {
 
     const newNames = Array.from(
       { length: newCount },
-      (_, i) => stageNames[i] || `Stage ${i + 1}`
+      (_, i) => stageNames[i] || `Stage ${i + 1}`,
     );
     setStageNames(newNames);
   };
@@ -317,7 +320,7 @@ export default function Page() {
           room_name: "",
           room_password: "",
           match_maps: [], // Initialize with empty maps array
-        }))
+        })),
       );
     }
     // Reset password visibility when opening modal
@@ -368,7 +371,7 @@ export default function Page() {
   const updateGroupDetail = (
     index: number,
     field: keyof GroupType,
-    value: string | number | string[]
+    value: string | number | string[],
   ) => {
     const newGroups = [...tempGroups];
     newGroups[index] = {
@@ -415,11 +418,11 @@ export default function Page() {
         g.teams_qualifying < 1 ||
         g.match_count < 1 ||
         !g.match_maps ||
-        g.match_maps.length === 0
+        g.match_maps.length === 0,
     );
     if (invalidGroup) {
       toast.error(
-        "Please complete all group details correctly, including selecting at least one map per group"
+        "Please complete all group details correctly, including selecting at least one map per group",
       );
       return;
     }
@@ -576,7 +579,7 @@ export default function Page() {
 
         if (configuredStages < numStages) {
           toast.error(
-            `Please configure all ${numStages} stages before proceeding. Only ${configuredStages} configured.`
+            `Please configure all ${numStages} stages before proceeding. Only ${configuredStages} configured.`,
           );
           return;
         }
@@ -586,7 +589,7 @@ export default function Page() {
           .every((stage) => stage.groups && stage.groups.length > 0);
         if (!allStagesValid) {
           toast.error(
-            "One or more stages have not been fully configured with groups."
+            "One or more stages have not been fully configured with groups.",
           );
           return;
         }
@@ -649,7 +652,7 @@ export default function Page() {
         formData.append("event_type", data.event_type);
         formData.append(
           "max_teams_or_players",
-          data.max_teams_or_players.toString()
+          data.max_teams_or_players.toString(),
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
@@ -669,7 +672,7 @@ export default function Page() {
         // If your backend API expects an explicit 'is_draft' boolean field:
         formData.append(
           "is_draft",
-          data.save_to_drafts.toString() === "true" ? "True" : "False"
+          data.save_to_drafts.toString() === "true" ? "True" : "False",
         );
         // If your backend API expects the status to be changed:
         formData.append("event_status", finalEventStatus);
@@ -683,7 +686,7 @@ export default function Page() {
         // Append Boolean fields as strings
         formData.append(
           "publish_to_tournaments",
-          data.publish_to_tournaments.toString()
+          data.publish_to_tournaments.toString(),
         );
         formData.append("publish_to_news", data.publish_to_news.toString());
         formData.append("save_to_drafts", data.save_to_drafts.toString());
@@ -700,15 +703,15 @@ export default function Page() {
         // Prize Distribution: Must be stringified if complex object is expected on backend
         formData.append(
           "prize_distribution",
-          JSON.stringify(data.prize_distribution)
+          JSON.stringify(data.prize_distribution),
         );
 
         // Stream Channels: Must be stringified array
         formData.append(
           "stream_channels",
           JSON.stringify(
-            data.stream_channels?.filter((s) => s.trim() !== "") || []
-          )
+            data.stream_channels?.filter((s) => s.trim() !== "") || [],
+          ),
         );
 
         // Stages: Must be stringified array
@@ -723,7 +726,7 @@ export default function Page() {
               // NOTE: DO NOT set Content-Type header for FormData!
             },
             body: formData,
-          }
+          },
         );
 
         // --- Server Response Handling ---
@@ -732,7 +735,7 @@ export default function Page() {
           const textResponse = await response.text();
 
           toast.error(
-            "Server error: Received unexpected response format. Check console for details."
+            "Server error: Received unexpected response format. Check console for details.",
           );
           return;
         }
@@ -746,7 +749,7 @@ export default function Page() {
           toast.error(
             res.message ||
               res.detail ||
-              "Failed to create event. Please check your inputs."
+              "Failed to create event. Please check your inputs.",
           );
         }
       } catch (error) {
@@ -775,7 +778,7 @@ export default function Page() {
       }
       // Show a message to the user that we corrected their choice
       toast.info(
-        "Draft mode selected. Publishing options automatically unchecked."
+        "Draft mode selected. Publishing options automatically unchecked.",
       );
     }
     // If any publish is checked, uncheck draft
@@ -1051,7 +1054,7 @@ export default function Page() {
                                       ].includes(file.type)
                                     ) {
                                       toast.error(
-                                        "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                        "Only PNG, JPG, JPEG, or WEBP files are supported.",
                                       );
                                       return;
                                     }
@@ -1147,7 +1150,7 @@ export default function Page() {
                                   ].includes(file.type)
                                 ) {
                                   toast.error(
-                                    "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                    "Only PNG, JPG, JPEG, or WEBP files are supported.",
                                   );
                                   return;
                                 }
@@ -1432,21 +1435,17 @@ export default function Page() {
                         <Input value={key} disabled className="col-span-1" />
                         <div className="col-span-3 flex items-center justify-end gap-1">
                           <Input
-                            type="number"
-                            // If value is 0, display empty string for easier typing
-                            value={value === 0 ? "" : value}
+                            type="text"
+                            value={value || ""}
                             onChange={(e) => {
                               const inputVal = e.target.value;
                               const updated = { ...prizeDistribution };
-
-                              // Check if input is empty, if so set to 0 (which is safe because prize_distribution uses z.coerce.number)
-                              updated[key] =
-                                inputVal === "" ? 0 : Number(inputVal);
-
-                              form.setValue("prize_distribution", updated);
+                              updated[key] = inputVal;
+                              form.setValue("prize_distribution", updated, {
+                                shouldDirty: true,
+                              });
                             }}
-                            placeholder="Earnings"
-                            className=""
+                            placeholder="e.g., $2,000 or 2000 Diamonds"
                           />
                           <Button
                             type="button"
@@ -1558,13 +1557,13 @@ export default function Page() {
                                       ];
                                       if (!supportedTypes.includes(file.type)) {
                                         toast.error(
-                                          "Only PDF, DOC, or DOCX files are supported."
+                                          "Only PDF, DOC, or DOCX files are supported.",
                                         );
                                         return;
                                       }
                                       setSelectedRuleFile(file);
                                       setPreviewRuleUrl(
-                                        URL.createObjectURL(file)
+                                        URL.createObjectURL(file),
                                       );
                                     }
                                   }}
@@ -1670,7 +1669,7 @@ export default function Page() {
 
                                   if (!supportedTypes.includes(file.type)) {
                                     toast.error(
-                                      "Only PDF, DOC, or DOCX files are supported."
+                                      "Only PDF, DOC, or DOCX files are supported.",
                                     );
                                     return;
                                   }
@@ -1944,7 +1943,7 @@ export default function Page() {
                       onChange={(e) =>
                         handleGroupCountChange(
                           // Convert to number, but use 0 if input is empty string
-                          e.target.value === "" ? 0 : Number(e.target.value)
+                          e.target.value === "" ? 0 : Number(e.target.value),
                         )
                       }
                       className=""
@@ -2025,7 +2024,7 @@ export default function Page() {
                             updateGroupDetail(
                               index,
                               "group_name",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className=""
@@ -2045,7 +2044,7 @@ export default function Page() {
                               updateGroupDetail(
                                 index,
                                 "playing_date",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className=""
@@ -2063,7 +2062,7 @@ export default function Page() {
                               updateGroupDetail(
                                 index,
                                 "playing_time",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className=""
@@ -2090,7 +2089,9 @@ export default function Page() {
                               index,
                               "teams_qualifying",
                               // Convert to number, but use 0 if input is empty string
-                              e.target.value === "" ? 0 : Number(e.target.value)
+                              e.target.value === ""
+                                ? 0
+                                : Number(e.target.value),
                             )
                           }
                           className=""
@@ -2112,7 +2113,9 @@ export default function Page() {
                               index,
                               "match_count",
                               // Convert to number, but use 0 if input is empty string
-                              e.target.value === "" ? 0 : Number(e.target.value)
+                              e.target.value === ""
+                                ? 0
+                                : Number(e.target.value),
                             )
                           }
                           className=""
@@ -2128,7 +2131,7 @@ export default function Page() {
                             updateGroupDetail(
                               index,
                               "group_discord_role_id",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="e.g: 1234567890"
@@ -2217,7 +2220,7 @@ export default function Page() {
                             undefined
                         ) {
                           toast.error(
-                            "Please fill all required stage fields (Step 1)"
+                            "Please fill all required stage fields (Step 1)",
                           );
                           return;
                         }

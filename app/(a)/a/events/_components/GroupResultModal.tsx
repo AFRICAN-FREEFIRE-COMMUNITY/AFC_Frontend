@@ -38,12 +38,14 @@ interface GroupResultModalProps {
   activeGroup: any; // The group object from the parent component
   stageName: string;
   eventId: number;
+  className?: string;
 }
 
 export const GroupResultModal = ({
   activeGroup,
   stageName,
   eventId,
+  className,
 }: GroupResultModalProps) => {
   const [loading, setLoading] = useState(false);
   const [viewMatchId, setViewMatchId] = useState<string>("overall");
@@ -62,7 +64,7 @@ export const GroupResultModal = ({
         { event_id: eventId },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       // --- FILTER LOGIC ---
@@ -70,7 +72,7 @@ export const GroupResultModal = ({
       let foundGroup = null;
       response.data.stages?.forEach((stage: any) => {
         const match = stage.groups?.find(
-          (g: any) => g.group_id === activeGroup.group_id
+          (g: any) => g.group_id === activeGroup.group_id,
         );
         if (match) foundGroup = match;
       });
@@ -103,11 +105,11 @@ export const GroupResultModal = ({
           kills: entry.total_kills,
           points: entry.total_points,
           isQualified: index < groupDetails.teams_qualifying,
-        })
+        }),
       );
     } else {
       const match = groupDetails.matches?.find(
-        (m: any) => m.match_id.toString() === viewMatchId
+        (m: any) => m.match_id.toString() === viewMatchId,
       );
       if (!match || !match.stats) return [];
 
@@ -128,7 +130,12 @@ export const GroupResultModal = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary" type="button" size="md" className="flex-1">
+        <Button
+          variant="secondary"
+          type="button"
+          size="md"
+          className={cn("flex-1", className)}
+        >
           View Results
         </Button>
       </DialogTrigger>
@@ -222,7 +229,7 @@ export const GroupResultModal = ({
                                 "text-[10px] uppercase",
                                 row.isQualified
                                   ? "bg-green-600"
-                                  : "text-zinc-500"
+                                  : "text-zinc-500",
                               )}
                             >
                               {row.isQualified ? "Qualified" : "Eliminated"}

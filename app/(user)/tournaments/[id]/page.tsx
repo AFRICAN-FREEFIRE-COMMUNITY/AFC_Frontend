@@ -160,7 +160,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const rawImage = data.event_banner_url || data.team_logo;
   const absoluteImageUrl = rawImage?.startsWith("http")
     ? rawImage
-    : `${env.NEXT_PUBLIC_APP_URL}${rawImage}`;
+    : `${env.NEXT_PUBLIC_URL}/${rawImage}`;
 
   const baseMetadata = generateDynamicMetadata({
     title: title,

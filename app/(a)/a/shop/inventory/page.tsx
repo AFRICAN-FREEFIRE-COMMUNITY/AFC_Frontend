@@ -79,6 +79,7 @@ import { ToggleProductStatusModal } from "../_components/ToggleProductStatusModa
 import { CreateCouponSchema, CreateCouponSchemaType } from "@/lib/zodSchemas";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/Loader";
+import { ComingSoon } from "@/components/ComingSoon";
 
 interface Variant {
   id: number;
@@ -98,6 +99,20 @@ interface Product {
   status: string;
   is_limited_stock: boolean;
   variants: Variant[];
+}
+
+interface Coupon {
+  id: number;
+  code: string;
+  discount_type: "percent" | "fixed";
+  discount_value: string;
+  active: boolean;
+  start_at: string;
+  end_at: string;
+  min_order_amount: string;
+  max_uses: number;
+  used_count: number;
+  is_valid_now: boolean;
 }
 
 // Mock data for products
@@ -176,12 +191,30 @@ export default function InventoryManagementPage() {
   const { token } = useAuth();
   const [isPending, startTransition] = useTransition();
 
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [isCouponsLoading, setIsCouponsLoading] = useState(true);
+
+  const fetchCoupons = async () => {
+    try {
+      setIsCouponsLoading(true);
+      const response = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-all-coupons/`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setCoupons(response.data.coupons);
+    } catch (error: any) {
+      console.error("Error fetching coupons:", error);
+    } finally {
+      setIsCouponsLoading(false);
+    }
+  };
+
   // Initialize the Form
   const form = useForm<CreateCouponSchemaType>({
     resolver: zodResolver(CreateCouponSchema),
     defaultValues: {
       code: "",
-      discount_type: "percentage",
+      discount_type: "percent",
       discount_value: 0,
       active: true,
       min_order_amount: 0,
@@ -200,18 +233,22 @@ export default function InventoryManagementPage() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const onSubmitCoupon = (data: CreateCouponSchemaType) => {
+    console.log(data);
+
     startTransition(async () => {
       try {
         await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/create-coupon/`,
           data,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         toast.success("Coupon created successfully!");
         form.reset();
+        fetchCoupons(); // <--- Refresh the list here
         setCouponTab("active"); // Switch back to list view
         // Optional: fetchCoupons() if you have a real list endpoint
       } catch (error: any) {
+        console.log(error);
         toast.error(error.response?.data?.message || "Failed to create coupon");
       }
     });
@@ -232,7 +269,7 @@ export default function InventoryManagementPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setProducts(response.data.products);
     } catch (error: any) {
@@ -245,6 +282,7 @@ export default function InventoryManagementPage() {
 
   useEffect(() => {
     fetchProducts();
+    fetchCoupons();
   }, []);
 
   const filteredProducts = products.filter((product) => {
@@ -477,7 +515,8 @@ export default function InventoryManagementPage() {
             Upload a CSV file containing new diamond codes to replenish stock.
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
+          <ComingSoon />
           <div className="space-y-4">
             <div>
               <Label htmlFor="selectProduct">Select Products *</Label>
@@ -536,54 +575,79 @@ export default function InventoryManagementPage() {
                   <TableRow>
                     <TableHead>Code</TableHead>
                     <TableHead>Discount</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Uses</TableHead>
+                    <TableHead>Usage</TableHead>
+                    <TableHead>Validity</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockCoupons.map((coupon) => (
-                    <TableRow key={coupon.id}>
-                      <TableCell className="font-mono font-medium">
-                        {coupon.code}
-                      </TableCell>
-                      <TableCell>{coupon.discount}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{coupon.type}</Badge>
-                      </TableCell>
-                      <TableCell>{coupon.uses}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            coupon.status === "Active" ? "default" : "secondary"
-                          }
-                        >
-                          {coupon.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem>
-                              {coupon.status === "Active"
-                                ? "Deactivate"
-                                : "Activate"}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                  {isCouponsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4">
+                        Loading coupons...
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : coupons.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4">
+                        No coupons found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    coupons.map((coupon) => (
+                      <TableRow key={coupon.id}>
+                        <TableCell className="font-mono font-bold text-primary">
+                          {coupon.code}
+                        </TableCell>
+                        <TableCell>
+                          {coupon.discount_type === "percent"
+                            ? `${parseFloat(coupon.discount_value)}%`
+                            : `$${parseFloat(coupon.discount_value)}`}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {coupon.used_count} / {coupon.max_uses}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {formatDate(coupon.end_at)}
+                        </TableCell>
+                        <TableCell>
+                          {/* Logic: Check if manually active AND not expired */}
+                          {coupon.active && coupon.is_valid_now ? (
+                            <Badge variant="default">Active</Badge>
+                          ) : !coupon.active ? (
+                            <Badge variant="secondary">Disabled</Badge>
+                          ) : (
+                            <Badge variant="destructive">Expired</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>Edit</DropdownMenuItem>
+                              <DropdownMenuItem
+                                className={
+                                  coupon.active
+                                    ? "text-warning"
+                                    : "text-primary"
+                                }
+                              >
+                                {coupon.active ? "Deactivate" : "Activate"}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive">
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TabsContent>
@@ -624,7 +688,7 @@ export default function InventoryManagementPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="percentage">
+                              <SelectItem value="percent">
                                 Percentage (%)
                               </SelectItem>
                               <SelectItem value="fixed">

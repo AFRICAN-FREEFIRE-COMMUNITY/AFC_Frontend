@@ -134,14 +134,18 @@ export const UploadResultModal = ({
             method: "POST",
             headers: { Authorization: `Bearer ${token}` },
             body: formData,
-          }
+          },
         );
 
         if (res.ok) {
           toast.success("Result uploaded successfully!");
           // --- 3. THE MAGIC PART ---
           onSuccess(); // This triggers the fetch in the background
-          resetAndClose(); // Closes the modal and clears the inputs
+          setFile(null);
+          setUploadProgress(0);
+          setIsCompleted(false);
+          setSelectedMatchId("");
+          // resetAndClose(); // Closes the modal and clears the inputs
         } else {
           const error = await res.json();
           toast.error(error.message || "Failed to upload result");

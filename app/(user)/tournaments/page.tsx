@@ -10,6 +10,7 @@ import Link from "next/link";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Search } from "lucide-react";
 import Image from "next/image";
+import { DEFAULT_IMAGE } from "@/constants";
 
 // --- Types & Constants ---
 // Define the structure of an event
@@ -20,6 +21,8 @@ interface Event {
   event_status: "upcoming" | "past";
   event_type: "tournament" | "scrim"; // Inferred for UI grouping
   details_url: string; // This field is unused but kept for reference
+  event_banner: string;
+  prizepool: string;
 }
 
 // Define the structure of the new API response
@@ -29,6 +32,8 @@ interface EventsResponse {
     event_name: string;
     event_date: string;
     event_status: "upcoming" | "past";
+    event_banner: string;
+    prizepool: string;
   }[];
 }
 
@@ -38,11 +43,24 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
   const formattedDate = formatDate(event.event_date);
 
   return (
-    <Card className="gap-0" key={event.event_id}>
-      <CardHeader>
-        <CardTitle>{event.event_name}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
+    <Card
+      className="overflow-hidden h-full bg-transparent gap-0 p-0"
+      key={event.event_id}
+    >
+      <Image
+        src={event.event_banner || DEFAULT_IMAGE}
+        alt={event.event_name}
+        width={1000}
+        height={1000}
+        className="object-cover size-full aspect-video"
+      />
+
+      <CardContent className="py-4 space-y-2">
+        <CardTitle className="hover:text-primary hover:underline">
+          <Link href={`/tournaments/${event.event_id}`}>
+            {event.event_name}
+          </Link>
+        </CardTitle>
         <p className="text-sm text-muted-foreground">Date: {formattedDate}</p>
 
         <p className="text-sm text-muted-foreground">
@@ -72,12 +90,15 @@ const EventsPage = () => {
 
     try {
       const response = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-tournaments-and-scrims/`,
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
       const data: EventsResponse = await response.json();
+
+      console.log(data);
 
       setEvents(data.events || []);
     } catch (err) {

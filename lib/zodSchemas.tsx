@@ -218,7 +218,7 @@ export const CreateTeamFormSchema = z.object({
     .array(
       z.object({
         player: z.string(),
-      })
+      }),
     )
     .optional(),
   facebook_url: z.string().optional(),
@@ -479,7 +479,7 @@ export const tournamentSchema = z.object({
     z.object({
       place: z.string().min(1),
       reward: z.string().min(1),
-    })
+    }),
   ),
   stages: z.array(stageSchema),
 });
@@ -501,14 +501,14 @@ export const AddProductSchema = z.object({
         stock_qty: z.coerce.number().min(0),
         is_active: z.boolean().default(true),
         meta: z.record(z.string(), z.any()).default({}),
-      })
+      }),
     )
     .min(1),
 });
 
 export const CreateCouponSchema = z.object({
   code: z.string().min(3, "Code must be at least 3 characters").toUpperCase(),
-  discount_type: z.enum(["percentage", "fixed"]),
+  discount_type: z.enum(["percent", "fixed"]),
   discount_value: z.coerce.number().min(1, "Value must be greater than 0"),
   active: z.boolean().default(true),
   min_order_amount: z.coerce.number().min(0).default(0),

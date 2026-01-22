@@ -57,7 +57,7 @@ const page = () => {
     // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        (item: any) => item.category === selectedCategory
+        (item: any) => item.category === selectedCategory,
       );
     }
 
@@ -97,7 +97,7 @@ const page = () => {
     startTransition(async () => {
       try {
         const res = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`,
         );
 
         if (res.statusText === "OK") {

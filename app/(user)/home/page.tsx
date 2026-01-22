@@ -54,46 +54,50 @@ export default function HomePage() {
       />
       <HomeBoxes />
       <div className="grid gap-2 md:grid-cols-2 mb-4">
-        <LatestNews />
+        <div>
+          <LatestNews />
+        </div>
 
-        <Card className="relative overflow-hidden">
-          <ComingSoon />
-          <CardHeader>
-            <CardTitle>Featured Shop Items</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {shopItems.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-center space-x-4 border-b pb-4 last:border-b-0 last:pb-0"
-                >
-                  <Image
-                    src={item.image || "/placeholder.svg"}
-                    alt={item.name}
-                    width={50}
-                    height={50}
-                    className="rounded"
-                  />
-                  <div className="flex-grow">
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {item.price} Diamonds
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/shop/${item.id}`}>
-                      View <ExternalLink className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-            <Button asChild className="mt-4 w-full">
-              <Link href="/shop">Visit Shop</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <div>
+          <Card className="relative overflow-hidden">
+            <ComingSoon />
+            <CardHeader>
+              <CardTitle>Featured Shop Items</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-4">
+                {shopItems.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center space-x-4 border-b pb-4 last:border-b-0 last:pb-0"
+                  >
+                    <Image
+                      src={item.image || "/placeholder.svg"}
+                      alt={item.name}
+                      width={50}
+                      height={50}
+                      className="rounded"
+                    />
+                    <div className="flex-grow">
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {item.price} Diamonds
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/shop/${item.id}`}>
+                        View <ExternalLink className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+              <Button asChild className="mt-4 w-full">
+                <Link href="/shop">Visit Shop</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
       <Card>
         <CardHeader>
@@ -132,8 +136,8 @@ export default function HomePage() {
                                   team.rank === 1
                                     ? "text-yellow-500"
                                     : team.rank === 2
-                                    ? "text-gray-400"
-                                    : "text-amber-600"
+                                      ? "text-gray-400"
+                                      : "text-amber-600"
                                 }`}
                               />
                             )}
@@ -179,8 +183,8 @@ export default function HomePage() {
                               team.tier === "Tier 1"
                                 ? "border-green-500 text-green-600 dark:text-green-400"
                                 : team.tier === "Tier 2"
-                                ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                                : "border-orange-500 text-orange-600 dark:text-orange-400"
+                                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                                  : "border-orange-500 text-orange-600 dark:text-orange-400"
                             }
                           >
                             {team.tier}

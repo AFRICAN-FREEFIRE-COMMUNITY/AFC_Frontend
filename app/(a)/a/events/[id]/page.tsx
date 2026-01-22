@@ -1030,6 +1030,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { GroupResultModal } from "../_components/GroupResultModal";
 
 const formattedWord: { [key: string]: string } = {
   tier_3: "Tier 3",
@@ -1227,12 +1228,12 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           axios.post(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
             { event_id: decodedId },
-            config
+            config,
           ),
           axios.post(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
             { event_id: decodedId },
-            config
+            config,
           ),
         ]);
 
@@ -1262,7 +1263,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     const maxCapacity = adminDetails.overview.max_competitors;
     const registrationProgress = Math.min(
       (totalRegistered / maxCapacity) * 100,
-      100
+      100,
     );
 
     return {
@@ -1575,8 +1576,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                         status === "completed"
                           ? "bg-green-500"
                           : status === "ongoing"
-                          ? "bg-blue-500"
-                          : "bg-slate-500"
+                            ? "bg-blue-500"
+                            : "bg-slate-500"
                       }`}
                     />
 
@@ -1834,7 +1835,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       {formatDate(competitor.registration_date)}
                     </p>
                   </div>
-                )
+                ),
               )}
             </CardContent>
           </Card>
@@ -1886,6 +1887,12 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                             {group.playing_time}
                           </p>
                           <p>Discord: {group.group_discord_role_id}</p>
+                          <GroupResultModal
+                            className="w-full bg-primary hover:bg-primary/90 mt-2.5"
+                            activeGroup={group}
+                            stageName={stage.stage_name}
+                            eventId={eventDetails.event_id}
+                          />
                         </CardContent>
                       </Card>
                     ))}
