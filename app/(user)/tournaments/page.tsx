@@ -22,6 +22,7 @@ interface Event {
   event_type: "tournament" | "scrim"; // Inferred for UI grouping
   details_url: string; // This field is unused but kept for reference
   event_banner: string;
+  slug: string;
   prizepool: string;
 }
 
@@ -30,6 +31,7 @@ interface EventsResponse {
   events: {
     event_id: number;
     event_name: string;
+    slug: string;
     event_date: string;
     event_status: "upcoming" | "past";
     event_banner: string;
@@ -47,19 +49,19 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
       className="overflow-hidden h-full bg-transparent gap-0 p-0"
       key={event.event_id}
     >
-      <Image
-        src={event.event_banner || DEFAULT_IMAGE}
-        alt={event.event_name}
-        width={1000}
-        height={1000}
-        className="object-cover size-full aspect-video"
-      />
+      <Link href={`/tournaments/${event.slug}`}>
+        <Image
+          src={event.event_banner || DEFAULT_IMAGE}
+          alt={event.event_name}
+          width={1000}
+          height={1000}
+          className="object-cover size-full aspect-video"
+        />
+      </Link>
 
       <CardContent className="py-4 space-y-2">
         <CardTitle className="hover:text-primary hover:underline">
-          <Link href={`/tournaments/${event.event_id}`}>
-            {event.event_name}
-          </Link>
+          <Link href={`/tournaments/${event.slug}`}>{event.event_name}</Link>
         </CardTitle>
         <p className="text-sm text-muted-foreground">Date: {formattedDate}</p>
 
@@ -70,7 +72,7 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
         </p>
 
         <Button className="w-full" variant={"outline"} asChild>
-          <Link href={`/tournaments/${event.event_id}`}>View Tournament</Link>
+          <Link href={`/tournaments/${event.slug}`}>View Tournament</Link>
         </Button>
       </CardContent>
     </Card>
@@ -96,9 +98,7 @@ const EventsPage = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: EventsResponse = await response.json();
-
-      console.log(data);
+      const data = await response.json();
 
       setEvents(data.events || []);
     } catch (err) {

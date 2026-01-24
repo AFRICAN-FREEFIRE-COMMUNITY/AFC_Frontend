@@ -71,7 +71,7 @@ const page = () => {
     // Filter by category
     if (filterCategory !== "all") {
       filtered = filtered.filter(
-        (item: any) => item.category === filterCategory
+        (item: any) => item.category === filterCategory,
       );
     }
 
@@ -80,7 +80,7 @@ const page = () => {
       filtered = filtered.filter(
         (item: any) =>
           (item.status || "published").toLowerCase() ===
-          filterStatus.toLowerCase()
+          filterStatus.toLowerCase(),
       );
     }
 
@@ -116,7 +116,7 @@ const page = () => {
     startTransition(async () => {
       try {
         const res = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`,
         );
 
         if (res.statusText === "OK") {
@@ -287,7 +287,7 @@ const page = () => {
               key={newsDetails.news_id}
               className="overflow-hidden h-full bg-transparent gap-0 p-0 flex flex-col hover:shadow-lg transition-shadow"
             >
-              <div className="relative">
+              <Link href={`/a/news/${newsDetails.slug}`} className="relative">
                 <Image
                   src={newsDetails.images_url || DEFAULT_IMAGE}
                   alt={newsDetails.news_title}
@@ -301,17 +301,17 @@ const page = () => {
                   </Badge>
                   <Badge
                     variant={getStatusBadgeVariant(
-                      newsDetails.status || "published"
+                      newsDetails.status || "published",
                     )}
                     className="text-xs capitalize"
                   >
                     {newsDetails.status || "Published"}
                   </Badge>
                 </div>
-              </div>
+              </Link>
               <CardContent className="flex-grow py-4 flex flex-col">
                 <Link
-                  href={`/a/news/${newsDetails.news_id}`}
+                  href={`/a/news/${newsDetails.slug}`}
                   className="text-base font-medium mb-2 line-clamp-2 hover:underline hover:text-primary"
                 >
                   {newsDetails.news_title}
@@ -330,7 +330,7 @@ const page = () => {
                   <span>•</span>
                   <span>
                     {formatDate(
-                      newsDetails.published_at || newsDetails.created_at
+                      newsDetails.published_at || newsDetails.created_at,
                     )}
                   </span>
                 </div>
@@ -339,13 +339,13 @@ const page = () => {
                 </p>
                 <div className="mt-auto flex space-x-2">
                   <Button variant="outline" className="flex-1" asChild>
-                    <Link href={`/a/news/${newsDetails.news_id}`}>
+                    <Link href={`/a/news/${newsDetails.slug}`}>
                       <Eye className="h-4 w-4 mr-1" />
                       View
                     </Link>
                   </Button>
                   <Button variant="outline" className="flex-1" asChild>
-                    <Link href={`/a/news/${newsDetails.news_id}/edit`}>
+                    <Link href={`/a/news/${newsDetails.slug}/edit`}>
                       <Pencil className="h-4 w-4 mr-1" />
                       Edit
                     </Link>

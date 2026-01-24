@@ -200,7 +200,7 @@ const page = () => {
               key={newsDetails.news_id}
               className="overflow-hidden h-full bg-transparent gap-0 p-0 flex flex-col hover:shadow-lg transition-shadow"
             >
-              <div className="relative">
+              <Link href={`/news/${newsDetails.slug}`} className="relative">
                 <Image
                   src={newsDetails.images_url || DEFAULT_IMAGE}
                   alt={newsDetails.news_title}
@@ -213,10 +213,10 @@ const page = () => {
                     {getCategoryLabel(newsDetails.category)}
                   </Badge>
                 </div>
-              </div>
+              </Link>
               <CardContent className="flex-grow py-4 flex flex-col">
                 <Link
-                  href={`/news/${newsDetails.news_id}`}
+                  href={`/news/${newsDetails.slug}`}
                   className="text-lg font-medium mb-2 line-clamp-2 hover:underline hover:text-primary"
                 >
                   {newsDetails.news_title}
@@ -240,7 +240,7 @@ const page = () => {
                 </p>
                 <div className="mt-auto flex space-x-2">
                   <Button className="w-full" asChild>
-                    <Link href={`/news/${newsDetails.news_id}`}>Read More</Link>
+                    <Link href={`/news/${newsDetails.slug}`}>Read More</Link>
                   </Button>
                   {newsDetails.category === "tournament" &&
                     newsDetails.registrationLink && (

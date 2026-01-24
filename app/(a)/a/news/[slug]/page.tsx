@@ -19,32 +19,31 @@ import { PageHeader } from "@/components/PageHeader";
 import { DEFAULT_IMAGE } from "@/constants";
 
 type Params = Promise<{
-  id: string;
+  slug: string;
 }>;
 
 const page = ({ params }: { params: Params }) => {
-  const { id } = use(params);
+  const { slug } = use(params);
   const router = useRouter();
 
   const [pending, startTransition] = useTransition();
   const [newsDetails, setNewsDetails] = useState<any>();
 
   useEffect(() => {
-    if (!id) return; // Don't run if id is not available yet
+    if (!slug) return; // Don't run if id is not available yet
 
     startTransition(async () => {
       try {
-        const decodedId = decodeURIComponent(id);
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
-          { news_id: decodedId }
+          { slug },
         );
         setNewsDetails(res.data.news);
       } catch (error: any) {
         toast.error(error.response.data.message);
       }
     });
-  }, [id]);
+  }, [slug]);
 
   if (pending) return <FullLoader />;
 
@@ -78,12 +77,12 @@ const page = ({ params }: { params: Params }) => {
           />{" "}
           <div className="flex w-full md:w-auto items-center gap-2">
             <Button className="flex-1 md:flex-auto" asChild>
-              <Link href={`/a/news/${id}/edit`}>
+              <Link href={`/a/news/${slug}/edit`}>
                 <Edit className="mr-2 h-4 w-4" /> Edit
               </Link>
             </Button>
             <DeleteNewsModal
-              newsId={id}
+              newsId={newsDetails.news_id}
               newsTitle={newsDetails.news_title}
               redirectTo="/a/news"
               showLabel

@@ -38,11 +38,11 @@ import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 
 type Params = Promise<{
-  id: string;
+  slug: string;
 }>;
 
 export default function EditNewsForm({ params }: { params: Params }) {
-  const { id } = use(params);
+  const { slug } = use(params);
 
   const router = useRouter();
   const { user, token } = useAuth();
@@ -50,7 +50,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
   const [newsDetails, setNewsDetails] = useState<any>();
 
   const [previewUrl, setPreviewUrl] = useState<string>(
-    newsDetails?.images_url ? newsDetails.images_url : ""
+    newsDetails?.images_url ? newsDetails.images_url : "",
   );
 
   const [pending, startTransition] = useTransition();
@@ -69,23 +69,23 @@ export default function EditNewsForm({ params }: { params: Params }) {
   });
 
   useEffect(() => {
-    if (!id) return; // Don't run if id is not available yet
+    if (!slug) return; // Don't run if id is not available yet
 
     startTransition(async () => {
       try {
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
-          { news_id: id }
+          { slug },
         );
         setNewsDetails(res.data.news);
         setPreviewUrl(
-          res?.data?.news?.images_url ? res?.data?.news?.images_url : ""
+          res?.data?.news?.images_url ? res?.data?.news?.images_url : "",
         );
       } catch (error: any) {
         toast.error(error.response.data.message);
       }
     });
-  }, [id]);
+  }, [slug]);
 
   // Update form values when teamDetails changes
   useEffect(() => {
@@ -130,7 +130,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         toast.success(response.data.message);
@@ -269,7 +269,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                                   ].includes(file.type)
                                 ) {
                                   toast.error(
-                                    "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                    "Only PNG, JPG, JPEG, or WEBP files are supported.",
                                   );
                                   return;
                                 }
@@ -363,7 +363,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                               ].includes(file.type)
                             ) {
                               toast.error(
-                                "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                "Only PNG, JPG, JPEG, or WEBP files are supported.",
                               );
                               return;
                             }

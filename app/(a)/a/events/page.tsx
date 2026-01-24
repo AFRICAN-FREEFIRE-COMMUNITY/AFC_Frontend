@@ -35,6 +35,7 @@ export interface EventProp {
   event_name: string;
   event_date: string;
   event_status: string;
+  slug: string;
   competition_type: string;
 }
 
@@ -59,25 +60,25 @@ const page = () => {
     startTransition(async () => {
       try {
         const eventsResponse = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
         );
         const tournaments = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`,
         );
         const scrims = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`,
         );
         const upcomingEvents = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-upcoming-events-count/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-upcoming-events-count/`,
         );
         const ongoingEvents = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-ongoing-events-count/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-ongoing-events-count/`,
         );
         const completedEvents = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-completed-events-count/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-completed-events-count/`,
         );
         const avgParticipants = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-average-participants-per-event/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-average-participants-per-event/`,
         );
 
         if (eventsResponse.statusText === "OK") {
@@ -96,7 +97,7 @@ const page = () => {
       } catch (error: any) {
         // More robust error handling for API calls
         toast.error(
-          error?.response?.data?.message || "Failed to fetch event data."
+          error?.response?.data?.message || "Failed to fetch event data.",
         );
       }
     });
@@ -324,10 +325,10 @@ const page = () => {
                     <TableCell>
                       <div className="flex items-center gap-2 justify-center">
                         <Button asChild variant={"outline"} size="md">
-                          <Link href={`/a/events/${event.event_id}`}>View</Link>
+                          <Link href={`/a/events/${event.slug}`}>View</Link>
                         </Button>
                         <Button asChild variant={"outline"} size="md">
-                          <Link href={`/a/events/${event.event_id}/edit`}>
+                          <Link href={`/a/events/${event.slug}/edit`}>
                             Edit
                           </Link>
                         </Button>

@@ -61,7 +61,7 @@ export const LatestNews = () => {
             news &&
             news?.map((newsDetails: any) => (
               <Card key={newsDetails.news_id} className="p-0 overflow-hidden">
-                <div className="relative">
+                <Link href={`/news/${newsDetails.slug}`} className="relative">
                   <Image
                     src={newsDetails.images_url || DEFAULT_IMAGE}
                     alt={newsDetails.news_title}
@@ -74,10 +74,10 @@ export const LatestNews = () => {
                       {getCategoryLabel(newsDetails.category)}
                     </Badge>
                   </div>
-                </div>
+                </Link>
                 <CardContent className="pb-6">
                   <Link
-                    href={`/news/${newsDetails.news_id}`}
+                    href={`/news/${newsDetails.slug}`}
                     className="font-medium hover:text-primary hover:underline"
                   >
                     {newsDetails.news_title}

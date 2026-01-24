@@ -4422,9 +4422,10 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
   const maxPlayers = userTeam?.max_players || 6;
 
   const handleMemberToggle = (memberId: string) => {
+    // @ts-ignore
     setSelectedMembers((prev) => {
       if (prev.includes(memberId)) {
-        return prev.filter((id) => id !== memberId);
+        return prev.filter((id: any) => id !== memberId);
       } else {
         if (prev.length >= maxPlayers) {
           toast.error(`You can only select up to ${maxPlayers} members`);
@@ -5082,7 +5083,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
   );
 };
 
-export const EventDetailsWrapper = ({ id }: { id: string }) => {
+export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const { token } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -5188,7 +5189,7 @@ export const EventDetailsWrapper = ({ id }: { id: string }) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ event_id: id }),
+          body: JSON.stringify({ slug: slug }),
         },
       );
 
@@ -5210,7 +5211,7 @@ export const EventDetailsWrapper = ({ id }: { id: string }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [id, token]);
+  }, [slug, token]);
 
   const fetchUserTeam = useCallback(async () => {
     setLoadingTeam(true);
@@ -5243,10 +5244,10 @@ export const EventDetailsWrapper = ({ id }: { id: string }) => {
   }, [token]);
 
   useEffect(() => {
-    if (id && token) {
+    if (slug && token) {
       fetchEventDetails();
     }
-  }, [fetchEventDetails, id, token]);
+  }, [fetchEventDetails, slug, token]);
 
   // Handler functions (defined after all hooks and before early returns would cause issues)
   // But we need to define these AFTER hooks but BEFORE the early return
@@ -5293,16 +5294,16 @@ export const EventDetailsWrapper = ({ id }: { id: string }) => {
 
   const handleDiscordConnect = useCallback(() => {
     const redirectUrl = encodeURIComponent(
-      `${window.location.origin}${window.location.pathname}?id=${id}&discord=connected&step=discord`,
+      `${window.location.origin}${window.location.pathname}?id=${slug}&discord=connected&step=discord`,
     );
-    const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${id}&redirect_url=${redirectUrl}`;
+    const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${slug}&redirect_url=${redirectUrl}`;
     window.open(url, "_blank", "noopener,noreferrer");
-  }, [id, token]);
+  }, [slug, token]);
 
   const handleJoinedServer = useCallback(async () => {
     startJoinedTransition(async () => {
       try {
-        const payload: any = { event_id: id };
+        const payload: any = { slug: slug };
 
         // If team registration, include team and member info
         if (regType === "team" && userTeam) {
@@ -5325,7 +5326,7 @@ export const EventDetailsWrapper = ({ id }: { id: string }) => {
       }
     });
   }, [
-    id,
+    slug,
     regType,
     userTeam,
     selectedMembers,

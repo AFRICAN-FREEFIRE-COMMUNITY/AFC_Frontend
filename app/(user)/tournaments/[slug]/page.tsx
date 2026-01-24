@@ -101,26 +101,23 @@ import { env } from "@/lib/env";
 import { generateDynamicMetadata } from "@/lib/seo";
 
 type Props = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 };
 
 // 1. Centralized Fetch Function
-async function getEventData(id: string) {
+async function getEventData(slug: string) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
     const response = await fetch(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-not-logged-in/`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Pass the token if it exists (for users),
-          // but the API should ideally allow public access for crawlers
-          ...(token && { Authorization: `Bearer ${token}` }),
         },
-        body: JSON.stringify({ event_id: decodeURIComponent(id) }),
+        body: JSON.stringify({ slug: decodeURIComponent(slug) }),
         next: { revalidate: 60 },
       },
     );
@@ -138,16 +135,16 @@ async function getEventData(id: string) {
 
 // 2. Metadata Generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
-  const decodedId = decodeURIComponent(id);
-  const data = await getEventData(id);
+  const { slug } = await params;
+  const decodedId = decodeURIComponent(slug);
+  const data = await getEventData(slug);
 
   // Fallback if the API fails or the bot can't authenticate
   if (!data) {
     return generateDynamicMetadata({
       title: "Tournament Details",
       description: `View tournament details and registration information on AFC.`,
-      url: `/events/${id}`,
+      url: `/events/${slug}`,
     });
   }
 
@@ -166,7 +163,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: title,
     description: description,
     image: absoluteImageUrl,
-    url: `/events/${id}`,
+    url: `/events/${slug}`,
     tags: [title, "AFC", "Free Fire", "Gaming"].filter(Boolean),
   });
 
@@ -193,11 +190,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // 3. Page Component
 const Page = async ({ params }: Props) => {
-  const { id } = await params;
+  const { slug } = await params;
 
   return (
     <main>
-      <EventDetailsWrapper id={id} />
+      <EventDetailsWrapper slug={slug} />
     </main>
   );
 };

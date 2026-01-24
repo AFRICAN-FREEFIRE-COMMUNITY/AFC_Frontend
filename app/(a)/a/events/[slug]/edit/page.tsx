@@ -160,7 +160,7 @@ const EventFormSchema = z
     // prize_distribution: z.record(z.string(), z.coerce.number()),
     prize_distribution: z.record(
       z.string(),
-      z.string().min(1, "Prize amount required")
+      z.string().min(1, "Prize amount required"),
     ),
     event_rules: z.string().optional(),
     rules_document: z.any().optional(),
@@ -190,7 +190,7 @@ const EventFormSchema = z
       message:
         "An event cannot be saved as a draft and published simultaneously.",
       path: ["save_to_drafts"],
-    }
+    },
   );
 
 type EventFormType = z.infer<typeof EventFormSchema>;
@@ -258,7 +258,7 @@ interface EventDetails {
 }
 
 type Params = {
-  id: string;
+  slug: string;
 };
 
 // ============================================================================
@@ -274,7 +274,7 @@ interface ValidationError {
 }
 
 const validateStageData = (
-  stages: StageType[]
+  stages: StageType[],
 ): { isValid: boolean; errors: ValidationError[] } => {
   const errors: ValidationError[] = [];
 
@@ -484,7 +484,7 @@ const validateStageData = (
 
 const showValidationErrors = (
   errors: ValidationError[],
-  onFixClick: (stageIndex?: number) => void
+  onFixClick: (stageIndex?: number) => void,
 ) => {
   if (errors.length === 0) return;
 
@@ -531,13 +531,13 @@ const showValidationErrors = (
               onClick: () => onFixClick(stageIndex),
             }
           : undefined,
-    }
+    },
   );
 };
 
 export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const resolvedParams = use(params);
-  const { id } = resolvedParams;
+  const { slug } = resolvedParams;
   const router = useRouter();
   const searchParams = useSearchParams();
   const [stageModalStep, setStageModalStep] = useState(1);
@@ -547,7 +547,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [pendingSubmit, startSubmitTransition] = useTransition();
   const [rulesInputMethod, setRulesInputMethod] = useState<"type" | "upload">(
-    "type"
+    "type",
   );
 
   const [isSeedModalOpen, setIsSeedModalOpen] = useState(false);
@@ -556,7 +556,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [stageNames, setStageNames] = useState<string[]>(["Stage 1"]);
   const [isStageModalOpen, setIsStageModalOpen] = useState(false);
   const [editingStageIndex, setEditingStageIndex] = useState<number | null>(
-    null
+    null,
   );
   const [passwordVisibility, setPasswordVisibility] = useState<
     Record<number, boolean>
@@ -687,16 +687,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   // ============================================================================
 
   useEffect(() => {
-    if (!id || authLoading || !token) return;
+    if (!slug || authLoading || !token) return;
     fetchEventDetails();
-  }, [id, token, authLoading, router]);
+  }, [slug, token, authLoading, router]);
 
   const fetchEventDetails = async () => {
-    if (!id || authLoading || !token) return;
+    if (!slug || authLoading || !token) return;
 
     try {
       setLoadingEvent(true);
-      const decodedId = decodeURIComponent(id);
+
       const commonConfig = {
         headers: {
           "Content-Type": "application/json",
@@ -707,13 +707,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       const [res, resAdmin] = await Promise.all([
         axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-          { event_id: decodedId },
-          commonConfig
+          { slug },
+          commonConfig,
         ),
         axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
-          { event_id: decodedId },
-          commonConfig
+          { slug },
+          commonConfig,
         ),
       ]);
 
@@ -741,6 +741,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       router.push("/login");
     } finally {
       setLoadingEvent(false);
+      setInitialLoading(false);
     }
   };
 
@@ -866,7 +867,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         toast.success(res.data.message || "Seeding successful");
@@ -884,7 +885,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       return {
         ...prev,
         registered_competitors: prev.registered_competitors.map((comp) =>
-          comp.player_id === playerId ? { ...comp, status: newStatus } : comp
+          comp.player_id === playerId ? { ...comp, status: newStatus } : comp,
         ),
       };
     });
@@ -906,7 +907,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       setLeaderboardData(response.data.leaderboard);
@@ -927,7 +928,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     const newNames = Array.from(
       { length: newCount },
-      (_, i) => stageNames[i] || `Stage ${i + 1}`
+      (_, i) => stageNames[i] || `Stage ${i + 1}`,
     );
     setStageNames(newNames);
 
@@ -999,7 +1000,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const updateGroupDetailLogic = (
     index: number,
     field: keyof GroupType,
-    value: string | number | string[]
+    value: string | number | string[],
   ) => {
     const newGroups = [...tempGroups];
     newGroups[index] = {
@@ -1045,12 +1046,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         g.teams_qualifying < 1 ||
         g.match_count < 1 ||
         !g.match_maps ||
-        g.match_maps.length === 0
+        g.match_maps.length === 0,
     );
 
     if (invalidGroup) {
       toast.error(
-        "Please complete all group details correctly, including selecting at least one map per group (Step 2)"
+        "Please complete all group details correctly, including selecting at least one map per group (Step 2)",
       );
       return;
     }
@@ -1098,7 +1099,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setIsStageModalOpen(false);
     setStageModalStep(1);
     toast.success(
-      "Stage configuration updated. Click 'Save Changes' to finalize."
+      "Stage configuration updated. Click 'Save Changes' to finalize.",
     );
   };
 
@@ -1127,7 +1128,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         existingStage.groups.map((g) => ({
           ...g,
           group_id: g.group_id,
-        }))
+        })),
       );
     } else {
       setStageModalData({
@@ -1154,7 +1155,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           room_name: "",
           room_password: "",
           // No group_id for new groups ✅
-        }))
+        })),
       );
     }
 
@@ -1240,7 +1241,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             body: JSON.stringify({
               stage_id: stageToDelete.stage_id,
             }),
-          }
+          },
         );
 
         if (!response.ok) {
@@ -1262,7 +1263,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     // Proceed with local state updates only if API call succeeds (or stage is new)
     const currentCount = form.getValues("number_of_stages") || 0;
     const updatedStages = currentStages.filter(
-      (_, idx) => idx !== stageToRemove
+      (_, idx) => idx !== stageToRemove,
     );
     const updatedNames = stageNames.filter((_, idx) => idx !== stageToRemove);
 
@@ -1277,7 +1278,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     toast.success(
       `Stage "${
         currentStages[stageToRemove]?.stage_name || `Stage ${stageToRemove + 1}`
-      }" removed successfully`
+      }" removed successfully`,
     );
 
     setIsRemoveConfirmOpen(false);
@@ -1331,10 +1332,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       numericPart === 1
         ? "st"
         : numericPart === 2
-        ? "nd"
-        : numericPart === 3
-        ? "rd"
-        : "th";
+          ? "nd"
+          : numericPart === 3
+            ? "rd"
+            : "th";
     return `${numericPart}${suffix}`;
   };
 
@@ -1381,7 +1382,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     if (regOpen > regClose) {
       toast.error(
-        "Registration open date cannot be after registration close date"
+        "Registration open date cannot be after registration close date",
       );
       setCurrentTab("basic_info");
       return;
@@ -1419,7 +1420,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("event_type", data.event_type);
         formData.append(
           "max_teams_or_players",
-          data.max_teams_or_players.toString()
+          data.max_teams_or_players.toString(),
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
@@ -1431,7 +1432,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("registration_link", data.registration_link || "");
         formData.append(
           "publish_to_tournaments",
-          data.publish_to_tournaments.toString()
+          data.publish_to_tournaments.toString(),
         );
         formData.append("publish_to_news", data.publish_to_news.toString());
 
@@ -1444,13 +1445,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
         formData.append(
           "prize_distribution",
-          JSON.stringify(data.prize_distribution)
+          JSON.stringify(data.prize_distribution),
         );
         formData.append(
           "stream_channels",
           JSON.stringify(
-            data.stream_channels?.filter((s) => s.trim() !== "") || []
-          )
+            data.stream_channels?.filter((s) => s.trim() !== "") || [],
+          ),
         );
         formData.append("stages", JSON.stringify(data.stages));
 
@@ -1462,7 +1463,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               Authorization: `Bearer ${token}`,
             },
             body: formData,
-          }
+          },
         );
 
         const contentType = response.headers.get("content-type");
@@ -1481,7 +1482,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             `Event "${data.event_name}" saved as ${
               data.save_to_drafts ? "Draft" : "Published"
             } successfully!`,
-            { duration: 4000 }
+            { duration: 4000 },
           );
         } else {
           const errorMessage = res.message || res.detail || res.error;
@@ -1492,7 +1493,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 <p className="font-semibold">Validation Error</p>
                 <p className="text-sm">{errorMessage}</p>
               </div>,
-              { duration: 5000 }
+              { duration: 5000 },
             );
           } else if (response.status === 401) {
             toast.error("Your session has expired. Please log in again.");
@@ -1911,7 +1912,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                       ].includes(file.type)
                                     ) {
                                       toast.error(
-                                        "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                        "Only PNG, JPG, JPEG, or WEBP files are supported.",
                                       );
                                       return;
                                     }
@@ -2007,7 +2008,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                   ].includes(file.type)
                                 ) {
                                   toast.error(
-                                    "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                    "Only PNG, JPG, JPEG, or WEBP files are supported.",
                                   );
                                   return;
                                 }
@@ -2127,7 +2128,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             if (stageIndex !== undefined) {
                               openAddStageModalLogic(stageIndex);
                             }
-                          }
+                          },
                         );
                         return;
                       }
@@ -2184,7 +2185,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                   onSuccess={() =>
                                     updateCompetitorStatus(
                                       comp.player_id,
-                                      "disqualified"
+                                      "disqualified",
                                     )
                                   }
                                 />
@@ -2197,7 +2198,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                   onSuccess={() =>
                                     updateCompetitorStatus(
                                       comp.player_id,
-                                      "registered"
+                                      "registered",
                                     )
                                   }
                                 />
@@ -2347,7 +2348,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                           </CardTitle>
                                         </CardContent>
                                       </Card>
-                                    )
+                                    ),
                                   )}
                                 </CardContent>
                               </Card>
@@ -2433,7 +2434,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                                 />
                                               </TableCell>
                                             </TableRow>
-                                          )
+                                          ),
                                         )
                                       ) : (
                                         <TableRow>
@@ -2705,13 +2706,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                           !supportedTypes.includes(file.type)
                                         ) {
                                           toast.error(
-                                            "Only PDF, DOC, or DOCX files are supported."
+                                            "Only PDF, DOC, or DOCX files are supported.",
                                           );
                                           return;
                                         }
                                         setSelectedRuleFile(file);
                                         setPreviewRuleUrl(
-                                          URL.createObjectURL(file)
+                                          URL.createObjectURL(file),
                                         );
                                       }
                                     }}
@@ -2818,7 +2819,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
                                     if (!supportedTypes.includes(file.type)) {
                                       toast.error(
-                                        "Only PDF, DOC, or DOCX files are supported."
+                                        "Only PDF, DOC, or DOCX files are supported.",
                                       );
                                       return;
                                     }
@@ -2826,7 +2827,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                                     setSelectedRuleFile(file);
                                     field.onChange(file);
                                     setPreviewRuleUrl(
-                                      URL.createObjectURL(file)
+                                      URL.createObjectURL(file),
                                     );
                                   }}
                                 />
@@ -2853,7 +2854,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             if (stageIndex !== undefined) {
                               openAddStageModalLogic(stageIndex);
                             }
-                          }
+                          },
                         );
                         return;
                       }
@@ -2996,7 +2997,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     }
                     onChange={(e) =>
                       handleGroupCountChangeLogic(
-                        e.target.value === "" ? 0 : Number(e.target.value)
+                        e.target.value === "" ? 0 : Number(e.target.value),
                       )
                     }
                   />
@@ -3070,7 +3071,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           updateGroupDetailLogic(
                             index,
                             "group_name",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder={`Group ${index + 1}`}
@@ -3087,7 +3088,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             updateGroupDetailLogic(
                               index,
                               "playing_date",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -3101,7 +3102,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             updateGroupDetailLogic(
                               index,
                               "playing_time",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -3124,7 +3125,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           updateGroupDetailLogic(
                             index,
                             "teams_qualifying",
-                            e.target.value === "" ? 0 : Number(e.target.value)
+                            e.target.value === "" ? 0 : Number(e.target.value),
                           )
                         }
                       />
@@ -3140,7 +3141,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           updateGroupDetailLogic(
                             index,
                             "match_count",
-                            e.target.value === "" ? 0 : Number(e.target.value)
+                            e.target.value === "" ? 0 : Number(e.target.value),
                           )
                         }
                       />
@@ -3154,7 +3155,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           updateGroupDetailLogic(
                             index,
                             "group_discord_role_id",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder="e.g: 1234567890"
@@ -3207,7 +3208,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           updateGroupDetailLogic(
                             index,
                             "room_id",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder={`Room ${index + 1}`}
@@ -3222,7 +3223,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           updateGroupDetailLogic(
                             index,
                             "room_name",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder="Room name"
@@ -3239,7 +3240,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                             updateGroupDetailLogic(
                               index,
                               "room_password",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className="pr-10"
@@ -3309,7 +3310,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         stageModalData.teams_qualifying_from_stage === undefined
                       ) {
                         toast.error(
-                          "Please fill all required stage fields (Step 1)"
+                          "Please fill all required stage fields (Step 1)",
                         );
                         return;
                       }

@@ -22,24 +22,23 @@ export function NewsClient({
   params,
   initialData,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
   initialData?: any;
 }) {
-  const { id } = use(params);
+  const { slug } = use(params);
 
   const [loading, setLoading] = useState(!initialData);
   const [newsDetails, setNewsDetails] = useState<any>(initialData);
 
   useEffect(() => {
     // If we already have initialData from the server, we don't need to fetch again
-    if (initialData || !id) return;
+    if (initialData || !slug) return;
 
     const fetchNews = async () => {
       try {
-        const decodedId = decodeURIComponent(id);
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
-          { news_id: decodedId }
+          { slug },
         );
         setNewsDetails(res.data.news);
       } catch (error: any) {
@@ -50,7 +49,7 @@ export function NewsClient({
     };
 
     fetchNews();
-  }, [id, initialData]);
+  }, [slug, initialData]);
 
   if (loading) return <FullLoader />;
 
