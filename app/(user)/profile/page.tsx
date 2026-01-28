@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 // import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,42 +21,18 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
-import { FullLoader } from "@/components/Loader";
+import { FullLoader, Loader } from "@/components/Loader";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { PageHeader } from "@/components/PageHeader";
+import { ComingSoon } from "@/components/ComingSoon";
+import axios from "axios";
+import { env } from "@/lib/env";
+import { toast } from "sonner";
 
 const page = () => {
   const router = useRouter();
-  // Mock user data - in a real app, this would come from an API or context
-  const [userProfile, setUserProfile] = useState({
-    name: "John Doe",
-    username: "FireKing",
-    uid: "123456789",
-    team: "Team Alpha",
-    avatar: "/placeholder.svg",
-    role: "moderator", // or "super_admin" or "user"
-    isBanned: true,
-    banReason: "Violation of tournament rules",
-    stats: {
-      kills: 1500,
-      wins: 50,
-      mvps: 10,
-      booyahs: 30,
-      tournamentsParticipated: 15,
-      scrimsParticipated: 25,
-      rank: 1,
-    },
-    teamHistory: [
-      { name: "Team Alpha", from: "2023-01-01", to: "Present" },
-      { name: "Team Beta", from: "2022-06-01", to: "2022-12-31" },
-      { name: "Team Gamma", from: "2022-01-01", to: "2022-05-31" },
-    ],
-    achievements: [
-      { name: "Tournament MVP", date: "2023-05-15" },
-      { name: "Highest Kill Streak", date: "2023-03-20" },
-      { name: "Rookie of the Year", date: "2022-12-31" },
-    ],
-  });
+
+  const [pending, startTransition] = useTransition();
 
   const adminCapabilities = {
     moderator: [
@@ -77,7 +53,22 @@ const page = () => {
     ],
   };
 
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+
+  const handleDiscordConnect = () => {
+    startTransition(async () => {
+      try {
+        const res = await axios(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${1}`,
+        );
+        console.log(res);
+      } catch (error: any) {
+        toast.error(
+          error?.response?.data?.message || "Failed to connect to discord",
+        );
+      }
+    });
+  };
 
   if (!user) return <FullLoader />;
 
@@ -119,9 +110,23 @@ const page = () => {
                 Role: <span className="capitalize">{user.role}</span>
               </Badge>
             )}
-            <Button className="w-full" asChild>
-              <Link href="/profile/edit">Edit Profile</Link>
-            </Button>
+            <div className="grid w-full gap-2">
+              <Button className="w-full" asChild>
+                <Link href="/profile/edit">Edit Profile</Link>
+              </Button>
+              <Button
+                disabled={pending}
+                onClick={handleDiscordConnect}
+                variant={"secondary"}
+                className="w-full"
+              >
+                {pending ? (
+                  <Loader text="Connecting..." />
+                ) : (
+                  "Connect to discord"
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -178,12 +183,6 @@ const page = () => {
                 </div>
               </TabsContent>
               <TabsContent value="history" className="relative overflow-hidden">
-                {/* Blur Overlay */}
-                <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Coming Soon
-                  </span>
-                </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -192,14 +191,8 @@ const page = () => {
                       <TableHead>To</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {userProfile.teamHistory.map((team, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{team.name}</TableCell>
-                        <TableCell>{team.from}</TableCell>
-                        <TableCell>{team.to}</TableCell>
-                      </TableRow>
-                    ))}
+                  <TableBody className="relative">
+                    <ComingSoon />
                   </TableBody>
                 </Table>
               </TabsContent>
@@ -207,12 +200,6 @@ const page = () => {
                 value="achievements"
                 className="relative overflow-hidden"
               >
-                {/* Blur Overlay */}
-                <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Coming Soon
-                  </span>
-                </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -220,42 +207,11 @@ const page = () => {
                       <TableHead>Date</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {userProfile.achievements.map((achievement, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{achievement.name}</TableCell>
-                        <TableCell>{achievement.date}</TableCell>
-                      </TableRow>
-                    ))}
+                  <TableBody className="relative">
+                    <ComingSoon />
                   </TableBody>
                 </Table>
               </TabsContent>
-              {userProfile.role !== "user" && (
-                <TabsContent value="admin" className="relative overflow-hidden">
-                  {/* Blur Overlay */}
-                  <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Coming Soon
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-4">
-                    Admin Capabilities
-                  </h3>
-                  <ul className="list-disc pl-5 space-y-2">
-                    {adminCapabilities[
-                      userProfile.role as keyof typeof adminCapabilities
-                    ].map((capability, index) => (
-                      <li key={index}>{capability}</li>
-                    ))}
-                  </ul>
-                  {userProfile.role === "moderator" ||
-                  userProfile.role === "super_admin" ? (
-                    <Button asChild className="mt-4">
-                      <Link href="/admin/dashboard">Go to Admin Dashboard</Link>
-                    </Button>
-                  ) : null}
-                </TabsContent>
-              )}
             </Tabs>
           </CardContent>
         </Card>

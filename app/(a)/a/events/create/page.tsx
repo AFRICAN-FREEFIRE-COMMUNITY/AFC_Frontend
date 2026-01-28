@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -58,6 +59,15 @@ import {
 import Image from "next/image";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { countries, REGIONS_MAP } from "@/constants";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const formattedWord: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
@@ -139,6 +149,9 @@ const EventFormSchema = z
     publish_to_tournaments: z.boolean().default(false),
     publish_to_news: z.boolean().default(false),
     save_to_drafts: z.boolean().default(false),
+    restriction_type: z.enum(["none", "region", "country"]).default("none"),
+    restriction_mode: z.enum(["allow", "block"]),
+    selected_locations: z.array(z.string()),
   })
   .refine(
     (data) => {
@@ -238,6 +251,7 @@ export default function Page() {
       publish_to_tournaments: false,
       publish_to_news: false,
       save_to_drafts: false,
+      restriction_type: "none",
     },
   });
 
@@ -251,6 +265,31 @@ export default function Page() {
   });
 
   const stages = form.watch("stages") || [];
+  const selectedCountries = form.watch("selected_locations") || [];
+
+  const toggleCountry = (country: string) => {
+    const current = new Set(selectedCountries);
+    if (current.has(country)) {
+      current.delete(country);
+    } else {
+      current.add(country);
+    }
+    form.setValue("selected_locations", Array.from(current));
+  };
+
+  const toggleRegion = (regionName: string, regionCountries: string[]) => {
+    const current = new Set(selectedCountries);
+    const allInRegionSelected = regionCountries.every((c) => current.has(c));
+
+    regionCountries.forEach((c) => {
+      if (allInRegionSelected) {
+        current.delete(c); // Unselect all if all were selected
+      } else {
+        current.add(c); // Select all if some or none were selected
+      }
+    });
+    form.setValue("selected_locations", Array.from(current));
+  };
 
   // ADD: Function to toggle password visibility for a specific group
   const toggleVisibility = (groupIndex: number) => {
@@ -1202,6 +1241,163 @@ export default function Page() {
                       + Add Streaming Link
                     </Button>
                   </div>
+                  <Separator />
+                  <FormField
+                    // @ts-ignore
+                    control={form.control}
+                    name="restriction"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Registration Restrictions</FormLabel>
+                        <FormDescription>
+                          Control who can register for this event based on their
+                          location
+                        </FormDescription>
+                        <FormControl>
+                          <div className="space-y-6">
+                            {/* TOP TOGGLES */}
+                            <div className="flex flex-col gap-4">
+                              <RadioGroup
+                                defaultValue="none"
+                                onValueChange={(val) =>
+                                  form.setValue("restriction_type", val)
+                                }
+                                className="flex gap-4"
+                              >
+                                {["none", "region", "country"].map((type) => (
+                                  <div
+                                    key={type}
+                                    className="flex items-center space-x-2"
+                                  >
+                                    <RadioGroupItem value={type} id={type} />
+                                    <Label
+                                      htmlFor={type}
+                                      className="capitalize"
+                                    >
+                                      {type.replace("_", " ")}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </RadioGroup>
+                            </div>
+
+                            {form.watch("restriction_type") !== "none" && (
+                              <div className="p-4 border rounded-lg bg-card space-y-4">
+                                <Label className="text-destructive">
+                                  Restriction Mode
+                                </Label>
+                                <RadioGroup
+                                  defaultValue="allow"
+                                  className="flex gap-4"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="allow" id="allow" />
+                                    <Label
+                                      htmlFor="allow"
+                                      className="text-green-500"
+                                    >
+                                      Allow Only Selected
+                                    </Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="block" id="block" />
+                                    <Label
+                                      htmlFor="block"
+                                      className="text-red-500"
+                                    >
+                                      Block Selected
+                                    </Label>
+                                  </div>
+                                </RadioGroup>
+
+                                {/* CONDITIONAL RENDERING */}
+                                {form.watch("restriction_type") === "region" ? (
+                                  <Accordion type="multiple" className="w-full">
+                                    {Object.entries(REGIONS_MAP).map(
+                                      ([region, regionCountries]) => (
+                                        <AccordionItem
+                                          value={region}
+                                          key={region}
+                                        >
+                                          <AccordionTrigger className="hover:no-underline">
+                                            <div className="flex items-center gap-3">
+                                              <Checkbox
+                                                checked={regionCountries.every(
+                                                  (c) =>
+                                                    selectedCountries.includes(
+                                                      c,
+                                                    ),
+                                                )}
+                                                onCheckedChange={() =>
+                                                  toggleRegion(
+                                                    region,
+                                                    regionCountries,
+                                                  )
+                                                }
+                                              />
+                                              <span>
+                                                {region} (
+                                                {regionCountries.length}{" "}
+                                                countries)
+                                              </span>
+                                            </div>
+                                          </AccordionTrigger>
+                                          <AccordionContent className="flex flex-wrap gap-2 pt-2">
+                                            {regionCountries.map((c) => (
+                                              <Badge
+                                                key={c}
+                                                variant={
+                                                  selectedCountries.includes(c)
+                                                    ? "default"
+                                                    : "outline"
+                                                }
+                                                className="cursor-pointer"
+                                                onClick={() => toggleCountry(c)}
+                                              >
+                                                {c}
+                                              </Badge>
+                                            ))}
+                                          </AccordionContent>
+                                        </AccordionItem>
+                                      ),
+                                    )}
+                                  </Accordion>
+                                ) : (
+                                  <div className="flex flex-wrap gap-2">
+                                    {countries.map((c) => (
+                                      <Badge
+                                        key={c}
+                                        variant={
+                                          selectedCountries.includes(c)
+                                            ? "default"
+                                            : "outline"
+                                        }
+                                        className={`cursor-pointer ${selectedCountries.includes(c) ? "bg-green-600" : ""}`}
+                                        onClick={() => toggleCountry(c)}
+                                      >
+                                        {c}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                        {form.watch("restriction_type") !== "none" && (
+                          <div className="flex flex-wrap gap-1 mt-2.5">
+                            <span className="text-muted-foreground text-sm">
+                              Selected locations:
+                            </span>{" "}
+                            {selectedCountries.map((country) => (
+                              <Badge variant="secondary">{country}</Badge>
+                            ))}
+                          </div>
+                        )}
+                      </FormItem>
+                    )}
+                  />
                 </CardContent>
               </Card>
             )}

@@ -30,44 +30,29 @@ export function MobileNavbar() {
 
   const { user, isAdmin } = useAuth();
 
-  // 1. Helper function to check permissions
-  // const canAccess = (linkAllowedRoles?: string[]) => {
-  //   console.log(linkAllowedRoles);
-
-  //   // If no roles are specified, all admins can see it
-  //   if (!linkAllowedRoles) return true;
-
-  //   // Check if current user's role is in the allowed list
-  //   return user?.role || user?.roles.includes && linkAllowedRoles.includes(user.role);
-  // };
+  const normalizeRole = (role: string) =>
+    role.toLowerCase().replace(/\s+/g, "_");
 
   const canAccess = (linkAllowedRoles?: string[]) => {
-    // 1. If the user is a top-level admin, bypass all checks
-    if (
-      user?.role === "super_admin" ||
-      user?.role === "head_admin" ||
-      isAdmin
-    ) {
+    if (!user || !isAdmin) return false;
+
+    // Normalize user's roles
+    const userRoles = Array.isArray(user.roles)
+      ? user.roles.map(normalizeRole)
+      : [normalizeRole(user.role || "")];
+
+    // 1. Super Admin / Head Admin Bypass
+    if (userRoles.includes("super_admin") || userRoles.includes("head_admin")) {
       return true;
     }
 
-    // 2. If the link has no restrictions, any admin who reached this block can see it
+    // 2. Open access links (for any admin)
     if (!linkAllowedRoles || linkAllowedRoles.length === 0) {
       return true;
     }
 
-    // 3. Check for single role (user.role)
-    if (user?.role && linkAllowedRoles.includes(user.role)) {
-      return true;
-    }
-
-    // 4. Check for multiple roles (user.roles array)
-    if (user?.roles && Array.isArray(user.roles)) {
-      // Check if ANY of the user's roles exist in the link's allowed list
-      return user.roles.some((role: string) => linkAllowedRoles.includes(role));
-    }
-
-    return false;
+    // 3. Match specific roles
+    return userRoles.some((role) => linkAllowedRoles.includes(role));
   };
 
   const handleLinkClick = () => {
@@ -198,7 +183,7 @@ export function MobileNavbar() {
               user?.role === "admin" ||
               isAdmin) && (
               <> */}
-            {((user && user?.roles?.length > 0) || isAdmin) && (
+            {isAdmin && (
               <>
                 <Separator />
                 {adminNavLinks
@@ -232,66 +217,6 @@ export function MobileNavbar() {
                       </Button>
                     ),
                   )}
-                {/* {adminNavLinks
-                  .filter((link) => canAccess(link.allowedRoles)) // Filter links based on role
-                  .map(({ icon, slug, label, comingSoon }, index) => {
-                    const Icon = icon;
-                    return comingSoon ? (
-                      <Button
-                        className="justify-start"
-                        key={index}
-                        variant="ghost"
-                        disabled
-                      >
-                        <Icon />
-                        {label}
-                        <Badge variant={"secondary"}>Soon</Badge>
-                      </Button>
-                    ) : (
-                      <Button
-                        className="justify-start"
-                        key={index}
-                        asChild
-                        variant={isActive(slug) ? "default" : "ghost"}
-                        onClick={handleLinkClick}
-                      >
-                        <Link href={slug}>
-                          <Icon />
-                          {label}
-                        </Link>
-                      </Button>
-                    );
-                  })} */}
-                {/* {adminNavLinks.map(
-                  ({ icon, slug, label, comingSoon }, index) => {
-                    const Icon = icon;
-                    return comingSoon ? (
-                      <Button
-                        className="justify-start"
-                        key={index}
-                        variant="ghost"
-                        disabled
-                      >
-                        <Icon />
-                        {label}
-                        <Badge variant={"secondary"}>Soon</Badge>
-                      </Button>
-                    ) : (
-                      <Button
-                        className="justify-start"
-                        key={index}
-                        asChild
-                        variant={isActive(slug) ? "default" : "ghost"}
-                        onClick={handleLinkClick}
-                      >
-                        <Link href={slug}>
-                          <Icon />
-                          {label}
-                        </Link>
-                      </Button>
-                    );
-                  }
-                )} */}
               </>
             )}
           </div>

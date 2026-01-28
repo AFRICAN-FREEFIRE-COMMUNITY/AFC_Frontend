@@ -228,8 +228,8 @@ const page = () => {
       backendUser.roles && backendUser.roles.length > 0
         ? backendUser.roles
         : backendUser.role === "admin"
-        ? ["Head Admin"]
-        : [];
+          ? ["Head Admin"]
+          : [];
 
     const permissions = calculatePermissionsFromRoles(roles);
 
@@ -256,7 +256,7 @@ const page = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data && response.data.roles) {
@@ -279,7 +279,7 @@ const page = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data && response.data.users) {
@@ -328,22 +328,22 @@ const page = () => {
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.roles.some((role) =>
-          role.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+          role.toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
     );
   }, [adminUsers, searchTerm]);
 
   // Separate admin users for the admin-specific view
   const adminOnlyUsers = useMemo(() => {
     return filteredUsers.filter(
-      (user) => !user.isPlayer || user.roles.length > 0
+      (user) => !user.isPlayer || user.roles.length > 0,
     );
   }, [filteredUsers]);
 
   const handleRoleChange = (
     roleName: string,
     checked: boolean,
-    isNewUser = false
+    isNewUser = false,
   ) => {
     if (isNewUser) {
       const updatedRoles = checked
@@ -376,7 +376,7 @@ const page = () => {
   const handleAddUser = async () => {
     if (!newUser.username || !newUser.email || newUser.roles.length === 0) {
       toast.error(
-        "Please fill in all required fields and select at least one role."
+        "Please fill in all required fields and select at least one role.",
       );
       return;
     }
@@ -401,7 +401,7 @@ const page = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data.success || response.status === 200) {
@@ -409,7 +409,7 @@ const page = () => {
         setNewUser({ username: "", email: "", roles: [], permissions: [] });
         setIsAddUserOpen(false);
         toast.success(
-          `Admin user ${newUser.username} has been created with ${newUser.roles.length} role(s).`
+          `Admin user ${newUser.username} has been created with ${newUser.roles.length} role(s).`,
         );
       }
     } catch (error: any) {
@@ -481,7 +481,7 @@ const page = () => {
       try {
         // Get the IDs and explicitly convert them to strings
         const roleIds = getRoleIds(selectedUser.roles).map((id) =>
-          id.toString()
+          id.toString(),
         );
 
         const requestBody = {
@@ -489,8 +489,6 @@ const page = () => {
           email: selectedUser.email,
           new_role_ids: roleIds, // Now an array of strings: ["1", "2", "3"]
         };
-
-        console.log("Payload being sent:", requestBody);
 
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/edit-user-roles/`,
@@ -500,7 +498,7 @@ const page = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (response.status === 200 || response.data.success) {
@@ -512,99 +510,11 @@ const page = () => {
       } catch (error: any) {
         console.error("Update error:", error);
         toast.error(
-          error.response?.data?.message || "Failed to update user roles"
+          error.response?.data?.message || "Failed to update user roles",
         );
       }
     });
   };
-
-  // const handleEditUser = async () => {
-  //   startEditTransition(async () => {
-  //     if (!selectedUser) return;
-
-  //     try {
-  //       const roleIds = getRoleIds(selectedUser.roles);
-
-  //       const requestBody = {
-  //         username: selectedUser.username,
-  //         email: selectedUser.email,
-  //         role_ids: roleIds, // Array of IDs as per your endpoint requirement
-  //       };
-
-  //       console.log(requestBody);
-
-  //       const response = await axios.post(
-  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/edit-user-roles/`,
-  //         requestBody,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-
-  //       if (response.status === 200) {
-  //         await fetchUsers();
-  //         setIsEditUserOpen(false);
-  //         setSelectedUser(null);
-  //         toast.success("User roles and info updated successfully.");
-  //       }
-  //     } catch (error: any) {
-  //       toast.error(
-  //         error.response?.data?.message || "Failed to update user roles"
-  //       );
-  //     }
-  //   });
-  // };
-
-  const handleDeleteSystemRole = async (roleId: string, roleName: string) => {
-    try {
-      // We use a POST request as specified in your endpoint details
-      const response = await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/delete-role/`,
-        { role_id: roleId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.status === 200 || response.data.success) {
-        toast.success(
-          `Role "${formatWord(roleName)}" has been deleted from the system.`
-        );
-
-        // Refresh both roles and users to ensure UI consistency
-        await Promise.all([fetchRoles(), fetchUsers()]);
-      }
-    } catch (error: any) {
-      console.error("Delete role error:", error);
-      const message =
-        error.response?.data?.message ||
-        "Failed to delete role. It may be protected or in use.";
-      toast.error(message);
-    }
-  };
-
-  // const handleDeleteSystemRole = async (roleId: string) => {
-  //   try {
-  //     const response = await axios.post(
-  //       `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/delete-role/`,
-  //       { role_id: roleId },
-  //       {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       }
-  //     );
-  //     if (response.status === 200) {
-  //       toast.success("Role deleted from system");
-  //       fetchRoles(); // Refresh the roles list
-  //     }
-  //   } catch (error: any) {
-  //     toast.error("Could not delete role. It may still be assigned to users.");
-  //   }
-  // };
 
   const handleDeleteUser = async (userId: string) => {
     try {
@@ -614,7 +524,7 @@ const page = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -645,7 +555,7 @@ const page = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (response.data.success || response.status === 200) {
@@ -653,13 +563,13 @@ const page = () => {
           toast.success(`User has been ${action}.`);
         } else {
           toast.error(
-            response.data.message || `Failed to ${action.slice(0, -1)} user`
+            response.data.message || `Failed to ${action.slice(0, -1)} user`,
           );
         }
       } catch (error: any) {
         toast.error(
           error.response?.data?.message ||
-            `Failed to ${action.slice(0, -1)} user.`
+            `Failed to ${action.slice(0, -1)} user.`,
         );
       }
     });
@@ -694,7 +604,7 @@ const page = () => {
       // Generate buffer and download
       XLSX.writeFile(
         workbook,
-        `User_Export_${new Date().toISOString().split("T")[0]}.xlsx`
+        `User_Export_${new Date().toISOString().split("T")[0]}.xlsx`,
       );
 
       toast.success("Excel file downloaded successfully");
@@ -842,7 +752,7 @@ const page = () => {
                                                 ...prev,
                                                 username: e.target.value,
                                               }
-                                            : null
+                                            : null,
                                         )
                                       }
                                     />
@@ -856,7 +766,7 @@ const page = () => {
                                         setSelectedUser((prev) =>
                                           prev
                                             ? { ...prev, email: e.target.value }
-                                            : null
+                                            : null,
                                         )
                                       }
                                     />
@@ -877,7 +787,7 @@ const page = () => {
                                           key={role.id}
                                           className={`relative overflow-hidden ${
                                             selectedUser?.roles.includes(
-                                              role.name
+                                              role.name,
                                             )
                                               ? "border-primary bg-primary/5"
                                               : "border-border"
@@ -891,12 +801,12 @@ const page = () => {
                                               >
                                                 <Checkbox
                                                   checked={selectedUser?.roles.includes(
-                                                    role.name
+                                                    role.name,
                                                   )}
                                                   onCheckedChange={(checked) =>
                                                     handleRoleChange(
                                                       role.name,
-                                                      checked as boolean
+                                                      checked as boolean,
                                                     )
                                                   }
                                                 />
@@ -1496,7 +1406,7 @@ const page = () => {
                                                 ...prev,
                                                 username: e.target.value,
                                               }
-                                            : null
+                                            : null,
                                         )
                                       }
                                     />
@@ -1510,7 +1420,7 @@ const page = () => {
                                         setSelectedUser((prev) =>
                                           prev
                                             ? { ...prev, email: e.target.value }
-                                            : null
+                                            : null,
                                         )
                                       }
                                     />
@@ -1531,7 +1441,7 @@ const page = () => {
                                           key={role.id}
                                           className={`relative overflow-hidden ${
                                             selectedUser?.roles.includes(
-                                              role.name
+                                              role.name,
                                             )
                                               ? "border-primary bg-primary/5"
                                               : "border-border"
@@ -1545,12 +1455,12 @@ const page = () => {
                                               >
                                                 <Checkbox
                                                   checked={selectedUser?.roles.includes(
-                                                    role.name
+                                                    role.name,
                                                   )}
                                                   onCheckedChange={(checked) =>
                                                     handleRoleChange(
                                                       role.name,
-                                                      checked as boolean
+                                                      checked as boolean,
                                                     )
                                                   }
                                                 />
@@ -1783,12 +1693,12 @@ const page = () => {
                         </Label>
                         <div className="mt-1">
                           {adminUsers.filter((user) =>
-                            user.roles.includes(role.name)
+                            user.roles.includes(role.name),
                           ).length > 0 ? (
                             <div className="flex flex-wrap gap-1 mt-1">
                               {adminUsers
                                 .filter((user) =>
-                                  user.roles.includes(role.name)
+                                  user.roles.includes(role.name),
                                 )
                                 .slice(0, 3)
                                 .map((user) => (
@@ -1801,12 +1711,12 @@ const page = () => {
                                   </Badge>
                                 ))}
                               {adminUsers.filter((user) =>
-                                user.roles.includes(role.name)
+                                user.roles.includes(role.name),
                               ).length > 3 && (
                                 <Badge variant="secondary" className="text-xs">
                                   +
                                   {adminUsers.filter((user) =>
-                                    user.roles.includes(role.name)
+                                    user.roles.includes(role.name),
                                   ).length - 3}{" "}
                                   more
                                 </Badge>

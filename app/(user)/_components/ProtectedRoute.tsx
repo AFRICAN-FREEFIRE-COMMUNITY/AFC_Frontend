@@ -1,138 +1,96 @@
-// "use client";
-
-// import { useAuth } from "@/contexts/AuthContext";
-// import { useRouter, usePathname } from "next/navigation";
-// import { useEffect } from "react";
-// import { FullLoader } from "@/components/Loader";
-
-// // Routes that don't require authentication
-// const PUBLIC_ROUTES = ["/news", "/about", "/contact"];
-
-// export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-//   const { isAuthenticated, loading } = useAuth();
-//   const router = useRouter();
-//   const pathname = usePathname();
-
-//   const isPublicRoute = PUBLIC_ROUTES.some(
-//     (route) => pathname === route || pathname.startsWith(`${route}/`)
-//   );
-
-//   useEffect(() => {
-//     if (!loading && !isAuthenticated && !isPublicRoute) {
-//       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
-//     }
-//   }, [isAuthenticated, loading, router, pathname, isPublicRoute]);
-
-//   if (loading) {
-//     return <FullLoader text="Loading" />;
-//   }
-
-//   // Allow access to public routes without authentication
-//   if (isPublicRoute) {
-//     return <>{children}</>;
-//   }
-
-//   // For protected routes, redirect if not authenticated
-//   if (!isAuthenticated) {
-//     return <FullLoader text="Redirecting" />;
-//   }
-
-//   return <>{children}</>;
-// }
-
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { FullLoader } from "@/components/Loader";
+import { adminNavLinks } from "@/constants";
 
 const PUBLIC_ROUTES = ["/news", "/about", "/contact", "/unauthorized"];
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  adminOnly?: boolean; // Prop to specify if this route needs admin roles
+  adminOnly?: boolean;
 }
 
 export function ProtectedRoute({
   children,
   adminOnly = false,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, loading, isAdminByRoleOrRoles } = useAuth();
+  const { isAuthenticated, loading, user, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   const isPublicRoute = PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
 
-  // useEffect(() => {
-  //   if (!loading) {
-  //     // 1. If not logged in and trying to access a private route
-  //     if (!isAuthenticated && !isPublicRoute) {
-  //       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
-  //       return;
-  //     }
+  // Helper to normalize "Head Admin" -> "head_admin"
+  const normalizeRole = (role: string) =>
+    role.toLowerCase().replace(/\s+/g, "_");
 
-  //     // 2. If logged in but lacks admin privileges for an admin route
-  //     if (isAuthenticated && adminOnly && !isAdminByRoleOrRoles) {
-  //       // Redirect to a custom 'No Access' page or home
-  //       router.replace("/home?error=unauthorized");
-  //     }
-  //   }
-  // }, [
-  //   isAuthenticated,
-  //   loading,
-  //   router,
-  //   pathname,
-  //   isPublicRoute,
-  //   adminOnly,
-  //   isAdminByRoleOrRoles,
-  // ]);
+  const hasRequiredAdminRole = () => {
+    if (!user || !isAdmin) return false;
 
-  // app/(user)/_components/ProtectedRoute.tsx
+    // 1. Get user roles normalized
+    const userRoles = Array.isArray(user.roles)
+      ? user.roles.map(normalizeRole)
+      : [normalizeRole(user.role || "")];
+
+    // 2. Head Admins/Super Admins can go anywhere
+    if (userRoles.includes("head_admin") || userRoles.includes("super_admin"))
+      return true;
+
+    // 3. Find the current admin route's required roles from your constants
+    // This automatically checks the allowedRoles for the current URL
+    const currentConfig = adminNavLinks.find((link) =>
+      pathname.startsWith(link.slug),
+    );
+
+    // If we found a config for this route and it has restricted roles
+    if (currentConfig?.allowedRoles) {
+      return userRoles.some((role) =>
+        currentConfig.allowedRoles?.includes(role),
+      );
+    }
+
+    // 4. Default to true if no specific role restriction is found for this admin path
+    return true;
+  };
+
+  const hasAccess = adminOnly ? hasRequiredAdminRole() : isAuthenticated;
 
   useEffect(() => {
     if (!loading) {
-      // 1. If not logged in and trying to access a private route
+      // 1. Not logged in -> Login
       if (!isAuthenticated && !isPublicRoute) {
         router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
         return;
       }
 
-      // 2. If logged in but lacks admin privileges for an admin route
-      if (isAuthenticated && adminOnly && !isAdminByRoleOrRoles) {
-        // CHANGE THIS LINE BELOW:
+      // 2. Logged in but failed permission check -> Unauthorized
+      if (
+        isAuthenticated &&
+        !isPublicRoute &&
+        adminOnly &&
+        !hasRequiredAdminRole()
+      ) {
         router.replace("/unauthorized");
       }
     }
-  }, [
-    isAuthenticated,
-    loading,
-    router,
-    pathname,
-    isPublicRoute,
-    adminOnly,
-    isAdminByRoleOrRoles,
-  ]);
+  }, [isAuthenticated, loading, pathname, adminOnly, isAdmin]);
 
   if (loading) {
     return <FullLoader text="Loading" />;
   }
 
-  // Allow public routes
   if (isPublicRoute) {
     return <>{children}</>;
   }
 
-  // Prevent flicker: if it's adminOnly and they aren't admin, show loader while the useEffect redirect fires
-  if (adminOnly && !isAdminByRoleOrRoles) {
+  // Final check to prevent content flash while redirecting
+  if (!hasAccess) {
     return <FullLoader text="Verifying Permissions..." />;
-  }
-
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    return <FullLoader text="Redirecting to Login..." />;
   }
 
   return <>{children}</>;

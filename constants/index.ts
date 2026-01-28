@@ -72,6 +72,66 @@ export const countries = [
   "Zimbabwe",
 ] as const;
 
+export const REGIONS_MAP = {
+  "North Africa": ["Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia"],
+  "West Africa": [
+    "Benin",
+    "Burkina Faso",
+    "Cabo Verde",
+    "Côte d’Ivoire",
+    "Gambia",
+    "Ghana",
+    "Guinea",
+    "Guinea-Bissau",
+    "Liberia",
+    "Mali",
+    "Mauritania",
+    "Niger",
+    "Nigeria",
+    "Senegal",
+    "Sierra Leone",
+    "Togo",
+  ],
+  "East Africa": [
+    "Burundi",
+    "Comoros",
+    "Djibouti",
+    "Eritrea",
+    "Ethiopia",
+    "Kenya",
+    "Madagascar",
+    "Mauritius",
+    "Rwanda",
+    "Seychelles",
+    "Somalia",
+    "South Sudan",
+    "Tanzania",
+    "Uganda",
+  ],
+  "Central Africa": [
+    "Cameroon",
+    "Central African Republic",
+    "Chad",
+    "Congo (Brazzaville)",
+    "Congo (Kinshasa)",
+    "Equatorial Guinea",
+    "Gabon",
+    "São Tomé and Príncipe",
+  ],
+  "Southern Africa": [
+    "Angola",
+    "Botswana",
+    "Eswatini",
+    "Lesotho",
+    "Malawi",
+    "Mozambique",
+    "Namibia",
+    "South Africa",
+    "Zambia",
+    "Zimbabwe",
+  ],
+};
+
 export const DEFAULT_PROFILE_PICTURE =
   "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
 

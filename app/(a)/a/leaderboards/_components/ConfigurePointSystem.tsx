@@ -47,7 +47,7 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: any) {
     submissionData.append("group_id", parentFormData.group_id);
     submissionData.append(
       "leaderboard_method",
-      parentFormData.leaderboard_method
+      parentFormData.leaderboard_method,
     );
     submissionData.append("file_type", parentFormData.file_type);
     submissionData.append("kill_point", killPoint);
@@ -56,12 +56,11 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: any) {
     // Backend will typically parse this from the 'placement_point' key
     submissionData.append(
       "placement_point",
-      JSON.stringify(placementPointsObj)
+      JSON.stringify(placementPointsObj),
     );
 
     // Debugging: Log the FormData entries
     for (let [key, value] of submissionData.entries()) {
-      console.log(`${key}:`, value);
     }
 
     const endpoint =

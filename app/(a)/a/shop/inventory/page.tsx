@@ -233,8 +233,6 @@ export default function InventoryManagementPage() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const onSubmitCoupon = (data: CreateCouponSchemaType) => {
-    console.log(data);
-
     startTransition(async () => {
       try {
         await axios.post(
@@ -248,7 +246,6 @@ export default function InventoryManagementPage() {
         setCouponTab("active"); // Switch back to list view
         // Optional: fetchCoupons() if you have a real list endpoint
       } catch (error: any) {
-        console.log(error);
         toast.error(error.response?.data?.message || "Failed to create coupon");
       }
     });

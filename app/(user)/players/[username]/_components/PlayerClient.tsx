@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { formatDate, formatWord } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { IconHash } from "@tabler/icons-react";
 
 export function PlayerClient({ username }: { username: string }) {
   const [playerData, setPlayerData] = useState<any>(null);
@@ -69,10 +70,6 @@ export function PlayerClient({ username }: { username: string }) {
                 <CardTitle className="text-3xl mb-1">
                   {playerData.username}
                 </CardTitle>
-                <p className="text-muted-foreground flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  {playerData.email}
-                </p>
                 <div className="flex flex-wrap gap-2 mt-3">
                   {playerData.in_game_role && (
                     <Badge
