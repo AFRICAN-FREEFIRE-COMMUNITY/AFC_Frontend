@@ -376,6 +376,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (token: string) => {
     // Store token in cookie instead of localStorage
+    localStorage.setItem("authToken", token);
     Cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
     setToken(token);
     await fetchUser(token);

@@ -103,7 +103,7 @@ const Page = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         toast.success(response.data.message);

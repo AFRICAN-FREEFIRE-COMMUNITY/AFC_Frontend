@@ -51,7 +51,7 @@ function LoginFormContent() {
       try {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login/`,
-          { ...data }
+          { ...data },
         );
 
         if (response.statusText === "OK") {
@@ -82,7 +82,7 @@ function LoginFormContent() {
           // Redirect to email confirmation with email parameter
           if (email) {
             router.push(
-              `/email-confirmation?email=${encodeURIComponent(email)}`
+              `/email-confirmation?email=${encodeURIComponent(email)}`,
             );
           } else {
             // If they logged in with IGN/UID, redirect to a page to enter email
@@ -90,7 +90,7 @@ function LoginFormContent() {
           }
         } else {
           toast.error(
-            error?.response?.data?.message || "Internal server error"
+            error?.response?.data?.message || "Internal server error",
           );
           return;
         }
