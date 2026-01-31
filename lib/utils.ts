@@ -99,11 +99,13 @@ export const formattedWord: Record<string, string> = {
   tier_1: "Tier 1",
   tier_3: "Tier 3",
   tier_4: "Tier 4",
+  allow_only: "Allow Only",
+  block_selected: "Block Selected",
 };
 
 export function calculateDaysDifference(
   dateStr1: string,
-  dateStr2?: string
+  dateStr2?: string,
 ): number {
   const date1 = new Date(dateStr1);
   const date2: any = date1 ? new Date(dateStr2) : new Date(); // <-- Error occurs here

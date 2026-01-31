@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -74,6 +75,14 @@ import { Label } from "@/components/ui/label";
 import { EditMatchModal } from "../../_components/EditMatchModal";
 import { SendNotificationModal } from "../../_components/SendNotificationModal";
 
+import { countries, REGIONS_MAP } from "@/constants";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 // ============================================================================
 // CONSTANTS & TYPES
 // ============================================================================
@@ -175,6 +184,12 @@ const EventFormSchema = z
     publish_to_tournaments: z.boolean().default(false),
     publish_to_news: z.boolean().default(false),
     save_to_drafts: z.boolean().default(false),
+    registration_restriction: z
+      .enum(["none", "by_region", "by_country"])
+      .default("none")
+      .optional(),
+    restriction_mode: z.enum(["allow_only", "block_selected"]).optional(),
+    selected_locations: z.array(z.string()).optional(),
   })
   .refine(
     (data) => {
@@ -221,6 +236,9 @@ interface EventDetails {
   created_at: string;
   is_registered: boolean;
   stream_channels: string[];
+  registration_restriction?: string;
+  restriction_mode?: string;
+  restricted_countries?: string[];
   registered_competitors: Array<{
     player_id: number;
     username: string;
@@ -565,6 +583,30 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   const [pendingSeeding, startPendingTransition] = useTransition();
 
+  const toggleCountry = (country: string) => {
+    const current = new Set(selectedCountries);
+    if (current.has(country)) {
+      current.delete(country);
+    } else {
+      current.add(country);
+    }
+    form.setValue("selected_locations", Array.from(current));
+  };
+
+  const toggleRegion = (regionName: string, regionCountries: string[]) => {
+    const current = new Set(selectedCountries);
+    const allInRegionSelected = regionCountries.every((c) => current.has(c));
+
+    regionCountries.forEach((c) => {
+      if (allInRegionSelected) {
+        current.delete(c);
+      } else {
+        current.add(c);
+      }
+    });
+    form.setValue("selected_locations", Array.from(current));
+  };
+
   const [stageModalData, setStageModalData] = useState<{
     stage_id?: number; // ✅ CORRECT TYPE
     stage_name: string;
@@ -681,6 +723,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   });
 
   const stages = form.watch("stages") || [];
+  const selectedCountries = form.watch("selected_locations") || [];
+  const restrictionMode = form.watch("restriction_mode");
+  const registrationRestriction = form.watch("registration_restriction");
 
   // ============================================================================
   // EFFECTS
@@ -782,6 +827,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         publish_to_tournaments: eventDetails.tournament_tier !== "",
         publish_to_news: false,
         save_to_drafts: false,
+
+        registration_restriction:
+          eventDetails.registration_restriction || "none",
+        restriction_mode: eventDetails.restriction_mode || "allow_only",
+        selected_locations: eventDetails.restricted_countries || [],
       });
 
       setPreviewUrl(eventDetails.event_banner_url || "");
@@ -1436,6 +1486,24 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
         formData.append("publish_to_news", data.publish_to_news.toString());
 
+        formData.append(
+          "registration_restriction",
+          data.registration_restriction || "none",
+        );
+        formData.append(
+          "restriction_mode",
+          data.restriction_mode || "allow_only",
+        );
+
+        if (data.selected_locations && data.selected_locations.length > 0) {
+          formData.append(
+            "restricted_countries",
+            JSON.stringify(data.selected_locations),
+          );
+        } else {
+          formData.append("restricted_countries", JSON.stringify([]));
+        }
+
         if (rulesInputMethod === "type") {
           formData.append("event_rules", data.event_rules || "");
           formData.append("uploaded_rules", "");
@@ -1569,32 +1637,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 Event Actions
               </TabsTrigger>
             </TabsList>
-
-            {/* ACTIONS TAB */}
-            {/* <TabsContent value="actions">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Actions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    type="button"
-                    onClick={() => setOpenConfirmStartTournamentModal(true)}
-                    className="w-full"
-                    disabled={
-                      eventDetails.event_status !== "upcoming" ||
-                      eventDetails.stages[0]?.stage_status === "ongoing"
-                    }
-                  >
-                    {eventDetails.event_status !== "upcoming" ||
-                    eventDetails.stages[0]?.stage_status === "ongoing"
-                      ? "Tournament started"
-                      : "Start this tournament"}
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent> */}
-
             <TabsContent value="actions">
               <Card>
                 <CardHeader>
@@ -2071,7 +2113,188 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     />
                   </div>
 
-                  <div className="space-y-3 pt-4 border-t">
+                  <Separator />
+
+                  <FormField
+                    control={form.control}
+                    name="registration_restriction"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Registration Restrictions</FormLabel>
+                        <FormDescription>
+                          Control who can register for this event based on their
+                          location
+                        </FormDescription>
+                        <FormControl>
+                          <div className="space-y-6">
+                            {/* TOP TOGGLES */}
+                            <div className="flex flex-col gap-4">
+                              <RadioGroup
+                                value={field.value || "none"}
+                                onValueChange={(val) =>
+                                  form.setValue("registration_restriction", val)
+                                }
+                                className="flex gap-4"
+                              >
+                                {["none", "by_region", "by_country"].map(
+                                  (type) => (
+                                    <div
+                                      key={type}
+                                      className="flex items-center space-x-2"
+                                    >
+                                      <RadioGroupItem value={type} id={type} />
+                                      <Label
+                                        htmlFor={type}
+                                        className="capitalize"
+                                      >
+                                        {type.replace("_", " ")}
+                                      </Label>
+                                    </div>
+                                  ),
+                                )}
+                              </RadioGroup>
+                            </div>
+
+                            {registrationRestriction !== "none" && (
+                              <div className="p-4 border rounded-lg bg-card space-y-4">
+                                <Label className="text-destructive">
+                                  Restriction Mode
+                                </Label>
+                                <RadioGroup
+                                  value={restrictionMode || "allow_only"}
+                                  className="flex gap-4"
+                                  onValueChange={(val) =>
+                                    form.setValue("restriction_mode", val)
+                                  }
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem
+                                      value="allow_only"
+                                      id="allow_only"
+                                    />
+                                    <Label
+                                      htmlFor="allow_only"
+                                      className="text-green-500"
+                                    >
+                                      Allow Only Selected
+                                    </Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem
+                                      value="block_selected"
+                                      id="block_selected"
+                                    />
+                                    <Label
+                                      htmlFor="block_selected"
+                                      className="text-red-500"
+                                    >
+                                      Block Selected
+                                    </Label>
+                                  </div>
+                                </RadioGroup>
+
+                                {/* CONDITIONAL RENDERING */}
+                                {registrationRestriction === "by_region" ? (
+                                  <Accordion type="multiple" className="w-full">
+                                    {Object.entries(REGIONS_MAP).map(
+                                      ([region, regionCountries]) => (
+                                        <AccordionItem
+                                          value={region}
+                                          key={region}
+                                        >
+                                          <AccordionTrigger className="hover:no-underline">
+                                            <div className="flex items-center gap-3">
+                                              <Checkbox
+                                                checked={regionCountries.every(
+                                                  (c) =>
+                                                    selectedCountries.includes(
+                                                      c,
+                                                    ),
+                                                )}
+                                                onCheckedChange={() =>
+                                                  toggleRegion(
+                                                    region,
+                                                    regionCountries,
+                                                  )
+                                                }
+                                                onClick={(e) =>
+                                                  e.stopPropagation()
+                                                }
+                                              />
+                                              <span>
+                                                {region} (
+                                                {regionCountries.length}{" "}
+                                                countries)
+                                              </span>
+                                            </div>
+                                          </AccordionTrigger>
+                                          <AccordionContent className="flex flex-wrap gap-2 pt-2">
+                                            {regionCountries.map((c) => (
+                                              <Badge
+                                                key={c}
+                                                variant={
+                                                  selectedCountries.includes(c)
+                                                    ? "default"
+                                                    : "outline"
+                                                }
+                                                className="cursor-pointer"
+                                                onClick={() => toggleCountry(c)}
+                                              >
+                                                {c}
+                                              </Badge>
+                                            ))}
+                                          </AccordionContent>
+                                        </AccordionItem>
+                                      ),
+                                    )}
+                                  </Accordion>
+                                ) : (
+                                  <div className="flex flex-wrap gap-2">
+                                    {countries.map((c) => (
+                                      <Badge
+                                        key={c}
+                                        variant={
+                                          selectedCountries.includes(c)
+                                            ? "default"
+                                            : "outline"
+                                        }
+                                        className={`cursor-pointer ${
+                                          selectedCountries.includes(c)
+                                            ? "bg-green-600"
+                                            : ""
+                                        }`}
+                                        onClick={() => toggleCountry(c)}
+                                      >
+                                        {c}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                        {registrationRestriction !== "none" &&
+                          selectedCountries.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2.5">
+                              <span className="text-muted-foreground text-sm">
+                                Selected locations:
+                              </span>
+                              {selectedCountries.map((country) => (
+                                <Badge key={country} variant="secondary">
+                                  {country}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                      </FormItem>
+                    )}
+                  />
+
+                  <Separator />
+
+                  <div className="space-y-3">
                     <FormLabel>Publish Options</FormLabel>
                     <FormField
                       control={form.control}

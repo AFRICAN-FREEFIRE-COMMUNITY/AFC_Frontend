@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 // import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,8 +31,10 @@ import { toast } from "sonner";
 
 const page = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [pending, startTransition] = useTransition();
+  const [discordConnected, setDiscordConnected] = useState(false);
 
   const adminCapabilities = {
     moderator: [
@@ -55,19 +57,38 @@ const page = () => {
 
   const { user, token } = useAuth();
 
+  useEffect(() => {
+    const discordStatus = searchParams.get("discord");
+
+    if (discordStatus) {
+      setTimeout(() => {
+        if (discordStatus === "connected") {
+          setDiscordConnected(true);
+          toast.success("Discord account linked successfully!");
+        } else {
+          setDiscordConnected(false);
+          toast.error(
+            searchParams.get("message") || "Discord connection failed.",
+          );
+        }
+
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.delete("discord");
+        newSearchParams.delete("step");
+        router.replace(
+          `${window.location.pathname}?${newSearchParams.toString()}`,
+          { scroll: false },
+        );
+      }, 50);
+    }
+  }, [searchParams, router]);
+
   const handleDiscordConnect = () => {
-    startTransition(async () => {
-      try {
-        const res = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${1}`,
-        );
-        console.log(res);
-      } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Failed to connect to discord",
-        );
-      }
-    });
+    // Construct the URL to your backend endpoint
+    const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord-account?session_token=${token}`;
+
+    // Redirect the browser to start the OAuth flow
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   if (!user) return <FullLoader />;
@@ -115,12 +136,14 @@ const page = () => {
                 <Link href="/profile/edit">Edit Profile</Link>
               </Button>
               <Button
-                disabled={pending}
+                disabled={pending || discordConnected}
                 onClick={handleDiscordConnect}
                 variant={"secondary"}
                 className="w-full"
               >
-                {pending ? (
+                {discordConnected ? (
+                  "Connected to discord"
+                ) : pending ? (
                   <Loader text="Connecting..." />
                 ) : (
                   "Connect to discord"

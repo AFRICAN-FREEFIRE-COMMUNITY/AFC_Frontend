@@ -39,7 +39,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AFC_DISCORD_SERVER, DEFAULT_IMAGE } from "@/constants";
 import axios from "axios";
 import Image from "next/image";
-import { IconRefresh, IconUsers } from "@tabler/icons-react";
+import { IconRefresh, IconUsers, IconUsersGroup } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -106,6 +106,11 @@ interface EventDetails {
   prizepool: string;
   prize_distribution: { [key: string]: number };
   event_rules: string;
+  tournament_teams: {
+    team_name: string;
+    team_id: number;
+    status: string;
+  }[];
   event_status: string;
   registration_link: string;
   tournament_tier: string;
@@ -134,6 +139,7 @@ interface UserTeam {
   members: TeamMember[];
   min_players?: number;
   max_players?: number;
+  team_owner: string;
 }
 
 interface DiscordValidationResult {
@@ -342,7 +348,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
   eventDetails,
   onContinueToRules,
 }) => {
-  const minPlayers = userTeam?.min_players || 1;
+  const minPlayers = userTeam?.min_players || 4;
   const maxPlayers = userTeam?.max_players || 6;
 
   const handleMemberToggle = (memberId: string) => {
@@ -397,7 +403,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
               </DialogDescription>
             </DialogHeader>
 
-            <DialogContent className="max-h-[80vh] p-4 bg-primary/10 rounded-md">
+            <div className="max-h-[80vh] p-4 bg-primary/10 rounded-md">
               <h3 className="font-semibold mb-3">Available Players:</h3>
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {userTeam?.members.map((member) => (
@@ -426,7 +432,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                   </div>
                 ))}
               </div>
-            </DialogContent>
+            </div>
 
             <div className="text-sm text-muted-foreground">
               Selected: {selectedMembers.length} / {maxPlayers} players
@@ -666,7 +672,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <div className="space-y-4">
                 <div>
                   <p className="font-medium text-primary">General Rules:</p>
-                  <p className="whitespace-pre-wrap">{textRules}</p>
+                  <p className="whitespace-pre-wrap text-muted-foreground">
+                    {textRules}
+                  </p>
                 </div>
                 {hasDocument && (
                   <div className="pt-2">
@@ -735,11 +743,15 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <Separator className="my-4 bg-gray-700" />
               <div>
                 <p className="font-medium text-primary">Conduct Policy:</p>
-                <p>Maintain professional conduct at all times.</p>
+                <p className="text-muted-foreground">
+                  Maintain professional conduct at all times.
+                </p>
               </div>
               <div>
                 <p className="font-medium text-primary">Device Policy:</p>
-                <p>Device must remain consistent throughout the tournament.</p>
+                <p className="text-muted-foreground">
+                  Device must remain consistent throughout the tournament.
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2 mt-2">
@@ -751,7 +763,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               />
               <label
                 htmlFor="rules"
-                className="text-sm font-medium text-gray-300"
+                className="text-sm font-medium text-muted-foreground"
               >
                 I agree to all tournament rules and policies.
               </label>
@@ -825,7 +837,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <DialogDescription>Final step for registration</DialogDescription>
             </DialogHeader>
             <div className="text-center p-4 bg-primary/10 rounded-lg space-y-4">
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-muted-foreground">
                 Join the AFC Discord server to complete registration.
               </p>
               <Button
@@ -932,7 +944,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                                 )}
                                 {result.discord_connected &&
                                   result.discord_id && (
-                                    <p className="text-xs text-gray-400 mt-1">
+                                    <p className="text-xs text-muted-foreground mt-1">
                                       Discord ID: {result.discord_id}
                                     </p>
                                   )}
@@ -949,8 +961,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 </div>
 
                 {isCheckingDiscord && (
-                  <div className="p-3 bg-blue-900/30 border border-blue-600/50 rounded-md">
-                    <p className="text-sm text-blue-400 text-center">
+                  <div className="p-3 bg-blue-600 border border-blue-600/50 rounded-md">
+                    <p className="text-sm text-blue-100 text-center">
                       Checking Discord status...
                     </p>
                   </div>
@@ -959,8 +971,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {!allMembersOk &&
                   !isCheckingDiscord &&
                   validationResults.length > 0 && (
-                    <div className="p-3 bg-yellow-900/30 border border-yellow-600/50 rounded-md">
-                      <p className="text-sm text-yellow-400 text-center">
+                    <div className="p-3 bg-yellow-600 border border-yellow-600/50 rounded-md">
+                      <p className="text-sm text-yellow-100 text-center">
                         Waiting for all team members to link their Discord
                         accounts and join the server...
                       </p>
@@ -968,8 +980,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   )}
 
                 {allMembersOk && (
-                  <div className="p-3 bg-green-900/30 border border-green-600/50 rounded-md">
-                    <p className="text-sm text-green-400 text-center font-medium">
+                  <div className="p-3 bg-green-600 border border-green-600/50 rounded-md">
+                    <p className="text-sm text-green-100 text-center font-medium">
                       All team members are ready! You can proceed.
                     </p>
                   </div>
@@ -1001,7 +1013,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 </Button>
                 {allMembersOk && (
                   <Button onClick={() => setModalStep("DISCORD_JOIN")}>
-                    Continue to Join Server
+                    Register now
                   </Button>
                 )}
               </DialogFooter>
@@ -1043,7 +1055,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
 };
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -1106,47 +1118,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       setIsCheckingDiscord(false);
     }
   }, [eventDetails, userTeam, selectedMembers, token]);
-
-  // Define checkTeamDiscordStatus early, before any conditional logic
-  // const checkTeamDiscordStatus = useCallback(async () => {
-  //   if (!userTeam || selectedMembers.length === 0) return;
-
-  //   try {
-  //     // Fetch updated team data to check Discord status
-  //     const resCurrent = await axios.post(
-  //       `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
-  //       {},
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-
-  //     if (resCurrent.data && resCurrent.data.team) {
-  //       const updatedTeam = resCurrent.data.team;
-
-  //       // Update selected members data with latest Discord status
-  //       const updatedMembersData = updatedTeam.members.filter((m: TeamMember) =>
-  //         selectedMembers.includes(m.id),
-  //       );
-
-  //       setSelectedTeamMembersData(updatedMembersData);
-
-  //       // Check if all selected members have Discord connected
-  //       const allConnected = updatedMembersData.every(
-  //         (m: TeamMember) => m.discord_connected,
-  //       );
-
-  //       if (allConnected) {
-  //         toast.success("All team members have connected Discord!");
-  //         setModalStep("DISCORD_JOIN");
-  //       }
-  //     }
-  //   } catch (err) {
-  //     console.error("Error checking Discord status:", err);
-  //   }
-  // }, [userTeam, selectedMembers, token]);
 
   useEffect(() => {
     const discordStatus = searchParams.get("discord");
@@ -1245,6 +1216,30 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   useEffect(() => {
     if (slug && token) {
       fetchEventDetails();
+
+      const fetchUser = async () => {
+        const resCurrent = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (resCurrent.data && resCurrent.data.team) {
+          const resDetails = await axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+            { team_name: resCurrent.data.team.team_name },
+          );
+          setUserTeam(resDetails.data.team);
+        } else {
+          toast.error("You don't have a team. Please create one first.");
+        }
+      };
+
+      fetchUser();
     }
   }, [fetchEventDetails, slug, token]);
 
@@ -1307,7 +1302,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         // If team registration, include team and member info
         if (regType === "team" && userTeam) {
           payload.team_id = userTeam.team_id;
-          payload.member_ids = selectedMembers;
+          payload.roster_member_ids = selectedMembers;
+          payload.event_id = eventDetails?.event_id;
         }
 
         const res = await axios.post(
@@ -1347,9 +1343,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   return (
     <div>
-      <CardHeader className="space-y-1">
+      <Card className="p-0 bg-transparent border-0">
         <PageHeader title={eventDetails.event_name} back />
-        <div className="space-y-2">
+        <div className="p-0 space-y-2">
           <Image
             src={eventDetails.event_banner_url || DEFAULT_IMAGE}
             alt={eventDetails.event_name || "Event Banner"}
@@ -1369,100 +1365,117 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           <p>Location: Online</p>
           <p>Format: {formatText}</p>
         </div>
-        <p>Participants: {participantText}</p>
-      </CardHeader>
+        <p className="text-sm">Participants: {participantText}</p>
 
-      <CardContent className="pt-4">
-        {eventDetails.stages?.length > 0 ? (
-          <Tabs
-            value={activeStageTab}
-            onValueChange={setActiveStageTab}
-            className="w-full"
-          >
-            <ScrollArea>
-              <TabsList className="w-full">
-                {eventDetails.stages.map((stage) => (
-                  <TabsTrigger
-                    key={stage.stage_id}
-                    value={stage.stage_name}
-                    className="flex-1"
-                  >
-                    {stage.stage_name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+        <CardContent style={{ padding: 0 }}>
+          {eventDetails.stages?.length > 0 ? (
+            <Tabs
+              value={activeStageTab}
+              onValueChange={setActiveStageTab}
+              className="w-full"
+            >
+              <ScrollArea>
+                <TabsList className="w-full">
+                  {eventDetails.stages.map((stage) => (
+                    <TabsTrigger
+                      key={stage.stage_id}
+                      value={stage.stage_name}
+                      className="flex-1"
+                    >
+                      {stage.stage_name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
 
-            {eventDetails.stages.map((stage) => (
-              <TabsContent
-                key={stage.stage_id}
-                value={stage.stage_name}
-                className="mt-4 animate-in fade-in slide-in-from-bottom-2"
-              >
-                <StageResultsTable stage={stage} />
-              </TabsContent>
-            ))}
-          </Tabs>
-        ) : (
-          <div className="p-10 text-center border-2 border-dashed border-zinc-900 rounded-2xl text-zinc-500">
-            Tournament hasn't started yet. Results will appear here.
-          </div>
-        )}
-      </CardContent>
+              {eventDetails.stages.map((stage) => (
+                <TabsContent
+                  key={stage.stage_id}
+                  value={stage.stage_name}
+                  className="mt-4 animate-in fade-in slide-in-from-bottom-2"
+                >
+                  <StageResultsTable stage={stage} />
+                </TabsContent>
+              ))}
+            </Tabs>
+          ) : (
+            <div className="p-10 text-center border-2 border-dashed border-zinc-900 rounded-2xl text-zinc-500">
+              Tournament hasn't started yet. Results will appear here.
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      <div className="text-center mt-6">
-        {eventDetails.is_registered ? (
-          <Button disabled>You've registered already</Button>
-        ) : eventDetails.event_type === "external" ? (
-          <Button
-            onClick={() =>
-              window.open(eventDetails.registration_link, "_blank")
-            }
-            disabled={eventDetails.event_status !== "upcoming"}
-          >
-            {eventDetails.event_status === "upcoming"
-              ? "Register (External Link)"
-              : "Registration Closed"}
-          </Button>
-        ) : (
-          <Button
-            onClick={handleRegisterClick}
-            disabled={
-              eventDetails.event_status !== "upcoming" ||
-              new Date() > new Date(eventDetails.registration_end_date)
-            }
-          >
-            {new Date() > new Date(eventDetails.registration_end_date)
-              ? "Registration Closed"
-              : "Register for Tournament"}
-          </Button>
-        )}
-      </div>
+      {userTeam?.team_owner === user?.in_game_name && (
+        <div className="text-center mt-6">
+          {eventDetails.is_registered ? (
+            <Button disabled>You've registered already</Button>
+          ) : eventDetails.event_type === "external" ? (
+            <Button
+              onClick={() =>
+                window.open(eventDetails.registration_link, "_blank")
+              }
+              disabled={eventDetails.event_status !== "upcoming"}
+            >
+              {eventDetails.event_status === "upcoming"
+                ? "Register (External Link)"
+                : "Registration Closed"}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleRegisterClick}
+              disabled={
+                eventDetails.event_status !== "upcoming" ||
+                new Date() > new Date(eventDetails.registration_end_date)
+              }
+            >
+              {new Date() > new Date(eventDetails.registration_end_date)
+                ? "Registration Closed"
+                : "Register for Tournament"}
+            </Button>
+          )}
+        </div>
+      )}
 
       <Card className="mt-4">
         <CardHeader>
           <CardTitle className="flex items-center justify-start gap-2">
-            <IconUsers />
-            Registered Participants
+            {eventDetails.participant_type === "squad" ? (
+              <>
+                <IconUsersGroup />
+                Registered Teams
+              </>
+            ) : (
+              <>
+                <IconUsers />
+                Registered Participants
+              </>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center grid grid-cols-3 gap-2">
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center gap-2">
-                <p className="font-semibold text-lg md:text-2xl">0</p>
-                <p className="text-xs md:text-sm">Total Teams</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center gap-2">
-                <p className="font-semibold text-lg md:text-2xl">
-                  {eventDetails?.registered_competitors?.length || 0}
-                </p>
-                <p className="text-xs md:text-sm">Players</p>
-              </CardContent>
-            </Card>
+          <div className="text-center grid grid-cols-2 gap-2">
+            {eventDetails.participant_type === "squad" && (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center gap-2">
+                  <p className="font-semibold text-lg md:text-2xl">
+                    {eventDetails.tournament_teams.length || 0}
+                  </p>
+                  <p className="text-xs md:text-sm">Total Teams</p>
+                </CardContent>
+              </Card>
+            )}
+            {eventDetails.participant_type === "solo" && (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center gap-2">
+                  <p className="font-semibold text-lg md:text-2xl">
+                    {eventDetails?.registered_competitors?.length || 0}
+                  </p>
+                  <p className="text-xs md:text-sm">Players</p>
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardContent className="flex flex-col items-center justify-center gap-2">
                 <p className="font-semibold text-lg md:text-2xl">
@@ -1476,28 +1489,52 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             </Card>
           </div>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-h-96 overflow-auto custom-scroll">
-            {eventDetails?.registered_competitors?.map(
-              (reg: any, index: number) => (
-                <Card key={`competitor-${reg.id || index}`}>
-                  <CardContent className="flex items-center justify-between gap-2">
-                    <div className="flex items-center justify-start gap-2">
-                      <div className="px-4 py-2 rounded-full bg-primary text-white font-semibold text-base">
-                        {index + 1}
+            {eventDetails.participant_type === "solo" &&
+              eventDetails?.registered_competitors?.map(
+                (reg: any, index: number) => (
+                  <Card key={`competitor-${reg.id || index}`}>
+                    <CardContent className="flex items-center justify-between gap-2">
+                      <div className="flex items-center justify-start gap-2">
+                        <div className="px-4 py-2 rounded-full bg-primary text-white font-semibold text-base">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="font-white font-semibold text-base">
+                            {reg.username}
+                          </p>
+                          <p className="font-white text-xs capitalize">
+                            {reg.status}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-white font-semibold text-base">
-                          {reg.username}
-                        </p>
-                        <p className="font-white text-xs capitalize">
-                          {reg.status}
-                        </p>
+                      <Badge>Confirmed</Badge>
+                    </CardContent>
+                  </Card>
+                ),
+              )}
+            {eventDetails.participant_type === "squad" &&
+              eventDetails?.tournament_teams?.map(
+                (team: any, index: number) => (
+                  <Card key={`competitor-${team.id || index}`}>
+                    <CardContent className="flex items-center justify-between gap-2">
+                      <div className="flex items-center justify-start gap-2">
+                        <div className="px-4 py-2 rounded-full bg-primary text-white font-semibold text-base">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="font-white font-semibold text-base">
+                            {team.team_name}
+                          </p>
+                          <p className="font-white text-xs capitalize">
+                            {team.status}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <Badge>Confirmed</Badge>
-                  </CardContent>
-                </Card>
-              ),
-            )}
+                      <Badge>Confirmed</Badge>
+                    </CardContent>
+                  </Card>
+                ),
+              )}
           </div>
         </CardContent>
       </Card>

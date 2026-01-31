@@ -149,9 +149,12 @@ const EventFormSchema = z
     publish_to_tournaments: z.boolean().default(false),
     publish_to_news: z.boolean().default(false),
     save_to_drafts: z.boolean().default(false),
-    restriction_type: z.enum(["none", "region", "country"]).default("none"),
-    restriction_mode: z.enum(["allow", "block"]),
-    selected_locations: z.array(z.string()),
+    registration_restriction: z
+      .enum(["none", "by_region", "by_country"])
+      .default("none")
+      .optional(),
+    restriction_mode: z.enum(["allow_only", "block_selected"]).optional(),
+    selected_locations: z.array(z.string()).optional(),
   })
   .refine(
     (data) => {
@@ -251,7 +254,7 @@ export default function Page() {
       publish_to_tournaments: false,
       publish_to_news: false,
       save_to_drafts: false,
-      restriction_type: "none",
+      registration_restriction: "none",
     },
   });
 
@@ -670,6 +673,9 @@ export default function Page() {
   };
   // --- END Step Validation Logic ---
 
+  const restrictionMode = form.watch("restriction_mode");
+  const registration_restriction = form.watch("registration_restriction");
+
   const onSubmit = (data: EventFormType) => {
     startTransition(async () => {
       try {
@@ -721,6 +727,20 @@ export default function Page() {
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
         formData.append("registration_link", data.registration_link || "");
+        formData.append(
+          "registration_restriction",
+          data.registration_restriction,
+        );
+
+        formData.append("restriction_mode", restrictionMode);
+
+        if (data.selected_locations.length !== 0) {
+          // Option A: JSON string
+          formData.append(
+            "restricted_countries",
+            JSON.stringify(data.selected_locations),
+          );
+        }
 
         // Append Boolean fields as strings
         formData.append(
@@ -1245,7 +1265,7 @@ export default function Page() {
                   <FormField
                     // @ts-ignore
                     control={form.control}
-                    name="restriction"
+                    name="registration_restriction"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Registration Restrictions</FormLabel>
@@ -1260,40 +1280,49 @@ export default function Page() {
                               <RadioGroup
                                 defaultValue="none"
                                 onValueChange={(val) =>
-                                  form.setValue("restriction_type", val)
+                                  form.setValue("registration_restriction", val)
                                 }
                                 className="flex gap-4"
                               >
-                                {["none", "region", "country"].map((type) => (
-                                  <div
-                                    key={type}
-                                    className="flex items-center space-x-2"
-                                  >
-                                    <RadioGroupItem value={type} id={type} />
-                                    <Label
-                                      htmlFor={type}
-                                      className="capitalize"
+                                {["none", "by_region", "by_country"].map(
+                                  (type) => (
+                                    <div
+                                      key={type}
+                                      className="flex items-center space-x-2"
                                     >
-                                      {type.replace("_", " ")}
-                                    </Label>
-                                  </div>
-                                ))}
+                                      <RadioGroupItem value={type} id={type} />
+                                      <Label
+                                        htmlFor={type}
+                                        className="capitalize"
+                                      >
+                                        {type.replace("_", " ")}
+                                      </Label>
+                                    </div>
+                                  ),
+                                )}
                               </RadioGroup>
                             </div>
 
-                            {form.watch("restriction_type") !== "none" && (
+                            {form.watch("registration_restriction") !==
+                              "none" && (
                               <div className="p-4 border rounded-lg bg-card space-y-4">
                                 <Label className="text-destructive">
                                   Restriction Mode
                                 </Label>
                                 <RadioGroup
-                                  defaultValue="allow"
+                                  defaultValue="allow_only"
                                   className="flex gap-4"
+                                  onValueChange={(val) =>
+                                    form.setValue("restriction_mode", val)
+                                  }
                                 >
                                   <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="allow" id="allow" />
+                                    <RadioGroupItem
+                                      value="allow_only"
+                                      id="allow_only"
+                                    />
                                     <Label
-                                      htmlFor="allow"
+                                      htmlFor="allow_only"
                                       className="text-green-500"
                                     >
                                       Allow Only Selected
@@ -1311,7 +1340,8 @@ export default function Page() {
                                 </RadioGroup>
 
                                 {/* CONDITIONAL RENDERING */}
-                                {form.watch("restriction_type") === "region" ? (
+                                {form.watch("registration_restriction") ===
+                                "by_region" ? (
                                   <Accordion type="multiple" className="w-full">
                                     {Object.entries(REGIONS_MAP).map(
                                       ([region, regionCountries]) => (
@@ -1385,7 +1415,7 @@ export default function Page() {
                           </div>
                         </FormControl>
                         <FormMessage />
-                        {form.watch("restriction_type") !== "none" && (
+                        {form.watch("registration_restriction") !== "none" && (
                           <div className="flex flex-wrap gap-1 mt-2.5">
                             <span className="text-muted-foreground text-sm">
                               Selected locations:
@@ -2353,7 +2383,7 @@ export default function Page() {
                                   ${
                                     isSelected
                                       ? "border-primary bg-primary/10 text-primary"
-                                      : "border-gray-300 bg-muted hover:border-primary/50"
+                                      : "border-gray-300 bg-muted text-black dark:text-white hover:border-primary/50"
                                   }
                                 `}
                               >

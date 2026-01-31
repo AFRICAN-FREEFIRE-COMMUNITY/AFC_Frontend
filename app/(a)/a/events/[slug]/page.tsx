@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DEFAULT_IMAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
-import { formatDate, formatMoneyInput } from "@/lib/utils";
+import { formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
 import { TabsContent } from "@radix-ui/react-tabs";
 import {
   IconCalendar,
@@ -28,11 +28,6 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { GroupResultModal } from "../_components/GroupResultModal";
-
-const formattedWord: { [key: string]: string } = {
-  tier_3: "Tier 3",
-  "br - normal": "Battle Royale - Normal",
-};
 
 // --- Type Definitions ---
 
@@ -285,7 +280,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     competition_type,
     participant_type,
     max_teams_or_players,
-    restrictions,
+    registration_restriction,
+    restricted_countries,
+    restriction_mode,
   } = eventDetails;
 
   const {
@@ -416,7 +413,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Event Configuration</CardTitle>
+                <CardTitle>Event Configuration</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-y-4 text-sm">
                 <div className="text-muted-foreground">Type</div>
@@ -442,64 +439,36 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               </CardContent>
             </Card>
 
-            {restrictions &&
-              (restrictions.regions?.length > 0 ||
-                restrictions.countries?.length > 0) && (
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Registration Restrictions</CardTitle>
-                    <Badge variant="secondary">Region</Badge>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Mode
-                      </span>
-                      <Badge variant="outline" className="bg-white text-black">
-                        Allow Only
-                      </Badge>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Registration Restrictions</CardTitle>
+                <Badge variant="secondary">Region</Badge>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Mode</span>
+                  <Badge variant="outline" className="bg-white text-black">
+                    {formattedWord[restriction_mode]}
+                  </Badge>
+                </div>
+                {restricted_countries && restricted_countries.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Countries:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {restricted_countries.map((c: any) => (
+                        <Badge
+                          key={c}
+                          variant="secondary"
+                          className="rounded-full px-3"
+                        >
+                          {c}
+                        </Badge>
+                      ))}
                     </div>
-                    {restrictions.regions &&
-                      restrictions.regions.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground">
-                            Regions:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {restrictions.regions.map((r) => (
-                              <Badge
-                                key={r}
-                                variant="secondary"
-                                className="rounded-full px-3"
-                              >
-                                {r}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    {restrictions.countries &&
-                      restrictions.countries.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground">
-                            Countries:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {restrictions.countries.map((c) => (
-                              <Badge
-                                key={c}
-                                variant="secondary"
-                                className="rounded-full px-3"
-                              >
-                                {c}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                  </CardContent>
-                </Card>
-              )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {stream_channels && stream_channels.length > 0 && (
