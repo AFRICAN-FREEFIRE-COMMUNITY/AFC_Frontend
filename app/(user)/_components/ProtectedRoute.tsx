@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { FullLoader } from "@/components/Loader";
-import { adminNavLinks } from "@/constants";
+import { adminNavLinks } from "@/constants/nav-links";
 
 const PUBLIC_ROUTES = ["/news", "/about", "/contact", "/unauthorized"];
 

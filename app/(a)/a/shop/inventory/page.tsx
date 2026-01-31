@@ -99,6 +99,7 @@ interface Product {
   status: string;
   is_limited_stock: boolean;
   variants: Variant[];
+  updated_at: Date;
 }
 
 interface Coupon {
@@ -114,78 +115,6 @@ interface Coupon {
   used_count: number;
   is_valid_now: boolean;
 }
-
-// Mock data for products
-const mockProducts = [
-  {
-    id: 1,
-    name: "100 Diamonds",
-    status: "Active",
-    stock: 1200,
-    price: 1.0,
-    lastUpdated: "2023-01-15",
-  },
-  {
-    id: 2,
-    name: "500 Diamonds",
-    status: "Active",
-    stock: 800,
-    price: 5.0,
-    lastUpdated: "2023-01-15",
-  },
-  {
-    id: 3,
-    name: "1000 Diamonds",
-    status: "Active",
-    stock: 500,
-    price: 10.0,
-    lastUpdated: "2023-01-15",
-  },
-  {
-    id: 4,
-    name: "5000 Diamonds",
-    status: "Active",
-    stock: 150,
-    price: 50.0,
-    lastUpdated: "2023-01-15",
-  },
-  {
-    id: 5,
-    name: "10000 Diamonds",
-    status: "Active",
-    stock: 50,
-    price: 100.0,
-    lastUpdated: "2023-01-15",
-  },
-  {
-    id: 6,
-    name: "25 Diamonds (Promo)",
-    status: "Inactive",
-    stock: 0,
-    price: 0.25,
-    lastUpdated: "2023-01-15",
-  },
-];
-
-// Mock coupons data
-const mockCoupons = [
-  {
-    id: 1,
-    code: "FREEDIAMONDS10",
-    discount: "10%",
-    type: "Percentage",
-    uses: 100,
-    status: "Active",
-  },
-  {
-    id: 2,
-    code: "SAVE20",
-    discount: "$20",
-    type: "Fixed Amount",
-    uses: 50,
-    status: "Inactive",
-  },
-];
 
 export default function InventoryManagementPage() {
   const { token } = useAuth();
@@ -446,9 +375,7 @@ export default function InventoryManagementPage() {
                         {product.variants.length} Variant(s)
                       </span>
                     </TableCell>
-                    <TableCell>
-                      {product.updatedAt || formatDate(new Date())}
-                    </TableCell>
+                    <TableCell>{formatDate(product.updated_at)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -521,15 +448,7 @@ export default function InventoryManagementPage() {
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select diamond products to restock" />
                 </SelectTrigger>
-                <SelectContent>
-                  {mockProducts
-                    .filter((p) => p.status === "Active")
-                    .map((product) => (
-                      <SelectItem key={product.id} value={String(product.id)}>
-                        {product.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
+                <SelectContent></SelectContent>
               </Select>
             </div>
             <div>

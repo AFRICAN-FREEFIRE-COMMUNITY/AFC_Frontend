@@ -3,7 +3,6 @@
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { homeNavLinks } from "@/constants";
 import Link from "next/link";
 import React, { useEffect, useState, useCallback } from "react";
 import { MobileNavbar } from "./MobileNavbar";
@@ -16,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { NotificationDropdown } from "./NotificationDropdown";
 import axios from "axios";
 import { env } from "@/lib/env";
+import { homeNavLinks } from "@/constants/nav-links";
 
 export const Header = () => {
   const pathname = usePathname();
@@ -38,7 +38,7 @@ export const Header = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setNotifications(res.data.notifications);
     } catch (error) {}

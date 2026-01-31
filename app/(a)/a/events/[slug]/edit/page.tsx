@@ -2375,8 +2375,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Registered Teams/Players (
-                    {eventDetails?.registered_competitors?.length})
+                    Registered{" "}
+                    {eventDetails.participant_type === "squad"
+                      ? "Teams"
+                      : "Players"}{" "}
+                    (
+                    {eventDetails?.registered_competitors?.length ||
+                      eventDetails.tournament_teams.length}
+                    )
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="relative">
@@ -2384,51 +2390,96 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Players</TableHead>
+                          <TableHead>
+                            {eventDetails.participant_type === "squad"
+                              ? "Teams"
+                              : "Players"}
+                          </TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {eventDetails?.registered_competitors?.map((comp) => (
-                          <TableRow key={comp.player_id}>
-                            <TableCell className="capitalize">
-                              {comp.username}
-                            </TableCell>
-                            <TableCell className="capitalize">
-                              {comp.status}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {comp.status === "registered" ? (
-                                <DisqualifyModal
-                                  competitor_id={comp.player_id}
-                                  event_id={eventDetails.event_id}
-                                  name={comp.username}
-                                  showLabel
-                                  onSuccess={() =>
-                                    updateCompetitorStatus(
-                                      comp.player_id,
-                                      "disqualified",
-                                    )
-                                  }
-                                />
-                              ) : (
-                                <ReactivateModal
-                                  competitor_id={comp.player_id}
-                                  event_id={eventDetails.event_id}
-                                  name={comp.username}
-                                  showLabel
-                                  onSuccess={() =>
-                                    updateCompetitorStatus(
-                                      comp.player_id,
-                                      "registered",
-                                    )
-                                  }
-                                />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {eventDetails.participant_type === "solo" &&
+                          eventDetails?.registered_competitors?.map((comp) => (
+                            <TableRow key={comp.player_id}>
+                              <TableCell className="capitalize">
+                                {comp.username}
+                              </TableCell>
+                              <TableCell className="capitalize">
+                                {comp.status}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {comp.status === "registered" ? (
+                                  <DisqualifyModal
+                                    competitor_id={comp.player_id}
+                                    event_id={eventDetails.event_id}
+                                    name={comp.username}
+                                    showLabel
+                                    onSuccess={() =>
+                                      updateCompetitorStatus(
+                                        comp.player_id,
+                                        "disqualified",
+                                      )
+                                    }
+                                  />
+                                ) : (
+                                  <ReactivateModal
+                                    competitor_id={comp.player_id}
+                                    event_id={eventDetails.event_id}
+                                    name={comp.username}
+                                    showLabel
+                                    onSuccess={() =>
+                                      updateCompetitorStatus(
+                                        comp.player_id,
+                                        "registered",
+                                      )
+                                    }
+                                  />
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        {eventDetails.participant_type === "squad" &&
+                          eventDetails?.tournament_teams?.map((comp) => (
+                            <TableRow key={comp.player_id}>
+                              <TableCell className="capitalize">
+                                {comp.team_name}
+                              </TableCell>
+                              <TableCell className="capitalize">
+                                {comp.status}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {comp.status === "registered" ? (
+                                  <DisqualifyModal
+                                    competitor_id={comp.player_id}
+                                    event_id={eventDetails.event_id}
+                                    name={comp.username}
+                                    showLabel
+                                    onSuccess={() =>
+                                      updateCompetitorStatus(
+                                        comp.player_id,
+                                        "disqualified",
+                                      )
+                                    }
+                                  />
+                                ) : (
+                                  <ReactivateModal
+                                    competitor_id={comp.player_id}
+                                    event_id={eventDetails.event_id}
+                                    name={comp.username}
+                                    showLabel
+                                    onSuccess={() =>
+                                      updateCompetitorStatus(
+                                        comp.player_id,
+                                        "registered",
+                                      )
+                                    }
+                                  />
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
                       </TableBody>
                     </Table>
                   </div>

@@ -11,8 +11,8 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Logo } from "./Logo";
-import { adminNavLinks } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
+import { adminNavLinks } from "@/constants/nav-links";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();

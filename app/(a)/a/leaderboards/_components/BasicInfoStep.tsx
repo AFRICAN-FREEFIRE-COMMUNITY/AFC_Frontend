@@ -58,8 +58,8 @@ export function BasicInfoStep({ onNext, onBack, updateData }: any) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ event_id: eventId }),
-      }
+        body: JSON.stringify({ slug: event.slug }),
+      },
     );
     const data = await res.json();
     setStages(data.stages || []);

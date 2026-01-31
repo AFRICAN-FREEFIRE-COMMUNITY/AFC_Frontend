@@ -485,25 +485,30 @@ export const tournamentSchema = z.object({
 });
 
 export const AddProductSchema = z.object({
-  id: z.string().optional(),
+  id: z.number().optional(), // Changed to number to match backend
   name: z.string().min(1, "Name is required"),
   product_type: z.string().min(1, "Type is required"),
-  description: z.string().default(""), // Added default
+  description: z.string().default(""),
   is_limited_stock: z.boolean().default(false),
   status: z.string().default("active"),
   variants: z
     .array(
       z.object({
+        id: z.number().optional(), // Added id field for variants
         sku: z.string().min(1, "SKU is required"),
-        price: z.coerce.number().min(0),
+        price: z.coerce.number().min(0, "Price must be at least 0"),
         title: z.string().min(1, "Title is required"),
-        diamonds_amount: z.coerce.number().min(0),
-        stock_qty: z.coerce.number().min(0),
+        diamonds_amount: z.coerce
+          .number()
+          .min(0, "Diamonds amount must be at least 0"),
+        stock_qty: z.coerce
+          .number()
+          .min(0, "Stock quantity must be at least 0"),
         is_active: z.boolean().default(true),
         meta: z.record(z.string(), z.any()).default({}),
       }),
     )
-    .min(1),
+    .min(1, "At least one variant is required"),
 });
 
 export const CreateCouponSchema = z.object({

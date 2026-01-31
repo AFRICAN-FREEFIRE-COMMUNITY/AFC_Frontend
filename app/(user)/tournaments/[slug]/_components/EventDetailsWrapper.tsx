@@ -57,6 +57,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 type ModalStep =
   | "CLOSED"
@@ -913,7 +914,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                               : "border-red-500/50 bg-red-500/10"
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start text-sm justify-between gap-2">
                             <div className="flex items-start gap-2 flex-1">
                               {result.ok ? (
                                 <CheckCircle className="size-4 text-green-400 flex-shrink-0 mt-0.5" />
@@ -950,8 +951,12 @@ const RegistrationModals: React.FC<ModalProps> = ({
                                   )}
                               </div>
                             </div>
-                            {result.ok && (
+                            {result.ok ? (
                               <CheckCircle className="size-5 text-green-400 flex-shrink-0" />
+                            ) : (
+                              <Button size="sm" asChild variant={"secondary"}>
+                                <Link href={"/profile"}>Join now</Link>
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -1591,7 +1596,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               {Object.entries(eventDetails.prize_distribution)?.map(
                 ([place, prize]) => (
                   <li key={place}>
-                    {place.toUpperCase()}: ${prize.toLocaleString()}
+                    {place.toUpperCase()}: {prize.toLocaleString()}
                   </li>
                 ),
               )}

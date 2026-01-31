@@ -13,7 +13,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { adminNavLinks, homeNavLinksMobile } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSignout } from "@/hooks/use-signout";
 import { IconLogout, IconMenu2, IconMoon, IconSun } from "@tabler/icons-react";
@@ -21,6 +20,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTheme } from "next-themes";
+import { adminNavLinks, homeNavLinksMobile } from "@/constants/nav-links";
 
 export function MobileNavbar() {
   const [open, setOpen] = useState(false);

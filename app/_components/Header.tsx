@@ -2,7 +2,7 @@
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { homeNavLinks } from "@/constants";
+import { homeNavLinks } from "@/constants/nav-links";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";

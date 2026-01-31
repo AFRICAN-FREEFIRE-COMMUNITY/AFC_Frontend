@@ -18,11 +18,14 @@ export const HomeBoxes = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       const users = await axios(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`,
       );
       const tournaments = await axios(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`,
       );
+
+      console.log(tournaments);
+
       setTotalUsers(users?.data?.total_users);
       setTotalTournaments(tournaments?.data?.total_tournaments);
     };

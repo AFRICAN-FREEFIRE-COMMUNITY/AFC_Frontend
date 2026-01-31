@@ -35,27 +35,31 @@ const page = () => {
 
   const [pending, startTransition] = useTransition();
   const [discordConnected, setDiscordConnected] = useState(false);
+  const { user, token } = useAuth();
 
-  const adminCapabilities = {
-    moderator: [
-      "Update tournament and scrim results",
-      "Edit leaderboards",
-      "Create and manage news and announcements",
-      "View overall performance of all teams and players",
-      "View and publish rankings for teams and players",
-      "View and manage team tiers",
-      "View detailed information for any tournament",
-      "Ban teams or players",
-      "Upload screenshots for leaderboard generation",
-    ],
-    super_admin: [
-      "Full access to all features and data",
-      "Assign moderator roles to other users",
-      "Perform all actions that a moderator can",
-    ],
+  const checkDiscordConnection = async () => {
+    if (!token) return;
+
+    try {
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/is-discord-account-connected/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setDiscordConnected(res.data.connected);
+    } catch (error) {
+      console.error("Error checking Discord status:", error);
+    }
   };
 
-  const { user, token } = useAuth();
+  useEffect(() => {
+    if (user && token) {
+      checkDiscordConnection();
+    }
+  }, [user, token]);
 
   useEffect(() => {
     const discordStatus = searchParams.get("discord");

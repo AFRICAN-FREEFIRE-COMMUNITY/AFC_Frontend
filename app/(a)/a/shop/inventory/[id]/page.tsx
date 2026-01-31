@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { IconTrash } from "@tabler/icons-react";
 import { DeleteProductModal } from "../../_components/DeleteProductModal";
+import { AddVariantModal } from "../../_components/AddVariantModal"; // Import the new modal
 import {
   Card,
   CardContent,
@@ -43,26 +44,56 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader } from "@/components/Loader";
 import { shopProductTypes } from "@/constants";
+import { useRouter } from "next/navigation";
+import { DeleteVariantModal } from "../../_components/DeleteVariantModal";
 
 type Params = Promise<{
   id: string;
 }>;
 
-const page = ({ params }: { params: Params }) => {
+// Define proper type for product details
+interface ProductVariant {
+  id: number;
+  sku: string;
+  title: string;
+  price: string;
+  diamonds_amount: number;
+  stock_qty: number;
+  is_active: boolean;
+  in_stock: boolean;
+  meta: Record<string, any>;
+}
+
+interface ProductDetails {
+  id: number;
+  name: string;
+  type: string;
+  description: string;
+  status: string;
+  is_limited_stock: boolean;
+  created_at: string;
+  updated_at: string;
+  variants: ProductVariant[];
+}
+
+const Page = ({ params }: { params: Params }) => {
   const { id } = use(params);
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [productDetails, setProductDetails] = useState<any>();
+  const [loadingProduct, setLoadingProduct] = useState(true);
+  const [productDetails, setProductDetails] = useState<ProductDetails | null>(
+    null,
+  );
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   const { token } = useAuth();
 
   const form = useForm<AddProductSchemaType>({
-    // @ts-ignore
     resolver: zodResolver(AddProductSchema),
     defaultValues: {
       name: "",
       product_type: "diamonds",
-      description: "", // Explicitly provide empty string
+      description: "",
       is_limited_stock: false,
       status: "active",
       variants: [
@@ -73,27 +104,37 @@ const page = ({ params }: { params: Params }) => {
           diamonds_amount: 0,
           stock_qty: 0,
           is_active: true,
-          meta: {}, // Explicitly provide empty object
+          meta: {},
         },
       ],
     },
   });
 
-  const fetchProduct = () => {
-    if (!id) return; // Don't run if id is not available yet
+  const fetchProduct = async () => {
+    if (!id) return;
 
-    startTransition(async () => {
-      try {
-        const decodedId = decodeURIComponent(id);
-        const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-product-detail/`,
-          { product_id: decodedId }
-        );
-        setProductDetails(res.data.news);
-      } catch (error: any) {
-        toast.error(error.response.data.message || "Oops! An error occurred");
+    try {
+      setLoadingProduct(true);
+      const decodedId = decodeURIComponent(id);
+
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-product-details/`,
+        {
+          params: { product_id: decodedId },
+        },
+      );
+
+      setProductDetails(res.data.product);
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch product details";
+      toast.error(errorMessage);
+      if (error.response?.status === 404) {
+        router.push("/a/shop/products");
       }
-    });
+    } finally {
+      setLoadingProduct(false);
+    }
   };
 
   useEffect(() => {
@@ -103,59 +144,162 @@ const page = ({ params }: { params: Params }) => {
   useEffect(() => {
     if (productDetails) {
       form.reset({
-        id: productDetails.news_id || "",
-        name: productDetails.name || "",
-        description: productDetails.description || "",
-        product_type: productDetails.type || "",
-        status: productDetails.status || "",
-        is_limited_stock: productDetails.is_limited_stock || "",
-        variants: productDetails.variants || "",
+        id: productDetails.id,
+        name: productDetails.name,
+        description: productDetails.description,
+        product_type: productDetails.type,
+        status: productDetails.status,
+        is_limited_stock: productDetails.is_limited_stock,
+        variants: productDetails.variants.map((variant) => ({
+          db_id: variant.id,
+          id: variant.id,
+          sku: variant.sku,
+          title: variant.title,
+          price: parseFloat(variant.price),
+          diamonds_amount: variant.diamonds_amount,
+          stock_qty: variant.stock_qty,
+          is_active: variant.is_active,
+          meta: variant.meta || {},
+        })),
       });
     }
   }, [productDetails, form]);
 
-  // This handles the array of variants
-  const { fields, append, remove } = useFieldArray({
+  const { fields, remove } = useFieldArray({
     control: form.control,
     name: "variants",
   });
 
   function onSubmit(data: AddProductSchemaType) {
+    if (!productDetails?.id) {
+      toast.error("Product ID is missing");
+      return;
+    }
+
     startTransition(async () => {
       try {
-        await axios.post(
+        const payload = {
+          product_id: productDetails.id,
+          name: data.name,
+          description: data.description,
+          product_type: data.product_type,
+          status: data.status,
+          is_limited_stock: data.is_limited_stock,
+          // variants: data.variants.map((variant) => ({
+          //   id: variant.id || null,
+          //   sku: variant.sku,
+          //   title: variant.title,
+          //   price: variant.price.toString(),
+          //   diamonds_amount: variant.diamonds_amount,
+          //   stock_qty: variant.stock_qty,
+          //   is_active: variant.is_active,
+          //   meta: variant.meta || {},
+          // })),
+          variants: data.variants.map((v) => ({
+            ...v,
+            price: v.price.toString(),
+          })),
+        };
+
+        console.log("Submitting payload:", payload);
+
+        const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/edit-product/`,
-          data,
+          payload,
           {
             headers: {
+              "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
-        toast.success("Product edited successfully");
+
+        toast.success(response.data?.message || "Product updated successfully");
+        await fetchProduct();
       } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to edit product");
+        console.error("Edit error:", error.response?.data);
+
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.detail ||
+          error.response?.data?.error ||
+          "Failed to update product";
+
+        toast.error(errorMessage);
+
+        if (error.response?.data?.errors) {
+          Object.entries(error.response.data.errors).forEach(
+            ([field, messages]) => {
+              if (Array.isArray(messages)) {
+                messages.forEach((msg) => toast.error(`${field}: ${msg}`));
+              }
+            },
+          );
+        }
       }
     });
   }
 
+  if (loadingProduct) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader text="Loading product..." />
+      </div>
+    );
+  }
+
+  if (!productDetails) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <p className="text-muted-foreground">Product not found</p>
+        <Button onClick={() => router.push("/a/shop/products")}>
+          Back to Products
+        </Button>
+      </div>
+    );
+  }
+
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case "active":
+        return "default";
+      case "archived":
+        return "secondary";
+      case "draft":
+        return "outline";
+      default:
+        return "secondary";
+    }
+  };
+
+  const calculateStats = () => {
+    const totalStock = productDetails.variants.reduce(
+      (sum, variant) => sum + variant.stock_qty,
+      0,
+    );
+    return { totalStock };
+  };
+
+  const stats = calculateStats();
+
   return (
     <div className="space-y-4">
       <div className="flex items-start md:items-center justify-between gap-2 flex-col md:flex-row">
-        <PageHeader back title={"Edit product"} />
+        <PageHeader back title={`Edit: ${productDetails.name}`} />
         <DeleteProductModal
-          productId={String(productDetails?.id)}
-          productName={productDetails?.name}
+          productId={String(productDetails.id)}
+          productName={productDetails.name}
           open={openDeleteModal}
           onOpenChange={setOpenDeleteModal}
-          onSuccess={() => fetchProduct()}
+          onSuccess={() => router.push("/a/shop/products")}
         />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="col-span-1 lg:col-span-3">
           <Card>
             <CardHeader>
-              <CardTitle>Product details</CardTitle>
+              <CardTitle>Product Details</CardTitle>
               <CardDescription>
                 Edit the product information and settings
               </CardDescription>
@@ -163,14 +307,12 @@ const page = ({ params }: { params: Params }) => {
             <CardContent>
               <Form {...form}>
                 <form
-                  // @ts-ignore
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-6"
                 >
                   {/* Base Product Info */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
-                      // @ts-ignore
                       control={form.control}
                       name="name"
                       render={({ field }) => (
@@ -184,7 +326,6 @@ const page = ({ params }: { params: Params }) => {
                       )}
                     />
                     <FormField
-                      // @ts-ignore
                       control={form.control}
                       name="product_type"
                       render={({ field }) => (
@@ -192,10 +333,10 @@ const page = ({ params }: { params: Params }) => {
                           <FormLabel>Category</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="capitalize">
                                 <SelectValue placeholder="Select type" />
                               </SelectTrigger>
                             </FormControl>
@@ -218,143 +359,225 @@ const page = ({ params }: { params: Params }) => {
                   </div>
 
                   <FormField
-                    // @ts-ignore
                     control={form.control}
                     name="description"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea {...field} />
+                          <Textarea
+                            placeholder="Enter product description..."
+                            rows={4}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <div className="flex items-center space-x-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
-                      // @ts-ignore
+                      control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="active">Active</SelectItem>
+                              <SelectItem value="archived">Archived</SelectItem>
+                              <SelectItem value="draft">Draft</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
                       control={form.control}
                       name="is_limited_stock"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-2">
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel>Limited Stock</FormLabel>
+                            <p className="text-xs text-muted-foreground">
+                              Track inventory for this product
+                            </p>
+                          </div>
                           <FormControl>
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
-                          <FormLabel className="mt-0">Limited Stock?</FormLabel>
                         </FormItem>
                       )}
                     />
                   </div>
 
-                  <hr />
+                  <Separator />
+
+                  {/* UPDATED: Replace the old Add Variant button with the modal */}
                   <div className="flex justify-between items-center">
-                    <h3 className="font-semibold text-sm">Product Variants</h3>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        append({
-                          sku: "",
-                          price: 0,
-                          title: "",
-                          diamonds_amount: 0,
-                          stock_qty: 0,
-                          is_active: true,
-                          meta: "" as any,
-                        })
-                      }
-                    >
-                      Add Variant
-                    </Button>
+                    <div>
+                      <h3 className="font-semibold text-base">
+                        Product Variants
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Manage different variants of this product
+                      </p>
+                    </div>
+                    <AddVariantModal
+                      productId={productDetails.id}
+                      onSuccess={fetchProduct}
+                    />
                   </div>
 
-                  {/* Variants Loop */}
-                  {fields.map((item, index) => (
-                    <div
-                      key={item.id}
-                      className="p-4 border rounded-lg space-y-4 relative"
-                    >
-                      {fields.length > 1 && (
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute right-2 top-2"
-                          onClick={() => remove(index)}
-                        >
-                          <IconTrash />
-                        </Button>
-                      )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          // @ts-ignore
-                          control={form.control}
-                          name={`variants.${index}.title`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Variant Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Starter Pack" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          // @ts-ignore
-                          control={form.control}
-                          name={`variants.${index}.sku`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>SKU</FormLabel>
-                              <FormControl>
-                                <Input placeholder="DIA-100" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          // @ts-ignore
-                          control={form.control}
-                          name={`variants.${index}.price`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Price ($)</FormLabel>
-                              <FormControl>
-                                <Input type="number" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          // @ts-ignore
-                          control={form.control}
-                          name={`variants.${index}.stock_qty`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Stock Qty</FormLabel>
-                              <FormControl>
-                                <Input type="number" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                  {/* Variants Display - Read Only */}
+                  <div className="space-y-4">
+                    {fields.map((field, index) => (
+                      <div
+                        key={field.id}
+                        className="p-4 border rounded-lg space-y-4 bg-muted/20"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-muted-foreground">
+                            Variant #{index + 1}{" "}
+                          </span>
 
-                  <Button type="submit" disabled={isPending}>
-                    {isPending ? <Loader text="Saving..." /> : "Save Product"}
+                          {/* If the variant exists in the DB (has an ID), show Delete Modal */}
+                          {field.id ? (
+                            <DeleteVariantModal
+                              variantId={field.db_id}
+                              variantTitle={field.title}
+                              onSuccess={fetchProduct} // Refresh the product details
+                            />
+                          ) : (
+                            // If it's a locally added variant not yet saved, just remove from form
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => remove(index)}
+                            >
+                              <IconTrash size={16} />
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.title`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Title</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.sku`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">SKU</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.price`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Price ($)
+                                </FormLabel>
+                                <FormControl>
+                                  <Input type="number" step="0.01" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.stock_qty`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Stock Qty
+                                </FormLabel>
+                                <FormControl>
+                                  <Input type="number" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.diamonds_amount`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Diamonds
+                                </FormLabel>
+                                <FormControl>
+                                  <Input type="number" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.is_active`}
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-md border p-3 mt-auto">
+                                <FormLabel className="text-xs">
+                                  Active
+                                </FormLabel>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button type="submit" disabled={isPending} className="w-full">
+                    {isPending ? <Loader text="Saving..." /> : "Save Changes"}
                   </Button>
                 </form>
               </Form>
             </CardContent>
           </Card>
         </div>
+
         <div className="col-span-1 lg:col-span-2">
           <Card>
             <CardHeader>
@@ -363,29 +586,44 @@ const page = ({ params }: { params: Params }) => {
             <CardContent className="text-muted-foreground text-sm space-y-4">
               <p className="flex items-center justify-between gap-2">
                 <span>Status</span>
-                <Badge variant={"secondary"}></Badge>
+                <Badge
+                  variant={getStatusVariant(productDetails.status)}
+                  className="capitalize"
+                >
+                  {productDetails.status}
+                </Badge>
               </p>
               <Separator />
               <p className="flex items-center justify-between gap-2">
-                <span>Total Sold</span>
-                <span className="text-white">5,420</span>
-              </p>
-              <p className="flex items-center justify-between gap-2">
-                <span>Revenue</span>
-                <span className="text-white">$5,420</span>
+                <span>Total Variants</span>
+                <span className="text-white font-medium">
+                  {productDetails.variants.length}
+                </span>
               </p>
               <p className="flex items-center justify-between gap-2">
                 <span>Stock Level</span>
-                <span className="text-white">1,420</span>
+                <span className="text-white font-medium">
+                  {stats.totalStock} units
+                </span>
+              </p>
+              <p className="flex items-center justify-between gap-2">
+                <span>Active Variants</span>
+                <span className="text-white font-medium">
+                  {productDetails.variants.filter((v) => v.is_active).length}
+                </span>
               </p>
               <Separator />
               <p className="flex items-center justify-between gap-2">
-                <span>Created</span>{" "}
-                <span className="text-white">{formatDate(new Date())}</span>
+                <span>Created</span>
+                <span className="text-white font-medium">
+                  {formatDate(productDetails.created_at)}
+                </span>
               </p>
               <p className="flex items-center justify-between gap-2">
-                <span>Last updated</span>{" "}
-                <span className="text-white">{formatDate(new Date())}</span>
+                <span>Last Updated</span>
+                <span className="text-white font-medium">
+                  {formatDate(productDetails.updated_at)}
+                </span>
               </p>
             </CardContent>
           </Card>
@@ -395,4 +633,4 @@ const page = ({ params }: { params: Params }) => {
   );
 };
 
-export default page;
+export default Page;
