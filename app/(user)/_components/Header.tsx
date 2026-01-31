@@ -21,6 +21,8 @@ export const Header = () => {
   const pathname = usePathname();
 
   const { getItemCount, setIsCartOpen } = useCart();
+
+  // This will now pull from the context state updated by your API calls
   const itemCount = getItemCount();
 
   const { user, token } = useAuth();
@@ -103,7 +105,7 @@ export const Header = () => {
                   {itemCount > 0 && (
                     <Badge
                       variant="destructive"
-                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] font-bold"
                     >
                       {itemCount > 99 ? "99+" : itemCount}
                     </Badge>

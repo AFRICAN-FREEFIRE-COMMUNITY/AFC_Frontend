@@ -1,130 +1,48 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useMemo, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Search, ShoppingCart, Diamond } from "lucide-react";
+import { Search, ShoppingCart, Diamond, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import axios from "axios";
+import { env } from "@/lib/env";
 import { DEFAULT_IMAGE } from "@/constants";
+import { PageHeader } from "@/components/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
+import { IconDiamond } from "@tabler/icons-react";
+import { formatMoneyInput } from "@/lib/utils";
 import { ComingSoon } from "@/components/ComingSoon";
 
-// Mock data for shop products
-const mockProducts = [
-  {
-    id: 1,
-    name: "Small Diamond Pack",
-    diamonds: 100,
-    price: 1250,
-    description: "Perfect for small purchases and beginners",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 2,
-    name: "Medium Diamond Pack",
-    diamonds: 310,
-    price: 3750,
-    description: "Great value for regular players",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 3,
-    name: "Large Diamond Pack",
-    diamonds: 520,
-    price: 6200,
-    description: "Ideal for active gamers",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 4,
-    name: "Premium Diamond Pack",
-    diamonds: 1060,
-    price: 12500,
-    description: "Best value for serious players",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 5,
-    name: "Ultimate Diamond Pack",
-    diamonds: 2180,
-    price: 25000,
-    description: "Maximum diamonds for dedicated gamers",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 6,
-    name: "Starter Diamond Pack",
-    diamonds: 50,
-    price: 650,
-    description: "Try before you buy",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: false,
-  },
-  {
-    id: 7,
-    name: "Warrior Bundle",
-    diamonds: 500,
-    price: 8000,
-    description: "Includes exclusive warrior skin",
-    image: DEFAULT_IMAGE,
-    category: "bundles",
-    inStock: true,
-  },
-  {
-    id: 8,
-    name: "Elite Bundle",
-    diamonds: 1000,
-    price: 15000,
-    description: "Premium bundle with exclusive items",
-    image: DEFAULT_IMAGE,
-    category: "bundles",
-    inStock: true,
-  },
-  {
-    id: 9,
-    name: "Dragon Skin",
-    diamonds: 0,
-    price: 5000,
-    description: "Exclusive dragon-themed weapon skin",
-    image: DEFAULT_IMAGE,
-    category: "skins",
-    inStock: true,
-  },
-  {
-    id: 10,
-    name: "Phoenix Character",
-    diamonds: 0,
-    price: 12000,
-    description: "Legendary phoenix character",
-    image: DEFAULT_IMAGE,
-    category: "characters",
-    inStock: true,
-  },
-  {
-    id: 11,
-    name: "Victory Emote",
-    diamonds: 0,
-    price: 2500,
-    description: "Celebrate your wins in style",
-    image: DEFAULT_IMAGE,
-    category: "other",
-    inStock: true,
-  },
-];
+// 1. Updated Interfaces based on your API response
+interface Variant {
+  id: number;
+  sku: string;
+  title: string;
+  price: string;
+  diamonds_amount: number;
+  stock_qty: number;
+  is_active: boolean;
+  in_stock: boolean;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  type: string;
+  status: string;
+  is_limited_stock: boolean;
+  variants: Variant[];
+}
 
 const categories = [
   { value: "diamonds", label: "Diamonds" },
@@ -135,39 +53,82 @@ const categories = [
 ];
 
 export default function ShopPage() {
+  const { token } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("diamonds");
 
+  // 2. Fetch real data
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-all-products/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        // Filter out archived products for the user shop side
+        const activeProducts = res.data.products.filter(
+          (p: Product) => p.status === "active",
+        );
+        setProducts(activeProducts);
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   const filteredProducts = useMemo(() => {
-    let filtered = mockProducts.filter(
-      (product) => product.category === activeCategory
+    let filtered = products.filter(
+      (product) => product.type === activeCategory,
     );
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(query) ||
-          product.description.toLowerCase().includes(query)
+      filtered = filtered.filter((product) =>
+        product.name.toLowerCase().includes(query),
       );
     }
-
     return filtered;
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, products]);
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: string | number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
       minimumFractionDigits: 0,
-    }).format(price);
+    }).format(Number(price));
   };
+
+  // Helper to get the display price (lowest variant price)
+  const getStartingPrice = (variants: Variant[]) => {
+    if (!variants.length) return "0";
+    const prices = variants.map((v) => parseFloat(v.price));
+    return Math.min(...prices).toString();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+        <p className="text-muted-foreground">Loading Shop...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
       <ComingSoon />
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-        <h1 className="text-3xl font-bold text-primary">AFC Shop</h1>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-2 gap-4">
+        <PageHeader title="AFC Shop" back />
         <Button asChild variant="outline">
           <Link href="/shop/cart">
             <ShoppingCart className="mr-2 h-4 w-4" />
@@ -176,11 +137,10 @@ export default function ShopPage() {
         </Button>
       </div>
 
-      {/* Category Tabs */}
       <Tabs
         value={activeCategory}
         onValueChange={setActiveCategory}
-        className="mb-6"
+        className="mb-4"
       >
         <TabsList className="w-full justify-start overflow-x-auto">
           {categories.map((category) => (
@@ -195,8 +155,7 @@ export default function ShopPage() {
         </TabsList>
       </Tabs>
 
-      {/* Search */}
-      <div className="relative mb-6">
+      <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           type="search"
@@ -207,45 +166,54 @@ export default function ShopPage() {
         />
       </div>
 
-      {/* Products Grid */}
       {filteredProducts.length === 0 ? (
         <div className="text-center py-12">
-          <div className="max-w-md mx-auto">
-            <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No products found</h3>
-            <p className="text-muted-foreground">
-              Try adjusting your search or browse other categories
-            </p>
-          </div>
+          <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No products found</h3>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProducts.map((product) => (
-            <Card
-              key={product.id}
-              className={`overflow-hidden gap-0 p-0 transition-shadow hover:shadow-lg ${
-                !product.inStock ? "opacity-75" : ""
-              }`}
-            >
-              <div className="relative bg-muted">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  height={1000}
-                  width={1000}
-                  className="object-cover aspect-video size-full"
-                />
-                {!product.inStock && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                    <Badge variant="destructive" className="text-sm px-4 py-2">
-                      Out of Stock
-                    </Badge>
-                  </div>
-                )}
-              </div>
-              <CardContent className="p-4">
-                <h3 className="text-lg font-semibold mb-1">{product.name}</h3>
-                {product.diamonds > 0 && (
+          {filteredProducts.map((product) => {
+            const startingPrice = getStartingPrice(product.variants);
+            const totalDiamonds = product.variants[0]?.diamonds_amount;
+            const isOutOfStock = product.variants.every((v) => !v.in_stock);
+
+            return (
+              <Card
+                key={product.id}
+                className={`overflow-hidden gap-0 p-0 transition-shadow hover:shadow-lg`}
+              >
+                <div className="relative bg-muted">
+                  <Image
+                    src={product.image || DEFAULT_IMAGE}
+                    alt={product.name}
+                    height={1000}
+                    width={1000}
+                    className="object-cover aspect-video size-full"
+                  />
+                  {!isOutOfStock && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <Badge
+                        variant="destructive"
+                        className="text-sm px-4 py-2"
+                      >
+                        Out of Stock
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+                <CardContent className="p-4">
+                  <CardTitle className="mb-1">{product.name}</CardTitle>
+                  {product.type === "diamonds" && totalDiamonds > 0 && (
+                    <div className="flex items-center gap-1 text-primary mb-2 text-sm">
+                      {formatMoneyInput(totalDiamonds)}
+                      <IconDiamond className="h-4 w-4" />
+                    </div>
+                  )}
+                  <p className="text-xl font-bold mb-4">
+                    {formatPrice(startingPrice)}
+                  </p>
+                  {/* {product.diamonds > 0 && (
                   <div className="flex items-center gap-1 text-primary mb-2">
                     <span>{product.diamonds}</span>
                     <Diamond className="h-4 w-4" />
@@ -256,18 +224,14 @@ export default function ShopPage() {
                 </p>
                 <p className="text-xl font-bold mb-4">
                   {formatPrice(product.price)}
-                </p>
-                <Button
-                  asChild
-                  className="w-full"
-                  variant="outline"
-                  disabled={!product.inStock}
-                >
-                  <Link href={`/shop/${product.id}`}>Buy Now</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                </p> */}
+                  <Button asChild className="w-full">
+                    <Link href={`/shop/${product.id}`}>Buy Now</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

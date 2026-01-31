@@ -1,367 +1,295 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Diamond, Loader2, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import axios from "axios";
+import { env } from "@/lib/env";
 import { DEFAULT_IMAGE } from "@/constants";
 import { useCart } from "@/contexts/CartContext";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { IconDiamond, IconShoppingCart } from "@tabler/icons-react";
+import { Loader } from "@/components/Loader";
+import { PageHeader } from "@/components/PageHeader";
+import { formatMoneyInput } from "@/lib/utils";
 import { ComingSoon } from "@/components/ComingSoon";
 
-// Mock data for shop products (same as shop page)
-const mockProducts = [
-  {
-    id: 1,
-    name: "Small Diamond Pack",
-    diamonds: 100,
-    price: 1250,
-    description: "Perfect for small purchases and beginners",
-    fullDescription:
-      "Get 100 diamonds to use in-game for purchases and upgrades.",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 2,
-    name: "Medium Diamond Pack",
-    diamonds: 310,
-    price: 3750,
-    description: "Great value for regular players",
-    fullDescription:
-      "Get 310 diamonds to use in-game for purchases and upgrades. Best value for regular players!",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 3,
-    name: "Large Diamond Pack",
-    diamonds: 520,
-    price: 6200,
-    description: "Ideal for active gamers",
-    fullDescription:
-      "Get 520 diamonds to use in-game for purchases and upgrades. Perfect for active gamers who want more value!",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 4,
-    name: "Premium Diamond Pack",
-    diamonds: 1060,
-    price: 12500,
-    description: "Best value for serious players",
-    fullDescription:
-      "Get 1060 diamonds to use in-game for purchases and upgrades. The best value pack for serious players!",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 5,
-    name: "Ultimate Diamond Pack",
-    diamonds: 2180,
-    price: 25000,
-    description: "Maximum diamonds for dedicated gamers",
-    fullDescription:
-      "Get 2180 diamonds to use in-game for purchases and upgrades. Maximum value for dedicated gamers!",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: true,
-  },
-  {
-    id: 6,
-    name: "Starter Diamond Pack",
-    diamonds: 50,
-    price: 650,
-    description: "Try before you buy",
-    fullDescription:
-      "Get 50 diamonds to try out the in-game store. Perfect for first-time buyers!",
-    image: DEFAULT_IMAGE,
-    category: "diamonds",
-    inStock: false,
-  },
-  {
-    id: 7,
-    name: "Warrior Bundle",
-    diamonds: 500,
-    price: 8000,
-    description: "Includes exclusive warrior skin",
-    fullDescription:
-      "Get 500 diamonds plus an exclusive warrior skin! Limited time bundle.",
-    image: DEFAULT_IMAGE,
-    category: "bundles",
-    inStock: true,
-  },
-  {
-    id: 8,
-    name: "Elite Bundle",
-    diamonds: 1000,
-    price: 15000,
-    description: "Premium bundle with exclusive items",
-    fullDescription:
-      "Get 1000 diamonds plus exclusive elite items including skins, emotes, and more!",
-    image: DEFAULT_IMAGE,
-    category: "bundles",
-    inStock: true,
-  },
-  {
-    id: 9,
-    name: "Dragon Skin",
-    diamonds: 0,
-    price: 5000,
-    description: "Exclusive dragon-themed weapon skin",
-    fullDescription:
-      "Transform your weapons with this exclusive dragon-themed skin. Show off your style in battle!",
-    image: DEFAULT_IMAGE,
-    category: "skins",
-    inStock: true,
-  },
-  {
-    id: 10,
-    name: "Phoenix Character",
-    diamonds: 0,
-    price: 12000,
-    description: "Legendary phoenix character",
-    fullDescription:
-      "Unlock the legendary Phoenix character with unique abilities and stunning visuals!",
-    image: DEFAULT_IMAGE,
-    category: "characters",
-    inStock: true,
-  },
-  {
-    id: 11,
-    name: "Victory Emote",
-    diamonds: 0,
-    price: 2500,
-    description: "Celebrate your wins in style",
-    fullDescription:
-      "Show off after every victory with this exclusive celebration emote!",
-    image: DEFAULT_IMAGE,
-    category: "other",
-    inStock: true,
-  },
-];
+// Interfaces based on your API
+interface Variant {
+  id: number;
+  sku: string;
+  title: string;
+  price: string;
+  diamonds_amount: number;
+  stock_qty: number;
+  is_active: boolean;
+  in_stock: boolean;
+}
+
+interface ProductData {
+  id: number;
+  name: string;
+  type: string;
+  description: string;
+  status: string;
+  variants: Variant[];
+}
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const productId = Number(params.id);
-  const { addItem } = useCart();
+  const { fetchCartCount } = useCart();
+  const { token } = useAuth();
 
+  const [product, setProduct] = useState<ProductData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [couponCode, setCouponCode] = useState("");
-  const [sendAsGift, setSendAsGift] = useState(false);
 
-  const product = useMemo(() => {
-    return mockProducts.find((p) => p.id === productId);
-  }, [productId]);
+  // 1. Fetch Product Details
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-product-details/?product_id=${params.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const data = res.data.product;
+        setProduct(data);
 
-  if (!product) {
-    return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold mb-4">Product Not Found</h2>
-        <p className="text-muted-foreground mb-4">
-          The product you&apos;re looking for doesn&apos;t exist.
-        </p>
-        <Button asChild>
-          <Link href="/shop">Back to Shop</Link>
-        </Button>
-      </div>
-    );
-  }
+        // Auto-select the first active variant
+        const firstAvailable = data.variants.find((v: Variant) => v.is_active);
+        if (firstAvailable) setSelectedVariant(firstAvailable);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (params.id) fetchDetails();
+  }, [params.id]);
 
-  const formatPrice = (price: number) => {
+  const handleAddToCart = async (redirectToCart = false) => {
+    if (!selectedVariant) return;
+
+    try {
+      setIsAdding(true);
+      const response = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/add-to-cart/`,
+        {
+          variant_id: selectedVariant.id,
+          quantity: quantity,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      toast.success(`${product?.name} added to cart!`);
+
+      await fetchCartCount();
+
+      if (redirectToCart) {
+        router.push("/shop/cart");
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || "Failed to add to cart";
+      toast.error(errorMsg);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const formatPrice = (price: string | number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
       minimumFractionDigits: 0,
-    }).format(price);
+    }).format(Number(price));
   };
-
-  const totalPrice = product.price * quantity;
 
   const handleQuantityChange = (delta: number) => {
-    const newQuantity = quantity + delta;
-    if (newQuantity >= 1 && newQuantity <= 99) {
-      setQuantity(newQuantity);
-    }
+    setQuantity((prev) => Math.max(1, Math.min(99, prev + delta)));
   };
 
-  const handleAddToCart = () => {
-    if (!product) return;
-    addItem(
-      {
-        id: product.id,
-        name:
-          product.diamonds > 0 ? `${product.diamonds} Diamonds` : product.name,
-        price: product.price,
-        diamonds: product.diamonds,
-        image: product.image,
-      },
-      quantity
+  if (loading)
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
-  };
 
-  const handleBuyNow = () => {
-    if (!product) return;
-    addItem(
-      {
-        id: product.id,
-        name:
-          product.diamonds > 0 ? `${product.diamonds} Diamonds` : product.name,
-        price: product.price,
-        diamonds: product.diamonds,
-        image: product.image,
-      },
-      quantity
+  if (!product)
+    return (
+      <div className="text-center py-10">
+        <h2 className="text-2xl font-bold">Product Not Found</h2>
+        <Button asChild className="mt-4">
+          <Link href="/shop">Back to Shop</Link>
+        </Button>
+      </div>
     );
-    router.push("/shop/checkout");
-  };
-
-  const getCategoryTitle = (category: string) => {
-    switch (category) {
-      case "diamonds":
-        return "Diamond Bundle";
-      case "bundles":
-        return "Bundle";
-      case "skins":
-        return "Skin";
-      case "characters":
-        return "Character";
-      default:
-        return "Item";
-    }
-  };
 
   return (
     <div className="relative">
       <ComingSoon />
-      <h1 className="text-3xl font-bold text-primary mb-6">
-        {getCategoryTitle(product.category)}
-      </h1>
+      <PageHeader back title={product.name} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Left: Image Section */}
+        <Card className="overflow-hidden p-0 border-none bg-transparent">
+          <div className="relative aspect-square rounded-xl overflow-hidden bg-muted">
+            <Image
+              src={DEFAULT_IMAGE}
+              alt={product.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+        </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Product Image */}
-        <div>
-          <Card className="overflow-hidden gap-0 p-0">
-            <div className="relative aspect-[4/3] bg-muted">
-              <Image
-                src={product.image}
-                alt={product.name}
-                height={1000}
-                width={1000}
-                className="object-cover aspect-video size-full"
-              />
+        {/* Right: Info Section */}
+        <div className="space-y-4">
+          <div>
+            <Badge className="capitalize mb-1.5" variant="outline">
+              {product.type}
+            </Badge>
+            <h1 className="text-3xl font-bold">{product.name}</h1>
+            <p className="text-muted-foreground text-sm mt-2">
+              {product.description}
+            </p>
+          </div>
+
+          {/* Variant Selection */}
+          <div className="space-y-2.5">
+            <Label>Select Option</Label>
+            <div className="grid grid-cols-1 gap-3">
+              {product.variants.map((variant) => (
+                <button
+                  key={variant.id}
+                  disabled={!variant.in_stock || !variant.is_active}
+                  onClick={() => setSelectedVariant(variant)}
+                  className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
+                    selectedVariant?.id === variant.id
+                      ? "border-primary bg-primary/5"
+                      : "border-muted hover:border-primary/50"
+                  } ${(!variant.in_stock || !variant.is_active) && "opacity-50 cursor-not-allowed"}`}
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-sm">{variant.title}</p>
+                    {variant.diamonds_amount > 0 && (
+                      <div className="flex items-center text-sm text-primary">
+                        <IconDiamond className="h-3 w-3 mr-1" />{" "}
+                        {formatMoneyInput(variant.diamonds_amount)} Diamonds
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold">{formatPrice(variant.price)}</p>
+                    {!variant.in_stock && (
+                      <span className="text-xs text-destructive">
+                        Out of Stock
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))}
             </div>
-          </Card>
-        </div>
+          </div>
 
-        {/* Product Details */}
-        <div className="space-y-6">
-          <Card>
-            <CardContent className="px-6">
-              <h2 className="text-2xl font-bold mb-2">
-                {product.diamonds > 0
-                  ? `${product.diamonds} Diamonds`
-                  : product.name}
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                {product.fullDescription}
-              </p>
-              <p className="text-2xl font-bold mb-6">
-                {formatPrice(product.price)}
-              </p>
+          {/* Quantity and Actions */}
+          {selectedVariant && (
+            <Card className="bg-muted/30">
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleQuantityChange(-1)}
+                      disabled={quantity <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="text-lg font-bold w-8 text-center">
+                      {quantity}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleQuantityChange(1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Subtotal</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {formatPrice(
+                        parseFloat(selectedVariant.price) * quantity,
+                      )}
+                    </p>
+                  </div>
+                </div>
 
-              {/* Quantity Selector */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2">
                   <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleQuantityChange(-1)}
-                    disabled={quantity <= 1}
+                    className="flex-1"
+                    onClick={() => handleAddToCart(false)}
+                    disabled={isAdding || !selectedVariant.in_stock}
                   >
-                    <Minus className="h-4 w-4" />
+                    {isAdding ? (
+                      <Loader text="Adding..." />
+                    ) : (
+                      <>
+                        <IconShoppingCart />
+                        Add to Cart
+                      </>
+                    )}
                   </Button>
-                  <span className="w-12 text-center font-medium">
-                    {quantity}
-                  </span>
                   <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= 99}
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => {
+                      handleAddToCart();
+                      router.push("/shop/cart");
+                    }}
+                    // disabled={!selectedVariant.in_stock}
+                    disabled
                   >
-                    <Plus className="h-4 w-4" />
+                    Buy Now
                   </Button>
                 </div>
-                <div className="text-right">
-                  <span className="text-sm text-muted-foreground">Total: </span>
-                  <span className="font-bold">{formatPrice(totalPrice)}</span>
-                </div>
-              </div>
+              </CardContent>
+            </Card>
+          )}
 
-              {/* Coupon Code */}
-              <div className="mb-4">
-                <Label htmlFor="coupon" className="text-sm font-medium">
-                  Coupon Code
-                </Label>
-                <Input
-                  id="coupon"
-                  placeholder="Enter coupon code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-
-              {/* Send as Gift */}
-              <div className="flex items-center space-x-2 mb-6">
-                <Checkbox
-                  id="gift"
-                  checked={sendAsGift}
-                  onCheckedChange={(checked) =>
-                    setSendAsGift(checked as boolean)
-                  }
-                />
-                <Label htmlFor="gift" className="text-sm cursor-pointer">
-                  Send as a gift
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Purchase Options */}
-          <Card>
-            <CardContent className="px-6">
-              <h3 className="text-lg font-semibold mb-4">Purchase Options</h3>
-              <div className="space-y-3">
-                <Button
-                  className="w-full"
-                  onClick={handleAddToCart}
-                  disabled={!product.inStock}
-                >
-                  Add to Cart
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleBuyNow}
-                  disabled={!product.inStock}
-                >
-                  Buy Now
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Status Alert */}
+          {product.status === "archived" && (
+            <div className="flex items-center gap-2 p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg text-yellow-600">
+              <AlertCircle className="h-5 w-5" />
+              <p className="text-sm font-medium">
+                This product is currently archived and may not be available for
+                purchase.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
