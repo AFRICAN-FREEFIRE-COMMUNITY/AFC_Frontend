@@ -14,7 +14,11 @@ import { toast } from "sonner";
 
 export interface CartItem {
   id: number;
+  variant_id: string;
   name: string;
+  line_total: string;
+  unit_price: string;
+  product_name: string;
   price: number;
   quantity: number;
   diamonds?: number;
@@ -28,8 +32,8 @@ interface CartContextType {
   updateQuantity: (id: number, quantity: number) => void;
   getItemCount: () => number;
   getSubtotal: () => number;
-  getTax: () => number;
-  getTotal: () => number;
+  getTax: () => number | string;
+  getTotal: () => number | string;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   fetchCartCount: () => Promise<void>; // Add this to the interface
@@ -38,7 +42,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const TAX_RATE = 0.05; // 5%
+const TAX_RATE = 0.075; // 7.5%
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -122,20 +126,40 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const getItemCount = () => totalItems;
 
-  // const getItemCount = useCallback(() => {
-  //   return items.reduce((total, item) => total + item.quantity, 0);
-  // }, [items]);
+  const fetchCart = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-my-cart/`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      // Set both the count and the actual items from the server
+      setTotalItems(res.data.cart.total_items);
+      setItems(res.data.cart.items || []); // Assuming your API returns an items array
+    } catch (error) {
+      console.error("Error fetching cart", error);
+    }
+  }, [token]);
+
+  // Update the useEffect to use the new fetchCart function
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   const getSubtotal = useCallback(() => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
+    return items.reduce(
+      (total, item) => total + Number(item.unit_price) * item.quantity,
+      0,
+    );
   }, [items]);
 
   const getTax = useCallback(() => {
-    return getSubtotal() * TAX_RATE;
+    return (getSubtotal() * TAX_RATE).toFixed(2);
   }, [getSubtotal]);
 
   const getTotal = useCallback(() => {
-    return getSubtotal() + getTax();
+    return (Number(getSubtotal()) + Number(getTax())).toFixed(2);
   }, [getSubtotal, getTax]);
 
   return (

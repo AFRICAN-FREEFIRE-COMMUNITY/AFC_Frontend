@@ -158,7 +158,7 @@ export default function AdminShopPage() {
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-current-stock-status/`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setStockStatus(response.data.stock);
     } catch (error) {
@@ -262,14 +262,16 @@ export default function AdminShopPage() {
         {/* Orders Table */}
         <div className="lg:col-span-2">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
               <div>
-                <CardTitle>Orders This Week</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle className="font-semibold text-sm">
+                  Orders This Week
+                </CardTitle>
+                <CardDescription className="text-xs mt-1">
                   Recent orders from your store
-                </p>
+                </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between lg:justify-end w-full lg:w-auto gap-2">
                 <Tabs value={orderFilter} onValueChange={setOrderFilter}>
                   <TabsList>
                     <TabsTrigger value="day">Day</TabsTrigger>
@@ -285,8 +287,7 @@ export default function AdminShopPage() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="relative">
-              <ComingSoon />
+            <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>

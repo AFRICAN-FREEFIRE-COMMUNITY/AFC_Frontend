@@ -89,9 +89,7 @@ function LoginFormContent() {
             router.push(`/email-confirmation/enter-email`);
           }
         } else {
-          toast.error(
-            error?.response?.data?.message || "Internal server error",
-          );
+          toast.error(error?.response?.data?.message || "Oop! Failed to login");
           return;
         }
       }

@@ -34,8 +34,6 @@ export function DeleteVariantModal({
   const [isPending, startTransition] = useTransition();
   const { token } = useAuth();
 
-  console.log(variantId);
-
   const onDelete = () => {
     startTransition(async () => {
       try {

@@ -1,423 +1,318 @@
 "use client";
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState, useTransition } from "react";
+import { useParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/PageHeader";
 import {
-  ArrowLeft,
   Copy,
   Check,
   CheckCircle,
   XCircle,
   RefreshCw,
   RotateCcw,
+  Loader2,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  Hash,
 } from "lucide-react";
-import Link from "next/link";
+import axios from "axios";
+import { toast } from "sonner"; // or your preferred toast library
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
+import { IconCopy, IconMail, IconPhone, IconUser } from "@tabler/icons-react";
+import { formatMoneyInput } from "@/lib/utils";
+import { Loader } from "@/components/Loader";
 
-// Mock order data - in production this would be fetched based on ID
-const mockOrderDetails: Record<
-  string,
-  {
-    id: string;
-    customer: {
-      name: string;
-      email: string;
-      phone: string;
-      address: string;
-    };
-    product: {
-      name: string;
-      quantity: number;
-      price: number;
-    };
-    payment: {
-      method: string;
-      transactionId: string;
-    };
-    diamondCode: string;
-    status: string;
-    date: string;
-    amount: number;
-  }
-> = {
-  "ORD-001": {
-    id: "ORD-001",
-    customer: {
-      name: "John Doe",
-      email: "john.doe@example.com",
-      phone: "+234 801 234 5678",
-      address: "123 Main Street, Lagos, Nigeria",
-    },
-    product: {
-      name: "100 Diamonds",
-      quantity: 1,
-      price: 1312.5,
-    },
-    payment: {
-      method: "Bank Transfer",
-      transactionId: "TXN-ABC123456",
-    },
-    diamondCode: "DIAMOND-XYZ-123-ABC-789",
-    status: "Pending",
-    date: "2024-01-15",
-    amount: 1312.5,
-  },
-  "ORD-002": {
-    id: "ORD-002",
-    customer: {
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      phone: "+234 802 345 6789",
-      address: "456 Oak Avenue, Abuja, Nigeria",
-    },
-    product: {
-      name: "500 Diamonds",
-      quantity: 1,
-      price: 6562.5,
-    },
-    payment: {
-      method: "Card",
-      transactionId: "TXN-DEF456789",
-    },
-    diamondCode: "DIAMOND-ABC-456-DEF-012",
-    status: "Fulfilled",
-    date: "2024-01-14",
-    amount: 6562.5,
-  },
-  "ORD-003": {
-    id: "ORD-003",
-    customer: {
-      name: "Mike Johnson",
-      email: "mike.j@example.com",
-      phone: "+234 803 456 7890",
-      address: "789 Pine Road, Port Harcourt, Nigeria",
-    },
-    product: {
-      name: "1000 Diamonds",
-      quantity: 1,
-      price: 13125,
-    },
-    payment: {
-      method: "Mobile Money",
-      transactionId: "TXN-GHI789012",
-    },
-    diamondCode: "DIAMOND-GHI-789-JKL-345",
-    status: "Fulfilled",
-    date: "2024-01-13",
-    amount: 13125,
-  },
-  "ORD-004": {
-    id: "ORD-004",
-    customer: {
-      name: "Sarah Williams",
-      email: "sarah.w@example.com",
-      phone: "+234 804 567 8901",
-      address: "321 Elm Street, Kano, Nigeria",
-    },
-    product: {
-      name: "100 Diamonds",
-      quantity: 1,
-      price: 1312.5,
-    },
-    payment: {
-      method: "Bank Transfer",
-      transactionId: "TXN-JKL012345",
-    },
-    diamondCode: "DIAMOND-MNO-012-PQR-678",
-    status: "Declined",
-    date: "2024-01-12",
-    amount: 1312.5,
-  },
-  "ORD-005": {
-    id: "ORD-005",
-    customer: {
-      name: "Chris Brown",
-      email: "chris.b@example.com",
-      phone: "+234 805 678 9012",
-      address: "654 Cedar Lane, Ibadan, Nigeria",
-    },
-    product: {
-      name: "2000 Diamonds",
-      quantity: 1,
-      price: 26250,
-    },
-    payment: {
-      method: "Card",
-      transactionId: "TXN-MNO345678",
-    },
-    diamondCode: "DIAMOND-STU-345-VWX-901",
-    status: "Pending",
-    date: "2024-01-11",
-    amount: 26250,
-  },
-  "ORD-006": {
-    id: "ORD-006",
-    customer: {
-      name: "Emma Davis",
-      email: "emma.d@example.com",
-      phone: "+234 806 789 0123",
-      address: "987 Maple Drive, Enugu, Nigeria",
-    },
-    product: {
-      name: "500 Diamonds",
-      quantity: 1,
-      price: 6562.5,
-    },
-    payment: {
-      method: "Mobile Money",
-      transactionId: "TXN-PQR678901",
-    },
-    diamondCode: "DIAMOND-YZA-678-BCD-234",
-    status: "Fulfilled",
-    date: "2024-01-10",
-    amount: 6562.5,
-  },
-};
+// Define Types based on your API response
+interface OrderItem {
+  product_name: string;
+  variant_title: string;
+  quantity: number;
+  unit_price: string;
+  line_total: string;
+}
+
+interface OrderData {
+  order_id: number;
+  user_id: number;
+  username: string;
+  status: string;
+  subtotal: string;
+  total: string;
+  tax: string;
+  created_at: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  address: string;
+  city: string;
+  state: string;
+  transaction_id: string;
+  items: OrderItem[];
+}
 
 export default function OrderDetailsPage() {
   const params = useParams();
-  const router = useRouter();
-  const orderId = params.id as string;
+  const { token } = useAuth();
+  const orderId = params.id;
+  const [order, setOrder] = useState<OrderData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [orderStatus, setOrderStatus] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
-  const order = mockOrderDetails[orderId];
+  const fetchOrderDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-order-details-for-admin/?order_id=${orderId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setOrder(response.data.order);
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      toast.error("Failed to load order details");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Use updated status or original
-  const currentStatus = orderStatus || order?.status;
+  useEffect(() => {
+    if (orderId) fetchOrderDetails();
+  }, [orderId, token]);
 
-  const formatPrice = (price: number) => {
+  const handleMarkAsPaid = () => {
+    startTransition(async () => {
+      try {
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/mark-order-as-paid/`,
+          { order_id: order?.order_id },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        toast.success(res.data.message || "Order updated to paid!");
+        fetchOrderDetails();
+      } catch (error: any) {
+        toast.error(
+          error.response.data.message || "Oops! Failed to mark as paid",
+        );
+      }
+    });
+  };
+
+  const formatPrice = (price: string | number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
-      minimumFractionDigits: 0,
-    }).format(price);
+    }).format(Number(price));
   };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
-      case "fulfilled":
+      case "paid":
         return "default";
       case "pending":
         return "secondary";
-      case "declined":
+      case "cancelled":
         return "destructive";
       default:
         return "outline";
     }
   };
 
-  const copyToClipboard = () => {
-    if (order?.diamondCode) {
-      navigator.clipboard.writeText(order.diamondCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success("Copied to clipboard");
   };
 
-  const handleMarkFulfilled = () => {
-    setOrderStatus("Fulfilled");
-    // In production, this would make an API call
-  };
-
-  const handleMarkDeclined = () => {
-    setOrderStatus("Declined");
-    // In production, this would make an API call
-  };
-
-  const handleResendCode = () => {
-    // In production, this would make an API call to resend the diamond code
-    alert("Diamond code resent to customer email!");
-  };
-
-  const handleInitiateRefund = () => {
-    // In production, this would initiate the refund process
-    alert("Refund initiated!");
-  };
-
-  if (!order) {
+  if (loading) {
     return (
-      <div>
-        <PageHeader back title="Order Not Found" description="" />
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              The order you&apos;re looking for doesn&apos;t exist.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Fetching order details...</p>
       </div>
     );
   }
 
+  if (!order) return <div className="p-8 text-center">Order not found.</div>;
+
   return (
-    <div>
-      <div className="mb-6">
-        <PageHeader
-          title={`Order ${order.id}`}
-          description={`Order placed on ${order.date}`}
-          back
-        />
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title={
+          <>
+            <p className="flex items-center justify-start gap-2">
+              Order #{order.order_id}
+              <Badge variant={getStatusBadgeVariant(order.status)}>
+                {order.status.toUpperCase()}
+              </Badge>
+            </p>
+          </>
+        }
+        description={`Transaction reference: ${order.transaction_id || "N/A"}`}
+        back
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Order Information */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Customer & Shipping Information */}
           <Card>
-            <CardHeader>
-              <CardTitle>Order Information</CardTitle>
+            <CardHeader className="border-b [.border-b]:pb-3">
+              <CardTitle>Customer Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Customer Name</p>
-                  <p className="font-medium">{order.customer.name}</p>
+            <CardContent className="grid gap-4">
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-1">
+                  <IconUser className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">
+                    {order.first_name} {order.last_name}
+                  </span>
+                  <span className="text-muted-foreground">
+                    (@{order.username})
+                  </span>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{order.customer.email}</p>
+                <div className="flex items-center hover:underline hover:text-primary gap-1">
+                  <IconMail className="h-4 w-4 text-muted-foreground" />
+                  <a href={`mailto:${order.email}`}>{order.email}</a>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Date</p>
-                  <p className="font-medium">{order.date}</p>
+                <div className="flex hover:underline hover:text-primary items-center gap-1">
+                  <IconPhone className="h-4 w-4 text-muted-foreground" />
+                  <a href={`tel:${order.phone_number}`}>{order.phone_number}</a>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge variant={getStatusBadgeVariant(currentStatus)}>
-                    {currentStatus}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Amount</p>
-                  <p className="font-medium text-lg">
-                    {formatPrice(order.amount)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
-                  <p className="font-medium">{order.customer.phone}</p>
-                </div>
-              </div>
-              <Separator />
-              <div>
-                <p className="text-sm text-muted-foreground">Address</p>
-                <p className="font-medium">{order.customer.address}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Product Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Product</p>
-                  <p className="font-medium">{order.product.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Quantity</p>
-                  <p className="font-medium">{order.product.quantity}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Payment Method
-                  </p>
-                  <p className="font-medium">{order.payment.method}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Transaction ID
-                  </p>
-                  <p className="font-mono font-medium">
-                    {order.payment.transactionId}
-                  </p>
+                <div className="flex gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                  <span>
+                    {order.address}, {order.city}, {order.state}
+                  </span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Diamond Code Delivery */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Diamond Code Delivery</CardTitle>
+          {/* Items Table */}
+          <Card className="gap-2">
+            <CardHeader className="border-b [.border-b]:pb-3">
+              <CardTitle>Order Items</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                <code className="flex-1 font-mono text-sm">
-                  {order.diamondCode}
-                </code>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={copyToClipboard}
-                  className="shrink-0"
-                >
-                  {copied ? (
-                    <Check className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
+              <div className="space-y-2">
+                {order.items.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between py-2 border-b"
+                  >
+                    <div>
+                      <p className="font-semibold text-sm">
+                        {item.product_name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.variant_title}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-medium">x{item.quantity}</p>
+                      <p className="font-bold text-sm text-primary">
+                        ₦{formatMoneyInput(item.line_total)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                This code has been sent to the customer&apos;s email address.
-              </p>
+
+              <div className="space-y-4 mt-4 pb-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>₦{formatMoneyInput(order.subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>₦{formatMoneyInput(order.tax)}</span>
+                </div>
+              </div>
             </CardContent>
+            <CardFooter className="border-t font-semibold text-base [.border-t]:pt-4 flex items-center justify-between">
+              <span>Total</span>
+              <span className="text-primary">
+                ₦{formatMoneyInput(order.total)}
+              </span>
+            </CardFooter>
           </Card>
         </div>
 
-        {/* Sidebar - Order Actions */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Order Actions</CardTitle>
+            <CardHeader className="border-b [.border-b]:pb-3">
+              <CardTitle>Admin Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button
-                className="w-full justify-start"
-                variant={
-                  currentStatus === "Fulfilled" ? "secondary" : "default"
-                }
-                onClick={handleMarkFulfilled}
-                disabled={currentStatus === "Fulfilled"}
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Mark as Fulfilled
-              </Button>
-              <Button
-                className="w-full justify-start"
-                variant="outline"
-                onClick={handleMarkDeclined}
-                disabled={currentStatus === "Declined"}
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Mark as Declined
-              </Button>
-              <Separator />
+              {order.status !== "paid" && (
+                <Button
+                  className="w-full justify-start"
+                  disabled={pending}
+                  variant="default"
+                  onClick={handleMarkAsPaid}
+                >
+                  {pending ? (
+                    <Loader text="Marking..." />
+                  ) : (
+                    <>
+                      <CheckCircle />
+                      Mark as Paid
+                    </>
+                  )}
+                </Button>
+              )}
               <Button
                 className="w-full justify-start"
                 variant="outline"
-                onClick={handleResendCode}
+                onClick={() => copyToClipboard(order.email)}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Resend Diamond Code
+                <IconCopy />
+                Copy Customer Email
               </Button>
-              <Button
+              {/* <Button
                 className="w-full justify-start"
                 variant="destructive"
-                onClick={handleInitiateRefund}
+                onClick={() => toast.warning("Initiating refund...")}
+                disabled={pending}
               >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Initiate Refund
-              </Button>
+                <RotateCcw />
+                Cancel & Refund
+              </Button> */}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
+              <div className="text-xs text-muted-foreground space-y-2">
+                <div className="flex justify-between">
+                  <span>Internal ID:</span>
+                  <span className="">{order.order_id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Created At:</span>
+                  <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

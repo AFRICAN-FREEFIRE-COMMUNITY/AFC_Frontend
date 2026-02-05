@@ -7,7 +7,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Teams | Africa Freefire Community Tomiwa",
+  title: "Teams | Africa Freefire Community",
 };
 
 const layout = ({ children }: { children: ReactNode }) => {

@@ -1,15 +1,15 @@
-import CartDetails from "../_components/CartDetails";
+import OrdersClient from "../shop/_components/OrdersClient";
 
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Cart | African Freefire Community",
+  title: "Orders | African Freefire Community",
 };
 
 const page = () => {
   return (
     <div>
-      <CartDetails />
+      <OrdersClient />
     </div>
   );
 };

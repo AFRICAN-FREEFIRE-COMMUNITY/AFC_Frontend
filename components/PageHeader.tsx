@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { IconArrowLeft } from "@tabler/icons-react";
 
 interface PageHeaderProps {
-  title: string;
+  title: string | React.ReactNode;
   description?: string | any;
   action?: ReactNode;
   back?: boolean;

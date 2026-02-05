@@ -8,7 +8,6 @@ import { IconPlus, IconX, IconLoader2 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { Label } from "@/components/ui/label";
-import { FormDescription } from "@/components/ui/form";
 import { Loader } from "@/components/Loader";
 import { toast } from "sonner";
 
@@ -29,63 +28,66 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: any) {
     { id: 10, val: "1" },
   ]);
 
-  const handleCreate = async () => {
-    setLoading(true);
+  const isManualFlow = parentFormData.leaderboard_method === "manual";
 
-    // 1. Create the placement_point object exactly as requested
+  const handleContinue = async () => {
+    // Build placement_points object
     const placementPointsObj: Record<string, number> = {};
     ranks.forEach((r, idx) => {
       placementPointsObj[(idx + 1).toString()] = parseInt(r.val) || 0;
     });
 
-    // 2. Initialize FormData
-    const submissionData = new FormData();
-
-    // 3. Append simple fields
-    submissionData.append("event_id", parentFormData.event_id);
-    submissionData.append("stage_id", parentFormData.stage_id);
-    submissionData.append("group_id", parentFormData.group_id);
-    submissionData.append(
-      "leaderboard_method",
-      parentFormData.leaderboard_method,
-    );
-    submissionData.append("file_type", parentFormData.file_type);
-    submissionData.append("kill_point", killPoint);
-
-    // 4. Append the object as a JSON string
-    // Backend will typically parse this from the 'placement_point' key
-    submissionData.append(
-      "placement_point",
-      JSON.stringify(placementPointsObj),
-    );
-
-    // Debugging: Log the FormData entries
-    for (let [key, value] of submissionData.entries()) {
-    }
-
-    const endpoint =
-      parentFormData.leaderboard_method === "manual"
-        ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-leaderboard-manually/`
-        : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-leaderboard/`;
-
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: submissionData,
+    if (isManualFlow) {
+      // For manual flow, just pass data to next step
+      onNext({
+        placement_points: placementPointsObj,
+        kill_point: killPoint,
       });
+    } else {
+      // For automated flow, submit to backend
+      setLoading(true);
 
-      const data = res.json();
+      const submissionData = new FormData();
+      submissionData.append("event_id", parentFormData.event_id);
+      submissionData.append("stage_id", parentFormData.stage_id);
+      submissionData.append("group_id", parentFormData.group_id);
+      submissionData.append(
+        "leaderboard_method",
+        parentFormData.leaderboard_method
+      );
+      submissionData.append("file_type", parentFormData.file_type);
+      submissionData.append("kill_point", killPoint);
+      submissionData.append(
+        "placement_point",
+        JSON.stringify(placementPointsObj)
+      );
 
-      if (res.ok) onNext(placementPointsObj);
-      else alert("Creation failed. Please check IDs.");
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.response.data.message);
-    } finally {
-      setLoading(false);
+      const endpoint =
+        parentFormData.leaderboard_method === "manual"
+          ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-leaderboard-manually/`
+          : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-leaderboard/`;
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: submissionData,
+        });
+
+        if (res.ok) {
+          onNext();
+        } else {
+          const errorData = await res.json();
+          toast.error(errorData.message || "Creation failed. Please check IDs.");
+        }
+      } catch (err: any) {
+        console.error(err);
+        toast.error(err.message || "An error occurred");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -93,13 +95,13 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: any) {
     <Card className="gap-0">
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2">
-          <span>Configure Point System</span>{" "}
+          <span>Configure Point System</span>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setRanks([...ranks, { id: Date.now(), val: "0" }])}
           >
-            <IconPlus size={14} className="mr-2" />{" "}
+            <IconPlus size={14} className="mr-2" />
             <span className="hidden md:inline-block">Add Rank</span>
           </Button>
         </CardTitle>
@@ -154,8 +156,14 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: any) {
           <Button variant="ghost" onClick={onBack}>
             Back
           </Button>
-          <Button onClick={handleCreate} disabled={loading}>
-            {loading ? <Loader text="Creating..." /> : "Create Leaderboard"}
+          <Button onClick={handleContinue} disabled={loading}>
+            {loading ? (
+              <Loader text="Creating..." />
+            ) : isManualFlow ? (
+              "Continue to Team Selection"
+            ) : (
+              "Create Leaderboard"
+            )}
           </Button>
         </div>
       </CardContent>

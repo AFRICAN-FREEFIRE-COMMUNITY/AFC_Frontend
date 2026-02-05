@@ -43,12 +43,12 @@ export const SelectionMethodStep = ({ onSelect }: Props) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2">
       {methods.map((m) => (
-        <Card key={m.id} className="bg-[#09090b] border-zinc-800 flex flex-col">
+        <Card key={m.id} className="bg-dark flex flex-col">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
+            <CardTitle className="flex items-center gap-2 dark:text-white">
               <m.icon className="size-5" /> {m.name}
             </CardTitle>
-            <CardDescription className="text-zinc-400 text-xs">
+            <CardDescription className="text-zinc-4 00 text-xs">
               {m.small}
             </CardDescription>
           </CardHeader>

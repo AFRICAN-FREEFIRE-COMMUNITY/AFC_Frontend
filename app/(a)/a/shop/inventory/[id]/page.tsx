@@ -201,8 +201,6 @@ const Page = ({ params }: { params: Params }) => {
           })),
         };
 
-        console.log("Submitting payload:", payload);
-
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/edit-product/`,
           payload,

@@ -32,7 +32,6 @@ export function CartSheet() {
 
   const [cartData, setCartData] = useState<any>(null);
 
-  console.log(cartData);
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch Cart from Backend
@@ -227,19 +226,11 @@ export function CartSheet() {
             </div>
 
             <div className="p-6 bg-muted/30 border-t space-y-4">
-              <div className="space-y-2.5">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">
-                    {formatPrice(cartData?.subtotal || 0)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm font-bold">
-                  <span>Estimated Total</span>
-                  <span className="text-primary">
-                    {formatPrice(cartData?.subtotal || 0)}
-                  </span>
-                </div>
+              <div className="flex justify-between text-sm font-bold">
+                <span>Estimated Total</span>
+                <span className="text-primary">
+                  {formatPrice(cartData?.subtotal || 0)}
+                </span>
               </div>
 
               <Button
@@ -247,7 +238,7 @@ export function CartSheet() {
                 asChild
                 onClick={() => setIsCartOpen(false)}
               >
-                <Link href="/shop/checkout">
+                <Link href="/shop/cart">
                   <IconCreditCard />
                   Proceed to Checkout
                 </Link>

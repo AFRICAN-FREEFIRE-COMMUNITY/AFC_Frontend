@@ -522,6 +522,22 @@ export const CreateCouponSchema = z.object({
   end_at: z.string().min(1, "Expiry date is required"),
 });
 
+export const ShopCustomerDetailsSchema = z.object({
+  firstName: z.string().min(2, "First name is required"),
+  lastName: z.string().min(2, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().regex(/^(\+?\d{10,15})$/, {
+    message: "Enter a valid phone number.",
+  }),
+  address: z.string().min(5, "Address is required"),
+  city: z.string().min(2, "City is required"),
+  state: z.string().min(2, "State is required"),
+  postalCode: z.string().optional(),
+});
+
+export type ShopCustomerDetailsSchemaType = z.infer<
+  typeof ShopCustomerDetailsSchema
+>;
 export type CreateCouponSchemaType = z.infer<typeof CreateCouponSchema>;
 
 export type TournamentFormData = z.infer<typeof tournamentSchema>;

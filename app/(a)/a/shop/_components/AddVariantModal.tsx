@@ -86,8 +86,6 @@ export function AddVariantModal({
           meta: data.meta,
         };
 
-        console.log("Adding variant payload:", payload); // For debugging
-
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/add-product-variant/`,
           payload,

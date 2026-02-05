@@ -56,8 +56,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  console.log(team);
-
   // Create description based on team info
   const memberCount = team.members?.length || 0;
   const description = team.is_banned

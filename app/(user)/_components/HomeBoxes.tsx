@@ -24,8 +24,6 @@ export const HomeBoxes = () => {
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`,
       );
 
-      console.log(tournaments);
-
       setTotalUsers(users?.data?.total_users);
       setTotalTournaments(tournaments?.data?.total_tournaments);
     };
