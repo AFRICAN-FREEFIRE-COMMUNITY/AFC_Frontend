@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 export const HomeBoxes = () => {
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalTournaments, setTotalTournaments] = useState<number>(0);
+  const [totalKills, setTotalKills] = useState<number>(0);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -23,9 +24,13 @@ export const HomeBoxes = () => {
       const tournaments = await axios(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`,
       );
+      const totalKills = await axios(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-kills/`,
+      );
 
       setTotalUsers(users?.data?.total_users);
       setTotalTournaments(tournaments?.data?.total_tournaments);
+      setTotalKills(tournaments?.data?.totalKills);
     };
 
     fetchUsers();
@@ -39,7 +44,7 @@ export const HomeBoxes = () => {
           <CardTitle>Total Kills</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-gold">0</p>
+          <p className="text-4xl font-bold text-gold">{totalKills}</p>
         </CardContent>
       </Card>
       <Card className="border-primary">

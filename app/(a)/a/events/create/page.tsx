@@ -123,6 +123,7 @@ const EventFormSchema = z
     competition_type: z.string().min(1, "Competition type required"),
     participant_type: z.string().min(1, "Participant type required"),
     event_type: z.string().min(1, "Event type required"),
+    is_public: z.string().default("True"),
     max_teams_or_players: z.coerce
       .number()
       .min(1, "Max teams/players required"),
@@ -235,6 +236,7 @@ export default function Page() {
       competition_type: "",
       participant_type: "",
       event_type: "",
+      is_public: "True",
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -595,6 +597,7 @@ export default function Page() {
           "competition_type",
           "participant_type",
           "event_type",
+          "is_public",
           "registration_open_date",
           "registration_end_date",
           "start_date",
@@ -695,6 +698,7 @@ export default function Page() {
         formData.append("competition_type", data.competition_type);
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
+        formData.append("is_public", data.is_public);
         formData.append(
           "max_teams_or_players",
           data.max_teams_or_players.toString(),
@@ -729,12 +733,12 @@ export default function Page() {
         formData.append("registration_link", data.registration_link || "");
         formData.append(
           "registration_restriction",
-          data.registration_restriction,
+          data?.registration_restriction,
         );
 
         formData.append("restriction_mode", restrictionMode);
 
-        if (data.selected_locations.length !== 0) {
+        if (data?.selected_locations?.length !== 0) {
           // Option A: JSON string
           formData.append(
             "restricted_countries",
@@ -812,6 +816,7 @@ export default function Page() {
           );
         }
       } catch (error) {
+        console.log(error);
         toast.error("An unexpected error occurred during submission.");
       }
     });
@@ -879,7 +884,7 @@ export default function Page() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Event Name</FormLabel>
-                        <Input {...field} />
+                        <Input placeholder="Enter event name" {...field} />
                         <FormMessage />
                       </FormItem>
                     )}
@@ -938,36 +943,61 @@ export default function Page() {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="event_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Event Type</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={"internal"}>
+                                Internal event
+                              </SelectItem>
+                              <SelectItem value={"external"}>
+                                External event
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="is_public"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Event Privacy</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={"True"}>Public</SelectItem>
+                              <SelectItem value={"False"}>Private</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>{" "}
-                  <FormField
-                    // @ts-ignore
-                    control={form.control}
-                    name="event_type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Event Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value={"internal"}>
-                              Internal event
-                            </SelectItem>
-                            <SelectItem value={"external"}>
-                              External event
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   <FormField
                     // @ts-ignore
                     control={form.control}

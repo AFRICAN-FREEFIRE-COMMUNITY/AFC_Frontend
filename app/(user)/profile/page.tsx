@@ -100,13 +100,11 @@ const page = () => {
   return (
     <div>
       <PageHeader back title={`Player Profile`} />
-      {user.isBanned && (
+      {user.is_banned && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Account Banned</AlertTitle>
-          <AlertDescription>
-            This account has been banned. Reason: {user.banReason}
-          </AlertDescription>
+          <AlertDescription>This account has been banned.</AlertDescription>
         </Alert>
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -179,27 +177,39 @@ const page = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Total Kills</p>
-                    <p className="text-lg md:text-xl font-semibold">0</p>
+                    <p className="text-lg md:text-xl font-semibold">
+                      {user?.stats.total_kills}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Wins</p>
-                    <p className="text-lg md:text-xl font-semibold">0</p>
+                    <p className="text-lg md:text-xl font-semibold">
+                      {user?.stats.total_wins}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">MVPs</p>
-                    <p className="text-lg md:text-xl font-semibold">0</p>
+                    <p className="text-lg md:text-xl font-semibold">
+                      {user?.stats.total_mvps}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Booyahs</p>
-                    <p className="text-lg md:text-xl font-semibold">0</p>
+                    <p className="text-lg md:text-xl font-semibold">
+                      {user?.stats.total_booyahs}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Tournaments</p>
-                    <p className="text-lg md:text-xl font-semibold">0</p>
+                    <p className="text-lg md:text-xl font-semibold">
+                      {user?.stats.total_tournaments_played}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Scrims</p>
-                    <p className="text-lg md:text-xl font-semibold">0</p>
+                    <p className="text-lg md:text-xl font-semibold">
+                      {user?.stats.total_scrims_played}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">

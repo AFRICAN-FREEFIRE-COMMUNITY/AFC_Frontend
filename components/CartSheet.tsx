@@ -26,37 +26,24 @@ import { toast } from "sonner";
 import { IconCreditCard, IconTrash } from "@tabler/icons-react";
 
 export function CartSheet() {
-  const { isCartOpen, setIsCartOpen, clearCart, fetchCartCount, items } =
-    useCart();
+  const {
+    isCartOpen,
+    setIsCartOpen,
+    clearCart,
+    fetchCart,
+    items,
+    getSubtotal,
+    getOriginalSubtotal,
+  } = useCart();
   const { token } = useAuth();
 
-  const [cartData, setCartData] = useState<any>(null);
-
   const [isLoading, setIsLoading] = useState(false);
-
-  // Fetch Cart from Backend
-  const fetchCart = async () => {
-    if (!token) return;
-    try {
-      setIsLoading(true);
-      const res = await axios.get(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-my-cart/`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      setCartData(res.data.cart);
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Refresh cart whenever the sheet is opened
   useEffect(() => {
     if (isCartOpen) {
-      fetchCart();
+      setIsLoading(true);
+      fetchCart().finally(() => setIsLoading(false));
     }
   }, [isCartOpen]);
 
@@ -137,7 +124,7 @@ export function CartSheet() {
         </SheetHeader>
         <Separator />
 
-        {isLoading && !cartData ? (
+        {isLoading && items.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
@@ -169,6 +156,16 @@ export function CartSheet() {
                       <p className="text-xs text-primary font-medium">
                         {item.variant_title}
                       </p>
+                      {item.coupon_code && (
+                        <p className="text-xs text-green-500 font-medium mt-0.5">
+                          Coupon: {item.coupon_code}
+                          {item.coupon_discount_type === "percent"
+                            ? ` (${item.coupon_discount_value}% off)`
+                            : item.coupon_discount_value
+                              ? ` (${formatPrice(item.coupon_discount_value)} off)`
+                              : ""}
+                        </p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
@@ -213,9 +210,16 @@ export function CartSheet() {
                       </Button>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-muted-foreground line-through">
-                        {item.quantity > 1 && formatPrice(item.unit_price)}
-                      </p>
+                      {(item.coupon_code ||
+                        item.quantity > 1) &&
+                        Number(item.line_total) <
+                          Number(item.unit_price) * item.quantity && (
+                          <p className="text-xs text-muted-foreground line-through">
+                            {formatPrice(
+                              Number(item.unit_price) * item.quantity,
+                            )}
+                          </p>
+                        )}
                       <p className="font-bold text-sm">
                         {formatPrice(item.line_total)}
                       </p>
@@ -226,12 +230,25 @@ export function CartSheet() {
             </div>
 
             <div className="p-6 bg-muted/30 border-t space-y-4">
+              {getOriginalSubtotal() > getSubtotal() && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Original</span>
+                  <span className="text-muted-foreground line-through">
+                    {formatPrice(getOriginalSubtotal())}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-sm font-bold">
                 <span>Estimated Total</span>
                 <span className="text-primary">
-                  {formatPrice(cartData?.subtotal || 0)}
+                  {formatPrice(getSubtotal())}
                 </span>
               </div>
+              {getOriginalSubtotal() > getSubtotal() && (
+                <p className="text-xs text-green-500 font-medium">
+                  You save {formatPrice(getOriginalSubtotal() - getSubtotal())}!
+                </p>
+              )}
 
               <Button
                 className="w-full"

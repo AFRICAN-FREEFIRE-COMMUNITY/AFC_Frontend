@@ -67,7 +67,7 @@
 //         <div className="flex justify-between items-center mb-4">
 //           <PageHeader title={`${teamDetails.team_name} Details`} back />
 //           <BanModal
-//             isBanned={teamDetails.is_banned}
+//             is_banned={teamDetails.is_banned}
 //             teamName={teamDetails.team_name}
 //             team_id={teamDetails.team_id}
 //           />
@@ -115,7 +115,7 @@
 //                 <Separator />
 //                 <div className="flex items-center justify-start gap-2">
 //                   <p>Status:</p>
-//                   {teamDetails.isBanned ? (
+//                   {teamDetails.is_banned ? (
 //                     <Badge variant="destructive">Banned</Badge>
 //                   ) : (
 //                     <Badge variant="secondary">Active</Badge>

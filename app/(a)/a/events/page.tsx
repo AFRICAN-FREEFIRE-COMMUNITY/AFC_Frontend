@@ -12,11 +12,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { env } from "@/lib/env";
 import { formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
 import {
   IconCalendar,
   IconClock,
+  IconLockFilled,
   IconSwords,
   IconTrendingUp,
   IconTrophy,
@@ -37,6 +44,7 @@ export interface EventProp {
   event_status: string;
   slug: string;
   competition_type: string;
+  is_public: boolean;
 }
 
 const page = () => {
@@ -308,8 +316,20 @@ const page = () => {
               {filteredEvents?.length > 0 ? (
                 filteredEvents.map((event) => (
                   <TableRow key={event.event_id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium flex items-center justify-start gap-1">
                       {event.event_name}
+                      {event.is_public === false && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <IconLockFilled className="size-4" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              This is a private event
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </TableCell>
                     <TableCell className="capitalize">
                       {event.competition_type}
@@ -324,10 +344,10 @@ const page = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 justify-center">
-                        <Button asChild variant={"outline"} size="md">
+                        <Button asChild variant={"outline"} size="sm">
                           <Link href={`/a/events/${event.slug}`}>View</Link>
                         </Button>
-                        <Button asChild variant={"outline"} size="md">
+                        <Button asChild variant={"outline"} size="sm">
                           <Link href={`/a/events/${event.slug}/edit`}>
                             Edit
                           </Link>

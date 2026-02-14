@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -22,76 +21,30 @@ import {
   IconTrendingUp,
   IconCalendar,
 } from "@tabler/icons-react";
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import axios from "axios";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { Loader } from "@/components/Loader";
 
-// Mock coupon metrics
-const couponMetrics = {
-  totalCoupons: 15,
-  activeCoupons: 8,
-  totalRedemptions: 342,
-  redemptionsChange: "+12%",
-  totalSavings: 15420.5,
-  conversionRate: 24.8,
-};
+interface Coupon {
+  id: number;
+  code: string;
+  discount_type: "percent" | "fixed";
+  discount_value: string;
+  active: boolean;
+  start_at: string;
+  end_at: string;
+  min_order_amount: string;
+  max_uses: number;
+  used_count: number;
+  is_valid_now: boolean;
+}
 
-// Mock top performing coupons
-const topPerformingCoupons = [
-  {
-    id: 1,
-    code: "FREEDIAMONDS10",
-    type: "Percentage",
-    discount: "10%",
-    uses: 156,
-    redemptions: 142,
-    conversionRate: 91,
-    totalSavings: 2840.0,
-  },
-  {
-    id: 2,
-    code: "SAVE20",
-    type: "Fixed Amount",
-    discount: "$20",
-    uses: 89,
-    redemptions: 67,
-    conversionRate: 75.3,
-    totalSavings: 1340.0,
-  },
-  {
-    id: 3,
-    code: "NEWUSER15",
-    type: "Percentage",
-    discount: "15%",
-    uses: 234,
-    redemptions: 198,
-    conversionRate: 84.6,
-    totalSavings: 5940.0,
-  },
-  {
-    id: 4,
-    code: "BULK50",
-    type: "Fixed Amount",
-    discount: "$50",
-    uses: 45,
-    redemptions: 32,
-    conversionRate: 71.1,
-    totalSavings: 1600.0,
-  },
-  {
-    id: 5,
-    code: "WEEKEND25",
-    type: "Percentage",
-    discount: "25%",
-    uses: 78,
-    redemptions: 61,
-    conversionRate: 78.2,
-    totalSavings: 3050.0,
-  },
-];
-
-// Mock monthly trends
-const monthlyTrends = [
+// Mock data — replace with real endpoints later
+const mockMonthlyTrends = [
   { month: "Jan 2024", redemptions: 45, savings: 1250.0 },
   { month: "Feb 2024", redemptions: 52, savings: 1480.0 },
   { month: "Mar 2024", redemptions: 38, savings: 980.0 },
@@ -100,8 +53,7 @@ const monthlyTrends = [
   { month: "Jun 2024", redemptions: 89, savings: 2680.0 },
 ];
 
-// Mock recent activity
-const recentActivity = [
+const mockRecentActivity = [
   {
     id: 1,
     user: "john_doe",
@@ -144,8 +96,18 @@ const recentActivity = [
   },
 ];
 
+// Mock stats for endpoints not yet available
+const mockStats = {
+  totalSavings: 15420.5,
+  conversionRate: 24.8,
+  redemptionsChange: "+12%",
+};
+
 export default function CouponMetricsPage() {
+  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState("performance");
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -154,23 +116,60 @@ export default function CouponMetricsPage() {
     }).format(amount);
   };
 
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      if (!token) return;
+      try {
+        setIsLoading(true);
+        const res = await axios.get(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-all-coupons/`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        setCoupons(res.data.coupons || []);
+      } catch (error: any) {
+        toast.error(
+          error.response?.data?.message || "Failed to fetch coupons",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCoupons();
+  }, [token]);
+
+  const totalCoupons = coupons.length;
+  const activeCoupons = coupons.filter((c) => c.active).length;
+  const totalRedemptions = coupons.reduce((sum, c) => sum + c.used_count, 0);
+
+  // Sort coupons by used_count descending for the performance tab
+  const sortedCoupons = [...coupons].sort(
+    (a, b) => b.used_count - a.used_count,
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader text="Loading coupon metrics..." />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <PageHeader back title="Coupon Metrics" />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Coupons</CardTitle>
             <IconTicket className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {couponMetrics.totalCoupons}
-            </div>
+            <div className="text-2xl font-bold">{totalCoupons}</div>
             <p className="text-xs text-muted-foreground">
-              {couponMetrics.activeCoupons} active
+              {activeCoupons} active
             </p>
           </CardContent>
         </Card>
@@ -183,15 +182,14 @@ export default function CouponMetricsPage() {
             <IconReceipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {couponMetrics.totalRedemptions}
-            </div>
+            <div className="text-2xl font-bold">{totalRedemptions}</div>
             <p className="text-xs text-green-600">
-              {couponMetrics.redemptionsChange} from last month
+              {mockStats.redemptionsChange} from last month
             </p>
           </CardContent>
         </Card>
 
+        {/* Mock */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Savings</CardTitle>
@@ -199,7 +197,7 @@ export default function CouponMetricsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(couponMetrics.totalSavings)}
+              {formatCurrency(mockStats.totalSavings)}
             </div>
             <p className="text-xs text-muted-foreground">
               Customer savings generated
@@ -207,6 +205,7 @@ export default function CouponMetricsPage() {
           </CardContent>
         </Card>
 
+        {/* Mock */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -216,7 +215,7 @@ export default function CouponMetricsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {couponMetrics.conversionRate}%
+              {mockStats.conversionRate}%
             </div>
             <p className="text-xs text-muted-foreground">
               Average across all coupons
@@ -238,59 +237,91 @@ export default function CouponMetricsPage() {
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
 
+            {/* Performance — Real data */}
             <TabsContent value="performance" className="mt-6">
               <div className="mb-4">
-                <h3 className="text-lg font-semibold">
-                  Top Performing Coupons
-                </h3>
+                <h3 className="text-lg font-semibold">All Coupons</h3>
                 <p className="text-sm text-muted-foreground">
-                  Coupons ranked by redemption rate and total savings generated
+                  Coupons ranked by usage. Click a coupon to view details.
                 </p>
               </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Coupon Code</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Discount</TableHead>
-                    <TableHead>Uses</TableHead>
-                    <TableHead>Redemptions</TableHead>
-                    <TableHead>Conversion Rate</TableHead>
-                    <TableHead>Total Savings</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {topPerformingCoupons.map((coupon) => (
-                    <TableRow key={coupon.id}>
-                      <TableCell className="font-mono font-medium">
-                        {coupon.code}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{coupon.type}</Badge>
-                      </TableCell>
-                      <TableCell>{coupon.discount}</TableCell>
-                      <TableCell>{coupon.uses}</TableCell>
-                      <TableCell>{coupon.redemptions}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Progress
-                            value={coupon.conversionRate}
-                            className="w-16 h-2"
-                          />
-                          <span className="text-sm">
-                            {coupon.conversionRate}%
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {formatCurrency(coupon.totalSavings)}
-                      </TableCell>
+              {coupons.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No coupons found
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Coupon Code</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Discount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Uses</TableHead>
+                      <TableHead>Usage</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedCoupons.map((coupon) => {
+                      const usagePercent =
+                        coupon.max_uses > 0
+                          ? (coupon.used_count / coupon.max_uses) * 100
+                          : 0;
+
+                      return (
+                        <TableRow key={coupon.id} className="cursor-pointer">
+                          <TableCell>
+                            <Link
+                              href={`/a/shop/coupons/${coupon.id}`}
+                              className="font-mono font-medium text-primary hover:underline"
+                            >
+                              {coupon.code}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {coupon.discount_type === "percent"
+                                ? "Percentage"
+                                : "Fixed Amount"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {coupon.discount_type === "percent"
+                              ? `${parseFloat(coupon.discount_value)}%`
+                              : formatCurrency(
+                                  parseFloat(coupon.discount_value),
+                                )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={coupon.active ? "default" : "secondary"}
+                            >
+                              {coupon.active ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {coupon.used_count} / {coupon.max_uses}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Progress
+                                value={usagePercent}
+                                className="w-16 h-2"
+                              />
+                              <span className="text-sm">
+                                {usagePercent.toFixed(0)}%
+                              </span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </TabsContent>
 
+            {/* Trends — Mock */}
             <TabsContent value="trends" className="mt-6">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold">Monthly Trends</h3>
@@ -299,7 +330,7 @@ export default function CouponMetricsPage() {
                 </p>
               </div>
               <div className="space-y-4">
-                {monthlyTrends.map((trend) => (
+                {mockMonthlyTrends.map((trend) => (
                   <div
                     key={trend.month}
                     className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
@@ -327,6 +358,7 @@ export default function CouponMetricsPage() {
               </div>
             </TabsContent>
 
+            {/* Activity — Mock */}
             <TabsContent value="activity" className="mt-6">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold">
@@ -347,7 +379,7 @@ export default function CouponMetricsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentActivity.map((activity) => (
+                  {mockRecentActivity.map((activity) => (
                     <TableRow key={activity.id}>
                       <TableCell className="font-medium">
                         {activity.user}

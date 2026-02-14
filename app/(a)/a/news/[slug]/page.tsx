@@ -17,6 +17,7 @@ import { RenderDescription } from "@/components/text-editor/RenderDescription";
 import { DeleteNewsModal } from "../_components/DeleteNewsModal";
 import { PageHeader } from "@/components/PageHeader";
 import { DEFAULT_IMAGE } from "@/constants";
+import { ShareButton } from "@/components/ShareButton";
 
 type Params = Promise<{
   slug: string;
@@ -94,9 +95,9 @@ const page = ({ params }: { params: Params }) => {
           <Image
             src={newsDetails.images_url || DEFAULT_IMAGE}
             alt={newsDetails.nes_title}
-            width={800}
-            height={400}
-            className="w-full h-auto rounded-md mb-6"
+            width={1000}
+            height={1000}
+            className="aspect-auto size-full object-cover rounded-md mb-6"
           />
           <RenderDescription json={newsDetails?.content} />
           {newsDetails.event && (
@@ -110,6 +111,11 @@ const page = ({ params }: { params: Params }) => {
               </Link>
             </div>
           )}
+          <ShareButton
+            name={newsDetails.title}
+            url={`${env.NEXT_PUBLIC_URL}/news/${slug}`}
+            text="Share news"
+          />
         </div>
       </div>
     );

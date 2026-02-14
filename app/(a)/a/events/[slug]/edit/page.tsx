@@ -157,6 +157,7 @@ const EventFormSchema = z
     competition_type: z.string().min(1, "Competition type required"),
     participant_type: z.string().min(1, "Participant type required"),
     event_type: z.string().min(1, "Event type required"),
+    is_public: z.string().default("True"),
     max_teams_or_players: z.coerce
       .number()
       .min(1, "Max teams/players required"),
@@ -217,6 +218,7 @@ interface EventDetails {
   competition_type: string;
   participant_type: string;
   event_type: string;
+  is_public: string;
   max_teams_or_players: number;
   event_name: string;
   event_mode: string;
@@ -664,6 +666,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       competition_type: "",
       participant_type: "",
       event_type: "",
+      is_public: "True",
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -809,6 +812,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         competition_type: eventDetails.competition_type,
         participant_type: eventDetails.participant_type,
         event_type: eventDetails.event_type,
+        is_public: eventDetails.is_public || "True",
         max_teams_or_players: eventDetails.max_teams_or_players,
         stream_channels: eventDetails.stream_channels || [],
         event_mode: eventDetails.event_mode,
@@ -856,6 +860,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         errors.competition_type ||
         errors.participant_type ||
         errors.event_type ||
+        errors.is_public ||
         errors.max_teams_or_players ||
         errors.event_mode ||
         errors.start_date ||
@@ -1468,6 +1473,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("competition_type", data.competition_type);
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
+        formData.append("is_public", data.is_public);
         formData.append(
           "max_teams_or_players",
           data.max_teams_or_players.toString(),
@@ -1716,18 +1722,18 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   <CardTitle>Event Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="event_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Event Name</FormLabel>
-                          <Input {...field} />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name="event_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Event Name</FormLabel>
+                        <Input {...field} />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="max_teams_or_players"
@@ -1755,9 +1761,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="competition_type"
@@ -1858,6 +1862,31 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               <SelectItem value="external">
                                 External event
                               </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="is_public"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Event Privacy</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={"True"}>Public</SelectItem>
+                              <SelectItem value={"False"}>Private</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />

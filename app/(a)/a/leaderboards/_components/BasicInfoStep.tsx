@@ -34,6 +34,7 @@ export function BasicInfoStep({ onNext, onBack, updateData }: any) {
   const [leaderboardName, setLeaderboardName] = useState("");
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
   useEffect(() => {
     fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`)
@@ -48,7 +49,10 @@ export function BasicInfoStep({ onNext, onBack, updateData }: any) {
     setSelectedEventId(eventId);
     setLoadingDetails(true);
     const event = events.find((e) => e.event_id.toString() === eventId);
-    if (event) setLeaderboardName(event.event_name);
+    if (event) {
+      setSelectedEvent(event);
+      setLeaderboardName(event.event_name);
+    }
 
     const res = await fetch(
       `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
@@ -75,6 +79,7 @@ export function BasicInfoStep({ onNext, onBack, updateData }: any) {
   const handleContinue = () => {
     updateData({
       event_id: selectedEventId,
+      event_slug: selectedEvent?.slug || "",
       stage_id: selectedStageId,
       group_id: selectedGroupId,
     });

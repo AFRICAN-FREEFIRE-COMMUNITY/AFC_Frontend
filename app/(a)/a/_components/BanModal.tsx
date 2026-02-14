@@ -74,12 +74,12 @@ const quickReasons = [
 ];
 
 export const BanModal = ({
-  isBanned,
+  is_banned,
   teamName,
   team_id,
   onSuccess,
 }: {
-  isBanned: boolean;
+  is_banned: boolean;
   teamName: string;
   team_id: string;
   onSuccess?: () => void;
@@ -87,7 +87,7 @@ export const BanModal = ({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [durationMode, setDurationMode] = useState<"preset" | "custom">(
-    "preset"
+    "preset",
   );
   const { token } = useAuth();
 
@@ -126,7 +126,7 @@ export const BanModal = ({
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         toast.success(res.data.message || "Team banned successfully");
@@ -149,7 +149,7 @@ export const BanModal = ({
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         toast.success(res.data.message || "Team unbanned successfully");
@@ -165,15 +165,15 @@ export const BanModal = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          variant={isBanned ? "outline" : "destructive"}
+          variant={is_banned ? "outline" : "destructive"}
           size="sm"
           className={cn(
             "gap-2 font-medium",
-            isBanned &&
-              "border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700"
+            is_banned &&
+              "border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700",
           )}
         >
-          {isBanned ? (
+          {is_banned ? (
             <>
               <ShieldCheck className="h-4 w-4" />
               Unban
@@ -188,7 +188,7 @@ export const BanModal = ({
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden flex flex-col max-h-[90vh]">
-        {isBanned ? (
+        {is_banned ? (
           // UNBAN CONFIRMATION
           <div className="p-6 text-center">
             <div className="h-14 w-14 mx-auto mb-3 rounded-full bg-green-100 flex items-center justify-center">
@@ -312,7 +312,7 @@ export const BanModal = ({
                             "flex justify-start md:justify-center text-left md:text-center items-center gap-2 border p-3 rounded-md text-sm",
                             selected
                               ? "border-red-500 bg-red-50 text-red-700"
-                              : "hover:bg-red-50/60"
+                              : "hover:bg-red-50/60",
                           )}
                         >
                           <Icon
@@ -320,7 +320,7 @@ export const BanModal = ({
                               "h-4 w-4",
                               selected
                                 ? "text-red-500"
-                                : "text-muted-foreground"
+                                : "text-muted-foreground",
                             )}
                           />
                           {r.label}

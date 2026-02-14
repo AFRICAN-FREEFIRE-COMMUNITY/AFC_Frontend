@@ -38,7 +38,7 @@ const page = () => {
     startTransition(async () => {
       try {
         const res = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`,
         );
 
         if (res.statusText === "OK") {
@@ -56,7 +56,7 @@ const page = () => {
     startTransition(async () => {
       try {
         const res = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`,
         );
 
         if (res.statusText === "OK") {
@@ -162,7 +162,7 @@ const page = () => {
                           <Link href={`/a/teams/${team.team_name}`}>View</Link>
                         </Button>
                         <BanModal
-                          isBanned={team.is_banned}
+                          is_banned={team.is_banned}
                           teamName={team.team_name}
                           team_id={team.team_id}
                           onSuccess={fetchTeams}

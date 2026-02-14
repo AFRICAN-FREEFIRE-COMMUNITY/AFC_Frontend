@@ -27,8 +27,20 @@ import {
   extractTiptapText,
   truncateText,
 } from "@/components/text-editor/RenderDescription";
-import { IconCalendar, IconCirclePlus } from "@tabler/icons-react";
+import {
+  IconCalendar,
+  IconCirclePlus,
+  IconEye,
+  IconPencil,
+  IconShare,
+} from "@tabler/icons-react";
 import { DEFAULT_IMAGE } from "@/constants";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const page = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -139,6 +151,16 @@ const page = () => {
     setDateFilter("");
     setFilterCategory("all");
     setFilterStatus("all");
+  };
+
+  const handleCopyLink = async (slug: string) => {
+    try {
+      const url = `${env.NEXT_PUBLIC_URL}/news/${slug}`;
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard!");
+    } catch (error) {
+      toast.error("Failed to copy link");
+    }
   };
 
   if (pending) return <FullLoader />;
@@ -338,23 +360,40 @@ const page = () => {
                   {truncateText(extractTiptapText(newsDetails.content), 150)}
                 </p>
                 <div className="mt-auto flex space-x-2">
-                  <Button variant="outline" className="flex-1" asChild>
+                  <Button className="flex-auto" variant="outline" asChild>
                     <Link href={`/a/news/${newsDetails.slug}`}>
-                      <Eye className="h-4 w-4 mr-1" />
+                      <IconEye />
                       View
                     </Link>
                   </Button>
-                  <Button variant="outline" className="flex-1" asChild>
+                  <Button className="flex-auto" variant="outline" asChild>
                     <Link href={`/a/news/${newsDetails.slug}/edit`}>
-                      <Pencil className="h-4 w-4 mr-1" />
+                      <IconPencil />
                       Edit
                     </Link>
                   </Button>
+
                   <DeleteNewsModal
+                    isIcon={true}
                     newsId={newsDetails.news_id}
                     newsTitle={newsDetails.news_title}
                     onSuccess={fetchNews}
                   />
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className="icon"
+                          variant="secondary"
+                          onClick={() => handleCopyLink(newsDetails.slug)}
+                        >
+                          <IconShare />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Copy link</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </CardContent>
             </Card>

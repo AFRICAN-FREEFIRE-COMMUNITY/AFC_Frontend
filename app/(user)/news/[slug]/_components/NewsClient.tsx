@@ -1,22 +1,235 @@
+// "use client";
+// import { use, useEffect, useState } from "react";
+// import { Button } from "@/components/ui/button";
+// import { FullLoader } from "@/components/Loader";
+// import { toast } from "sonner";
+// import axios from "axios";
+// import { env } from "@/lib/env";
+// import { cn, formatDate } from "@/lib/utils";
+// import { Badge } from "@/components/ui/badge";
+// import Image from "next/image";
+// import { RenderDescription } from "@/components/text-editor/RenderDescription";
+// import { ExternalLink } from "lucide-react";
+// import { PageHeader } from "@/components/PageHeader";
+// import { notFound } from "next/navigation";
+// import { DEFAULT_IMAGE } from "@/constants";
+// import { Separator } from "@/components/ui/separator";
+// import { IconThumbDown, IconThumbUp } from "@tabler/icons-react";
+// import { useAuth } from "@/contexts/AuthContext";
+
+// export function NewsClient({
+//   params,
+//   initialData,
+// }: {
+//   params: Promise<{ slug: string }>;
+//   initialData?: any;
+// }) {
+//   const { token } = useAuth();
+//   const { slug } = use(params);
+
+//   const [loading, setLoading] = useState(!initialData);
+//   const [newsDetails, setNewsDetails] = useState<any>(initialData);
+//   const [isActionLoading, setIsActionLoading] = useState(false);
+
+//   useEffect(() => {
+//     // We always want to fetch fresh counts even if we have initialData
+//     const fetchNewsAndCounts = async () => {
+//       try {
+//         let currentNews = newsDetails;
+
+//         // 1. Fetch details if not provided via initialData
+//         if (!initialData) {
+//           const res = await axios.post(
+//             `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
+//             { slug },
+//           );
+//           currentNews = res.data.news;
+//         }
+
+//         // 2. Fetch fresh Like/Dislike counts
+//         // Standardizing on 'id' or 'news_id' based on your backend structure
+//         const targetId = currentNews.id || currentNews.news_id;
+
+//         const countRes = await axios.post(
+//           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-likes-dislikes-count/`,
+//           { news_id: targetId },
+//         );
+
+//         setNewsDetails({
+//           ...currentNews,
+//           likes_count: countRes.data.likes,
+//           dislikes_count: countRes.data.dislikes,
+//         });
+//       } catch (error: any) {
+//         console.error("Fetch Error:", error);
+//         toast.error("Failed to sync news data");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     if (slug) fetchNewsAndCounts();
+//   }, [slug, initialData, token, setNewsDetails]);
+
+//   const handleVote = async (actionType: "like" | "dislike") => {
+//     if (!token) {
+//       return toast.error("Please login to vote");
+//     }
+//     if (isActionLoading) return;
+
+//     const isLiked = newsDetails.is_liked;
+//     const isDisliked = newsDetails.is_disliked;
+//     const targetId = newsDetails.id || newsDetails.news_id;
+
+//     let endpoint = "";
+//     if (actionType === "like") {
+//       endpoint = isLiked ? "unlike-news" : "like-news";
+//     } else {
+//       endpoint = isDisliked ? "undislike-news" : "dislike-news";
+//     }
+
+//     setIsActionLoading(true);
+
+//     try {
+//       // 1. Perform Action
+//       await axios.post(
+//         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/${endpoint}/`,
+//         { news_id: targetId },
+//         { headers: { Authorization: `Bearer ${token}` } },
+//       );
+
+//       // 2. Fetch Fresh Counts
+//       const countRes = await axios.post(
+//         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-likes-dislikes-count/`,
+//         { news_id: targetId },
+//       );
+
+//       // 3. Update State
+//       setNewsDetails((prev: any) => ({
+//         ...prev,
+//         likes_count: countRes.data.likes,
+//         dislikes_count: countRes.data.dislikes,
+//         is_liked: actionType === "like" ? !isLiked : false,
+//         is_disliked: actionType === "dislike" ? !isDisliked : false,
+//       }));
+
+//       toast.success(isLiked || isDisliked ? "Vote removed" : "Vote recorded");
+//     } catch (error: any) {
+//       toast.error(error?.response?.data?.message || "Action failed");
+//     } finally {
+//       setIsActionLoading(false);
+//     }
+//   };
+
+//   if (loading) return <FullLoader />;
+//   if (!newsDetails) notFound();
+
+//   return (
+//     <div>
+//       <PageHeader
+//         description={
+//           <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-2">
+//             <span>{formatDate(newsDetails.created_at)}</span>
+//             <span>•</span>
+//             <Badge variant="secondary" className="capitalize">
+//               {newsDetails.category}
+//             </Badge>
+//           </div>
+//         }
+//         title={`${newsDetails.news_title} Details`}
+//         back
+//       />
+
+//       <div className="space-y-6">
+//         <Image
+//           src={newsDetails.images_url || DEFAULT_IMAGE}
+//           alt={newsDetails.news_title}
+//           width={800}
+//           height={400}
+//           className="aspect-video w-full object-cover rounded-md"
+//         />
+
+//         <RenderDescription json={newsDetails?.content} />
+
+//         {newsDetails.category === "tournament" &&
+//           newsDetails.registrationLink && (
+//             <Button asChild>
+//               <a
+//                 href={newsDetails.registrationLink}
+//                 target="_blank"
+//                 rel="noopener noreferrer"
+//               >
+//                 Register for Tournament{" "}
+//                 <ExternalLink className="ml-2 h-4 w-4" />
+//               </a>
+//             </Button>
+//           )}
+
+//         <Separator />
+
+//         <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-2">
+//           <p className="text-muted-foreground text-sm font-medium">
+//             Was this helpful?
+//           </p>
+//           <div className="flex items-center gap-3">
+//             <Button
+//               size="sm"
+//               variant={newsDetails.is_liked ? "default" : "secondary"}
+//               onClick={() => handleVote("like")}
+//               disabled={isActionLoading}
+//               className={cn("gap-2 transition-all active:scale-95")}
+//             >
+//               <IconThumbUp
+//                 size={18}
+//                 className={
+//                   newsDetails.is_liked ? "fill-primary-foreground" : ""
+//                 }
+//               />
+//               <span className="font-bold">{newsDetails.likes_count ?? 0}</span>
+//             </Button>
+
+//             <Button
+//               size="sm"
+//               variant={newsDetails.is_disliked ? "default" : "secondary"}
+//               onClick={() => handleVote("dislike")}
+//               disabled={isActionLoading}
+//               className="gap-2 transition-all active:scale-95"
+//             >
+//               <IconThumbDown
+//                 size={18}
+//                 className={
+//                   newsDetails.is_disliked ? "fill-primary-foreground" : ""
+//                 }
+//               />
+//               <span className="font-bold">
+//                 {newsDetails.dislikes_count ?? 0}
+//               </span>
+//             </Button>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
 "use client";
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FullLoader } from "@/components/Loader";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
 import axios from "axios";
 import { env } from "@/lib/env";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { RenderDescription } from "@/components/text-editor/RenderDescription";
 import { ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DEFAULT_IMAGE } from "@/constants";
+import { Separator } from "@/components/ui/separator";
+import { IconThumbDown, IconThumbUp } from "@tabler/icons-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function NewsClient({
   params,
@@ -25,106 +238,139 @@ export function NewsClient({
   params: Promise<{ slug: string }>;
   initialData?: any;
 }) {
+  const { token } = useAuth();
   const { slug } = use(params);
 
   const [loading, setLoading] = useState(!initialData);
   const [newsDetails, setNewsDetails] = useState<any>(initialData);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
-    // If we already have initialData from the server, we don't need to fetch again
-    if (initialData || !slug) return;
-
-    const fetchNews = async () => {
+    // We always want to fetch fresh counts even if we have initialData
+    const fetchNewsAndCounts = async () => {
       try {
-        const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
-          { slug },
+        let currentNews = newsDetails;
+
+        // 1. Fetch details if not provided via initialData
+        if (!initialData) {
+          const res = await axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
+            { slug },
+          );
+          currentNews = res.data.news;
+        }
+
+        // 2. Fetch fresh Like/Dislike counts
+        const targetId = currentNews.id || currentNews.news_id;
+
+        const countRes = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-likes-dislikes-count/`,
+          { news_id: targetId, session_token: token },
         );
-        setNewsDetails(res.data.news);
+
+        setNewsDetails({
+          ...currentNews,
+          likes_count: countRes.data.likes,
+          dislikes_count: countRes.data.dislikes,
+          is_liked_by_user: countRes.data.is_liked_by_user,
+          is_disliked_by_user: countRes.data.is_disliked_by_user,
+        });
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Failed to load news");
+        console.error("Fetch Error:", error);
+        toast.error("Failed to sync news data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchNews();
-  }, [slug, initialData]);
+    if (slug) fetchNewsAndCounts();
+  }, [slug, initialData, token]);
+
+  console.log(newsDetails.is_disliked_by_user);
+
+  const handleVote = async (actionType: "like" | "dislike") => {
+    if (!token) {
+      return toast.error("Please login to vote");
+    }
+    if (isActionLoading) return;
+
+    const isLiked = newsDetails.is_liked_by_user;
+    const isDisliked = newsDetails.is_disliked_by_user;
+    const targetId = newsDetails.id || newsDetails.news_id;
+
+    let endpoint = "";
+    if (actionType === "like") {
+      endpoint = isLiked ? "unlike-news" : "like-news";
+    } else {
+      endpoint = isDisliked ? "undislike-news" : "dislike-news";
+    }
+
+    setIsActionLoading(true);
+
+    try {
+      // 1. Perform Action
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/${endpoint}/`,
+        { news_id: targetId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      // 2. Fetch Fresh Counts
+      const countRes = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-likes-dislikes-count/`,
+        { news_id: targetId, session_token: token },
+      );
+
+      // 3. Update State
+      setNewsDetails((prev: any) => ({
+        ...prev,
+        likes_count: countRes.data.likes,
+        dislikes_count: countRes.data.dislikes,
+        is_liked_by_user: countRes.data.is_liked_by_user,
+        is_disliked_by_user: countRes.data.is_disliked_by_user,
+      }));
+
+      // toast.success(isLiked || isDisliked ? "Vote removed" : "Vote recorded");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Action failed");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
 
   if (loading) return <FullLoader />;
-
   if (!newsDetails) notFound();
 
   return (
-    <div className="">
+    <div>
       <PageHeader
         description={
-          <>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-2">
-              {/* <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={newsDetails.author.picture}
-                  alt={newsDetails.author}
-                />
-                <AvatarFallback>{newsDetails.author}</AvatarFallback>
-              </Avatar> */}
-              {/* <span>{newsDetails.author}</span> */}
-              {/* <span>•</span> */}
-              <span>{formatDate(newsDetails.created_at)}</span>
-              <span>•</span>
-              <Badge variant="secondary" className="capitalize">
-                {newsDetails.category}
-              </Badge>
-            </div>
-          </>
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-2">
+            <span>{formatDate(newsDetails.created_at)}</span>
+            <span>•</span>
+            <Badge variant="secondary" className="capitalize">
+              {newsDetails.category}
+            </Badge>
+          </div>
         }
         title={`${newsDetails.news_title} Details`}
         back
       />
-      <div>
+
+      <div className="space-y-6">
         <Image
           src={newsDetails.images_url || DEFAULT_IMAGE}
           alt={newsDetails.news_title}
           width={800}
           height={400}
-          className="w-full h-auto rounded-md mb-6"
+          className="aspect-video w-full object-cover rounded-md"
         />
-        {/* <div
-              className="prose max-w-none mb-6"
-              dangerouslySetInnerHTML={{ __html: newsDetails.content }}
-            /> */}
-        {/* {extractTiptapText(newsDetails.content)} */}
+
         <RenderDescription json={newsDetails?.content} />
-        {newsDetails.category === "tournament" && (
-          <Card className="my-6">
-            <CardHeader>
-              <CardTitle>Tournament Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <dt className="font-semibold">Tournament Name</dt>
-                  <dd>{newsDetails.tournamentName}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Format</dt>
-                  <dd>{newsDetails.format}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Prize Pool</dt>
-                  <dd>{newsDetails.prizePool}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Location</dt>
-                  <dd>{newsDetails.location}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-        )}
+
         {newsDetails.category === "tournament" &&
           newsDetails.registrationLink && (
-            <Button asChild className="mt-4">
+            <Button asChild>
               <a
                 href={newsDetails.registrationLink}
                 target="_blank"
@@ -135,6 +381,53 @@ export function NewsClient({
               </a>
             </Button>
           )}
+
+        <Separator />
+
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-2">
+          <p className="text-muted-foreground text-sm font-medium">
+            Was this helpful?
+          </p>
+          <div className="flex items-center gap-3">
+            <Button
+              size="sm"
+              variant={newsDetails.is_liked_by_user ? "default" : "secondary"}
+              onClick={() => handleVote("like")}
+              disabled={isActionLoading}
+              className={cn("gap-2 transition-all active:scale-95")}
+            >
+              <IconThumbUp
+                size={18}
+                className={
+                  newsDetails.is_liked_by_user ? "fill-primary-foreground" : ""
+                }
+              />
+              <span className="font-bold">{newsDetails.likes_count ?? 0}</span>
+            </Button>
+
+            <Button
+              size="sm"
+              variant={
+                newsDetails.is_disliked_by_user ? "default" : "secondary"
+              }
+              onClick={() => handleVote("dislike")}
+              disabled={isActionLoading}
+              className="gap-2 transition-all active:scale-95"
+            >
+              <IconThumbDown
+                size={18}
+                className={
+                  newsDetails.is_disliked_by_user
+                    ? "fill-primary-foreground"
+                    : ""
+                }
+              />
+              <span className="font-bold">
+                {newsDetails.dislikes_count ?? 0}
+              </span>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

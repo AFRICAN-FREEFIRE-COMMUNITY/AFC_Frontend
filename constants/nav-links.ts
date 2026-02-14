@@ -42,6 +42,12 @@ export const homeNavLinksMobile = [
     icon: IconChartBarPopular,
     comingSoon: true,
   },
+  {
+    slug: "/player-markets",
+    label: "Player Markets",
+    icon: IconUsers,
+    comingSoon: true,
+  },
   { slug: "/news", label: "News & Updates", icon: IconArticle },
   {
     slug: "/rules",
@@ -104,6 +110,11 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconUsers,
     comingSoon: true,
     allowedRoles: ["head_admin"],
+  },
+  {
+    slug: "/a/player-markets",
+    label: "Player Markets",
+    icon: IconUsers,
   },
   {
     label: "Admin Teams",

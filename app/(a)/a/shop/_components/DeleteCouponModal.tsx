@@ -17,39 +17,32 @@ import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/Loader";
 import { Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
-export const DeleteNewsModal = ({
-  newsId,
-  newsTitle,
+export const DeleteCouponModal = ({
+  couponId,
+  couponCode,
+  open,
+  onOpenChange,
   onSuccess,
-  redirectTo,
-  showLabel = false,
-  isIcon,
 }: {
-  newsId: string;
-  newsTitle: string;
+  couponId: string;
+  couponCode: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
-  redirectTo?: string;
-  showLabel?: boolean;
-  isIcon?: boolean;
 }) => {
-  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const { token } = useAuth();
   const router = useRouter();
+
+  console.log(couponId);
 
   const handleDelete = () => {
     startTransition(async () => {
       try {
         const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/delete-news/`,
-          { news_id: newsId },
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/delete-coupon/`,
+          { coupon_id: couponId },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -57,46 +50,36 @@ export const DeleteNewsModal = ({
           },
         );
 
-        toast.success(res.data.message || "News deleted successfully");
-        setOpen(false);
-
-        if (redirectTo) {
-          router.push(redirectTo);
-        } else {
-          onSuccess?.();
-        }
+        toast.success(res.data.message || "Coupon deleted successfully");
+        onSuccess?.(); // This closes the modal and refreshes data        onSuccess?.();
       } catch (e: any) {
-        toast.error(e.response?.data?.message || "Failed to delete news");
+        toast.error(e.response?.data?.message || "Failed to delete coupon");
       }
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {" "}
       <DialogTrigger asChild>
-        <Button
-          variant="destructive"
-          className={cn("h-full", !isIcon && "flex-1", showLabel ? "" : "px-8")}
-          size={isIcon ? "icon" : "default"}
-        >
-          <Trash2 />
-          {showLabel && <>Delete</>}
+        <Button variant="destructive" className={cn("w-full md:w-auto")}>
+          <Trash2 className="h-4 w-4" />
+          Delete
         </Button>
       </DialogTrigger>
-
       <DialogContent className="sm:max-w-[400px]">
         <div className="text-center">
           <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
             <AlertTriangle className="h-7 w-7 text-red-600" />
           </div>
 
-          <DialogTitle className="text-xl">Delete News</DialogTitle>
+          <DialogTitle className="text-xl">Delete coupon</DialogTitle>
           <DialogDescription className="mt-2 text-base">
-            Are you sure you want to delete <b>"{newsTitle}"</b>?
+            Are you sure you want to delete <b>"{couponCode}"</b>?
           </DialogDescription>
 
           <p className="text-sm text-muted-foreground mt-4">
-            This action cannot be undone. The news article will be permanently
+            This action cannot be undone. The coupon will be permanently
             removed.
           </p>
 
@@ -105,7 +88,7 @@ export const DeleteNewsModal = ({
               variant="outline"
               className="flex-1"
               disabled={pending}
-              onClick={() => setOpen(false)}
+              onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>

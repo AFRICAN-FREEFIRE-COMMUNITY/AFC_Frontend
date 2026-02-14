@@ -500,7 +500,7 @@ const Page = ({ params }: { params: Params }) => {
         >
           <IconArrowLeft />
         </Button>
-        <Card className={teamDetails.isBanned ? "border-red-500" : ""}>
+        <Card className={teamDetails.is_banned ? "border-red-500" : ""}>
           <CardHeader>
             <div className="flex flex-col md:flex-row items-start gap-4 md:gap-0 md:items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -1296,7 +1296,7 @@ const Page = ({ params }: { params: Params }) => {
                 <CardContent>
                   <div className="space-y-4">
                     <BanModal
-                      isBanned={teamDetails?.is_banned ?? false}
+                      is_banned={teamDetails?.is_banned ?? false}
                       teamName={teamDetails?.team_name ?? "Team"}
                       team_id={teamDetails?.team_id ?? ""}
                       onSuccess={() => {

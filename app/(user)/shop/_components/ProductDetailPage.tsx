@@ -56,6 +56,60 @@ export default function ProductDetailPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
+  // ... existing state
+  const [couponCode, setCouponCode] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    type: "percent" | "fixed";
+    value: number;
+  } | null>(null);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+
+    try {
+      setIsApplyingCoupon(true);
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-coupon-details-with-code/`,
+        { coupon_code: couponCode },
+        {
+          headers: { Authorization: `Bearer ${token}` }, // Added token if required
+        },
+      );
+
+      const details = res.data.coupon_details;
+
+      if (details.is_active) {
+        setAppliedCoupon({
+          code: details.code,
+          type: details.discount_type,
+          value: parseFloat(details.discount_value),
+        });
+        toast.success("Coupon applied successfully!");
+      } else {
+        toast.error("This coupon is no longer active.");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Invalid coupon code");
+      setAppliedCoupon(null);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  // Calculate final price based on coupon
+  const finalSubtotal = useMemo(() => {
+    const base = parseFloat(selectedVariant?.price || "0") * quantity;
+    if (!appliedCoupon) return base;
+
+    if (appliedCoupon.type === "percent") {
+      return base * (1 - appliedCoupon.value / 100);
+    } else {
+      return Math.max(0, base - appliedCoupon.value);
+    }
+  }, [selectedVariant, quantity, appliedCoupon]);
+
   // 1. Fetch Product Details
   useEffect(() => {
     const fetchDetails = async () => {
@@ -94,6 +148,7 @@ export default function ProductDetailPage() {
         {
           variant_id: selectedVariant.id,
           quantity: quantity,
+          coupon_code: couponCode,
         },
         {
           headers: {
@@ -240,12 +295,57 @@ export default function ProductDetailPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Subtotal</p>
+                    {appliedCoupon && (
+                      <p className="text-xs text-muted-foreground line-through">
+                        {formatPrice(
+                          parseFloat(selectedVariant.price) * quantity,
+                        )}
+                      </p>
+                    )}
                     <p className="text-2xl font-bold text-primary">
-                      {formatPrice(
-                        parseFloat(selectedVariant.price) * quantity,
-                      )}
+                      {formatPrice(finalSubtotal)}
                     </p>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="coupon"
+                    className="text-xs uppercase text-muted-foreground"
+                  >
+                    Have a promo code?
+                  </Label>
+                  <div className="flex gap-1">
+                    <Input
+                      id="coupon"
+                      placeholder="Enter code"
+                      value={couponCode}
+                      onChange={(e) =>
+                        setCouponCode(e.target.value.toUpperCase())
+                      }
+                      className="uppercase h-12"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={handleApplyCoupon}
+                      disabled={isApplyingCoupon || !couponCode}
+                    >
+                      {isApplyingCoupon ? (
+                        <Loader text="Applying..." />
+                      ) : (
+                        "Apply"
+                      )}
+                    </Button>
+                  </div>
+                  {appliedCoupon && (
+                    <p className="text-xs text-green-500 font-medium flex items-center gap-1">
+                      ✓ Coupon {appliedCoupon.code} applied! (
+                      {appliedCoupon.type === "percent"
+                        ? `${appliedCoupon.value}%`
+                        : formatPrice(appliedCoupon.value)}{" "}
+                      off)
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex gap-2">
@@ -262,18 +362,6 @@ export default function ProductDetailPage() {
                         Add to Cart
                       </>
                     )}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="flex-1"
-                    onClick={() => {
-                      handleAddToCart();
-                      router.push("/shop/cart");
-                    }}
-                    // disabled={!selectedVariant.in_stock}
-                    disabled
-                  >
-                    Buy Now
                   </Button>
                 </div>
               </CardContent>

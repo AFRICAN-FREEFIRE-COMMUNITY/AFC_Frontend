@@ -520,6 +520,18 @@ export const CreateCouponSchema = z.object({
   max_uses: z.coerce.number().min(1, "Must allow at least 1 use"),
   start_at: z.string().min(1, "Start date is required"),
   end_at: z.string().min(1, "Expiry date is required"),
+  description: z.string().optional(),
+});
+
+export const EditCouponSchema = z.object({
+  code: z.string().min(3, "Code must be at least 3 characters").toUpperCase(),
+  discount_type: z.enum(["percent", "fixed"]),
+  discount_value: z.coerce.number().min(1, "Value must be greater than 0"),
+  active: z.boolean().default(true),
+  min_order_amount: z.coerce.number().min(0).default(0),
+  max_uses: z.coerce.number().min(1, "Must allow at least 1 use"),
+  end_at: z.string().min(1, "Expiry date is required"),
+  description: z.string().optional(),
 });
 
 export const ShopCustomerDetailsSchema = z.object({
@@ -539,6 +551,7 @@ export type ShopCustomerDetailsSchemaType = z.infer<
   typeof ShopCustomerDetailsSchema
 >;
 export type CreateCouponSchemaType = z.infer<typeof CreateCouponSchema>;
+export type EditCouponSchemaType = z.infer<typeof EditCouponSchema>;
 
 export type TournamentFormData = z.infer<typeof tournamentSchema>;
 export type EditMatchFormSchemaType = z.infer<typeof EditMatchFormSchema>;

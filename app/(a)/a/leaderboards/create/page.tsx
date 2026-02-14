@@ -126,6 +126,7 @@ export default function CreateLeaderboardPage() {
     event_id: "",
     stage_id: "",
     group_id: "",
+    event_slug: "",
     leaderboard_method: "" as Method,
     file_type: "match_result_file",
     placement_points: {} as Record<string, number>,
@@ -133,6 +134,8 @@ export default function CreateLeaderboardPage() {
     selected_teams: [] as any[],
     map_data: [] as any[],
   });
+
+  console.log(formData);
 
   const isManualFlow = formData.leaderboard_method === "manual";
   const totalSteps = isManualFlow ? 8 : 5;
@@ -228,7 +231,7 @@ export default function CreateLeaderboardPage() {
                 onNext={nextStep}
                 onBack={prevStep}
                 updateData={updateFormData}
-                groupId={formData.group_id}
+                eventSlug={formData.event_slug}
               />
             )}
 

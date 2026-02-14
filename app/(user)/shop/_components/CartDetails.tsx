@@ -72,8 +72,15 @@ const faqs = [
 
 export default function CartDetails() {
   const router = useRouter();
-  const { items, removeItem, getSubtotal, getTax, getTotal, clearCart } =
-    useCart();
+  const {
+    items,
+    removeItem,
+    getSubtotal,
+    getOriginalSubtotal,
+    getTax,
+    getTotal,
+    clearCart,
+  } = useCart();
   const { token } = useAuth();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -131,6 +138,7 @@ export default function CartDetails() {
       const formattedItems = items.map((item) => ({
         variant_id: item.variant_id,
         quantity: item.quantity,
+        coupon_code: item.coupon_code || "",
       }));
 
       // Prepare the order data according to API format
@@ -254,9 +262,24 @@ export default function CartDetails() {
                   <p className="text-sm text-muted-foreground">
                     Qty: {item.quantity}
                   </p>
+                  {item.coupon_code && (
+                    <p className="text-xs text-green-500 font-medium mt-0.5">
+                      Coupon: {item.coupon_code}
+                    </p>
+                  )}
                 </div>
 
                 <div className="text-right">
+                  {item.coupon_code &&
+                    Number(item.line_total) <
+                      Number(item.unit_price) * item.quantity && (
+                      <p className="text-xs text-muted-foreground line-through">
+                        ₦
+                        {formatMoneyInput(
+                          Number(item.unit_price) * item.quantity,
+                        )}
+                      </p>
+                    )}
                   <p className="font-bold">
                     ₦{formatMoneyInput(item.line_total)}
                   </p>
@@ -469,8 +492,23 @@ export default function CartDetails() {
                   <p className="text-xs text-muted-foreground">
                     Quantity: {item.quantity}
                   </p>
+                  {item.coupon_code && (
+                    <p className="text-xs text-green-500 font-medium mt-0.5">
+                      Coupon: {item.coupon_code}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
+                  {item.coupon_code &&
+                    Number(item.line_total) <
+                      Number(item.unit_price) * item.quantity && (
+                      <p className="text-xs text-muted-foreground line-through">
+                        ₦
+                        {formatMoneyInput(
+                          Number(item.unit_price) * item.quantity,
+                        )}
+                      </p>
+                    )}
                   <p className="font-semibold">
                     ₦{formatMoneyInput(item.line_total)}
                   </p>
@@ -520,10 +558,29 @@ export default function CartDetails() {
         <div>
           <h3 className="font-medium text-sm mb-3">Order Summary</h3>
           <div className="space-y-3 text-sm">
+            {getOriginalSubtotal() > getSubtotal() && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  Original Subtotal:
+                </span>
+                <span className="line-through text-muted-foreground">
+                  ₦{formatMoneyInput(getOriginalSubtotal())}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal:</span>
               <span>₦{formatMoneyInput(getSubtotal())}</span>
             </div>
+            {getOriginalSubtotal() > getSubtotal() && (
+              <div className="flex justify-between text-green-500">
+                <span>Discount:</span>
+                <span>
+                  -₦
+                  {formatMoneyInput(getOriginalSubtotal() - getSubtotal())}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Tax (7.5%):</span>
               <span>₦{formatMoneyInput(getTax())}</span>
@@ -575,23 +632,58 @@ export default function CartDetails() {
             <CardContent>
               <div className="space-y-2">
                 {items.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span>
-                      {item.quantity} × {item.product_name}
-                    </span>
-                    <span>
-                      ₦
-                      {formatMoneyInput(
-                        Number(item.unit_price) * item.quantity,
-                      )}
-                    </span>
+                  <div key={item.id} className="text-sm">
+                    <div className="flex justify-between">
+                      <span>
+                        {item.quantity} × {item.product_name}
+                      </span>
+                      <div className="text-right">
+                        {item.coupon_code &&
+                          Number(item.line_total) <
+                            Number(item.unit_price) * item.quantity && (
+                            <span className="text-xs text-muted-foreground line-through mr-1">
+                              ₦
+                              {formatMoneyInput(
+                                Number(item.unit_price) * item.quantity,
+                              )}
+                            </span>
+                          )}
+                        <span>₦{formatMoneyInput(item.line_total)}</span>
+                      </div>
+                    </div>
+                    {item.coupon_code && (
+                      <p className="text-xs text-green-500">
+                        Coupon: {item.coupon_code}
+                      </p>
+                    )}
                   </div>
                 ))}
                 <Separator className="my-2" />
+                {getOriginalSubtotal() > getSubtotal() && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Original Subtotal
+                    </span>
+                    <span className="line-through text-muted-foreground">
+                      ₦{formatMoneyInput(getOriginalSubtotal())}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
                   <span>₦{formatMoneyInput(getSubtotal())}</span>
                 </div>
+                {getOriginalSubtotal() > getSubtotal() && (
+                  <div className="flex justify-between text-sm text-green-500">
+                    <span>Discount</span>
+                    <span>
+                      -₦
+                      {formatMoneyInput(
+                        getOriginalSubtotal() - getSubtotal(),
+                      )}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span>Tax (7.5%)</span>
                   <span>₦{formatMoneyInput(getTax())}</span>

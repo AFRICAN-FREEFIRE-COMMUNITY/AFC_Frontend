@@ -62,6 +62,7 @@ import {
   IconTrash,
   IconFlameOff,
   IconBan,
+  IconDeviceDesktopAnalytics,
 } from "@tabler/icons-react";
 import { MoreHorizontal, ArrowLeft, CheckCircle } from "lucide-react";
 import Link from "next/link";
@@ -80,6 +81,8 @@ import { CreateCouponSchema, CreateCouponSchemaType } from "@/lib/zodSchemas";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/Loader";
 import { ComingSoon } from "@/components/ComingSoon";
+import { DeleteCouponModal } from "../_components/DeleteCouponModal";
+import { ToggleCouponStatusModal } from "../_components/ToggleCouponStatusModal";
 
 interface Variant {
   id: number;
@@ -156,8 +159,11 @@ export default function InventoryManagementPage() {
   const [couponTab, setCouponTab] = useState("active");
   const [isLoading, setIsLoading] = useState(true);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openDeleteCouponModal, setOpenDeleteCouponModal] = useState(false);
   const [openStatusModal, setOpenStatusModal] = useState(false); // Rename state for clarity
+  const [openCouponStatusModal, setOpenCouponStatusModal] = useState(false); // Rename state for clarity
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -184,6 +190,12 @@ export default function InventoryManagementPage() {
     setOpenDeleteModal(false);
     setSelectedProduct(null);
     fetchProducts(); // Refresh the table
+  };
+
+  const handleDeleteCouponSuccess = () => {
+    setOpenDeleteCouponModal(false);
+    setSelectedCoupon(null);
+    fetchCoupons(); // Refresh the table
   };
 
   const fetchProducts = async () => {
@@ -231,54 +243,26 @@ export default function InventoryManagementPage() {
       : `$${min.toFixed(2)} - $${max.toFixed(2)}`;
   };
 
-  // New product form state
-  const [newProduct, setNewProduct] = useState({
-    name: "",
-    price: "",
-    initialStock: "",
-    category: "diamonds",
-    description: "",
-    tags: "",
-    sortOrder: "1",
-    featured: false,
-  });
-
-  // New coupon form state
-  const [newCoupon, setNewCoupon] = useState({
-    code: "",
-    discountType: "",
-    discountValue: "",
-    maxUses: "100",
-    minOrder: "0",
-    expiryDate: "",
-    description: "",
-  });
-
-  const getStatusBadgeVariant = (status: string) => {
-    return status === "Active" ? "default" : "secondary";
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
-
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <PageHeader back title="Inventory Management" />
         <div className="w-full md:w-auto flex flex-wrap gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/a/shop/coupons">
+              <IconChartBar />
+              Coupon Metrics
+            </Link>
+          </Button>
           {/* <Button variant="outline" asChild>
             <Link href="/a/shop/coupons">
-              <IconChartBar className="mr-2 h-4 w-4" />
+              <IconChartBar  />
               Coupon Metrics
             </Link>
           </Button>
           <Button variant="outline">
-            <IconDownload className="mr-2 h-4 w-4" />
+            <IconDownload  />
             Export
           </Button> */}
           <AddProductModal onSuccess={() => fetchProducts()} />
@@ -397,7 +381,7 @@ export default function InventoryManagementPage() {
                             }}
                             className="text-destructive"
                           >
-                            <IconTrash className="mr-2 h-4 w-4" /> Delete
+                            <IconTrash /> Delete
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
@@ -407,12 +391,11 @@ export default function InventoryManagementPage() {
                           >
                             {product.status === "active" ? (
                               <>
-                                <IconBan className="mr-2 h-4 w-4" /> Deactivate
+                                <IconBan /> Deactivate
                               </>
                             ) : (
                               <>
-                                <CheckCircle className="mr-2 h-4 w-4" />{" "}
-                                Activate
+                                <CheckCircle /> Activate
                               </>
                             )}
                           </DropdownMenuItem>
@@ -463,7 +446,7 @@ export default function InventoryManagementPage() {
               </p>
             </div>
             <Button variant="outline" className="w-full">
-              <IconUpload className="mr-2 h-4 w-4" />
+              <IconUpload />
               Upload Codes
             </Button>
           </div>
@@ -545,18 +528,50 @@ export default function InventoryManagementPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>Edit</DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/a/shop/coupons/${coupon.id}`}>
+                                  <IconDeviceDesktopAnalytics />
+                                  View Stats
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link
+                                  href={`/a/shop/coupons/${coupon.id}/edit`}
+                                >
+                                  <IconPencil />
+                                  Edit
+                                </Link>
+                              </DropdownMenuItem>
+
                               <DropdownMenuItem
                                 className={
                                   coupon.active
                                     ? "text-warning"
                                     : "text-primary"
                                 }
+                                onClick={() => {
+                                  setSelectedCoupon(coupon);
+                                  setOpenCouponStatusModal(true);
+                                }}
                               >
-                                {coupon.active ? "Deactivate" : "Activate"}
+                                {coupon.active ? (
+                                  <>
+                                    <IconBan /> Deactivate
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle /> Activate
+                                  </>
+                                )}
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
-                                Delete
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedCoupon(coupon);
+                                  setOpenDeleteCouponModal(true);
+                                }}
+                                className="text-destructive"
+                              >
+                                <IconTrash /> Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -582,7 +597,11 @@ export default function InventoryManagementPage() {
                         <FormItem>
                           <FormLabel>Coupon Code *</FormLabel>
                           <FormControl>
-                            <Input placeholder="SUMMER20" {...field} />
+                            <Input
+                              className="uppercase"
+                              placeholder="SUMMER20"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -710,6 +729,15 @@ export default function InventoryManagementPage() {
           onSuccess={handleDeleteSuccess}
         />
       )}
+      {openDeleteCouponModal && selectedCoupon && (
+        <DeleteCouponModal
+          couponId={String(selectedCoupon.id)}
+          couponCode={selectedCoupon.code}
+          open={openDeleteCouponModal}
+          onOpenChange={setOpenDeleteCouponModal}
+          onSuccess={handleDeleteCouponSuccess}
+        />
+      )}
       {openStatusModal && selectedProduct && (
         <ToggleProductStatusModal
           productId={String(selectedProduct.id)}
@@ -720,6 +748,19 @@ export default function InventoryManagementPage() {
           onSuccess={() => {
             setOpenStatusModal(false);
             fetchProducts();
+          }}
+        />
+      )}
+      {openCouponStatusModal && selectedCoupon && (
+        <ToggleCouponStatusModal
+          couponId={String(selectedCoupon.id)}
+          couponCode={selectedCoupon.code}
+          currentStatus={selectedCoupon.active ? "active" : "inactive"}
+          open={openCouponStatusModal}
+          onOpenChange={setOpenCouponStatusModal}
+          onSuccess={() => {
+            setOpenCouponStatusModal(false);
+            fetchCoupons();
           }}
         />
       )}
