@@ -10,7 +10,9 @@ export const metadata: Metadata = {
 const page = () => {
   return (
     <div>
-      <OrderSuccess />
+      <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
+        <OrderSuccess />
+      </Suspense>
     </div>
   );
 };
