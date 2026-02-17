@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import OrderSuccess from "../_components/OrderSuccess";
 
 import type { Metadata } from "next";
