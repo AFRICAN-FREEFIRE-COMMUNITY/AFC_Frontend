@@ -90,7 +90,7 @@ export const RegisterFormSchema = z
     email: z.string().email().min(2, {
       message: "Email must be at least 2 characters.",
     }),
-    country: z.enum(countries, { message: "Country is required" }),
+    // country: z.enum(countries, { message: "Country is required" }).optional(),
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters." })

@@ -50,7 +50,7 @@ export function CreateAccountForm() {
       ingameName: "",
       fullName: "",
       email: "",
-      country: "" as RegisterFormSchemaType["country"],
+      // country: "" as RegisterFormSchemaType["country"],
       uid: "",
       password: "",
       confirmPassword: "",
@@ -110,12 +110,12 @@ export function CreateAccountForm() {
           password: data.password,
           confirm_password: data.confirmPassword,
           full_name: data.fullName,
-          country: data.country,
+          // country: data.country,
           // Removed data.acceptTerms from authData as it's not needed by the backend typically
         };
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/signup/`,
-          { ...authData }
+          { ...authData },
         );
 
         toast.success(response.data.message);
@@ -196,30 +196,7 @@ export function CreateAccountForm() {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="country"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Country</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your country" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {countries.map((country, index) => (
-                    <SelectItem key={index} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+
         <FormField
           control={form.control}
           name="password"
@@ -254,7 +231,7 @@ export function CreateAccountForm() {
               <FormMessage />
               <div
                 className={cn(
-                  password.length !== 0 ? "block mt-2 space-y-3" : "hidden"
+                  password.length !== 0 ? "block mt-2 space-y-3" : "hidden",
                 )}
               >
                 <Progress

@@ -12,15 +12,15 @@ export const metadata: Metadata = {
 
 const layout = ({ children }: { children: ReactNode }) => {
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen">
-        <div className="relative z-10">
-          <Header />
-          <div className="py-10 container min-h-[60vh]">{children}</div>
-          <Footer />
-        </div>
+    // <ProtectedRoute>
+    <div className="min-h-screen">
+      <div className="relative z-10">
+        <Header />
+        <div className="py-10 container min-h-[60vh]">{children}</div>
+        <Footer />
       </div>
-    </ProtectedRoute>
+    </div>
+    // </ProtectedRoute>
   );
 };
 

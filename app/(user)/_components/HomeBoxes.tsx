@@ -30,7 +30,7 @@ export const HomeBoxes = () => {
 
       setTotalUsers(users?.data?.total_users);
       setTotalTournaments(tournaments?.data?.total_tournaments);
-      setTotalKills(tournaments?.data?.totalKills);
+      setTotalKills(totalKills?.data?.total_kills);
     };
 
     fetchUsers();
@@ -44,7 +44,9 @@ export const HomeBoxes = () => {
           <CardTitle>Total Kills</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-gold">{totalKills}</p>
+          <p className="text-4xl font-bold text-gold">
+            {formatMoneyInput(totalKills)}
+          </p>
         </CardContent>
       </Card>
       <Card className="border-primary">

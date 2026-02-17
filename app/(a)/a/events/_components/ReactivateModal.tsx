@@ -49,7 +49,7 @@ export const ReactivateModal = ({
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         toast.success(res.data.message || "Reactivated successfully");
@@ -69,10 +69,10 @@ export const ReactivateModal = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className={cn("flex-1", showLabel ? "" : "px-8")}>
-          <IconUserMinus />
+        <Button size="sm" className={cn("flex-1", showLabel ? "" : "px-8")}>
+          <IconCheck />
 
-          {showLabel && <span className="ml-2">Reactivate</span>}
+          {showLabel && <span>Reactivate</span>}
         </Button>
       </DialogTrigger>
 

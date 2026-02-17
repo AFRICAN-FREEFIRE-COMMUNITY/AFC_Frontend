@@ -65,7 +65,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { GroupResultModal } from "../../_components/GroupResultModal";
 import { SeedStageModal } from "../../_components/SeedStageModal";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { DisqualifyModal } from "../../_components/DisqualifyModal";
 import { ReactivateModal } from "../../_components/ReactivateModal";
 import { ConfirmStartTournamentModal } from "../../_components/ConfirmStartTournamentModal";
@@ -793,60 +793,115 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     }
   };
 
+  // useEffect(() => {
+  //   if (eventDetails) {
+  //     const overview = eventDetails.overview;
+  //     // Map backend IDs to the field names backend expects
+  //     const mappedStages = eventDetails.stages.map((stage) => ({
+  //       ...stage,
+  //       stage_id: stage.stage_id || stage.id, // Use stage_id or fallback to id
+  //       groups: stage.groups.map((group) => ({
+  //         ...group,
+  //         group_id: group.group_id, // Map id to group_id
+  //         matches: group.matches || [],
+  //       })),
+  //     }));
+  //     form.reset({
+  //       banner: eventDetails.event_banner_url || "",
+  //       event_name: eventDetails.event_name,
+  //       competition_type: eventDetails.competition_type,
+  //       participant_type: eventDetails.participant_type,
+  //       event_type: eventDetails.event_type,
+  //       is_public: eventDetails.is_public ? "True" : "False",
+  //       max_teams_or_players: eventDetails.max_teams_or_players,
+  //       stream_channels: eventDetails.stream_channels || [],
+  //       event_mode: eventDetails.event_mode,
+  //       number_of_stages: eventDetails.number_of_stages,
+  //       stages: mappedStages,
+  //       prizepool: eventDetails.prizepool,
+  //       prize_distribution: eventDetails.prize_distribution,
+  //       event_rules: eventDetails.event_rules,
+  //       rules_document: eventDetails.uploaded_rules_url || "",
+  //       start_date: eventDetails.start_date,
+  //       end_date: eventDetails.end_date,
+  //       registration_open_date: eventDetails.registration_open_date,
+  //       registration_end_date: eventDetails.registration_end_date,
+  //       registration_link: eventDetails.registration_link || "",
+  //       event_status: eventDetails.event_status,
+  //       publish_to_tournaments: eventDetails.tournament_tier !== "",
+  //       publish_to_news: false,
+  //       save_to_drafts: false,
+
+  //       registration_restriction:
+  //         eventDetails.registration_restriction || "none",
+  //       restriction_mode: eventDetails.restriction_mode || "allow_only",
+  //       selected_locations: eventDetails.restricted_countries || [],
+  //     });
+
+  //     setPreviewUrl(eventDetails.event_banner_url || "");
+  //     setPreviewRuleUrl(eventDetails.uploaded_rules_url || "");
+  //     setRulesInputMethod(eventDetails.event_rules ? "type" : "upload");
+  //     setEventTitle(`Edit Event: ${eventDetails.event_name}`);
+  //     setInitialLoading(false);
+  //   }
+  // }, [eventDetails, form]);
+
   useEffect(() => {
-    if (eventDetails) {
-      const overview = eventDetails.overview;
-      // Map backend IDs to the field names backend expects
+    if (eventDetails && !initialLoading) {
+      // ✅ Add !initialLoading check
       const mappedStages = eventDetails.stages.map((stage) => ({
         ...stage,
-        stage_id: stage.stage_id || stage.id, // Use stage_id or fallback to id
+        stage_id: stage.stage_id || stage.id,
         groups: stage.groups.map((group) => ({
           ...group,
-          group_id: group.group_id, // Map id to group_id
+          group_id: group.group_id,
           matches: group.matches || [],
         })),
       }));
-      form.reset({
-        banner: eventDetails.event_banner_url || "",
-        event_name: eventDetails.event_name,
-        competition_type: eventDetails.competition_type,
-        participant_type: eventDetails.participant_type,
-        event_type: eventDetails.event_type,
-        is_public: eventDetails.is_public || "True",
-        max_teams_or_players: eventDetails.max_teams_or_players,
-        stream_channels: eventDetails.stream_channels || [],
-        event_mode: eventDetails.event_mode,
-        number_of_stages: eventDetails.number_of_stages,
-        stages: mappedStages,
-        prizepool: eventDetails.prizepool,
-        prize_distribution: eventDetails.prize_distribution,
-        event_rules: eventDetails.event_rules,
-        rules_document: eventDetails.uploaded_rules_url || "",
-        start_date: eventDetails.start_date,
-        end_date: eventDetails.end_date,
-        registration_open_date: eventDetails.registration_open_date,
-        registration_end_date: eventDetails.registration_end_date,
-        registration_link: eventDetails.registration_link || "",
-        event_status: eventDetails.event_status,
-        publish_to_tournaments: eventDetails.tournament_tier !== "",
-        publish_to_news: false,
-        save_to_drafts: false,
 
-        registration_restriction:
-          eventDetails.registration_restriction || "none",
-        restriction_mode: eventDetails.restriction_mode || "allow_only",
-        selected_locations: eventDetails.restricted_countries || [],
-      });
+      // ✅ Use setTimeout to ensure form is ready
+      setTimeout(() => {
+        form.reset({
+          banner: eventDetails.event_banner_url || "",
+          event_name: eventDetails.event_name,
+          competition_type: eventDetails.competition_type,
+          participant_type: eventDetails.participant_type,
+          event_type: eventDetails.event_type,
+          is_public: eventDetails.is_public ? "True" : "False", // ✅ Fixed here too
+          max_teams_or_players: eventDetails.max_teams_or_players,
+          stream_channels: eventDetails.stream_channels || [],
+          event_mode: eventDetails.event_mode,
+          number_of_stages: eventDetails.number_of_stages,
+          stages: mappedStages,
+          prizepool: eventDetails.prizepool,
+          prize_distribution: eventDetails.prize_distribution,
+          event_rules: eventDetails.event_rules,
+          rules_document: eventDetails.uploaded_rules_url || "",
+          start_date: eventDetails.start_date,
+          end_date: eventDetails.end_date,
+          registration_open_date: eventDetails.registration_open_date,
+          registration_end_date: eventDetails.registration_end_date,
+          registration_link: eventDetails.registration_link || "",
+          event_status: eventDetails.event_status,
+          publish_to_tournaments: eventDetails.tournament_tier !== "",
+          publish_to_news: false,
+          save_to_drafts: false,
+          registration_restriction:
+            eventDetails.registration_restriction || "none",
+          restriction_mode: eventDetails.restriction_mode || "allow_only",
+          selected_locations: eventDetails.restricted_countries || [],
+        });
 
-      setPreviewUrl(eventDetails.event_banner_url || "");
-      setPreviewRuleUrl(eventDetails.uploaded_rules_url || "");
-      setRulesInputMethod(eventDetails.event_rules ? "type" : "upload");
-      setEventTitle(`Edit Event: ${eventDetails.event_name}`);
-      setInitialLoading(false);
+        setPreviewUrl(eventDetails.event_banner_url || "");
+        setPreviewRuleUrl(eventDetails.uploaded_rules_url || "");
+        setRulesInputMethod(eventDetails.event_rules ? "type" : "upload");
+        setEventTitle(`Edit Event: ${eventDetails.event_name}`);
+      }, 100); // ✅ Small delay to ensure form is mounted
     }
-  }, [eventDetails, form]);
+  }, [eventDetails, initialLoading, form]); // ✅ Add initialLoading to dependencies
 
   // Track errors per tab
+
   useEffect(() => {
     const errors = form.formState.errors;
     const stages = form.watch("stages");
@@ -1771,6 +1826,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -1795,6 +1851,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         <FormItem>
                           <FormLabel>Participant Type</FormLabel>
                           <Select
+                            value={field.value}
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
@@ -1820,6 +1877,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         <FormItem>
                           <FormLabel>Event Mode</FormLabel>
                           <Select
+                            value={field.value}
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
@@ -1847,6 +1905,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         <FormItem>
                           <FormLabel>Event Type</FormLabel>
                           <Select
+                            value={field.value}
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
@@ -1869,7 +1928,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                       )}
                     />
                     <FormField
-                      // @ts-ignore
                       control={form.control}
                       name="is_public"
                       render={({ field }) => (
@@ -1877,7 +1935,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                           <FormLabel>Event Privacy</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value} // ✅ Add this line
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -1885,8 +1943,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value={"True"}>Public</SelectItem>
-                              <SelectItem value={"False"}>Private</SelectItem>
+                              <SelectItem value="True">Public</SelectItem>
+                              <SelectItem value="False">Private</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -2429,14 +2487,24 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
+                        {/* Logic for Solo Players */}
                         {eventDetails.participant_type === "solo" &&
                           eventDetails?.registered_competitors?.map((comp) => (
                             <TableRow key={comp.player_id}>
-                              <TableCell className="capitalize">
+                              <TableCell className="capitalize font-medium">
                                 {comp.username}
                               </TableCell>
                               <TableCell className="capitalize">
-                                {comp.status}
+                                <span
+                                  className={cn(
+                                    "px-2 py-1 rounded-full text-xs",
+                                    comp.status === "registered"
+                                      ? "bg-green-100 text-green-700"
+                                      : "bg-red-100 text-red-700",
+                                  )}
+                                >
+                                  {comp.status}
+                                </span>
                               </TableCell>
                               <TableCell className="text-right">
                                 {comp.status === "registered" ? (
@@ -2469,38 +2537,53 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                               </TableCell>
                             </TableRow>
                           ))}
+
+                        {/* Logic for Squads/Teams */}
                         {eventDetails.participant_type === "squad" &&
-                          eventDetails?.tournament_teams?.map((comp) => (
-                            <TableRow key={comp.player_id}>
-                              <TableCell className="capitalize">
-                                {comp.team_name}
+                          eventDetails?.tournament_teams?.map((team) => (
+                            <TableRow key={team.team_id || team.player_id}>
+                              <TableCell className="capitalize font-medium">
+                                {team.team_name}
                               </TableCell>
                               <TableCell className="capitalize">
-                                {comp.status}
+                                <span
+                                  className={cn(
+                                    "px-2 py-1 rounded-full text-xs",
+                                    team.status === "registered"
+                                      ? "bg-green-100 text-green-700"
+                                      : "bg-red-100 text-red-700",
+                                  )}
+                                >
+                                  {team.status}
+                                </span>
                               </TableCell>
                               <TableCell className="text-right">
-                                {comp.status === "registered" ? (
+                                {team.status === "active" ? (
                                   <DisqualifyModal
-                                    competitor_id={comp.player_id}
+                                    competitor_id={
+                                      team.team_id || team.player_id
+                                    }
                                     event_id={eventDetails.event_id}
-                                    name={comp.username}
+                                    name={team.team_name}
                                     showLabel
                                     onSuccess={() =>
                                       updateCompetitorStatus(
-                                        comp.player_id,
+                                        team.team_id || team.player_id,
                                         "disqualified",
                                       )
                                     }
                                   />
                                 ) : (
                                   <ReactivateModal
-                                    competitor_id={comp.player_id}
+                                    competitor_id={
+                                      team.team_id || team.player_id
+                                    }
                                     event_id={eventDetails.event_id}
-                                    name={comp.username}
+                                    name={team.team_name}
                                     showLabel
                                     onSuccess={() =>
                                       updateCompetitorStatus(
-                                        comp.player_id,
+                                        team.team_id || team.player_id,
                                         "registered",
                                       )
                                     }
