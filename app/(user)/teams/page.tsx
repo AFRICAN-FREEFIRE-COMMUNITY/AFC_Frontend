@@ -1,6 +1,15 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
   Card,
   CardContent,
@@ -31,9 +40,11 @@ import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
+import { ITEMS_PER_PAGE } from "@/constants";
 
 function page() {
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [applicationMessage, setApplicationMessage] = useState("");
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const { user, token } = useAuth();
@@ -46,14 +57,24 @@ function page() {
 
   // Filter teams based on search input
   const filteredTeams = teams.filter((team) =>
-    team.team_name.toLowerCase().includes(search.toLowerCase())
+    team.team_name.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const totalPages = Math.ceil(filteredTeams.length / ITEMS_PER_PAGE);
+  const paginatedTeams = filteredTeams.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   useEffect(() => {
     startTransition(async () => {
       try {
         const res = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`,
         );
 
         if (res.statusText === "OK") {
@@ -69,7 +90,7 @@ function page() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (resCurrent.statusText === "OK") {
@@ -93,7 +114,7 @@ function page() {
           { team_id: teamId, message: applicationMessage },
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         toast.success(res.data.message);
 
@@ -151,8 +172,8 @@ function page() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                {filteredTeams.length > 0 ? (
-                  filteredTeams.map((team: any) => (
+                {paginatedTeams.length > 0 ? (
+                  paginatedTeams.map((team: any) => (
                     <Card
                       key={team.team_name}
                       className={`card-hover gap-1.5 ${
@@ -283,6 +304,71 @@ function page() {
                   </div>
                 )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="hidden md:block text-sm text-muted-foreground">
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                    {Math.min(
+                      currentPage * ITEMS_PER_PAGE,
+                      filteredTeams.length,
+                    )}{" "}
+                    of {filteredTeams.length}
+                  </p>
+                  <Pagination className="w-full md:w-auto mx-0">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() =>
+                            setCurrentPage((p) => Math.max(1, p - 1))
+                          }
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page === totalPages ||
+                            Math.abs(page - currentPage) <= 1,
+                        )
+                        .map((page, idx, arr) => (
+                          <React.Fragment key={page}>
+                            {idx > 0 && arr[idx - 1] !== page - 1 && (
+                              <PaginationItem>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            )}
+                            <PaginationItem>
+                              <PaginationLink
+                                isActive={currentPage === page}
+                                onClick={() => setCurrentPage(page)}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            setCurrentPage((p) => Math.min(totalPages, p + 1))
+                          }
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

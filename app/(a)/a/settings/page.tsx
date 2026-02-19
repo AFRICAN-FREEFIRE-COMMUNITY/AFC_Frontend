@@ -1,6 +1,16 @@
 "use client";
 import * as XLSX from "xlsx";
-import { useState, useMemo, useEffect, useTransition } from "react";
+import React, { useState, useMemo, useEffect, useTransition } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { ITEMS_PER_PAGE } from "@/constants";
 import axios from "axios";
 import {
   Card,
@@ -160,6 +170,8 @@ const page = () => {
 
   const [suspendPending, startSuspendTransition] = useTransition();
   const [editPending, startEditTransition] = useTransition();
+  const [adminsPage, setAdminsPage] = useState(1);
+  const [allUsersPage, setAllUsersPage] = useState(1);
 
   // State management
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
@@ -339,6 +351,23 @@ const page = () => {
       (user) => !user.isPlayer || user.roles.length > 0,
     );
   }, [filteredUsers]);
+
+  useEffect(() => {
+    setAdminsPage(1);
+    setAllUsersPage(1);
+  }, [searchTerm]);
+
+  const adminsTotalPages = Math.ceil(adminOnlyUsers.length / ITEMS_PER_PAGE);
+  const paginatedAdminOnlyUsers = adminOnlyUsers.slice(
+    (adminsPage - 1) * ITEMS_PER_PAGE,
+    adminsPage * ITEMS_PER_PAGE,
+  );
+
+  const allUsersTotalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const paginatedAllUsers = filteredUsers.slice(
+    (allUsersPage - 1) * ITEMS_PER_PAGE,
+    allUsersPage * ITEMS_PER_PAGE,
+  );
 
   const handleRoleChange = (
     roleName: string,
@@ -671,7 +700,7 @@ const page = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {adminOnlyUsers.map((user) => (
+                  {paginatedAdminOnlyUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
                         {user.username}
@@ -1117,6 +1146,73 @@ const page = () => {
                   ))}
                 </TableBody>
               </Table>
+              {adminsTotalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="hidden md:block text-sm text-muted-foreground">
+                    Showing {(adminsPage - 1) * ITEMS_PER_PAGE + 1}–
+                    {Math.min(adminsPage * ITEMS_PER_PAGE, adminOnlyUsers.length)}{" "}
+                    of {adminOnlyUsers.length}
+                  </p>
+                  <Pagination className="w-full md:w-auto mx-0">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() =>
+                            setAdminsPage((p) => Math.max(1, p - 1))
+                          }
+                          className={
+                            adminsPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                      {Array.from(
+                        { length: adminsTotalPages },
+                        (_, i) => i + 1,
+                      )
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page === adminsTotalPages ||
+                            Math.abs(page - adminsPage) <= 1,
+                        )
+                        .map((page, idx, arr) => (
+                          <React.Fragment key={page}>
+                            {idx > 0 && arr[idx - 1] !== page - 1 && (
+                              <PaginationItem>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            )}
+                            <PaginationItem>
+                              <PaginationLink
+                                isActive={adminsPage === page}
+                                onClick={() => setAdminsPage(page)}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            setAdminsPage((p) =>
+                              Math.min(adminsTotalPages, p + 1),
+                            )
+                          }
+                          className={
+                            adminsPage === adminsTotalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1148,7 +1244,7 @@ const page = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.map((user) => (
+                  {paginatedAllUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
                         {user.username}
@@ -1627,6 +1723,76 @@ const page = () => {
                   ))}
                 </TableBody>
               </Table>
+              {allUsersTotalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="hidden md:block text-sm text-muted-foreground">
+                    Showing {(allUsersPage - 1) * ITEMS_PER_PAGE + 1}–
+                    {Math.min(
+                      allUsersPage * ITEMS_PER_PAGE,
+                      filteredUsers.length,
+                    )}{" "}
+                    of {filteredUsers.length}
+                  </p>
+                  <Pagination className="w-full md:w-auto mx-0">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() =>
+                            setAllUsersPage((p) => Math.max(1, p - 1))
+                          }
+                          className={
+                            allUsersPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                      {Array.from(
+                        { length: allUsersTotalPages },
+                        (_, i) => i + 1,
+                      )
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page === allUsersTotalPages ||
+                            Math.abs(page - allUsersPage) <= 1,
+                        )
+                        .map((page, idx, arr) => (
+                          <React.Fragment key={page}>
+                            {idx > 0 && arr[idx - 1] !== page - 1 && (
+                              <PaginationItem>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            )}
+                            <PaginationItem>
+                              <PaginationLink
+                                isActive={allUsersPage === page}
+                                onClick={() => setAllUsersPage(page)}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            setAllUsersPage((p) =>
+                              Math.min(allUsersTotalPages, p + 1),
+                            )
+                          }
+                          className={
+                            allUsersPage === allUsersTotalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

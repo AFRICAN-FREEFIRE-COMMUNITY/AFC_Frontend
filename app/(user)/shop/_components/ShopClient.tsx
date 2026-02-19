@@ -1,6 +1,15 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
   Card,
   CardContent,
@@ -16,7 +25,7 @@ import Link from "next/link";
 import Image from "next/image";
 import axios from "axios";
 import { env } from "@/lib/env";
-import { DEFAULT_IMAGE } from "@/constants";
+import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { IconDiamond } from "@tabler/icons-react";
@@ -59,6 +68,7 @@ export default function ShopClient() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("diamonds");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // 2. Fetch real data
   useEffect(() => {
@@ -100,6 +110,16 @@ export default function ShopClient() {
     }
     return filtered;
   }, [activeCategory, searchQuery, products]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeCategory]);
+
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   const formatPrice = (price: string | number) => {
     return new Intl.NumberFormat("en-NG", {
@@ -173,8 +193,9 @@ export default function ShopClient() {
           <h3 className="text-lg font-semibold mb-2">No products found</h3>
         </div>
       ) : (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProducts.map((product) => {
+          {paginatedProducts.map((product) => {
             const startingPrice = getStartingPrice(product.variants);
             const totalDiamonds = product.variants[0]?.diamonds_amount;
             const isOutOfStock = product.variants.every((v) => !v.in_stock);
@@ -222,6 +243,67 @@ export default function ShopClient() {
             );
           })}
         </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6">
+            <p className="hidden md:block text-sm text-muted-foreground">
+              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+              {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)}{" "}
+              of {filteredProducts.length}
+            </p>
+            <Pagination className="w-full md:w-auto mx-0">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className={
+                      currentPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(
+                    (page) =>
+                      page === 1 ||
+                      page === totalPages ||
+                      Math.abs(page - currentPage) <= 1,
+                  )
+                  .map((page, idx, arr) => (
+                    <React.Fragment key={page}>
+                      {idx > 0 && arr[idx - 1] !== page - 1 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      <PaginationItem>
+                        <PaginationLink
+                          isActive={currentPage === page}
+                          onClick={() => setCurrentPage(page)}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    </React.Fragment>
+                  ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    className={
+                      currentPage === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

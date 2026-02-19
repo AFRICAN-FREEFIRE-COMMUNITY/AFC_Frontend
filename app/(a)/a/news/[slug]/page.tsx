@@ -18,6 +18,8 @@ import { DeleteNewsModal } from "../_components/DeleteNewsModal";
 import { PageHeader } from "@/components/PageHeader";
 import { DEFAULT_IMAGE } from "@/constants";
 import { ShareButton } from "@/components/ShareButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { IconThumbDown, IconThumbUp } from "@tabler/icons-react";
 
 type Params = Promise<{
   slug: string;
@@ -27,19 +29,40 @@ const page = ({ params }: { params: Params }) => {
   const { slug } = use(params);
   const router = useRouter();
 
+  const { token } = useAuth();
+
   const [pending, startTransition] = useTransition();
   const [newsDetails, setNewsDetails] = useState<any>();
+
+  console.log(newsDetails);
 
   useEffect(() => {
     if (!slug) return; // Don't run if id is not available yet
 
     startTransition(async () => {
       try {
+        let currentNews = newsDetails;
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
           { slug },
         );
-        setNewsDetails(res.data.news);
+        currentNews = res.data.news;
+
+        // 2. Fetch fresh Like/Dislike counts
+        const targetId = currentNews.id || currentNews.news_id;
+
+        const countRes = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-likes-dislikes-count/`,
+          { news_id: targetId, session_token: token },
+        );
+
+        setNewsDetails({
+          ...currentNews,
+          likes_count: countRes.data.likes,
+          dislikes_count: countRes.data.dislikes,
+          is_liked_by_user: countRes.data.is_liked_by_user,
+          is_disliked_by_user: countRes.data.is_disliked_by_user,
+        });
       } catch (error: any) {
         toast.error(error.response.data.message);
       }
@@ -70,6 +93,16 @@ const page = ({ params }: { params: Params }) => {
                   <Badge variant="secondary" className="capitalize">
                     {newsDetails.category}
                   </Badge>
+                  <div className="flex items-center gap-3 border-l pl-3 ml-1 border-muted-foreground/20">
+                    <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
+                      <IconThumbUp size={16} stroke={2.5} />
+                      <span>{newsDetails.likes_count || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-red-600 dark:text-red-400 font-medium">
+                      <IconThumbDown size={16} stroke={2.5} />
+                      <span>{newsDetails.dislikes_count || 0}</span>
+                    </div>
+                  </div>
                 </div>
               </>
             }

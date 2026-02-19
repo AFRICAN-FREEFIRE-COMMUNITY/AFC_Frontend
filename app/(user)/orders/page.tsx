@@ -1,3 +1,4 @@
+import { ProtectedRoute } from "../_components/ProtectedRoute";
 import OrdersClient from "../shop/_components/OrdersClient";
 
 import type { Metadata } from "next";
@@ -8,9 +9,9 @@ export const metadata: Metadata = {
 
 const page = () => {
   return (
-    <div>
+    <ProtectedRoute>
       <OrdersClient />
-    </div>
+    </ProtectedRoute>
   );
 };
 

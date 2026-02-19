@@ -26,11 +26,6 @@ export const homeNavLinks = [
 export const homeNavLinksMobile = [
   { slug: "/home", label: "Home", icon: IconHome, onlyMobile: false },
   { slug: "/teams", label: "Teams", icon: IconUsers },
-  // {
-  //   slug: "/leaderboards",
-  //   label: "Leaderboards",
-  //   icon: IconTrophy,
-  // },
   {
     slug: "/tournaments",
     label: "Tournaments & Scrims",
@@ -55,22 +50,27 @@ export const homeNavLinksMobile = [
     icon: IconArticle,
     newLink: true,
     addedAt: "2026-01-01",
+    comingSoon: true,
   },
   {
-    slug: "/shop",
-    label: "Shop",
+    title: "Shop",
     icon: IconShoppingCart,
+    submenu: true,
     // comingSoon: true,
-    newLink: true,
-    addedAt: "2026-02-04",
-  },
-  {
-    slug: "/orders",
-    label: "My Orders",
-    icon: IconFolder,
-    // comingSoon: true,
-    newLink: true,
-    addedAt: "2026-02-04",
+    items: [
+      {
+        title: "Shop",
+        slug: "/shop",
+        icon: IconShoppingCart,
+        comingSoon: true,
+      },
+      {
+        title: "My Orders",
+        slug: "/orders",
+        icon: IconFolder,
+        comingSoon: true,
+      },
+    ],
   },
   {
     slug: "/awards",
@@ -151,6 +151,12 @@ export const adminNavLinks: AdminNavLink[] = [
     label: "Votes",
     slug: "/a/votes",
     icon: Award,
+    allowedRoles: ["head_admin"],
+  },
+  {
+    label: "Drafts",
+    slug: "/a/drafts",
+    icon: IconFolder,
     allowedRoles: ["head_admin"],
   },
   {

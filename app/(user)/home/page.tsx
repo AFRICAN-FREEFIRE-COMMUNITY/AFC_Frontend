@@ -22,6 +22,7 @@ import { LatestNews } from "../_components/LatestNews";
 import { useState } from "react";
 import { ComingSoon } from "@/components/ComingSoon";
 import { quarterlyTiers, teamRankings } from "@/constants";
+import { ProtectedRoute } from "../_components/ProtectedRoute";
 
 // Mock data for shop items
 const shopItems = [
@@ -47,7 +48,7 @@ const shopItems = [
 
 export default function HomePage() {
   return (
-    <div>
+    <ProtectedRoute>
       <PageHeader
         title="Welcome to AFC"
         description="Your hub for African Freefire community stats and events"
@@ -208,6 +209,6 @@ export default function HomePage() {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
+    </ProtectedRoute>
   );
 }

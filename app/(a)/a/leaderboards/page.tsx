@@ -17,6 +17,15 @@ import {
 import axios from "axios";
 import Link from "next/link";
 import React, { useEffect, useState, useTransition } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { EventProp } from "../events/page";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
@@ -29,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ITEMS_PER_PAGE } from "@/constants";
 
 interface LeaderboardProps {
   leaderboard_id: number;
@@ -59,6 +69,7 @@ interface LeaderboardProps {
 const page = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLeaderboardQuery, setSearchLeaderboardQuery] = useState("");
+  const [eventsPage, setEventsPage] = useState(1);
   const [events, setEvents] = useState<EventProp[]>([]);
   const [leaderboards, setLeaderboards] = useState<LeaderboardProps[]>([]);
 
@@ -68,10 +79,10 @@ const page = () => {
     startTransition(async () => {
       try {
         const eventsResponse = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
         );
         const leaderboardResponse = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboards/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboards/`,
         );
         if (
           eventsResponse.statusText === "OK" ||
@@ -85,7 +96,7 @@ const page = () => {
       } catch (error: any) {
         // More robust error handling for API calls
         toast.error(
-          error?.response?.data?.message || "Failed to fetch event data."
+          error?.response?.data?.message || "Failed to fetch event data.",
         );
       }
     });
@@ -94,6 +105,10 @@ const page = () => {
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  useEffect(() => {
+    setEventsPage(1);
+  }, [searchQuery]);
 
   // --- Search Filtering Logic ---
   const filteredEvents = events.filter((event) => {
@@ -119,6 +134,12 @@ const page = () => {
     );
   });
   // ------------------------------
+
+  const eventsTotalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
+  const paginatedEvents = filteredEvents.slice(
+    (eventsPage - 1) * ITEMS_PER_PAGE,
+    eventsPage * ITEMS_PER_PAGE,
+  );
 
   if (pending) return <FullLoader />;
 
@@ -261,9 +282,8 @@ const page = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Use the filteredEvents list here */}
-              {filteredEvents?.length > 0 ? (
-                filteredEvents.map((event) => (
+              {paginatedEvents?.length > 0 ? (
+                paginatedEvents.map((event) => (
                   <TableRow key={event.event_id}>
                     <TableCell className="font-medium">
                       {event.event_name}
@@ -302,6 +322,66 @@ const page = () => {
               )}
             </TableBody>
           </Table>
+          {eventsTotalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="hidden md:block text-sm text-muted-foreground">
+                Showing {(eventsPage - 1) * ITEMS_PER_PAGE + 1}–
+                {Math.min(eventsPage * ITEMS_PER_PAGE, filteredEvents.length)}{" "}
+                of {filteredEvents.length}
+              </p>
+              <Pagination className="w-full md:w-auto mx-0">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setEventsPage((p) => Math.max(1, p - 1))}
+                      className={
+                        eventsPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: eventsTotalPages }, (_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === 1 ||
+                        page === eventsTotalPages ||
+                        Math.abs(page - eventsPage) <= 1,
+                    )
+                    .map((page, idx, arr) => (
+                      <React.Fragment key={page}>
+                        {idx > 0 && arr[idx - 1] !== page - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            isActive={eventsPage === page}
+                            onClick={() => setEventsPage(page)}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </React.Fragment>
+                    ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        setEventsPage((p) => Math.min(eventsTotalPages, p + 1))
+                      }
+                      className={
+                        eventsPage === eventsTotalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

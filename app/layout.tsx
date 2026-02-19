@@ -13,6 +13,7 @@ import {
 } from "@/lib/seo";
 import { CartProvider } from "@/contexts/CartContext";
 import Script from "next/script";
+import { AuthModalProvider } from "@/components/AuthModal";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -81,16 +82,18 @@ export default function RootLayout({
           `}
         </Script>
         <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <PageGradient />
-            <CartProvider>{children}</CartProvider>
-            <Toaster position="bottom-center" />
-          </ThemeProvider>
+          <AuthModalProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <PageGradient />
+              <CartProvider>{children}</CartProvider>
+              <Toaster position="bottom-center" />
+            </ThemeProvider>
+          </AuthModalProvider>
         </AuthProvider>
       </body>
     </html>

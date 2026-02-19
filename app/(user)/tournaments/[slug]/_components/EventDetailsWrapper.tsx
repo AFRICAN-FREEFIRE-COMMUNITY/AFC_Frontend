@@ -37,6 +37,7 @@ import { formatDate, formatMoneyInput } from "@/lib/utils";
 import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthModal } from "@/components/AuthModal";
 import { AFC_DISCORD_SERVER, DEFAULT_IMAGE } from "@/constants";
 import axios from "axios";
 import Image from "next/image";
@@ -619,31 +620,6 @@ interface ModalProps {
   teamAfcServerStatus?: Record<string, boolean>; // ✅ FIX: Change from function to object
   copyAfcServerLink: () => void;
 }
-
-// interface ModalProps {
-//   eventDetails: EventDetails & {
-//     selectedTeamMembers?: TeamMember[];
-//     validationResults?: DiscordValidationResult[];
-//   };
-//   modalStep: ModalStep;
-//   setModalStep: (step: ModalStep) => void;
-//   handleSelectType: (type: RegistrationType) => void;
-//   rulesAccepted: boolean;
-//   setRulesAccepted: (checked: boolean) => void;
-//   handleRulesContinue: () => void;
-//   handleDiscordConnect: () => void;
-//   handleJoinedServer: () => void;
-//   pendingJoined: boolean;
-//   isDiscordConnected: boolean;
-//   regType: RegistrationType | null;
-//   onCheckDiscordStatus?: () => void;
-//   checkUserDiscordStatus?: () => void;
-//   isCheckingDiscord?: boolean;
-//   isCheckingUserDiscord?: boolean;
-//   isInAfcServer?: boolean;
-//   teamAfcServerStatus?: () => void;
-//   copyAfcServerLink: () => void;
-// }
 
 const RegistrationModals: React.FC<ModalProps> = ({
   eventDetails,
@@ -1273,346 +1249,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
           </>
         );
 
-      // case "DISCORD_STATUS":
-      //   const validationResults = eventDetails.validationResults || [];
-      //   const allMembersOk =
-      //     validationResults.length > 0 &&
-      //     validationResults.every((r: any) => r.ok);
-
-      //   // Check if all members are in AFC server
-      //   const selectedMembersData = eventDetails.selectedTeamMembers || [];
-      //   const allInAfcServer = selectedMembersData.every(
-      //     (member) =>
-      //       member.discord_id && teamAfcServerStatus[member.discord_id],
-      //   );
-
-      //   return (
-      //     <>
-      //       <DialogHeader>
-      //         <DialogTitle className="text-xl">
-      //           Connect Discord - All Members
-      //         </DialogTitle>
-      //         <DialogDescription>
-      //           All team members must have Discord linked and join AFC server
-      //         </DialogDescription>
-      //       </DialogHeader>
-
-      //       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col rounded-md">
-      //         <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-      //           <div className="space-y-2">
-      //             <h3 className="font-semibold text-sm">
-      //               Team Members Status:
-      //             </h3>
-      //             <div className="space-y-2">
-      //               {validationResults.map((result: any) => {
-      //                 const hasIssues = !result.ok;
-      //                 const reasons = result.reasons || [];
-      //                 const inAfcServer =
-      //                   result.discord_id &&
-      //                   teamAfcServerStatus[result.discord_id];
-
-      //                 return (
-      //                   <div
-      //                     key={result.user_id}
-      //                     className={`p-3 rounded-md border transition-all ${
-      //                       result.ok && inAfcServer
-      //                         ? "border-green-500/50 bg-green-500/10"
-      //                         : "border-red-500/50 bg-red-500/10"
-      //                     }`}
-      //                   >
-      //                     <div className="flex items-start text-sm justify-between gap-2">
-      //                       <div className="flex items-start gap-2 flex-1">
-      //                         {result.ok && inAfcServer ? (
-      //                           <CheckCircle className="size-4 text-green-400 flex-shrink-0 mt-0.5" />
-      //                         ) : (
-      //                           <AlertTriangle className="size-4 text-red-400 flex-shrink-0 mt-0.5" />
-      //                         )}
-      //                         <div className="flex-1">
-      //                           <span
-      //                             className={`font-medium ${
-      //                               result.ok && inAfcServer
-      //                                 ? "text-green-400"
-      //                                 : "text-red-400"
-      //                             }`}
-      //                           >
-      //                             {result.username}
-      //                           </span>
-      //                           {hasIssues && reasons.length > 0 && (
-      //                             <div className="mt-1 space-y-0.5">
-      //                               {reasons.map((reason, idx) => (
-      //                                 <p
-      //                                   key={idx}
-      //                                   className="text-xs text-red-300"
-      //                                 >
-      //                                   • {reason.replace(/_/g, " ")}
-      //                                 </p>
-      //                               ))}
-      //                             </div>
-      //                           )}
-      //                           {result.ok && !inAfcServer && (
-      //                             <p className="text-xs text-red-300 mt-1">
-      //                               • Not in AFC Discord server
-      //                             </p>
-      //                           )}
-      //                           {result.discord_connected &&
-      //                             result.discord_id && (
-      //                               <>
-      //                                 <p className="text-xs text-muted-foreground mt-1">
-      //                                   Discord ID: {result.discord_id}
-      //                                 </p>
-      //                                 {inAfcServer && (
-      //                                   <p className="text-xs text-green-400 mt-1">
-      //                                     ✓ In AFC Server
-      //                                   </p>
-      //                                 )}
-      //                               </>
-      //                             )}
-      //                         </div>
-      //                       </div>
-      //                       {result.ok && inAfcServer ? (
-      //                         <CheckCircle className="size-5 text-green-400 flex-shrink-0" />
-      //                       ) : (
-      //                         <Button
-      //                           size="sm"
-      //                           variant="secondary"
-      //                           onClick={copyAfcServerLink}
-      //                         >
-      //                           Copy Link
-      //                         </Button>
-      //                       )}
-      //                     </div>
-      //                   </div>
-      //                 );
-      //               })}
-      //             </div>
-      //           </div>
-
-      //           {isCheckingDiscord && (
-      //             <div className="p-3 bg-blue-600 border border-blue-600/50 rounded-md">
-      //               <p className="text-sm text-blue-100 text-center">
-      //                 Checking Discord and server status...
-      //               </p>
-      //             </div>
-      //           )}
-
-      //           {!allMembersOk &&
-      //             !isCheckingDiscord &&
-      //             validationResults.length > 0 && (
-      //               <div className="p-3 bg-yellow-600 border border-yellow-600/50 rounded-md">
-      //                 <p className="text-sm text-yellow-100 text-center">
-      //                   Waiting for all team members to link their Discord
-      //                   accounts and join the AFC server...
-      //                 </p>
-      //               </div>
-      //             )}
-
-      //           {allMembersOk && !allInAfcServer && (
-      //             <div className="p-3 bg-orange-600 border border-orange-600/50 rounded-md">
-      //               <p className="text-sm text-orange-100 text-center">
-      //                 Some members haven't joined the AFC Discord server yet.
-      //                 Share the server link with them!
-      //               </p>
-      //             </div>
-      //           )}
-
-      //           {allMembersOk && allInAfcServer && (
-      //             <div className="p-3 bg-green-600 border border-green-600/50 rounded-md">
-      //               <p className="text-sm text-green-100 text-center font-medium">
-      //                 All team members are ready! You can proceed.
-      //               </p>
-      //             </div>
-      //           )}
-
-      //           <div className="flex justify-center">
-      //             <Button
-      //               variant="outline"
-      //               size="sm"
-      //               onClick={onCheckDiscordStatus}
-      //               disabled={isCheckingDiscord}
-      //               className="text-xs"
-      //             >
-      //               {isCheckingDiscord ? (
-      //                 <IconRefresh className="mr-1 size-3 animate-spin" />
-      //               ) : (
-      //                 <IconRefresh className="mr-1 size-3" />
-      //               )}
-      //               {isCheckingDiscord ? "Checking..." : "Refresh Status"}
-      //             </Button>
-      //           </div>
-      //         </div>
-      //         <DialogFooter className="flex sm:justify-between">
-      //           <Button
-      //             variant="secondary"
-      //             onClick={() => setModalStep("RULES")}
-      //           >
-      //             Back
-      //           </Button>
-      //           {allMembersOk && allInAfcServer && (
-      //             // <Button onClick={() => setModalStep("DISCORD_JOIN")}>
-      //             //   Register now
-      //             // </Button>
-      //             <Button onClick={handleJoinedServer} disabled={pendingJoined}>
-      //               {pendingJoined ? (
-      //                 <Loader text="Completing..." />
-      //               ) : (
-      //                 "Complete Registration"
-      //               )}
-      //             </Button>
-      //           )}
-      //         </DialogFooter>
-      //       </DialogContent>
-      //     </>
-      //   );
-
-      // case "DISCORD_STATUS":
-      //   const validationResults = eventDetails.validationResults || [];
-      //   const allMembersOk =
-      //     validationResults.length > 0 &&
-      //     validationResults.every((r: any) => r.ok);
-
-      //   return (
-      //     <>
-      //       <DialogHeader>
-      //         <DialogTitle className="text-xl">
-      //           Connect Discord - All Members
-      //         </DialogTitle>
-      //         <DialogDescription>
-      //           All team members must have Discord linked
-      //         </DialogDescription>
-      //       </DialogHeader>
-
-      //       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col rounded-md">
-      //         <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-      //           <div className="space-y-2">
-      //             <h3 className="font-semibold text-sm">
-      //               Team Members Status:
-      //             </h3>
-      //             <div className="space-y-2">
-      //               {validationResults.map((result: any) => {
-      //                 const hasIssues = !result.ok;
-      //                 const reasons = result.reasons || [];
-
-      //                 return (
-      //                   <div
-      //                     key={result.user_id}
-      //                     className={`p-3 rounded-md border transition-all ${
-      //                       result.ok
-      //                         ? "border-green-500/50 bg-green-500/10"
-      //                         : "border-red-500/50 bg-red-500/10"
-      //                     }`}
-      //                   >
-      //                     <div className="flex items-start text-sm justify-between gap-2">
-      //                       <div className="flex items-start gap-2 flex-1">
-      //                         {result.ok ? (
-      //                           <CheckCircle className="size-4 text-green-400 flex-shrink-0 mt-0.5" />
-      //                         ) : (
-      //                           <AlertTriangle className="size-4 text-red-400 flex-shrink-0 mt-0.5" />
-      //                         )}
-      //                         <div className="flex-1">
-      //                           <span
-      //                             className={`font-medium ${
-      //                               result.ok
-      //                                 ? "text-green-400"
-      //                                 : "text-red-400"
-      //                             }`}
-      //                           >
-      //                             {result.username}
-      //                           </span>
-      //                           {hasIssues && reasons.length > 0 && (
-      //                             <div className="mt-1 space-y-0.5">
-      //                               {reasons.map((reason, idx) => (
-      //                                 <p
-      //                                   key={idx}
-      //                                   className="text-xs text-red-300"
-      //                                 >
-      //                                   • {reason.replace(/_/g, " ")}
-      //                                 </p>
-      //                               ))}
-      //                             </div>
-      //                           )}
-      //                           {result.discord_connected &&
-      //                             result.discord_id && (
-      //                               <p className="text-xs text-muted-foreground mt-1">
-      //                                 Discord ID: {result.discord_id}
-      //                               </p>
-      //                             )}
-      //                         </div>
-      //                       </div>
-      //                       {result.ok ? (
-      //                         <CheckCircle className="size-5 text-green-400 flex-shrink-0" />
-      //                       ) : (
-      //                         <Button size="sm" asChild variant={"secondary"}>
-      //                           <Link href={"/profile"}>Join now</Link>
-      //                         </Button>
-      //                       )}
-      //                     </div>
-      //                   </div>
-      //                 );
-      //               })}
-      //             </div>
-      //           </div>
-
-      //           {isCheckingDiscord && (
-      //             <div className="p-3 bg-blue-600 border border-blue-600/50 rounded-md">
-      //               <p className="text-sm text-blue-100 text-center">
-      //                 Checking Discord status...
-      //               </p>
-      //             </div>
-      //           )}
-
-      //           {!allMembersOk &&
-      //             !isCheckingDiscord &&
-      //             validationResults.length > 0 && (
-      //               <div className="p-3 bg-yellow-600 border border-yellow-600/50 rounded-md">
-      //                 <p className="text-sm text-yellow-100 text-center">
-      //                   Waiting for all team members to link their Discord
-      //                   accounts and join the server...
-      //                 </p>
-      //               </div>
-      //             )}
-
-      //           {allMembersOk && (
-      //             <div className="p-3 bg-green-600 border border-green-600/50 rounded-md">
-      //               <p className="text-sm text-green-100 text-center font-medium">
-      //                 All team members are ready! You can proceed.
-      //               </p>
-      //             </div>
-      //           )}
-
-      //           <div className="flex justify-center">
-      //             <Button
-      //               variant="outline"
-      //               size="sm"
-      //               onClick={onCheckDiscordStatus}
-      //               disabled={isCheckingDiscord}
-      //               className="text-xs"
-      //             >
-      //               {isCheckingDiscord ? (
-      //                 <IconRefresh className="mr-1 size-3 animate-spin" />
-      //               ) : (
-      //                 <IconRefresh className="mr-1 size-3" />
-      //               )}
-      //               {isCheckingDiscord ? "Checking..." : "Refresh Status"}
-      //             </Button>
-      //           </div>
-      //         </div>
-      //         <DialogFooter className="flex sm:justify-between">
-      //           <Button
-      //             variant="secondary"
-      //             onClick={() => setModalStep("RULES")}
-      //           >
-      //             Back
-      //           </Button>
-      //           {allMembersOk && (
-      //             <Button onClick={() => setModalStep("DISCORD_JOIN")}>
-      //               Register now
-      //             </Button>
-      //           )}
-      //         </DialogFooter>
-      //       </DialogContent>
-      //     </>
-      //   );
-
       case "SUCCESS":
         return (
           <>
@@ -1648,7 +1284,16 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const { token, user } = useAuth();
+  const { openAuthModal } = useAuthModal();
   const router = useRouter();
+
+  const requireAuth = (action: () => void) => {
+    if (!token) {
+      openAuthModal({ defaultTab: "login", onSuccess: action });
+      return;
+    }
+    action();
+  };
   const searchParams = useSearchParams();
 
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
@@ -1826,21 +1471,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     }
   }, [modalStep, userDiscordId, checkUserDiscordStatus]);
 
-  // Check for invite token in URL
-  // useEffect(() => {
-  //   const invitation =
-  //     searchParams.get("invitation") || searchParams.get("invite_token");
-
-  //   console.log(invitation);
-
-  //   if (invitation && !inviteToken) {
-  //     setInviteToken(invitation);
-  //     setHasValidInvite(true);
-  //     toast.success("Invite link detected! You can now register.");
-  //   }
-  // }, [searchParams, inviteToken]);
-
-  // Check for invite token in URL and validate it
   useEffect(() => {
     const invitation =
       searchParams.get("invitation") || searchParams.get("invite_token");
@@ -1853,110 +1483,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       checkInviteTokenStatus(invitation);
     }
   }, [searchParams, inviteToken, checkInviteTokenStatus]);
-
-  // const checkTeamDiscordStatus = useCallback(async () => {
-
-  //   if (!eventDetails || !userTeam || selectedMembers.length === 0) return;
-
-  //   setIsCheckingDiscord(true);
-  //   try {
-  //     const memberIds = selectedMembers.map((id) => parseInt(id));
-
-  //     const response = await axios.post(
-  //       `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/validate-team-roster-discord/`,
-  //       {
-  //         event_id: eventDetails.event_id,
-  //         team_id: parseInt(userTeam.team_id),
-  //         roster_member_ids: memberIds,
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-
-  //     setValidationResults(response.data.results);
-
-  //     if (response.data.all_ok) {
-  //       toast.success("All team members are verified!");
-  //     }
-  //   } catch (err: any) {
-  //     console.error("Error validating team Discord status:", err);
-  //     toast.error(
-  //       err.response?.data?.message || "Failed to validate Discord status",
-  //     );
-  //   } finally {
-  //     setIsCheckingDiscord(false);
-  //   }
-  // }, [eventDetails, userTeam, selectedMembers, token]);
-
-  // const checkTeamDiscordStatus = useCallback(async () => {
-  //   if (!eventDetails || !userTeam || selectedMembers.length === 0) return;
-
-  //   setIsCheckingDiscord(true);
-  //   try {
-  //     const memberIds = selectedMembers.map((id) => parseInt(id));
-
-  //     // Check Discord connection for all members
-  //     const response = await axios.post(
-  //       `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/validate-team-roster-discord/`,
-  //       {
-  //         event_id: eventDetails.event_id,
-  //         team_id: parseInt(userTeam.team_id),
-  //         roster_member_ids: memberIds,
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-
-  //     setValidationResults(response.data.results);
-
-  //     // Get discord IDs of selected members
-  //     const selectedMembersData = userTeam.members.filter((m) =>
-  //       selectedMembers.includes(m.id),
-  //     );
-  //     const discordIds = selectedMembersData
-  //       .map((m) => m.discord_id)
-  //       .filter((id) => id); // Filter out null/undefined
-
-  //     console.log("tomiwa", discordIds);
-
-  //     if (discordIds.length > 0) {
-  //       // Check AFC server membership
-
-  //       console.log("busola");
-  //       const serverResponse = await axios.post(
-  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/check-team-members-discord-membership/`,
-  //         {
-  //           discord_ids: discordIds,
-  //         },
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         },
-  //       );
-
-  //       console.log(response, serverResponse);
-  //       setTeamAfcServerStatus(serverResponse.data.membership || {});
-  //     }
-
-  //     if (response.data.all_ok) {
-  //       toast.success("All team members are verified!");
-  //     }
-  //   } catch (err: any) {
-  //     console.error("Error validating team Discord status:", err);
-  //     toast.error(
-  //       err.response?.data?.message || "Failed to validate Discord status",
-  //     );
-  //   } finally {
-  //     setIsCheckingDiscord(false);
-  //   }
-  // }, [eventDetails, userTeam, selectedMembers, token]);
 
   const checkTeamDiscordStatus = useCallback(async () => {
     if (!eventDetails || !userTeam || selectedMembers.length === 0) return;
@@ -2178,19 +1704,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     }
   }, [fetchEventDetails, slug, token]);
 
-  // Handler functions (defined after all hooks and before early returns would cause issues)
-  // But we need to define these AFTER hooks but BEFORE the early return
-  // const handleRegisterClick = useCallback(() => {
-  //   // Check if event is private and if user has a valid invite
-  //   if (eventDetails && !eventDetails.is_public && !hasValidInvite) {
-  //     toast.error(
-  //       "This is a private event. You need an invite link to register.",
-  //     );
-  //     return;
-  //   }
-  //   setModalStep("TYPE");
-  // }, [eventDetails, hasValidInvite]);
-
   const handleRegisterClick = useCallback(async () => {
     // Check if event is private and if user has a valid invite
     if (eventDetails && !eventDetails.is_public && !hasValidInvite) {
@@ -2337,26 +1850,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             height={1000}
             className="aspect-video size-full object-cover rounded-md"
           />
-          {/* {!eventDetails.is_public && (
-            <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-md">
-              <AlertTriangle className="size-4 text-yellow-400 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-yellow-400">
-                  Private Event
-                </p>
-                {!hasValidInvite && (
-                  <p className="text-xs text-yellow-300">
-                    You need an invite link to register for this event.
-                  </p>
-                )}
-                {hasValidInvite && (
-                  <p className="text-xs text-green-300">
-                    ✓ Valid invite detected - you can register!
-                  </p>
-                )}
-              </div>
-            </div>
-          )} */}
           {!eventDetails.is_public && (
             <div
               className={`flex items-center gap-2 p-3 rounded-md border ${
@@ -2529,7 +2022,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           ) : eventDetails.event_type === "external" ? (
             <Button
               onClick={() =>
-                window.open(eventDetails.registration_link, "_blank")
+                requireAuth(() =>
+                  window.open(eventDetails.registration_link, "_blank"),
+                )
               }
               disabled={eventDetails.event_status !== "upcoming"}
               className="w-full"
@@ -2540,7 +2035,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             </Button>
           ) : (
             <Button
-              onClick={handleRegisterClick}
+              onClick={() => requireAuth(handleRegisterClick)}
               disabled={
                 !!registrationDisabledReason ||
                 isCheckingInvite ||

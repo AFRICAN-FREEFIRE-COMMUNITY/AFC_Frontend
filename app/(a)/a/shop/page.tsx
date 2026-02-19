@@ -34,6 +34,7 @@ import { env } from "@/lib/env";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { ComingSoon } from "@/components/ComingSoon";
+import { NairaIcon } from "@/components/NairaIcon";
 
 interface StockItem {
   product_id: number;
@@ -233,10 +234,12 @@ export default function AdminShopPage() {
             <IconCurrencyDollar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">
+              <NairaIcon />0
+            </div>
             <div className="flex items-center justify-start gap-1 text-sm text-green-600">
               <TrendingUp className="h-3 w-3" />
-              +20.1% from last month
+              +0% from last month
             </div>
           </CardContent>
         </Card>
@@ -248,10 +251,10 @@ export default function AdminShopPage() {
             <IconUsers className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
+            <div className="text-2xl font-bold">0</div>
             <div className="flex items-center gap-1 text-sm text-green-600">
               <TrendingUp className="h-3 w-3" />
-              +180.1% from last month
+              +0% from last month
             </div>
           </CardContent>
         </Card>
@@ -298,7 +301,8 @@ export default function AdminShopPage() {
                     <TableHead className="text-right">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="relative">
+                  <ComingSoon />
                   {mockOrders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell>

@@ -15,12 +15,19 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSignout } from "@/hooks/use-signout";
-import { IconLogout, IconMenu2, IconMoon, IconSun } from "@tabler/icons-react";
+import {
+  IconChevronDown,
+  IconLogout,
+  IconMenu2,
+  IconMoon,
+  IconSun,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTheme } from "next-themes";
 import { adminNavLinks, homeNavLinksMobile } from "@/constants/nav-links";
+import { cn } from "@/lib/utils";
 
 export function MobileNavbar() {
   const [open, setOpen] = useState(false);
@@ -57,6 +64,17 @@ export function MobileNavbar() {
 
   const handleLinkClick = () => {
     setOpen(false);
+  };
+
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  const toggleSubmenu = (label: string) => {
+    setExpandedMenus((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
   };
 
   const handleLogout = () => {
@@ -139,84 +157,182 @@ export function MobileNavbar() {
         </SheetHeader>
         <ScrollArea className="overflow-y-auto">
           <div className="grid gap-1 container">
-            {homeNavLinksMobile.map(
-              ({ icon, slug, label, comingSoon, newLink, addedAt }, index) => {
-                const Icon = icon;
-                const showNewBadge = isNewLink(addedAt);
-                return comingSoon ? (
-                  <Button
-                    className="justify-start"
-                    key={index}
-                    variant="ghost"
-                    disabled
-                  >
-                    <Icon />
-                    {label}
-                    <Badge variant={"secondary"}>Soon</Badge>
-                  </Button>
-                ) : (
-                  <Button
-                    className="justify-start"
-                    key={index}
-                    asChild
-                    variant={isActive(slug) ? "default" : "ghost"}
-                    onClick={handleLinkClick}
-                  >
-                    <Link href={slug}>
-                      <Icon />
-                      {label}{" "}
-                      {showNewBadge && (
-                        <Badge
-                          variant="default"
-                          className="glow-new-badge text-xs text-white"
-                        >
-                          New
-                        </Badge>
-                      )}{" "}
-                    </Link>
-                  </Button>
+            {homeNavLinksMobile.map((link, index) => {
+              const {
+                icon: Icon,
+                slug,
+                label,
+                title,
+                comingSoon,
+                addedAt,
+                submenu,
+                items,
+              } = link;
+              const displayLabel: any = label || title;
+              const isExpanded = expandedMenus[displayLabel];
+              const showNewBadge = isNewLink(addedAt);
+
+              // CASE 1: Submenu Logic
+              if (submenu && items) {
+                return (
+                  <div key={index} className="flex flex-col">
+                    <Button
+                      variant="ghost"
+                      className="justify-between w-full"
+                      onClick={() => toggleSubmenu(displayLabel)}
+                      disabled={comingSoon}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Icon size={20} />
+                        {displayLabel}
+                        {comingSoon && (
+                          <Badge variant="secondary" className="ml-2">
+                            Soon
+                          </Badge>
+                        )}
+                        {showNewBadge && !comingSoon && (
+                          <Badge
+                            variant="default"
+                            className="glow-new-badge text-[10px] text-white"
+                          >
+                            New
+                          </Badge>
+                        )}
+                      </span>
+                      {!comingSoon && (
+                        <IconChevronDown
+                          size={16}
+                          className={cn(
+                            "transition-transform",
+                            isExpanded && "rotate-180",
+                          )}
+                        />
+                      )}
+                    </Button>
+
+                    {isExpanded && !comingSoon && (
+                      <div className="ml-6 mt-1 flex flex-col border-l border-muted pl-2 gap-1">
+                        {items.map((subItem, subIdx) => {
+                          const Icon = subItem.icon;
+                          const subShowNew = isNewLink(subItem.addedAt);
+
+                          console.log(subItem);
+
+                          return (
+                            <Button
+                              key={subIdx}
+                              asChild={!subItem.comingSoon}
+                              disabled={subItem.comingSoon}
+                              variant={
+                                isActive(subItem.slug) ? "secondary" : "ghost"
+                              }
+                              className="justify-start h-9"
+                              onClick={
+                                subItem.comingSoon ? undefined : handleLinkClick
+                              }
+                            >
+                              {subItem.comingSoon ? (
+                                <div className="flex items-center opacity-60">
+                                  <Icon size={18} className="mr-2" />
+                                  {subItem.title || subItem.label}
+                                  <Badge
+                                    variant="secondary"
+                                    className="ml-auto text-[10px]"
+                                  >
+                                    Soon
+                                  </Badge>
+                                </div>
+                              ) : (
+                                <Link href={subItem.slug}>
+                                  <Icon size={18} className="mr-2" />
+                                  {subItem.title || subItem.label}
+                                  {subShowNew && (
+                                    <Badge
+                                      variant="default"
+                                      className="glow-new-badge text-[10px] ml-2 text-white"
+                                    >
+                                      New
+                                    </Badge>
+                                  )}
+                                </Link>
+                              )}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
-              },
-            )}
-            {/* {(user?.role === "moderator" ||
-              user?.role === "super_admin" ||
-              user?.role === "admin" ||
-              isAdmin) && (
-              <> */}
+              }
+
+              return comingSoon ? (
+                <Button
+                  className="justify-start"
+                  key={index}
+                  variant="ghost"
+                  disabled
+                >
+                  <Icon size={20} className="mr-2" /> {displayLabel}
+                  <Badge variant={"secondary"} className="ml-2">
+                    Soon
+                  </Badge>
+                </Button>
+              ) : (
+                <Button
+                  className="justify-start"
+                  key={index}
+                  asChild
+                  variant={isActive(slug!) ? "default" : "ghost"}
+                  onClick={handleLinkClick}
+                >
+                  <Link href={slug!}>
+                    <Icon size={20} className="mr-2" />
+                    {displayLabel}
+                    {showNewBadge && (
+                      <Badge
+                        variant="default"
+                        className="glow-new-badge text-[10px] ml-2 text-white"
+                      >
+                        New
+                      </Badge>
+                    )}
+                  </Link>
+                </Button>
+              );
+            })}
+
+            {/* Admin Links Section */}
             {isAdmin && (
               <>
-                <Separator />
+                <Separator className="my-2" />
+                <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
+                  Admin
+                </p>
                 {adminNavLinks
-                  .filter((link) => canAccess(link.allowedRoles)) // Core filtering logic
-                  .map(({ icon: Icon, slug, label, comingSoon }, index) =>
-                    comingSoon ? (
-                      <Button
-                        key={index}
-                        className="justify-start"
-                        variant="ghost"
-                        disabled
-                      >
-                        <Icon size={18} className="mr-2" />
-                        {label}
-                        <Badge variant={"secondary"} className="ml-auto">
-                          Soon
-                        </Badge>
-                      </Button>
-                    ) : (
-                      <Button
-                        key={index}
-                        className="justify-start"
-                        asChild
-                        variant={isActive(slug) ? "default" : "ghost"}
-                        onClick={handleLinkClick}
-                      >
+                  .filter((link) => canAccess(link.allowedRoles))
+                  .map(({ icon: Icon, slug, label, comingSoon }, index) => (
+                    <Button
+                      key={index}
+                      className="justify-start"
+                      asChild={!comingSoon}
+                      disabled={comingSoon}
+                      variant={isActive(slug) ? "default" : "ghost"}
+                      onClick={comingSoon ? undefined : handleLinkClick}
+                    >
+                      {comingSoon ? (
+                        <div className="flex items-center w-full">
+                          <Icon size={18} className="mr-2" /> {label}
+                          <Badge variant="secondary" className="ml-auto">
+                            Soon
+                          </Badge>
+                        </div>
+                      ) : (
                         <Link href={slug}>
-                          <Icon size={18} className="mr-2" />
-                          {label}
+                          <Icon size={18} className="mr-2" /> {label}
                         </Link>
-                      </Button>
-                    ),
-                  )}
+                      )}
+                    </Button>
+                  ))}
               </>
             )}
           </div>

@@ -33,23 +33,40 @@ import {
   IconEye,
   IconPencil,
   IconShare,
+  IconThumbDown,
+  IconThumbUp,
 } from "@tabler/icons-react";
-import { DEFAULT_IMAGE } from "@/constants";
+import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import React from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const page = () => {
+  const { token } = useAuth();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
-
+  const [currentPage, setCurrentPage] = useState(1);
   const [pending, startTransition] = useTransition();
   const [news, setNews] = useState<any>();
+
+  console.log(news);
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -124,6 +141,16 @@ const page = () => {
     return filtered;
   }, [news, filterCategory, filterStatus, searchQuery, dateFilter]);
 
+  const totalPages = Math.ceil(filteredNews.length / ITEMS_PER_PAGE);
+  const paginatedNews = filteredNews.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterCategory, filterStatus, dateFilter]);
+
   const fetchNews = () => {
     startTransition(async () => {
       try {
@@ -131,11 +158,36 @@ const page = () => {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`,
         );
 
-        if (res.statusText === "OK") {
-          setNews(res.data.news);
-        } else {
-          toast.error("Oops! An error occurred");
-        }
+        const newsData = res.data.news;
+
+        // Fetch counts for all news items in parallel
+        const newsWithCounts = await Promise.all(
+          newsData.map(async (item: any) => {
+            try {
+              const countRes = await axios.post(
+                `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-likes-dislikes-count/`,
+                { news_id: item.id || item.news_id, session_token: token },
+              );
+              return {
+                ...item,
+                likes_count: countRes.data.likes,
+                dislikes_count: countRes.data.dislikes,
+                is_liked_by_user: countRes.data.is_liked_by_user,
+                is_disliked_by_user: countRes.data.is_disliked_by_user,
+              };
+            } catch {
+              return {
+                ...item,
+                likes_count: 0,
+                dislikes_count: 0,
+                is_liked_by_user: false,
+                is_disliked_by_user: false,
+              };
+            }
+          }),
+        );
+
+        setNews(newsWithCounts);
       } catch (error: any) {
         toast.error(error?.response?.data.message);
       }
@@ -271,7 +323,7 @@ const page = () => {
             )}
 
             {/* Results count */}
-            <div className="text-sm text-muted-foreground">
+            <div className="hidden md:block text-sm text-muted-foreground">
               Showing {filteredNews.length} of {news?.length || 0} articles
             </div>
           </div>
@@ -303,102 +355,178 @@ const page = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2">
-          {filteredNews.map((newsDetails: any) => (
-            <Card
-              key={newsDetails.news_id}
-              className="overflow-hidden h-full bg-transparent gap-0 p-0 flex flex-col hover:shadow-lg transition-shadow"
-            >
-              <Link href={`/a/news/${newsDetails.slug}`} className="relative">
-                <Image
-                  src={newsDetails.images_url || DEFAULT_IMAGE}
-                  alt={newsDetails.news_title}
-                  width={1000}
-                  height={1000}
-                  className="object-cover aspect-video size-full"
-                />
-                <div className="absolute top-0 left-0 right-0 flex justify-between items-start p-3">
-                  <Badge variant="secondary" className="text-xs capitalize">
-                    {getCategoryLabel(newsDetails.category)}
-                  </Badge>
-                  <Badge
-                    variant={getStatusBadgeVariant(
-                      newsDetails.status || "published",
-                    )}
-                    className="text-xs capitalize"
-                  >
-                    {newsDetails.status || "Published"}
-                  </Badge>
-                </div>
-              </Link>
-              <CardContent className="flex-grow py-4 flex flex-col">
-                <Link
-                  href={`/a/news/${newsDetails.slug}`}
-                  className="text-base font-medium mb-2 line-clamp-2 hover:underline hover:text-primary"
-                >
-                  {newsDetails.news_title}
-                </Link>
-                <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-3">
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage
-                      src={newsDetails.author?.avatar}
-                      alt={newsDetails.author}
-                    />
-                    <AvatarFallback className="text-xs">
-                      {newsDetails.author?.[0] || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>{newsDetails.author || "Unknown"}</span>
-                  <span>•</span>
-                  <span>
-                    {formatDate(
-                      newsDetails.published_at || newsDetails.created_at,
-                    )}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-3 break-words overflow-hidden flex-grow">
-                  {truncateText(extractTiptapText(newsDetails.content), 150)}
-                </p>
-                <div className="mt-auto flex space-x-2">
-                  <Button className="flex-auto" variant="outline" asChild>
-                    <Link href={`/a/news/${newsDetails.slug}`}>
-                      <IconEye />
-                      View
-                    </Link>
-                  </Button>
-                  <Button className="flex-auto" variant="outline" asChild>
-                    <Link href={`/a/news/${newsDetails.slug}/edit`}>
-                      <IconPencil />
-                      Edit
-                    </Link>
-                  </Button>
-
-                  <DeleteNewsModal
-                    isIcon={true}
-                    newsId={newsDetails.news_id}
-                    newsTitle={newsDetails.news_title}
-                    onSuccess={fetchNews}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2">
+            {paginatedNews.map((newsDetails: any) => (
+              <Card
+                key={newsDetails.news_id}
+                className="overflow-hidden h-full bg-transparent gap-0 p-0 flex flex-col hover:shadow-lg transition-shadow"
+              >
+                <Link href={`/a/news/${newsDetails.slug}`} className="relative">
+                  <Image
+                    src={newsDetails.images_url || DEFAULT_IMAGE}
+                    alt={newsDetails.news_title}
+                    width={1000}
+                    height={1000}
+                    className="object-cover aspect-video size-full"
                   />
+                  <div className="absolute top-0 left-0 right-0 flex justify-between items-start p-3">
+                    <Badge variant="secondary" className="text-xs capitalize">
+                      {getCategoryLabel(newsDetails.category)}
+                    </Badge>
+                    <Badge
+                      variant={getStatusBadgeVariant(
+                        newsDetails.status || "published",
+                      )}
+                      className="text-xs capitalize"
+                    >
+                      {newsDetails.status || "Published"}
+                    </Badge>
+                  </div>
+                </Link>
+                <CardContent className="flex-grow py-4 flex flex-col">
+                  <Link
+                    href={`/a/news/${newsDetails.slug}`}
+                    className="text-base font-medium mb-2 line-clamp-2 hover:underline hover:text-primary"
+                  >
+                    {newsDetails.news_title}
+                  </Link>
+                  <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-3">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage
+                        src={newsDetails.author?.avatar}
+                        alt={newsDetails.author}
+                      />
+                      <AvatarFallback className="text-xs">
+                        {newsDetails.author?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{newsDetails.author || "Unknown"}</span>
+                    <span>•</span>
+                    <span>
+                      {formatDate(
+                        newsDetails.published_at || newsDetails.created_at,
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3 break-words overflow-hidden flex-grow">
+                    {truncateText(extractTiptapText(newsDetails.content), 150)}
+                  </p>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-md border border-green-500/20">
+                      <IconThumbUp size={14} />
+                      <span className="text-xs font-bold">
+                        {newsDetails.likes_count || 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-red-500/10 text-red-600 dark:text-red-400 rounded-md border border-red-500/20">
+                      <IconThumbDown size={14} />
+                      <span className="text-xs font-bold">
+                        {newsDetails.dislikes_count || 0}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-auto flex space-x-2">
+                    <Button className="flex-auto" variant="outline" asChild>
+                      <Link href={`/a/news/${newsDetails.slug}`}>
+                        <IconEye />
+                        View
+                      </Link>
+                    </Button>
+                    <Button className="flex-auto" variant="outline" asChild>
+                      <Link href={`/a/news/${newsDetails.slug}/edit`}>
+                        <IconPencil />
+                        Edit
+                      </Link>
+                    </Button>
 
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          className="icon"
-                          variant="secondary"
-                          onClick={() => handleCopyLink(newsDetails.slug)}
-                        >
-                          <IconShare />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Copy link</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                    <DeleteNewsModal
+                      isIcon={true}
+                      newsId={newsDetails.news_id}
+                      newsTitle={newsDetails.news_title}
+                      onSuccess={fetchNews}
+                    />
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            className="icon"
+                            variant="secondary"
+                            onClick={() => handleCopyLink(newsDetails.slug)}
+                          >
+                            <IconShare />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Copy link</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <p className="hidden md:block text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredNews.length)} of{" "}
+                {filteredNews.length} articles
+              </p>
+              <Pagination className="w-full md:w-auto mx-0">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className={
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1,
+                    )
+                    .map((page, idx, arr) => (
+                      <React.Fragment key={page}>
+                        {idx > 0 && arr[idx - 1] !== page - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            isActive={currentPage === page}
+                            onClick={() => setCurrentPage(page)}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </React.Fragment>
+                    ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

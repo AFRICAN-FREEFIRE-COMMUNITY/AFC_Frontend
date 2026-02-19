@@ -1,6 +1,15 @@
 "use client";
 
-import { useState, useEffect, useTransition, useMemo } from "react";
+import React, { useState, useEffect, useTransition, useMemo } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,10 +36,12 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
 import { BanModal } from "../_components/BanModal";
+import { ITEMS_PER_PAGE } from "@/constants";
 
 const page = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTier, setFilterTier] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const [pending, startTransition] = useTransition();
   const [teams, setTeams] = useState<any>();
 
@@ -84,6 +95,16 @@ const page = () => {
     });
   }, [teams, searchTerm, filterTier]);
 
+  const totalPages = Math.ceil(filteredTeams.length / ITEMS_PER_PAGE);
+  const paginatedTeams = filteredTeams.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterTier]);
+
   if (pending) return <FullLoader />;
 
   return (
@@ -130,8 +151,8 @@ const page = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTeams.length > 0 ? (
-                filteredTeams.map((team: any) => (
+              {paginatedTeams.length > 0 ? (
+                paginatedTeams.map((team: any) => (
                   <TableRow key={team.team_name}>
                     <TableCell>{team.team_name}</TableCell>
                     <TableCell>{team.team_tier}</TableCell>
@@ -183,6 +204,66 @@ const page = () => {
               )}
             </TableBody>
           </Table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="hidden md:block text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredTeams.length)}{" "}
+                of {filteredTeams.length}
+              </p>
+              <Pagination className="w-full md:w-auto mx-0">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className={
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1,
+                    )
+                    .map((page, idx, arr) => (
+                      <React.Fragment key={page}>
+                        {idx > 0 && arr[idx - 1] !== page - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            isActive={currentPage === page}
+                            onClick={() => setCurrentPage(page)}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </React.Fragment>
+                    ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

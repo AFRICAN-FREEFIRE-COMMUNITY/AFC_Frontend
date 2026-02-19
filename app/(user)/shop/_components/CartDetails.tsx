@@ -38,6 +38,7 @@ import Image from "next/image";
 import { DEFAULT_IMAGE } from "@/constants";
 import { formatMoneyInput } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthModal } from "@/components/AuthModal";
 import {
   ShopCustomerDetailsSchema,
   ShopCustomerDetailsSchemaType,
@@ -66,7 +67,7 @@ const faqs = [
     id: "refund",
     question: "Can I get a refund?",
     answer:
-      "Refunds are available within 24 hours of purchase if the redemption code has not been used. Please contact our support team for assistance with refund requests.",
+      "Refunds are not available. Please contact our support team for assistance with refund requests.",
   },
 ];
 
@@ -82,6 +83,15 @@ export default function CartDetails() {
     clearCart,
   } = useCart();
   const { token } = useAuth();
+  const { openAuthModal } = useAuthModal();
+
+  const requireAuth = (action: () => void) => {
+    if (!token) {
+      openAuthModal({ defaultTab: "login", onSuccess: action });
+      return;
+    }
+    action();
+  };
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -298,7 +308,10 @@ export default function CartDetails() {
               <Button variant="outline" asChild>
                 <Link href="/shop">Back to Shop</Link>
               </Button>
-              <Button onClick={handleNextStep} disabled={items.length === 0}>
+              <Button
+                onClick={() => requireAuth(handleNextStep)}
+                disabled={items.length === 0}
+              >
                 Continue to Details
               </Button>
             </div>
@@ -678,9 +691,7 @@ export default function CartDetails() {
                     <span>Discount</span>
                     <span>
                       -₦
-                      {formatMoneyInput(
-                        getOriginalSubtotal() - getSubtotal(),
-                      )}
+                      {formatMoneyInput(getOriginalSubtotal() - getSubtotal())}
                     </span>
                   </div>
                 )}

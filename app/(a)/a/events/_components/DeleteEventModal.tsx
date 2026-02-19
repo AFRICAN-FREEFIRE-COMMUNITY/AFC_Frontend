@@ -24,13 +24,15 @@ export const DeleteEventModal = ({
   redirectTo,
   showLabel = false,
   isIcon,
+  size,
 }: {
-  eventId: number;
+  eventId: number | string;
   eventName: string;
   onSuccess?: () => void;
   redirectTo?: string;
   showLabel?: boolean;
   isIcon?: boolean;
+  size?: "sm" | "default" | "lg";
 }) => {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -67,6 +69,7 @@ export const DeleteEventModal = ({
       <DialogTrigger asChild>
         <Button
           variant="destructive"
+          size={size}
           // className={cn("h-full", !isIcon && "flex-1", showLabel ? "" : "px-8")}
           // size={isIcon ? "icon" : "default"}
         >

@@ -15,6 +15,8 @@ import {
 } from "@tabler/icons-react";
 import { Award, Shield } from "lucide-react";
 
+export const ITEMS_PER_PAGE = 15;
+
 export const countries = [
   "Algeria",
   "Angola",

@@ -34,6 +34,17 @@ import { CheckCircle2Icon } from "lucide-react"; // Removed unused 'TrendingUp'
 import Link from "next/link";
 import React, { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { DeleteEventModal } from "./_components/DeleteEventModal";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { ITEMS_PER_PAGE } from "@/constants";
 
 export interface EventProp {
   event_id: string;
@@ -60,6 +71,7 @@ const page = () => {
     useState<string>("");
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [pending, startTransition] = useTransition();
   const [events, setEvents] = useState<EventProp[]>([]);
@@ -118,14 +130,23 @@ const page = () => {
   // --- Search Filtering Logic ---
   const filteredEvents = events.filter((event) => {
     const lowerCaseQuery = searchQuery.toLowerCase();
-
-    // Check if the search query is found in the event name or competition type
     return (
       event.event_name.toLowerCase().includes(lowerCaseQuery) ||
       event.competition_type.toLowerCase().includes(lowerCaseQuery) ||
       event.event_status.toLowerCase().includes(lowerCaseQuery)
     );
   });
+
+  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
+  const paginatedEvents = filteredEvents.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
   // ------------------------------
 
   if (pending) return <FullLoader />;
@@ -312,9 +333,8 @@ const page = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Use the filteredEvents list here */}
-              {filteredEvents?.length > 0 ? (
-                filteredEvents.map((event) => (
+              {paginatedEvents?.length > 0 ? (
+                paginatedEvents.map((event) => (
                   <TableRow key={event.event_id}>
                     <TableCell className="font-medium flex items-center justify-start gap-1">
                       {event.event_name}
@@ -352,6 +372,13 @@ const page = () => {
                             Edit
                           </Link>
                         </Button>
+                        <DeleteEventModal
+                          eventId={event.event_id}
+                          eventName={event.event_name}
+                          redirectTo="/a/events"
+                          isIcon
+                          size="sm"
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -370,6 +397,66 @@ const page = () => {
               )}
             </TableBody>
           </Table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="hidden md:block text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredEvents.length)}{" "}
+                of {filteredEvents.length}
+              </p>
+              <Pagination className="w-full md:w-auto mx-0">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className={
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1,
+                    )
+                    .map((page, idx, arr) => (
+                      <React.Fragment key={page}>
+                        {idx > 0 && arr[idx - 1] !== page - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            isActive={currentPage === page}
+                            onClick={() => setCurrentPage(page)}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </React.Fragment>
+                    ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

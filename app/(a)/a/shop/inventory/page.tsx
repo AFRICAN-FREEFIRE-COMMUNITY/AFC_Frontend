@@ -80,6 +80,16 @@ import { ToggleProductStatusModal } from "../_components/ToggleProductStatusModa
 import { CreateCouponSchema, CreateCouponSchemaType } from "@/lib/zodSchemas";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/Loader";
+import React from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { ComingSoon } from "@/components/ComingSoon";
 import { DeleteCouponModal } from "../_components/DeleteCouponModal";
 import { ToggleCouponStatusModal } from "../_components/ToggleCouponStatusModal";
@@ -158,6 +168,10 @@ export default function InventoryManagementPage() {
 
   const [couponTab, setCouponTab] = useState("active");
   const [isLoading, setIsLoading] = useState(true);
+  const [productsPage, setProductsPage] = useState(1);
+  const [couponsPage, setCouponsPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 10;
+  const COUPONS_PER_PAGE = 10;
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openDeleteCouponModal, setOpenDeleteCouponModal] = useState(false);
   const [openStatusModal, setOpenStatusModal] = useState(false); // Rename state for clarity
@@ -227,6 +241,28 @@ export default function InventoryManagementPage() {
     if (statusFilter === "all") return true;
     return product.status.toLowerCase() === statusFilter.toLowerCase();
   });
+
+  const productsTotalPages = Math.ceil(
+    filteredProducts.length / PRODUCTS_PER_PAGE,
+  );
+  const paginatedProducts = filteredProducts.slice(
+    (productsPage - 1) * PRODUCTS_PER_PAGE,
+    productsPage * PRODUCTS_PER_PAGE,
+  );
+
+  const couponsTotalPages = Math.ceil(coupons.length / COUPONS_PER_PAGE);
+  const paginatedCoupons = coupons.slice(
+    (couponsPage - 1) * COUPONS_PER_PAGE,
+    couponsPage * COUPONS_PER_PAGE,
+  );
+
+  useEffect(() => {
+    setProductsPage(1);
+  }, [statusFilter]);
+
+  useEffect(() => {
+    setCouponsPage(1);
+  }, [coupons]);
 
   // Helper to calculate total stock from variants
   const getTotalStock = (variants: Variant[]) =>
@@ -310,14 +346,14 @@ export default function InventoryManagementPage() {
                     Loading products...
                   </TableCell>
                 </TableRow>
-              ) : filteredProducts.length === 0 ? (
+              ) : paginatedProducts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center">
                     No products found.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredProducts.map((product) => (
+                paginatedProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="flex flex-col">
@@ -407,10 +443,75 @@ export default function InventoryManagementPage() {
               )}
             </TableBody>
           </Table>
-          <p className="text-sm text-muted-foreground mt-4">
-            Showing 1-{filteredProducts.length} of {filteredProducts.length}{" "}
-            products
-          </p>
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-sm text-muted-foreground">
+              Showing{" "}
+              {filteredProducts.length === 0
+                ? 0
+                : (productsPage - 1) * PRODUCTS_PER_PAGE + 1}
+              –
+              {Math.min(
+                productsPage * PRODUCTS_PER_PAGE,
+                filteredProducts.length,
+              )}{" "}
+              of {filteredProducts.length} products
+            </p>
+            {productsTotalPages > 1 && (
+              <Pagination className="w-full md:w-auto mx-0">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setProductsPage((p) => Math.max(1, p - 1))}
+                      className={
+                        productsPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: productsTotalPages }, (_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === 1 ||
+                        page === productsTotalPages ||
+                        Math.abs(page - productsPage) <= 1,
+                    )
+                    .map((page, idx, arr) => (
+                      <React.Fragment key={page}>
+                        {idx > 0 && arr[idx - 1] !== page - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            isActive={productsPage === page}
+                            onClick={() => setProductsPage(page)}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </React.Fragment>
+                    ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        setProductsPage((p) =>
+                          Math.min(productsTotalPages, p + 1),
+                        )
+                      }
+                      className={
+                        productsPage === productsTotalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -494,7 +595,7 @@ export default function InventoryManagementPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    coupons.map((coupon) => (
+                    paginatedCoupons.map((coupon) => (
                       <TableRow key={coupon.id}>
                         <TableCell className="font-mono font-bold text-primary">
                           {coupon.code}
@@ -581,6 +682,73 @@ export default function InventoryManagementPage() {
                   )}
                 </TableBody>
               </Table>
+              {couponsTotalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="hidden md:block text-sm text-muted-foreground">
+                    Showing {(couponsPage - 1) * COUPONS_PER_PAGE + 1}–
+                    {Math.min(couponsPage * COUPONS_PER_PAGE, coupons.length)}{" "}
+                    of {coupons.length}
+                  </p>
+                  <Pagination className="w-full md:w-auto mx-0">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() =>
+                            setCouponsPage((p) => Math.max(1, p - 1))
+                          }
+                          className={
+                            couponsPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                      {Array.from(
+                        { length: couponsTotalPages },
+                        (_, i) => i + 1,
+                      )
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page === couponsTotalPages ||
+                            Math.abs(page - couponsPage) <= 1,
+                        )
+                        .map((page, idx, arr) => (
+                          <React.Fragment key={page}>
+                            {idx > 0 && arr[idx - 1] !== page - 1 && (
+                              <PaginationItem>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            )}
+                            <PaginationItem>
+                              <PaginationLink
+                                isActive={couponsPage === page}
+                                onClick={() => setCouponsPage(page)}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            setCouponsPage((p) =>
+                              Math.min(couponsTotalPages, p + 1),
+                            )
+                          }
+                          className={
+                            couponsPage === couponsTotalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="create" className="mt-4">

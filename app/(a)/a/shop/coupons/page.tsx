@@ -1,6 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { ITEMS_PER_PAGE } from "@/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -108,6 +118,7 @@ export default function CouponMetricsPage() {
   const [activeTab, setActiveTab] = useState("performance");
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [couponsPage, setCouponsPage] = useState(1);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -145,6 +156,12 @@ export default function CouponMetricsPage() {
   // Sort coupons by used_count descending for the performance tab
   const sortedCoupons = [...coupons].sort(
     (a, b) => b.used_count - a.used_count,
+  );
+
+  const couponsTotalPages = Math.ceil(sortedCoupons.length / ITEMS_PER_PAGE);
+  const paginatedCoupons = sortedCoupons.slice(
+    (couponsPage - 1) * ITEMS_PER_PAGE,
+    couponsPage * ITEMS_PER_PAGE,
   );
 
   if (isLoading) {
@@ -262,7 +279,7 @@ export default function CouponMetricsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedCoupons.map((coupon) => {
+                    {paginatedCoupons.map((coupon) => {
                       const usagePercent =
                         coupon.max_uses > 0
                           ? (coupon.used_count / coupon.max_uses) * 100
@@ -318,6 +335,76 @@ export default function CouponMetricsPage() {
                     })}
                   </TableBody>
                 </Table>
+              )}
+              {couponsTotalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="hidden md:block text-sm text-muted-foreground">
+                    Showing {(couponsPage - 1) * ITEMS_PER_PAGE + 1}–
+                    {Math.min(
+                      couponsPage * ITEMS_PER_PAGE,
+                      sortedCoupons.length,
+                    )}{" "}
+                    of {sortedCoupons.length}
+                  </p>
+                  <Pagination className="w-full md:w-auto mx-0">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() =>
+                            setCouponsPage((p) => Math.max(1, p - 1))
+                          }
+                          className={
+                            couponsPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                      {Array.from(
+                        { length: couponsTotalPages },
+                        (_, i) => i + 1,
+                      )
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page === couponsTotalPages ||
+                            Math.abs(page - couponsPage) <= 1,
+                        )
+                        .map((page, idx, arr) => (
+                          <React.Fragment key={page}>
+                            {idx > 0 && arr[idx - 1] !== page - 1 && (
+                              <PaginationItem>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            )}
+                            <PaginationItem>
+                              <PaginationLink
+                                isActive={couponsPage === page}
+                                onClick={() => setCouponsPage(page)}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            setCouponsPage((p) =>
+                              Math.min(couponsTotalPages, p + 1),
+                            )
+                          }
+                          className={
+                            couponsPage === couponsTotalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
               )}
             </TabsContent>
 

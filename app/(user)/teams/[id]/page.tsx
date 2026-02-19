@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition, use } from "react";
-import { notFound, useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -89,6 +89,7 @@ import {
 import { BanModal } from "@/app/(a)/a/_components/BanModal";
 import { PageHeader } from "@/components/PageHeader";
 import { NothingFound } from "@/components/NothingFound";
+import { useAuthModal } from "@/components/AuthModal";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -101,11 +102,13 @@ type Params = Promise<{
 const Page = ({ params }: { params: Params }) => {
   const { id } = use(params);
   const router = useRouter();
+  const { openAuthModal } = useAuthModal();
   const [inviteLink, setInviteLink] = useState("");
   const [dateRange, setDateRange] = useState({
     from: addDays(new Date(), -30),
     to: new Date(),
   });
+
   const [eventFilter, setEventFilter] = useState("all");
   const [selectedEvent, setSelectedEvent] = useState("");
   const [isTeamCreator, setIsTeamCreator] = useState(false);
@@ -128,6 +131,14 @@ const Page = ({ params }: { params: Params }) => {
 
   const { user, token } = useAuth();
   const isAdmin = user?.role === "admin";
+
+  const requireAuth = (action: () => void) => {
+    if (!token) {
+      openAuthModal({ defaultTab: "login", onSuccess: action });
+      return;
+    }
+    action();
+  };
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -262,33 +273,6 @@ const Page = ({ params }: { params: Params }) => {
     });
   };
 
-  // const handleApproveJoinRequest = (requestId: string) => {
-  //   startApproveRequestTransition(async () => {
-  //     try {
-  //       const res = await axios.post(
-  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
-  //         { request_id: requestId, decision: "approved" },
-  //         { headers: { Authorization: `Bearer ${token}` } }
-  //       );
-
-  //       toast.success(res.data.message);
-
-  //       // OPTIMISTIC UI UPDATE:
-  //       // 1. Remove from join requests list
-  //       setJoinRequests((prev: any) =>
-  //         prev.filter((req: any) => req.request_id !== requestId)
-  //       );
-
-  //       // 2. Refresh team details to show the new member in the "Members" tab
-  //       refreshTeamDetails();
-  //     } catch (error: any) {
-  //       toast.error(
-  //         error.response?.data?.message || "Failed to approve request"
-  //       );
-  //     }
-  //   });
-  // };
-
   const handleDenyJoinRequest = (requestId: string) => {
     startDenyRequestTransition(async () => {
       try {
@@ -309,46 +293,6 @@ const Page = ({ params }: { params: Params }) => {
       }
     });
   };
-
-  // const handleApproveJoinRequest = (requestId: string) => {
-  //   // In a real app, you would make an API call to approve the request
-  //   startApproveRequestTransition(async () => {
-  //     try {
-  //       const res = await axios.post(
-  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
-  //         { request_id: requestId, decision: "approved" },
-  //         {
-  //           headers: { Authorization: `Bearer ${token}` },
-  //         }
-  //       );
-  //       toast.success(res.data.message);
-  //       router.refresh();
-  //     } catch (error: any) {
-  //       error;
-  //       toast.error(error.response.data.message);
-  //     }
-  //   });
-  // };
-
-  // const handleDenyJoinRequest = (requestId: string) => {
-  //   // In a real app, you would make an API call to approve the request
-  //   startDenyRequestTransition(async () => {
-  //     try {
-  //       const res = await axios.post(
-  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/review-join-request/`,
-  //         { request_id: requestId, decision: "denied" },
-  //         {
-  //           headers: { Authorization: `Bearer ${token}` },
-  //         }
-  //       );
-  //       toast.success(res.data.message);
-  //       router.refresh();
-  //     } catch (error: any) {
-  //       toast.error(error.response.data.message);
-  //     }
-  //   });
-  // };
-
   const handleAddNewMember = () => {
     if (!newMemberSearch)
       return toast.error("Please enter UID or in-game-name or email");
@@ -538,7 +482,7 @@ const Page = ({ params }: { params: Params }) => {
                         successRequest ||
                         teamDetails.members.length >= 6
                       }
-                      onClick={handleJoinTeam}
+                      onClick={() => requireAuth(handleJoinTeam)}
                     >
                       {pendingRequest ? (
                         <Loader text="Sending..." />
@@ -557,7 +501,7 @@ const Page = ({ params }: { params: Params }) => {
                     <Button
                       className="w-full md:w-auto"
                       disabled={pendingRequest || successRequest}
-                      onClick={handleJoinTeam}
+                      onClick={() => requireAuth(handleJoinTeam)}
                     >
                       {pendingRequest ? (
                         <Loader text="Sending..." />
@@ -611,7 +555,7 @@ const Page = ({ params }: { params: Params }) => {
                         </DialogClose>
                         <Button
                           variant="destructive"
-                          onClick={handleExitTeam}
+                          onClick={() => requireAuth(handleExitTeam)}
                           disabled={pendingExit}
                         >
                           {pendingExit ? (
@@ -790,7 +734,9 @@ const Page = ({ params }: { params: Params }) => {
                             value={newMemberSearch}
                             onChange={(e) => setNewMemberSearch(e.target.value)}
                           />
-                          <Button onClick={handleAddNewMember}>
+                          <Button
+                            onClick={() => requireAuth(handleAddNewMember)}
+                          >
                             {pendingInvite ? (
                               <Loader text=" " />
                             ) : (
@@ -1048,9 +994,16 @@ const Page = ({ params }: { params: Params }) => {
                                         pendingApproveRequest ||
                                         pendingDenyRequest
                                       }
+                                      // onClick={() =>
+                                      //   handleApproveJoinRequest(
+                                      //     request.request_id,
+                                      //   )
+                                      // }
                                       onClick={() =>
-                                        handleApproveJoinRequest(
-                                          request.request_id,
+                                        requireAuth(() =>
+                                          handleApproveJoinRequest(
+                                            request.request._id,
+                                          ),
                                         )
                                       }
                                     >
@@ -1070,9 +1023,11 @@ const Page = ({ params }: { params: Params }) => {
                                         pendingDenyRequest
                                       }
                                       onClick={() =>
-                                        handleDenyJoinRequest(
-                                          request.request_id,
-                                        )
+                                        requireAuth(() => {
+                                          handleDenyJoinRequest(
+                                            request.request_id,
+                                          );
+                                        })
                                       }
                                     >
                                       {pendingDenyRequest ? (
@@ -1091,54 +1046,6 @@ const Page = ({ params }: { params: Params }) => {
                                     </Button>
                                   </div>
                                 </TableCell>
-                                {/* <TableCell>
-                                  <div className="space-x-2">
-                                    <Button
-                                      size="md"
-                                      disabled={
-                                        pendingApproveRequest ||
-                                        pendingDenyRequest
-                                      }
-                                      onClick={() =>
-                                        handleApproveJoinRequest(
-                                          request.request_id
-                                        )
-                                      }
-                                    >
-                                      {pendingApproveRequest ? (
-                                        <Loader text="Approving..." />
-                                      ) : (
-                                        "Approve"
-                                      )}
-                                    </Button>
-                                    <Button
-                                      size="md"
-                                      variant="destructive"
-                                      disabled={
-                                        pendingApproveRequest ||
-                                        pendingDenyRequest
-                                      }
-                                      onClick={() =>
-                                        handleDenyJoinRequest(
-                                          request.request_id
-                                        )
-                                      }
-                                    >
-                                      {pendingDenyRequest ? (
-                                        <Loader text="Denying..." />
-                                      ) : (
-                                        "Deny"
-                                      )}
-                                    </Button>
-                                    <Button size="md" variant="outline" asChild>
-                                      <Link
-                                        href={`/players/${request.requester}`}
-                                      >
-                                        View Profile
-                                      </Link>
-                                    </Button>
-                                  </div>
-                                </TableCell> */}
                               </TableRow>
                             ))}
                           </TableBody>
@@ -1158,7 +1065,7 @@ const Page = ({ params }: { params: Params }) => {
                 <CardContent>
                   <div className="space-y-4">
                     <Button
-                      onClick={handleGenerateInviteLink}
+                      onClick={() => requireAuth(handleGenerateInviteLink)}
                       className="w-full"
                       disabled={pendingGenerateLink}
                     >
@@ -1197,7 +1104,7 @@ const Page = ({ params }: { params: Params }) => {
                             </Button>
                             <Button
                               variant="destructive"
-                              onClick={handleDisbandTeam}
+                              onClick={() => requireAuth(handleDisbandTeam)}
                               disabled={pendingDisbanded}
                             >
                               {pendingDisbanded ? (
@@ -1224,7 +1131,9 @@ const Page = ({ params }: { params: Params }) => {
                           </DialogHeader>
                           <Form {...form}>
                             <form
-                              onSubmit={form.handleSubmit(onSubmit)}
+                              onSubmit={() =>
+                                requireAuth(form.handleSubmit(onSubmit))
+                              }
                               className="space-y-6"
                             >
                               <FormField

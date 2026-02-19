@@ -3793,6 +3793,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           <ConfirmStartTournamentModal
             open={openConfirmStartTournamentModal}
             eventId={eventDetails.event_id}
+            participantType={eventDetails.participant_type}
             eventName={eventDetails.event_name}
             stageId={eventDetails.stages[0]?.stage_id}
             onClose={() => setOpenConfirmStartTournamentModal(false)}

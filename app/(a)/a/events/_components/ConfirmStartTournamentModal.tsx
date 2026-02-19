@@ -26,6 +26,7 @@ export const ConfirmStartTournamentModal = ({
   open,
   onClose,
   stageId,
+  participantType,
 }: {
   eventName: string;
   eventId: number;
@@ -33,6 +34,7 @@ export const ConfirmStartTournamentModal = ({
   onSuccess?: () => void;
   onClose?: () => void;
   open?: boolean;
+  participantType?: string;
 }) => {
   const [pending, startTransition] = useTransition();
   const { token } = useAuth();
@@ -48,7 +50,7 @@ export const ConfirmStartTournamentModal = ({
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         toast.success(res.data.message || "Tournament started successfully");
