@@ -34,8 +34,6 @@ const page = ({ params }: { params: Params }) => {
   const [pending, startTransition] = useTransition();
   const [newsDetails, setNewsDetails] = useState<any>();
 
-  console.log(newsDetails);
-
   useEffect(() => {
     if (!slug) return; // Don't run if id is not available yet
 
@@ -74,18 +72,11 @@ const page = ({ params }: { params: Params }) => {
   if (newsDetails)
     return (
       <div>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2">
+        <div className="flex flex-col lg:flex-row justify-between items-start md:items-center mb-2">
           <PageHeader
             description={
               <>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={newsDetails.author.picture}
-                      alt={newsDetails.author}
-                    />
-                    <AvatarFallback>{newsDetails.author}</AvatarFallback>
-                  </Avatar>
+                <div className="flex flex-wrap items-center space-x-2 text-sm text-muted-foreground mt-2">
                   <span>{newsDetails.author}</span>
                   <span>•</span>
                   <span>{formatDate(newsDetails.created_at)}</span>
@@ -109,8 +100,8 @@ const page = ({ params }: { params: Params }) => {
             title={`${newsDetails.news_title} Details`}
             back
           />{" "}
-          <div className="flex w-full md:w-auto items-center gap-2">
-            <Button className="flex-1 md:flex-auto" asChild>
+          <div className="flex w-full lg:w-auto items-center gap-2">
+            <Button className="flex-1 lg:flex-auto" asChild>
               <Link href={`/a/news/${slug}/edit`}>
                 <Edit className="mr-2 h-4 w-4" /> Edit
               </Link>
@@ -120,6 +111,7 @@ const page = ({ params }: { params: Params }) => {
               newsTitle={newsDetails.news_title}
               redirectTo="/a/news"
               showLabel
+              isIcon={false}
             />
           </div>
         </div>

@@ -76,7 +76,11 @@ export const DeleteNewsModal = ({
       <DialogTrigger asChild>
         <Button
           variant="destructive"
-          className={cn("h-full", !isIcon && "flex-1", showLabel ? "" : "px-8")}
+          className={cn(
+            isIcon && "h-full",
+            !isIcon && "flex-1",
+            showLabel ? "" : "px-8",
+          )}
           size={isIcon ? "icon" : "default"}
         >
           <Trash2 />

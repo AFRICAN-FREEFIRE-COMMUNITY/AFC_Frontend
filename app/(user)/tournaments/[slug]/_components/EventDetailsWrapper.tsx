@@ -649,17 +649,37 @@ const RegistrationModals: React.FC<ModalProps> = ({
   // Poll Discord status for team members
   useEffect(() => {
     if (modalStep === "DISCORD_STATUS" && onCheckDiscordStatus) {
+      const validationResults = eventDetails.validationResults || [];
+      const allMembersOk =
+        validationResults.length > 0 &&
+        validationResults.every((r: any) => r.ok);
+      const selectedMembersData = eventDetails.selectedTeamMembers || [];
+      const allInAfcServer = selectedMembersData.every(
+        (member) =>
+          member.discord_id &&
+          teamAfcServerStatus?.[member.discord_id] === true,
+      );
+
+      // Stop polling once everyone has passed — no need to recheck
+      if (allMembersOk && allInAfcServer) return;
+
       // Initial check
       onCheckDiscordStatus();
 
-      // Poll every 5 seconds
+      // Poll every 30 seconds to avoid rapid flipping
       const interval = setInterval(() => {
         onCheckDiscordStatus();
-      }, 5000);
+      }, 30000);
 
       return () => clearInterval(interval);
     }
-  }, [modalStep, onCheckDiscordStatus]);
+  }, [
+    modalStep,
+    onCheckDiscordStatus,
+    eventDetails.validationResults,
+    eventDetails.selectedTeamMembers,
+    teamAfcServerStatus,
+  ]);
 
   const renderDialog = () => {
     switch (modalStep) {
@@ -1298,7 +1318,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
 
-  console.log(eventDetails);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeStageTab, setActiveStageTab] = useState<string>("");
@@ -1357,8 +1376,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           },
         },
       );
-
-      console.log(response);
 
       // Check if user has Discord connected
       const isConnected = response.data?.connected || false;
@@ -1474,8 +1491,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   useEffect(() => {
     const invitation =
       searchParams.get("invitation") || searchParams.get("invite_token");
-
-    console.log(invitation);
 
     if (invitation && !inviteToken) {
       setInviteToken(invitation);
@@ -1775,7 +1790,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   }, [slug, token, inviteToken]);
 
   const handleJoinedServer = useCallback(async () => {
-    console.log(eventDetails);
     startJoinedTransition(async () => {
       try {
         const payload: any = { slug: slug, event_id: eventDetails?.event_id };
@@ -1958,44 +1972,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           )}
         </CardContent>
       </Card>
-
-      {/* {(eventDetails.participant_type === "squad"
-        ? userTeam?.team_owner === user?.in_game_name
-        : true) && (
-        <div className="text-center mt-6">
-          {eventDetails.is_registered ? (
-            <Button disabled>You've registered already</Button>
-          ) : eventDetails.event_type === "external" ? (
-            <Button
-              onClick={() =>
-                window.open(eventDetails.registration_link, "_blank")
-              }
-              disabled={eventDetails.event_status !== "upcoming"}
-            >
-              {eventDetails.event_status === "upcoming"
-                ? "Register (External Link)"
-                : "Registration Closed"}
-            </Button>
-          ) : (
-            <Button
-              onClick={handleRegisterClick}
-              disabled={
-                !!registrationDisabledReason ||
-                isCheckingInvite ||
-                (inviteStatus?.is_used && !eventDetails.is_public)
-              }
-            >
-              {isCheckingInvite
-                ? "Validating invite..."
-                : inviteStatus?.is_used && !eventDetails.is_public
-                  ? "Invite Already Used"
-                  : registrationDisabledReason || "Register for Tournament"}
-            </Button>
-          )}
-        </div>
-      )} */}
-
-      {console.log(eventDetails)}
 
       {(eventDetails.participant_type === "squad"
         ? userTeam?.team_owner === user?.in_game_name

@@ -135,8 +135,6 @@ export default function CreateLeaderboardPage() {
     map_data: [] as any[],
   });
 
-  console.log(formData);
-
   const isManualFlow = formData.leaderboard_method === "manual";
   const totalSteps = isManualFlow ? 8 : 5;
 

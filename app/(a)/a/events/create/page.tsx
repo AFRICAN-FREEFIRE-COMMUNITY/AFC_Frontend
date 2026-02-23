@@ -816,7 +816,6 @@ export default function Page() {
           );
         }
       } catch (error) {
-        console.log(error);
         toast.error("An unexpected error occurred during submission.");
       }
     });

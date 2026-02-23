@@ -59,7 +59,6 @@ const page = () => {
     action();
   };
 
-  console.log(news);
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
@@ -201,8 +200,6 @@ const page = () => {
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-likes-dislikes-count/`,
         { news_id: newsId, session_token: token },
       );
-
-      console.log(countRes);
 
       // Update the specific item in the array
       setNews((prevNews: any) =>

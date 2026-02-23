@@ -561,14 +561,11 @@ export function SelectTeamsStep({
   const [loading, setLoading] = useState(true);
   const [fetchingDetails, setFetchingDetails] = useState(false);
 
-  console.log("first", eventSlug);
-
   useEffect(() => {
     // Fetch tournament teams from event details
     const fetchTournamentTeams = async () => {
       try {
         setLoading(true);
-        console.log("tomiwa");
         const res = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
           {
@@ -581,8 +578,6 @@ export function SelectTeamsStep({
           },
         );
         const data = await res.json();
-
-        console.log(data);
 
         // Extract tournament_teams from event_details
         const tournamentTeams = data.event_details?.tournament_teams || [];

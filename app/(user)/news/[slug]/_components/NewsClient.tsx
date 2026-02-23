@@ -83,8 +83,6 @@ export function NewsClient({
     if (slug) fetchNewsAndCounts();
   }, [slug, initialData, token]);
 
-  console.log(newsDetails.is_disliked_by_user);
-
   const handleVote = async (actionType: "like" | "dislike") => {
     if (!token) {
       return toast.error("Please login to vote");

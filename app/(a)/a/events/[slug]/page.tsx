@@ -24,6 +24,7 @@ import {
   IconCheck,
   IconLink,
   IconLockFilled,
+  IconChevronDown,
 } from "@tabler/icons-react";
 import axios from "axios";
 import Image from "next/image";
@@ -49,6 +50,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DeleteEventModal } from "../_components/DeleteEventModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import * as XLSX from "xlsx";
 
 // --- Type Definitions ---
 
@@ -384,54 +392,51 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     }
   };
 
-  const downloadInvites = () => {
+  const downloadInvites = (format: "xlsx" | "csv") => {
     if (inviteLinks.length === 0) {
       toast.error("No invite links to download");
       return;
     }
 
-    // Create CSV content
-    const headers = [
-      "Invite Link",
-      "Created By",
-      "Created At",
-      "Status",
-      "Used By",
-      "Used At",
-    ];
-    const csvRows = [headers.join(",")];
+    const dateStr = new Date().toISOString().split("T")[0];
+    const baseName = `${event_name}_invite_links_${dateStr}`;
 
-    inviteLinks.forEach((invite) => {
-      const row = [
-        invite.invite_link,
-        invite.created_by,
-        new Date(invite.created_at).toLocaleString(),
-        invite.is_used ? "Used" : "Active",
-        invite.used_by || "N/A",
-        invite.used_at ? new Date(invite.used_at).toLocaleString() : "N/A",
+    const rows = inviteLinks.map((invite) => ({
+      "Invite Link": invite.invite_link,
+      "Created By": invite.created_by,
+      "Created At": new Date(invite.created_at).toLocaleString(),
+      Status: invite.is_used ? "Used" : "Active",
+      "Used By": invite.used_by || "N/A",
+      "Used At": invite.used_at
+        ? new Date(invite.used_at).toLocaleString()
+        : "N/A",
+    }));
+
+    if (format === "xlsx") {
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Invite Links");
+      XLSX.writeFile(workbook, `${baseName}.xlsx`);
+      toast.success("Invite links downloaded as Excel!");
+    } else {
+      const headers = Object.keys(rows[0]);
+      const csvRows = [
+        headers.join(","),
+        ...rows.map((r) => headers.map((h) => r[h as keyof typeof r]).join(",")),
       ];
-      csvRows.push(row.join(","));
-    });
-
-    const csvContent = csvRows.join("\n");
-
-    // Create blob and download
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `${event_name}_invite_links_${new Date().toISOString().split("T")[0]}.csv`,
-    );
-    link.style.visibility = "hidden";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast.success("Invite links downloaded successfully!");
+      const blob = new Blob([csvRows.join("\n")], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${baseName}.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Invite links downloaded as CSV!");
+    }
   };
 
   // Memoized calculations
@@ -1058,15 +1063,27 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                     Private Event Invites
                   </span>
                   <div className="flex gap-2 flex-wrap">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={downloadInvites}
-                      disabled={inviteLinks.length === 0 || loadingInvites}
-                    >
-                      <IconExternalLink className="size-4 mr-1" />
-                      Download CSV
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={inviteLinks.length === 0 || loadingInvites}
+                        >
+                          <IconExternalLink className="size-4 mr-1" />
+                          Download
+                          <IconChevronDown className="size-3 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => downloadInvites("xlsx")}>
+                          Download as Excel (.xlsx)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadInvites("csv")}>
+                          Download as CSV (.csv)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                       size="sm"
                       variant="outline"

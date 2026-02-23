@@ -35,8 +35,6 @@ export const DeleteCouponModal = ({
   const { token } = useAuth();
   const router = useRouter();
 
-  console.log(couponId);
-
   const handleDelete = () => {
     startTransition(async () => {
       try {

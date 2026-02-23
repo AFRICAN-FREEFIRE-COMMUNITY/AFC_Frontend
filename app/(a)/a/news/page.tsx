@@ -66,8 +66,6 @@ const page = () => {
   const [pending, startTransition] = useTransition();
   const [news, setNews] = useState<any>();
 
-  console.log(news);
-
   const categories = [
     { value: "all", label: "All Categories" },
     { value: "general", label: "General News" },
@@ -223,7 +221,7 @@ const page = () => {
         <PageHeader title="News Management" />
         <Button className="w-full md:w-auto" asChild>
           <Link href="/a/news/create">
-            <IconCirclePlus className="mr-2 h-4 w-4" />
+            <IconCirclePlus />
             Create New
           </Link>
         </Button>

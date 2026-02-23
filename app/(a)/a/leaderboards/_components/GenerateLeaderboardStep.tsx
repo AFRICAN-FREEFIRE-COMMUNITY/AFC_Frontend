@@ -62,7 +62,6 @@ export function GenerateLeaderboardStep({ onNext, onBack, formData }: Props) {
 
       const leaderboardData = await leaderboardRes.json();
 
-      console.log(leaderboardData);
       const matchId = leaderboardData.leaderboard_id; // Assuming API returns match_id
 
       // Step 2: Submit match results for each map
@@ -85,8 +84,6 @@ export function GenerateLeaderboardStep({ onNext, onBack, formData }: Props) {
             match_id: matchId,
             results: results,
           };
-
-          console.log(matchResultPayload);
 
           const matchResultRes = await fetch(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/enter-team-match-result-manual/`,

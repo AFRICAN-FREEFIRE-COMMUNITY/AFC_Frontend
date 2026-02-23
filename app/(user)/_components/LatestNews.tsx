@@ -78,7 +78,7 @@ export const LatestNews = () => {
                 <CardContent className="pb-6">
                   <Link
                     href={`/news/${newsDetails.slug}`}
-                    className="font-medium hover:text-primary hover:underline"
+                    className="font-medium hover:text-primary hover:underline line-clamp-2"
                   >
                     {newsDetails.news_title}
                   </Link>

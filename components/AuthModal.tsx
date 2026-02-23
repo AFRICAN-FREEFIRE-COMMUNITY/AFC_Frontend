@@ -96,7 +96,6 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
         onOpenChange={setOpen}
         defaultTab={defaultTab}
         onSuccess={() => {
-          console.log("tomiwa");
           closeAuthModal();
           //   onSuccessCallback?.fn?.();
         }}
@@ -192,7 +191,6 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
         if (response.statusText === "OK") {
           await login(response.data.session_token);
           toast.success(response.data.message || "Logged in successfully!");
-          console.log("first");
           onSuccess?.();
         } else {
           toast.error("Oops! An error occurred.");
@@ -370,7 +368,6 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           toast.error("Oops! An error occurred.");
         }
       } catch (error: any) {
-        console.log(error);
         toast.error(
           error?.response?.data?.message || "Failed to create account.",
         );

@@ -216,8 +216,6 @@ export function MobileNavbar() {
                           const Icon = subItem.icon;
                           const subShowNew = isNewLink(subItem.addedAt);
 
-                          console.log(subItem);
-
                           return (
                             <Button
                               key={subIdx}
