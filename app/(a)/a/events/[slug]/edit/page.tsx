@@ -27,13 +27,13 @@ import {
 
 import BasicInfoTab from "./_components/BasicInfoTab";
 import RegisteredTeamsTab from "./_components/RegisteredTeamsTab";
-import StagesGroupsTab from "./_components/StagesGroupsTab";
 import PrizeRulesTab from "./_components/PrizeRulesTab";
 import ActionsTab from "./_components/ActionsTab";
 import { StageConfigModal } from "./_components/StageConfigModal";
 import { RemoveStageModal } from "./_components/RemoveStageModal";
 import { ParticipantTypeWarningModal } from "./_components/ParticipantTypeWarningModal";
 import { SaveConfirmModal } from "./_components/SaveConfirmModal";
+import StagesGroupsTab from "./_components/StagesGroupsTab";
 
 // ============================================================================
 // PAGE COMPONENT
@@ -61,7 +61,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [previewRuleUrl, setPreviewRuleUrl] = useState("");
   const [selectedRuleFile, setSelectedRuleFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [rulesInputMethod, setRulesInputMethod] = useState<"type" | "upload">("type");
+  const [rulesInputMethod, setRulesInputMethod] = useState<"type" | "upload">(
+    "type",
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const rulesFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,9 +71,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [stageNames, setStageNames] = useState<string[]>(["Stage 1"]);
   const [isStageModalOpen, setIsStageModalOpen] = useState(false);
   const [stageModalStep, setStageModalStep] = useState(1);
-  const [editingStageIndex, setEditingStageIndex] = useState<number | null>(null);
+  const [editingStageIndex, setEditingStageIndex] = useState<number | null>(
+    null,
+  );
   const [tempGroups, setTempGroups] = useState<any[]>([]);
-  const [passwordVisibility, setPasswordVisibility] = useState<Record<number, boolean>>({});
+  const [passwordVisibility, setPasswordVisibility] = useState<
+    Record<number, boolean>
+  >({});
   const [stageModalData, setStageModalData] = useState<{
     stage_id?: number;
     stage_name: string;
@@ -105,15 +111,21 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 
   // ── Tournament start modal ─────────────────────────────────────────────────
-  const [openConfirmStartTournamentModal, setOpenConfirmStartTournamentModal] = useState(false);
+  const [openConfirmStartTournamentModal, setOpenConfirmStartTournamentModal] =
+    useState(false);
 
   // ── Participant type change warning ────────────────────────────────────────
-  const [pendingParticipantType, setPendingParticipantType] = useState<string | null>(null);
-  const [showParticipantTypeWarning, setShowParticipantTypeWarning] = useState(false);
+  const [pendingParticipantType, setPendingParticipantType] = useState<
+    string | null
+  >(null);
+  const [showParticipantTypeWarning, setShowParticipantTypeWarning] =
+    useState(false);
 
   // ── Save confirmation modal ────────────────────────────────────────────────
   const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false);
-  const [pendingSaveData, setPendingSaveData] = useState<EventFormType | null>(null);
+  const [pendingSaveData, setPendingSaveData] = useState<EventFormType | null>(
+    null,
+  );
 
   // ── Tab error indicators ───────────────────────────────────────────────────
   const [tabErrors, setTabErrors] = useState({
@@ -234,7 +246,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           publish_to_tournaments: eventDetails.tournament_tier !== "",
           publish_to_news: false,
           save_to_drafts: false,
-          registration_restriction: eventDetails.registration_restriction || "none",
+          registration_restriction:
+            eventDetails.registration_restriction || "none",
           restriction_mode: eventDetails.restriction_mode || "allow_only",
           selected_locations: eventDetails.restricted_countries || [],
         });
@@ -269,8 +282,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         errors.stream_channels
       ),
       registered_teams: false,
-      stages_groups: !stageValidation.isValid || !!errors.stages || !!errors.number_of_stages,
-      prize_rules: !!(errors.prizepool || errors.prize_distribution || errors.event_rules || errors.rules_document),
+      stages_groups:
+        !stageValidation.isValid ||
+        !!errors.stages ||
+        !!errors.number_of_stages,
+      prize_rules: !!(
+        errors.prizepool ||
+        errors.prize_distribution ||
+        errors.event_rules ||
+        errors.rules_document
+      ),
     });
   }, [form.formState.errors, form.watch("stages")]);
 
@@ -280,10 +301,18 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const publishToNewsWatch = form.watch("publish_to_news");
 
   useEffect(() => {
-    if (saveToDraftsWatch && (publishToTournamentsWatch || publishToNewsWatch)) {
-      if (publishToTournamentsWatch) form.setValue("publish_to_tournaments", false, { shouldDirty: false });
-      if (publishToNewsWatch) form.setValue("publish_to_news", false, { shouldDirty: false });
-    } else if ((publishToTournamentsWatch || publishToNewsWatch) && saveToDraftsWatch) {
+    if (
+      saveToDraftsWatch &&
+      (publishToTournamentsWatch || publishToNewsWatch)
+    ) {
+      if (publishToTournamentsWatch)
+        form.setValue("publish_to_tournaments", false, { shouldDirty: false });
+      if (publishToNewsWatch)
+        form.setValue("publish_to_news", false, { shouldDirty: false });
+    } else if (
+      (publishToTournamentsWatch || publishToNewsWatch) &&
+      saveToDraftsWatch
+    ) {
       form.setValue("save_to_drafts", false, { shouldDirty: false });
     }
   }, [saveToDraftsWatch, publishToTournamentsWatch, publishToNewsWatch, form]);
@@ -297,24 +326,42 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     try {
       setLoadingEvent(true);
       const commonConfig = {
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       };
 
       const [res, resAdmin] = await Promise.all([
-        axios.post(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`, { slug }, commonConfig),
-        axios.post(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`, { slug }, commonConfig),
+        axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+          { slug },
+          commonConfig,
+        ),
+        axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
+          { slug },
+          commonConfig,
+        ),
       ]);
 
-      const adminStages = resAdmin.data.event_details?.stages || resAdmin.data.stages || [];
-      const mergedDetails: EventDetails = { ...res.data.event_details, stages: adminStages };
+      const adminStages =
+        resAdmin.data.event_details?.stages || resAdmin.data.stages || [];
+      const mergedDetails: EventDetails = {
+        ...res.data.event_details,
+        stages: adminStages,
+      };
 
-      if (adminStages.length > 0) setStageNames(adminStages.map((s: any) => s.stage_name));
+      if (adminStages.length > 0)
+        setStageNames(adminStages.map((s: any) => s.stage_name));
 
       setEventDetails(mergedDetails);
       setLoadingEvent(false);
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || error.response?.data?.detail || "Failed to fetch event details.";
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to fetch event details.";
       toast.error(errorMessage);
       router.push("/login");
     } finally {
@@ -351,7 +398,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       toast.success("Leaderboard updated");
       return response.data;
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to fetch leaderboard");
+      toast.error(
+        error.response?.data?.message || "Failed to fetch leaderboard",
+      );
     } finally {
       setLoadingLeaderboard(false);
     }
@@ -368,13 +417,18 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         toast.success(res.data.message || "Seeding successful");
         setIsSeedModalOpen(false);
       } catch (error: any) {
-        toast.error(error.response?.data?.message || "Oops! An error occurred.");
+        toast.error(
+          error.response?.data?.message || "Oops! An error occurred.",
+        );
       }
     });
   };
 
   const toggleVisibility = (groupIndex: number) => {
-    setPasswordVisibility((prev) => ({ ...prev, [groupIndex]: !prev[groupIndex] }));
+    setPasswordVisibility((prev) => ({
+      ...prev,
+      [groupIndex]: !prev[groupIndex],
+    }));
   };
 
   // ── Stage management ───────────────────────────────────────────────────────
@@ -393,10 +447,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         stage_format: existingStage.stage_format,
         number_of_groups: existingStage.number_of_groups,
         stage_discord_role_id: existingStage.stage_discord_role_id || "",
-        teams_qualifying_from_stage: existingStage.teams_qualifying_from_stage || 0,
+        teams_qualifying_from_stage:
+          existingStage.teams_qualifying_from_stage || 0,
         total_teams_in_stage: existingStage.total_teams_in_stage || 0,
       });
-      setTempGroups(existingStage.groups.map((g) => ({ ...g, group_id: g.group_id })));
+      setTempGroups(
+        existingStage.groups.map((g) => ({ ...g, group_id: g.group_id })),
+      );
     } else {
       setStageModalData({
         stage_name: stageNames[stageIndex] || `Stage ${stageIndex + 1}`,
@@ -456,7 +513,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       total_teams_in_stage: 0,
     };
 
-    form.setValue("stages", [...currentStages, newStage], { shouldValidate: false });
+    form.setValue("stages", [...currentStages, newStage], {
+      shouldValidate: false,
+    });
     form.setValue("number_of_stages", newCount);
     setStageNames([...stageNames, `Stage ${newCount}`]);
     openAddStageModalLogic(currentCount);
@@ -481,11 +540,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     if (stageToDelete?.stage_id) {
       try {
         setLoadingRemove(true);
-        const response = await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/delete-stage/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ stage_id: stageToDelete.stage_id }),
-        });
+        const response = await fetch(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/delete-stage/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ stage_id: stageToDelete.stage_id }),
+          },
+        );
         if (!response.ok) throw new Error("Failed to delete stage");
       } catch {
         toast.error("Failed to delete stage from server");
@@ -496,10 +561,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     }
 
     const currentCount = form.getValues("number_of_stages") || 0;
-    const updatedStages = currentStages.filter((_, idx) => idx !== stageToRemove);
+    const updatedStages = currentStages.filter(
+      (_, idx) => idx !== stageToRemove,
+    );
     const updatedNames = stageNames.filter((_, idx) => idx !== stageToRemove);
 
-    form.setValue("stages", updatedStages, { shouldDirty: true, shouldValidate: true });
+    form.setValue("stages", updatedStages, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
     form.setValue("number_of_stages", currentCount - 1);
     setStageNames(updatedNames);
 
@@ -514,19 +584,21 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   const handleGroupCountChangeLogic = (count: number) => {
     const newCount = Math.max(0, count);
-    const newTempGroups = Array.from({ length: newCount }, (_, i) =>
-      tempGroups[i] ?? {
-        group_name: `Group ${i + 1}`,
-        playing_date: stageModalData.start_date || "",
-        playing_time: "00:00",
-        teams_qualifying: 1,
-        match_count: 1,
-        group_discord_role_id: "",
-        match_maps: [],
-        room_id: "",
-        room_name: "",
-        room_password: "",
-      },
+    const newTempGroups = Array.from(
+      { length: newCount },
+      (_, i) =>
+        tempGroups[i] ?? {
+          group_name: `Group ${i + 1}`,
+          playing_date: stageModalData.start_date || "",
+          playing_time: "00:00",
+          teams_qualifying: 1,
+          match_count: 1,
+          group_discord_role_id: "",
+          match_maps: [],
+          room_id: "",
+          room_name: "",
+          room_password: "",
+        },
     );
     setTempGroups(newTempGroups);
     setStageModalData({ ...stageModalData, number_of_groups: newCount });
@@ -573,7 +645,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     );
 
     if (invalidGroup) {
-      toast.error("Please complete all group details correctly, including selecting at least one map per group (Step 2)");
+      toast.error(
+        "Please complete all group details correctly, including selecting at least one map per group (Step 2)",
+      );
       return;
     }
 
@@ -586,7 +660,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     const newStage: StageType = {
       ...(stageModalData.stage_id && { stage_id: stageModalData.stage_id }),
-      ...(existingStage?.stage_id && !stageModalData.stage_id && { stage_id: existingStage.stage_id }),
+      ...(existingStage?.stage_id &&
+        !stageModalData.stage_id && { stage_id: existingStage.stage_id }),
       stage_name: stageModalData.stage_name,
       start_date: stageModalData.start_date,
       end_date: stageModalData.end_date,
@@ -614,7 +689,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     await form.trigger();
     setIsStageModalOpen(false);
     setStageModalStep(1);
-    toast.success("Stage configuration updated. Click 'Save Changes' to finalize.");
+    toast.success(
+      "Stage configuration updated. Click 'Save Changes' to finalize.",
+    );
   };
 
   // ── Prize distribution ─────────────────────────────────────────────────────
@@ -639,13 +716,22 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     if (key.endsWith("Place")) key = key.split(" ")[0];
     const numericPart = parseInt(key.replace(/[^0-9]/g, ""));
     if (isNaN(numericPart)) return key;
-    const suffix = numericPart === 1 ? "st" : numericPart === 2 ? "nd" : numericPart === 3 ? "rd" : "th";
+    const suffix =
+      numericPart === 1
+        ? "st"
+        : numericPart === 2
+          ? "nd"
+          : numericPart === 3
+            ? "rd"
+            : "th";
     return `${numericPart}${suffix}`;
   };
 
   // ── Save / submit ──────────────────────────────────────────────────────────
 
-  const getChangedFields = (data: EventFormType): { label: string; from: string; to: string }[] => {
+  const getChangedFields = (
+    data: EventFormType,
+  ): { label: string; from: string; to: string }[] => {
     if (!eventDetails) return [];
     const changes: { label: string; from: string; to: string }[] = [];
 
@@ -660,22 +746,60 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     };
 
     check("Event Name", eventDetails.event_name, data.event_name);
-    check("Competition Type", eventDetails.competition_type, data.competition_type);
-    check("Participant Type", eventDetails.participant_type, data.participant_type);
+    check(
+      "Competition Type",
+      eventDetails.competition_type,
+      data.competition_type,
+    );
+    check(
+      "Participant Type",
+      eventDetails.participant_type,
+      data.participant_type,
+    );
     check("Event Type", eventDetails.event_type, data.event_type);
-    check("Event Privacy", eventDetails.is_public ? "Public" : "Private", data.is_public === "True" ? "Public" : "Private");
-    check("Max Participants", eventDetails.max_teams_or_players, data.max_teams_or_players);
+    check(
+      "Event Privacy",
+      eventDetails.is_public ? "Public" : "Private",
+      data.is_public === "True" ? "Public" : "Private",
+    );
+    check(
+      "Max Participants",
+      eventDetails.max_teams_or_players,
+      data.max_teams_or_players,
+    );
     check("Event Mode", eventDetails.event_mode, data.event_mode);
     check("Start Date", eventDetails.start_date, data.start_date);
     check("End Date", eventDetails.end_date, data.end_date);
-    check("Registration Open", eventDetails.registration_open_date, data.registration_open_date);
-    check("Registration Close", eventDetails.registration_end_date, data.registration_end_date);
-    check("Registration Link", eventDetails.registration_link ?? "", data.registration_link ?? "");
+    check(
+      "Registration Open",
+      eventDetails.registration_open_date,
+      data.registration_open_date,
+    );
+    check(
+      "Registration Close",
+      eventDetails.registration_end_date,
+      data.registration_end_date,
+    );
+    check(
+      "Registration Link",
+      eventDetails.registration_link ?? "",
+      data.registration_link ?? "",
+    );
     check("Prize Pool", eventDetails.prizepool, data.prizepool);
     check("Event Status", eventDetails.event_status, data.event_status);
 
-    if (selectedFile) changes.push({ label: "Event Banner", from: "Previous banner", to: `New file: ${selectedFile.name}` });
-    if (selectedRuleFile) changes.push({ label: "Rules Document", from: "Previous document", to: `New file: ${selectedRuleFile.name}` });
+    if (selectedFile)
+      changes.push({
+        label: "Event Banner",
+        from: "Previous banner",
+        to: `New file: ${selectedFile.name}`,
+      });
+    if (selectedRuleFile)
+      changes.push({
+        label: "Rules Document",
+        from: "Previous document",
+        to: `New file: ${selectedRuleFile.name}`,
+      });
 
     return changes;
   };
@@ -723,7 +847,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       return;
     }
     if (regOpen > regClose) {
-      toast.error("Registration open date cannot be after registration close date");
+      toast.error(
+        "Registration open date cannot be after registration close date",
+      );
       setCurrentTab("basic_info");
       return;
     }
@@ -745,14 +871,18 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("event_id", eventDetails.event_id.toString());
 
         if (selectedFile) formData.append("event_banner", selectedFile);
-        if (selectedRuleFile) formData.append("uploaded_rules", selectedRuleFile);
+        if (selectedRuleFile)
+          formData.append("uploaded_rules", selectedRuleFile);
 
         formData.append("event_name", data.event_name);
         formData.append("competition_type", data.competition_type);
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
         formData.append("is_public", data.is_public);
-        formData.append("max_teams_or_players", data.max_teams_or_players.toString());
+        formData.append(
+          "max_teams_or_players",
+          data.max_teams_or_players.toString(),
+        );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
         formData.append("number_of_stages", "2");
@@ -761,13 +891,26 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
         formData.append("registration_link", data.registration_link || "");
-        formData.append("publish_to_tournaments", data.publish_to_tournaments.toString());
+        formData.append(
+          "publish_to_tournaments",
+          data.publish_to_tournaments.toString(),
+        );
         formData.append("publish_to_news", data.publish_to_news.toString());
-        formData.append("registration_restriction", data.registration_restriction || "none");
-        formData.append("restriction_mode", data.restriction_mode || "allow_only");
+        formData.append(
+          "registration_restriction",
+          data.registration_restriction || "none",
+        );
+        formData.append(
+          "restriction_mode",
+          data.restriction_mode || "allow_only",
+        );
         formData.append(
           "restricted_countries",
-          JSON.stringify(data.selected_locations && data.selected_locations.length > 0 ? data.selected_locations : []),
+          JSON.stringify(
+            data.selected_locations && data.selected_locations.length > 0
+              ? data.selected_locations
+              : [],
+          ),
         );
 
         if (rulesInputMethod === "type") {
@@ -777,22 +920,32 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           formData.append("event_rules", "");
         }
 
-        formData.append("prize_distribution", JSON.stringify(data.prize_distribution));
+        formData.append(
+          "prize_distribution",
+          JSON.stringify(data.prize_distribution),
+        );
         formData.append(
           "stream_channels",
-          JSON.stringify(data.stream_channels?.filter((s) => s.trim() !== "") || []),
+          JSON.stringify(
+            data.stream_channels?.filter((s) => s.trim() !== "") || [],
+          ),
         );
         formData.append("stages", JSON.stringify(data.stages));
 
-        const response = await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
+        const response = await fetch(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          },
+        );
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-          toast.error("Server error: Unexpected response format.", { duration: 5000 });
+          toast.error("Server error: Unexpected response format.", {
+            duration: 5000,
+          });
           return;
         }
 
@@ -806,7 +959,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         } else {
           const errorMessage = res.message || res.detail || res.error;
           if (response.status === 400) {
-            toast.error(<div className="space-y-1"><p className="font-semibold">Validation Error</p><p className="text-sm">{errorMessage}</p></div>, { duration: 5000 });
+            toast.error(
+              <div className="space-y-1">
+                <p className="font-semibold">Validation Error</p>
+                <p className="text-sm">{errorMessage}</p>
+              </div>,
+              { duration: 5000 },
+            );
           } else if (response.status === 401) {
             toast.error("Your session has expired. Please log in again.");
             router.push("/login");
@@ -821,7 +980,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           }
         }
       } catch (error: any) {
-        if (error.message === "Failed to fetch" || error.message?.includes("NetworkError")) {
+        if (
+          error.message === "Failed to fetch" ||
+          error.message?.includes("NetworkError")
+        ) {
           toast.error("Network error: Please check your internet connection.");
         } else {
           toast.error("An unexpected error occurred. Please try again.");
@@ -953,7 +1115,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             <TabsContent value="actions">
               <ActionsTab
                 eventDetails={eventDetails}
-                onStartTournament={() => setOpenConfirmStartTournamentModal(true)}
+                onStartTournament={() =>
+                  setOpenConfirmStartTournamentModal(true)
+                }
               />
             </TabsContent>
           </Tabs>
@@ -965,7 +1129,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           open={showParticipantTypeWarning}
           currentType={form.getValues("participant_type")}
           pendingType={pendingParticipantType}
-          participantLabel={eventDetails.participant_type === "squad" ? "teams" : "players"}
+          participantLabel={
+            eventDetails.participant_type === "squad" ? "teams" : "players"
+          }
           onCancel={() => {
             setPendingParticipantType(null);
             setShowParticipantTypeWarning(false);

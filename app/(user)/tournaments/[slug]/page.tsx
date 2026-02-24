@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
 import { generateDynamicMetadata } from "@/lib/seo";
+import { ProtectedRoute } from "../../_components/ProtectedRoute";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -97,9 +98,9 @@ const Page = async ({ params }: Props) => {
   const { slug } = await params;
 
   return (
-    <main>
+    <ProtectedRoute>
       <EventDetailsWrapper slug={slug} />
-    </main>
+    </ProtectedRoute>
   );
 };
 
