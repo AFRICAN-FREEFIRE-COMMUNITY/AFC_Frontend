@@ -5,7 +5,8 @@
       "Bash(npx tsc:*)",
       "Bash(ls:*)",
       "Bash(tree:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

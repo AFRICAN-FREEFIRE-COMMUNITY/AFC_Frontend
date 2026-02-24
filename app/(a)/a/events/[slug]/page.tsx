@@ -422,7 +422,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
       const headers = Object.keys(rows[0]);
       const csvRows = [
         headers.join(","),
-        ...rows.map((r) => headers.map((h) => r[h as keyof typeof r]).join(",")),
+        ...rows.map((r) =>
+          headers.map((h) => r[h as keyof typeof r]).join(","),
+        ),
       ];
       const blob = new Blob([csvRows.join("\n")], {
         type: "text/csv;charset=utf-8;",
@@ -1076,10 +1078,14 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => downloadInvites("xlsx")}>
+                        <DropdownMenuItem
+                          onClick={() => downloadInvites("xlsx")}
+                        >
                           Download as Excel (.xlsx)
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => downloadInvites("csv")}>
+                        <DropdownMenuItem
+                          onClick={() => downloadInvites("csv")}
+                        >
                           Download as CSV (.csv)
                         </DropdownMenuItem>
                       </DropdownMenuContent>

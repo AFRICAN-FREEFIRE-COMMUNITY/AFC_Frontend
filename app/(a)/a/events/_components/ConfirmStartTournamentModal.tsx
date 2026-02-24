@@ -5,19 +5,17 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Loader } from "@/components/Loader";
-import { Trash2, AlertTriangle } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { IconCheck, IconUserMinus } from "@tabler/icons-react";
+import { AlertTriangle } from "lucide-react";
+import { IconCheck } from "@tabler/icons-react";
 
 export const ConfirmStartTournamentModal = ({
   eventId,
@@ -37,23 +35,30 @@ export const ConfirmStartTournamentModal = ({
   participantType?: string;
 }) => {
   const [pending, startTransition] = useTransition();
+  const [clearExisting, setClearExisting] = useState(false);
   const { token } = useAuth();
-  const router = useRouter();
+
+  const isTeam = participantType !== "solo";
 
   const handleStart = () => {
     startTransition(async () => {
       try {
-        const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seed-solo-players-to-stage/`,
-          { event_id: `${eventId}`, stage_id: `${stageId}` },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        if (isTeam) {
+          const res = await axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seed-event-competitors-to-stage/`,
+            { stage_id: `${stageId}`, clear_existing: clearExisting },
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          toast.success(res.data.message || "Tournament started successfully");
+        } else {
+          const res = await axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seed-solo-players-to-stage/`,
+            { event_id: `${eventId}`, stage_id: `${stageId}` },
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          toast.success(res.data.message || "Tournament started successfully");
+        }
 
-        toast.success(res.data.message || "Tournament started successfully");
         onClose?.();
         onSuccess?.();
       } catch (e: any) {
@@ -74,6 +79,22 @@ export const ConfirmStartTournamentModal = ({
           <DialogDescription className="mt-2 text-base">
             Are you sure you want to start <b>"{eventName}"</b>?
           </DialogDescription>
+
+          {isTeam && (
+            <div className="flex items-center justify-between mt-4 p-3 rounded-lg bg-muted text-left">
+              <div>
+                <p className="text-sm font-medium">Clear existing seeding</p>
+                <p className="text-xs text-muted-foreground">
+                  Remove any existing stage seeds before starting
+                </p>
+              </div>
+              <Switch
+                checked={clearExisting}
+                onCheckedChange={setClearExisting}
+              />
+            </div>
+          )}
+
           <div className="flex gap-3 mt-6">
             <Button
               variant="outline"

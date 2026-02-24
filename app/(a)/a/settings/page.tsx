@@ -448,61 +448,6 @@ const page = () => {
     }
   };
 
-  // Updated handleEditUser function that works for all users
-  // const handleEditUser = async () => {
-  //   startEditTransition(async () => {
-  //     if (!selectedUser) return;
-
-  //     try {
-  //       const roleIds = getRoleIds(selectedUser.roles);
-
-  //       const requestBody = {
-  //         username: selectedUser.username,
-  //         email: selectedUser.email,
-  //         role_ids: roleIds,
-  //       };
-
-  //       const response = await axios.post(
-  //         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/assign-roles-to-user/`,
-  //         requestBody,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //             "Content-Type": "application/json",
-  //           },
-  //         }
-  //       );
-
-  //       if (response.data.success || response.status === 200) {
-  //         await fetchUsers();
-  //         setIsEditUserOpen(false);
-  //         setSelectedUser(null);
-
-  //         const message =
-  //           roleIds.length > 0
-  //             ? `User roles updated successfully. Assigned ${roleIds.length} role(s).`
-  //             : `Successfully removed all admin roles from ${selectedUser.username}. User is now a regular player.`;
-
-  //         toast.success(message);
-  //       } else {
-  //         toast.error(response.data.message || "Failed to update user roles");
-  //       }
-  //     } catch (error: any) {
-  //       if (error.response) {
-  //         const errorMessage =
-  //           error.response.data?.message ||
-  //           error.response.data?.error ||
-  //           `Server error: ${error.response.status}`;
-  //         toast.error(errorMessage);
-  //       } else if (error.request) {
-  //         toast.error("Network error: Unable to reach server");
-  //       } else {
-  //         toast.error("Failed to update user roles");
-  //       }
-  //     }
-  //   });
-  // };
-
   const handleEditUser = async () => {
     startEditTransition(async () => {
       if (!selectedUser) return;
@@ -730,6 +675,7 @@ const page = () => {
                       </TableCell>
                       <TableCell>
                         <Badge
+                          className="Capitalize"
                           variant={
                             user.status === "active" ? "default" : "destructive"
                           }
@@ -846,79 +792,11 @@ const page = () => {
                                                 )}
                                                 {formatWord(role.name)}
                                               </label>
-
-                                              {/* DELETE SYSTEM ROLE BUTTON */}
-                                              {/* <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                                                  >
-                                                    <Trash2 className="h-4 w-4" />
-                                                  </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                  <AlertDialogHeader>
-                                                    <AlertDialogTitle>
-                                                      Delete System Role
-                                                    </AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                      Are you sure you want to
-                                                      delete the{" "}
-                                                      <strong>
-                                                        {formatWord(role.name)}
-                                                      </strong>{" "}
-                                                      role? This will remove
-                                                      this role from all
-                                                      administrators currently
-                                                      assigned to it. This
-                                                      action cannot be undone.
-                                                    </AlertDialogDescription>
-                                                  </AlertDialogHeader>
-                                                  <AlertDialogFooter>
-                                                    <AlertDialogCancel>
-                                                      Cancel
-                                                    </AlertDialogCancel>
-                                                    <AlertDialogAction
-                                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                      onClick={() =>
-                                                        handleDeleteSystemRole(
-                                                          role.id,
-                                                          role.name
-                                                        )
-                                                      }
-                                                    >
-                                                      Delete Role
-                                                    </AlertDialogAction>
-                                                  </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                              </AlertDialog> */}
                                             </div>
                                             <CardDescription>
                                               {role.description}
                                             </CardDescription>
                                           </CardHeader>
-                                          {/* <label
-                                            key={role.id}
-                                            className={`flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer hover:bg-muted/50 ${
-                                              selectedUser?.roles.includes(
-                                                role.name
-                                              )
-                                                ? "border-primary bg-primary/5"
-                                                : "border-border"
-                                            }`}
-                                          >
-                                            <div className="space-y-1">
-                                              <span className="text-sm font-bold leading-none">
-                                                {formatWord(role.name)}
-                                              </span>
-                                              <p className="text-xs text-muted-foreground">
-                                                {role.description}
-                                              </p>
-                                            </div>
-                                          </label> */}
-                                          {/* <CardContent></CardContent> */}
                                         </Card>
                                       ))
                                     )}
@@ -961,151 +839,6 @@ const page = () => {
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
-
-                          {/* <Dialog
-                            open={
-                              isEditUserOpen && selectedUser?.id === user.id
-                            }
-                            onOpenChange={setIsEditUserOpen}
-                          >
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedUser(user)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[700px]">
-                              <DialogHeader>
-                                <DialogTitle>Edit User</DialogTitle>
-                                <DialogDescription>
-                                  Update user roles and permissions. Remove all
-                                  roles to convert admin to regular player.
-                                </DialogDescription>
-                              </DialogHeader>
-                              {selectedUser && (
-                                <div className="grid gap-4 py-4">
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label className="text-right">
-                                      Username
-                                    </Label>
-                                    <Input
-                                      value={selectedUser.username}
-                                      onChange={(e) =>
-                                        setSelectedUser({
-                                          ...selectedUser,
-                                          username: e.target.value,
-                                        })
-                                      }
-                                      className="col-span-3"
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label className="text-right">Email</Label>
-                                    <Input
-                                      value={selectedUser.email}
-                                      onChange={(e) =>
-                                        setSelectedUser({
-                                          ...selectedUser,
-                                          email: e.target.value,
-                                        })
-                                      }
-                                      className="col-span-3"
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label className="text-right pt-2">
-                                      Roles
-                                    </Label>
-                                    <div className="col-span-3 space-y-3">
-                                      {rolesLoading ? (
-                                        <div className="flex items-center space-x-2">
-                                          <Loader2 className="h-4 w-4 animate-spin" />
-                                          <span className="text-sm text-muted-foreground">
-                                            Loading roles...
-                                          </span>
-                                        </div>
-                                      ) : (
-                                        getDisplayRoles().map((role) => (
-                                          <div
-                                            key={role.id}
-                                            className="flex items-start space-x-3"
-                                          >
-                                            <Checkbox
-                                              id={`edit-role-${role.id}`}
-                                              checked={selectedUser.roles.includes(
-                                                role.name
-                                              )}
-                                              onCheckedChange={(checked) =>
-                                                handleRoleChange(
-                                                  role.name,
-                                                  checked as boolean
-                                                )
-                                              }
-                                            />
-                                            <div className="grid gap-1.5 leading-none">
-                                              <Label
-                                                htmlFor={`edit-role-${role.id}`}
-                                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                              >
-                                                {role.name}
-                                              </Label>
-                                              <p className="text-xs text-muted-foreground">
-                                                {role.description}
-                                              </p>
-                                            </div>
-                                          </div>
-                                        ))
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label className="text-right pt-2">
-                                      Permissions
-                                    </Label>
-                                    <div className="col-span-3 space-y-2">
-                                      <p className="text-sm text-muted-foreground">
-                                        Based on selected roles (
-                                        {selectedUser.roles.length} role(s)):
-                                      </p>
-                                      <div className="flex flex-wrap gap-1">
-                                        {selectedUser.permissions.map(
-                                          (permissionId) => (
-                                            <Badge
-                                              key={permissionId}
-                                              variant="secondary"
-                                              className="text-xs"
-                                            >
-                                              {getPermissionName(permissionId)}
-                                            </Badge>
-                                          )
-                                        )}
-                                        {selectedUser.permissions.length ===
-                                          0 && (
-                                          <Badge
-                                            variant="outline"
-                                            className="text-xs"
-                                          >
-                                            No permissions (Regular Player)
-                                          </Badge>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              <DialogFooter>
-                                <Button
-                                  disabled={editPending}
-                                  onClick={handleEditUser}
-                                >
-                                  {editPending ? <Loader /> : "Update User"}
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog> */}
 
                           <Button
                             variant="outline"
@@ -1150,7 +883,10 @@ const page = () => {
                 <div className="flex items-center justify-between mt-4">
                   <p className="hidden md:block text-sm text-muted-foreground">
                     Showing {(adminsPage - 1) * ITEMS_PER_PAGE + 1}–
-                    {Math.min(adminsPage * ITEMS_PER_PAGE, adminOnlyUsers.length)}{" "}
+                    {Math.min(
+                      adminsPage * ITEMS_PER_PAGE,
+                      adminOnlyUsers.length,
+                    )}{" "}
                     of {adminOnlyUsers.length}
                   </p>
                   <Pagination className="w-full md:w-auto mx-0">
@@ -1167,10 +903,7 @@ const page = () => {
                           }
                         />
                       </PaginationItem>
-                      {Array.from(
-                        { length: adminsTotalPages },
-                        (_, i) => i + 1,
-                      )
+                      {Array.from({ length: adminsTotalPages }, (_, i) => i + 1)
                         .filter(
                           (page) =>
                             page === 1 ||

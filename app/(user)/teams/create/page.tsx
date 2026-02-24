@@ -51,6 +51,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/PageHeader";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
+import { ProtectedRoute } from "../../_components/ProtectedRoute";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -121,7 +122,7 @@ export default function CreateTeamForm() {
         ) {
           formData.append(
             "list_of_players_to_invite",
-            JSON.stringify(data.list_of_players_to_invite)
+            JSON.stringify(data.list_of_players_to_invite),
           );
         }
 
@@ -154,7 +155,7 @@ export default function CreateTeamForm() {
         if (socialMediaLinks.length > 0) {
           formData.append(
             "social_media_links",
-            JSON.stringify(socialMediaLinks)
+            JSON.stringify(socialMediaLinks),
           );
         }
 
@@ -165,7 +166,7 @@ export default function CreateTeamForm() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (response.statusText === "Created") {
@@ -183,7 +184,7 @@ export default function CreateTeamForm() {
   }
 
   return (
-    <div>
+    <ProtectedRoute>
       <PageHeader title={`Create a New Team`} back />
       <Card>
         <CardContent>
@@ -255,7 +256,7 @@ export default function CreateTeamForm() {
                                   ].includes(file.type)
                                 ) {
                                   toast.error(
-                                    "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                    "Only PNG, JPG, JPEG, or WEBP files are supported.",
                                   );
                                   return;
                                 }
@@ -349,7 +350,7 @@ export default function CreateTeamForm() {
                               ].includes(file.type)
                             ) {
                               toast.error(
-                                "Only PNG, JPG, JPEG, or WEBP files are supported."
+                                "Only PNG, JPG, JPEG, or WEBP files are supported.",
                               );
                               return;
                             }
@@ -554,6 +555,6 @@ export default function CreateTeamForm() {
           </Form>
         </CardContent>
       </Card>
-    </div>
+    </ProtectedRoute>
   );
 }

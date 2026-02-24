@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useMemo,
   use,
+  useRef,
   useTransition,
 } from "react";
 import { notFound, useRouter, useSearchParams } from "next/navigation";
@@ -145,6 +146,7 @@ interface UserTeam {
   min_players?: number;
   max_players?: number;
   team_owner: string;
+  is_banned?: boolean;
 }
 
 interface DiscordValidationResult {
@@ -646,40 +648,48 @@ const RegistrationModals: React.FC<ModalProps> = ({
   const isTeamDisabled = eventDetails.participant_type === "solo";
   const closeAll = () => setModalStep("CLOSED");
 
-  // Poll Discord status for team members
+  // Keep refs fresh so the interval can read latest values without causing re-runs
+  const onCheckDiscordStatusRef = useRef(onCheckDiscordStatus);
+  const teamAfcServerStatusRef = useRef(teamAfcServerStatus);
+  const validationResultsRef = useRef(eventDetails.validationResults);
+  const selectedTeamMembersRef = useRef(eventDetails.selectedTeamMembers);
+
+  useEffect(() => { onCheckDiscordStatusRef.current = onCheckDiscordStatus; }, [onCheckDiscordStatus]);
+  useEffect(() => { teamAfcServerStatusRef.current = teamAfcServerStatus; }, [teamAfcServerStatus]);
   useEffect(() => {
-    if (modalStep === "DISCORD_STATUS" && onCheckDiscordStatus) {
-      const validationResults = eventDetails.validationResults || [];
-      const allMembersOk =
-        validationResults.length > 0 &&
-        validationResults.every((r: any) => r.ok);
-      const selectedMembersData = eventDetails.selectedTeamMembers || [];
-      const allInAfcServer = selectedMembersData.every(
+    validationResultsRef.current = eventDetails.validationResults;
+    selectedTeamMembersRef.current = eventDetails.selectedTeamMembers;
+  }, [eventDetails.validationResults, eventDetails.selectedTeamMembers]);
+
+  // Poll Discord status for team members — only restarts when modal step changes
+  useEffect(() => {
+    if (modalStep !== "DISCORD_STATUS" || !onCheckDiscordStatusRef.current) return;
+
+    // Initial check when entering the step
+    onCheckDiscordStatusRef.current();
+
+    // Poll every 30 seconds; reads fresh values from refs so status updates
+    // don't restart this effect and cause rapid successive calls
+    const interval = setInterval(() => {
+      const vr = validationResultsRef.current || [];
+      const allMembersOk = vr.length > 0 && vr.every((r: any) => r.ok);
+      const smData = selectedTeamMembersRef.current || [];
+      const allInAfcServer = smData.every(
         (member) =>
           member.discord_id &&
-          teamAfcServerStatus?.[member.discord_id] === true,
+          teamAfcServerStatusRef.current?.[member.discord_id] === true,
       );
 
-      // Stop polling once everyone has passed — no need to recheck
-      if (allMembersOk && allInAfcServer) return;
+      if (allMembersOk && allInAfcServer) {
+        clearInterval(interval);
+        return;
+      }
 
-      // Initial check
-      onCheckDiscordStatus();
+      onCheckDiscordStatusRef.current?.();
+    }, 30000);
 
-      // Poll every 30 seconds to avoid rapid flipping
-      const interval = setInterval(() => {
-        onCheckDiscordStatus();
-      }, 30000);
-
-      return () => clearInterval(interval);
-    }
-  }, [
-    modalStep,
-    onCheckDiscordStatus,
-    eventDetails.validationResults,
-    eventDetails.selectedTeamMembers,
-    teamAfcServerStatus,
-  ]);
+    return () => clearInterval(interval);
+  }, [modalStep]);
 
   const renderDialog = () => {
     switch (modalStep) {
@@ -1353,6 +1363,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     used_at: string | null;
   } | null>(null);
 
+  // Ban state
+  const [isUserBanned, setIsUserBanned] = useState(false);
+  const [showBannedModal, setShowBannedModal] = useState(false);
+
   // User Discord state
   const [userDiscordId, setUserDiscordId] = useState<string | null>(null);
   const [isCheckingUserDiscord, setIsCheckingUserDiscord] = useState(false);
@@ -1469,6 +1483,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       if (response.data?.discord_id) {
         setUserDiscordId(response.data.discord_id);
       }
+      setIsUserBanned(response.data?.is_banned === true);
     } catch (err: any) {
       console.error("Error fetching user profile:", err);
     }
@@ -1720,6 +1735,16 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   }, [fetchEventDetails, slug, token]);
 
   const handleRegisterClick = useCallback(async () => {
+    // Check ban status before anything else
+    if (eventDetails?.participant_type === "squad" && userTeam?.is_banned) {
+      setShowBannedModal(true);
+      return;
+    }
+    if (eventDetails?.participant_type !== "squad" && isUserBanned) {
+      setShowBannedModal(true);
+      return;
+    }
+
     // Check if event is private and if user has a valid invite
     if (eventDetails && !eventDetails.is_public && !hasValidInvite) {
       toast.error(
@@ -1737,7 +1762,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     }
 
     setModalStep("TYPE");
-  }, [eventDetails, hasValidInvite, inviteToken, checkInviteTokenStatus]);
+  }, [eventDetails, hasValidInvite, inviteToken, checkInviteTokenStatus, userTeam, isUserBanned]);
 
   const handleSelectType = useCallback(
     async (type: RegistrationType) => {
@@ -2190,6 +2215,29 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Banned Modal */}
+      <Dialog open={showBannedModal} onOpenChange={setShowBannedModal}>
+        <DialogContent className="sm:max-w-[400px]">
+          <div className="text-center">
+            <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+              <AlertTriangle className="h-7 w-7 text-red-600" />
+            </div>
+            <DialogTitle className="text-xl">Registration Blocked</DialogTitle>
+            <DialogDescription className="mt-2 text-base">
+              {eventDetails.participant_type === "squad"
+                ? "Your team is banned and cannot participate in this event."
+                : "Your account is banned and you cannot participate in this event."}
+            </DialogDescription>
+            <Button
+              className="mt-6 w-full"
+              onClick={() => setShowBannedModal(false)}
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Team Registration Modals */}
       {loadingTeam ? (
