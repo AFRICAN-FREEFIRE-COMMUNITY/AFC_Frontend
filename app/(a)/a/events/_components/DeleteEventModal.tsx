@@ -55,9 +55,8 @@ export const DeleteEventModal = ({
         setOpen(false);
         if (redirectTo) {
           router.push(redirectTo);
-        } else {
-          onSuccess?.();
         }
+        onSuccess?.();
       } catch (e: any) {
         toast.error(e.response?.data?.message || "Failed to delete event");
       }

@@ -374,6 +374,7 @@ const page = () => {
                         </Button>
                         <DeleteEventModal
                           eventId={event.event_id}
+                          onSuccess={fetchEvents} // re-fetches the list
                           eventName={event.event_name}
                           redirectTo="/a/events"
                           isIcon
