@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "sonner";
 import { PageGradient } from "@/components/PageGradient";
-import Head from "next/head";
 import {
   defaultMetadata,
   generateOrganizationSchema,
@@ -39,22 +38,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <Head>
-        <meta property="og:image" content="/opengraph.png" />
-        <meta property="og:image" content="/assets/opengraph.png" />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, user-scalable=no"
-        />
-        <meta
-          data-n-head="ssr"
-          data-hid="viewport"
-          name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
-        />
-      </Head>
-
       <head>
+        <meta property="og:image" content="/opengraph.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -81,6 +66,17 @@ export default function RootLayout({
             gtag('config', 'G-E21CNCZKFL');
           `}
         </Script>
+        <Script
+          id="mixpanel-init"
+          strategy="afterInteractive"
+          src="https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"
+          onLoad={() => {
+            (window as any).mixpanel.init('abc2f1f29e9862cc5ca32d8b51e3b265', {
+              autocapture: true,
+              record_sessions_percent: 100,
+            });
+          }}
+        />
         <AuthProvider>
           <AuthModalProvider>
             <ThemeProvider
