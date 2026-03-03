@@ -294,12 +294,12 @@ const page = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 justify-center">
-                        <Button asChild variant={"outline"} size="md">
+                        <Button asChild variant={"outline"} size="sm">
                           <Link href={`/a/leaderboards/create`}>
                             Create leaderboard
                           </Link>
                         </Button>
-                        <Button asChild variant={"outline"} size="md">
+                        <Button asChild variant={"outline"} size="sm">
                           <Link href={`/a/leaderboards/${event.event_id}`}>
                             View leaderboard
                           </Link>

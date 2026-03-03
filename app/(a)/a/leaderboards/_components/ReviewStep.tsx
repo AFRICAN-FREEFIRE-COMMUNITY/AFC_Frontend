@@ -66,12 +66,12 @@ export function ReviewStep() {
         <Button variant="secondary" className="bg-zinc-900 border-zinc-800">
           Back
         </Button>
-        {/* <Button variant="secondary" className="bg-zinc-900 border-zinc-800">
+        <Button variant="secondary" className="bg-zinc-900 border-zinc-800">
           Save to Drafts
         </Button>
         <Button className="bg-white text-black font-bold px-8 hover:bg-zinc-200">
           Publish Leaderboard
-        </Button> */}
+        </Button>
       </div>
     </div>
   );

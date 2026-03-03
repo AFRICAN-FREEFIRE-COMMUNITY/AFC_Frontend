@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   IconTrophy,
   IconUsers,
@@ -131,6 +131,8 @@ export default function IndividualLeaderboardPage({
     (m: any) => m.match_id.toString() === selectedMatchId,
   );
 
+  const [leaderboardTab, setLeaderboardTab] = useState<"team" | "player">("team");
+
   const getTableData = () => {
     if (selectedMatchId === "overall")
       return currentGroup?.overall_leaderboard || [];
@@ -138,6 +140,49 @@ export default function IndividualLeaderboardPage({
       (m: any) => m.match_id.toString() === selectedMatchId,
     );
     return match?.stats || [];
+  };
+
+  const getPlayerData = () => {
+    if (selectedMatchId === "overall") {
+      const playerMap = new Map<number, any>();
+      for (const match of currentGroup?.matches ?? []) {
+        for (const teamStat of match.stats ?? []) {
+          for (const player of teamStat.players ?? []) {
+            const existing = playerMap.get(player.player_id);
+            if (existing) {
+              existing.total_kills += player.kills;
+              existing.total_damage += player.damage;
+              existing.total_assists += player.assists;
+            } else {
+              playerMap.set(player.player_id, {
+                player_id: player.player_id,
+                username: player.username,
+                team_name: teamStat.team_name ?? "—",
+                total_kills: player.kills,
+                total_damage: player.damage,
+                total_assists: player.assists,
+              });
+            }
+          }
+        }
+      }
+      return [...playerMap.values()].sort((a, b) => b.total_kills - a.total_kills);
+    } else {
+      const players: any[] = [];
+      for (const teamStat of currentMatch?.stats ?? []) {
+        for (const player of teamStat.players ?? []) {
+          players.push({
+            player_id: player.player_id,
+            username: player.username,
+            team_name: teamStat.team_name ?? "—",
+            total_kills: player.kills,
+            total_damage: player.damage,
+            total_assists: player.assists,
+          });
+        }
+      }
+      return players.sort((a, b) => b.total_kills - a.total_kills);
+    }
   };
 
   // Derive participant type from API response ("squad" → "team")
@@ -292,60 +337,153 @@ export default function IndividualLeaderboardPage({
               Rankings
             </CardTitle>
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Rank</TableHead>
-                  <TableHead>
-                    {detailsParticipantType === "team" ? "Team" : "Competitor"}
-                  </TableHead>
-                  {selectedMatchId === "overall" && (
-                    <TableHead>Matches</TableHead>
-                  )}
-                  {selectedMatchId === "overall" &&
-                    detailsParticipantType === "team" && (
-                      <TableHead>Booyahs</TableHead>
-                    )}
-                  <TableHead>Kills</TableHead>
-                  <TableHead className="text-right">Total Pts</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {getTableData().map((row: any, idx: number) => (
-                  <TableRow key={idx}>
-                    <TableCell>#{row.placement || idx + 1}</TableCell>
-                    <TableCell className="font-bold">
-                      {row.team_name ||
-                        row.competitor__user__username ||
-                        row.username ||
-                        "Unknown"}
-                    </TableCell>
-                    {selectedMatchId === "overall" && (
-                      <TableCell className="text-zinc-400">
-                        {row.matches_played || 0}
-                      </TableCell>
-                    )}
-                    {selectedMatchId === "overall" &&
-                      detailsParticipantType === "team" && (
-                        <TableCell className="text-zinc-400">
-                          {row.total_booyah ?? 0}
-                        </TableCell>
+            {detailsParticipantType === "solo" ? (
+              /* ── Solo: single player table, no tabs ── */
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Rank</TableHead>
+                      <TableHead>Player</TableHead>
+                      {selectedMatchId === "overall" && (
+                        <TableHead>Matches</TableHead>
                       )}
-                    <TableCell>
-                      {(row.total_kills || row.kills) ?? "0"}
-                    </TableCell>
-                    <TableCell className="text-right font-bold text-primary">
-                      {(row.total_points || row.total_pts || 0).toFixed(1)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      <TableHead>Kills</TableHead>
+                      <TableHead className="text-right">Total Pts</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getTableData().map((row: any, idx: number) => (
+                      <TableRow key={idx}>
+                        <TableCell>#{idx + 1}</TableCell>
+                        <TableCell className="font-bold">
+                          {row.competitor__user__username || row.username || "Unknown"}
+                        </TableCell>
+                        {selectedMatchId === "overall" && (
+                          <TableCell className="text-zinc-400">
+                            {row.matches_played || 0}
+                          </TableCell>
+                        )}
+                        <TableCell>
+                          {(row.total_kills || row.kills) ?? "0"}
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-primary">
+                          {(row.total_points || row.total_pts || 0).toFixed(1)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {getTableData().length === 0 && (
+                  <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                    No result found!
+                  </div>
+                )}
+              </>
+            ) : (
+              /* ── Team: two tabs ── */
+              <Tabs value={leaderboardTab} onValueChange={(v) => setLeaderboardTab(v as "team" | "player")}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="team">Team Leaderboard</TabsTrigger>
+                  <TabsTrigger value="player">Player Leaderboard</TabsTrigger>
+                </TabsList>
 
-            {getTableData().length === 0 && (
-              <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
-                No result found!
-              </div>
+                {/* ── Team Leaderboard ── */}
+                <TabsContent value="team" className="mt-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Rank</TableHead>
+                        <TableHead>Team</TableHead>
+                        {selectedMatchId === "overall" && (
+                          <TableHead>Matches</TableHead>
+                        )}
+                        {selectedMatchId === "overall" && (
+                          <TableHead>Booyahs</TableHead>
+                        )}
+                        <TableHead>Kills</TableHead>
+                        <TableHead className="text-right">Total Pts</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getTableData().map((row: any, idx: number) => (
+                        <TableRow key={idx}>
+                          <TableCell>#{idx + 1}</TableCell>
+                          <TableCell className="font-bold">
+                            {row.team_name || row.username || "Unknown"}
+                          </TableCell>
+                          {selectedMatchId === "overall" && (
+                            <TableCell className="text-zinc-400">
+                              {row.matches_played || 0}
+                            </TableCell>
+                          )}
+                          {selectedMatchId === "overall" && (
+                            <TableCell className="text-zinc-400">
+                              {row.total_booyah ?? 0}
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            {(row.total_kills || row.kills) ?? "0"}
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-primary">
+                            {(row.total_points || row.total_pts || 0).toFixed(1)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  {getTableData().length === 0 && (
+                    <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                      No result found!
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* ── Player Leaderboard ── */}
+                <TabsContent value="player" className="mt-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Rank</TableHead>
+                        <TableHead>Player</TableHead>
+                        <TableHead>Team</TableHead>
+                        <TableHead className="text-right">Kills</TableHead>
+                        <TableHead className="text-right">Damage</TableHead>
+                        <TableHead className="text-right">Assists</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getPlayerData().map((player: any, idx: number) => (
+                        <TableRow key={player.player_id}>
+                          <TableCell className="text-muted-foreground">
+                            #{idx + 1}
+                          </TableCell>
+                          <TableCell className="font-bold">
+                            {player.username}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {player.team_name}
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-primary">
+                            {player.total_kills}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {player.total_damage}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {player.total_assists}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  {getPlayerData().length === 0 && (
+                    <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                      No player data available!
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             )}
 
             {/* Action buttons */}
