@@ -16,8 +16,8 @@ import {
   IconUsers,
   IconMap,
   IconSettings,
-  IconUpload,
   IconPencil,
+  IconEdit,
 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,11 +33,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UploadResultModal } from "../_components/UploadResultModal";
 import { EditScoringModal } from "../_components/EditScoringModal";
 import { AdjustScoreModal } from "../_components/AdjustScoreModal";
+import { MatchMethodSelectionStep } from "../_components/MatchMethodSelectionStep";
+import { ManualMatchResultStep } from "../_components/ManualMatchResultStep";
+import { FileUploadStep } from "../_components/FileUploadStep";
+import { ImageUploadStep } from "../_components/ImageUploadStep";
 
 type Params = { id: string };
+type MatchView = "method" | "manual" | "image_upload" | "room_file_upload";
 
 export default function IndividualLeaderboardPage({
   params,
@@ -48,18 +52,20 @@ export default function IndividualLeaderboardPage({
   const { id } = resolvedParams;
   const { token } = useAuth();
 
-  // States
   const [eventData, setEventData] = useState<any>(null);
+  const [eventSlug, setEventSlug] = useState<string>("");
   const [selectedStageId, setSelectedStageId] = useState<string>("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [selectedMatchId, setSelectedMatchId] = useState<string>("overall");
 
-  // Modal States
-  const [openUploadModal, setOpenUploadModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openAdjustModal, setOpenAdjustModal] = useState(false);
 
-  // 1. Fetching Logic
+  const [editingMatch, setEditingMatch] = useState<{
+    match: { match_id: number; match_name: string };
+    view: MatchView;
+  } | null>(null);
+
   const fetchLeaderboard = async () => {
     try {
       const res = await fetch(
@@ -71,10 +77,16 @@ export default function IndividualLeaderboardPage({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ event_id: id }),
-        }
+        },
       );
       const data = await res.json();
       setEventData(data);
+
+      // Try to get the event slug from the response directly
+      const slug = data.event_slug ?? data.slug ?? "";
+      if (slug) {
+        setEventSlug(slug);
+      }
 
       if (!selectedStageId && data.stages?.length > 0) {
         setSelectedStageId(data.stages[0].stage_id.toString());
@@ -83,188 +95,321 @@ export default function IndividualLeaderboardPage({
     } catch (error) {}
   };
 
+  // If the leaderboard response doesn't include the slug, look it up from the events list
+  const fetchEventSlug = async () => {
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
+      );
+      const data = await res.json();
+      const event = (data.events ?? []).find(
+        (e: any) => e.event_id.toString() === id,
+      );
+      if (event?.slug) setEventSlug(event.slug);
+    } catch {}
+  };
+
   useEffect(() => {
     fetchLeaderboard();
   }, [id, token]);
 
-  // Derived Helpers
+  // Run the slug lookup once after eventData loads (if slug wasn't in the leaderboard response)
+  useEffect(() => {
+    if (eventData && !eventSlug) {
+      fetchEventSlug();
+    }
+  }, [eventData]);
+
+  // Derived helpers
   const currentStage = eventData?.stages?.find(
-    (s: any) => s.stage_id.toString() === selectedStageId
+    (s: any) => s.stage_id.toString() === selectedStageId,
   );
   const currentGroup = currentStage?.groups?.find(
-    (g: any) => g.group_id.toString() === selectedGroupId
+    (g: any) => g.group_id.toString() === selectedGroupId,
   );
-
-  const currentMatch = currentGroup?.matches.find(
-    (m: any) => m.match_id.toString() === selectedMatchId
+  const currentMatch = currentGroup?.matches?.find(
+    (m: any) => m.match_id.toString() === selectedMatchId,
   );
 
   const getTableData = () => {
     if (selectedMatchId === "overall")
       return currentGroup?.overall_leaderboard || [];
-    const match = currentGroup?.matches.find(
-      (m: any) => m.match_id.toString() === selectedMatchId
+    const match = currentGroup?.matches?.find(
+      (m: any) => m.match_id.toString() === selectedMatchId,
     );
     return match?.stats || [];
+  };
+
+  // Derive participant type from API response ("squad" → "team")
+  const detailsParticipantType: "solo" | "team" =
+    eventData?.participant_type === "solo" ? "solo" : "team";
+
+  // formData shape expected by ManualMatchResultStep / FileUploadStep
+  const detailsFormData = {
+    event_slug: eventSlug,
+    event_id: id,
+    // Use edit endpoint only when the match already has results
+    completed_match_ids:
+      editingMatch && currentMatch?.result_inputted
+        ? [editingMatch.match.match_id]
+        : [],
+    group_matches: currentGroup?.matches ?? [],
+    competitors_in_group: [],
+    group_leaderboard: currentGroup?.leaderboard ?? null,
+    placement_points: {},
+    kill_point: String(currentGroup?.leaderboard?.kill_point ?? "1"),
+    assist_point: String(currentGroup?.leaderboard?.assist_point ?? "0.5"),
+    damage_point: String(currentGroup?.leaderboard?.damage_point ?? "0.5"),
+    apply_to_all_maps: true,
+    leaderboard_id: currentGroup?.leaderboard?.leaderboard_id ?? null,
+    group_id: selectedGroupId,
+    stage_id: selectedStageId,
+  };
+
+  const handleStartEditMatch = () => {
+    const m = currentGroup?.matches?.find(
+      (x: any) => x.match_id.toString() === selectedMatchId,
+    );
+    if (!m) return;
+    setEditingMatch({
+      match: {
+        match_id: m.match_id,
+        match_name: `Match ${m.match_number} (${m.match_map})`,
+      },
+      view: "method",
+    });
+  };
+
+  const handleEditComplete = () => {
+    fetchLeaderboard();
+    setEditingMatch(null);
   };
 
   if (!eventData) return <FullLoader />;
 
   return (
     <div className="space-y-2 pb-20">
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between gap-2 mb-4">
         <PageHeader
-          back
+          back={!editingMatch}
           title={eventData.event_name}
-          description={`Solo Tournament • ${eventData.stages.length} Stages`}
+          description={`${detailsParticipantType === "solo" ? "Solo" : "Team"} Tournament • ${eventData.stages.length} Stages`}
         />
-        <Button
-          variant="outline"
-          className="w-full md:w-auto"
-          onClick={() => setOpenEditModal(true)}
-        >
-          <IconSettings size={16} /> Edit Scoring
-        </Button>
+        {!editingMatch && (
+          <Button
+            variant="outline"
+            className="w-full md:w-auto"
+            onClick={() => setOpenEditModal(true)}
+          >
+            <IconSettings size={16} /> Edit Scoring
+          </Button>
+        )}
       </div>
 
-      <Tabs value={selectedStageId} onValueChange={setSelectedStageId}>
-        <ScrollArea>
-          <TabsList className="w-full justify-start">
-            {eventData.stages.map((s: any) => (
-              <TabsTrigger key={s.stage_id} value={s.stage_id.toString()}>
-                {s.stage_name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </Tabs>
-
-      <Card>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <div className="space-y-2">
-              <Label>
-                <IconUsers size={14} /> Group
-              </Label>
-              <Select
-                value={selectedGroupId}
-                onValueChange={setSelectedGroupId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Group" />
-                </SelectTrigger>
-                <SelectContent>
-                  {currentStage?.groups.map((g: any) => (
-                    <SelectItem key={g.group_id} value={g.group_id.toString()}>
-                      {g.group_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                <IconMap size={14} /> View Type
-              </Label>
-              <Select
-                value={selectedMatchId}
-                onValueChange={setSelectedMatchId}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="overall">Overall Leaderboard</SelectItem>
-                  {currentGroup?.matches.map((m: any) => (
-                    <SelectItem key={m.match_id} value={m.match_id.toString()}>
-                      Match {m.match_number} ({m.match_map})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-              <p className="text-[10px] font-semibold text-primary uppercase">
-                Current Kill Points
-              </p>
-              <p className="text-xl font-bold">
-                {currentGroup?.leaderboard?.kill_point || 0}
-              </p>
-            </div>
-          </div>
-
-          <CardTitle className="text-lg flex items-center gap-2">
-            <IconTrophy size={18} className="text-yellow-500" />
-            Rankings
-          </CardTitle>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Rank</TableHead>
-                <TableHead>Competitor</TableHead>
-                {selectedMatchId === "overall" && (
-                  <TableHead>Matches</TableHead>
-                )}
-                <TableHead>Kills</TableHead>
-                <TableHead className="text-right">Total Pts</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {getTableData().map((row: any, idx: number) => (
-                <TableRow key={idx}>
-                  <TableCell>#{row.placement || idx + 1}</TableCell>
-                  <TableCell className="font-bold">
-                    {row.competitor__user__username ||
-                      row.username ||
-                      "Unknown"}
-                  </TableCell>
-                  {selectedMatchId === "overall" && (
-                    <TableCell className="text-zinc-400">
-                      {row.matches_played || currentGroup?.match_count || 0}
-                    </TableCell>
-                  )}
-                  <TableCell>{(row.total_kills || row.kills) ?? "0"}</TableCell>
-                  <TableCell className="text-right font-bold text-primary">
-                    {(row.total_points || row.total_pts || 0).toFixed(1)}
-                  </TableCell>
-                </TableRow>
+      {/* Stage tabs — hidden while editing a match */}
+      {!editingMatch && (
+        <Tabs value={selectedStageId} onValueChange={setSelectedStageId}>
+          <ScrollArea>
+            <TabsList className="w-full justify-start">
+              {eventData.stages.map((s: any) => (
+                <TabsTrigger key={s.stage_id} value={s.stage_id.toString()}>
+                  {s.stage_name}
+                </TabsTrigger>
               ))}
-            </TableBody>
-          </Table>
-          {getTableData().length === 0 && (
-            <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
-              No result found!
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </Tabs>
+      )}
+
+      {/* ── Normal leaderboard view ── */}
+      {!editingMatch && (
+        <Card>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div className="space-y-2">
+                <Label>
+                  <IconUsers size={14} /> Group
+                </Label>
+                <Select
+                  value={selectedGroupId}
+                  onValueChange={setSelectedGroupId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentStage?.groups.map((g: any) => (
+                      <SelectItem
+                        key={g.group_id}
+                        value={g.group_id.toString()}
+                      >
+                        {g.group_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  <IconMap size={14} /> View Type
+                </Label>
+                <Select
+                  value={selectedMatchId}
+                  onValueChange={setSelectedMatchId}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="overall">Overall Leaderboard</SelectItem>
+                    {currentGroup?.matches?.map((m: any) => (
+                      <SelectItem
+                        key={m.match_id}
+                        value={m.match_id.toString()}
+                      >
+                        Match {m.match_number} ({m.match_map})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <p className="text-[10px] font-semibold text-primary uppercase">
+                  Current Kill Points
+                </p>
+                <p className="text-xl font-bold">
+                  {currentGroup?.leaderboard?.kill_point || 0}
+                </p>
+              </div>
             </div>
-          )}
 
-          <div className="flex gap-2">
-            <Button onClick={() => setOpenUploadModal(true)}>
-              <IconUpload size={18} /> Upload Result
-            </Button>
-            {selectedMatchId !== "overall" && (
-              <Button
-                variant="outline"
-                onClick={() => setOpenAdjustModal(true)}
-                className="border-zinc-800 hover:bg-zinc-900 gap-2"
-              >
-                <IconPencil size={18} /> Adjust Scores
-              </Button>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <IconTrophy size={18} className="text-yellow-500" />
+              Rankings
+            </CardTitle>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Rank</TableHead>
+                  <TableHead>
+                    {detailsParticipantType === "team" ? "Team" : "Competitor"}
+                  </TableHead>
+                  {selectedMatchId === "overall" && (
+                    <TableHead>Matches</TableHead>
+                  )}
+                  {selectedMatchId === "overall" &&
+                    detailsParticipantType === "team" && (
+                      <TableHead>Booyahs</TableHead>
+                    )}
+                  <TableHead>Kills</TableHead>
+                  <TableHead className="text-right">Total Pts</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {getTableData().map((row: any, idx: number) => (
+                  <TableRow key={idx}>
+                    <TableCell>#{row.placement || idx + 1}</TableCell>
+                    <TableCell className="font-bold">
+                      {row.team_name ||
+                        row.competitor__user__username ||
+                        row.username ||
+                        "Unknown"}
+                    </TableCell>
+                    {selectedMatchId === "overall" && (
+                      <TableCell className="text-zinc-400">
+                        {row.matches_played || 0}
+                      </TableCell>
+                    )}
+                    {selectedMatchId === "overall" &&
+                      detailsParticipantType === "team" && (
+                        <TableCell className="text-zinc-400">
+                          {row.total_booyah ?? 0}
+                        </TableCell>
+                      )}
+                    <TableCell>
+                      {(row.total_kills || row.kills) ?? "0"}
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-primary">
+                      {(row.total_points || row.total_pts || 0).toFixed(1)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {getTableData().length === 0 && (
+              <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                No result found!
+              </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* MODALS */}
-      <UploadResultModal
-        open={openUploadModal}
-        onClose={() => setOpenUploadModal(false)}
-        currentGroup={currentGroup}
-        onSuccess={fetchLeaderboard} // <--- Add this
-      />
+            {/* Action buttons */}
+            <div className="flex gap-2 flex-wrap">
+              {selectedMatchId !== "overall" && (
+                <Button onClick={handleStartEditMatch}>
+                  <IconEdit size={18} /> Edit Match Results
+                </Button>
+              )}
+              {selectedMatchId !== "overall" && (
+                <Button
+                  variant="outline"
+                  onClick={() => setOpenAdjustModal(true)}
+                  className="border-zinc-800 hover:bg-zinc-900 gap-2"
+                >
+                  <IconPencil size={18} /> Adjust Scores
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
+      {/* ── Edit sub-views (inline, replacing the card) ── */}
+
+      {editingMatch?.view === "method" && (
+        <MatchMethodSelectionStep
+          matchName={editingMatch.match.match_name}
+          onSelect={(method) =>
+            setEditingMatch({ ...editingMatch, view: method as MatchView })
+          }
+          onBack={() => setEditingMatch(null)}
+        />
+      )}
+
+      {editingMatch?.view === "manual" && (
+        <ManualMatchResultStep
+          match={editingMatch.match}
+          formData={detailsFormData}
+          participantTypeOverride={detailsParticipantType}
+          initialStats={currentMatch?.stats ?? []}
+          onComplete={handleEditComplete}
+          onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
+        />
+      )}
+
+      {editingMatch?.view === "image_upload" && (
+        <ImageUploadStep
+          onNext={handleEditComplete}
+          onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
+        />
+      )}
+
+      {editingMatch?.view === "room_file_upload" && (
+        <FileUploadStep
+          match={editingMatch.match}
+          formData={detailsFormData}
+          participantTypeOverride={detailsParticipantType}
+          onNext={handleEditComplete}
+          onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
+        />
+      )}
+
+      {/* ── Modals ── */}
       {openAdjustModal && (
         <AdjustScoreModal
           open={openAdjustModal}
@@ -273,12 +418,13 @@ export default function IndividualLeaderboardPage({
           onSuccess={fetchLeaderboard}
         />
       )}
+
       <EditScoringModal
         open={openEditModal}
         onClose={() => setOpenEditModal(false)}
         currentLeaderboard={currentGroup?.leaderboard}
-        stageId={selectedStageId} // <--- New prop
-        groupId={selectedGroupId} // <--- New prop
+        stageId={selectedStageId}
+        groupId={selectedGroupId}
         onSuccess={fetchLeaderboard}
       />
     </div>

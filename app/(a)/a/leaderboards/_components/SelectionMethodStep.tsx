@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { IconUsers, IconPhoto, IconUpload } from "@tabler/icons-react";
-import { Method } from "../create/page";
+type Method = "manual" | "image_upload" | "room_file_upload";
 
 interface Props {
   onSelect: (method: Method) => void;

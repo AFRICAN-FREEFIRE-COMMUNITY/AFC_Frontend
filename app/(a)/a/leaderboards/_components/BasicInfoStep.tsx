@@ -72,16 +72,28 @@ export function BasicInfoStep({ onNext, onBack, updateData }: any) {
 
   const handleStageChange = (stageId: string) => {
     setSelectedStageId(stageId);
+    setSelectedGroupId("");
     const stage = stages.find((s) => s.stage_id.toString() === stageId);
     setGroups(stage?.groups || []);
   };
 
   const handleContinue = () => {
+    // Find the selected group so we can pass its matches downstream
+    const stage = stages.find((s) => s.stage_id.toString() === selectedStageId);
+    const group = stage?.groups?.find(
+      (g: any) => g.group_id.toString() === selectedGroupId,
+    );
+
     updateData({
       event_id: selectedEventId,
       event_slug: selectedEvent?.slug || "",
       stage_id: selectedStageId,
       group_id: selectedGroupId,
+      group_matches: group?.matches || [],
+      competitors_in_group: group?.competitors_in_group || [],
+      group_leaderboard: group?.leaderboard || null,
+      // If a leaderboard already exists for this group, pre-fill the id
+      leaderboard_id: group?.leaderboard?.leaderboard_id ?? null,
     });
     onNext();
   };

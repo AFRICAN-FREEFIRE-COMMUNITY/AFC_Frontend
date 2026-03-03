@@ -122,7 +122,7 @@ export default function CreateLeaderboardPage() {
                 onNext={nextStep}
                 onBack={prevStep}
                 updateData={updateFormData}
-                groupId={formData.group_id}
+                eventSlug={(formData as any).event_slug ?? ""}
               />
             )}
 
@@ -174,9 +174,8 @@ export default function CreateLeaderboardPage() {
             {/* Step 4: Configure Point System */}
             {currentStep === 4 && (
               <ConfigurePointSystem
-                onNext={nextStep}
+                onNext={(_data) => nextStep()}
                 onBack={prevStep}
-                parentFormData={formData}
               />
             )}
 
