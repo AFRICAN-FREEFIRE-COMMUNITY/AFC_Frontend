@@ -5,6 +5,32 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Call this after a failed fetch response instead of toast.error().
+ * If the message indicates an expired/invalid session it opens the AuthModal
+ * (via the auth:session-expired event) and returns true so you can skip the
+ * toast. Otherwise it returns false so you can show a regular toast.
+ *
+ * Usage:
+ *   if (!res.ok) {
+ *     const data = await res.json();
+ *     if (isSessionExpiredError(data.message || data.detail)) return;
+ *     toast.error(data.message || "Something went wrong");
+ *   }
+ */
+export function isSessionExpiredError(message?: string): boolean {
+  if (!message) return false;
+  const lower = message.toLowerCase();
+  const isExpired =
+    (lower.includes("session") && lower.includes("token")) ||
+    (lower.includes("invalid") && lower.includes("token")) ||
+    (lower.includes("expired") && lower.includes("token"));
+  if (isExpired && typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("auth:session-expired"));
+  }
+  return isExpired;
+}
+
 export const formatMoneyInput = (inputValue: string | number | any) => {
   if (inputValue == null) return "";
 

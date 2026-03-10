@@ -82,7 +82,7 @@ export const LatestNews = () => {
                   >
                     {newsDetails.news_title}
                   </Link>
-                  <p className="text-sm mt-2 text-muted-foreground mb-1 line-clamp-4 break-words overflow-hidden">
+                  <p className="text-sm mt-2 text-muted-foreground mb-1 line-clamp-2 break-words overflow-hidden">
                     {truncateText(extractTiptapText(newsDetails.content), 400)}
                   </p>
                   <span className="text-xs text-muted-foreground">

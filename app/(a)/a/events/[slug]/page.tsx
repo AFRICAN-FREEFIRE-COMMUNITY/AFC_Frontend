@@ -25,6 +25,7 @@ import {
   IconLink,
   IconLockFilled,
   IconChevronDown,
+  IconUserCheck,
 } from "@tabler/icons-react";
 import axios from "axios";
 import Image from "next/image";
@@ -37,12 +38,15 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
@@ -118,6 +122,11 @@ interface EventDetails {
     regions: string[];
     countries: string[];
   } | null;
+  is_sponsored?: boolean;
+  sponsor_name?: string;
+  sponsor_username?: string;
+  sponsor_field_label?: string;
+  sponsor_requirement_description?: string | null;
 }
 
 interface AdminEventDetails {
@@ -224,6 +233,17 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const [bulkCount, setBulkCount] = useState("5");
   const [showBulkDialog, setShowBulkDialog] = useState(false);
 
+  // Sponsor requirement state
+  const [sponsorForm, setSponsorForm] = useState({
+    is_sponsored: false,
+    sponsor_name: "",
+    sponsor_username: "",
+    requirement_description: "",
+    uuid_label: "Player UUID",
+  });
+  const [savingSponsor, setSavingSponsor] = useState(false);
+  const [showSponsorDialog, setShowSponsorDialog] = useState(false);
+
   useEffect(() => {
     // Wait for auth context to load before making API calls
     if (!slug || authLoading || !token) return;
@@ -253,6 +273,18 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
         setEventDetails(res.data.event_details);
         setAdminDetails(resAdmin.data);
+
+        // Sync sponsor form from API data
+        const ed = res.data.event_details;
+        if (ed) {
+          setSponsorForm({
+            is_sponsored: ed.is_sponsored ?? false,
+            sponsor_name: ed.sponsor_name ?? "",
+            sponsor_username: ed.sponsor_username ?? "",
+            requirement_description: ed.sponsor_requirement_description ?? "",
+            uuid_label: ed.sponsor_field_label ?? "Player UUID",
+          });
+        }
 
         // If event is private, fetch invite links
         if (!res.data.event_details.is_public) {
@@ -370,6 +402,44 @@ const Page = ({ params }: { params: Promise<Params> }) => {
       );
     } finally {
       setGeneratingInvite(false);
+    }
+  };
+
+  const saveSponsorRequirement = async () => {
+    if (!eventDetails || !token) return;
+    setSavingSponsor(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/set-event-sponsor-requirement/`,
+        { event_id: eventDetails.event_id, ...sponsorForm },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      toast.success("Sponsor requirement saved!");
+      setEventDetails((prev) =>
+        prev
+          ? {
+              ...prev,
+              is_sponsored: sponsorForm.is_sponsored,
+              sponsor_name: sponsorForm.sponsor_name,
+              sponsor_username: sponsorForm.sponsor_username,
+              sponsor_field_label: sponsorForm.uuid_label,
+              sponsor_requirement_description:
+                sponsorForm.requirement_description,
+            }
+          : prev,
+      );
+      setShowSponsorDialog(false);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to save sponsor requirement",
+      );
+    } finally {
+      setSavingSponsor(false);
     }
   };
 
@@ -927,6 +997,188 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Sponsor Requirement Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Sponsor Requirement</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Require players to complete a sponsor action before
+                  registering
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {eventDetails.is_sponsored && (
+                  <>
+                    <Badge variant="default">Active</Badge>
+                    <Button size="sm" variant="secondary" asChild>
+                      <Link href={`/a/events/${slug}/sponsors`}>
+                        <IconUserCheck className="size-3.5 mr-1" />
+                        Review Sponsors
+                      </Link>
+                    </Button>
+                  </>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowSponsorDialog(true)}
+                >
+                  Configure
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {eventDetails.is_sponsored ? (
+                <div className="space-y-2 text-sm">
+                  <div className="grid grid-cols-2 gap-y-2">
+                    <span className="text-muted-foreground">Sponsor</span>
+                    <span className="font-medium">
+                      {eventDetails.sponsor_name}
+                    </span>
+                    {eventDetails.sponsor_username && (
+                      <>
+                        <span className="text-muted-foreground">Username</span>
+                        <span className="font-medium">
+                          {eventDetails.sponsor_username}
+                        </span>
+                      </>
+                    )}
+                    <span className="text-muted-foreground">Field Label</span>
+                    <span className="font-medium">
+                      {eventDetails.sponsor_field_label}
+                    </span>
+                    {eventDetails.sponsor_requirement_description && (
+                      <>
+                        <span className="text-muted-foreground">
+                          Requirement
+                        </span>
+                        <span className="font-medium">
+                          {eventDetails.sponsor_requirement_description}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">
+                  No sponsor requirement configured.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Sponsor Config Dialog */}
+          <Dialog open={showSponsorDialog} onOpenChange={setShowSponsorDialog}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Configure Sponsor Requirement</DialogTitle>
+                <DialogDescription>
+                  When enabled, players must complete the sponsor requirement
+                  before registration is finalized.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <Label className="font-medium">
+                      Enable Sponsor Requirement
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Players will be prompted to input their sponsor UUID
+                      during registration
+                    </p>
+                  </div>
+                  <Switch
+                    checked={sponsorForm.is_sponsored}
+                    onCheckedChange={(v) =>
+                      setSponsorForm((p) => ({ ...p, is_sponsored: v }))
+                    }
+                  />
+                </div>
+
+                {sponsorForm.is_sponsored && (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label>Sponsor Name</Label>
+                      <Input
+                        placeholder="e.g. Garena, Supercell"
+                        value={sponsorForm.sponsor_name}
+                        onChange={(e) =>
+                          setSponsorForm((p) => ({
+                            ...p,
+                            sponsor_name: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Sponsor Username</Label>
+                      <Input
+                        placeholder="e.g. garena_official"
+                        value={sponsorForm.sponsor_username}
+                        onChange={(e) =>
+                          setSponsorForm((p) => ({
+                            ...p,
+                            sponsor_username: e.target.value,
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        The platform username of the sponsor account.
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Requirement Description</Label>
+                      <Textarea
+                        placeholder="e.g. Download the Garena app, create an account, and enter your Garena UUID below."
+                        value={sponsorForm.requirement_description}
+                        onChange={(e) =>
+                          setSponsorForm((p) => ({
+                            ...p,
+                            requirement_description: e.target.value,
+                          }))
+                        }
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>UUID Field Label</Label>
+                      <Input
+                        placeholder="e.g. Garena UUID, Player ID, Account ID"
+                        value={sponsorForm.uuid_label}
+                        onChange={(e) =>
+                          setSponsorForm((p) => ({
+                            ...p,
+                            uuid_label: e.target.value,
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        This label will appear next to the input field players
+                        see
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowSponsorDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={saveSponsorRequirement}
+                  disabled={savingSponsor}
+                >
+                  {savingSponsor ? "Saving..." : "Save"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* --- Registrations Tab --- */}

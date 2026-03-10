@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,10 +22,15 @@ const DEFAULT_RANKS: RankEntry[] = [
   { id: 5, val: "20" },
 ];
 
+function makeDefaultRanks(): RankEntry[] {
+  return DEFAULT_RANKS.map((r) => ({ ...r }));
+}
+
 interface MapKillSystem {
   killPoint: string;
   assistPoint: string;
   damagePoint: string;
+  ranks: RankEntry[];
 }
 
 export interface PointSystemData {
@@ -135,22 +141,24 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
   // ── Toggle ─────────────────────────────────────────────────────────────────
   const [applyToAllMaps, setApplyToAllMaps] = useState(true);
 
-  // ── Per-map kill / assist / damage ─────────────────────────────────────────
+  // ── Per-map kill / assist / damage / placement ──────────────────────────────
   const [mapSystems, setMapSystems] = useState<Record<number, MapKillSystem>>(
     () => {
       const init: Record<number, MapKillSystem> = {};
       groupMatches.forEach((m) => {
-        init[m.match_id] = { killPoint: "1", assistPoint: "0.5", damagePoint: "0.5" };
+        init[m.match_id] = {
+          killPoint: "1",
+          assistPoint: "0.5",
+          damagePoint: "0.5",
+          ranks: makeDefaultRanks(),
+        };
       });
       return init;
     },
   );
-  const [activeMapId, setActiveMapId] = useState<number | null>(
-    groupMatches[0]?.match_id ?? null,
-  );
 
   const updateMapField = useCallback(
-    (matchId: number, field: keyof MapKillSystem, val: string) => {
+    (matchId: number, field: keyof Omit<MapKillSystem, "ranks">, val: string) => {
       setMapSystems((prev) => ({
         ...prev,
         [matchId]: { ...prev[matchId], [field]: val },
@@ -159,23 +167,42 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
     [],
   );
 
-  const copyGlobalToMap = (matchId: number) => {
+  const updateMapRank = useCallback(
+    (matchId: number, idx: number, val: string) => {
+      setMapSystems((prev) => {
+        const nextRanks = [...prev[matchId].ranks];
+        nextRanks[idx] = { ...nextRanks[idx], val };
+        return { ...prev, [matchId]: { ...prev[matchId], ranks: nextRanks } };
+      });
+    },
+    [],
+  );
+
+  const addMapRank = useCallback((matchId: number) => {
     setMapSystems((prev) => ({
       ...prev,
       [matchId]: {
-        killPoint: globalKill,
-        assistPoint: globalAssist,
-        damagePoint: globalDamage,
+        ...prev[matchId],
+        ranks: [...prev[matchId].ranks, { id: Date.now(), val: "0" }],
       },
     }));
-    toast.success("Global settings copied to this map");
-  };
+  }, []);
+
+  const removeMapRank = useCallback((matchId: number, rankId: number) => {
+    setMapSystems((prev) => ({
+      ...prev,
+      [matchId]: {
+        ...prev[matchId],
+        ranks: prev[matchId].ranks.filter((r) => r.id !== rankId),
+      },
+    }));
+  }, []);
 
   const [submitting, setSubmitting] = useState(false);
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleContinue = async () => {
-    const placementPP = buildPlacementObj(ranks);
+    const globalPlacementPP = buildPlacementObj(ranks);
 
     if (!applyToAllMaps) {
       const missing = groupMatches.filter((m) => !mapSystems[m.match_id]);
@@ -193,13 +220,13 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
     };
 
     if (applyToAllMaps) {
-      payload.placement_points = placementPP;
+      payload.placement_points = globalPlacementPP;
       payload.kill_point = parseFloat(globalKill) || 0;
       payload.points_per_assist = parseFloat(globalAssist) || 0;
       payload.points_per_1000_damage = parseFloat(globalDamage) || 0;
     } else {
       payload.placement_points_list = groupMatches.map((m) => ({
-        placement_points: placementPP,
+        placement_points: buildPlacementObj(mapSystems[m.match_id].ranks),
         kill_point: parseFloat(mapSystems[m.match_id].killPoint) || 0,
         points_per_assist: parseFloat(mapSystems[m.match_id].assistPoint) || 0,
         points_per_1000_damage: parseFloat(mapSystems[m.match_id].damagePoint) || 0,
@@ -226,7 +253,7 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
       }
 
       onNext({
-        placement_points: placementPP,
+        placement_points: globalPlacementPP,
         kill_point: globalKill,
         assist_point: globalAssist,
         damage_point: globalDamage,
@@ -248,9 +275,6 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
       setSubmitting(false);
     }
   };
-
-  const activeMatch = groupMatches.find((m) => m.match_id === activeMapId);
-  const activeMapSystem = activeMapId !== null ? mapSystems[activeMapId] : null;
 
   return (
     <Card className="gap-0">
@@ -281,58 +305,58 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
             </Label>
             {!applyToAllMaps && (
               <p className="text-xs text-muted-foreground">
-                You can configure different point systems for each map
-                individually
+                Configure different point systems for each map individually
               </p>
             )}
           </div>
         </div>
 
-        {/* Placement Points – always global */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="font-medium">Placement Points</Label>
-            <Button variant="outline" size="sm" onClick={addRank}>
-              <IconPlus size={13} className="mr-1" />
-              + Add Placement
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 gap-3">
-            {ranks.map((r, i) => (
-              <div key={r.id} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs text-muted-foreground">
-                    Place {i + 1}
-                  </Label>
-                  {i > 4 && (
-                    <button
-                      onClick={() => removeRank(r.id)}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <IconX size={12} />
-                    </button>
-                  )}
-                </div>
-                <Input
-                  type="number"
-                  value={r.val}
-                  onChange={(e) => updateRank(i, e.target.value)}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Global kill/assist/damage (when apply-to-all is ON) */}
+        {/* Global config (when apply-to-all is ON) */}
         {applyToAllMaps && (
-          <KillAssistDamageFields
-            killPoint={globalKill}
-            assistPoint={globalAssist}
-            damagePoint={globalDamage}
-            onKillChange={setGlobalKill}
-            onAssistChange={setGlobalAssist}
-            onDamageChange={setGlobalDamage}
-          />
+          <>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Placement Points</Label>
+                <Button variant="outline" size="sm" onClick={addRank}>
+                  <IconPlus size={13} className="mr-1" />
+                  + Add Placement
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 gap-3">
+                {ranks.map((r, i) => (
+                  <div key={r.id} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-muted-foreground">
+                        Place {i + 1}
+                      </Label>
+                      {i > 4 && (
+                        <button
+                          onClick={() => removeRank(r.id)}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          <IconX size={12} />
+                        </button>
+                      )}
+                    </div>
+                    <Input
+                      type="number"
+                      value={r.val}
+                      onChange={(e) => updateRank(i, e.target.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <KillAssistDamageFields
+              killPoint={globalKill}
+              assistPoint={globalAssist}
+              damagePoint={globalDamage}
+              onKillChange={setGlobalKill}
+              onAssistChange={setGlobalAssist}
+              onDamageChange={setGlobalDamage}
+            />
+          </>
         )}
 
         {/* Per-map section (when apply-to-all is OFF) */}
@@ -345,61 +369,66 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
                 No matches found for the selected group.
               </p>
             ) : (
-              <>
-                {/* Map tabs */}
-                <div className="flex gap-2 flex-wrap">
+              <Tabs defaultValue={groupMatches[0].match_id.toString()}>
+                <TabsList className="w-full flex-wrap h-auto gap-1">
                   {groupMatches.map((m) => (
-                    <Button
-                      key={m.match_id}
-                      variant={activeMapId === m.match_id ? "default" : "secondary"}
-                      onClick={() => setActiveMapId(m.match_id)}
-                    >
+                    <TabsTrigger key={m.match_id} value={m.match_id.toString()}>
                       {m.match_map}
-                    </Button>
+                    </TabsTrigger>
                   ))}
-                </div>
+                </TabsList>
 
-                {/* Active map editor */}
-                {activeMapId !== null && activeMapSystem && activeMatch && (
-                  <div className="rounded-lg border p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-sm">
-                        {activeMatch.match_map} — Point System
-                      </h4>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => copyGlobalToMap(activeMapId)}
-                        >
-                          Copy from Map
-                        </Button>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => {
-                            setGlobalKill(activeMapSystem.killPoint);
-                            setGlobalAssist(activeMapSystem.assistPoint);
-                            setGlobalDamage(activeMapSystem.damagePoint);
-                            toast.success("Saved as global template");
-                          }}
-                        >
-                          Save as Template
-                        </Button>
+                {groupMatches.map((m) => {
+                  const sys = mapSystems[m.match_id];
+                  if (!sys) return null;
+                  return (
+                    <TabsContent key={m.match_id} value={m.match_id.toString()} className="mt-4 space-y-4">
+                      {/* Placement Points per map */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs font-medium text-muted-foreground">Placement Points</Label>
+                          <Button variant="outline" size="sm" onClick={() => addMapRank(m.match_id)}>
+                            <IconPlus size={13} className="mr-1" />
+                            + Add
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 gap-3">
+                          {sys.ranks.map((r, i) => (
+                            <div key={r.id} className="space-y-1">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-xs text-muted-foreground">Place {i + 1}</Label>
+                                {i > 4 && (
+                                  <button
+                                    onClick={() => removeMapRank(m.match_id, r.id)}
+                                    className="text-muted-foreground hover:text-destructive"
+                                  >
+                                    <IconX size={12} />
+                                  </button>
+                                )}
+                              </div>
+                              <Input
+                                type="number"
+                                value={r.val}
+                                onChange={(e) => updateMapRank(m.match_id, i, e.target.value)}
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    <KillAssistDamageFields
-                      killPoint={activeMapSystem.killPoint}
-                      assistPoint={activeMapSystem.assistPoint}
-                      damagePoint={activeMapSystem.damagePoint}
-                      onKillChange={(v) => updateMapField(activeMapId, "killPoint", v)}
-                      onAssistChange={(v) => updateMapField(activeMapId, "assistPoint", v)}
-                      onDamageChange={(v) => updateMapField(activeMapId, "damagePoint", v)}
-                    />
-                  </div>
-                )}
-              </>
+                      {/* Kill/Assist/Damage per map */}
+                      <KillAssistDamageFields
+                        killPoint={sys.killPoint}
+                        assistPoint={sys.assistPoint}
+                        damagePoint={sys.damagePoint}
+                        onKillChange={(v) => updateMapField(m.match_id, "killPoint", v)}
+                        onAssistChange={(v) => updateMapField(m.match_id, "assistPoint", v)}
+                        onDamageChange={(v) => updateMapField(m.match_id, "damagePoint", v)}
+                      />
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
             )}
           </div>
         )}

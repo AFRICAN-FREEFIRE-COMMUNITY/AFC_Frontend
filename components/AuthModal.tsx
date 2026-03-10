@@ -6,6 +6,7 @@ import React, {
   createContext,
   useContext,
   useMemo,
+  useEffect,
 } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -87,6 +88,13 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   };
 
   const closeAuthModal = () => setOpen(false);
+
+  // Open the auth modal whenever a session-expired event is dispatched
+  useEffect(() => {
+    const handler = () => openAuthModal({ defaultTab: "login" });
+    window.addEventListener("auth:session-expired", handler);
+    return () => window.removeEventListener("auth:session-expired", handler);
+  }, []);
 
   return (
     <AuthModalContext.Provider value={{ openAuthModal, closeAuthModal }}>

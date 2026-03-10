@@ -64,6 +64,7 @@ interface AuthContextType {
   isAdminByRoleOrRoles: boolean;
   hasRole: (role: string) => boolean;
   hasAnyRole: (roles: string[]) => boolean;
+  signalSessionExpired: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -117,12 +118,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             errorMessage.includes("unauthorized") ||
             errorMessage.includes("authentication")
           ) {
-            // Clear cookie instead of localStorage
             Cookies.remove(COOKIE_NAME, { path: "/" });
             setUser(null);
             setToken(null);
-            toast.error("Session expired. Please log in again.");
-            window.location.href = "/login";
+            window.dispatchEvent(new CustomEvent("auth:session-expired"));
           }
         }
         return Promise.reject(error);
@@ -190,6 +189,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null);
   }, []);
 
+  const signalSessionExpired = useCallback(() => {
+    Cookies.remove(COOKIE_NAME, { path: "/" });
+    setUser(null);
+    setToken(null);
+    window.dispatchEvent(new CustomEvent("auth:session-expired"));
+  }, []);
+
   // Helper function to check if user has a specific role
   const hasRole = (role: string): boolean => {
     if (!user) return false;
@@ -250,6 +256,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         hasRole,
         hasAnyRole,
         isAdminByRoleOrRoles,
+        signalSessionExpired,
       }}
     >
       {children}

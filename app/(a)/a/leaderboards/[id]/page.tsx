@@ -586,10 +586,10 @@ import {
   IconTrophy,
   IconUsers,
   IconMap,
-  IconSettings,
   IconPencil,
   IconEdit,
 } from "@tabler/icons-react";
+import Link from "next/link";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
@@ -604,12 +604,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EditScoringModal } from "../_components/EditScoringModal";
-import { AdjustScoreModal } from "../_components/AdjustScoreModal";
 import { MatchMethodSelectionStep } from "../_components/MatchMethodSelectionStep";
 import { ManualMatchResultStep } from "../_components/ManualMatchResultStep";
 import { FileUploadStep } from "../_components/FileUploadStep";
 import { ImageUploadStep } from "../_components/ImageUploadStep";
+import { DownloadLeaderboardButton } from "../_components/DownloadLeaderboardButton";
 
 type Params = { id: string };
 type MatchView = "method" | "manual" | "image_upload" | "room_file_upload";
@@ -628,9 +627,6 @@ export default function IndividualLeaderboardPage({
   const [selectedStageId, setSelectedStageId] = useState<string>("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [selectedMatchId, setSelectedMatchId] = useState<string>("overall");
-
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [openAdjustModal, setOpenAdjustModal] = useState(false);
 
   const [editingMatch, setEditingMatch] = useState<{
     match: { match_id: number; match_name: string };
@@ -834,13 +830,19 @@ export default function IndividualLeaderboardPage({
           description={`${detailsParticipantType === "solo" ? "Solo" : "Team"} Tournament • ${eventData.stages.length} Stages`}
         />
         {!editingMatch && (
-          <Button
-            variant="outline"
-            className="w-full md:w-auto"
-            onClick={() => setOpenEditModal(true)}
-          >
-            <IconSettings size={16} /> Edit Scoring
-          </Button>
+          <div className="flex gap-2 w-full md:w-auto">
+            <DownloadLeaderboardButton
+              leaderboardName={eventData.event_name}
+              teamRows={currentGroup?.overall_leaderboard ?? []}
+              playerRows={getPlayerData()}
+              participantType={detailsParticipantType}
+            />
+            <Button asChild variant="outline" className="w-full md:w-auto">
+              <Link href={`/a/leaderboards/${id}/edit`}>
+                <IconPencil size={16} /> Edit Leaderboard
+              </Link>
+            </Button>
+          </div>
         )}
       </div>
 
@@ -1092,15 +1094,6 @@ export default function IndividualLeaderboardPage({
                   <IconEdit size={18} /> Edit Match Results
                 </Button>
               )}
-              {selectedMatchId !== "overall" && (
-                <Button
-                  variant="outline"
-                  onClick={() => setOpenAdjustModal(true)}
-                  className="border-zinc-800 hover:bg-zinc-900 gap-2"
-                >
-                  <IconPencil size={18} /> Adjust Scores
-                </Button>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -1146,24 +1139,6 @@ export default function IndividualLeaderboardPage({
         />
       )}
 
-      {/* ── Modals ── */}
-      {openAdjustModal && (
-        <AdjustScoreModal
-          open={openAdjustModal}
-          onClose={() => setOpenAdjustModal(false)}
-          match={currentMatch}
-          onSuccess={fetchLeaderboard}
-        />
-      )}
-
-      <EditScoringModal
-        open={openEditModal}
-        onClose={() => setOpenEditModal(false)}
-        currentLeaderboard={currentGroup?.leaderboard}
-        stageId={selectedStageId}
-        groupId={selectedGroupId}
-        onSuccess={fetchLeaderboard}
-      />
     </div>
   );
 }

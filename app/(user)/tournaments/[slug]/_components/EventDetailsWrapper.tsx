@@ -67,6 +67,7 @@ type ModalStep =
   | "INFO"
   | "TYPE"
   | "RULES"
+  | "SPONSOR"
   | "DISCORD_LINK"
   | "DISCORD_JOIN"
   | "DISCORD_STATUS"
@@ -93,6 +94,7 @@ interface Stage {
   teams_qualifying_from_stage: number;
   groups: StageGroup[];
 }
+
 
 interface EventDetails {
   event_id: number;
@@ -124,6 +126,10 @@ interface EventDetails {
   uploaded_rules_url: string | null;
   is_registered: boolean;
   is_public: boolean;
+  is_sponsored?: boolean;
+  sponsor_name?: string;
+  sponsor_field_label?: string;
+  sponsor_requirement_description?: string | null;
 }
 
 interface ApiResponse {
@@ -619,8 +625,12 @@ interface ModalProps {
   isCheckingDiscord?: boolean;
   isCheckingUserDiscord?: boolean;
   isInAfcServer?: boolean;
-  teamAfcServerStatus?: Record<string, boolean>; // ✅ FIX: Change from function to object
+  teamAfcServerStatus?: Record<string, boolean>;
   copyAfcServerLink: () => void;
+  soloSponsorUuid: string;
+  setSoloSponsorUuid: (v: string) => void;
+  teamSponsorUuids: Record<string, string>;
+  setTeamSponsorUuids: (v: Record<string, string>) => void;
 }
 
 const RegistrationModals: React.FC<ModalProps> = ({
@@ -643,6 +653,10 @@ const RegistrationModals: React.FC<ModalProps> = ({
   checkUserDiscordStatus,
   copyAfcServerLink,
   teamAfcServerStatus,
+  soloSponsorUuid,
+  setSoloSponsorUuid,
+  teamSponsorUuids,
+  setTeamSponsorUuids,
 }) => {
   const isSoloDisabled = eventDetails.participant_type === "squad";
   const isTeamDisabled = eventDetails.participant_type === "solo";
@@ -654,8 +668,12 @@ const RegistrationModals: React.FC<ModalProps> = ({
   const validationResultsRef = useRef(eventDetails.validationResults);
   const selectedTeamMembersRef = useRef(eventDetails.selectedTeamMembers);
 
-  useEffect(() => { onCheckDiscordStatusRef.current = onCheckDiscordStatus; }, [onCheckDiscordStatus]);
-  useEffect(() => { teamAfcServerStatusRef.current = teamAfcServerStatus; }, [teamAfcServerStatus]);
+  useEffect(() => {
+    onCheckDiscordStatusRef.current = onCheckDiscordStatus;
+  }, [onCheckDiscordStatus]);
+  useEffect(() => {
+    teamAfcServerStatusRef.current = teamAfcServerStatus;
+  }, [teamAfcServerStatus]);
   useEffect(() => {
     validationResultsRef.current = eventDetails.validationResults;
     selectedTeamMembersRef.current = eventDetails.selectedTeamMembers;
@@ -663,7 +681,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
   // Poll Discord status for team members — only restarts when modal step changes
   useEffect(() => {
-    if (modalStep !== "DISCORD_STATUS" || !onCheckDiscordStatusRef.current) return;
+    if (modalStep !== "DISCORD_STATUS" || !onCheckDiscordStatusRef.current)
+      return;
 
     // Initial check when entering the step
     onCheckDiscordStatusRef.current();
@@ -901,11 +920,90 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 Back
               </Button>
               <Button onClick={handleRulesContinue} disabled={!rulesAccepted}>
-                Continue to Discord
+                {eventDetails.is_sponsored
+                  ? "Continue"
+                  : "Continue to Discord"}
               </Button>
             </DialogFooter>
           </>
         );
+
+      case "SPONSOR": {
+        const teamMembers = eventDetails.selectedTeamMembers || [];
+        const isTeamSponsor = regType === "team" && teamMembers.length > 0;
+        const nextStep = regType === "team" ? "DISCORD_STATUS" : "DISCORD_LINK";
+        const canContinueSponsor = isTeamSponsor
+          ? teamMembers.every(
+              (m) => (teamSponsorUuids[m.id] || "").trim() !== "",
+            )
+          : soloSponsorUuid.trim() !== "";
+
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-xl">
+                {eventDetails.sponsor_name} Requirement
+              </DialogTitle>
+              <DialogDescription>
+                Complete this step to finish registration
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="p-3 rounded-md bg-primary/10 text-sm text-muted-foreground">
+                {eventDetails.sponsor_requirement_description}
+              </div>
+
+              {isTeamSponsor ? (
+                <div className="space-y-3">
+                  {teamMembers.map((member) => (
+                    <div key={member?.id} className="space-y-1">
+                      <label className="text-sm font-medium">
+                        {member?.username}
+                      </label>
+                      <input
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        placeholder={`Enter ${eventDetails.sponsor_field_label}`}
+                        value={teamSponsorUuids[member.id] || ""}
+                        onChange={(e) =>
+                          setTeamSponsorUuids({
+                            ...teamSponsorUuids,
+                            [member.id]: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">
+                    {eventDetails.sponsor_field_label}
+                  </label>
+                  <input
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    placeholder={`Enter your ${eventDetails.sponsor_field_label}`}
+                    value={soloSponsorUuid}
+                    onChange={(e) => setSoloSponsorUuid(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="flex sm:justify-between">
+              <Button variant="secondary" onClick={() => setModalStep("RULES")}>
+                Back
+              </Button>
+              <Button
+                onClick={() => setModalStep(nextStep)}
+                disabled={!canContinueSponsor}
+              >
+                Continue
+              </Button>
+            </DialogFooter>
+          </>
+        );
+      }
 
       case "DISCORD_LINK":
         return (
@@ -1352,6 +1450,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     DiscordValidationResult[]
   >([]);
 
+  // Sponsor UUID state
+  const [soloSponsorUuid, setSoloSponsorUuid] = useState("");
+  const [teamSponsorUuids, setTeamSponsorUuids] = useState<
+    Record<string, string>
+  >({});
+
   // Invite token state
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [hasValidInvite, setHasValidInvite] = useState<boolean>(false);
@@ -1762,7 +1866,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     }
 
     setModalStep("TYPE");
-  }, [eventDetails, hasValidInvite, inviteToken, checkInviteTokenStatus, userTeam, isUserBanned]);
+  }, [
+    eventDetails,
+    hasValidInvite,
+    inviteToken,
+    checkInviteTokenStatus,
+    userTeam,
+    isUserBanned,
+  ]);
 
   const handleSelectType = useCallback(
     async (type: RegistrationType) => {
@@ -1792,16 +1903,17 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   }, [userTeam, selectedMembers]);
 
   const handleRulesContinue = useCallback(() => {
-    if (rulesAccepted) {
-      // For team registration, check Discord status of all members
-      if (regType === "team" && selectedTeamMembersData.length > 0) {
-        setModalStep("DISCORD_STATUS");
-      } else {
-        // For solo registration
-        setModalStep("DISCORD_LINK");
-      }
+    if (!rulesAccepted) return;
+    if (eventDetails?.is_sponsored) {
+      setModalStep("SPONSOR");
+      return;
     }
-  }, [rulesAccepted, regType, selectedTeamMembersData]);
+    if (regType === "team" && selectedTeamMembersData.length > 0) {
+      setModalStep("DISCORD_STATUS");
+    } else {
+      setModalStep("DISCORD_LINK");
+    }
+  }, [rulesAccepted, regType, selectedTeamMembersData, eventDetails]);
 
   const handleDiscordConnect = useCallback(() => {
     let redirectPath = `${window.location.origin}${window.location.pathname}?id=${slug}&discord=connected&step=discord`;
@@ -1831,6 +1943,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           payload.invite_token = inviteToken;
         }
 
+        // Add sponsor IDs if required
+        if (eventDetails?.is_sponsored) {
+          if (regType === "team") {
+            payload.sponsor_ids = teamSponsorUuids;
+          } else {
+            payload.sponsor_id = soloSponsorUuid;
+          }
+        }
+
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/register-for-event/`,
           payload,
@@ -1854,6 +1975,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     fetchEventDetails,
     startJoinedTransition,
     inviteToken,
+    teamSponsorUuids,
+    soloSponsorUuid,
+    eventDetails,
   ]);
 
   if (isLoading) return <FullLoader />;
@@ -2285,6 +2409,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         checkUserDiscordStatus={checkUserDiscordStatus}
         copyAfcServerLink={copyAfcServerLink}
         teamAfcServerStatus={teamAfcServerStatus}
+        soloSponsorUuid={soloSponsorUuid}
+        setSoloSponsorUuid={setSoloSponsorUuid}
+        teamSponsorUuids={teamSponsorUuids}
+        setTeamSponsorUuids={setTeamSponsorUuids}
       />
     </div>
   );

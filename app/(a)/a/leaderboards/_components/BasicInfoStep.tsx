@@ -293,12 +293,24 @@ export function BasicInfoStep({
       (g: any) => g.group_id.toString() === selectedGroupId,
     );
 
+    const rawMatches: any[] = group?.matches || [];
+    const matchMaps: string[] = group?.match_maps || [];
+    const group_matches =
+      rawMatches.length > 0
+        ? rawMatches
+        : matchMaps.map((mapName: string, idx: number) => ({
+            match_id: idx + 1,
+            match_number: idx + 1,
+            match_map: mapName,
+            result_inputted: false,
+          }));
+
     updateData({
       event_id: selectedEventId,
       event_slug: selectedEvent?.slug || "",
       stage_id: selectedStageId,
       group_id: selectedGroupId,
-      group_matches: group?.matches || [],
+      group_matches,
       competitors_in_group: group?.competitors_in_group || [],
       group_leaderboard: group?.leaderboard || null,
       leaderboard_id: group?.leaderboard?.leaderboard_id ?? null,

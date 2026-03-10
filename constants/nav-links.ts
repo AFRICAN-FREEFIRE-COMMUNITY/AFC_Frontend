@@ -10,6 +10,7 @@ import {
   IconSettings,
   IconShield,
   IconShoppingCart,
+  IconStar,
   IconTrophy,
   IconUsers,
   IconUsersGroup,
@@ -126,6 +127,12 @@ export const adminNavLinks: AdminNavLink[] = [
     label: "Admin Events",
     slug: "/a/events",
     icon: IconCalendar,
+    allowedRoles: ["head_admin", "event_admin"],
+  },
+  {
+    label: "Sponsors",
+    slug: "/a/sponsors",
+    icon: IconStar,
     allowedRoles: ["head_admin", "event_admin"],
   },
   {

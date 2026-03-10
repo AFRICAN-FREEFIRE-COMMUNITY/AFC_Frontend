@@ -189,6 +189,11 @@ export const EventFormSchema = z
       .optional(),
     restriction_mode: z.enum(["allow_only", "block_selected"]).optional(),
     selected_locations: z.array(z.string()).optional(),
+    is_sponsored: z.boolean().default(false),
+    sponsor_name: z.string().optional(),
+    sponsor_username: z.string().optional(),
+    sponsor_requirement_description: z.string().optional(),
+    sponsor_field_label: z.string().optional(),
   })
   .refine(
     (data) => {

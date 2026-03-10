@@ -413,8 +413,8 @@ export interface StageModalData {
   number_of_groups: number;
   teams_qualifying_from_stage: number;
   stage_discord_role_id: string;
-  prizepool: string;
-  prizepool_cash_value: string;
+  prizepool: any;
+  prizepool_cash_value: any;
   prize_distribution: Record<string, string>;
 }
 

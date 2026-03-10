@@ -44,6 +44,60 @@ const shopItems = [
     price: 500,
     image: "/placeholder.svg?height=100&width=100",
   },
+  {
+    id: 1,
+    name: "Golden Dragon AK",
+    price: 1000,
+    image: "/placeholder.svg?height=100&width=100",
+  },
+  {
+    id: 2,
+    name: "Ninja Outfit",
+    price: 800,
+    image: "/placeholder.svg?height=100&width=100",
+  },
+  {
+    id: 3,
+    name: "Legendary Emote: Victory Dance",
+    price: 500,
+    image: "/placeholder.svg?height=100&width=100",
+  },
+  {
+    id: 1,
+    name: "Golden Dragon AK",
+    price: 1000,
+    image: "/placeholder.svg?height=100&width=100",
+  },
+  {
+    id: 2,
+    name: "Ninja Outfit",
+    price: 800,
+    image: "/placeholder.svg?height=100&width=100",
+  },
+  {
+    id: 3,
+    name: "Legendary Emote: Victory Dance",
+    price: 500,
+    image: "/placeholder.svg?height=100&width=100",
+  },
+  {
+    id: 1,
+    name: "Golden Dragon AK",
+    price: 1000,
+    image: "/placeholder.svg?height=100&width=100",
+  },
+  {
+    id: 2,
+    name: "Ninja Outfit",
+    price: 800,
+    image: "/placeholder.svg?height=100&width=100",
+  },
+  {
+    id: 3,
+    name: "Legendary Emote: Victory Dance",
+    price: 500,
+    image: "/placeholder.svg?height=100&width=100",
+  },
 ];
 
 export default function HomePage() {

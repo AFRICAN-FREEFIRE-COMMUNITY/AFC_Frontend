@@ -34,6 +34,7 @@ import { RemoveStageModal } from "./_components/RemoveStageModal";
 import { ParticipantTypeWarningModal } from "./_components/ParticipantTypeWarningModal";
 import { SaveConfirmModal } from "./_components/SaveConfirmModal";
 import StagesGroupsTab from "./_components/StagesGroupsTab";
+import SponsorTab from "./_components/SponsorTab";
 
 // ============================================================================
 // PAGE COMPONENT
@@ -134,6 +135,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [pendingSaveData, setPendingSaveData] = useState<EventFormType | null>(
     null,
   );
+
+  // ── Sponsor ────────────────────────────────────────────────────────────────
+  const [sponsorForm, setSponsorForm] = useState({
+    is_sponsored: false,
+    sponsor_name: "",
+    sponsor_username: "",
+    requirement_description: "",
+    uuid_label: "Player UUID",
+  });
+  const [savingSponsor, setSavingSponsor] = useState(false);
 
   // ── Tab error indicators ───────────────────────────────────────────────────
   const [tabErrors, setTabErrors] = useState({
@@ -376,6 +387,18 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         setStageNames(adminStages.map((s: any) => s.stage_name));
 
       setEventDetails(mergedDetails);
+
+      const ed = res.data.event_details;
+      if (ed) {
+        setSponsorForm({
+          is_sponsored: ed.is_sponsored ?? false,
+          sponsor_name: ed.sponsor_name ?? "",
+          sponsor_username: ed.sponsor_username ?? "",
+          requirement_description: ed.sponsor_requirement_description ?? "",
+          uuid_label: ed.sponsor_field_label ?? "Player UUID",
+        });
+      }
+
       setLoadingEvent(false);
     } catch (error: any) {
       const errorMessage =
@@ -744,6 +767,45 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     );
   };
 
+  // ── Sponsor save ───────────────────────────────────────────────────────────
+
+  const saveSponsorRequirement = async () => {
+    if (!eventDetails?.event_id || !token) return;
+    setSavingSponsor(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/set-event-sponsor-requirement/`,
+        { event_id: eventDetails.event_id, ...sponsorForm },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      toast.success("Sponsor settings saved!");
+      setEventDetails((prev) =>
+        prev
+          ? {
+              ...prev,
+              is_sponsored: sponsorForm.is_sponsored,
+              sponsor_name: sponsorForm.sponsor_name,
+              sponsor_username: sponsorForm.sponsor_username,
+              sponsor_field_label: sponsorForm.uuid_label,
+              sponsor_requirement_description:
+                sponsorForm.requirement_description,
+            }
+          : prev,
+      );
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to save sponsor settings",
+      );
+    } finally {
+      setSavingSponsor(false);
+    }
+  };
+
   // ── Prize distribution ─────────────────────────────────────────────────────
 
   const addPrizePosition = () => {
@@ -1092,6 +1154,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               <TabsTrigger value="actions" className="px-6 relative">
                 Event Actions
               </TabsTrigger>
+              <TabsTrigger value="sponsor" className="px-6 relative">
+                Sponsor
+                {sponsorForm.is_sponsored && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
+                )}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic_info">
@@ -1169,6 +1237,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 onStartTournament={() =>
                   setOpenConfirmStartTournamentModal(true)
                 }
+              />
+            </TabsContent>
+
+            <TabsContent value="sponsor">
+              <SponsorTab
+                slug={slug}
+                sponsorForm={sponsorForm}
+                setSponsorForm={setSponsorForm}
+                onSave={saveSponsorRequirement}
+                saving={savingSponsor}
               />
             </TabsContent>
           </Tabs>

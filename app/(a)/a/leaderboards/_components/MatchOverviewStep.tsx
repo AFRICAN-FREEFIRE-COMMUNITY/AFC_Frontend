@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,6 +10,16 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { IconMap, IconCheck } from "@tabler/icons-react";
 
 interface GroupMatch {
@@ -38,6 +49,7 @@ export function MatchOverviewStep({
   onBack,
 }: Props) {
   const groupMatches: GroupMatch[] = formData.group_matches ?? [];
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const isCompleted = (matchId: number) =>
     (formData.completed_match_ids ?? []).includes(matchId);
@@ -45,6 +57,16 @@ export function MatchOverviewStep({
   const completedCount = groupMatches.filter((m) => isCompleted(m.match_id)).length;
   const allCompleted =
     groupMatches.length > 0 && completedCount === groupMatches.length;
+
+  const pendingMatches = groupMatches.filter((m) => !isCompleted(m.match_id));
+
+  const handleGenerateClick = () => {
+    if (!allCompleted) {
+      setShowConfirm(true);
+    } else {
+      onComplete();
+    }
+  };
 
   return (
     <Card className="gap-0">
@@ -103,13 +125,42 @@ export function MatchOverviewStep({
 
         <div className="flex justify-between pt-2">
           <Button variant="ghost" onClick={onBack}>Back</Button>
-          <Button onClick={onComplete} disabled={!allCompleted}>
+          <Button onClick={handleGenerateClick}>
             {allCompleted
               ? "Generate Leaderboard"
-              : `${completedCount}/${groupMatches.length} matches complete`}
+              : `Generate Leaderboard (${completedCount}/${groupMatches.length})`}
           </Button>
         </div>
       </CardContent>
+
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Not all maps have results</AlertDialogTitle>
+            <AlertDialogDescription>
+              The following{" "}
+              {pendingMatches.length === 1 ? "map has" : `${pendingMatches.length} maps have`}{" "}
+              not had results submitted yet:
+              <ul className="mt-2 space-y-1 list-disc list-inside">
+                {pendingMatches.map((m) => (
+                  <li key={m.match_id} className="text-sm font-medium text-foreground">
+                    {m.match_map}
+                  </li>
+                ))}
+              </ul>
+              <span className="mt-3 block">
+                Do you still want to generate the leaderboard with the available results?
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction onClick={onComplete}>
+              Generate Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

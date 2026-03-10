@@ -317,7 +317,7 @@ const page = () => {
         />
       </div>
       <Card className="mt-4">
-        <CardHeader>
+        <CardHeader className="border-b">
           <CardTitle>Events & Scrims List</CardTitle>
         </CardHeader>
         <CardContent>
@@ -336,20 +336,22 @@ const page = () => {
               {paginatedEvents?.length > 0 ? (
                 paginatedEvents.map((event) => (
                   <TableRow key={event.event_id}>
-                    <TableCell className="font-medium flex items-center justify-start gap-1">
-                      {event.event_name}
-                      {event.is_public === false && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <IconLockFilled className="size-4" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              This is a private event
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
+                    <TableCell className="h-full py-0">
+                      <div className="flex h-full items-center gap-1">
+                        {event.event_name}
+                        {event.is_public === false && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <IconLockFilled className="size-4" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                This is a private event
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="capitalize">
                       {event.competition_type}

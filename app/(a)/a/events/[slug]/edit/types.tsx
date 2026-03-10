@@ -169,6 +169,11 @@ export interface EventDetails {
     status: string;
   }>;
   tournament_teams: any[];
+  is_sponsored?: boolean;
+  sponsor_name?: string;
+  sponsor_username?: string;
+  sponsor_field_label?: string;
+  sponsor_requirement_description?: string | null;
   stages: Array<{
     id: number;
     stage_id: number;
