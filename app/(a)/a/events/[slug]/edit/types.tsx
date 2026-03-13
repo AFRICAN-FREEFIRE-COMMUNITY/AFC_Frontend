@@ -111,7 +111,7 @@ export const EventFormSchema = z
     selected_locations: z.array(z.string()).optional(),
     is_sponsored: z.boolean().optional(),
     sponsor_name: z.string().optional(),
-    sponsor_username: z.string().optional(),
+    sponsor_usernames: z.array(z.string()).optional(),
     requirement_description: z.string().optional(),
     uuid_label: z.string().optional(),
   })
@@ -176,7 +176,12 @@ export interface EventDetails {
   tournament_teams: any[];
   is_sponsored?: boolean;
   sponsor_name?: string;
-  sponsor_username?: string;
+  sponsor_usernames?: string[];
+  sponsors?: Array<{
+    sponsor_id: number;
+    sponsor_name: string;
+    sponsor_username: string;
+  }>;
   sponsor_field_label?: string;
   sponsor_requirement_description?: string | null;
   stages: Array<{

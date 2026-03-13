@@ -1,19 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
 import { IconLoader2, IconUserCheck } from "@tabler/icons-react";
+import axios from "axios";
 import Link from "next/link";
 
-interface SponsorForm {
+interface Sponsor {
+  user_id: number;
+  full_name: string;
+  username: string;
+  email: string;
+}
+
+export interface SponsorForm {
   is_sponsored: boolean;
   sponsor_name: string;
-  sponsor_username: string;
+  sponsor_usernames: string[];
   requirement_description: string;
   sponsor_field_label: string;
 }
@@ -33,6 +45,31 @@ export default function SponsorTab({
   onSave,
   saving,
 }: SponsorTabProps) {
+  const { token } = useAuth();
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [sponsorsLoading, setSponsorsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!sponsorForm.is_sponsored || !token) return;
+    setSponsorsLoading(true);
+    axios
+      .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-sponsors/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setSponsors(res.data ?? []))
+      .catch(() => {})
+      .finally(() => setSponsorsLoading(false));
+  }, [sponsorForm.is_sponsored, token]);
+
+  const toggleSponsor = (username: string) => {
+    setSponsorForm((p) => ({
+      ...p,
+      sponsor_usernames: p.sponsor_usernames.includes(username)
+        ? p.sponsor_usernames.filter((u) => u !== username)
+        : [...p.sponsor_usernames, username],
+    }));
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -79,8 +116,9 @@ export default function SponsorTab({
 
           {sponsorForm.is_sponsored && (
             <div className="space-y-4">
+              {/* Sponsor / Company Name */}
               <div className="space-y-1.5">
-                <Label>Sponsor Name</Label>
+                <Label>Sponsor / Company Name</Label>
                 <Input
                   placeholder="e.g. Garena, Supercell"
                   value={sponsorForm.sponsor_name}
@@ -93,23 +131,55 @@ export default function SponsorTab({
                 />
               </div>
 
+              {/* Sponsor Accounts Multi-Select */}
               <div className="space-y-1.5">
-                <Label>Sponsor Username</Label>
-                <Input
-                  placeholder="e.g. garena_official"
-                  value={sponsorForm.sponsor_username}
-                  onChange={(e) =>
-                    setSponsorForm((p) => ({
-                      ...p,
-                      sponsor_username: e.target.value,
-                    }))
-                  }
-                />
+                <Label>Sponsor Accounts</Label>
                 <p className="text-xs text-muted-foreground">
-                  The platform username of the sponsor account.
+                  Select one or more sponsor accounts to associate with this
+                  event.
                 </p>
+                {sponsorsLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                    <IconLoader2 className="size-4 animate-spin" />
+                    Loading sponsors...
+                  </div>
+                ) : sponsors.length === 0 ? (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    No sponsors available.
+                  </p>
+                ) : (
+                  <div className="rounded-md border divide-y max-h-48 overflow-y-auto">
+                    {sponsors.map((s) => (
+                      <label
+                        key={s.user_id}
+                        className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                      >
+                        <Checkbox
+                          checked={sponsorForm.sponsor_usernames.includes(
+                            s.username,
+                          )}
+                          onCheckedChange={() => toggleSponsor(s.username)}
+                        />
+                        <span className="text-sm">
+                          {s.full_name}{" "}
+                          <span className="text-muted-foreground">
+                            (@{s.username})
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {sponsorForm.sponsor_usernames.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {sponsorForm.sponsor_usernames.length} sponsor
+                    {sponsorForm.sponsor_usernames.length !== 1 ? "s" : ""}{" "}
+                    selected
+                  </p>
+                )}
               </div>
 
+              {/* Requirement Description */}
               <div className="space-y-1.5">
                 <Label>Requirement Description</Label>
                 <Textarea
@@ -125,6 +195,7 @@ export default function SponsorTab({
                 />
               </div>
 
+              {/* Field Label */}
               <div className="space-y-1.5">
                 <Label>Field Label</Label>
                 <Input

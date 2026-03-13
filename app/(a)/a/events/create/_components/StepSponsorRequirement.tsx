@@ -20,13 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { IconLoader2 } from "@tabler/icons-react";
@@ -34,9 +28,10 @@ import axios from "axios";
 import { EventFormType } from "./types";
 
 interface Sponsor {
-  id: number;
+  user_id: number;
   full_name: string;
   username: string;
+  email: string;
 }
 
 interface StepSponsorRequirementProps {
@@ -49,7 +44,6 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
 
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [sponsorsLoading, setSponsorsLoading] = useState(false);
-  const [selectedSponsorId, setSelectedSponsorId] = useState<string>("");
 
   useEffect(() => {
     if (!sponsorRequired || !token) return;
@@ -60,7 +54,7 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-sponsors/`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        setSponsors(res.data.sponsors ?? []);
+        setSponsors(res.data ?? []);
       } catch {
         // silently fail
       } finally {
@@ -70,15 +64,17 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
     fetchSponsors();
   }, [sponsorRequired, token]);
 
-  const handleSponsorSelect = (value: string) => {
-    setSelectedSponsorId(value);
-    const sponsor = sponsors.find((s) => String(s.id) === value);
-    if (sponsor) {
-      // @ts-ignore
-      form.setValue("sponsor_name", sponsor.full_name);
-      // @ts-ignore
-      form.setValue("sponsor_username", sponsor.username);
-    }
+  const selectedUsernames: string[] =
+    // @ts-ignore
+    form.watch("sponsor_usernames") ?? [];
+
+  const toggleSponsor = (username: string) => {
+    const current = selectedUsernames;
+    const updated = current.includes(username)
+      ? current.filter((u) => u !== username)
+      : [...current, username];
+    // @ts-ignore
+    form.setValue("sponsor_usernames", updated);
   };
 
   return (
@@ -122,44 +118,14 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
 
         {sponsorRequired && (
           <div className="space-y-4">
-            {/* Sponsor Select */}
-            <div className="flex flex-col gap-1.5">
-              <Label>Sponsor</Label>
-              {sponsorsLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <IconLoader2 className="size-4 animate-spin" />
-                  Loading sponsors...
-                </div>
-              ) : (
-                <Select
-                  value={selectedSponsorId}
-                  onValueChange={handleSponsorSelect}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a sponsor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sponsors.map((s) => (
-                      <SelectItem key={s.id} value={String(s.id)}>
-                        {s.full_name} ({s.username})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Selecting a sponsor auto-fills the name and username below.
-              </p>
-            </div>
-
-            {/* Sponsor Name (auto-filled) */}
+            {/* Sponsor Name (company name - manual input) */}
             <FormField
               // @ts-ignore
               control={form.control}
               name="sponsor_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Sponsor Name</FormLabel>
+                  <FormLabel>Sponsor / Company Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. Acme Corp" {...field} />
                   </FormControl>
@@ -168,24 +134,49 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
               )}
             />
 
-            {/* Sponsor Username (auto-filled) */}
-            <FormField
-              // @ts-ignore
-              control={form.control}
-              name="sponsor_username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sponsor Username</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. acmecorp_official" {...field} />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground">
-                    The platform username of the sponsor account.
-                  </p>
-                  <FormMessage />
-                </FormItem>
+            {/* Sponsor Multi-Select */}
+            <div className="flex flex-col gap-1.5">
+              <Label>Sponsor Accounts</Label>
+              <p className="text-xs text-muted-foreground">
+                Select one or more sponsor accounts to associate with this event.
+              </p>
+              {sponsorsLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                  <IconLoader2 className="size-4 animate-spin" />
+                  Loading sponsors...
+                </div>
+              ) : sponsors.length === 0 ? (
+                <p className="text-sm text-muted-foreground mt-1">
+                  No sponsors available.
+                </p>
+              ) : (
+                <div className="rounded-md border divide-y max-h-48 overflow-y-auto">
+                  {sponsors.map((s) => (
+                    <label
+                      key={s.user_id}
+                      className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                    >
+                      <Checkbox
+                        checked={selectedUsernames.includes(s.username)}
+                        onCheckedChange={() => toggleSponsor(s.username)}
+                      />
+                      <span className="text-sm">
+                        {s.full_name}{" "}
+                        <span className="text-muted-foreground">
+                          (@{s.username})
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
               )}
-            />
+              {selectedUsernames.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {selectedUsernames.length} sponsor
+                  {selectedUsernames.length !== 1 ? "s" : ""} selected
+                </p>
+              )}
+            </div>
 
             {/* Requirement Description */}
             <FormField

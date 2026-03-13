@@ -140,7 +140,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [sponsorForm, setSponsorForm] = useState({
     is_sponsored: false,
     sponsor_name: "",
-    sponsor_username: "",
+    sponsor_usernames: [] as string[],
     requirement_description: "",
     sponsor_field_label: "Player UUID",
   });
@@ -281,9 +281,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             eventDetails.registration_restriction || "none",
           restriction_mode: eventDetails.restriction_mode || "allow_only",
           selected_locations: eventDetails.restricted_countries || [],
-          is_sponsored: eventDetails.is_sponsoreventDetails ?? false,
+          is_sponsored: eventDetails.is_sponsored ?? false,
           sponsor_name: eventDetails.sponsor_name ?? "",
-          sponsor_username: eventDetails.sponsor_username ?? "",
+          sponsor_usernames:
+            eventDetails.sponsors?.map((s) => s.sponsor_username) ?? [],
           requirement_description:
             eventDetails.sponsor_requirement_description ?? "",
           sponsor_field_label:
@@ -400,7 +401,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         setSponsorForm({
           is_sponsored: ed.is_sponsored ?? false,
           sponsor_name: ed.sponsor_name ?? "",
-          sponsor_username: ed.sponsor_username ?? "",
+          sponsor_usernames:
+            ed.sponsors?.map(
+              (s: { sponsor_username: string }) => s.sponsor_username,
+            ) ?? [],
           requirement_description: ed.sponsor_requirement_description ?? "",
           sponsor_field_label: ed.sponsor_field_label ?? "Player UUID",
         });
@@ -863,7 +867,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         sponsorForm.is_sponsored ? "True" : "False",
       );
       formData.append("sponsor_name", sponsorForm.sponsor_name || "");
-      formData.append("sponsor_username", sponsorForm.sponsor_username || "");
+      formData.append(
+        "sponsor_usernames",
+        JSON.stringify(sponsorForm.sponsor_usernames ?? []),
+      );
       formData.append(
         "requirement_description",
         sponsorForm.requirement_description || "",
@@ -886,7 +893,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               ...prev,
               is_sponsored: sponsorForm.is_sponsored,
               sponsor_name: sponsorForm.sponsor_name,
-              sponsor_username: sponsorForm.sponsor_username,
+              sponsor_usernames: sponsorForm.sponsor_usernames,
               sponsor_field_label: sponsorForm.sponsor_field_label,
               sponsor_requirement_description:
                 sponsorForm.requirement_description,
@@ -1143,7 +1150,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
         formData.append("is_sponsored", data.is_sponsored ? "True" : "False");
         formData.append("sponsor_name", data.sponsor_name || "");
-        formData.append("sponsor_username", data.sponsor_username || "");
+        formData.append(
+          "sponsor_usernames",
+          JSON.stringify(data.sponsor_usernames ?? []),
+        );
         formData.append(
           "requirement_description",
           data.requirement_description || "",

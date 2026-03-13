@@ -101,7 +101,7 @@ export default function CreateEventPage() {
       restriction_mode: "allow_only",
       is_sponsored: false,
       sponsor_name: "",
-      sponsor_username: "",
+      sponsor_usernames: [],
       sponsor_requirement_description: "",
       sponsor_field_label: "",
     },
@@ -538,7 +538,11 @@ export default function CreateEventPage() {
         );
         if (data.is_sponsored) {
           formData.append("sponsor_name", data.sponsor_name || "");
-          formData.append("sponsor_username", data.sponsor_username || "");
+          formData.append(
+            "sponsor_usernames",
+            // @ts-ignore
+            JSON.stringify(data.sponsor_usernames ?? []),
+          );
           formData.append(
             "sponsor_requirement_description",
             data.sponsor_requirement_description || "",

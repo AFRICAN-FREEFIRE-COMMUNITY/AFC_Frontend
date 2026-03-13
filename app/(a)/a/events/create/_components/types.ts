@@ -191,7 +191,7 @@ export const EventFormSchema = z
     selected_locations: z.array(z.string()).optional(),
     is_sponsored: z.boolean().default(false),
     sponsor_name: z.string().optional(),
-    sponsor_username: z.string().optional(),
+    sponsor_usernames: z.array(z.string()).optional(),
     sponsor_requirement_description: z.string().optional(),
     sponsor_field_label: z.string().optional(),
   })

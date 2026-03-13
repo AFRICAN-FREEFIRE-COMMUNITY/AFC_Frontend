@@ -17,6 +17,7 @@ import {
   IconCalendar,
   IconCurrencyDollar,
   IconExternalLink,
+  IconLoader2,
   IconPencil,
   IconTrendingUp,
   IconUsers,
@@ -43,6 +44,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -125,7 +127,12 @@ interface EventDetails {
   } | null;
   is_sponsored?: boolean;
   sponsor_name?: string;
-  sponsor_username?: string;
+  sponsor_usernames?: string[];
+  sponsors?: Array<{
+    sponsor_id: number;
+    sponsor_name: string;
+    sponsor_username: string;
+  }>;
   sponsor_field_label?: string;
   sponsor_requirement_description?: string | null;
 }
@@ -238,12 +245,28 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const [sponsorForm, setSponsorForm] = useState({
     is_sponsored: false,
     sponsor_name: "",
-    sponsor_username: "",
+    sponsor_usernames: [] as string[],
     requirement_description: "",
     uuid_label: "Player UUID",
   });
+  const [allSponsors, setAllSponsors] = useState<
+    { user_id: number; full_name: string; username: string; email: string }[]
+  >([]);
+  const [loadingSponsors, setLoadingSponsors] = useState(false);
   const [savingSponsor, setSavingSponsor] = useState(false);
   const [showSponsorDialog, setShowSponsorDialog] = useState(false);
+
+  useEffect(() => {
+    if (!showSponsorDialog || !token) return;
+    setLoadingSponsors(true);
+    axios
+      .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-sponsors/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setAllSponsors(res.data ?? []))
+      .catch(() => {})
+      .finally(() => setLoadingSponsors(false));
+  }, [showSponsorDialog, token]);
 
   useEffect(() => {
     // Wait for auth context to load before making API calls
@@ -281,7 +304,10 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           setSponsorForm({
             is_sponsored: ed.is_sponsored ?? false,
             sponsor_name: ed.sponsor_name ?? "",
-            sponsor_username: ed.sponsor_username ?? "",
+            sponsor_usernames:
+              ed.sponsors?.map(
+                (s: { sponsor_username: string }) => s.sponsor_username,
+              ) ?? [],
             requirement_description: ed.sponsor_requirement_description ?? "",
             uuid_label: ed.sponsor_field_label ?? "Player UUID",
           });
@@ -427,7 +453,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               ...prev,
               is_sponsored: sponsorForm.is_sponsored,
               sponsor_name: sponsorForm.sponsor_name,
-              sponsor_username: sponsorForm.sponsor_username,
+              sponsor_usernames: sponsorForm.sponsor_usernames,
               sponsor_field_label: sponsorForm.uuid_label,
               sponsor_requirement_description:
                 sponsorForm.requirement_description,
@@ -1038,14 +1064,17 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                     <span className="font-medium">
                       {eventDetails.sponsor_name}
                     </span>
-                    {eventDetails.sponsor_username && (
-                      <>
-                        <span className="text-muted-foreground">Username</span>
-                        <span className="font-medium">
-                          {eventDetails.sponsor_username}
-                        </span>
-                      </>
-                    )}
+                    {eventDetails.sponsor_usernames &&
+                      eventDetails.sponsor_usernames.length > 0 && (
+                        <>
+                          <span className="text-muted-foreground">
+                            Accounts
+                          </span>
+                          <span className="font-medium">
+                            {eventDetails.sponsor_usernames.join(", ")}
+                          </span>
+                        </>
+                      )}
                     <span className="text-muted-foreground">Field Label</span>
                     <span className="font-medium">
                       {eventDetails.sponsor_field_label}
@@ -1115,20 +1144,57 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Sponsor Username</Label>
-                      <Input
-                        placeholder="e.g. garena_official"
-                        value={sponsorForm.sponsor_username}
-                        onChange={(e) =>
-                          setSponsorForm((p) => ({
-                            ...p,
-                            sponsor_username: e.target.value,
-                          }))
-                        }
-                      />
+                      <Label>Sponsor Accounts</Label>
                       <p className="text-xs text-muted-foreground">
-                        The platform username of the sponsor account.
+                        Select one or more sponsor accounts.
                       </p>
+                      {loadingSponsors ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <IconLoader2 className="size-4 animate-spin" />
+                          Loading...
+                        </div>
+                      ) : allSponsors.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          No sponsors available.
+                        </p>
+                      ) : (
+                        <div className="rounded-md border divide-y max-h-40 overflow-y-auto">
+                          {allSponsors.map((s) => (
+                            <label
+                              key={s.user_id}
+                              className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                            >
+                              <Checkbox
+                                checked={sponsorForm.sponsor_usernames.includes(
+                                  s.username,
+                                )}
+                                onCheckedChange={() =>
+                                  setSponsorForm((p) => ({
+                                    ...p,
+                                    sponsor_usernames:
+                                      p.sponsor_usernames.includes(s.username)
+                                        ? p.sponsor_usernames.filter(
+                                            (u) => u !== s.username,
+                                          )
+                                        : [...p.sponsor_usernames, s.username],
+                                  }))
+                                }
+                              />
+                              <span className="text-sm">
+                                {s.full_name}{" "}
+                                <span className="text-muted-foreground">
+                                  (@{s.username})
+                                </span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      {sponsorForm.sponsor_usernames.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {sponsorForm.sponsor_usernames.length} selected
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <Label>Requirement Description</Label>
