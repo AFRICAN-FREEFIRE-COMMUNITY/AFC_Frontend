@@ -54,6 +54,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DeleteEventModal } from "../_components/DeleteEventModal";
+import { AddTeamsModal } from "../_components/AddTeamsModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1249,68 +1250,6 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           {!is_public && (
             <Card>
               <CardHeader>
-                {/* <CardTitle className="flex gap-4 flex-col md:flex-row items-start md:items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <IconLink className="size-4" />
-                    Private Event Invites
-                  </span>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={generateSingleInvite}
-                      disabled={generatingInvite}
-                    >
-                      Generate Single Invite
-                    </Button>
-                    <Dialog
-                      open={showBulkDialog}
-                      onOpenChange={setShowBulkDialog}
-                    >
-                      <DialogTrigger asChild>
-                        <Button size="sm" disabled={generatingInvite}>
-                          Generate Bulk Invites
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Generate Bulk Invites</DialogTitle>
-                          <DialogDescription>
-                            How many invite links would you like to generate?
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="count">Number of Invites</Label>
-                            <Input
-                              id="count"
-                              type="number"
-                              min="1"
-                              max="100"
-                              value={bulkCount}
-                              onChange={(e) => setBulkCount(e.target.value)}
-                              placeholder="Enter number (1-100)"
-                            />
-                          </div>
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              onClick={() => setShowBulkDialog(false)}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              onClick={generateBulkInvites}
-                              disabled={generatingInvite}
-                            >
-                              Generate
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </CardTitle> */}
                 <CardTitle className="flex gap-4 flex-col md:flex-row items-start md:items-center justify-between">
                   <span className="flex items-center gap-1">
                     <IconLink className="size-4" />
@@ -1474,8 +1413,19 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
           <Card>
             <CardHeader>
-              <CardTitle>
-                Recent Registrations ({totalRegistered} total)
+              <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
+                <span>Recent Registrations ({totalRegistered} total)</span>
+                {eventDetails.participant_type === "squad" && (
+                  <AddTeamsModal
+                    mode="event"
+                    targetId={eventDetails.event_id}
+                    targetName={eventDetails.event_name}
+                    existingTeamIds={eventDetails.tournament_teams.map(
+                      (t: any) => t.team_id,
+                    )}
+                    onSuccess={() => window.location.reload()}
+                  />
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="mt-2 space-y-1 max-h-96 overflow-y-auto">
@@ -1516,7 +1466,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               return (
                 <Card key={stage.stage_id}>
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between gap-2">
+                    <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
                       <div>
                         <p>{stage.stage_name}</p>
                         <p className="text-muted-foreground text-xs mt-1">
@@ -1524,9 +1474,19 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                           {formatDate(stage.end_date)}
                         </p>
                       </div>
-                      <Badge variant={"default"} className="capitalize">
-                        {status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        {eventDetails.participant_type === "squad" && (
+                          <AddTeamsModal
+                            mode="stage"
+                            targetId={stage.stage_id}
+                            targetName={stage.stage_name}
+                            onSuccess={() => window.location.reload()}
+                          />
+                        )}
+                        <Badge variant={"default"} className="capitalize">
+                          {status}
+                        </Badge>
+                      </div>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="max-h-96 overflow-auto grid md:grid-cols-2 gap-2">
@@ -1536,7 +1496,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                         className="bg-primary/10 gap-0"
                       >
                         <CardHeader>
-                          <CardTitle className="flex items-center justify-between gap-2">
+                          <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
                             <span>{group.group_name}</span>
                             <span className="text-muted-foreground text-xs">
                               {group.teams_qualifying} qualify
@@ -1549,6 +1509,14 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                             {group.playing_time}
                           </p>
                           <p>Discord: {group.group_discord_role_id}</p>
+                          {eventDetails.participant_type === "squad" && (
+                            <AddTeamsModal
+                              mode="group"
+                              targetId={group.group_id}
+                              targetName={`${stage.stage_name} › ${group.group_name}`}
+                              onSuccess={() => window.location.reload()}
+                            />
+                          )}
                           <GroupResultModal
                             className="w-full bg-primary hover:bg-primary/90 mt-2.5"
                             activeGroup={group}

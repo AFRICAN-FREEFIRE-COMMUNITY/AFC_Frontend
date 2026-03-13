@@ -18,10 +18,12 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { DisqualifyModal } from "../../../_components/DisqualifyModal";
 import { ReactivateModal } from "../../../_components/ReactivateModal";
+import { AddTeamsModal } from "../../../_components/AddTeamsModal";
 
 interface RegisteredTeamsTabProps {
   eventDetails: {
     event_id: number;
+    event_name: string;
     participant_type: string;
     registered_competitors: Array<{
       player_id: number;
@@ -37,16 +39,30 @@ export default function RegisteredTeamsTab({
   eventDetails,
   updateCompetitorStatus,
 }: RegisteredTeamsTabProps) {
+  const teamCount =
+    eventDetails?.registered_competitors?.length ||
+    eventDetails.tournament_teams.length;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          Registered{" "}
-          {eventDetails.participant_type === "squad" ? "Teams" : "Players"}{" "}
-          (
-          {eventDetails?.registered_competitors?.length ||
-            eventDetails.tournament_teams.length}
-          )
+        <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
+          <span>
+            Registered{" "}
+            {eventDetails.participant_type === "squad" ? "Teams" : "Players"}{" "}
+            ({teamCount})
+          </span>
+          {eventDetails.participant_type === "squad" && (
+            <AddTeamsModal
+              mode="event"
+              targetId={eventDetails.event_id}
+              targetName={eventDetails.event_name}
+              existingTeamIds={eventDetails.tournament_teams.map(
+                (t: any) => t.team_id,
+              )}
+              onSuccess={() => window.location.reload()}
+            />
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="relative">

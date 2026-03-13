@@ -43,6 +43,7 @@ import { IconCheck, IconLoader2, IconSearch, IconX } from "@tabler/icons-react";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/PageHeader";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -252,17 +253,17 @@ export default function SponsorDashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">
-          Welcome{user?.full_name ? `, ${user.full_name}` : ""}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {counts.all} registrant{counts.all !== 1 ? "s" : ""} ·{" "}
-          {counts.pending} pending · {counts.confirmed} confirmed ·{" "}
-          {counts.rejected} rejected
-        </p>
-      </div>
+    <div className="flex flex-col gap-3 mx-auto">
+      <PageHeader
+        title={`Welcome, ${user?.full_name}` ? user?.full_name : ""}
+        description={
+          <>
+            {counts.all} registrant{counts.all !== 1 ? "s" : ""} ·{" "}
+            {counts.pending} pending · {counts.confirmed} confirmed ·{" "}
+            {counts.rejected} rejected
+          </>
+        }
+      />
 
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row gap-3">

@@ -41,7 +41,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import {
   CheckIcon,
-  ClipboardCopyIcon,
   DownloadIcon,
   EyeIcon,
   EyeOffIcon,
@@ -50,6 +49,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface CreatedSponsorDetails {
   full_name: string;
@@ -60,7 +61,15 @@ interface CreatedSponsorDetails {
   assigned_events: string[];
 }
 
-const schema = z
+interface EventOption {
+  event_id: number;
+  event_name: string;
+  event_status: string;
+}
+
+// ─── Schemas ──────────────────────────────────────────────────────────────────
+
+const accountSchema = z
   .object({
     full_name: z.string().min(2, "Full name must be at least 2 characters"),
     uid: z.string().min(1, "UID is required"),
@@ -74,37 +83,85 @@ const schema = z
       .regex(/[A-Z]/, "Must contain an uppercase letter")
       .regex(/[^a-zA-Z0-9]/, "Must contain a special character"),
     confirm_password: z.string(),
-    event_ids: z.array(z.number()),
   })
   .refine((d) => d.password === d.confirm_password, {
     message: "Passwords do not match",
     path: ["confirm_password"],
   });
 
-type FormValues = z.infer<typeof schema>;
+type AccountFormValues = z.infer<typeof accountSchema>;
 
-interface EventOption {
-  event_id: number;
-  event_name: string;
-  event_status: string;
+// ─── Step indicator ───────────────────────────────────────────────────────────
+
+function StepIndicator({ step }: { step: 1 | 2 }) {
+  return (
+    <div className="flex items-center gap-3 mb-2">
+      {[1, 2].map((n) => (
+        <div key={n} className="flex items-center gap-2">
+          <div
+            className={cn(
+              "size-7 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-colors",
+              step === n
+                ? "border-primary bg-primary text-primary-foreground"
+                : step > n
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-muted-foreground/30 text-muted-foreground",
+            )}
+          >
+            {step > n ? <CheckIcon className="size-3.5" /> : n}
+          </div>
+          <span
+            className={cn(
+              "text-sm",
+              step === n ? "font-medium" : "text-muted-foreground",
+            )}
+          >
+            {n === 1 ? "Account Details" : "Assign Events"}
+          </span>
+          {n === 1 && (
+            <div
+              className={cn(
+                "w-8 h-px mx-1",
+                step > 1 ? "bg-emerald-500" : "bg-muted-foreground/30",
+              )}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CreateSponsorPage() {
   const { token, loading: authLoading } = useAuth();
   const router = useRouter();
 
+  // Step 1: account creation state
+  const [step, setStep] = useState<1 | 2>(1);
+  const [createdAccount, setCreatedAccount] =
+    useState<AccountFormValues | null>(null);
+  const [submittingAccount, setSubmittingAccount] = useState(false);
+
+  // Step 2: event assignment state
   const [events, setEvents] = useState<EventOption[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventSearch, setEventSearch] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [selectedEventIds, setSelectedEventIds] = useState<number[]>([]);
+  const [submittingEvents, setSubmittingEvents] = useState(false);
+
+  // Success modal
   const [successDetails, setSuccessDetails] =
     useState<CreatedSponsorDetails | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  // Password visibility
+  const [isVisible, setIsVisible] = useState(false);
+  const [isConfirmVisible, setConfirmIsVisible] = useState(false);
+
+  const form = useForm<AccountFormValues>({
+    resolver: zodResolver(accountSchema),
     defaultValues: {
       full_name: "",
       uid: "",
@@ -112,9 +169,10 @@ export default function CreateSponsorPage() {
       email: "",
       password: "",
       confirm_password: "",
-      event_ids: [],
     },
   });
+
+  const password = form.watch("password");
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -131,8 +189,7 @@ export default function CreateSponsorPage() {
   }, [token]);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!token) return;
+    if (authLoading || !token) return;
     fetchEvents();
   }, [authLoading, token, fetchEvents]);
 
@@ -140,40 +197,24 @@ export default function CreateSponsorPage() {
     e.event_name.toLowerCase().includes(eventSearch.toLowerCase().trim()),
   );
 
-  const selectedIds = form.watch("event_ids");
-
-  const password = form.watch("password");
-  const [isVisible, setIsVisible] = useState<boolean>(false);
-  const [isConfirmVisible, setConfirmIsVisible] = useState<boolean>(false);
-  const toggleVisibility = () => setIsVisible((prevState) => !prevState);
-  const toggleConfirmVisibility = () =>
-    setConfirmIsVisible((prevState) => !prevState);
+  // ── Password strength ──────────────────────────────────────────────────────
 
   const checkStrength = (pass: string) => {
-    // ... (rest of checkStrength logic remains the same)
     const requirements = [
       { regex: /.{8,}/, text: "At least 8 characters" },
       { regex: /[0-9]/, text: "At least 1 number" },
       { regex: /[a-z]/, text: "At least 1 lowercase letter" },
       { regex: /[A-Z]/, text: "At least 1 uppercase letter" },
-      {
-        regex: /[!@#$%^&*(),.?":{}|<>]/,
-        text: "At least 1 special character",
-      },
+      { regex: /[!@#$%^&*(),.?":{}|<>]/, text: "At least 1 special character" },
     ];
-
-    return requirements.map((req) => ({
-      met: req.regex.test(pass),
-      text: req.text,
-    }));
+    return requirements.map((req) => ({ met: req.regex.test(pass), text: req.text }));
   };
 
   const strength = checkStrength(password);
-
-  const strengthScore = useMemo(() => {
-    return strength.filter((req) => req.met).length;
-  }, [strength]);
-
+  const strengthScore = useMemo(
+    () => strength.filter((r) => r.met).length,
+    [strength],
+  );
   const getStrengthText = (score: number) => {
     if (score === 0) return "Enter a password";
     if (score <= 2) return "Weak password";
@@ -181,18 +222,101 @@ export default function CreateSponsorPage() {
     return "Strong password";
   };
 
-  const toggleEvent = (id: number) => {
-    const current = form.getValues("event_ids");
-    if (current.includes(id)) {
-      form.setValue(
-        "event_ids",
-        current.filter((x) => x !== id),
-        { shouldValidate: true },
+  // ── Step 1 submit: create account ─────────────────────────────────────────
+
+  const onSubmitAccount = async (values: AccountFormValues) => {
+    setSubmittingAccount(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-sponsor-account/`,
+        {
+          fullname: values.full_name,
+          uid: values.uid,
+          email: values.email,
+          username: values.username,
+          password: values.password,
+          confirm_password: values.confirm_password,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
-    } else {
-      form.setValue("event_ids", [...current, id], { shouldValidate: true });
+      setCreatedAccount(values);
+      setStep(2);
+      toast.success("Account created! Now assign events.");
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message ||
+          err?.response?.data?.detail ||
+          "Failed to create sponsor account.",
+      );
+    } finally {
+      setSubmittingAccount(false);
     }
   };
+
+  // ── Step 2 submit: assign events ──────────────────────────────────────────
+
+  const onAssignEvents = async () => {
+    if (!createdAccount) return;
+    setSubmittingEvents(true);
+    try {
+      if (selectedEventIds.length > 0) {
+        await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/assign-sponsor-to-event/`,
+          {
+            sponsor_username: createdAccount.username,
+            event_ids: selectedEventIds,
+          },
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+      }
+
+      const assignedEventNames = selectedEventIds
+        .map(
+          (id) =>
+            events.find((e) => e.event_id === id)?.event_name ?? `Event #${id}`,
+        )
+        .filter(Boolean);
+
+      setSuccessDetails({
+        full_name: createdAccount.full_name,
+        uid: createdAccount.uid,
+        username: createdAccount.username,
+        email: createdAccount.email,
+        password: createdAccount.password,
+        assigned_events: assignedEventNames,
+      });
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message ||
+          err?.response?.data?.detail ||
+          "Failed to assign events.",
+      );
+    } finally {
+      setSubmittingEvents(false);
+    }
+  };
+
+  const skipAssignment = () => {
+    if (!createdAccount) return;
+    setSuccessDetails({
+      full_name: createdAccount.full_name,
+      uid: createdAccount.uid,
+      username: createdAccount.username,
+      email: createdAccount.email,
+      password: createdAccount.password,
+      assigned_events: [],
+    });
+  };
+
+  // ── Event toggle ──────────────────────────────────────────────────────────
+
+  const toggleEvent = (id: number) => {
+    setSelectedEventIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  // ── Credentials helpers ───────────────────────────────────────────────────
 
   const copyToClipboard = async (value: string, field: string) => {
     await navigator.clipboard.writeText(value);
@@ -211,7 +335,9 @@ export default function CreateSponsorPage() {
       `Password:   ${details.password}`,
       "",
       "=== Assigned Events ===",
-      ...details.assigned_events.map((e, i) => `  ${i + 1}. ${e}`),
+      ...(details.assigned_events.length > 0
+        ? details.assigned_events.map((e, i) => `  ${i + 1}. ${e}`)
+        : ["  (none)"]),
       "",
       `Generated: ${new Date().toLocaleString()}`,
     ].join("\n");
@@ -225,61 +351,6 @@ export default function CreateSponsorPage() {
     URL.revokeObjectURL(url);
   };
 
-  const onSubmit = async (values: FormValues) => {
-    setSubmitting(true);
-    try {
-      // Step 1: create the sponsor account
-      await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-sponsor-account/`,
-        {
-          fullname: values.full_name,
-          uid: values.uid,
-          email: values.email,
-          username: values.username,
-          password: values.password,
-          confirm_password: values.confirm_password,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      // Step 2: assign selected events to the new sponsor (optional)
-      if (values.event_ids.length > 0) {
-        await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/assign-sponsor-to-event/`,
-          {
-            sponsor_username: values.username,
-            event_ids: values.event_ids,
-          },
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
-      }
-
-      const assignedEventNames = values.event_ids
-        .map(
-          (id) =>
-            events.find((e) => e.event_id === id)?.event_name ?? `Event #${id}`,
-        )
-        .filter(Boolean);
-
-      setSuccessDetails({
-        full_name: values.full_name,
-        uid: values.uid,
-        username: values.username,
-        email: values.email,
-        password: values.password,
-        assigned_events: assignedEventNames,
-      });
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-          err?.response?.data?.detail ||
-          "Failed to create sponsor account.",
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   if (authLoading) return <FullLoader />;
 
   return (
@@ -290,217 +361,212 @@ export default function CreateSponsorPage() {
         description="Set up login credentials for a sponsor and assign their events."
       />
 
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-6"
-        >
-          {/* Basic info */}
-          <Card>
-            <CardHeader className="border-b">
-              <CardTitle>Account Details</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <FormField
-                control={form.control}
-                name="full_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <StepIndicator step={step} />
 
-              <FormField
-                control={form.control}
-                name="uid"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>UID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. 123456789" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      {/* ── Step 1: Account Details ── */}
+      {step === 1 && (
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmitAccount)}
+            className="flex flex-col gap-6"
+          >
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>Account Details</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                <FormField
+                  control={form.control}
+                  name="full_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. John Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. john_doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="uid"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>UID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. 123456789" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="e.g. john@gmail.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. john_doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
                         <Input
-                          type={isVisible ? "text" : "password"}
-                          placeholder="Enter your password"
+                          type="email"
+                          placeholder="e.g. john@gmail.com"
                           {...field}
                         />
-                        <Button
-                          className="absolute top-[50%] translate-y-[-50%] end-1 text-muted-foreground/80"
-                          variant={"ghost"}
-                          size="icon"
-                          type="button"
-                          onClick={toggleVisibility}
-                          aria-label={
-                            isVisible ? "Hide password" : "Show password"
-                          }
-                          aria-pressed={isVisible}
-                          aria-controls="password"
-                        >
-                          {isVisible ? (
-                            <EyeOffIcon className="size-4" aria-hidden="true" />
-                          ) : (
-                            <EyeIcon className="size-4" aria-hidden="true" />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                    <div
-                      className={cn(
-                        password.length !== 0
-                          ? "block mt-2 space-y-3"
-                          : "hidden",
-                      )}
-                    >
-                      <Progress
-                        value={(strengthScore / 5) * 100}
-                        className={cn("h-1")}
-                      />
-                      {/* Password strength description */}
-                      <p className="text-foreground mb-2 text-sm font-medium">
-                        {getStrengthText(strengthScore)}. Must contain:
-                      </p>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                      {/* Password requirements list */}
-                      <ul
-                        className="space-y-1.5"
-                        aria-label="Password requirements"
-                      >
-                        {strength.map((req, index) => (
-                          <li key={index} className="flex items-center gap-2">
-                            {req.met ? (
-                              <CheckIcon
-                                size={16}
-                                className="text-emerald-500"
-                                aria-hidden="true"
-                              />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={isVisible ? "text" : "password"}
+                            placeholder="Enter your password"
+                            {...field}
+                          />
+                          <Button
+                            className="absolute top-[50%] translate-y-[-50%] end-1 text-muted-foreground/80"
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            onClick={() => setIsVisible((p) => !p)}
+                          >
+                            {isVisible ? (
+                              <EyeOffIcon className="size-4" />
                             ) : (
-                              <XIcon
-                                size={16}
-                                className="text-muted-foreground/80"
-                                aria-hidden="true"
-                              />
+                              <EyeIcon className="size-4" />
                             )}
-                            <span
-                              className={`text-xs ${
-                                req.met
-                                  ? "text-emerald-600"
-                                  : "text-muted-foreground"
-                              }`}
-                            >
-                              {req.text}
-                              <span className="sr-only">
-                                {req.met
-                                  ? " - Requirement met"
-                                  : " - Requirement not met"}
-                              </span>
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="confirm_password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={isConfirmVisible ? "text" : "password"}
-                          placeholder="Enter your password"
-                          {...field}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                      <div
+                        className={cn(
+                          password.length !== 0
+                            ? "block mt-2 space-y-3"
+                            : "hidden",
+                        )}
+                      >
+                        <Progress
+                          value={(strengthScore / 5) * 100}
+                          className="h-1"
                         />
-                        <Button
-                          className="absolute top-[50%] translate-y-[-50%] end-1 text-muted-foreground/80"
-                          variant={"ghost"}
-                          size="icon"
-                          type="button"
-                          onClick={toggleConfirmVisibility}
-                          // FIX: Use isConfirmVisible for accessibility label
-                          aria-label={
-                            isConfirmVisible ? "Hide password" : "Show password"
-                          }
-                          aria-pressed={isConfirmVisible}
-                          aria-controls="password"
-                        >
-                          {isConfirmVisible ? ( // FIX: Use isConfirmVisible for icon
-                            <EyeOffIcon className="size-4" aria-hidden="true" />
-                          ) : (
-                            <EyeIcon className="size-4" aria-hidden="true" />
-                          )}
-                        </Button>
+                        <p className="text-foreground mb-2 text-sm font-medium">
+                          {getStrengthText(strengthScore)}. Must contain:
+                        </p>
+                        <ul className="space-y-1.5" aria-label="Password requirements">
+                          {strength.map((req, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                              {req.met ? (
+                                <CheckIcon size={16} className="text-emerald-500" />
+                              ) : (
+                                <XIcon size={16} className="text-muted-foreground/80" />
+                              )}
+                              <span
+                                className={`text-xs ${req.met ? "text-emerald-600" : "text-muted-foreground"}`}
+                              >
+                                {req.text}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+                    </FormItem>
+                  )}
+                />
 
-          {/* Event selection */}
+                <FormField
+                  control={form.control}
+                  name="confirm_password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={isConfirmVisible ? "text" : "password"}
+                            placeholder="Re-enter your password"
+                            {...field}
+                          />
+                          <Button
+                            className="absolute top-[50%] translate-y-[-50%] end-1 text-muted-foreground/80"
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            onClick={() => setConfirmIsVisible((p) => !p)}
+                          >
+                            {isConfirmVisible ? (
+                              <EyeOffIcon className="size-4" />
+                            ) : (
+                              <EyeIcon className="size-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            <div className="flex gap-3 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={submittingAccount}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={submittingAccount}>
+                {submittingAccount && (
+                  <IconLoader2 className="size-4 animate-spin mr-2" />
+                )}
+                Next: Assign Events
+              </Button>
+            </div>
+          </form>
+        </Form>
+      )}
+
+      {/* ── Step 2: Assign Events ── */}
+      {step === 2 && (
+        <div className="flex flex-col gap-6">
           <Card>
             <CardHeader className="border-b">
-              <CardTitle className="flex gap-1 items-center">
-                Assign Events <span className="text-xs font-normal text-muted-foreground">(optional)</span>
-                {selectedIds.length > 0 && (
-                  <Badge variant={"secondary"}>
-                    {selectedIds.length} selected
+              <CardTitle className="flex gap-2 items-center">
+                Assign Events
+                <span className="text-xs font-normal text-muted-foreground">
+                  (optional)
+                </span>
+                {selectedEventIds.length > 0 && (
+                  <Badge variant="secondary">
+                    {selectedEventIds.length} selected
                   </Badge>
                 )}
               </CardTitle>
@@ -536,7 +602,7 @@ export default function CreateSponsorPage() {
                         className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-muted cursor-pointer select-none"
                       >
                         <Checkbox
-                          checked={selectedIds.includes(e.event_id)}
+                          checked={selectedEventIds.includes(e.event_id)}
                           onCheckedChange={() => toggleEvent(e.event_id)}
                         />
                         <div className="flex flex-col min-w-0">
@@ -552,16 +618,6 @@ export default function CreateSponsorPage() {
                   </div>
                 </ScrollArea>
               )}
-
-              <FormField
-                control={form.control}
-                name="event_ids"
-                render={() => (
-                  <FormItem>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </CardContent>
           </Card>
 
@@ -569,22 +625,25 @@ export default function CreateSponsorPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.back()}
-              disabled={submitting}
+              onClick={skipAssignment}
+              disabled={submittingEvents}
             >
-              Cancel
+              Skip
             </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting && (
+            <Button
+              onClick={onAssignEvents}
+              disabled={submittingEvents || selectedEventIds.length === 0}
+            >
+              {submittingEvents && (
                 <IconLoader2 className="size-4 animate-spin mr-2" />
               )}
-              Create Account
+              Assign &amp; Finish
             </Button>
           </div>
-        </form>
-      </Form>
+        </div>
+      )}
 
-      {/* Success modal */}
+      {/* ── Success modal ── */}
       <Dialog
         open={!!successDetails}
         onOpenChange={(open) => {

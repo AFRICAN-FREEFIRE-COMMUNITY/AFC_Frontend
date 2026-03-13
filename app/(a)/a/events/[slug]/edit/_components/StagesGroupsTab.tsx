@@ -391,6 +391,7 @@ import { Loader } from "@/components/Loader";
 import { GroupResultModal } from "../../../_components/GroupResultModal";
 import { SeedToGroupModal } from "../../../_components/SeedToGroupModal";
 import { SendNotificationModal } from "../../../_components/SendNotificationModal";
+import { AddTeamsModal } from "../../../_components/AddTeamsModal";
 import { EditMatchModal } from "../../../_components/EditMatchModal";
 import { DeleteMatchModal } from "../../../_components/DeleteMatchModal";
 import { formatDate } from "@/lib/utils";
@@ -493,7 +494,16 @@ export default function StagesGroupsTab({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 w-full md:w-auto">
+                  <div className="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                    {eventDetails.participant_type === "squad" &&
+                      stage?.stage_id && (
+                        <AddTeamsModal
+                          mode="stage"
+                          targetId={stage.stage_id}
+                          targetName={stage.stage_name}
+                          onSuccess={() => window.location.reload()}
+                        />
+                      )}
                     <SeedToGroupModal
                       onSuccess={() => {}}
                       stageId={stage?.stage_id}
@@ -536,7 +546,7 @@ export default function StagesGroupsTab({
                 return (
                   <Card key={gIdx} className="gap-0">
                     <CardHeader>
-                      <CardTitle className="flex items-center justify-between gap-2">
+                      <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
                         <div>
                           {group?.group_name}
                           {/* Group prize summary */}
@@ -549,11 +559,22 @@ export default function StagesGroupsTab({
                             </p>
                           )}
                         </div>
-                        <SendNotificationModal
-                          eventId={eventDetails.event_id}
-                          groupId={group.group_id}
-                          onSuccess={() => {}}
-                        />
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {eventDetails.participant_type === "squad" &&
+                            group?.group_id && (
+                              <AddTeamsModal
+                                mode="group"
+                                targetId={group.group_id}
+                                targetName={`${stage.stage_name} › ${group.group_name}`}
+                                onSuccess={() => window.location.reload()}
+                              />
+                            )}
+                          <SendNotificationModal
+                            eventId={eventDetails.event_id}
+                            groupId={group.group_id}
+                            onSuccess={() => {}}
+                          />
+                        </div>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="text-muted-foreground text-sm space-y-2">

@@ -62,14 +62,26 @@ export function formatDate(dateString: string | any): string {
   const year = date.getFullYear();
 
   // Function to get the ordinal suffix
+  // const getOrdinalSuffix = (num: number): string => {
+  //   const suffixes = ["th", "st", "nd", "rd"];
+  //   const modulo100 = num % 100;
+  //   const modulo10 = num % 10;
+  //   const suffix =
+  //     modulo10 <= 3 && modulo10 > 0 && modulo100 !== 11
+  //       ? suffixes[modulo10]
+  //       : suffixes[0];
+  //   return `${num}${suffix}`;
+  // };
   const getOrdinalSuffix = (num: number): string => {
     const suffixes = ["th", "st", "nd", "rd"];
     const modulo100 = num % 100;
     const modulo10 = num % 10;
+
     const suffix =
-      modulo10 <= 3 && modulo10 > 0 && modulo100 !== 11
+      modulo10 <= 3 && modulo10 > 0 && !(modulo100 >= 11 && modulo100 <= 13)
         ? suffixes[modulo10]
         : suffixes[0];
+
     return `${num}${suffix}`;
   };
 
@@ -131,7 +143,7 @@ export const formattedWord: Record<string, string> = {
 
 export function calculateDaysDifference(
   dateStr1: string,
-  dateStr2?: string,
+  dateStr2?: string | any,
 ): number {
   const date1 = new Date(dateStr1);
   const date2: any = date1 ? new Date(dateStr2) : new Date(); // <-- Error occurs here

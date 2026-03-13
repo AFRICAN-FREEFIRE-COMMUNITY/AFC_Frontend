@@ -1,22 +1,18 @@
 "use client";
-import { ChevronDownIcon, LogOutIcon } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { cn, formatDate, formatWord } from "@/lib/utils";
-import { IconBell, IconCheck, IconUser } from "@tabler/icons-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { IconBell, IconCheck } from "@tabler/icons-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
@@ -34,21 +30,16 @@ export function NotificationDropdown({
   unreadCount,
   onNotificationUpdate,
 }: NotificationDropdownProps) {
-  const router = useRouter();
   const { token } = useAuth();
-
   const [markingAsRead, setMarkingAsRead] = useState<number | null>(null);
 
   const handleMarkAsRead = async (
     notificationId: number,
-    e: React.MouseEvent
+    e: React.MouseEvent,
   ) => {
-    e.stopPropagation(); // Prevent dropdown item click
-
+    e.stopPropagation();
     if (!token) return;
-
     setMarkingAsRead(notificationId);
-
     try {
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/view-notification/`,
@@ -58,10 +49,8 @@ export function NotificationDropdown({
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
-
-      // Refresh notifications
       onNotificationUpdate();
     } catch (error) {
     } finally {
@@ -70,12 +59,12 @@ export function NotificationDropdown({
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Sheet>
+      <SheetTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-auto p-0 hover:bg-transparent gap-4"
+          className="relative h-auto p-0 hover:bg-transparent"
         >
           <IconBell />
           {unreadCount > 0 && (
@@ -87,67 +76,63 @@ export function NotificationDropdown({
             </Badge>
           )}
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" className="min-w-xs max-w-sm">
-        <DropdownMenuLabel className="flex items-center justify-between gap-2">
-          <span>Notifications</span>
-          {/* <Button
-            disabled={notifications.length === 0}
-            variant={"ghost"}
-            size={"sm"}
-          >
-            Clear all
-          </Button> */}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup className="overflow-auto max-h-96">
-          {notifications.length === 0 && (
-            <DropdownMenuItem className="italic py-4 text-center" disabled>
+      </SheetTrigger>
+
+      <SheetContent side="right" className="p-0 flex flex-col w-[90vw] sm:max-w-sm">
+        <SheetHeader className="px-4 pt-5 pb-3 border-b">
+          <SheetTitle className="flex items-center justify-between">
+            <span>Notifications</span>
+            {unreadCount > 0 && (
+              <Badge variant="secondary">{unreadCount} unread</Badge>
+            )}
+          </SheetTitle>
+        </SheetHeader>
+
+        <ScrollArea className="flex-1 min-h-0">
+          {notifications.length === 0 ? (
+            <p className="italic text-sm text-muted-foreground text-center py-10 px-4">
               No notifications yet
-            </DropdownMenuItem>
-          )}
-          {notifications.map((notification, index) => {
-            const isLast = index === notifications.length - 1;
-
-            return (
-              <DropdownMenuGroup
-                key={index}
-                onSelect={(e) => e.preventDefault()}
-                className={cn(
-                  "overflow-x-hidden",
-                  !notification.is_read ? "bg-muted/50" : ""
-                )}
-              >
-                <DropdownMenuItem>
-                  <div className="flex items-start gap-2 w-full">
-                    {!notification.is_read && (
-                      <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+            </p>
+          ) : (
+            <div className="flex flex-col">
+              {notifications.map((notification, index) => (
+                <div key={index}>
+                  <div
+                    className={cn(
+                      "flex items-start gap-3 px-4 py-3",
+                      !notification.is_read && "bg-muted/50",
                     )}
-                    <span className="flex-2">{notification.message}</span>
+                  >
+                    {!notification.is_read && (
+                      <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1.5" />
+                    )}
+                    {/* select-text so the user can long-press and copy on mobile */}
+                    <span className="flex-1 text-sm select-text leading-relaxed">
+                      {notification.message}
+                    </span>
+                    {!notification.is_read && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs shrink-0"
+                        onClick={(e) => handleMarkAsRead(notification.id, e)}
+                        disabled={markingAsRead === notification.id}
+                      >
+                        {markingAsRead === notification.id ? (
+                          <Loader text="" />
+                        ) : (
+                          <IconCheck className="size-3.5" />
+                        )}
+                      </Button>
+                    )}
                   </div>
-                  {!notification.is_read && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={(e) => handleMarkAsRead(notification.id, e)}
-                      disabled={markingAsRead === notification.id}
-                    >
-                      {markingAsRead === notification.id ? (
-                        <Loader text="" />
-                      ) : (
-                        <IconCheck />
-                      )}
-                    </Button>
-                  )}
-                </DropdownMenuItem>
-
-                {!isLast && <DropdownMenuSeparator />}
-              </DropdownMenuGroup>
-            );
-          })}
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+                  {index < notifications.length - 1 && <Separator />}
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
   );
 }

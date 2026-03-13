@@ -72,7 +72,8 @@ export const ProfileContent = () => {
         } else {
           setDiscordConnected(false);
           toast.error(
-            searchParams.get("message") || "Discord connection failed.",
+            searchParams.get("message") ||
+              "This account is already in use by another user.",
           );
         }
 
@@ -138,7 +139,7 @@ export const ProfileContent = () => {
                 <Link href="/profile/edit">Edit Profile</Link>
               </Button>
               <Button
-                disabled={pending || discordConnected}
+                disabled={pending || !discordConnected}
                 onClick={handleDiscordConnect}
                 variant={"secondary"}
                 className="w-full"
