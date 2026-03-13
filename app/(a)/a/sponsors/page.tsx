@@ -155,7 +155,7 @@ export default function SponsorsAdminPage() {
                       <TableCell>{s.email}</TableCell>
                       <TableCell className="text-right">
                         <Button asChild size="sm" variant="ghost">
-                          <Link href={`/a/sponsors/${s.user_id}/edit`}>
+                          <Link href={`/a/sponsors/${s.username}/edit`}>
                             <IconEdit className="size-4" />
                             Edit
                           </Link>

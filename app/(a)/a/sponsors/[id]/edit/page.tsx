@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -26,10 +27,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { IconLoader2, IconSearch } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
@@ -37,124 +36,27 @@ import { env } from "@/lib/env";
 // ── Schema ────────────────────────────────────────────────────────────────────
 
 const schema = z.object({
-  sponsor_name: z.string().min(1, "Sponsor name is required"),
-  requirement_description: z.string().min(1, "Description is required"),
-  uuid_label: z.string().min(1, "Field label is required"),
+  full_name: z.string().min(1, "Full name is required"),
+  email: z.string().email("Valid email required"),
+  username: z.string().min(1, "Username is required"),
   event_ids: z.array(z.number()).min(1, "Select at least one event"),
 });
 
 type FormValues = z.infer<typeof schema>;
+
+interface SponsorDetails {
+  sponsor_id: number;
+  username: string;
+  email: string;
+  full_name: string;
+  events: Array<{ event_id: number; event_name: string }>;
+}
 
 interface EventOption {
   event_id: number;
   event_name: string;
   event_status: string;
   slug: string;
-  is_sponsored?: boolean;
-  sponsor_username?: string;
-}
-
-// ── Helper: fetch one event's full details and call edit-event ─────────────────
-
-async function updateEventSponsor(
-  event: EventOption,
-  isSponsored: boolean,
-  sponsorUsername: string,
-  sponsorName: string,
-  requirementDescription: string,
-  uuidLabel: string,
-  token: string,
-) {
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-
-  // Fetch full event details (need both endpoints, same as edit-event page)
-  const [detailsRes, adminRes] = await Promise.all([
-    axios.post(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-      { slug: event.slug },
-      { headers },
-    ),
-    axios.post(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
-      { slug: event.slug },
-      { headers },
-    ),
-  ]);
-
-  const ed = detailsRes.data.event_details;
-  const adminStages =
-    adminRes.data.event_details?.stages || adminRes.data.stages || [];
-
-  // Build FormData — pass all existing event fields through, update sponsor fields
-  const formData = new FormData();
-  formData.append("event_id", ed.event_id.toString());
-  formData.append("event_status", ed.event_status ?? "upcoming");
-  formData.append("is_draft", "False");
-  formData.append("event_name", ed.event_name ?? "");
-  formData.append("competition_type", ed.competition_type ?? "");
-  formData.append("participant_type", ed.participant_type ?? "");
-  formData.append("event_type", ed.event_type ?? "");
-  formData.append("is_public", ed.is_public ? "True" : "False");
-  formData.append(
-    "max_teams_or_players",
-    String(ed.max_teams_or_players ?? 1),
-  );
-  formData.append("event_mode", ed.event_mode ?? "");
-  formData.append("prizepool", ed.prizepool ?? "");
-  formData.append("number_of_stages", String(adminStages.length || 1));
-  formData.append("start_date", ed.start_date ?? "");
-  formData.append("end_date", ed.end_date ?? "");
-  formData.append("registration_open_date", ed.registration_open_date ?? "");
-  formData.append("registration_end_date", ed.registration_end_date ?? "");
-  formData.append("registration_link", ed.registration_link ?? "");
-  formData.append(
-    "publish_to_tournaments",
-    String(ed.tournament_tier !== "" && !!ed.tournament_tier),
-  );
-  formData.append("publish_to_news", "false");
-  formData.append(
-    "registration_restriction",
-    ed.registration_restriction ?? "none",
-  );
-  formData.append(
-    "restriction_mode",
-    ed.restriction_mode ?? "allow_only",
-  );
-  formData.append(
-    "restricted_countries",
-    JSON.stringify(ed.restricted_countries ?? []),
-  );
-  formData.append("event_rules", ed.event_rules ?? "");
-  formData.append(
-    "prize_distribution",
-    JSON.stringify(ed.prize_distribution ?? {}),
-  );
-  formData.append(
-    "stream_channels",
-    JSON.stringify(
-      (ed.stream_channels ?? []).filter((s: string) => s.trim() !== ""),
-    ),
-  );
-  formData.append("stages", JSON.stringify(adminStages));
-
-  // ── Updated sponsor fields ──
-  formData.append("is_sponsored", isSponsored ? "True" : "False");
-  formData.append("sponsor_name", isSponsored ? sponsorName : "");
-  formData.append("sponsor_username", isSponsored ? sponsorUsername : "");
-  formData.append(
-    "requirement_description",
-    isSponsored ? requirementDescription : "",
-  );
-  formData.append("uuid_label", isSponsored ? uuidLabel : "Player UUID");
-
-  await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  });
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -176,58 +78,46 @@ export default function EditSponsorPage({
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      sponsor_name: "",
-      requirement_description: "",
-      uuid_label: "Player UUID",
+      full_name: "",
+      email: "",
+      username: "",
       event_ids: [],
     },
   });
 
   const selectedIds = form.watch("event_ids");
 
-  // ── Load all events and pre-populate form from currently assigned ones ──────
+  // ── Load sponsor details + all events ──────────────────────────────────────
 
   const loadData = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await axios.get(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      const allEvents: EventOption[] = res.data.events ?? [];
+      const [sponsorRes, eventsRes] = await Promise.all([
+        axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-sponsor-details/`,
+          { sponsor_username: sponsorUsername },
+          { headers: { Authorization: `Bearer ${token}` } },
+        ),
+        axios.get(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        ),
+      ]);
+
+      const sponsorData: SponsorDetails = sponsorRes.data;
+      const allEvents: EventOption[] = eventsRes.data.events ?? [];
       setEvents(allEvents);
 
-      // Events where this sponsor is currently assigned
-      const assigned = allEvents.filter(
-        (e) =>
-          e.is_sponsored && e.sponsor_username === sponsorUsername,
+      form.reset({
+        full_name: sponsorData.full_name,
+        email: sponsorData.email,
+        username: sponsorData.username,
+        event_ids: sponsorData.events.map((e) => e.event_id),
+      });
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to load sponsor details.",
       );
-
-      // Pre-populate sponsor settings from the first assigned event's details
-      if (assigned.length > 0) {
-        try {
-          const detailsRes = await axios.post(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-            { slug: assigned[0].slug },
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-          const ed = detailsRes.data.event_details;
-          form.reset({
-            sponsor_name: ed.sponsor_name ?? "",
-            requirement_description: ed.sponsor_requirement_description ?? "",
-            uuid_label: ed.sponsor_field_label ?? "Player UUID",
-            event_ids: assigned.map((e) => e.event_id),
-          });
-        } catch {
-          // fallback: just set the event IDs
-          form.setValue(
-            "event_ids",
-            assigned.map((e) => e.event_id),
-          );
-        }
-      }
-    } catch {
-      toast.error("Failed to load events.");
     } finally {
       setLoading(false);
     }
@@ -258,53 +148,24 @@ export default function EditSponsorPage({
   const onSubmit = async (values: FormValues) => {
     if (!token) return;
     setSubmitting(true);
-
     try {
-      // Determine which events changed assignment
-      const previouslyAssigned = events
-        .filter((e) => e.is_sponsored && e.sponsor_username === sponsorUsername)
-        .map((e) => e.event_id);
-
-      const toAdd = values.event_ids.filter(
-        (id) => !previouslyAssigned.includes(id),
-      );
-      const toRemove = previouslyAssigned.filter(
-        (id) => !values.event_ids.includes(id),
-      );
-      // Events that remain assigned also need sponsor field updates
-      const toUpdate = values.event_ids.filter((id) =>
-        previouslyAssigned.includes(id),
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-sponsor-details/`,
+        {
+          sponsor_username: sponsorUsername,
+          full_name: values.full_name,
+          email: values.email,
+          username: values.username,
+          event_ids: values.event_ids,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      const allAffected = [
-        ...toAdd.map((id) => ({ id, sponsored: true })),
-        ...toRemove.map((id) => ({ id, sponsored: false })),
-        ...toUpdate.map((id) => ({ id, sponsored: true })),
-      ];
-
-      // Call edit-event for each affected event
-      for (const { id, sponsored } of allAffected) {
-        const event = events.find((e) => e.event_id === id);
-        if (!event) continue;
-
-        await updateEventSponsor(
-          event,
-          sponsored,
-          sponsorUsername,
-          values.sponsor_name,
-          values.requirement_description,
-          values.uuid_label,
-          token,
-        );
-      }
-
-      toast.success("Sponsor settings updated successfully.");
+      toast.success("Sponsor details updated successfully.");
       router.push("/a/sponsors");
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message ||
-          err?.response?.data?.detail ||
-          "Failed to update sponsor settings.",
+        err?.response?.data?.message || "Failed to update sponsor details.",
       );
     } finally {
       setSubmitting(false);
@@ -318,7 +179,7 @@ export default function EditSponsorPage({
       <PageHeader
         back
         title={`Edit Sponsor: ${sponsorUsername}`}
-        description="Update sponsor settings and event assignments."
+        description="Update sponsor details and event assignments."
       />
 
       <Form {...form}>
@@ -326,20 +187,20 @@ export default function EditSponsorPage({
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-6"
         >
-          {/* Sponsor settings */}
+          {/* Sponsor details */}
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>Sponsor Settings</CardTitle>
+              <CardTitle>Sponsor Details</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 pt-4">
               <FormField
                 control={form.control}
-                name="sponsor_name"
+                name="full_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sponsor Name</FormLabel>
+                    <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Garena, Supercell" {...field} />
+                      <Input placeholder="e.g. John Doe" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -348,19 +209,17 @@ export default function EditSponsorPage({
 
               <FormField
                 control={form.control}
-                name="uuid_label"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Field Label</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g. Garena UUID, Player ID"
+                        type="email"
+                        placeholder="e.g. john@company.com"
                         {...field}
                       />
                     </FormControl>
-                    <p className="text-xs text-muted-foreground">
-                      Label shown to players during registration.
-                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -368,16 +227,12 @@ export default function EditSponsorPage({
 
               <FormField
                 control={form.control}
-                name="requirement_description"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Requirement Description</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="e.g. Download the app, create an account, and enter your UUID below."
-                        rows={4}
-                        {...field}
-                      />
+                      <Input placeholder="e.g. john_doe" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -389,7 +244,7 @@ export default function EditSponsorPage({
           {/* Event assignment */}
           <Card>
             <CardHeader className="border-b">
-              <CardTitle className="flex gap-1 items-center">
+              <CardTitle className="flex items-center gap-2">
                 Assigned Events
                 {selectedIds.length > 0 && (
                   <Badge variant="secondary">{selectedIds.length} selected</Badge>
@@ -412,7 +267,7 @@ export default function EditSponsorPage({
                   No events found.
                 </p>
               ) : (
-                <ScrollArea className="h-64 rounded-md border">
+                <ScrollArea className="h-72 rounded-md border">
                   <div className="p-1">
                     {filteredEvents.map((e) => (
                       <label

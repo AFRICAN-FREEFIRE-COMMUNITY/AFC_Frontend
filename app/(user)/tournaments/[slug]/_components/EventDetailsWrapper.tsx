@@ -95,7 +95,6 @@ interface Stage {
   groups: StageGroup[];
 }
 
-
 interface EventDetails {
   event_id: number;
   competition_type: string;
@@ -920,9 +919,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 Back
               </Button>
               <Button onClick={handleRulesContinue} disabled={!rulesAccepted}>
-                {eventDetails.is_sponsored
-                  ? "Continue"
-                  : "Continue to Discord"}
+                {eventDetails.is_sponsored ? "Continue" : "Continue to Discord"}
               </Button>
             </DialogFooter>
           </>
@@ -2001,6 +1998,19 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         ? "Registration Closed"
         : null;
 
+  const statusVariant: Record<
+    string,
+    "default" | "secondary" | "destructive" | "outline"
+  > = {
+    approved: "default",
+    registered: "secondary",
+    disqualified: "destructive",
+    withdrawn: "outline",
+    left: "outline",
+    pending: "outline",
+    rejected: "destructive",
+  };
+
   return (
     <div>
       <Card className="p-0 bg-transparent border-0">
@@ -2242,12 +2252,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                           <p className="font-white font-semibold text-base">
                             {reg.username}
                           </p>
-                          <p className="font-white text-xs capitalize">
-                            {reg.status}
-                          </p>
                         </div>
                       </div>
-                      <Badge>Confirmed</Badge>
+                      <Badge variant={statusVariant[reg.status]}>
+                        {reg.status}
+                      </Badge>
                     </CardContent>
                   </Card>
                 ),
