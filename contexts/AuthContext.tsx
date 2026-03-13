@@ -57,7 +57,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (token: string) => Promise<void>;
+  login: (token: string) => Promise<User>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [token]);
 
-  const fetchUser = async (token: string) => {
+  const fetchUser = async (token: string): Promise<User> => {
     try {
       const res = await axios(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-user-profile/`,
@@ -166,20 +166,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
 
       setUser(mappedUser);
+      return mappedUser;
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Internal server error");
       logout();
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (token: string) => {
+  const login = async (token: string): Promise<User> => {
     // Store token in cookie instead of localStorage
     localStorage.setItem("authToken", token);
     Cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
     setToken(token);
-    await fetchUser(token);
+    return fetchUser(token);
   };
 
   const logout = useCallback(() => {

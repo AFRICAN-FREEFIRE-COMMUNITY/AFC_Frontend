@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition, use } from "react";
+import React, { useState, useEffect, useTransition, use } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { ITEMS_PER_PAGE } from "@/constants";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -128,6 +138,8 @@ const Page = ({ params }: { params: Params }) => {
   const [pendingExit, startExitTransition] = useTransition();
   const [teamDetails, setTeamDetails] = useState<any>();
   const [joinRequests, setJoinRequests] = useState<any>();
+  const [joinRequestsPage, setJoinRequestsPage] = useState(1);
+  const [membersPage, setMembersPage] = useState(1);
 
   const { user, token } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -694,7 +706,10 @@ const Page = ({ params }: { params: Params }) => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {teamDetails?.members?.map(
+                        {teamDetails?.members?.slice(
+                          (membersPage - 1) * ITEMS_PER_PAGE,
+                          membersPage * ITEMS_PER_PAGE,
+                        ).map(
                           (member: any, index: string) => (
                             <TableRow key={index}>
                               <TableCell>{member.username}</TableCell>
@@ -723,6 +738,51 @@ const Page = ({ params }: { params: Params }) => {
                         </p>
                       )}
                     </Table>
+                    {Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE) > 1 && (
+                      <div className="flex items-center justify-between mt-4">
+                        <p className="hidden md:block text-sm text-muted-foreground">
+                          Showing {(membersPage - 1) * ITEMS_PER_PAGE + 1}–
+                          {Math.min(membersPage * ITEMS_PER_PAGE, teamDetails?.members?.length ?? 0)} of{" "}
+                          {teamDetails?.members?.length ?? 0}
+                        </p>
+                        <Pagination className="w-full md:w-auto mx-0">
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious
+                                onClick={() => setMembersPage((p) => Math.max(1, p - 1))}
+                                className={membersPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                              />
+                            </PaginationItem>
+                            {Array.from({ length: Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE) }, (_, i) => i + 1)
+                              .filter((page) => page === 1 || page === Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE) || Math.abs(page - membersPage) <= 1)
+                              .map((page, idx, arr) => (
+                                <React.Fragment key={page}>
+                                  {idx > 0 && arr[idx - 1] !== page - 1 && (
+                                    <PaginationItem>
+                                      <PaginationEllipsis />
+                                    </PaginationItem>
+                                  )}
+                                  <PaginationItem>
+                                    <PaginationLink
+                                      isActive={membersPage === page}
+                                      onClick={() => setMembersPage(page)}
+                                      className="cursor-pointer"
+                                    >
+                                      {page}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                </React.Fragment>
+                              ))}
+                            <PaginationItem>
+                              <PaginationNext
+                                onClick={() => setMembersPage((p) => Math.min(Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE), p + 1))}
+                                className={membersPage === Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    )}
                     {hasFullAccess && teamDetails?.members?.length < 6 && (
                       <div className="mt-4">
                         <h4 className="text-lg font-semibold mb-2">
@@ -970,6 +1030,7 @@ const Page = ({ params }: { params: Params }) => {
                       {joinRequests?.length === 0 ? (
                         <NothingFound text="No pending join requests." />
                       ) : (
+                        <>
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -981,7 +1042,10 @@ const Page = ({ params }: { params: Params }) => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {joinRequests?.map((request: any) => (
+                            {joinRequests?.slice(
+                              (joinRequestsPage - 1) * ITEMS_PER_PAGE,
+                              joinRequestsPage * ITEMS_PER_PAGE,
+                            ).map((request: any) => (
                               <TableRow key={request.request_id}>
                                 <TableCell>{request.requester}</TableCell>
                                 <TableCell>{request.uid}</TableCell>
@@ -1050,6 +1114,52 @@ const Page = ({ params }: { params: Params }) => {
                             ))}
                           </TableBody>
                         </Table>
+                        {Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE) > 1 && (
+                          <div className="flex items-center justify-between mt-4">
+                            <p className="hidden md:block text-sm text-muted-foreground">
+                              Showing {(joinRequestsPage - 1) * ITEMS_PER_PAGE + 1}–
+                              {Math.min(joinRequestsPage * ITEMS_PER_PAGE, joinRequests?.length ?? 0)} of{" "}
+                              {joinRequests?.length ?? 0}
+                            </p>
+                            <Pagination className="w-full md:w-auto mx-0">
+                              <PaginationContent>
+                                <PaginationItem>
+                                  <PaginationPrevious
+                                    onClick={() => setJoinRequestsPage((p) => Math.max(1, p - 1))}
+                                    className={joinRequestsPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                  />
+                                </PaginationItem>
+                                {Array.from({ length: Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE) }, (_, i) => i + 1)
+                                  .filter((page) => page === 1 || page === Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE) || Math.abs(page - joinRequestsPage) <= 1)
+                                  .map((page, idx, arr) => (
+                                    <React.Fragment key={page}>
+                                      {idx > 0 && arr[idx - 1] !== page - 1 && (
+                                        <PaginationItem>
+                                          <PaginationEllipsis />
+                                        </PaginationItem>
+                                      )}
+                                      <PaginationItem>
+                                        <PaginationLink
+                                          isActive={joinRequestsPage === page}
+                                          onClick={() => setJoinRequestsPage(page)}
+                                          className="cursor-pointer"
+                                        >
+                                          {page}
+                                        </PaginationLink>
+                                      </PaginationItem>
+                                    </React.Fragment>
+                                  ))}
+                                <PaginationItem>
+                                  <PaginationNext
+                                    onClick={() => setJoinRequestsPage((p) => Math.min(Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE), p + 1))}
+                                    className={joinRequestsPage === Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                  />
+                                </PaginationItem>
+                              </PaginationContent>
+                            </Pagination>
+                          </div>
+                        )}
+                        </>
                       )}
                     </CardContent>
                   </Card>

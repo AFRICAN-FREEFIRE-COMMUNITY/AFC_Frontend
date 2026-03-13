@@ -15,10 +15,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  IconCheck,
+  IconCopy,
   IconEye,
   IconEyeOff,
   IconLoader2,
@@ -30,16 +39,33 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { CheckIcon, EyeIcon, EyeOffIcon, XIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ClipboardCopyIcon,
+  DownloadIcon,
+  EyeIcon,
+  EyeOffIcon,
+  XIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+
+interface CreatedSponsorDetails {
+  full_name: string;
+  uid: string;
+  username: string;
+  email: string;
+  password: string;
+  assigned_events: string[];
+}
 
 const schema = z
   .object({
     full_name: z.string().min(2, "Full name must be at least 2 characters"),
-    in_game_name: z
-      .string()
-      .min(2, "In-game name must be at least 2 characters"),
+    uid: z.string().min(1, "UID is required"),
+    username: z.string().min(2, "Username must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -48,7 +74,7 @@ const schema = z
       .regex(/[A-Z]/, "Must contain an uppercase letter")
       .regex(/[^a-zA-Z0-9]/, "Must contain a special character"),
     confirm_password: z.string(),
-    event_ids: z.array(z.number()).min(1, "Select at least one event"),
+    event_ids: z.array(z.number()),
   })
   .refine((d) => d.password === d.confirm_password, {
     message: "Passwords do not match",
@@ -73,12 +99,17 @@ export default function CreateSponsorPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [successDetails, setSuccessDetails] =
+    useState<CreatedSponsorDetails | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       full_name: "",
-      in_game_name: "",
+      uid: "",
+      username: "",
+      email: "",
       password: "",
       confirm_password: "",
       event_ids: [],
@@ -163,22 +194,81 @@ export default function CreateSponsorPage() {
     }
   };
 
+  const copyToClipboard = async (value: string, field: string) => {
+    await navigator.clipboard.writeText(value);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const downloadCredentials = (details: CreatedSponsorDetails) => {
+    const content = [
+      "=== Sponsor Account Credentials ===",
+      "",
+      `Full Name:  ${details.full_name}`,
+      `UID:        ${details.uid}`,
+      `Username:   ${details.username}`,
+      `Email:      ${details.email}`,
+      `Password:   ${details.password}`,
+      "",
+      "=== Assigned Events ===",
+      ...details.assigned_events.map((e, i) => `  ${i + 1}. ${e}`),
+      "",
+      `Generated: ${new Date().toLocaleString()}`,
+    ].join("\n");
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sponsor-${details.username}-credentials.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
     try {
-      // TODO: replace with actual endpoint once available
-      // await axios.post(
-      //   `${env.NEXT_PUBLIC_BACKEND_API_URL}/sponsors/create-sponsor-account/`,
-      //   {
-      //     full_name: values.full_name,
-      //     in_game_name: values.in_game_name,
-      //     password: values.password,
-      //     event_ids: values.event_ids,
-      //   },
-      //   { headers: { Authorization: `Bearer ${token}` } },
-      // );
-      toast.success("Sponsor account created successfully.");
-      router.push("/a/sponsors");
+      // Step 1: create the sponsor account
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-sponsor-account/`,
+        {
+          fullname: values.full_name,
+          uid: values.uid,
+          email: values.email,
+          username: values.username,
+          password: values.password,
+          confirm_password: values.confirm_password,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      // Step 2: assign selected events to the new sponsor (optional)
+      if (values.event_ids.length > 0) {
+        await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/assign-sponsor-to-event/`,
+          {
+            sponsor_username: values.username,
+            event_ids: values.event_ids,
+          },
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+      }
+
+      const assignedEventNames = values.event_ids
+        .map(
+          (id) =>
+            events.find((e) => e.event_id === id)?.event_name ?? `Event #${id}`,
+        )
+        .filter(Boolean);
+
+      setSuccessDetails({
+        full_name: values.full_name,
+        uid: values.uid,
+        username: values.username,
+        email: values.email,
+        password: values.password,
+        assigned_events: assignedEventNames,
+      });
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message ||
@@ -193,7 +283,7 @@ export default function CreateSponsorPage() {
   if (authLoading) return <FullLoader />;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       <PageHeader
         back
         title="Create Sponsor Account"
@@ -207,8 +297,8 @@ export default function CreateSponsorPage() {
         >
           {/* Basic info */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Account Details</CardTitle>
+            <CardHeader className="border-b">
+              <CardTitle>Account Details</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <FormField
@@ -227,12 +317,44 @@ export default function CreateSponsorPage() {
 
               <FormField
                 control={form.control}
-                name="in_game_name"
+                name="uid"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>In-Game Name</FormLabel>
+                    <FormLabel>UID</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. GarenaAdmin01" {...field} />
+                      <Input placeholder="e.g. 123456789" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. john_doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="e.g. john@gmail.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -374,12 +496,12 @@ export default function CreateSponsorPage() {
           {/* Event selection */}
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>
-                Assign Events
+              <CardTitle className="flex gap-1 items-center">
+                Assign Events <span className="text-xs font-normal text-muted-foreground">(optional)</span>
                 {selectedIds.length > 0 && (
-                  <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  <Badge variant={"secondary"}>
                     {selectedIds.length} selected
-                  </span>
+                  </Badge>
                 )}
               </CardTitle>
             </CardHeader>
@@ -461,6 +583,105 @@ export default function CreateSponsorPage() {
           </div>
         </form>
       </Form>
+
+      {/* Success modal */}
+      <Dialog
+        open={!!successDetails}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuccessDetails(null);
+            router.push("/a/sponsors");
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader className="border-b">
+            <DialogTitle className="flex items-center gap-2">
+              <CheckIcon className="size-5 text-emerald-500" />
+              Account Created
+            </DialogTitle>
+            <DialogDescription>
+              Share these credentials with the sponsor. This is the only time
+              the password will be shown.
+            </DialogDescription>
+          </DialogHeader>
+
+          {successDetails && (
+            <div className="flex flex-col gap-3">
+              {(
+                [
+                  { label: "Full Name", key: "full_name" },
+                  { label: "UID", key: "uid" },
+                  { label: "Username", key: "username" },
+                  { label: "Email", key: "email" },
+                  { label: "Password", key: "password" },
+                ] as { label: string; key: keyof CreatedSponsorDetails }[]
+              ).map(({ label, key }) => {
+                const value = successDetails[key] as string;
+                return (
+                  <div key={key} className="flex flex-col gap-1">
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {label}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-muted rounded px-3 py-1.5 text-sm font-mono truncate">
+                        {key === "password" ? "•".repeat(value.length) : value}
+                      </code>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="shrink-0 size-8"
+                        onClick={() => copyToClipboard(value, key)}
+                      >
+                        {copiedField === key ? (
+                          <IconCheck className="size-4 text-emerald-500" />
+                        ) : (
+                          <IconCopy className="size-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {successDetails.assigned_events.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground font-medium">
+                    Assigned Events
+                  </span>
+                  <div className="bg-muted rounded px-3 py-2 flex flex-wrap gap-1.5">
+                    {successDetails.assigned_events.map((name) => (
+                      <Badge key={name} variant="outline" className="text-xs">
+                        {name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => downloadCredentials(successDetails)}
+                >
+                  <DownloadIcon className="size-4 mr-2" />
+                  Download .txt
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => {
+                    setSuccessDetails(null);
+                    router.push("/a/sponsors");
+                  }}
+                >
+                  Done
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -6,13 +6,15 @@ import { useEffect, ReactNode } from "react";
 import { FullLoader } from "@/components/Loader";
 import { Button } from "@/components/ui/button";
 import { IconLogout, IconStar } from "@tabler/icons-react";
+import { Logo } from "@/components/Logo";
+import Link from "next/link";
 
 function SponsorGuard({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading, hasRole } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  const isSponsor = hasRole("sponsor");
+  const isSponsor = hasRole("sponsor_admin");
 
   useEffect(() => {
     if (loading) return;
@@ -43,14 +45,15 @@ export default function SponsorPortalLayout({
 
   return (
     <SponsorGuard>
-      <div className="min-h-screen bg-background flex flex-col">
-        {/* Header */}
-        <header className="border-b bg-card sticky top-0 z-20">
-          <div className="container flex items-center justify-between h-14">
-            <div className="flex items-center gap-2">
-              <IconStar className="size-5 text-primary" />
-              <span className="font-semibold text-sm">Sponsor Portal</span>
-            </div>
+      <div>
+        <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
+          <div className="container mx-auto h-20 flex items-center justify-between">
+            <Link href={"/home"} className="flex items-center space-x-2">
+              <Logo size="small" />
+              <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
+                African Freefire Community
+              </span>
+            </Link>
             <div className="flex items-center gap-3">
               {user && (
                 <span className="text-sm text-muted-foreground hidden sm:block">

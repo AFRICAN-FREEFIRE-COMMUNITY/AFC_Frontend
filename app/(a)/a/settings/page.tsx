@@ -182,6 +182,10 @@ const page = () => {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [isCreateRoleOpen, setIsCreateRoleOpen] = useState(false);
+  const [newRole, setNewRole] = useState({ role_name: "", description: "" });
+  const [createRoleLoading, setCreateRoleLoading] = useState(false);
+  const [deleteRoleLoading, setDeleteRoleLoading] = useState<number | null>(null);
   const [newUser, setNewUser] = useState({
     username: "",
     email: "",
@@ -547,6 +551,46 @@ const page = () => {
         );
       }
     });
+  };
+
+  const handleCreateRole = async () => {
+    if (!newRole.role_name.trim()) {
+      toast.error("Role name is required.");
+      return;
+    }
+    setCreateRoleLoading(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/add-role/`,
+        { role_name: newRole.role_name.trim(), description: newRole.description.trim() },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(`Role "${newRole.role_name}" created.`);
+      setNewRole({ role_name: "", description: "" });
+      setIsCreateRoleOpen(false);
+      await fetchRoles();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to create role.");
+    } finally {
+      setCreateRoleLoading(false);
+    }
+  };
+
+  const handleDeleteSystemRole = async (roleId: string) => {
+    setDeleteRoleLoading(Number(roleId));
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/delete-role/`,
+        { role_id: roleId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Role deleted.");
+      await fetchRoles();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to delete role.");
+    } finally {
+      setDeleteRoleLoading(null);
+    }
   };
 
   const getRoleColor = (roleName: string) => {
@@ -1531,6 +1575,62 @@ const page = () => {
         </TabsContent>
 
         <TabsContent value="roles" className="space-y-4">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {getDisplayRoles().length} role{getDisplayRoles().length !== 1 ? "s" : ""}
+            </p>
+            <Dialog open={isCreateRoleOpen} onOpenChange={setIsCreateRoleOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create Role
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create New Role</DialogTitle>
+                  <DialogDescription>
+                    Add a new role that can be assigned to administrators.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col gap-4 py-2">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="role_name">Role Name <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="role_name"
+                      placeholder="e.g. event_manager"
+                      value={newRole.role_name}
+                      onChange={(e) => setNewRole((p) => ({ ...p, role_name: e.target.value }))}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="role_desc">Description</Label>
+                    <Input
+                      id="role_desc"
+                      placeholder="e.g. Manages event creation and scheduling"
+                      value={newRole.description}
+                      onChange={(e) => setNewRole((p) => ({ ...p, description: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCreateRoleOpen(false)}
+                    disabled={createRoleLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateRole} disabled={createRoleLoading}>
+                    {createRoleLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    Create Role
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+
           {rolesLoading ? (
             <div className="flex items-center justify-center p-8">
               <Loader2 className="h-8 w-8 animate-spin" />
@@ -1541,26 +1641,64 @@ const page = () => {
               {getDisplayRoles().map((role) => (
                 <Card key={role.id}>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {role.name.toLowerCase().includes("head") && (
-                        <Crown className="h-5 w-5" />
-                      )}
-                      {role.name.toLowerCase().includes("shop") && (
-                        <ShoppingCart className="h-5 w-5" />
-                      )}
-                      {role.name.toLowerCase().includes("news") && (
-                        <Newspaper className="h-5 w-5" />
-                      )}
-                      {role.name.toLowerCase().includes("team") && (
-                        <Users className="h-5 w-5" />
-                      )}
-                      {role.name.toLowerCase().includes("event") && (
-                        <Trophy className="h-5 w-5" />
-                      )}
-                      {role.name.toLowerCase().includes("partner") && (
-                        <ShieldCheck className="h-5 w-5" />
-                      )}
-                      {formatWord(role.name)}
+                    <CardTitle className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        {role.name.toLowerCase().includes("head") && (
+                          <Crown className="h-5 w-5" />
+                        )}
+                        {role.name.toLowerCase().includes("shop") && (
+                          <ShoppingCart className="h-5 w-5" />
+                        )}
+                        {role.name.toLowerCase().includes("news") && (
+                          <Newspaper className="h-5 w-5" />
+                        )}
+                        {role.name.toLowerCase().includes("team") && (
+                          <Users className="h-5 w-5" />
+                        )}
+                        {role.name.toLowerCase().includes("event") && (
+                          <Trophy className="h-5 w-5" />
+                        )}
+                        {role.name.toLowerCase().includes("partner") && (
+                          <ShieldCheck className="h-5 w-5" />
+                        )}
+                        {formatWord(role.name)}
+                      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                            disabled={deleteRoleLoading === Number(role.id)}
+                          >
+                            {deleteRoleLoading === Number(role.id) ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Role</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete the{" "}
+                              <strong>{formatWord(role.name)}</strong> role?
+                              This will remove it from all users currently
+                              assigned to it. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => handleDeleteSystemRole(role.id)}
+                            >
+                              Delete Role
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </CardTitle>
                     <CardDescription>{role.description}</CardDescription>
                   </CardHeader>

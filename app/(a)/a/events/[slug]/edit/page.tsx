@@ -142,7 +142,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     sponsor_name: "",
     sponsor_username: "",
     requirement_description: "",
-    uuid_label: "Player UUID",
+    sponsor_field_label: "Player UUID",
   });
   const [savingSponsor, setSavingSponsor] = useState(false);
 
@@ -281,6 +281,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             eventDetails.registration_restriction || "none",
           restriction_mode: eventDetails.restriction_mode || "allow_only",
           selected_locations: eventDetails.restricted_countries || [],
+          is_sponsored: eventDetails.is_sponsoreventDetails ?? false,
+          sponsor_name: eventDetails.sponsor_name ?? "",
+          sponsor_username: eventDetails.sponsor_username ?? "",
+          requirement_description:
+            eventDetails.sponsor_requirement_description ?? "",
+          sponsor_field_label:
+            eventDetails.sponsor_field_label ?? "Player UUID",
         });
 
         setPreviewUrl(eventDetails.event_banner_url || "");
@@ -395,7 +402,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           sponsor_name: ed.sponsor_name ?? "",
           sponsor_username: ed.sponsor_username ?? "",
           requirement_description: ed.sponsor_requirement_description ?? "",
-          uuid_label: ed.sponsor_field_label ?? "Player UUID",
+          sponsor_field_label: ed.sponsor_field_label ?? "Player UUID",
         });
       }
 
@@ -678,12 +685,22 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setTempGroups(newGroups);
   };
 
-  const toggleMapSelection = (groupIndex: number, map: string) => {
+  const addMapToGroup = (groupIndex: number, map: string) => {
     const newGroups = [...tempGroups];
-    const currentMaps = newGroups[groupIndex].match_maps || [];
-    newGroups[groupIndex].match_maps = currentMaps.includes(map)
-      ? currentMaps.filter((m: string) => m !== map)
-      : [...currentMaps, map];
+    newGroups[groupIndex].match_maps = [
+      ...(newGroups[groupIndex].match_maps || []),
+      map,
+    ];
+    setTempGroups(newGroups);
+  };
+
+  const removeOneMapFromGroup = (groupIndex: number, map: string) => {
+    const newGroups = [...tempGroups];
+    const current: string[] = newGroups[groupIndex].match_maps || [];
+    const idx = current.lastIndexOf(map);
+    if (idx !== -1) {
+      newGroups[groupIndex].match_maps = current.filter((_, i) => i !== idx);
+    }
     setTempGroups(newGroups);
   };
 
@@ -773,16 +790,95 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     if (!eventDetails?.event_id || !token) return;
     setSavingSponsor(true);
     try {
-      await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/set-event-sponsor-requirement/`,
-        { event_id: eventDetails.event_id, ...sponsorForm },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        },
+      const data = form.getValues();
+      const formData = new FormData();
+
+      formData.append("event_id", eventDetails.event_id.toString());
+      formData.append("is_draft", data.save_to_drafts ? "True" : "False");
+      formData.append(
+        "event_status",
+        data.save_to_drafts
+          ? "draft"
+          : (data.event_status ?? eventDetails.event_status ?? "upcoming"),
       );
+      formData.append("event_name", data.event_name);
+      formData.append("competition_type", data.competition_type);
+      formData.append("participant_type", data.participant_type);
+      formData.append("event_type", data.event_type);
+      formData.append("is_public", data.is_public);
+      formData.append(
+        "max_teams_or_players",
+        data.max_teams_or_players.toString(),
+      );
+      formData.append("event_mode", data.event_mode);
+      formData.append("prizepool", data.prizepool);
+      formData.append("number_of_stages", "2");
+      formData.append("start_date", data.start_date);
+      formData.append("end_date", data.end_date);
+      formData.append("registration_open_date", data.registration_open_date);
+      formData.append("registration_end_date", data.registration_end_date);
+      formData.append("registration_link", data.registration_link || "");
+      formData.append(
+        "publish_to_tournaments",
+        data.publish_to_tournaments.toString(),
+      );
+      formData.append("publish_to_news", data.publish_to_news.toString());
+      formData.append(
+        "registration_restriction",
+        data.registration_restriction || "none",
+      );
+      formData.append(
+        "restriction_mode",
+        data.restriction_mode || "allow_only",
+      );
+      formData.append(
+        "restricted_countries",
+        JSON.stringify(
+          data.selected_locations && data.selected_locations.length > 0
+            ? data.selected_locations
+            : [],
+        ),
+      );
+      if (rulesInputMethod === "type") {
+        formData.append("event_rules", data.event_rules || "");
+        formData.append("uploaded_rules", "");
+      } else {
+        formData.append("event_rules", "");
+      }
+      formData.append(
+        "prize_distribution",
+        JSON.stringify(data.prize_distribution),
+      );
+      formData.append(
+        "stream_channels",
+        JSON.stringify(
+          data.stream_channels?.filter((s) => s.trim() !== "") || [],
+        ),
+      );
+      formData.append("stages", JSON.stringify(data.stages));
+
+      // Sponsor fields from sponsorForm (the ones being saved)
+      formData.append(
+        "is_sponsored",
+        sponsorForm.is_sponsored ? "True" : "False",
+      );
+      formData.append("sponsor_name", sponsorForm.sponsor_name || "");
+      formData.append("sponsor_username", sponsorForm.sponsor_username || "");
+      formData.append(
+        "requirement_description",
+        sponsorForm.requirement_description || "",
+      );
+      formData.append(
+        "sponsor_field_label",
+        sponsorForm.sponsor_field_label || "Player UUID",
+      );
+
+      await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
       toast.success("Sponsor settings saved!");
       setEventDetails((prev) =>
         prev
@@ -791,7 +887,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               is_sponsored: sponsorForm.is_sponsored,
               sponsor_name: sponsorForm.sponsor_name,
               sponsor_username: sponsorForm.sponsor_username,
-              sponsor_field_label: sponsorForm.uuid_label,
+              sponsor_field_label: sponsorForm.sponsor_field_label,
               sponsor_requirement_description:
                 sponsorForm.requirement_description,
             }
@@ -1044,6 +1140,18 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
         // Stages now carry prize fields through naturally via JSON.stringify
         formData.append("stages", JSON.stringify(data.stages));
+
+        formData.append("is_sponsored", data.is_sponsored ? "True" : "False");
+        formData.append("sponsor_name", data.sponsor_name || "");
+        formData.append("sponsor_username", data.sponsor_username || "");
+        formData.append(
+          "requirement_description",
+          data.requirement_description || "",
+        );
+        formData.append(
+          "sponsor_field_label",
+          data.sponsor_field_label || "Player UUID",
+        );
 
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
@@ -1302,7 +1410,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           setTempGroups={setTempGroups}
           handleGroupCountChangeLogic={handleGroupCountChangeLogic}
           updateGroupDetailLogic={updateGroupDetailLogic}
-          toggleMapSelection={toggleMapSelection}
+          onAddMap={addMapToGroup}
+          onRemoveMap={removeOneMapFromGroup}
           handleSaveStageLogic={handleSaveStageLogic}
           passwordVisibility={passwordVisibility}
           toggleVisibility={toggleVisibility}

@@ -31,6 +31,7 @@ import { EventProp } from "../events/page";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Table,
   TableBody,
@@ -69,6 +70,7 @@ interface LeaderboardProps {
 }
 
 const page = () => {
+  const { token } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLeaderboardQuery, setSearchLeaderboardQuery] = useState("");
   const [eventsPage, setEventsPage] = useState(1);
@@ -281,7 +283,12 @@ const page = () => {
                     <TableCell>
                       <div className="flex items-center gap-2 justify-center flex-wrap">
                         {/* Pass event_id as a query param so BasicInfoStep can auto-select it */}
-                        <Button asChild variant={"outline"} size="sm">
+                        <Button
+                          className="hidden"
+                          asChild
+                          variant={"outline"}
+                          size="sm"
+                        >
                           <Link
                             href={`/a/leaderboards/create?event_id=${event.event_id}`}
                           >
@@ -301,40 +308,54 @@ const page = () => {
                             Edit
                           </Link>
                         </Button>
-                        <DownloadLeaderboardButton
+                        {/* <DownloadLeaderboardButton
                           leaderboardName={event.event_name}
                           fetchData={async () => {
                             const res = await fetch(
                               `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboard-details-for-event/`,
                               {
                                 method: "POST",
-                                headers: { "Content-Type": "application/json" },
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                                },
                                 body: JSON.stringify({
-                                  event_id: event.event_id,
+                                  event_id: String(event.event_id),
                                 }),
                               },
                             );
                             const data = await res.json();
+
+                            // Aggregate team rows from first stage/group overall leaderboard
                             const firstGroup = data.stages?.[0]?.groups?.[0];
-                            const teamRows = firstGroup?.overall_leaderboard ?? [];
+                            const teamRows =
+                              firstGroup?.overall_leaderboard ?? [];
+
+                            // Aggregate player rows across ALL stages and groups
                             const playerMap = new Map<number, any>();
-                            for (const match of firstGroup?.matches ?? []) {
-                              for (const teamStat of match.stats ?? []) {
-                                for (const player of teamStat.players ?? []) {
-                                  const existing = playerMap.get(player.player_id);
-                                  if (existing) {
-                                    existing.total_kills += player.kills;
-                                    existing.total_damage += player.damage;
-                                    existing.total_assists += player.assists;
-                                  } else {
-                                    playerMap.set(player.player_id, {
-                                      player_id: player.player_id,
-                                      username: player.username,
-                                      team_name: teamStat.team_name ?? "—",
-                                      total_kills: player.kills,
-                                      total_damage: player.damage,
-                                      total_assists: player.assists,
-                                    });
+                            for (const stage of data.stages ?? []) {
+                              for (const group of stage.groups ?? []) {
+                                for (const match of group.matches ?? []) {
+                                  for (const teamStat of match.stats ?? []) {
+                                    for (const player of teamStat.players ?? []) {
+                                      const existing = playerMap.get(
+                                        player.player_id,
+                                      );
+                                      if (existing) {
+                                        existing.total_kills += player.kills;
+                                        existing.total_damage += player.damage;
+                                        existing.total_assists += player.assists;
+                                      } else {
+                                        playerMap.set(player.player_id, {
+                                          player_id: player.player_id,
+                                          username: player.username,
+                                          team_name: teamStat.team_name ?? "—",
+                                          total_kills: player.kills,
+                                          total_damage: player.damage,
+                                          total_assists: player.assists,
+                                        });
+                                      }
+                                    }
                                   }
                                 }
                               }
@@ -344,7 +365,7 @@ const page = () => {
                             );
                             return { teamRows, playerRows };
                           }}
-                        />
+                        /> */}
                       </div>
                     </TableCell>
                   </TableRow>

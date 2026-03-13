@@ -25,9 +25,7 @@ import { Loader } from "@/components/Loader";
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated } = useAuth();
-
-  const { login } = useAuth();
+  const { isAuthenticated, user, login } = useAuth();
   const redirectUrl = searchParams.get("redirect");
 
   const [pending, startTransition] = useTransition();
@@ -43,8 +41,13 @@ function LoginFormContent() {
   });
 
   useEffect(() => {
-    if (isAuthenticated) return router.push("/home");
-  }, [router]);
+    if (!isAuthenticated || !user) return;
+    if (redirectUrl) {
+      router.replace(redirectUrl);
+    } else {
+      router.push("/home");
+    }
+  }, [isAuthenticated, user, router, redirectUrl]);
 
   function onSubmit(data: LoginFormSchemaType) {
     startTransition(async () => {
@@ -55,21 +58,9 @@ function LoginFormContent() {
         );
 
         if (response.statusText === "OK") {
-          // Wait for login to complete (including fetching user data)
           await login(response.data.session_token);
-
           toast.success(response.data.message);
-
-          // Small delay to ensure auth state is fully updated
-          setTimeout(() => {
-            // Redirect to the URL they came from, or default to /home
-            // Use replace to avoid adding login page to history
-            if (redirectUrl) {
-              router.replace(redirectUrl);
-            } else {
-              router.push("/home");
-            }
-          }, 100);
+          // redirect is handled by the useEffect above once auth state updates
         } else {
           toast.error("Oops! An error occurred");
         }

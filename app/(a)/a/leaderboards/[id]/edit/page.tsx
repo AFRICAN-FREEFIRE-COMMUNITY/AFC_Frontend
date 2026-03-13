@@ -77,11 +77,26 @@ interface RawStat {
   players?: RawPlayer[];
 }
 
+interface MatchScoringSettings {
+  kill_point: number;
+  placement_points: Record<string, number>;
+  points_per_assist: number;
+  points_per_1000_damage: number;
+}
+
 interface MatchData {
   match_id: number;
   match_number: number;
   match_map: string;
   stats: RawStat[];
+  scoring_settings?: MatchScoringSettings;
+}
+
+interface MatchScoringConfig {
+  killPoint: string;
+  pointsPerAssist: string;
+  pointsPer1000Damage: string;
+  ranks: { id: string; val: string }[];
 }
 
 interface OverallEntry {
@@ -199,10 +214,11 @@ export default function EditLeaderboardPage({
   const [adjustments, setAdjustments] = useState<Record<number, number>>({});
   const [savingAdjust, setSavingAdjust] = useState(false);
 
-  // Scoring config
-  const [killPoint, setKillPoint] = useState("1");
-  const [ranks, setRanks] = useState<{ id: string; val: string }[]>([]);
-  const [savingScoring, setSavingScoring] = useState(false);
+  // Per-match scoring config
+  const [matchScoring, setMatchScoring] = useState<
+    Record<number, MatchScoringConfig>
+  >({});
+  const [savingMatchScoring, setSavingMatchScoring] = useState(false);
 
   // ── Data fetching ───────────────────────────────────────────────────────────
 
@@ -285,19 +301,27 @@ export default function EditLeaderboardPage({
     setOverall(group.overall_leaderboard ?? []);
     setAdjustments({});
 
-    // Scoring config
-    const lb = group.leaderboard;
-    setKillPoint(lb?.kill_point?.toString() ?? "1");
-    const placementPts = lb?.placement_points ?? {};
-    const rankEntries = Object.entries(placementPts)
-      .map(([rank, val]) => ({ id: rank, val: String(val) }))
-      .sort((a, b) => parseInt(a.id) - parseInt(b.id));
-    const minRanks = 10;
-    const padded = [...rankEntries];
-    for (let i = padded.length + 1; i <= minRanks; i++) {
-      padded.push({ id: `new-${i}-${Date.now()}`, val: "0" });
+    // Per-match scoring config
+    const initialMatchScoring: Record<number, MatchScoringConfig> = {};
+    for (const m of groupMatches) {
+      const s = m.scoring_settings;
+      const placementPts = s?.placement_points ?? {};
+      const rankEntries = Object.entries(placementPts)
+        .map(([rank, val]) => ({ id: rank, val: String(val) }))
+        .sort((a, b) => parseInt(a.id) - parseInt(b.id));
+      const minRanks = 10;
+      const padded = [...rankEntries];
+      for (let i = padded.length + 1; i <= minRanks; i++) {
+        padded.push({ id: `new-${i}-${Date.now()}`, val: "0" });
+      }
+      initialMatchScoring[m.match_id] = {
+        killPoint: s?.kill_point?.toString() ?? "1",
+        pointsPerAssist: s?.points_per_assist?.toString() ?? "0",
+        pointsPer1000Damage: s?.points_per_1000_damage?.toString() ?? "0",
+        ranks: padded,
+      };
     }
-    setRanks(padded);
+    setMatchScoring(initialMatchScoring);
   }, [selectedGroupId, eventData]);
 
   // ── Derived ─────────────────────────────────────────────────────────────────
@@ -313,6 +337,11 @@ export default function EditLeaderboardPage({
     selectedMatchId !== null ? (editRows[selectedMatchId] ?? []) : [];
   const currentPlayerGroups =
     selectedMatchId !== null ? (playerGroups[selectedMatchId] ?? []) : [];
+
+  const currentMatch = groupMatches.find((m) => m.match_id === selectedMatchId);
+  const matchLeaderboard = [...(currentMatch?.stats ?? [])].sort(
+    (a, b) => b.effective_total - a.effective_total,
+  );
 
   // ── Edit row helpers ─────────────────────────────────────────────────────────
 
@@ -386,6 +415,8 @@ export default function EditLeaderboardPage({
               tournament_team_id: r.id,
               placement: r.placement,
               played: r.played,
+              bonus_points: r.bonus_points,
+              penalty_points: r.penalty_points,
               players: (teamGroup?.players ?? []).map((p) => ({
                 user_id: p.player_id,
                 kills: p.kills,
@@ -520,53 +551,111 @@ export default function EditLeaderboardPage({
     }
   };
 
-  // ── Save scoring config ──────────────────────────────────────────────────────
+  // ── Save match scoring config ────────────────────────────────────────────────
 
-  const handleSaveScoring = async () => {
-    const leaderboardId = currentGroup?.leaderboard?.leaderboard_id;
-    const stageId = currentGroup?.stage_id ?? currentStage?.stage_id;
-    const groupId = currentGroup?.group_id;
+  const handleSaveMatchScoring = async () => {
+    if (selectedMatchId === null) return;
+    const config = matchScoring[selectedMatchId];
+    if (!config) return;
 
-    if (!leaderboardId) {
-      toast.error("No leaderboard found for this group");
-      return;
-    }
-
-    setSavingScoring(true);
+    setSavingMatchScoring(true);
     try {
       const placementPointsObj: Record<string, number> = {};
-      ranks.forEach((r, idx) => {
-        placementPointsObj[(idx + 1).toString()] = parseInt(r.val) || 0;
+      config.ranks.forEach((r, idx) => {
+        placementPointsObj[(idx + 1).toString()] = parseFloat(r.val) || 0;
       });
 
-      const formData = new FormData();
-      formData.append("leaderboard_id", leaderboardId.toString());
-      if (stageId) formData.append("stage_id", stageId.toString());
-      if (groupId) formData.append("group_id", groupId.toString());
-      formData.append("placement_points", JSON.stringify(placementPointsObj));
-      formData.append("kill_point", killPoint);
+      const body = {
+        match_id: selectedMatchId,
+        scoring_settings: {
+          kill_point: parseFloat(config.killPoint) || 0,
+          placement_points: placementPointsObj,
+          points_per_assist: parseFloat(config.pointsPerAssist) || 0,
+          points_per_1000_damage: parseFloat(config.pointsPer1000Damage) || 0,
+        },
+      };
 
       const res = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-leaderboard/`,
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-scoring-config/`,
         {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
         },
       );
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.message || "Update failed");
+        throw new Error(err.message || err.detail || "Update failed");
       }
 
-      toast.success("Scoring configuration updated!");
-      fetchData();
+      toast.success("Match scoring configuration updated!");
+      // Re-save match results immediately so points are recalculated
+      await handleSaveMatch();
     } catch (err: any) {
       toast.error(err.message || "Failed to update scoring");
     } finally {
-      setSavingScoring(false);
+      setSavingMatchScoring(false);
     }
+  };
+
+  // ── Match scoring config helpers ─────────────────────────────────────────────
+
+  const updateMatchScoringField = (
+    matchId: number,
+    field: keyof Omit<MatchScoringConfig, "ranks">,
+    value: string,
+  ) => {
+    setMatchScoring((prev) => ({
+      ...prev,
+      [matchId]: { ...prev[matchId], [field]: value },
+    }));
+  };
+
+  const updateMatchScoringRank = (
+    matchId: number,
+    rankIdx: number,
+    val: string,
+  ) => {
+    setMatchScoring((prev) => {
+      const config = prev[matchId];
+      if (!config) return prev;
+      const ranks = config.ranks.map((r, i) =>
+        i === rankIdx ? { ...r, val } : r,
+      );
+      return { ...prev, [matchId]: { ...config, ranks } };
+    });
+  };
+
+  const addMatchScoringRank = (matchId: number) => {
+    setMatchScoring((prev) => {
+      const config = prev[matchId];
+      if (!config) return prev;
+      return {
+        ...prev,
+        [matchId]: {
+          ...config,
+          ranks: [...config.ranks, { id: `add-${Date.now()}`, val: "0" }],
+        },
+      };
+    });
+  };
+
+  const removeMatchScoringRank = (matchId: number, rankIdx: number) => {
+    setMatchScoring((prev) => {
+      const config = prev[matchId];
+      if (!config) return prev;
+      return {
+        ...prev,
+        [matchId]: {
+          ...config,
+          ranks: config.ranks.filter((_, i) => i !== rankIdx),
+        },
+      };
+    });
   };
 
   // ── Render states ────────────────────────────────────────────────────────────
@@ -995,6 +1084,132 @@ export default function EditLeaderboardPage({
                       </Card>
                     )}
 
+                  {/* ── Match Leaderboard ── */}
+                  {matchLeaderboard.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">
+                          Match Leaderboard
+                        </CardTitle>
+                        <CardDescription>
+                          Calculated standings for this map. Edit bonus and
+                          penalty points, then save above.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="rounded-md border overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-14">Rank</TableHead>
+                                <TableHead>
+                                  {participantType === "team"
+                                    ? "Team"
+                                    : "Player"}
+                                </TableHead>
+                                <TableHead className="text-right w-24">
+                                  Placement
+                                </TableHead>
+                                <TableHead className="text-right w-24">
+                                  Place Pts
+                                </TableHead>
+                                <TableHead className="text-right w-24">
+                                  Kill Pts
+                                </TableHead>
+                                <TableHead className="w-28">Bonus</TableHead>
+                                <TableHead className="w-28">Penalty</TableHead>
+                                <TableHead className="text-right w-24">
+                                  Total
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {matchLeaderboard.map((stat, idx) => {
+                                const statId =
+                                  stat.competitor_id ??
+                                  stat.tournament_team_id ??
+                                  0;
+                                const editIdx = currentRows.findIndex(
+                                  (r) => r.id === statId,
+                                );
+                                const editRow =
+                                  editIdx >= 0
+                                    ? currentRows[editIdx]
+                                    : undefined;
+                                const bonus =
+                                  editRow?.bonus_points ?? stat.bonus_points;
+                                const penalty =
+                                  editRow?.penalty_points ??
+                                  stat.penalty_points;
+                                const liveTotal =
+                                  stat.placement_points +
+                                  stat.kill_points +
+                                  bonus -
+                                  penalty;
+                                return (
+                                  <TableRow key={statId || idx}>
+                                    <TableCell className="text-muted-foreground font-medium">
+                                      #{idx + 1}
+                                    </TableCell>
+                                    <TableCell className="font-medium">
+                                      {stat.username ?? stat.team_name ?? "—"}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      {stat.placement}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      {stat.placement_points}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      {stat.kill_points}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        className="h-8 w-24"
+                                        value={bonus || ""}
+                                        disabled={editIdx < 0}
+                                        onChange={(e) =>
+                                          updateRow(
+                                            selectedMatchId,
+                                            editIdx,
+                                            "bonus_points",
+                                            parseInt(e.target.value) || 0,
+                                          )
+                                        }
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        className="h-8 w-24"
+                                        value={penalty || ""}
+                                        disabled={editIdx < 0}
+                                        onChange={(e) =>
+                                          updateRow(
+                                            selectedMatchId,
+                                            editIdx,
+                                            "penalty_points",
+                                            parseInt(e.target.value) || 0,
+                                          )
+                                        }
+                                      />
+                                    </TableCell>
+                                    <TableCell className="text-right font-semibold text-primary">
+                                      {liveTotal.toFixed(1)}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {/* Save button */}
                   <div className="flex justify-end">
                     <Button onClick={handleSaveMatch} disabled={savingMatch}>
@@ -1048,12 +1263,6 @@ export default function EditLeaderboardPage({
                           <TableHead className="text-right">
                             Total Pts
                           </TableHead>
-                          <TableHead className="text-center">
-                            +/- Adjust
-                          </TableHead>
-                          <TableHead className="text-right">
-                            Adjusted Total
-                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1079,38 +1288,6 @@ export default function EditLeaderboardPage({
                               </TableCell>
                               <TableCell className="text-right font-semibold">
                                 {entry.effective_total.toFixed(1)}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center justify-center gap-1">
-                                  <button
-                                    onClick={() =>
-                                      setAdjustments((prev) => ({
-                                        ...prev,
-                                        [entityId]: (prev[entityId] ?? 0) - 1,
-                                      }))
-                                    }
-                                    className="size-7 rounded border flex items-center justify-center text-sm hover:bg-muted transition-colors"
-                                  >
-                                    −
-                                  </button>
-                                  <span className="w-10 text-center text-sm tabular-nums">
-                                    {adj >= 0 ? `+${adj}` : adj}
-                                  </span>
-                                  <button
-                                    onClick={() =>
-                                      setAdjustments((prev) => ({
-                                        ...prev,
-                                        [entityId]: (prev[entityId] ?? 0) + 1,
-                                      }))
-                                    }
-                                    className="size-7 rounded border flex items-center justify-center text-sm hover:bg-muted transition-colors"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right font-semibold text-primary">
-                                {displayTotal}
                               </TableCell>
                             </TableRow>
                           );
@@ -1147,101 +1324,194 @@ export default function EditLeaderboardPage({
         </TabsContent>
 
         {/* ── Scoring Config Tab ── */}
-        <TabsContent value="scoring" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Scoring Configuration</CardTitle>
-              <CardDescription>
-                Edit the kill point value and placement point rewards for this
-                leaderboard.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2 max-w-xs">
-                <Label>Kill Points</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={killPoint}
-                  onChange={(e) => setKillPoint(e.target.value)}
-                />
+        <TabsContent value="scoring" className="mt-4 space-y-4">
+          {groupMatches.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                No matches found for this group.
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Match selector */}
+              <div className="flex gap-2 flex-wrap">
+                {groupMatches.map((m) => (
+                  <Button
+                    key={m.match_id}
+                    variant={
+                      selectedMatchId === m.match_id ? "default" : "secondary"
+                    }
+                    size="sm"
+                    onClick={() => setSelectedMatchId(m.match_id)}
+                  >
+                    {m.match_map}
+                  </Button>
+                ))}
               </div>
 
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Label>Placement Points</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setRanks([
-                        ...ranks,
-                        { id: `add-${Date.now()}`, val: "0" },
-                      ])
-                    }
-                  >
-                    <IconPlus size={12} className="mr-1" /> Add Rank
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                  {ranks.map((r, i) => (
-                    <Card key={r.id} className="py-1 group relative border">
-                      <CardContent className="p-2">
-                        <div className="flex justify-between items-center mb-1">
-                          <Label className="text-xs text-muted-foreground">
-                            Rank {i + 1}
-                          </Label>
-                          {ranks.length > 10 && (
-                            <button
-                              onClick={() =>
-                                setRanks(
-                                  ranks.filter((_, index) => index !== i),
+              {selectedMatchId !== null &&
+                (() => {
+                  const config = matchScoring[selectedMatchId];
+                  if (!config) return null;
+                  return (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">
+                          Scoring Configuration
+                        </CardTitle>
+                        <CardDescription>
+                          Edit scoring for{" "}
+                          {
+                            groupMatches.find(
+                              (m) => m.match_id === selectedMatchId,
+                            )?.match_map
+                          }{" "}
+                          — Match{" "}
+                          {
+                            groupMatches.find(
+                              (m) => m.match_id === selectedMatchId,
+                            )?.match_number
+                          }
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Scalar fields */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg">
+                          <div className="space-y-2">
+                            <Label>Kill Point</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              value={config.killPoint}
+                              onChange={(e) =>
+                                updateMatchScoringField(
+                                  selectedMatchId,
+                                  "killPoint",
+                                  e.target.value,
                                 )
                               }
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                            >
-                              <IconX size={10} />
-                            </button>
-                          )}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Pts / Assist</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              value={config.pointsPerAssist}
+                              onChange={(e) =>
+                                updateMatchScoringField(
+                                  selectedMatchId,
+                                  "pointsPerAssist",
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Pts / 1000 Dmg</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              value={config.pointsPer1000Damage}
+                              onChange={(e) =>
+                                updateMatchScoringField(
+                                  selectedMatchId,
+                                  "pointsPer1000Damage",
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          </div>
                         </div>
-                        <Input
-                          type="number"
-                          min="0"
-                          value={r.val}
-                          onChange={(e) => {
-                            const newRanks = [...ranks];
-                            newRanks[i] = {
-                              ...newRanks[i],
-                              val: e.target.value,
-                            };
-                            setRanks(newRanks);
-                          }}
-                          className="h-8"
-                        />
+
+                        {/* Placement points */}
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label>Placement Points</Label>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                addMatchScoringRank(selectedMatchId)
+                              }
+                            >
+                              <IconPlus size={12} className="mr-1" /> Add Rank
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                            {config.ranks.map((r, i) => (
+                              <Card
+                                key={r.id}
+                                className="py-1 group relative border"
+                              >
+                                <CardContent className="p-2">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <Label className="text-xs text-muted-foreground">
+                                      Rank {i + 1}
+                                    </Label>
+                                    {config.ranks.length > 10 && (
+                                      <button
+                                        onClick={() =>
+                                          removeMatchScoringRank(
+                                            selectedMatchId,
+                                            i,
+                                          )
+                                        }
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                      >
+                                        <IconX size={10} />
+                                      </button>
+                                    )}
+                                  </div>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    value={r.val}
+                                    onChange={(e) =>
+                                      updateMatchScoringRank(
+                                        selectedMatchId,
+                                        i,
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="h-8"
+                                  />
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={handleSaveMatchScoring}
+                            disabled={savingMatchScoring}
+                          >
+                            {savingMatchScoring ? (
+                              <span className="flex items-center gap-2">
+                                <IconLoader2
+                                  size={14}
+                                  className="animate-spin"
+                                />
+                                Saving…
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                <IconDeviceFloppy size={14} />
+                                Save Scoring Config
+                              </span>
+                            )}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={handleSaveScoring} disabled={savingScoring}>
-                  {savingScoring ? (
-                    <span className="flex items-center gap-2">
-                      <IconLoader2 size={14} className="animate-spin" />
-                      Saving…
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <IconDeviceFloppy size={14} />
-                      Save Scoring Config
-                    </span>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  );
+                })()}
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>

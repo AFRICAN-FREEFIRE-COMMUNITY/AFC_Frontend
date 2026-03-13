@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import {
   Card,
@@ -20,7 +20,24 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import { env } from "@/lib/env";
+import { IconLoader2 } from "@tabler/icons-react";
+import axios from "axios";
 import { EventFormType } from "./types";
+
+interface Sponsor {
+  id: number;
+  full_name: string;
+  username: string;
+}
 
 interface StepSponsorRequirementProps {
   form: UseFormReturn<EventFormType>;
@@ -28,6 +45,41 @@ interface StepSponsorRequirementProps {
 
 export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
   const sponsorRequired = form.watch("is_sponsored");
+  const { token } = useAuth();
+
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [sponsorsLoading, setSponsorsLoading] = useState(false);
+  const [selectedSponsorId, setSelectedSponsorId] = useState<string>("");
+
+  useEffect(() => {
+    if (!sponsorRequired || !token) return;
+    const fetchSponsors = async () => {
+      setSponsorsLoading(true);
+      try {
+        const res = await axios.get(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-sponsors/`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        setSponsors(res.data.sponsors ?? []);
+      } catch {
+        // silently fail
+      } finally {
+        setSponsorsLoading(false);
+      }
+    };
+    fetchSponsors();
+  }, [sponsorRequired, token]);
+
+  const handleSponsorSelect = (value: string) => {
+    setSelectedSponsorId(value);
+    const sponsor = sponsors.find((s) => String(s.id) === value);
+    if (sponsor) {
+      // @ts-ignore
+      form.setValue("sponsor_name", sponsor.full_name);
+      // @ts-ignore
+      form.setValue("sponsor_username", sponsor.username);
+    }
+  };
 
   return (
     <Card>
@@ -70,7 +122,37 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
 
         {sponsorRequired && (
           <div className="space-y-4">
-            {/* Sponsor Name */}
+            {/* Sponsor Select */}
+            <div className="flex flex-col gap-1.5">
+              <Label>Sponsor</Label>
+              {sponsorsLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <IconLoader2 className="size-4 animate-spin" />
+                  Loading sponsors...
+                </div>
+              ) : (
+                <Select
+                  value={selectedSponsorId}
+                  onValueChange={handleSponsorSelect}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a sponsor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sponsors.map((s) => (
+                      <SelectItem key={s.id} value={String(s.id)}>
+                        {s.full_name} ({s.username})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Selecting a sponsor auto-fills the name and username below.
+              </p>
+            </div>
+
+            {/* Sponsor Name (auto-filled) */}
             <FormField
               // @ts-ignore
               control={form.control}
@@ -86,7 +168,7 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
               )}
             />
 
-            {/* Sponsor Username */}
+            {/* Sponsor Username (auto-filled) */}
             <FormField
               // @ts-ignore
               control={form.control}

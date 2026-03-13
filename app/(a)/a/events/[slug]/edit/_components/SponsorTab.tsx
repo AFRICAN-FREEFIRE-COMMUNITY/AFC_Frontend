@@ -15,7 +15,7 @@ interface SponsorForm {
   sponsor_name: string;
   sponsor_username: string;
   requirement_description: string;
-  uuid_label: string;
+  sponsor_field_label: string;
 }
 
 interface SponsorTabProps {
@@ -129,11 +129,11 @@ export default function SponsorTab({
                 <Label>Field Label</Label>
                 <Input
                   placeholder="e.g. Garena UUID, Player ID, Account ID"
-                  value={sponsorForm.uuid_label}
+                  value={sponsorForm.sponsor_field_label}
                   onChange={(e) =>
                     setSponsorForm((p) => ({
                       ...p,
-                      uuid_label: e.target.value,
+                      sponsor_field_label: e.target.value,
                     }))
                   }
                 />

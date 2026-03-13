@@ -109,6 +109,11 @@ export const EventFormSchema = z
       .optional(),
     restriction_mode: z.enum(["allow_only", "block_selected"]).optional(),
     selected_locations: z.array(z.string()).optional(),
+    is_sponsored: z.boolean().optional(),
+    sponsor_name: z.string().optional(),
+    sponsor_username: z.string().optional(),
+    requirement_description: z.string().optional(),
+    uuid_label: z.string().optional(),
   })
   .refine(
     (data) => {

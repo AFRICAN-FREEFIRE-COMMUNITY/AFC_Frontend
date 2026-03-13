@@ -26,17 +26,17 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { ITEMS_PER_PAGE } from "@/constants";
-import { IconPlus, IconSearch, IconX } from "@tabler/icons-react";
+import { IconEdit, IconPlus, IconSearch, IconX } from "@tabler/icons-react";
 import axios from "axios";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface SponsorAccount {
-  sponsor_id: number;
+  user_id: number;
+  username: string;
+  email: string;
   full_name: string;
-  in_game_name: string;
-  events: { event_id: number; event_name: string }[];
 }
 
 export default function SponsorsAdminPage() {
@@ -48,13 +48,11 @@ export default function SponsorsAdminPage() {
 
   const fetchSponsors = useCallback(async () => {
     try {
-      // TODO: replace with actual endpoint once available
-      // const res = await axios.get(
-      //   `${env.NEXT_PUBLIC_BACKEND_API_URL}/sponsors/get-all-sponsors/`,
-      //   { headers: { Authorization: `Bearer ${token}` } },
-      // );
-      // setSponsors(res.data.sponsors ?? []);
-      setSponsors([]);
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-sponsors/`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setSponsors(res.data ?? []);
     } catch {
       toast.error("Failed to load sponsors.");
     } finally {
@@ -78,7 +76,8 @@ export default function SponsorsAdminPage() {
     return sponsors.filter(
       (s) =>
         s.full_name.toLowerCase().includes(q) ||
-        s.in_game_name.toLowerCase().includes(q),
+        s.username.toLowerCase().includes(q) ||
+        s.email.toLowerCase().includes(q),
     );
   }, [sponsors, search]);
 
@@ -105,10 +104,10 @@ export default function SponsorsAdminPage() {
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
+      <div className="relative">
         <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <Input
-          placeholder="Search by name or IGN..."
+          placeholder="Search by name, username or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -133,40 +132,34 @@ export default function SponsorsAdminPage() {
         </Card>
       ) : (
         <Card className="pt-2">
-          <CardContent className="p-0">
+          <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Full Name</TableHead>
-                    <TableHead>In-Game Name</TableHead>
-                    <TableHead>Assigned Events</TableHead>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginated.map((s) => (
-                    <TableRow key={s.sponsor_id}>
+                    <TableRow key={s.user_id}>
                       <TableCell className="font-medium">
                         {s.full_name}
                       </TableCell>
-                      <TableCell>{s.in_game_name}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {s.events.length === 0 ? (
-                            <span className="text-muted-foreground text-xs">
-                              None
-                            </span>
-                          ) : (
-                            s.events.map((e) => (
-                              <span
-                                key={e.event_id}
-                                className="bg-muted text-xs px-2 py-0.5 rounded-full"
-                              >
-                                {e.event_name}
-                              </span>
-                            ))
-                          )}
-                        </div>
+                      <TableCell className="text-muted-foreground">
+                        @{s.username}
+                      </TableCell>
+                      <TableCell>{s.email}</TableCell>
+                      <TableCell className="text-right">
+                        <Button asChild size="sm" variant="ghost">
+                          <Link href={`/a/sponsors/${s.user_id}/edit`}>
+                            <IconEdit className="size-4" />
+                            Edit
+                          </Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

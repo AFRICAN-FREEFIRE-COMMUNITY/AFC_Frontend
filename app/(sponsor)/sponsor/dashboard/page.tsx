@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -39,111 +39,138 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { ITEMS_PER_PAGE } from "@/constants";
-import {
-  IconCheck,
-  IconChevronDown,
-  IconChevronUp,
-  IconLoader2,
-  IconSearch,
-  IconX,
-} from "@tabler/icons-react";
+import { IconCheck, IconLoader2, IconSearch, IconX } from "@tabler/icons-react";
 import axios from "axios";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-interface Competitor {
-  competitor_id: number;
-  user_id: number;
-  username: string;
-  team_id: number | null;
-  team_name: string | null;
-  sponsor_id: string;
-  status: "pending" | "confirmed" | "rejected";
-}
+// ── Types ──────────────────────────────────────────────────────────────────────
 
-interface AssignedEvent {
-  event_id: number;
-  event_name: string;
-  slug: string;
-  sponsor_field_label: string;
-}
-
+type Status = "pending" | "confirmed" | "rejected";
 type ActionType = "confirm" | "reject";
 type StatusFilter = "all" | "pending" | "confirmed" | "rejected";
 
+interface Player {
+  // derived unique key for the row
+  id: number;
+  event_id: number;
+  event_name: string;
+  username: string;
+  team_name: string | null;
+  user_id_from_sponsor: string | null;
+  status: Status;
+}
+
 interface RejectDialogState {
   open: boolean;
-  competitor_id: number | null;
+  id: number | null;
   username: string;
   reason: string;
   loading: boolean;
 }
 
-function EventSection({
-  event,
-  token,
-}: {
-  event: AssignedEvent;
-  token: string;
-}) {
-  const [competitors, setCompetitors] = useState<Competitor[]>([]);
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: Status }) {
+  const map: Record<Status, string> = {
+    pending: "bg-yellow-100 text-yellow-700",
+    confirmed: "bg-green-100 text-green-700",
+    rejected: "bg-red-100 text-red-700",
+  };
+  return (
+    <span
+      className={cn(
+        "px-2 py-0.5 rounded-full text-xs font-medium capitalize",
+        map[status],
+      )}
+    >
+      {status}
+    </span>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default function SponsorDashboardPage() {
+  const { token, loading: authLoading, user } = useAuth();
+
+  const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-  const [collapsed, setCollapsed] = useState(false);
   const [pendingActions, setPendingActions] = useState<Map<number, ActionType>>(
     new Map(),
   );
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [page, setPage] = useState(1);
+
   const [rejectDialog, setRejectDialog] = useState<RejectDialogState>({
     open: false,
-    competitor_id: null,
+    id: null,
     username: "",
     reason: "",
     loading: false,
   });
 
   useEffect(() => {
+    if (authLoading || !token) return;
+
     const load = async () => {
       try {
         const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-competitors-and-their-sponsor-id/`,
-          { event_id: String(event.event_id) },
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-list-of-players-in-sponsor-event/`,
+          {},
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        setCompetitors(res.data.competitors ?? []);
+
+        const entries: any[] = res.data ?? [];
+
+        const mapped: Player[] = entries.map((e) => ({
+          // solo entries use player_id; team entries use member_id
+          id: e.member_id ?? e.player_id,
+          event_id: e.event_id,
+          event_name: e.event_name,
+          username: e.member_username ?? e.player_username,
+          team_name: e.team_name ?? null,
+          user_id_from_sponsor: e.user_id_from_sponsor,
+          status: "pending" as Status,
+        }));
+
+        setPlayers(mapped);
       } catch {
-        toast.error(`Failed to load registrants for "${event.event_name}".`);
+        toast.error("Failed to load your sponsored events.");
       } finally {
         setLoading(false);
       }
     };
+
     load();
-  }, [event.event_id, token]);
+  }, [authLoading, token]);
+
+  // ── Filtering ────────────────────────────────────────────────────────────────
 
   const filtered = useMemo(() => {
     setPage(1);
     const q = search.toLowerCase().trim();
-    return competitors.filter((c) => {
+    return players.filter((p) => {
       const matchesSearch =
         !q ||
-        c.username.toLowerCase().includes(q) ||
-        c.sponsor_id.toLowerCase().includes(q) ||
-        (c.team_name ?? "").toLowerCase().includes(q);
-      const matchesStatus =
-        statusFilter === "all" || c.status === statusFilter;
+        p.username.toLowerCase().includes(q) ||
+        (p.team_name ?? "").toLowerCase().includes(q) ||
+        (p.user_id_from_sponsor ?? "").toLowerCase().includes(q) ||
+        p.event_name.toLowerCase().includes(q);
+      const matchesStatus = statusFilter === "all" || p.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [competitors, search, statusFilter]);
+  }, [players, search, statusFilter]);
 
   const counts = useMemo(
     () => ({
-      all: competitors.length,
-      pending: competitors.filter((c) => c.status === "pending").length,
-      confirmed: competitors.filter((c) => c.status === "confirmed").length,
-      rejected: competitors.filter((c) => c.status === "rejected").length,
+      all: players.length,
+      pending: players.filter((p) => p.status === "pending").length,
+      confirmed: players.filter((p) => p.status === "confirmed").length,
+      rejected: players.filter((p) => p.status === "rejected").length,
     }),
-    [competitors],
+    [players],
   );
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
@@ -152,61 +179,53 @@ function EventSection({
     page * ITEMS_PER_PAGE,
   );
 
-  const updateStatus = (id: number, status: Competitor["status"]) => {
-    setCompetitors((prev) =>
-      prev.map((c) => (c.competitor_id === id ? { ...c, status } : c)),
-    );
+  // ── Actions ──────────────────────────────────────────────────────────────────
+
+  const updateStatus = (id: number, status: Status) => {
+    setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
   };
 
-  const handleConfirm = async (competitor_id: number, username: string) => {
-    setPendingActions((prev) => new Map(prev).set(competitor_id, "confirm"));
+  const handleConfirm = async (id: number, username: string) => {
+    setPendingActions((prev) => new Map(prev).set(id, "confirm"));
     try {
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/confirm-player/`,
-        { member_id: String(competitor_id) },
+        { member_id: String(id) },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      updateStatus(competitor_id, "confirmed");
+      updateStatus(id, "confirmed");
       toast.success(`${username} confirmed.`);
     } catch {
       toast.error(`Failed to confirm ${username}.`);
     } finally {
       setPendingActions((prev) => {
         const next = new Map(prev);
-        next.delete(competitor_id);
+        next.delete(id);
         return next;
       });
     }
   };
 
-  const openRejectDialog = (competitor_id: number, username: string) => {
-    setRejectDialog({
-      open: true,
-      competitor_id,
-      username,
-      reason: "",
-      loading: false,
-    });
+  const openRejectDialog = (id: number, username: string) => {
+    setRejectDialog({ open: true, id, username, reason: "", loading: false });
   };
 
   const handleRejectConfirm = async () => {
-    if (!rejectDialog.competitor_id) return;
+    if (!rejectDialog.id) return;
     setRejectDialog((prev) => ({ ...prev, loading: true }));
-    setPendingActions((prev) =>
-      new Map(prev).set(rejectDialog.competitor_id!, "reject"),
-    );
+    setPendingActions((prev) => new Map(prev).set(rejectDialog.id!, "reject"));
     try {
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/reject-player/`,
         {
-          member_id: String(rejectDialog.competitor_id),
+          member_id: String(rejectDialog.id),
           ...(rejectDialog.reason.trim()
             ? { reason: rejectDialog.reason.trim() }
             : {}),
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      updateStatus(rejectDialog.competitor_id, "rejected");
+      updateStatus(rejectDialog.id, "rejected");
       toast.success(`${rejectDialog.username} rejected.`);
       setRejectDialog((prev) => ({ ...prev, open: false }));
     } catch {
@@ -215,300 +234,235 @@ function EventSection({
       setRejectDialog((prev) => ({ ...prev, loading: false }));
       setPendingActions((prev) => {
         const next = new Map(prev);
-        next.delete(rejectDialog.competitor_id!);
+        next.delete(rejectDialog.id!);
         return next;
       });
     }
   };
 
-  const statusBadge = (status: Competitor["status"]) => {
-    const map = {
-      pending: "bg-yellow-100 text-yellow-700",
-      confirmed: "bg-green-100 text-green-700",
-      rejected: "bg-red-100 text-red-700",
-    };
+  // ── Render ───────────────────────────────────────────────────────────────────
+
+  if (loading || authLoading) {
     return (
-      <span
-        className={cn(
-          "px-2 py-0.5 rounded-full text-xs font-medium capitalize",
-          map[status],
-        )}
-      >
-        {status}
-      </span>
+      <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
+        <IconLoader2 className="size-5 animate-spin" />
+        Loading your events...
+      </div>
     );
-  };
+  }
 
   return (
-    <>
-      <Card>
-        {/* Event header */}
-        <CardHeader
-          className="cursor-pointer select-none"
-          onClick={() => setCollapsed((v) => !v)}
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
+      <div>
+        <h1 className="text-2xl font-bold text-primary">
+          Welcome{user?.full_name ? `, ${user.full_name}` : ""}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {counts.all} registrant{counts.all !== 1 ? "s" : ""} ·{" "}
+          {counts.pending} pending · {counts.confirmed} confirmed ·{" "}
+          {counts.rejected} rejected
+        </p>
+      </div>
+
+      {/* Search + Filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by username, event, team, or sponsor ID…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+          {search && (
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={() => setSearch("")}
+            >
+              <IconX className="size-4" />
+            </button>
+          )}
+        </div>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => setStatusFilter(v as StatusFilter)}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-0.5">
-              <CardTitle className="text-base">{event.event_name}</CardTitle>
-              {!loading && (
-                <p className="text-xs text-muted-foreground">
-                  {counts.all} registrant{counts.all !== 1 ? "s" : ""} ·{" "}
-                  {counts.pending} pending · {counts.confirmed} confirmed ·{" "}
-                  {counts.rejected} rejected
-                </p>
-              )}
-            </div>
-            <div className="text-muted-foreground">
-              {collapsed ? (
-                <IconChevronDown className="size-5" />
-              ) : (
-                <IconChevronUp className="size-5" />
-              )}
-            </div>
-          </div>
-        </CardHeader>
+          <SelectTrigger className="w-full sm:w-44">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All ({counts.all})</SelectItem>
+            <SelectItem value="pending">Pending ({counts.pending})</SelectItem>
+            <SelectItem value="confirmed">
+              Confirmed ({counts.confirmed})
+            </SelectItem>
+            <SelectItem value="rejected">
+              Rejected ({counts.rejected})
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        {!collapsed && (
-          <CardContent className="flex flex-col gap-4 pt-0">
-            {loading ? (
-              <div className="flex items-center justify-center py-10 gap-2 text-muted-foreground text-sm">
-                <IconLoader2 className="size-4 animate-spin" />
-                Loading registrants...
-              </div>
-            ) : competitors.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                No registrations yet for this event.
-              </p>
-            ) : (
-              <>
-                {/* Search + Filter */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="relative flex-1">
-                    <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by username, ID, or team..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="pl-9"
-                    />
-                    {search && (
-                      <button
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        onClick={() => setSearch("")}
-                      >
-                        <IconX className="size-4" />
-                      </button>
-                    )}
-                  </div>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(v) =>
-                      setStatusFilter(v as StatusFilter)
-                    }
-                  >
-                    <SelectTrigger className="w-full sm:w-44">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All ({counts.all})</SelectItem>
-                      <SelectItem value="pending">
-                        Pending ({counts.pending})
-                      </SelectItem>
-                      <SelectItem value="confirmed">
-                        Confirmed ({counts.confirmed})
-                      </SelectItem>
-                      <SelectItem value="rejected">
-                        Rejected ({counts.rejected})
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {filtered.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">
-                    No results match your search or filter.
-                  </p>
-                ) : (
-                  <>
-                    <div className="overflow-x-auto rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Username</TableHead>
-                            <TableHead>Team</TableHead>
-                            <TableHead>{event.sponsor_field_label || "Sponsor ID"}</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">
-                              Actions
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {paginated.map((c) => {
-                            const isActing = pendingActions.has(
-                              c.competitor_id,
-                            );
-                            return (
-                              <TableRow key={c.competitor_id}>
-                                <TableCell>{c.username}</TableCell>
-                                <TableCell>
-                                  {c.team_name ?? "—"}
-                                </TableCell>
-                                <TableCell>{c.sponsor_id}</TableCell>
-                                <TableCell>
-                                  {statusBadge(c.status)}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {c.status === "pending" ? (
-                                    <div className="flex gap-2 justify-end">
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
-                                        disabled={isActing}
-                                        onClick={() =>
-                                          handleConfirm(
-                                            c.competitor_id,
-                                            c.username,
-                                          )
-                                        }
-                                      >
-                                        {isActing &&
-                                        pendingActions.get(
-                                          c.competitor_id,
-                                        ) === "confirm" ? (
-                                          <IconLoader2 className="size-3 animate-spin" />
-                                        ) : (
-                                          <IconCheck className="size-3" />
-                                        )}
-                                        Confirm
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
-                                        disabled={isActing}
-                                        onClick={() =>
-                                          openRejectDialog(
-                                            c.competitor_id,
-                                            c.username,
-                                          )
-                                        }
-                                      >
-                                        {isActing &&
-                                        pendingActions.get(
-                                          c.competitor_id,
-                                        ) === "reject" ? (
-                                          <IconLoader2 className="size-3 animate-spin" />
-                                        ) : (
-                                          <IconX className="size-3" />
-                                        )}
-                                        Reject
-                                      </Button>
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground">
-                                      —
-                                    </span>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </div>
-
-                    {totalPages > 1 && (
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <p className="text-xs text-muted-foreground">
-                          Showing {(page - 1) * ITEMS_PER_PAGE + 1}–
-                          {Math.min(
-                            page * ITEMS_PER_PAGE,
-                            filtered.length,
-                          )}{" "}
-                          of {filtered.length}
-                        </p>
-                        <Pagination>
-                          <PaginationContent>
-                            <PaginationItem>
-                              <PaginationPrevious
-                                onClick={() =>
-                                  setPage((p) => Math.max(1, p - 1))
-                                }
-                                aria-disabled={page === 1}
-                                className={
-                                  page === 1
-                                    ? "pointer-events-none opacity-50"
-                                    : "cursor-pointer"
-                                }
-                              />
-                            </PaginationItem>
-                            {Array.from(
-                              { length: totalPages },
-                              (_, i) => i + 1,
-                            )
-                              .filter(
-                                (p) =>
-                                  p === 1 ||
-                                  p === totalPages ||
-                                  Math.abs(p - page) <= 1,
-                              )
-                              .reduce<(number | "ellipsis")[]>(
-                                (acc, p, idx, arr) => {
-                                  if (
-                                    idx > 0 &&
-                                    p - (arr[idx - 1] as number) > 1
-                                  )
-                                    acc.push("ellipsis");
-                                  acc.push(p);
-                                  return acc;
-                                },
-                                [],
-                              )
-                              .map((p, idx) =>
-                                p === "ellipsis" ? (
-                                  <PaginationItem key={`ellipsis-${idx}`}>
-                                    <PaginationEllipsis />
-                                  </PaginationItem>
-                                ) : (
-                                  <PaginationItem key={p}>
-                                    <PaginationLink
-                                      isActive={page === p}
-                                      onClick={() => setPage(p as number)}
-                                      className="cursor-pointer"
-                                    >
-                                      {p}
-                                    </PaginationLink>
-                                  </PaginationItem>
-                                ),
-                              )}
-                            <PaginationItem>
-                              <PaginationNext
-                                onClick={() =>
-                                  setPage((p) =>
-                                    Math.min(totalPages, p + 1),
-                                  )
-                                }
-                                aria-disabled={page === totalPages}
-                                className={
-                                  page === totalPages
-                                    ? "pointer-events-none opacity-50"
-                                    : "cursor-pointer"
-                                }
-                              />
-                            </PaginationItem>
-                          </PaginationContent>
-                        </Pagination>
-                      </div>
-                    )}
-                  </>
-                )}
-              </>
-            )}
+      {/* Table */}
+      {filtered.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            {players.length === 0
+              ? "No registrations found for your sponsored events."
+              : "No results match your search or filter."}
           </CardContent>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <Card className="pt-2">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Team</TableHead>
+                    <TableHead>Sponsor ID</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginated.map((p) => {
+                    const isActing = pendingActions.has(p.id);
+                    return (
+                      <TableRow key={`${p.event_id}-${p.id}`}>
+                        <TableCell>{p.username}</TableCell>
+                        <TableCell>{p.team_name ?? "—"}</TableCell>
+                        <TableCell>
+                          {p.user_id_from_sponsor ?? (
+                            <span className="text-muted-foreground italic text-xs">
+                              Not provided
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={p.status} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {p.status === "pending" ? (
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
+                                disabled={isActing}
+                                onClick={() => handleConfirm(p.id, p.username)}
+                              >
+                                {isActing &&
+                                pendingActions.get(p.id) === "confirm" ? (
+                                  <IconLoader2 className="size-3 animate-spin" />
+                                ) : (
+                                  <IconCheck className="size-3" />
+                                )}
+                                Confirm
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
+                                disabled={isActing}
+                                onClick={() =>
+                                  openRejectDialog(p.id, p.username)
+                                }
+                              >
+                                {isActing &&
+                                pendingActions.get(p.id) === "reject" ? (
+                                  <IconLoader2 className="size-3 animate-spin" />
+                                ) : (
+                                  <IconX className="size-3" />
+                                )}
+                                Reject
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              —
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Showing{" "}
+                {filtered.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1}–
+                {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of{" "}
+                {filtered.length}
+              </p>
+              {totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        aria-disabled={page === 1}
+                        className={
+                          page === 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(
+                        (p) =>
+                          p === 1 ||
+                          p === totalPages ||
+                          Math.abs(p - page) <= 1,
+                      )
+                      .reduce<(number | "ellipsis")[]>((acc, p, idx, arr) => {
+                        if (idx > 0 && p - (arr[idx - 1] as number) > 1)
+                          acc.push("ellipsis");
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((p, idx) =>
+                        p === "ellipsis" ? (
+                          <PaginationItem key={`ellipsis-${idx}`}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        ) : (
+                          <PaginationItem key={p}>
+                            <PaginationLink
+                              isActive={page === p}
+                              onClick={() => setPage(p as number)}
+                              className="cursor-pointer"
+                            >
+                              {p}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ),
+                      )}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() =>
+                          setPage((p) => Math.min(totalPages, p + 1))
+                        }
+                        aria-disabled={page === totalPages}
+                        className={
+                          page === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Reject dialog */}
       <Dialog
@@ -562,70 +516,6 @@ function EventSection({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
-  );
-}
-
-export default function SponsorDashboardPage() {
-  const { token, loading: authLoading, user } = useAuth();
-  const [events, setEvents] = useState<AssignedEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (authLoading || !token) return;
-
-    const load = async () => {
-      try {
-        // TODO: replace with actual endpoint once available
-        // const res = await axios.get(
-        //   `${env.NEXT_PUBLIC_BACKEND_API_URL}/sponsors/get-my-events/`,
-        //   { headers: { Authorization: `Bearer ${token}` } },
-        // );
-        // setEvents(res.data.events ?? []);
-        setEvents([]);
-      } catch {
-        toast.error("Failed to load your assigned events.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, [authLoading, token]);
-
-  if (loading || authLoading) {
-    return (
-      <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
-        <IconLoader2 className="size-5 animate-spin" />
-        Loading your events...
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">
-          Welcome{user?.full_name ? `, ${user.full_name}` : ""}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Review and manage registrants for your assigned events below.
-        </p>
-      </div>
-
-      {events.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center text-muted-foreground">
-            No events have been assigned to your account yet.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {events.map((e) => (
-            <EventSection key={e.event_id} event={e} token={token!} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

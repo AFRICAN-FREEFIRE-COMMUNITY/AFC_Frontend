@@ -19,10 +19,19 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
 import { HomeBoxes } from "../_components/HomeBoxes";
 import { LatestNews } from "../_components/LatestNews";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ComingSoon } from "@/components/ComingSoon";
 import { quarterlyTiers, teamRankings } from "@/constants";
 import { ProtectedRoute } from "../_components/ProtectedRoute";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
 // Mock data for shop items
 const shopItems = [
@@ -100,9 +109,47 @@ const shopItems = [
   },
 ];
 
+function SponsorRedirectModal() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (user?.roles?.includes("sponsor_admin")) {
+      setOpen(true);
+    }
+  }, [user]);
+
+  function handleRedirect() {
+    setOpen(false);
+    router.push("/sponsor/dashboard");
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Sponsor Dashboard Available</DialogTitle>
+          <DialogDescription>
+            You have a sponsor admin account. Would you like to go to your
+            Sponsor Dashboard instead?
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Stay Here
+          </Button>
+          <Button onClick={handleRedirect}>Go to Sponsor Dashboard</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function HomePage() {
   return (
     <ProtectedRoute>
+      <SponsorRedirectModal />
       <PageHeader
         title="Welcome to AFC"
         description="Your hub for African Freefire community stats and events"

@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +35,7 @@ import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
+import { SaveConfirmModal } from "../../../events/[slug]/edit/_components/SaveConfirmModal";
 
 type Params = Promise<{
   slug: string;
@@ -55,6 +55,12 @@ export default function EditNewsForm({ params }: { params: Params }) {
 
   const [pending, startTransition] = useTransition();
   const [pendingEdit, startEditTransition] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingFormData, setPendingFormData] =
+    useState<EditNewsFormSchemaType | null>(null);
+  const [confirmChanges, setConfirmChanges] = useState<
+    { label: string; from: string; to: string }[]
+  >([]);
 
   const form = useForm<EditNewsFormSchemaType>({
     resolver: zodResolver(EditNewsFormSchema),
@@ -105,12 +111,55 @@ export default function EditNewsForm({ params }: { params: Params }) {
   function handleSaveDraft() {}
 
   function handlePublish(data: EditNewsFormSchemaType) {
+    // Build the list of changes to show in the confirmation modal
+    const changes: { label: string; from: string; to: string }[] = [];
+
+    if (newsDetails) {
+      if (data.title !== (newsDetails.news_title || ""))
+        changes.push({
+          label: "Title",
+          from: newsDetails.news_title || "—",
+          to: data.title,
+        });
+      if (data.category !== (newsDetails.category || ""))
+        changes.push({
+          label: "Category",
+          from: newsDetails.category || "—",
+          to: data.category,
+        });
+      if (data.event !== (newsDetails.related_events || ""))
+        changes.push({
+          label: "Related Event",
+          from: newsDetails.related_events || "—",
+          to: data.event || "—",
+        });
+      if (data.author !== (newsDetails.author || ""))
+        changes.push({
+          label: "Author",
+          from: newsDetails.author || "—",
+          to: data.author,
+        });
+      if (data.content !== (newsDetails.content || ""))
+        changes.push({ label: "Content", from: "(previous)", to: "(updated)" });
+      if (selectedFile)
+        changes.push({
+          label: "Image",
+          from: "(previous)",
+          to: selectedFile.name,
+        });
+    }
+
+    setConfirmChanges(changes);
+    setPendingFormData(data);
+    setConfirmOpen(true);
+  }
+
+  function handleConfirmPublish() {
+    if (!pendingFormData) return;
+    const data = pendingFormData;
     startEditTransition(async () => {
       try {
-        // Create FormData object
         const formData = new FormData();
-
-        // Append all form fields to FormData
         formData.append("news_id", data.id.toString());
         formData.append("news_title", data.title);
         formData.append("content", data.content);
@@ -118,7 +167,6 @@ export default function EditNewsForm({ params }: { params: Params }) {
         formData.append("related_event", data.event!);
         formData.append("author", data.author);
 
-        // Append profile picture file if selected
         if (selectedFile) {
           formData.append("images", selectedFile);
         }
@@ -134,10 +182,10 @@ export default function EditNewsForm({ params }: { params: Params }) {
         );
 
         toast.success(response.data.message);
+        setConfirmOpen(false);
         router.back();
       } catch (error: any) {
         toast.error(error?.response?.data?.message || "Internal server error");
-        return;
       }
     });
   }
@@ -149,6 +197,13 @@ export default function EditNewsForm({ params }: { params: Params }) {
 
   return (
     <div>
+      <SaveConfirmModal
+        open={confirmOpen}
+        changes={confirmChanges}
+        pendingSubmit={pendingEdit}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmPublish}
+      />
       <PageHeader title={`Edit News: ${newsDetails?.news_title}`} back />
       <Form {...form}>
         <Card>

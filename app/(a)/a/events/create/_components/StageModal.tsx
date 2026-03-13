@@ -394,7 +394,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Minus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import {
   AVAILABLE_MAPS,
@@ -432,7 +432,8 @@ interface StageModalProps {
     field: keyof GroupType,
     value: string | number | string[] | Record<string, string>,
   ) => void;
-  onToggleMap: (groupIndex: number, map: string) => void;
+  onAddMap: (groupIndex: number, map: string) => void;
+  onRemoveMap: (groupIndex: number, map: string) => void;
   onSaveStage: () => void;
 }
 
@@ -559,7 +560,8 @@ export function StageModal({
   tempGroups,
   onGroupCountChange,
   onUpdateGroupDetail,
-  onToggleMap,
+  onAddMap,
+  onRemoveMap,
   onSaveStage,
 }: StageModalProps) {
   const handleNextStep = () => {
@@ -916,21 +918,38 @@ export function StageModal({
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {AVAILABLE_MAPS.map((map) => {
-                      const isSelected =
-                        group.match_maps?.includes(map) || false;
+                      const count = (group.match_maps || []).filter(
+                        (m: string) => m === map,
+                      ).length;
                       return (
-                        <Badge
+                        <div
                           key={map}
-                          onClick={() => onToggleMap(index, map)}
-                          className={`cursor-pointer ${
-                            isSelected
+                          className={`flex items-center gap-1 border rounded-md px-2 py-1 text-sm ${
+                            count > 0
                               ? "border-primary bg-primary/10 text-primary"
-                              : "border-gray-300 bg-muted text-black dark:text-white hover:border-primary/50"
+                              : "border-border bg-muted text-foreground"
                           }`}
                         >
-                          {map}
-                          {isSelected && <span className="ml-1">✓</span>}
-                        </Badge>
+                          <button
+                            type="button"
+                            onClick={() => onRemoveMap(index, map)}
+                            disabled={count === 0}
+                            className="disabled:opacity-30 hover:opacity-70"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="min-w-[1.25rem] text-center font-medium">
+                            {count}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onAddMap(index, map)}
+                            className="hover:opacity-70"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                          <span className="ml-1">{map}</span>
+                        </div>
                       );
                     })}
                   </div>

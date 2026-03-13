@@ -34,30 +34,14 @@ interface Props {
   /** Fetch on first download click (list page) */
   fetchData?: () => Promise<LeaderboardData>;
   participantType?: "team" | "solo";
+  /** Kill point value — used to compute placement pts for PLACE column */
+  killPoint?: number;
 }
+
+const ROWS_PER_PAGE = 15;
 
 // ── Canvas helpers ─────────────────────────────────────────────────────────────
 
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-): string[] {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    const test = current ? `${current} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = test;
-    }
-  }
-  if (current) lines.push(current);
-  return lines;
-}
 
 function truncateText(
   ctx: CanvasRenderingContext2D,
@@ -72,265 +56,225 @@ function truncateText(
   return t + "…";
 }
 
-function drawHeader(
-  ctx: CanvasRenderingContext2D,
-  leaderboardName: string,
-  subtitle: string,
-  width: number,
-  s: number,
-  pad: number,
-): number {
-  let y = 70 * s;
-
-  // Accent line
-  ctx.fillStyle = "#ea580c";
-  ctx.fillRect(0, 0, width, 6 * s);
-
-  // Label
-  ctx.fillStyle = "#ea580c";
-  ctx.font = `600 ${22 * s}px sans-serif`;
-  ctx.fillText("LEADERBOARD", pad, y);
-  y += 36 * s;
-
-  // Subtitle (Team / Player)
-  ctx.fillStyle = "#9ca3af";
-  ctx.font = `${18 * s}px sans-serif`;
-  ctx.fillText(subtitle, pad, y);
-  y += 36 * s;
-
-  // Event name
-  ctx.fillStyle = "#ffffff";
-  ctx.font = `bold ${40 * s}px sans-serif`;
-  const nameLines = wrapText(ctx, leaderboardName.toUpperCase(), width - pad * 2);
-  for (const line of nameLines) {
-    ctx.fillText(line, pad, y);
-    y += 48 * s;
-  }
-  y += 8 * s;
-
-  // Divider
-  ctx.strokeStyle = "#ea580c";
-  ctx.lineWidth = 2 * s;
-  ctx.beginPath();
-  ctx.moveTo(pad, y);
-  ctx.lineTo(width - pad, y);
-  ctx.stroke();
-  y += 26 * s;
-
-  return y;
+function loadImage(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
 }
 
-function drawTeamCanvas(
-  rows: any[],
-  leaderboardName: string,
-  width: number,
-  height: number,
-): HTMLCanvasElement {
+// ── Template-based team canvas (1080×1080) ─────────────────────────────────────
+// Pixel positions tuned to /public/assets/leaderboard-template.png
+
+async function drawTeamPageWithTemplate(
+  rows: any[], // up to ROWS_PER_PAGE rows for this page
+  startRank: number, // global rank of the first row (1-based)
+  pageNum: number,
+  totalPages: number,
+  killPoint: number,
+): Promise<HTMLCanvasElement> {
+  const W = 1080,
+    H = 1080;
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext("2d")!;
-  const s = width / 1080;
-  const pad = 56 * s;
 
-  // Background
-  ctx.fillStyle = "#0c0c0c";
-  ctx.fillRect(0, 0, width, height);
-  const grad = ctx.createLinearGradient(0, 0, width, height * 0.4);
-  grad.addColorStop(0, "rgba(234,88,12,0.15)");
-  grad.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, width, height * 0.4);
-
-  let y = drawHeader(ctx, leaderboardName, "TEAM STANDINGS", width, s, pad);
-
-  // Columns
-  const colRank = pad;
-  const colName = pad + 72 * s;
-  const colKills = width - 260 * s;
-  const colPts = width - 90 * s;
-
-  // Table header
-  ctx.fillStyle = "#6b7280";
-  ctx.font = `${18 * s}px sans-serif`;
-  ctx.fillText("RK", colRank, y);
-  ctx.fillText("TEAM", colName, y);
-  ctx.fillText("KILLS", colKills, y);
-  ctx.fillText("PTS", colPts, y);
-  y += 12 * s;
-  ctx.strokeStyle = "#1f2937";
-  ctx.lineWidth = 1 * s;
-  ctx.beginPath();
-  ctx.moveTo(pad, y);
-  ctx.lineTo(width - pad, y);
-  ctx.stroke();
-  y += 24 * s;
-
-  const rowH = 50 * s;
-  const maxRows = Math.floor((height - y - 50 * s) / rowH);
-  const rankColors = ["#f59e0b", "#9ca3af", "#cd7c2f"];
-
-  for (let i = 0; i < Math.min(rows.length, maxRows); i++) {
-    const row = rows[i];
-    const ry = y + i * rowH;
-
-    if (i < 3) {
-      ctx.fillStyle =
-        i === 0 ? "rgba(234,88,12,0.10)" : "rgba(255,255,255,0.03)";
-      ctx.fillRect(pad - 12 * s, ry - 30 * s, width - pad * 2 + 24 * s, 44 * s);
-    }
-
-    ctx.fillStyle = i < 3 ? rankColors[i] : "#4b5563";
-    ctx.font = `bold ${23 * s}px sans-serif`;
-    ctx.fillText(`#${i + 1}`, colRank, ry);
-
-    ctx.fillStyle = i === 0 ? "#ffffff" : "#e5e7eb";
-    ctx.font = `${i === 0 ? "bold " : ""}${23 * s}px sans-serif`;
-    const name = row.team_name || row.competitor__user__username || row.username || "Unknown";
-    ctx.fillText(truncateText(ctx, name, colKills - colName - 20 * s), colName, ry);
-
-    ctx.fillStyle = "#9ca3af";
-    ctx.font = `${21 * s}px sans-serif`;
-    ctx.fillText(String((row.total_kills || row.kills) ?? 0), colKills, ry);
-
-    ctx.fillStyle = i === 0 ? "#ea580c" : "#f97316";
-    ctx.font = `bold ${23 * s}px sans-serif`;
-    ctx.fillText((row.total_points || row.total_pts || 0).toFixed(1), colPts, ry);
+  // Draw template background
+  const templateImg = await loadImage("/assets/leaderboard-template.png");
+  if (templateImg) {
+    ctx.drawImage(templateImg, 0, 0, W, H);
+  } else {
+    // Fallback: plain dark background
+    ctx.fillStyle = "#0a1a0a";
+    ctx.fillRect(0, 0, W, H);
   }
 
-  ctx.fillStyle = "#374151";
-  ctx.font = `${16 * s}px sans-serif`;
-  ctx.fillText("AFC • africanfreechampionship.com", pad, height - 24 * s);
+  // ── Row layout (tuned to template) ──
+  // Header area ends around y=195; footer starts around y=930
+  // 15 rows across ~735px → ~49px each
+  const ROW_START_Y = 197; // top edge of first row box
+  const ROW_H = 48.8; // row height
+
+  // Column x positions (1080px wide template, aligned to header text)
+  // # | TEAM NAME ···· | BOOYAH | PLACE | KILLS | TOTAL
+  const COL_RANK_CX = 62; // rank: centered
+  const COL_NAME_X = 120; // team name: left-aligned
+  const COL_NAME_MAXW = 455; // max team name width before truncation
+  const COL_BOOYAH_CX = 622; // booyah: centered
+  const COL_PLACE_CX = 732; // placement pts: centered
+  const COL_KILLS_CX = 838; // kills: centered
+  const COL_TOTAL_RX = 950; // total: RIGHT-aligned (prevents right-border overflow)
+
+  const rankColors = ["#f6c90e", "#b0b8c1", "#cd7c2f"]; // gold, silver, bronze
+
+  ctx.textBaseline = "middle";
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const globalRank = startRank + i;
+    const cy = ROW_START_Y + i * ROW_H + ROW_H / 2;
+
+    const name =
+      row.team_name ||
+      row.competitor__user__username ||
+      row.username ||
+      "Unknown";
+    const kills = (row.total_kills || row.kills) ?? 0;
+    const booyah = row.total_booyah ?? 0;
+    const total = row.total_points || row.total_pts || 0;
+    // Placement pts = total – (kills × kill_point)
+    const placePts =
+      killPoint > 0 ? Math.max(0, total - kills * killPoint).toFixed(1) : "—";
+
+    const isTop3 = globalRank <= 3;
+
+    // Rank
+    ctx.fillStyle = isTop3 ? rankColors[globalRank - 1] : "#e5e7eb";
+    ctx.font = `bold ${isTop3 ? 21 : 19}px 'Arial', sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(String(globalRank), COL_RANK_CX, cy);
+
+    // Team name
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `${isTop3 ? "bold " : ""}19px 'Arial', sans-serif`;
+    ctx.textAlign = "left";
+    ctx.fillText(truncateText(ctx, name, COL_NAME_MAXW), COL_NAME_X, cy);
+
+    // Booyah
+    ctx.fillStyle = "#e5e7eb";
+    ctx.font = "18px 'Arial', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(String(booyah), COL_BOOYAH_CX, cy);
+
+    // Placement pts
+    ctx.fillText(placePts, COL_PLACE_CX, cy);
+
+    // Kills
+    ctx.fillText(String(kills), COL_KILLS_CX, cy);
+
+    // Total — right-aligned so it never clips the right border
+    ctx.fillStyle = isTop3 ? "#fde047" : "#d4f764";
+    ctx.font = `bold ${isTop3 ? 20 : 18}px 'Arial', sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillText(total.toFixed(1), COL_TOTAL_RX, cy);
+  }
+
+  // Page indicator (only when there are multiple pages)
+  if (totalPages > 1) {
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.font = "bold 16px 'Arial', sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`Page ${pageNum} / ${totalPages}`, W - 36, 928);
+  }
 
   return canvas;
 }
 
-function drawPlayerCanvas(
+// ── Template-based player canvas (1080×1080) ──────────────────────────────────
+// Reuses the same template image; player columns mapped to template column slots:
+//   # | USERNAME (NAME) | TEAM (BOOYAH slot) | KILLS (PLACE slot) | DMG (KILLS slot) | ASSISTS (TOTAL slot)
+
+async function drawPlayerPageWithTemplate(
   rows: any[],
-  leaderboardName: string,
-  width: number,
-  height: number,
-): HTMLCanvasElement {
+  startRank: number,
+  pageNum: number,
+  totalPages: number,
+): Promise<HTMLCanvasElement> {
+  const W = 1080,
+    H = 1080;
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext("2d")!;
-  const s = width / 1080;
-  const pad = 56 * s;
 
-  ctx.fillStyle = "#0c0c0c";
-  ctx.fillRect(0, 0, width, height);
-  const grad = ctx.createLinearGradient(0, 0, width, height * 0.4);
-  grad.addColorStop(0, "rgba(99,102,241,0.15)");
-  grad.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, width, height * 0.4);
-
-  // Accent line — indigo for player
-  ctx.fillStyle = "#6366f1";
-  ctx.fillRect(0, 0, width, 6 * s);
-
-  let y = 70 * s;
-
-  ctx.fillStyle = "#6366f1";
-  ctx.font = `600 ${22 * s}px sans-serif`;
-  ctx.fillText("LEADERBOARD", pad, y);
-  y += 36 * s;
-  ctx.fillStyle = "#9ca3af";
-  ctx.font = `${18 * s}px sans-serif`;
-  ctx.fillText("PLAYER STATS", pad, y);
-  y += 36 * s;
-  ctx.fillStyle = "#ffffff";
-  ctx.font = `bold ${40 * s}px sans-serif`;
-  const nameLines = wrapText(ctx, leaderboardName.toUpperCase(), width - pad * 2);
-  for (const line of nameLines) {
-    ctx.fillText(line, pad, y);
-    y += 48 * s;
-  }
-  y += 8 * s;
-  ctx.strokeStyle = "#6366f1";
-  ctx.lineWidth = 2 * s;
-  ctx.beginPath();
-  ctx.moveTo(pad, y);
-  ctx.lineTo(width - pad, y);
-  ctx.stroke();
-  y += 26 * s;
-
-  // Columns: Rank | Player | Team | Kills | Dmg | Assists
-  const colW = (width - pad * 2) / 6;
-  const cols = {
-    rank: pad,
-    player: pad + colW * 0.6,
-    team: pad + colW * 2.2,
-    kills: pad + colW * 3.7,
-    dmg: pad + colW * 4.6,
-    assists: pad + colW * 5.4,
-  };
-
-  ctx.fillStyle = "#6b7280";
-  ctx.font = `${17 * s}px sans-serif`;
-  ctx.fillText("RK", cols.rank, y);
-  ctx.fillText("PLAYER", cols.player, y);
-  ctx.fillText("TEAM", cols.team, y);
-  ctx.fillText("KILLS", cols.kills, y);
-  ctx.fillText("DMG", cols.dmg, y);
-  ctx.fillText("AST", cols.assists, y);
-  y += 12 * s;
-  ctx.strokeStyle = "#1f2937";
-  ctx.lineWidth = 1 * s;
-  ctx.beginPath();
-  ctx.moveTo(pad, y);
-  ctx.lineTo(width - pad, y);
-  ctx.stroke();
-  y += 22 * s;
-
-  const rowH = 46 * s;
-  const maxRows = Math.floor((height - y - 50 * s) / rowH);
-  const rankColors = ["#f59e0b", "#9ca3af", "#cd7c2f"];
-
-  for (let i = 0; i < Math.min(rows.length, maxRows); i++) {
-    const p = rows[i];
-    const ry = y + i * rowH;
-
-    if (i < 3) {
-      ctx.fillStyle =
-        i === 0 ? "rgba(99,102,241,0.10)" : "rgba(255,255,255,0.03)";
-      ctx.fillRect(pad - 12 * s, ry - 28 * s, width - pad * 2 + 24 * s, 40 * s);
-    }
-
-    ctx.fillStyle = i < 3 ? rankColors[i] : "#4b5563";
-    ctx.font = `bold ${20 * s}px sans-serif`;
-    ctx.fillText(`#${i + 1}`, cols.rank, ry);
-
-    ctx.fillStyle = i === 0 ? "#ffffff" : "#e5e7eb";
-    ctx.font = `${i === 0 ? "bold " : ""}${20 * s}px sans-serif`;
-    ctx.fillText(
-      truncateText(ctx, p.username || "Unknown", cols.team - cols.player - 10 * s),
-      cols.player,
-      ry,
-    );
-
-    ctx.fillStyle = "#9ca3af";
-    ctx.font = `${18 * s}px sans-serif`;
-    ctx.fillText(
-      truncateText(ctx, p.team_name || "—", cols.kills - cols.team - 10 * s),
-      cols.team,
-      ry,
-    );
-
-    ctx.fillStyle = "#d1d5db";
-    ctx.font = `${20 * s}px sans-serif`;
-    ctx.fillText(String(p.total_kills ?? 0), cols.kills, ry);
-
-    ctx.fillStyle = "#9ca3af";
-    ctx.font = `${18 * s}px sans-serif`;
-    ctx.fillText(String(p.total_damage ?? 0), cols.dmg, ry);
-    ctx.fillText(String(p.total_assists ?? 0), cols.assists, ry);
+  // Draw template background
+  const templateImg = await loadImage("/assets/leaderboard-template.png");
+  if (templateImg) {
+    ctx.drawImage(templateImg, 0, 0, W, H);
+  } else {
+    ctx.fillStyle = "#0a1a0a";
+    ctx.fillRect(0, 0, W, H);
   }
 
-  ctx.fillStyle = "#374151";
-  ctx.font = `${16 * s}px sans-serif`;
-  ctx.fillText("AFC • africanfreechampionship.com", pad, height - 24 * s);
+  // Same row layout as team template
+  const ROW_START_Y = 197;
+  const ROW_H = 48.8;
+
+  // Reuse same column x positions — re-purpose for player data:
+  // COL_RANK_CX   → rank
+  // COL_NAME_X    → username (left-aligned)
+  // COL_BOOYAH_CX → team name (centered)
+  // COL_PLACE_CX  → kills (centered)
+  // COL_KILLS_CX  → damage (centered)
+  // COL_TOTAL_RX  → assists (right-aligned)
+  const COL_RANK_CX = 62;
+  const COL_NAME_X = 120;
+  const COL_NAME_MAXW = 400; // shorter so team name fits
+  const COL_TEAM_CX = 590;
+  const COL_KILLS_CX = 700;
+  const COL_DMG_CX = 810;
+  const COL_ASSISTS_RX = 950;
+
+  const rankColors = ["#f6c90e", "#b0b8c1", "#cd7c2f"];
+
+  ctx.textBaseline = "middle";
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const globalRank = startRank + i;
+    const cy = ROW_START_Y + i * ROW_H + ROW_H / 2;
+
+    const username = row.username || row.competitor__user__username || "Unknown";
+    const teamName = row.team_name || "—";
+    const kills = row.total_kills ?? 0;
+    const damage = row.total_damage ?? 0;
+    const assists = row.total_assists ?? 0;
+
+    const isTop3 = globalRank <= 3;
+
+    // Rank
+    ctx.fillStyle = isTop3 ? rankColors[globalRank - 1] : "#e5e7eb";
+    ctx.font = `bold ${isTop3 ? 21 : 19}px 'Arial', sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(String(globalRank), COL_RANK_CX, cy);
+
+    // Username
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `${isTop3 ? "bold " : ""}19px 'Arial', sans-serif`;
+    ctx.textAlign = "left";
+    ctx.fillText(truncateText(ctx, username, COL_NAME_MAXW), COL_NAME_X, cy);
+
+    // Team
+    ctx.fillStyle = "#e5e7eb";
+    ctx.font = "16px 'Arial', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(truncateText(ctx, teamName, 160), COL_TEAM_CX, cy);
+
+    // Kills
+    ctx.fillStyle = "#e5e7eb";
+    ctx.font = "18px 'Arial', sans-serif";
+    ctx.fillText(String(kills), COL_KILLS_CX, cy);
+
+    // Damage
+    ctx.fillText(String(damage), COL_DMG_CX, cy);
+
+    // Assists — right-aligned
+    ctx.fillStyle = isTop3 ? "#fde047" : "#d4f764";
+    ctx.font = `bold ${isTop3 ? 20 : 18}px 'Arial', sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillText(String(assists), COL_ASSISTS_RX, cy);
+  }
+
+  // Page indicator
+  if (totalPages > 1) {
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.font = "bold 16px 'Arial', sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`Page ${pageNum} / ${totalPages}`, W - 36, 928);
+  }
 
   return canvas;
 }
@@ -355,6 +299,7 @@ export function DownloadLeaderboardButton({
   playerRows: playerRowsProp,
   fetchData,
   participantType = "team",
+  killPoint = 1,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [cache, setCache] = useState<LeaderboardData | null>(null);
@@ -370,7 +315,7 @@ export function DownloadLeaderboardButton({
     return fetched;
   };
 
-  const handleTeamImage = async (preset: "instagram" | "youtube") => {
+  const handleTeamImage = async () => {
     setBusy(true);
     try {
       const { teamRows } = await getData();
@@ -378,13 +323,33 @@ export function DownloadLeaderboardButton({
         toast.error("No team leaderboard data to download");
         return;
       }
-      const [w, h] = preset === "instagram" ? [1080, 1080] : [1280, 720];
-      const suffix = preset === "instagram" ? "1080x1080" : "1280x720";
-      downloadCanvas(
-        drawTeamCanvas(teamRows, leaderboardName, w, h),
-        `${leaderboardName}-team-${suffix}.png`,
+
+      const totalPages = Math.ceil(teamRows.length / ROWS_PER_PAGE);
+
+      for (let p = 0; p < totalPages; p++) {
+        const pageRows = teamRows.slice(
+          p * ROWS_PER_PAGE,
+          (p + 1) * ROWS_PER_PAGE,
+        );
+        const startRank = p * ROWS_PER_PAGE + 1;
+        const canvas = await drawTeamPageWithTemplate(
+          pageRows,
+          startRank,
+          p + 1,
+          totalPages,
+          killPoint,
+        );
+        const suffix = totalPages > 1 ? `-page${p + 1}` : "";
+        downloadCanvas(canvas, `${leaderboardName}-standings${suffix}.png`);
+        // Small delay between downloads so the browser doesn't block them
+        if (p < totalPages - 1) await new Promise((r) => setTimeout(r, 300));
+      }
+
+      toast.success(
+        totalPages > 1
+          ? `Downloaded ${totalPages} images (${teamRows.length} teams)`
+          : "Team standings image downloaded",
       );
-      toast.success("Team leaderboard image downloaded");
     } catch {
       toast.error("Failed to generate image");
     } finally {
@@ -392,7 +357,7 @@ export function DownloadLeaderboardButton({
     }
   };
 
-  const handlePlayerImage = async (preset: "instagram" | "youtube") => {
+  const handlePlayerImage = async () => {
     setBusy(true);
     try {
       const { playerRows } = await getData();
@@ -400,13 +365,31 @@ export function DownloadLeaderboardButton({
         toast.error("No player leaderboard data to download");
         return;
       }
-      const [w, h] = preset === "instagram" ? [1080, 1080] : [1280, 720];
-      const suffix = preset === "instagram" ? "1080x1080" : "1280x720";
-      downloadCanvas(
-        drawPlayerCanvas(playerRows, leaderboardName, w, h),
-        `${leaderboardName}-player-${suffix}.png`,
+
+      const totalPages = Math.ceil(playerRows.length / ROWS_PER_PAGE);
+
+      for (let p = 0; p < totalPages; p++) {
+        const pageRows = playerRows.slice(
+          p * ROWS_PER_PAGE,
+          (p + 1) * ROWS_PER_PAGE,
+        );
+        const startRank = p * ROWS_PER_PAGE + 1;
+        const canvas = await drawPlayerPageWithTemplate(
+          pageRows,
+          startRank,
+          p + 1,
+          totalPages,
+        );
+        const suffix = totalPages > 1 ? `-page${p + 1}` : "";
+        downloadCanvas(canvas, `${leaderboardName}-players${suffix}.png`);
+        if (p < totalPages - 1) await new Promise((r) => setTimeout(r, 300));
+      }
+
+      toast.success(
+        totalPages > 1
+          ? `Downloaded ${totalPages} images (${playerRows.length} players)`
+          : "Player leaderboard image downloaded",
       );
-      toast.success("Player leaderboard image downloaded");
     } catch {
       toast.error("Failed to generate image");
     } finally {
@@ -425,12 +408,21 @@ export function DownloadLeaderboardButton({
 
       const wb = XLSX.utils.book_new();
 
-      // ── Sheet 1: Team Leaderboard ──
       if (teamRows.length > 0) {
-        const teamHeaders = ["Rank", "Team", "Matches Played", "Booyahs", "Kills", "Total Points"];
+        const teamHeaders = [
+          "Rank",
+          "Team",
+          "Matches Played",
+          "Booyahs",
+          "Kills",
+          "Total Points",
+        ];
         const teamData = teamRows.map((row, idx) => [
           idx + 1,
-          row.team_name || row.competitor__user__username || row.username || "Unknown",
+          row.team_name ||
+            row.competitor__user__username ||
+            row.username ||
+            "Unknown",
           row.matches_played ?? "",
           row.total_booyah ?? "",
           (row.total_kills || row.kills) ?? 0,
@@ -438,14 +430,25 @@ export function DownloadLeaderboardButton({
         ]);
         const wsTeam = XLSX.utils.aoa_to_sheet([teamHeaders, ...teamData]);
         wsTeam["!cols"] = [
-          { wch: 6 }, { wch: 30 }, { wch: 15 }, { wch: 10 }, { wch: 8 }, { wch: 14 },
+          { wch: 6 },
+          { wch: 30 },
+          { wch: 15 },
+          { wch: 10 },
+          { wch: 8 },
+          { wch: 14 },
         ];
         XLSX.utils.book_append_sheet(wb, wsTeam, "Team Leaderboard");
       }
 
-      // ── Sheet 2: Player Leaderboard ──
       if (playerRows.length > 0) {
-        const playerHeaders = ["Rank", "Player", "Team", "Kills", "Damage", "Assists"];
+        const playerHeaders = [
+          "Rank",
+          "Player",
+          "Team",
+          "Kills",
+          "Damage",
+          "Assists",
+        ];
         const playerData = playerRows.map((p, idx) => [
           idx + 1,
           p.username || "Unknown",
@@ -454,9 +457,17 @@ export function DownloadLeaderboardButton({
           p.total_damage ?? 0,
           p.total_assists ?? 0,
         ]);
-        const wsPlayer = XLSX.utils.aoa_to_sheet([playerHeaders, ...playerData]);
+        const wsPlayer = XLSX.utils.aoa_to_sheet([
+          playerHeaders,
+          ...playerData,
+        ]);
         wsPlayer["!cols"] = [
-          { wch: 6 }, { wch: 25 }, { wch: 25 }, { wch: 8 }, { wch: 10 }, { wch: 10 },
+          { wch: 6 },
+          { wch: 25 },
+          { wch: 25 },
+          { wch: 8 },
+          { wch: 10 },
+          { wch: 10 },
         ];
         XLSX.utils.book_append_sheet(wb, wsPlayer, "Player Leaderboard");
       }
@@ -484,17 +495,13 @@ export function DownloadLeaderboardButton({
           Download
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuLabel className="flex items-center gap-2">
-          <IconUsers size={14} /> {isSolo ? "Solo" : "Team"} Leaderboard
+          <IconUsers size={14} /> {isSolo ? "Solo" : "Team"} Standings
         </DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => handleTeamImage("instagram")}>
+        <DropdownMenuItem onClick={handleTeamImage}>
           <IconPhoto size={14} className="mr-2" />
-          Instagram (1080×1080)
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleTeamImage("youtube")}>
-          <IconPhoto size={14} className="mr-2" />
-          YouTube (1280×720)
+          Image (1080×1080) — Template
         </DropdownMenuItem>
 
         {!isSolo && (
@@ -503,13 +510,9 @@ export function DownloadLeaderboardButton({
             <DropdownMenuLabel className="flex items-center gap-2">
               <IconUser size={14} /> Player Leaderboard
             </DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => handlePlayerImage("instagram")}>
+            <DropdownMenuItem onClick={() => handlePlayerImage()}>
               <IconPhoto size={14} className="mr-2" />
-              Instagram (1080×1080)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePlayerImage("youtube")}>
-              <IconPhoto size={14} className="mr-2" />
-              YouTube (1280×720)
+              Image (1080×1080) — Template
             </DropdownMenuItem>
           </>
         )}

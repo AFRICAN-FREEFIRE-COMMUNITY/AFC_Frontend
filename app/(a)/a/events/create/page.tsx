@@ -241,12 +241,22 @@ export default function CreateEventPage() {
     setTempGroups(updated);
   };
 
-  const toggleMapSelection = (groupIndex: number, map: string) => {
+  const addMapToGroup = (groupIndex: number, map: string) => {
     const updated = [...tempGroups];
-    const current = updated[groupIndex].match_maps || [];
-    updated[groupIndex].match_maps = current.includes(map)
-      ? current.filter((m) => m !== map)
-      : [...current, map];
+    updated[groupIndex].match_maps = [
+      ...(updated[groupIndex].match_maps || []),
+      map,
+    ];
+    setTempGroups(updated);
+  };
+
+  const removeOneMapFromGroup = (groupIndex: number, map: string) => {
+    const updated = [...tempGroups];
+    const current: string[] = updated[groupIndex].match_maps || [];
+    const idx = current.lastIndexOf(map);
+    if (idx !== -1) {
+      updated[groupIndex].match_maps = current.filter((_, i) => i !== idx);
+    }
     setTempGroups(updated);
   };
 
@@ -677,7 +687,8 @@ export default function CreateEventPage() {
           tempGroups={tempGroups}
           onGroupCountChange={handleGroupCountChange}
           onUpdateGroupDetail={updateGroupDetail}
-          onToggleMap={toggleMapSelection}
+          onAddMap={addMapToGroup}
+          onRemoveMap={removeOneMapFromGroup}
           onSaveStage={handleSaveStage}
         />
       </Form>
