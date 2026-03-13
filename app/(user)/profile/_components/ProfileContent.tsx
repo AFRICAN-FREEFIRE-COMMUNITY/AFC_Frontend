@@ -139,7 +139,7 @@ export const ProfileContent = () => {
                 <Link href="/profile/edit">Edit Profile</Link>
               </Button>
               <Button
-                disabled={pending || !discordConnected}
+                disabled={pending || discordConnected}
                 onClick={handleDiscordConnect}
                 variant={"secondary"}
                 className="w-full"
