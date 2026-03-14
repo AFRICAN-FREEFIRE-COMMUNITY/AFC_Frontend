@@ -34,7 +34,7 @@ export function PlayerClient({ username }: { username: string }) {
       try {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-player-details/`,
-          { player_ign: username },
+          { player_ign: decodeURIComponent(username) },
         );
         setPlayerData(response.data.player);
       } catch (error: any) {

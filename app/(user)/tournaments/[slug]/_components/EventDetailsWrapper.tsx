@@ -1716,6 +1716,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           setDiscordConnected(true);
           setModalStep("DISCORD_JOIN");
           toast.success("Discord account linked successfully!");
+        } else if (discordStatus === "already_linked") {
+          setDiscordConnected(true);
+          setModalStep("DISCORD_JOIN");
+          toast.info(
+            "This Discord account is already linked to your profile.",
+          );
         } else {
           setDiscordConnected(false);
           toast.error(
@@ -2274,12 +2280,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                           <p className="font-white font-semibold text-base">
                             {team.team_name}
                           </p>
-                          <p className="font-white text-xs capitalize">
-                            {team.status}
-                          </p>
                         </div>
                       </div>
-                      <Badge>Confirmed</Badge>
+                      <Badge variant={statusVariant[team.status]}>
+                        {team.status}
+                      </Badge>
                     </CardContent>
                   </Card>
                 ),

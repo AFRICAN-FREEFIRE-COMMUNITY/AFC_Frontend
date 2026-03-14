@@ -706,11 +706,12 @@ const Page = ({ params }: { params: Params }) => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {teamDetails?.members?.slice(
-                          (membersPage - 1) * ITEMS_PER_PAGE,
-                          membersPage * ITEMS_PER_PAGE,
-                        ).map(
-                          (member: any, index: string) => (
+                        {teamDetails?.members
+                          ?.slice(
+                            (membersPage - 1) * ITEMS_PER_PAGE,
+                            membersPage * ITEMS_PER_PAGE,
+                          )
+                          .map((member: any, index: string) => (
                             <TableRow key={index}>
                               <TableCell>{member.username}</TableCell>
                               <TableCell>
@@ -729,8 +730,7 @@ const Page = ({ params }: { params: Params }) => {
                                 </Button>
                               </TableCell>
                             </TableRow>
-                          ),
-                        )}
+                          ))}
                       </TableBody>
                       {teamDetails?.members === undefined && (
                         <p className="italic text-sm text-center py-4 w-full">
@@ -738,23 +738,51 @@ const Page = ({ params }: { params: Params }) => {
                         </p>
                       )}
                     </Table>
-                    {Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE) > 1 && (
+                    {Math.ceil(
+                      (teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE,
+                    ) > 1 && (
                       <div className="flex items-center justify-between mt-4">
                         <p className="hidden md:block text-sm text-muted-foreground">
                           Showing {(membersPage - 1) * ITEMS_PER_PAGE + 1}–
-                          {Math.min(membersPage * ITEMS_PER_PAGE, teamDetails?.members?.length ?? 0)} of{" "}
-                          {teamDetails?.members?.length ?? 0}
+                          {Math.min(
+                            membersPage * ITEMS_PER_PAGE,
+                            teamDetails?.members?.length ?? 0,
+                          )}{" "}
+                          of {teamDetails?.members?.length ?? 0}
                         </p>
                         <Pagination className="w-full md:w-auto mx-0">
                           <PaginationContent>
                             <PaginationItem>
                               <PaginationPrevious
-                                onClick={() => setMembersPage((p) => Math.max(1, p - 1))}
-                                className={membersPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                onClick={() =>
+                                  setMembersPage((p) => Math.max(1, p - 1))
+                                }
+                                className={
+                                  membersPage === 1
+                                    ? "pointer-events-none opacity-50"
+                                    : "cursor-pointer"
+                                }
                               />
                             </PaginationItem>
-                            {Array.from({ length: Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE) }, (_, i) => i + 1)
-                              .filter((page) => page === 1 || page === Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE) || Math.abs(page - membersPage) <= 1)
+                            {Array.from(
+                              {
+                                length: Math.ceil(
+                                  (teamDetails?.members?.length ?? 0) /
+                                    ITEMS_PER_PAGE,
+                                ),
+                              },
+                              (_, i) => i + 1,
+                            )
+                              .filter(
+                                (page) =>
+                                  page === 1 ||
+                                  page ===
+                                    Math.ceil(
+                                      (teamDetails?.members?.length ?? 0) /
+                                        ITEMS_PER_PAGE,
+                                    ) ||
+                                  Math.abs(page - membersPage) <= 1,
+                              )
                               .map((page, idx, arr) => (
                                 <React.Fragment key={page}>
                                   {idx > 0 && arr[idx - 1] !== page - 1 && (
@@ -775,8 +803,26 @@ const Page = ({ params }: { params: Params }) => {
                               ))}
                             <PaginationItem>
                               <PaginationNext
-                                onClick={() => setMembersPage((p) => Math.min(Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE), p + 1))}
-                                className={membersPage === Math.ceil((teamDetails?.members?.length ?? 0) / ITEMS_PER_PAGE) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                onClick={() =>
+                                  setMembersPage((p) =>
+                                    Math.min(
+                                      Math.ceil(
+                                        (teamDetails?.members?.length ?? 0) /
+                                          ITEMS_PER_PAGE,
+                                      ),
+                                      p + 1,
+                                    ),
+                                  )
+                                }
+                                className={
+                                  membersPage ===
+                                  Math.ceil(
+                                    (teamDetails?.members?.length ?? 0) /
+                                      ITEMS_PER_PAGE,
+                                  )
+                                    ? "pointer-events-none opacity-50"
+                                    : "cursor-pointer"
+                                }
                               />
                             </PaginationItem>
                           </PaginationContent>
@@ -1031,134 +1077,192 @@ const Page = ({ params }: { params: Params }) => {
                         <NothingFound text="No pending join requests." />
                       ) : (
                         <>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="truncate">Name</TableHead>
-                              <TableHead className="truncate">UID</TableHead>
-                              <TableHead className="truncate">
-                                Actions
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {joinRequests?.slice(
-                              (joinRequestsPage - 1) * ITEMS_PER_PAGE,
-                              joinRequestsPage * ITEMS_PER_PAGE,
-                            ).map((request: any) => (
-                              <TableRow key={request.request_id}>
-                                <TableCell>{request.requester}</TableCell>
-                                <TableCell>{request.uid}</TableCell>
-                                <TableCell>
-                                  <div className="flex items-center gap-2">
-                                    <Button
-                                      size="sm"
-                                      variant="default"
-                                      disabled={
-                                        pendingApproveRequest ||
-                                        pendingDenyRequest
-                                      }
-                                      // onClick={() =>
-                                      //   handleApproveJoinRequest(
-                                      //     request.request_id,
-                                      //   )
-                                      // }
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="truncate">Name</TableHead>
+                                <TableHead className="truncate">UID</TableHead>
+                                <TableHead className="truncate">
+                                  Actions
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {joinRequests
+                                ?.slice(
+                                  (joinRequestsPage - 1) * ITEMS_PER_PAGE,
+                                  joinRequestsPage * ITEMS_PER_PAGE,
+                                )
+                                .map((request: any) => (
+                                  <TableRow key={request.request_id}>
+                                    <TableCell>{request.requester}</TableCell>
+                                    <TableCell>{request.uid}</TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="default"
+                                          disabled={
+                                            pendingApproveRequest ||
+                                            pendingDenyRequest
+                                          }
+                                          // onClick={() =>
+                                          //   handleApproveJoinRequest(
+                                          //     request.request_id,
+                                          //   )
+                                          // }
+                                          onClick={() =>
+                                            requireAuth(() =>
+                                              handleApproveJoinRequest(
+                                                request.request._id,
+                                              ),
+                                            )
+                                          }
+                                        >
+                                          {pendingApproveRequest ? (
+                                            <Loader text="" />
+                                          ) : (
+                                            "Approve"
+                                          )}
+                                        </Button>
+
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                          disabled={
+                                            pendingApproveRequest ||
+                                            pendingDenyRequest
+                                          }
+                                          onClick={() =>
+                                            requireAuth(() => {
+                                              handleDenyJoinRequest(
+                                                request.request_id,
+                                              );
+                                            })
+                                          }
+                                        >
+                                          {pendingDenyRequest ? (
+                                            <Loader text="" />
+                                          ) : (
+                                            "Deny"
+                                          )}
+                                        </Button>
+
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          asChild
+                                        >
+                                          <Link
+                                            href={`/players/${request.requester}`}
+                                          >
+                                            View Profile
+                                          </Link>
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
+                          </Table>
+                          {Math.ceil(
+                            (joinRequests?.length ?? 0) / ITEMS_PER_PAGE,
+                          ) > 1 && (
+                            <div className="flex items-center justify-between mt-4">
+                              <p className="hidden md:block text-sm text-muted-foreground">
+                                Showing{" "}
+                                {(joinRequestsPage - 1) * ITEMS_PER_PAGE + 1}–
+                                {Math.min(
+                                  joinRequestsPage * ITEMS_PER_PAGE,
+                                  joinRequests?.length ?? 0,
+                                )}{" "}
+                                of {joinRequests?.length ?? 0}
+                              </p>
+                              <Pagination className="w-full md:w-auto mx-0">
+                                <PaginationContent>
+                                  <PaginationItem>
+                                    <PaginationPrevious
                                       onClick={() =>
-                                        requireAuth(() =>
-                                          handleApproveJoinRequest(
-                                            request.request._id,
+                                        setJoinRequestsPage((p) =>
+                                          Math.max(1, p - 1),
+                                        )
+                                      }
+                                      className={
+                                        joinRequestsPage === 1
+                                          ? "pointer-events-none opacity-50"
+                                          : "cursor-pointer"
+                                      }
+                                    />
+                                  </PaginationItem>
+                                  {Array.from(
+                                    {
+                                      length: Math.ceil(
+                                        (joinRequests?.length ?? 0) /
+                                          ITEMS_PER_PAGE,
+                                      ),
+                                    },
+                                    (_, i) => i + 1,
+                                  )
+                                    .filter(
+                                      (page) =>
+                                        page === 1 ||
+                                        page ===
+                                          Math.ceil(
+                                            (joinRequests?.length ?? 0) /
+                                              ITEMS_PER_PAGE,
+                                          ) ||
+                                        Math.abs(page - joinRequestsPage) <= 1,
+                                    )
+                                    .map((page, idx, arr) => (
+                                      <React.Fragment key={page}>
+                                        {idx > 0 &&
+                                          arr[idx - 1] !== page - 1 && (
+                                            <PaginationItem>
+                                              <PaginationEllipsis />
+                                            </PaginationItem>
+                                          )}
+                                        <PaginationItem>
+                                          <PaginationLink
+                                            isActive={joinRequestsPage === page}
+                                            onClick={() =>
+                                              setJoinRequestsPage(page)
+                                            }
+                                            className="cursor-pointer"
+                                          >
+                                            {page}
+                                          </PaginationLink>
+                                        </PaginationItem>
+                                      </React.Fragment>
+                                    ))}
+                                  <PaginationItem>
+                                    <PaginationNext
+                                      onClick={() =>
+                                        setJoinRequestsPage((p) =>
+                                          Math.min(
+                                            Math.ceil(
+                                              (joinRequests?.length ?? 0) /
+                                                ITEMS_PER_PAGE,
+                                            ),
+                                            p + 1,
                                           ),
                                         )
                                       }
-                                    >
-                                      {pendingApproveRequest ? (
-                                        <Loader text="" />
-                                      ) : (
-                                        "Approve"
-                                      )}
-                                    </Button>
-
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                      disabled={
-                                        pendingApproveRequest ||
-                                        pendingDenyRequest
+                                      className={
+                                        joinRequestsPage ===
+                                        Math.ceil(
+                                          (joinRequests?.length ?? 0) /
+                                            ITEMS_PER_PAGE,
+                                        )
+                                          ? "pointer-events-none opacity-50"
+                                          : "cursor-pointer"
                                       }
-                                      onClick={() =>
-                                        requireAuth(() => {
-                                          handleDenyJoinRequest(
-                                            request.request_id,
-                                          );
-                                        })
-                                      }
-                                    >
-                                      {pendingDenyRequest ? (
-                                        <Loader text="" />
-                                      ) : (
-                                        "Deny"
-                                      )}
-                                    </Button>
-
-                                    <Button size="sm" variant="ghost" asChild>
-                                      <Link
-                                        href={`/players/${request.requester}`}
-                                      >
-                                        View Profile
-                                      </Link>
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                        {Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE) > 1 && (
-                          <div className="flex items-center justify-between mt-4">
-                            <p className="hidden md:block text-sm text-muted-foreground">
-                              Showing {(joinRequestsPage - 1) * ITEMS_PER_PAGE + 1}–
-                              {Math.min(joinRequestsPage * ITEMS_PER_PAGE, joinRequests?.length ?? 0)} of{" "}
-                              {joinRequests?.length ?? 0}
-                            </p>
-                            <Pagination className="w-full md:w-auto mx-0">
-                              <PaginationContent>
-                                <PaginationItem>
-                                  <PaginationPrevious
-                                    onClick={() => setJoinRequestsPage((p) => Math.max(1, p - 1))}
-                                    className={joinRequestsPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                  />
-                                </PaginationItem>
-                                {Array.from({ length: Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE) }, (_, i) => i + 1)
-                                  .filter((page) => page === 1 || page === Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE) || Math.abs(page - joinRequestsPage) <= 1)
-                                  .map((page, idx, arr) => (
-                                    <React.Fragment key={page}>
-                                      {idx > 0 && arr[idx - 1] !== page - 1 && (
-                                        <PaginationItem>
-                                          <PaginationEllipsis />
-                                        </PaginationItem>
-                                      )}
-                                      <PaginationItem>
-                                        <PaginationLink
-                                          isActive={joinRequestsPage === page}
-                                          onClick={() => setJoinRequestsPage(page)}
-                                          className="cursor-pointer"
-                                        >
-                                          {page}
-                                        </PaginationLink>
-                                      </PaginationItem>
-                                    </React.Fragment>
-                                  ))}
-                                <PaginationItem>
-                                  <PaginationNext
-                                    onClick={() => setJoinRequestsPage((p) => Math.min(Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE), p + 1))}
-                                    className={joinRequestsPage === Math.ceil((joinRequests?.length ?? 0) / ITEMS_PER_PAGE) ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                  />
-                                </PaginationItem>
-                              </PaginationContent>
-                            </Pagination>
-                          </div>
-                        )}
+                                    />
+                                  </PaginationItem>
+                                </PaginationContent>
+                              </Pagination>
+                            </div>
+                          )}
                         </>
                       )}
                     </CardContent>

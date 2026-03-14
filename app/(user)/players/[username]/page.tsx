@@ -20,7 +20,7 @@ export async function generateMetadata(
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_ign: username }),
+        body: JSON.stringify({ player_ign: decodeURIComponent(username) }),
         next: { revalidate: 3600 }, // Cache for 1 hour
       },
     );
