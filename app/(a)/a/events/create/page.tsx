@@ -24,6 +24,7 @@ import { Step5PrizePool } from "./_components/Step5PrizePool";
 import { Step6EventRules } from "./_components/Step6EventRules";
 import { Step7PublishSave } from "./_components/Step7PublishSave";
 import { StepSponsorRequirement } from "./_components/StepSponsorRequirement";
+import { StepWaitlist } from "./_components/StepWaitlist";
 import { StageModal, StageModalData } from "./_components/StageModal";
 
 const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
@@ -104,6 +105,9 @@ export default function CreateEventPage() {
       sponsor_usernames: [],
       sponsor_requirement_description: "",
       sponsor_field_label: "",
+      is_waitlist_enabled: false,
+      waitlist_capacity: undefined,
+      waitlist_discord_role_id: "",
     },
   });
 
@@ -444,6 +448,10 @@ export default function CreateEventPage() {
         isValid = true;
         break;
 
+      case 8:
+        isValid = true;
+        break;
+
       default:
         isValid = true;
     }
@@ -553,6 +561,16 @@ export default function CreateEventPage() {
           );
         }
 
+        // @ts-ignore
+        formData.append("is_waitlist_enabled", (data.is_waitlist_enabled ?? false).toString());
+        // @ts-ignore
+        if (data.is_waitlist_enabled) {
+          // @ts-ignore
+          formData.append("waitlist_capacity", (data.waitlist_capacity ?? "").toString());
+          // @ts-ignore
+          formData.append("waitlist_discord_role_id", data.waitlist_discord_role_id || "");
+        }
+
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`,
           {
@@ -634,7 +652,9 @@ export default function CreateEventPage() {
             />
           )}
           {currentStep === 7 && <StepSponsorRequirement form={form} />}
-          {currentStep === 8 && <Step7PublishSave form={form} />}
+          {/* @ts-ignore */}
+          {currentStep === 8 && <StepWaitlist form={form} />}
+          {currentStep === 9 && <Step7PublishSave form={form} />}
 
           {/* Navigation */}
           <div className="flex justify-between items-center">
@@ -650,7 +670,7 @@ export default function CreateEventPage() {
             )}
 
             <div className="ml-auto flex gap-3">
-              {currentStep < 7 ? (
+              {currentStep < 9 ? (
                 <Button
                   type="button"
                   onClick={handleNextStep}
@@ -658,20 +678,12 @@ export default function CreateEventPage() {
                 >
                   {currentStep === 6 ? "Review & Finalize" : "Next"}
                 </Button>
-              ) : currentStep === 7 ? (
-                <Button
-                  type="button"
-                  onClick={handleNextStep}
-                  disabled={isPending}
-                >
-                  Next
-                </Button>
               ) : (
                 <Button
                   type="button"
                   // @ts-ignore
                   onClick={form.handleSubmit(onSubmit)}
-                  disabled={currentStep !== 8 || isPending || !hasFinalAction}
+                  disabled={currentStep !== 9 || isPending || !hasFinalAction}
                 >
                   {isPending ? "Creating..." : "Create Event"}
                 </Button>

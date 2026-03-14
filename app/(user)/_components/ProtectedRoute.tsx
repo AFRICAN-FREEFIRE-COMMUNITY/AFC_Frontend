@@ -32,10 +32,11 @@ export function ProtectedRoute({
   const hasRequiredAdminRole = () => {
     if (!user || !isAdmin) return false;
 
-    // 1. Get user roles normalized
-    const userRoles = Array.isArray(user.roles)
-      ? user.roles.map(normalizeRole)
-      : [normalizeRole(user.role || "")];
+    // 1. Get user roles normalized (always include both user.role and user.roles)
+    const userRoles = [
+      ...( Array.isArray(user.roles) ? user.roles.map(normalizeRole) : [] ),
+      normalizeRole(user.role || ""),
+    ].filter(Boolean);
 
     // 2. Head Admins/Super Admins can go anywhere
     if (userRoles.includes("head_admin") || userRoles.includes("super_admin"))

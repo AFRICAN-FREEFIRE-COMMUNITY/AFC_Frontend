@@ -46,19 +46,25 @@ export function NavMain({
     // 1. If user isn't logged in or isn't an admin at all, block.
     if (!user || !isAdmin) return false;
 
-    // 2. Super admins/Head Admins usually get global access
-    const userRoles = Array.isArray(user.roles)
-      ? user.roles.map(normalizeRole)
-      : [normalizeRole(user.role || "")];
+    // 2. Build the full set of roles (always include user.role + user.roles)
+    const userRoles = [
+      ...( Array.isArray(user.roles) ? user.roles.map(normalizeRole) : [] ),
+      normalizeRole(user.role || ""),
+    ].filter(Boolean);
 
     if (userRoles.includes("super_admin") || userRoles.includes("head_admin")) {
       return true;
     }
 
-    // 3. If no specific roles are required for the link, let them through
+    // 3. Sponsors can ONLY see links explicitly tagged for them
+    if (userRoles.includes("sponsor")) {
+      return !!linkAllowedRoles?.includes("sponsor");
+    }
+
+    // 4. If no specific roles are required for the link, let them through
     if (!linkAllowedRoles || linkAllowedRoles.length === 0) return true;
 
-    // 4. Check if any of the user's roles match the allowed roles
+    // 5. Check if any of the user's roles match the allowed roles
     return userRoles.some((role) => linkAllowedRoles.includes(role));
   };
 

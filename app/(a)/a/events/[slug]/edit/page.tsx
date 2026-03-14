@@ -35,6 +35,7 @@ import { ParticipantTypeWarningModal } from "./_components/ParticipantTypeWarnin
 import { SaveConfirmModal } from "./_components/SaveConfirmModal";
 import StagesGroupsTab from "./_components/StagesGroupsTab";
 import SponsorTab from "./_components/SponsorTab";
+import WaitlistTab from "./_components/WaitlistTab";
 
 // ============================================================================
 // PAGE COMPONENT
@@ -145,6 +146,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     sponsor_field_label: "Player UUID",
   });
   const [savingSponsor, setSavingSponsor] = useState(false);
+
+  // ── Waitlist ───────────────────────────────────────────────────────────────
+  const [waitlistForm, setWaitlistForm] = useState({
+    is_waitlist_enabled: false,
+    waitlist_capacity: "",
+    waitlist_discord_role_id: "",
+  });
+  const [savingWaitlist, setSavingWaitlist] = useState(false);
 
   // ── Tab error indicators ───────────────────────────────────────────────────
   const [tabErrors, setTabErrors] = useState({
@@ -407,6 +416,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             ) ?? [],
           requirement_description: ed.sponsor_requirement_description ?? "",
           sponsor_field_label: ed.sponsor_field_label ?? "Player UUID",
+        });
+        setWaitlistForm({
+          is_waitlist_enabled: ed.is_waitlist_enabled ?? false,
+          waitlist_capacity: ed.waitlist_capacity != null ? String(ed.waitlist_capacity) : "",
+          waitlist_discord_role_id: ed.waitlist_discord_role_id ?? "",
         });
       }
 
@@ -909,6 +923,100 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     }
   };
 
+  // ── Waitlist save ──────────────────────────────────────────────────────────
+
+  const saveWaitlistSettings = async () => {
+    if (!eventDetails?.event_id || !token) return;
+    setSavingWaitlist(true);
+    try {
+      const data = form.getValues();
+      const formData = new FormData();
+
+      formData.append("event_id", eventDetails.event_id.toString());
+      formData.append("is_draft", data.save_to_drafts ? "True" : "False");
+      formData.append(
+        "event_status",
+        data.save_to_drafts
+          ? "draft"
+          : (data.event_status ?? eventDetails.event_status ?? "upcoming"),
+      );
+      formData.append("event_name", data.event_name);
+      formData.append("competition_type", data.competition_type);
+      formData.append("participant_type", data.participant_type);
+      formData.append("event_type", data.event_type);
+      formData.append("is_public", data.is_public);
+      formData.append("max_teams_or_players", data.max_teams_or_players.toString());
+      formData.append("event_mode", data.event_mode);
+      formData.append("prizepool", data.prizepool);
+      formData.append("number_of_stages", "2");
+      formData.append("start_date", data.start_date);
+      formData.append("end_date", data.end_date);
+      formData.append("registration_open_date", data.registration_open_date);
+      formData.append("registration_end_date", data.registration_end_date);
+      formData.append("registration_link", data.registration_link || "");
+      formData.append("publish_to_tournaments", data.publish_to_tournaments.toString());
+      formData.append("publish_to_news", data.publish_to_news.toString());
+      formData.append("registration_restriction", data.registration_restriction || "none");
+      formData.append("restriction_mode", data.restriction_mode || "allow_only");
+      formData.append(
+        "restricted_countries",
+        JSON.stringify(
+          data.selected_locations && data.selected_locations.length > 0
+            ? data.selected_locations
+            : [],
+        ),
+      );
+      if (rulesInputMethod === "type") {
+        formData.append("event_rules", data.event_rules || "");
+        formData.append("uploaded_rules", "");
+      } else {
+        formData.append("event_rules", "");
+      }
+      formData.append("prize_distribution", JSON.stringify(data.prize_distribution));
+      formData.append(
+        "stream_channels",
+        JSON.stringify(data.stream_channels?.filter((s) => s.trim() !== "") || []),
+      );
+      formData.append("stages", JSON.stringify(data.stages));
+
+      // Keep existing sponsor fields untouched
+      formData.append("is_sponsored", sponsorForm.is_sponsored ? "True" : "False");
+      formData.append("sponsor_name", sponsorForm.sponsor_name || "");
+      formData.append("sponsor_usernames", JSON.stringify(sponsorForm.sponsor_usernames ?? []));
+      formData.append("requirement_description", sponsorForm.requirement_description || "");
+      formData.append("sponsor_field_label", sponsorForm.sponsor_field_label || "Player UUID");
+
+      // Waitlist fields
+      formData.append("is_waitlist_enabled", waitlistForm.is_waitlist_enabled ? "True" : "False");
+      formData.append("waitlist_capacity", waitlistForm.waitlist_capacity || "");
+      formData.append("waitlist_discord_role_id", waitlistForm.waitlist_discord_role_id || "");
+
+      await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      toast.success("Waitlist settings saved!");
+      setEventDetails((prev) =>
+        prev
+          ? {
+              ...prev,
+              is_waitlist_enabled: waitlistForm.is_waitlist_enabled,
+              waitlist_capacity: waitlistForm.waitlist_capacity
+                ? Number(waitlistForm.waitlist_capacity)
+                : null,
+              waitlist_discord_role_id: waitlistForm.waitlist_discord_role_id,
+            }
+          : prev,
+      );
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to save waitlist settings");
+    } finally {
+      setSavingWaitlist(false);
+    }
+  };
+
   // ── Prize distribution ─────────────────────────────────────────────────────
 
   const addPrizePosition = () => {
@@ -1163,6 +1271,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           data.sponsor_field_label || "Player UUID",
         );
 
+        formData.append("is_waitlist_enabled", waitlistForm.is_waitlist_enabled ? "True" : "False");
+        formData.append("waitlist_capacity", waitlistForm.waitlist_capacity || "");
+        formData.append("waitlist_discord_role_id", waitlistForm.waitlist_discord_role_id || "");
+
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
           {
@@ -1278,6 +1390,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
                 )}
               </TabsTrigger>
+              <TabsTrigger value="waitlist" className="px-6 relative">
+                Waitlist
+                {waitlistForm.is_waitlist_enabled && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
+                )}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic_info">
@@ -1365,6 +1483,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 setSponsorForm={setSponsorForm}
                 onSave={saveSponsorRequirement}
                 saving={savingSponsor}
+              />
+            </TabsContent>
+
+            <TabsContent value="waitlist">
+              <WaitlistTab
+                waitlistForm={waitlistForm}
+                setWaitlistForm={setWaitlistForm}
+                onSave={saveWaitlistSettings}
+                saving={savingWaitlist}
               />
             </TabsContent>
           </Tabs>

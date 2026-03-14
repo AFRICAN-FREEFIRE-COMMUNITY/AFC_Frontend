@@ -194,6 +194,9 @@ export const EventFormSchema = z
     sponsor_usernames: z.array(z.string()).optional(),
     sponsor_requirement_description: z.string().optional(),
     sponsor_field_label: z.string().optional(),
+    is_waitlist_enabled: z.boolean().default(false),
+    waitlist_capacity: z.coerce.number().optional(),
+    waitlist_discord_role_id: z.string().optional(),
   })
   .refine(
     (data) => {

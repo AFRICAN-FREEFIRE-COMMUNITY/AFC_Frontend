@@ -90,10 +90,8 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
         {/* Toggle */}
         <div className="flex items-center justify-between rounded-lg border p-4">
           <div className="space-y-0.5">
-            <Label htmlFor="sponsor-toggle" className="text-base font-medium">
-              Enable Sponsor Requirement
-            </Label>
-            <p className="text-sm text-muted-foreground">
+            <Label htmlFor="sponsor-toggle">Enable Sponsor Requirement</Label>
+            <p className="text-xs text-muted-foreground">
               Require players to complete a sponsor task and submit a UUID
               before registering.
             </p>
@@ -138,7 +136,8 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
             <div className="flex flex-col gap-1.5">
               <Label>Sponsor Accounts</Label>
               <p className="text-xs text-muted-foreground">
-                Select one or more sponsor accounts to associate with this event.
+                Select one or more sponsor accounts to associate with this
+                event.
               </p>
               {sponsorsLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">

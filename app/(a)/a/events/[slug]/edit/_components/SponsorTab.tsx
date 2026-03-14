@@ -97,10 +97,8 @@ export default function SponsorTab({
           {/* Toggle */}
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
-              <Label htmlFor="sponsor-toggle" className="text-base font-medium">
-                Enable Sponsor Requirement
-              </Label>
-              <p className="text-sm text-muted-foreground">
+              <Label htmlFor="sponsor-toggle">Enable Sponsor Requirement</Label>
+              <p className="text-xs text-muted-foreground">
                 Players will be prompted to input their sponsor ID during
                 registration.
               </p>

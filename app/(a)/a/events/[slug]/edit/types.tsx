@@ -114,6 +114,9 @@ export const EventFormSchema = z
     sponsor_usernames: z.array(z.string()).optional(),
     requirement_description: z.string().optional(),
     uuid_label: z.string().optional(),
+    is_waitlist_enabled: z.boolean().optional(),
+    waitlist_capacity: z.coerce.number().optional(),
+    waitlist_discord_role_id: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -184,6 +187,9 @@ export interface EventDetails {
   }>;
   sponsor_field_label?: string;
   sponsor_requirement_description?: string | null;
+  is_waitlist_enabled?: boolean;
+  waitlist_capacity?: number | null;
+  waitlist_discord_role_id?: string | null;
   stages: Array<{
     id: number;
     stage_id: number;

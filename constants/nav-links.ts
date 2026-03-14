@@ -97,13 +97,13 @@ export const adminNavLinks: AdminNavLink[] = [
     label: "Admin Dashboard",
     slug: "/a/dashboard",
     icon: IconHome,
-    allowedRoles: ["head_admin", "admin"],
+    allowedRoles: ["head_admin"],
   },
   {
     label: "Admin Leaderboards",
     slug: "/a/leaderboards",
     icon: IconTrophy,
-    allowedRoles: ["head_admin", "admin"],
+    allowedRoles: ["head_admin"],
   },
   {
     label: "Admin Players",
@@ -115,6 +115,7 @@ export const adminNavLinks: AdminNavLink[] = [
   {
     slug: "/a/player-markets",
     label: "Player Markets",
+    allowedRoles: ["head_admin"],
     icon: IconUsers,
   },
   {
@@ -180,9 +181,23 @@ export const adminNavLinks: AdminNavLink[] = [
     allowedRoles: ["head_admin", "partner_admin"],
   },
   {
+    label: "Sponsor Dashboard",
+    slug: "/a/sponsor-dashboard",
+    icon: IconStar,
+    allowedRoles: ["sponsor_admin"],
+  },
+  {
     label: "Back to user dashboard",
     slug: "/home",
     icon: IconHome,
-    // No allowedRoles means everyone with admin access can see it
+    allowedRoles: [
+      "head_admin",
+      "admin",
+      "event_admin",
+      "news_admin",
+      "teams_admin",
+      "shop_admin",
+      "partner_admin",
+    ],
   },
 ];
