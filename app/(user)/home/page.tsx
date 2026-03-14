@@ -122,7 +122,7 @@ function SponsorRedirectModal() {
 
   function handleRedirect() {
     setOpen(false);
-    router.push("/sponsor/dashboard");
+    router.push("/a/sponsor-dashboard");
   }
 
   return (
