@@ -21,8 +21,8 @@ const page = () => {
         Reset Your Password
       </h1>
       <p className="text-muted-foreground mb-6 text-center">
-        Enter your email address and we'll send you instructions to reset your
-        password.
+        Enter your email address or UID and we'll send you instructions to reset
+        your password.
       </p>
       <ForgotPasswordForm />
       <div className="mt-4 text-center">

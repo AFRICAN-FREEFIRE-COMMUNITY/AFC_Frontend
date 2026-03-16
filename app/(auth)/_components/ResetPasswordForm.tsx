@@ -35,11 +35,12 @@ import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 
 interface Props {
-  email: string;
+  identifier: string;
+  method: "email" | "uid";
   token: string;
 }
 
-export function ResetPasswordForm({ email, token }: Props) {
+export function ResetPasswordForm({ identifier, method, token }: Props) {
   const router = useRouter();
 
   const [pending, startTransition] = useTransition();
@@ -93,11 +94,10 @@ export function ResetPasswordForm({ email, token }: Props) {
   function onSubmit(data: ResetPasswordFormSchemaType) {
     startTransition(async () => {
       try {
-        const authData = {
-          email,
-          new_password: data.password,
-          token,
-        };
+        const authData =
+          method === "email"
+            ? { email: identifier, new_password: data.password, token }
+            : { uid: identifier, new_password: data.password, token };
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/reset-password/`,
           { ...authData }

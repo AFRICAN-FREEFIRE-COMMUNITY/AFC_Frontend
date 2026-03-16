@@ -4,7 +4,14 @@ import { Logo } from "@/components/Logo";
 import { ResetPasswordForm } from "../_components/ResetPasswordForm";
 
 const page = async ({ searchParams }: { searchParams: any }) => {
-  const { email, token } = await searchParams;
+  const { email, uid, token } = await searchParams;
+
+  const identifier = email
+    ? decodeURIComponent(email)
+    : uid
+      ? decodeURIComponent(uid)
+      : "";
+  const method: "email" | "uid" = uid ? "uid" : "email";
 
   return (
     <div>
@@ -12,9 +19,10 @@ const page = async ({ searchParams }: { searchParams: any }) => {
         Set new password
       </h1>
       <p className="text-muted-foreground mb-6 text-center">
-        Enter your new password for <span className="font-medium">{email}</span>
+        Enter your new password for{" "}
+        <span className="font-medium">{identifier}</span>
       </p>
-      <ResetPasswordForm token={token} email={email} />
+      <ResetPasswordForm token={token} identifier={identifier} method={method} />
     </div>
   );
 };

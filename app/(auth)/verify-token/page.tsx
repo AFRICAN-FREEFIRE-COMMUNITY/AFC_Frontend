@@ -2,7 +2,14 @@ import { Logo } from "@/components/Logo";
 import { VerifyTokenForm } from "../_components/VerifyTokenForm";
 
 const page = async ({ searchParams }: { searchParams: any }) => {
-  const { email } = await searchParams;
+  const { email, uid } = await searchParams;
+
+  const identifier = email
+    ? decodeURIComponent(email)
+    : uid
+      ? decodeURIComponent(uid)
+      : "";
+  const method: "email" | "uid" = uid ? "uid" : "email";
 
   return (
     <div>
@@ -10,9 +17,10 @@ const page = async ({ searchParams }: { searchParams: any }) => {
         Verify token
       </h1>
       <p className="text-muted-foreground mb-6 text-center">
-        Enter the token sent to <span className="font-medium">{email}</span>
+        Enter the token sent to{" "}
+        <span className="font-medium">{identifier}</span>
       </p>
-      <VerifyTokenForm email={email} />
+      <VerifyTokenForm identifier={identifier} method={method} />
     </div>
   );
 };

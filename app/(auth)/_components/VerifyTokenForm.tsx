@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,10 +11,8 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { env } from "@/lib/env";
 import axios from "axios";
 import { Loader } from "@/components/Loader";
@@ -26,30 +24,33 @@ import { OTPInput, SlotProps } from "input-otp";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  email: string;
+  identifier: string;
+  method: "email" | "uid";
 }
 
-export function VerifyTokenForm({ email }: Props) {
+export function VerifyTokenForm({ identifier, method }: Props) {
   const router = useRouter();
 
   const [pending, startTransition] = useTransition();
   const [pendingResend, startResendTransition] = useTransition();
+
   const form = useForm<VerifyTokenFormSchemaType>({
     resolver: zodResolver(VerifyTokenFormSchema),
     defaultValues: {
       token: "",
-      email,
+      email: method === "email" ? identifier : "",
     },
   });
 
   const handleResendToken = async () => {
     startResendTransition(async () => {
       try {
+        const payload =
+          method === "email" ? { email: identifier } : { uid: identifier };
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/resend-token/`,
-          { email }
+          payload
         );
-
         if (response.statusText === "OK") {
           toast.success(response.data.message);
         } else {
@@ -57,7 +58,6 @@ export function VerifyTokenForm({ email }: Props) {
         }
       } catch (error: any) {
         toast.error(error?.response?.data?.message || "Internal server error");
-        return;
       }
     });
   };
@@ -65,20 +65,28 @@ export function VerifyTokenForm({ email }: Props) {
   function onSubmit(data: VerifyTokenFormSchemaType) {
     startTransition(async () => {
       try {
+        const payload =
+          method === "email"
+            ? { token: data.token, email: identifier }
+            : { token: data.token, uid: identifier };
+
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/verify-token/`,
-          { ...data }
+          payload
         );
 
         if (response.statusText === "OK") {
           toast.success(`${response.data.message}. Redirecting...`);
-          router.push(`/reset-password?email=${email}&token=${data.token}`);
+          const param =
+            method === "email"
+              ? `email=${encodeURIComponent(identifier)}`
+              : `uid=${encodeURIComponent(identifier)}`;
+          router.push(`/reset-password?${param}&token=${data.token}`);
         } else {
           toast.error("Oops! An error occurred");
         }
       } catch (error: any) {
         toast.error(error?.response?.data?.message || "Internal server error");
-        return;
       }
     });
   }

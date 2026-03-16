@@ -101,6 +101,10 @@ export const ForgotPasswordFormSchema = z.object({
   }),
 });
 
+export const ForgotPasswordUidFormSchema = z.object({
+  uid: z.string().min(1, { message: "UID is required." }),
+});
+
 export const VerifyTokenFormSchema = z.object({
   token: z
     .string()
@@ -405,6 +409,9 @@ export const BanTeamFormSchema = z.object({
 export type LoginFormSchemaType = z.infer<typeof LoginFormSchema>;
 export type ForgotPasswordFormSchemaType = z.infer<
   typeof ForgotPasswordFormSchema
+>;
+export type ForgotPasswordUidFormSchemaType = z.infer<
+  typeof ForgotPasswordUidFormSchema
 >;
 export type VerifyTokenFormSchemaType = z.infer<typeof VerifyTokenFormSchema>;
 export type ResetPasswordFormSchemaType = z.infer<
