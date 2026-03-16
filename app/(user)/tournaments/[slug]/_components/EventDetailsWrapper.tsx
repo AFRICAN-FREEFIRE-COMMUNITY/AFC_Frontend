@@ -61,6 +61,7 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
 
 type ModalStep =
   | "CLOSED"
@@ -175,6 +176,14 @@ interface DiscordValidationResponse {
   results: DiscordValidationResult[];
 }
 
+interface RosterMember {
+  user_id: number;
+  username: string;
+  full_name: string;
+  user_id_from_sponsor: string;
+  status: string;
+}
+
 interface LeaveEventModalProps {
   eventId: number;
   eventName: string;
@@ -218,7 +227,7 @@ const LeaveEventModal: React.FC<LeaveEventModalProps> = ({
           Leave Tournament
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[400px] max-h-[85vh] overflow-y-auto">
         <div className="text-center">
           <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
             <AlertTriangle className="h-7 w-7 text-red-600" />
@@ -252,6 +261,297 @@ const LeaveEventModal: React.FC<LeaveEventModalProps> = ({
         </div>
       </DialogContent>
     </Dialog>
+  );
+};
+
+interface EditRosterModalProps {
+  eventDetails: EventDetails;
+  userTeam: UserTeam | null;
+  token: string | null;
+  onSuccess: () => void;
+}
+
+const EditRosterModal: React.FC<EditRosterModalProps> = ({
+  eventDetails,
+  userTeam,
+  token,
+  onSuccess,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"SELECT_MEMBERS" | "SPONSOR_IDS">(
+    "SELECT_MEMBERS",
+  );
+  const [isLoadingRoster, setIsLoadingRoster] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [sponsorIds, setSponsorIds] = useState<Record<string, string>>({});
+  const [currentRoster, setCurrentRoster] = useState<RosterMember[]>([]);
+  const [teamId, setTeamId] = useState<number | null>(null);
+
+  const minPlayers = userTeam?.min_players || 4;
+  const maxPlayers = userTeam?.max_players || 6;
+
+  const handleOpen = async () => {
+    setIsLoadingRoster(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-roster-details/`,
+        { event_id: eventDetails.event_id },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      const data = res.data;
+      setCurrentRoster(data.roster || []);
+      setTeamId(data.team_id);
+
+      // Build a lookup from username → roster member
+      const rosterByUsername = new Map<string, RosterMember>();
+      (data.roster || []).forEach((r: RosterMember) => {
+        rosterByUsername.set(r.username, r);
+      });
+
+      // Pre-select team members whose username appears in the current roster.
+      // We use team member's id (not user_id) because that's what the checkboxes compare against.
+      const currentIds = (userTeam?.members || [])
+        .filter((m) => rosterByUsername.has(m.username))
+        .map((m) => m.id);
+      setSelectedMemberIds(currentIds);
+
+      // Pre-populate sponsor IDs keyed by team member id (matches what SPONSOR_IDS step uses)
+      const sponsorMap: Record<string, string> = {};
+      (userTeam?.members || []).forEach((m) => {
+        const rosterMember = rosterByUsername.get(m.username);
+        if (rosterMember?.user_id_from_sponsor) {
+          sponsorMap[m.id] = rosterMember.user_id_from_sponsor;
+        }
+      });
+      setSponsorIds(sponsorMap);
+
+      setStep("SELECT_MEMBERS");
+      setOpen(true);
+    } catch (err: any) {
+      toast.error(
+        err.response?.data?.message || "Failed to load roster details",
+      );
+    } finally {
+      setIsLoadingRoster(false);
+    }
+  };
+
+  const handleMemberToggle = (memberId: string) => {
+    // @ts-ignore
+    setSelectedMemberIds((prev) => {
+      if (prev.includes(memberId)) {
+        return prev.filter((id: string) => id !== memberId);
+      } else {
+        if (prev.length >= maxPlayers) {
+          toast.error(`You can only select up to ${maxPlayers} members`);
+          return prev;
+        }
+        return [...prev, memberId];
+      }
+    });
+  };
+
+  const handleContinue = () => {
+    if (selectedMemberIds.length < minPlayers) {
+      toast.error(`Please select at least ${minPlayers} team members`);
+      return;
+    }
+    if (eventDetails.is_sponsored) {
+      setStep("SPONSOR_IDS");
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const rosterMemberIds = selectedMemberIds.map((id) => parseInt(id));
+
+      const payload: any = {
+        event_id: eventDetails.event_id,
+        team_id: teamId,
+        roster_member_ids: rosterMemberIds,
+      };
+
+      if (eventDetails.is_sponsored) {
+        const filteredSponsorIds: Record<string, string> = {};
+        rosterMemberIds.forEach((uid) => {
+          filteredSponsorIds[uid.toString()] = sponsorIds[uid.toString()] || "";
+        });
+        payload.sponsor_ids = filteredSponsorIds;
+      }
+
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-roster/`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      toast.success(res.data.message || "Registration updated successfully!");
+      setOpen(false);
+      onSuccess();
+    } catch (err: any) {
+      toast.error(
+        err.response?.data?.message || "Failed to update registration",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const selectedMembersData = useMemo(() => {
+    return (
+      userTeam?.members.filter((m) => selectedMemberIds.includes(m.id)) || []
+    );
+  }, [userTeam, selectedMemberIds]);
+
+  const canSubmitSponsor = selectedMembersData.every(
+    (m) => (sponsorIds[m.id] || "").trim() !== "",
+  );
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        className="w-full md:w-auto"
+        onClick={handleOpen}
+        disabled={isLoadingRoster}
+      >
+        {isLoadingRoster ? <Loader text="Loading..." /> : "Edit Registration"}
+      </Button>
+
+      <Dialog open={open} onOpenChange={(o) => !o && setOpen(false)}>
+        <DialogContent className="flex flex-col max-h-[85vh]">
+          {step === "SELECT_MEMBERS" && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Edit Team Roster</DialogTitle>
+                <DialogDescription>
+                  Update your players for {eventDetails.event_name}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md">
+                <h3 className="font-semibold mb-3">
+                  Select Players ({minPlayers}–{maxPlayers}):
+                </h3>
+                <div className="space-y-2">
+                  {userTeam?.members.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-3 bg-background rounded-md border hover:border-primary transition"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          id={`edit-member-${member.id}`}
+                          checked={selectedMemberIds.includes(member.id)}
+                          onCheckedChange={() => handleMemberToggle(member.id)}
+                        />
+                        <label
+                          htmlFor={`edit-member-${member.id}`}
+                          className="font-medium cursor-pointer"
+                        >
+                          {member.username}
+                        </label>
+                      </div>
+                      {currentRoster.some(
+                        (r) => r.user_id.toString() === member.id,
+                      ) && (
+                        <Badge variant="outline" className="text-xs">
+                          Current
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                Selected: {selectedMemberIds.length} / {maxPlayers} players
+              </div>
+
+              <DialogFooter className="flex sm:justify-between">
+                <Button variant="secondary" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleContinue}
+                  disabled={
+                    selectedMemberIds.length < minPlayers ||
+                    selectedMemberIds.length > maxPlayers ||
+                    isSubmitting
+                  }
+                >
+                  {isSubmitting ? (
+                    <Loader text="Saving..." />
+                  ) : eventDetails.is_sponsored ? (
+                    "Continue"
+                  ) : (
+                    "Save Changes"
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {step === "SPONSOR_IDS" && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{eventDetails.sponsor_name} Details</DialogTitle>
+                <DialogDescription>
+                  Update {eventDetails.sponsor_field_label} for your roster
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-4 py-2">
+                {eventDetails.sponsor_requirement_description && (
+                  <div className="p-3 rounded-md bg-primary/10 text-sm text-muted-foreground">
+                    {eventDetails.sponsor_requirement_description}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {selectedMembersData.map((member) => (
+                    <div key={member.id} className="space-y-1">
+                      <Label>{member.username}</Label>
+                      <input
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        placeholder={`Enter ${eventDetails.sponsor_field_label}`}
+                        value={sponsorIds[member.id] || ""}
+                        onChange={(e) =>
+                          setSponsorIds({
+                            ...sponsorIds,
+                            [member.id]: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <DialogFooter className="flex sm:justify-between">
+                <Button
+                  variant="secondary"
+                  onClick={() => setStep("SELECT_MEMBERS")}
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canSubmitSponsor || isSubmitting}
+                >
+                  {isSubmitting ? <Loader text="Saving..." /> : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -485,7 +785,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && closeAll()}>
-      <DialogContent>
+      <DialogContent className="flex flex-col max-h-[85vh]">
         {teamModalStep === "SELECT_MEMBERS" && (
           <>
             <DialogHeader>
@@ -495,9 +795,9 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="max-h-[80vh] p-4 bg-primary/10 rounded-md">
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md">
               <h3 className="font-semibold mb-3">Available Players:</h3>
-              <div className="space-y-2 max-h-80 overflow-y-auto">
+              <div className="space-y-2">
                 {userTeam?.members.map((member) => (
                   <div
                     key={member.id}
@@ -553,7 +853,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
               <DialogTitle>Team Information</DialogTitle>
             </DialogHeader>
 
-            <div className="p-4 bg-primary/10 rounded-md space-y-3">
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md space-y-3">
               <div>
                 <span className="font-semibold text-primary">Team Name:</span>{" "}
                 {userTeam?.team_name}
@@ -1209,7 +1509,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               </DialogDescription>
             </DialogHeader>
 
-            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col rounded-md">
+            <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col rounded-md">
               <div className="flex-1 overflow-y-auto space-y-4 pr-1">
                 <div className="space-y-2">
                   <h3 className="font-semibold text-sm">
@@ -1402,7 +1702,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && closeAll()}>
-      <DialogContent>{renderDialog()}</DialogContent>
+      <DialogContent className="flex flex-col max-h-[85vh] overflow-y-auto">
+        {renderDialog()}
+      </DialogContent>
     </Dialog>
   );
 };
@@ -1719,9 +2021,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         } else if (discordStatus === "already_linked") {
           setDiscordConnected(true);
           setModalStep("DISCORD_JOIN");
-          toast.info(
-            "This Discord account is already linked to your profile.",
-          );
+          toast.info("This Discord account is already linked to your profile.");
         } else {
           setDiscordConnected(false);
           toast.error(
@@ -2006,14 +2306,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   const statusVariant: Record<
     string,
-    "default" | "secondary" | "destructive" | "outline"
+    "default" | "secondary" | "destructive" | "outline" | "pending"
   > = {
     approved: "default",
     registered: "secondary",
     disqualified: "destructive",
     withdrawn: "outline",
     left: "outline",
-    pending: "outline",
+    pending: "pending",
     rejected: "destructive",
   };
 
@@ -2148,16 +2448,26 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 You've registered already
               </Button>
 
-              {/* Show Leave button only if event hasn't started */}
+              {/* Show Edit and Leave buttons only if event hasn't started */}
               {new Date(eventDetails.start_date) > new Date() && (
-                <LeaveEventModal
-                  eventId={eventDetails.event_id}
-                  eventName={eventDetails.event_name}
-                  onSuccess={() => {
-                    fetchEventDetails(); // Refresh event details
-                    toast.info("You have left the tournament");
-                  }}
-                />
+                <>
+                  {eventDetails.participant_type === "squad" && (
+                    <EditRosterModal
+                      eventDetails={eventDetails}
+                      userTeam={userTeam}
+                      token={token}
+                      onSuccess={fetchEventDetails}
+                    />
+                  )}
+                  <LeaveEventModal
+                    eventId={eventDetails.event_id}
+                    eventName={eventDetails.event_name}
+                    onSuccess={() => {
+                      fetchEventDetails();
+                      toast.info("You have left the tournament");
+                    }}
+                  />
+                </>
               )}
             </div>
           ) : eventDetails.event_type === "external" ? (
@@ -2237,7 +2547,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 <p className="font-semibold text-lg md:text-2xl">
                   {formatMoneyInput(
                     eventDetails?.max_teams_or_players -
-                      (eventDetails?.registered_competitors?.length || 0),
+                      (eventDetails?.registered_competitors?.length ||
+                        eventDetails?.tournament_teams?.length ||
+                        0),
                   )}
                 </p>
                 <p className="text-xs md:text-sm">Slot left</p>
@@ -2260,7 +2572,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                           </p>
                         </div>
                       </div>
-                      <Badge variant={statusVariant[reg.status]}>
+                      <Badge
+                        className="capitalize"
+                        variant={statusVariant[reg.status]}
+                      >
                         {reg.status}
                       </Badge>
                     </CardContent>
@@ -2282,7 +2597,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                           </p>
                         </div>
                       </div>
-                      <Badge variant={statusVariant[team.status]}>
+                      <Badge
+                        className="capitalize"
+                        variant={statusVariant[team.status]}
+                      >
                         {team.status}
                       </Badge>
                     </CardContent>
@@ -2356,7 +2674,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
       {/* Banned Modal */}
       <Dialog open={showBannedModal} onOpenChange={setShowBannedModal}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[400px] max-h-[85vh] overflow-y-auto">
           <div className="text-center">
             <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
               <AlertTriangle className="h-7 w-7 text-red-600" />

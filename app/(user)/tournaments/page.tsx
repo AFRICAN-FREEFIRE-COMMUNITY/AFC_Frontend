@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
@@ -88,13 +89,119 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
   );
 };
 
+// --- Reusable paginated event list ---
+const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
+  events,
+  searchQuery,
+}) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const filtered = useMemo(() => {
+    if (!searchQuery) return events;
+    const query = searchQuery.toLowerCase();
+    return events.filter(
+      (e) =>
+        e.event_name.toLowerCase().includes(query) ||
+        e.event_date.includes(query) ||
+        e.event_status.toLowerCase().includes(query),
+    );
+  }, [events, searchQuery]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  return (
+    <>
+      <div className="grid grid-cols-1 mt-4 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        {paginated.length > 0 ? (
+          paginated.map((event) => (
+            <EventCard key={event.event_id} event={event} />
+          ))
+        ) : (
+          <p className="text-center text-muted-foreground col-span-full py-8">
+            {searchQuery
+              ? `No events match your search query: ${searchQuery}`
+              : "No events available."}
+          </p>
+        )}
+      </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6">
+          <p className="hidden md:block text-sm text-muted-foreground">
+            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+            {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of{" "}
+            {filtered.length}
+          </p>
+          <Pagination className="w-full md:w-auto mx-0">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className={
+                    currentPage === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(
+                  (page) =>
+                    page === 1 ||
+                    page === totalPages ||
+                    Math.abs(page - currentPage) <= 1,
+                )
+                .map((page, idx, arr) => (
+                  <React.Fragment key={page}>
+                    {idx > 0 && arr[idx - 1] !== page - 1 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+                    <PaginationItem>
+                      <PaginationLink
+                        isActive={currentPage === page}
+                        onClick={() => setCurrentPage(page)}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  </React.Fragment>
+                ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  className={
+                    currentPage === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+    </>
+  );
+};
+
 // --- Main Component ---
 const EventsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const loadEvents = useCallback(async () => {
     setIsLoading(true);
@@ -122,32 +229,16 @@ const EventsPage = () => {
 
   useEffect(() => {
     loadEvents();
-  }, [loadEvents]); // --- NEW: Filtered Events Logic using useMemo ---
+  }, [loadEvents]);
 
-  const filteredEvents = useMemo(() => {
-    if (!searchQuery) {
-      return events;
-    }
-
-    const query = searchQuery.toLowerCase();
-
-    return events.filter((event) => {
-      const nameMatch = event.event_name.toLowerCase().includes(query);
-      const dateMatch = event.event_date.includes(query);
-      const statusMatch = event.event_status.toLowerCase().includes(query);
-      return nameMatch || dateMatch || statusMatch;
-    });
-  }, [events, searchQuery]);
-
-  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
-  const paginatedEvents = filteredEvents.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
+  const tournaments = useMemo(
+    () => events.filter((e) => e.event_type === "tournament"),
+    [events],
   );
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+  const scrims = useMemo(
+    () => events.filter((e) => e.event_type === "scrim"),
+    [events],
+  );
 
   if (isLoading) return <FullLoader />;
 
@@ -155,9 +246,7 @@ const EventsPage = () => {
     <div>
       <PageHeader title="Tournaments & Scrims" />
       <div className="relative mb-4">
-        {/* Added Search icon for visual cue */}
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-
         <Input
           type="search"
           placeholder="Search events by title, date (YYYY-MM-DD), or status..."
@@ -172,81 +261,20 @@ const EventsPage = () => {
         </div>
       )}
       {!isLoading && !error && (
-        <>
-          <div className="grid grid-cols-1 mt-4 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            {paginatedEvents.length > 0 ? (
-              paginatedEvents.map((event) => (
-                <EventCard key={event.event_id} event={event} />
-              ))
-            ) : (
-              <p className="text-center text-muted-foreground col-span-full py-8">
-                {searchQuery
-                  ? `No events match your search query: ${searchQuery}`
-                  : "No events available."}
-              </p>
-            )}
-          </div>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
-              <p className="hidden md:block text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
-                {Math.min(currentPage * ITEMS_PER_PAGE, filteredEvents.length)}{" "}
-                of {filteredEvents.length}
-              </p>
-              <Pagination className="w-full md:w-auto mx-0">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className={
-                        currentPage === 1
-                          ? "pointer-events-none opacity-50"
-                          : "cursor-pointer"
-                      }
-                    />
-                  </PaginationItem>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(
-                      (page) =>
-                        page === 1 ||
-                        page === totalPages ||
-                        Math.abs(page - currentPage) <= 1,
-                    )
-                    .map((page, idx, arr) => (
-                      <React.Fragment key={page}>
-                        {idx > 0 && arr[idx - 1] !== page - 1 && (
-                          <PaginationItem>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        )}
-                        <PaginationItem>
-                          <PaginationLink
-                            isActive={currentPage === page}
-                            onClick={() => setCurrentPage(page)}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      </React.Fragment>
-                    ))}
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() =>
-                        setCurrentPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      className={
-                        currentPage === totalPages
-                          ? "pointer-events-none opacity-50"
-                          : "cursor-pointer"
-                      }
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
-        </>
+        <Tabs defaultValue="tournaments">
+          <TabsList>
+            <TabsTrigger value="tournaments">
+              Tournaments ({tournaments.length})
+            </TabsTrigger>
+            <TabsTrigger value="scrims">Scrims ({scrims.length})</TabsTrigger>
+          </TabsList>
+          <TabsContent value="tournaments">
+            <EventList events={tournaments} searchQuery={searchQuery} />
+          </TabsContent>
+          <TabsContent value="scrims">
+            <EventList events={scrims} searchQuery={searchQuery} />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

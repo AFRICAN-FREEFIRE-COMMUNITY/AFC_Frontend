@@ -29,6 +29,20 @@ async function getNews() {
   }
 }
 
+async function getEvents() {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
+      { next: { revalidate: 3600 } }
+    );
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.events || [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url;
 
@@ -65,6 +79,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/tournaments`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/awards`,
       lastModified: new Date(),
       changeFrequency: "weekly",
@@ -85,7 +105,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Fetch dynamic pages
-  const [teams, news] = await Promise.all([getTeams(), getNews()]);
+  const [teams, news, events] = await Promise.all([getTeams(), getNews(), getEvents()]);
 
   // Team pages
   const teamPages: MetadataRoute.Sitemap = teams.map((team: any) => ({
@@ -97,7 +117,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // News article pages
   const newsPages: MetadataRoute.Sitemap = news.map((article: any) => ({
-    url: `${baseUrl}/news/${article.news_id}`,
+    url: `${baseUrl}/news/${article.slug}`,
     lastModified: article.updated_at
       ? new Date(article.updated_at)
       : new Date(article.created_at),
@@ -105,5 +125,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...teamPages, ...newsPages];
+  // Tournament/event pages
+  const eventPages: MetadataRoute.Sitemap = events.map((event: any) => ({
+    url: `${baseUrl}/tournaments/${event.slug}`,
+    lastModified: event.updated_at
+      ? new Date(event.updated_at)
+      : new Date(event.event_date || Date.now()),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...teamPages, ...newsPages, ...eventPages];
 }

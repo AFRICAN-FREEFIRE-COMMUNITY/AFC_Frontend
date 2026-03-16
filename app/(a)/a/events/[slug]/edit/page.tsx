@@ -148,9 +148,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const [savingSponsor, setSavingSponsor] = useState(false);
 
   // ── Waitlist ───────────────────────────────────────────────────────────────
-  const [waitlistForm, setWaitlistForm] = useState({
+  const [waitlistForm, setWaitlistForm] = useState<any>({
     is_waitlist_enabled: false,
-    waitlist_capacity: "",
+    waitlist_capacity: 0,
     waitlist_discord_role_id: "",
   });
   const [savingWaitlist, setSavingWaitlist] = useState(false);
@@ -419,7 +419,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         });
         setWaitlistForm({
           is_waitlist_enabled: ed.is_waitlist_enabled ?? false,
-          waitlist_capacity: ed.waitlist_capacity != null ? String(ed.waitlist_capacity) : "",
+          waitlist_capacity:
+            ed.waitlist_capacity != null ? Number(ed.waitlist_capacity) : "",
           waitlist_discord_role_id: ed.waitlist_discord_role_id ?? "",
         });
       }
@@ -945,7 +946,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       formData.append("participant_type", data.participant_type);
       formData.append("event_type", data.event_type);
       formData.append("is_public", data.is_public);
-      formData.append("max_teams_or_players", data.max_teams_or_players.toString());
+      formData.append(
+        "max_teams_or_players",
+        data.max_teams_or_players.toString(),
+      );
       formData.append("event_mode", data.event_mode);
       formData.append("prizepool", data.prizepool);
       formData.append("number_of_stages", "2");
@@ -954,10 +958,19 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       formData.append("registration_open_date", data.registration_open_date);
       formData.append("registration_end_date", data.registration_end_date);
       formData.append("registration_link", data.registration_link || "");
-      formData.append("publish_to_tournaments", data.publish_to_tournaments.toString());
+      formData.append(
+        "publish_to_tournaments",
+        data.publish_to_tournaments.toString(),
+      );
       formData.append("publish_to_news", data.publish_to_news.toString());
-      formData.append("registration_restriction", data.registration_restriction || "none");
-      formData.append("restriction_mode", data.restriction_mode || "allow_only");
+      formData.append(
+        "registration_restriction",
+        data.registration_restriction || "none",
+      );
+      formData.append(
+        "restriction_mode",
+        data.restriction_mode || "allow_only",
+      );
       formData.append(
         "restricted_countries",
         JSON.stringify(
@@ -972,24 +985,47 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       } else {
         formData.append("event_rules", "");
       }
-      formData.append("prize_distribution", JSON.stringify(data.prize_distribution));
+      formData.append(
+        "prize_distribution",
+        JSON.stringify(data.prize_distribution),
+      );
       formData.append(
         "stream_channels",
-        JSON.stringify(data.stream_channels?.filter((s) => s.trim() !== "") || []),
+        JSON.stringify(
+          data.stream_channels?.filter((s) => s.trim() !== "") || [],
+        ),
       );
       formData.append("stages", JSON.stringify(data.stages));
 
       // Keep existing sponsor fields untouched
-      formData.append("is_sponsored", sponsorForm.is_sponsored ? "True" : "False");
+      formData.append(
+        "is_sponsored",
+        sponsorForm.is_sponsored ? "True" : "False",
+      );
       formData.append("sponsor_name", sponsorForm.sponsor_name || "");
-      formData.append("sponsor_usernames", JSON.stringify(sponsorForm.sponsor_usernames ?? []));
-      formData.append("requirement_description", sponsorForm.requirement_description || "");
-      formData.append("sponsor_field_label", sponsorForm.sponsor_field_label || "Player UUID");
+      formData.append(
+        "sponsor_usernames",
+        JSON.stringify(sponsorForm.sponsor_usernames ?? []),
+      );
+      formData.append(
+        "requirement_description",
+        sponsorForm.requirement_description || "",
+      );
+      formData.append(
+        "sponsor_field_label",
+        sponsorForm.sponsor_field_label || "Player UUID",
+      );
 
       // Waitlist fields
-      formData.append("is_waitlist_enabled", waitlistForm.is_waitlist_enabled ? "True" : "False");
-      formData.append("waitlist_capacity", waitlistForm.waitlist_capacity || "");
-      formData.append("waitlist_discord_role_id", waitlistForm.waitlist_discord_role_id || "");
+      formData.append(
+        "is_waitlist_enabled",
+        waitlistForm.is_waitlist_enabled ? "True" : "False",
+      );
+      formData.append("waitlist_capacity", waitlistForm.waitlist_capacity || 0);
+      formData.append(
+        "waitlist_discord_role_id",
+        waitlistForm.waitlist_discord_role_id || "",
+      );
 
       await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
         method: "POST",
@@ -1011,7 +1047,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           : prev,
       );
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to save waitlist settings");
+      toast.error(
+        error?.response?.data?.message || "Failed to save waitlist settings",
+      );
     } finally {
       setSavingWaitlist(false);
     }
@@ -1271,9 +1309,18 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           data.sponsor_field_label || "Player UUID",
         );
 
-        formData.append("is_waitlist_enabled", waitlistForm.is_waitlist_enabled ? "True" : "False");
-        formData.append("waitlist_capacity", waitlistForm.waitlist_capacity || "");
-        formData.append("waitlist_discord_role_id", waitlistForm.waitlist_discord_role_id || "");
+        formData.append(
+          "is_waitlist_enabled",
+          waitlistForm.is_waitlist_enabled ? "True" : "False",
+        );
+        formData.append(
+          "waitlist_capacity",
+          waitlistForm.waitlist_capacity || 0,
+        );
+        formData.append(
+          "waitlist_discord_role_id",
+          waitlistForm.waitlist_discord_role_id || "",
+        );
 
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,

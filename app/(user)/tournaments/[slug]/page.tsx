@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return generateDynamicMetadata({
       title: "Tournament Details",
       description: `View tournament details and registration information on AFC.`,
-      url: `/events/${slug}`,
+      url: `/tournaments/${slug}`,
     });
   }
 
@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: title,
     description: description,
     image: absoluteImageUrl,
-    url: `/events/${slug}`,
+    url: `/tournaments/${slug}`,
     tags: [title, "AFC", "Free Fire", "Gaming"].filter(Boolean),
   });
 
@@ -88,6 +88,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         name: title,
         description: description,
         image: absoluteImageUrl,
+        url: `${env.NEXT_PUBLIC_URL}/tournaments/${slug}`,
+        startDate: data.event_date || undefined,
+        eventStatus: "https://schema.org/EventScheduled",
+        eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
+        organizer: {
+          "@type": "Organization",
+          name: "African Freefire Community",
+          url: env.NEXT_PUBLIC_URL,
+        },
+        location: {
+          "@type": "VirtualLocation",
+          url: `${env.NEXT_PUBLIC_URL}/tournaments/${slug}`,
+        },
       }),
     },
   };

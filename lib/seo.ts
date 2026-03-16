@@ -420,6 +420,15 @@ export const siteConfig = {
     "Free Fire stats",
     "esports Africa",
     "Free Fire rankings",
+    "Free Fire Nigeria",
+    "Nigeria Free Fire tournament",
+    "Free Fire clash cup Nigeria",
+    "African Freefire Community",
+    "Free Fire West Africa",
+    "Free Fire Ghana",
+    "Free Fire Kenya",
+    "Garena Free Fire Africa",
+    "Free Fire competitive Nigeria",
   ],
 };
 
