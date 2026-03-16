@@ -29,7 +29,7 @@ interface Event {
   event_name: string;
   event_date: string; // The original date string from API
   event_status: "upcoming" | "past";
-  event_type: "tournament" | "scrim"; // Inferred for UI grouping
+  competition_type: "tournament" | "scrim"; // Inferred for UI grouping
   details_url: string; // This field is unused but kept for reference
   event_banner: string;
   slug: string;
@@ -232,11 +232,11 @@ const EventsPage = () => {
   }, [loadEvents]);
 
   const tournaments = useMemo(
-    () => events.filter((e) => e.event_type === "tournament"),
+    () => events.filter((e) => e.competition_type === "tournament"),
     [events],
   );
   const scrims = useMemo(
-    () => events.filter((e) => e.event_type === "scrim"),
+    () => events.filter((e) => e.competition_type === "scrim"),
     [events],
   );
 
@@ -262,7 +262,7 @@ const EventsPage = () => {
       )}
       {!isLoading && !error && (
         <Tabs defaultValue="tournaments">
-          <TabsList>
+          <TabsList className="w-full">
             <TabsTrigger value="tournaments">
               Tournaments ({tournaments.length})
             </TabsTrigger>
