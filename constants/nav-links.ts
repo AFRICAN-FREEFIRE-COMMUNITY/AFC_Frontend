@@ -50,8 +50,7 @@ export const homeNavLinksMobile = [
     label: "Rules",
     icon: IconArticle,
     newLink: true,
-    addedAt: "2026-01-01",
-    comingSoon: true,
+    addedAt: "2026-03-16",
   },
   {
     title: "Shop",

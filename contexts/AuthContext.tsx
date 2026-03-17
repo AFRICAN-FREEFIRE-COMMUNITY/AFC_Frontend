@@ -48,6 +48,7 @@ export interface User {
   roles: string[];
   email: string;
   profile_pic?: string;
+  discord_username?: string;
   is_banned: boolean;
 
   stats: UserStats;
@@ -161,6 +162,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         roles: dbUser.roles || [],
         email: dbUser.email,
         profile_pic: dbUser.profile_pic,
+        discord_username: dbUser.discord_username,
         is_banned: dbUser.is_banned,
         stats: dbUser.stats,
       };

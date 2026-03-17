@@ -145,7 +145,7 @@ export const ProfileContent = () => {
                 className="w-full"
               >
                 {discordConnected ? (
-                  "Connected to discord"
+                  `Connected - ${user.discord_username}`
                 ) : pending ? (
                   <Loader text="Connecting..." />
                 ) : (

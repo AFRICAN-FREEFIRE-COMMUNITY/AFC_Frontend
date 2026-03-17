@@ -2,8 +2,15 @@
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
@@ -18,41 +25,37 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
 import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
 
-// --- Types & Constants ---
-// Define the structure of an event
+// --- Types ---
 interface Event {
   event_id: number;
   event_name: string;
-  event_date: string; // The original date string from API
-  event_status: "upcoming" | "past";
-  competition_type: "tournament" | "scrim"; // Inferred for UI grouping
-  details_url: string; // This field is unused but kept for reference
+  event_date: string;
+  event_status: "upcoming" | "ongoing" | "completed";
+  competition_type: "tournament" | "scrim";
   event_banner: string;
   slug: string;
   prizepool: string;
+  number_of_participants: number;
+  total_registered_competitors: number;
 }
 
-// Define the structure of the new API response
-interface EventsResponse {
-  events: {
-    event_id: number;
-    event_name: string;
-    slug: string;
-    event_date: string;
-    event_status: "upcoming" | "past";
-    event_banner: string;
-    prizepool: string;
-  }[];
-}
+type StatusFilter = "all" | "upcoming" | "ongoing" | "completed";
+type DateSort = "newest" | "oldest";
+type MonthFilter = "all" | string; // "YYYY-MM"
 
-// Component to render a single event card
+// --- Event Card ---
 const EventCard: React.FC<{ event: Event }> = ({ event }) => {
-  // We use formatDate from "@/lib/utils" which is imported.
   const formattedDate = formatDate(event.event_date);
+
+  const statusColors: Record<string, string> = {
+    upcoming: "text-blue-500",
+    ongoing: "text-green-500",
+    completed: "text-muted-foreground",
+  };
 
   return (
     <Card
@@ -74,22 +77,21 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
           <Link href={`/tournaments/${event.slug}`}>{event.event_name}</Link>
         </CardTitle>
         <p className="text-sm text-muted-foreground">Date: {formattedDate}</p>
-
-        <p className="text-sm text-muted-foreground">
-          Status:{" "}
+        <p
+          className={`text-sm font-medium ${statusColors[event.event_status] ?? "text-muted-foreground"}`}
+        >
           {event.event_status.charAt(0).toUpperCase() +
             event.event_status.slice(1)}
         </p>
-
         <Button className="w-full" variant={"outline"} asChild>
-          <Link href={`/tournaments/${event.slug}`}>View Tournament</Link>
+          <Link href={`/tournaments/${event.slug}`}>View Details</Link>
         </Button>
       </CardContent>
     </Card>
   );
 };
 
-// --- Reusable paginated event list ---
+// --- Paginated Event List ---
 const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
   events,
   searchQuery,
@@ -98,7 +100,7 @@ const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, events]);
 
   const filtered = useMemo(() => {
     if (!searchQuery) return events;
@@ -127,7 +129,7 @@ const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
         ) : (
           <p className="text-center text-muted-foreground col-span-full py-8">
             {searchQuery
-              ? `No events match your search query: ${searchQuery}`
+              ? `No events match "${searchQuery}"`
               : "No events available."}
           </p>
         )}
@@ -199,6 +201,9 @@ const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
 // --- Main Component ---
 const EventsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [monthFilter, setMonthFilter] = useState<MonthFilter>("all");
+  const [dateSort, setDateSort] = useState<DateSort>("newest");
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -206,21 +211,17 @@ const EventsPage = () => {
   const loadEvents = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-
     try {
       const response = await fetch(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
       );
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const data = await response.json();
-
       setEvents(data.events || []);
-    } catch (err) {
+    } catch {
       setError(
-        "Failed to load events. Please check the API endpoint and try again.",
+        "Failed to load events. Please check your connection and try again.",
       );
     } finally {
       setIsLoading(false);
@@ -231,36 +232,152 @@ const EventsPage = () => {
     loadEvents();
   }, [loadEvents]);
 
+  // Derive sorted unique month options from all events
+  const monthOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const months: { value: string; label: string }[] = [];
+    [...events]
+      .sort((a, b) => a.event_date.localeCompare(b.event_date))
+      .forEach((e) => {
+        const ym = e.event_date.slice(0, 7); // "YYYY-MM"
+        if (!seen.has(ym)) {
+          seen.add(ym);
+          const [year, month] = ym.split("-");
+          const label = new Date(
+            Number(year),
+            Number(month) - 1,
+          ).toLocaleString("default", { month: "long", year: "numeric" });
+          months.push({ value: ym, label });
+        }
+      });
+    return months;
+  }, [events]);
+
+  // Apply filters + sort before splitting by competition type
+  const filteredEvents = useMemo(() => {
+    let result = events;
+
+    if (statusFilter !== "all") {
+      result = result.filter((e) => e.event_status === statusFilter);
+    }
+
+    if (monthFilter !== "all") {
+      result = result.filter((e) => e.event_date.startsWith(monthFilter));
+    }
+
+    result = [...result].sort((a, b) => {
+      const diff =
+        new Date(a.event_date).getTime() - new Date(b.event_date).getTime();
+      return dateSort === "newest" ? -diff : diff;
+    });
+
+    return result;
+  }, [events, statusFilter, monthFilter, dateSort]);
+
   const tournaments = useMemo(
-    () => events.filter((e) => e.competition_type === "tournament"),
-    [events],
+    () => filteredEvents.filter((e) => e.competition_type === "tournament"),
+    [filteredEvents],
   );
   const scrims = useMemo(
-    () => events.filter((e) => e.competition_type === "scrim"),
-    [events],
+    () => filteredEvents.filter((e) => e.competition_type === "scrim"),
+    [filteredEvents],
   );
+
+  const statusCounts = useMemo(() => {
+    const counts = {
+      all: events.length,
+      upcoming: 0,
+      ongoing: 0,
+      completed: 0,
+    };
+    for (const e of events) {
+      if (e.event_status in counts) counts[e.event_status]++;
+    }
+    return counts;
+  }, [events]);
 
   if (isLoading) return <FullLoader />;
 
   return (
     <div>
       <PageHeader title="Tournaments & Scrims" />
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search events by title, date (YYYY-MM-DD), or status..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-background/50 backdrop-blur-sm pl-10"
-        />
+
+      {/* Search */}
+      <div className="flex w-full mb-3 items-center justify-center gap-2 flex-col md:flex-row">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search by title, date (YYYY-MM-DD), or status..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-background/50 backdrop-blur-sm pl-10"
+          />
+        </div>
+        <div className="flex w-full md:w-auto items-center gap-2 justify-center">
+          <Select
+            value={monthFilter}
+            onValueChange={(v) => setMonthFilter(v as MonthFilter)}
+          >
+            <SelectTrigger className="w-full md:w-44 text-xs">
+              <SelectValue placeholder="All Dates" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Dates</SelectItem>
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Date sort */}
+          <Select
+            value={dateSort}
+            onValueChange={(v) => setDateSort(v as DateSort)}
+          >
+            <SelectTrigger className="w-full md:w-44 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="oldest">Oldest First</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {/* Status filter buttons */}
+        <div className="flex flex-wrap gap-1">
+          {(["all", "upcoming", "ongoing", "completed"] as StatusFilter[]).map(
+            (s) => (
+              <Button
+                key={s}
+                size="sm"
+                variant={statusFilter === s ? "default" : "outline"}
+                onClick={() => setStatusFilter(s)}
+                className="capitalize text-xs"
+              >
+                {s === "all" ? "All" : s}
+                <span className="ml-1 text-xs opacity-70">
+                  ({s === "all" ? statusCounts.all : statusCounts[s]})
+                </span>
+              </Button>
+            ),
+          )}
+        </div>
+      </div>
+
       {error && (
-        <div className="p-4 bg-destructive/10 text-destructive rounded-lg">
+        <div className="p-4 bg-destructive/10 text-destructive rounded-lg mb-4">
           {error}
         </div>
       )}
-      {!isLoading && !error && (
+
+      {!error && (
         <Tabs defaultValue="tournaments">
           <TabsList className="w-full">
             <TabsTrigger value="tournaments">
