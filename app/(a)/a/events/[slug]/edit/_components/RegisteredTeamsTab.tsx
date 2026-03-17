@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -49,8 +44,8 @@ export default function RegisteredTeamsTab({
         <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
           <span>
             Registered{" "}
-            {eventDetails.participant_type === "squad" ? "Teams" : "Players"}{" "}
-            ({teamCount})
+            {eventDetails.participant_type === "squad" ? "Teams" : "Players"} (
+            {teamCount})
           </span>
           {eventDetails.participant_type === "squad" && (
             <AddTeamsModal
@@ -93,7 +88,9 @@ export default function RegisteredTeamsTab({
                           "px-2 py-1 rounded-full text-xs",
                           comp.status === "registered"
                             ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700",
+                            : comp.status === "active"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700",
                         )}
                       >
                         {comp.status}
@@ -141,7 +138,9 @@ export default function RegisteredTeamsTab({
                           "px-2 py-1 rounded-full text-xs",
                           team.status === "registered"
                             ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700",
+                            : team.status === "active"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700",
                         )}
                       >
                         {team.status}

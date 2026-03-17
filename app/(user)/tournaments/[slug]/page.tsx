@@ -2,7 +2,7 @@ import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
-import { generateDynamicMetadata } from "@/lib/seo";
+import { generateDynamicMetadata, siteConfig } from "@/lib/seo";
 import { ProtectedRoute } from "../../_components/ProtectedRoute";
 
 type Props = {
@@ -41,67 +41,69 @@ async function getEventData(slug: string) {
 // 2. Metadata Generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const decodedId = decodeURIComponent(slug);
   const data = await getEventData(slug);
 
-  // Fallback if the API fails or the bot can't authenticate
+  // Fallback if the API fails
   if (!data) {
     return generateDynamicMetadata({
       title: "Tournament Details",
-      description: `View tournament details and registration information on AFC.`,
+      description: "View tournament details and registration information on AFC.",
       url: `/tournaments/${slug}`,
     });
   }
 
-  const title = data.event_name || data.team_name;
+  const title = data.event_name || data.team_name || "Tournament";
+
+  // Build a concise, info-rich description
+  const parts: string[] = [];
+  if (data.competition_type && data.participant_type)
+    parts.push(`${data.competition_type} • ${data.participant_type}`);
+  if (data.prizepool && parseFloat(data.prizepool) > 0)
+    parts.push(`Prize Pool: $${parseFloat(data.prizepool).toLocaleString()}`);
+  if (data.start_date) parts.push(`Starts: ${data.start_date}`);
+  if (data.event_status) parts.push(`Status: ${data.event_status}`);
   const description =
-    data.event_rules ||
-    `${title} is a competitive tournament on African Freefire Community. Join now!`;
+    parts.length > 0
+      ? `${title} — ${parts.join(" • ")}`
+      : `${title} is a competitive tournament on African Freefire Community. Register now!`;
 
-  // CRITICAL: Ensure image URL is absolute for OG tags
+  // Safely resolve the banner URL — never let null/undefined produce a broken URL
   const rawImage = data.event_banner_url || data.team_logo;
-  const absoluteImageUrl = rawImage?.startsWith("http")
-    ? rawImage
-    : `${env.NEXT_PUBLIC_URL}/${rawImage}`;
+  const absoluteImageUrl =
+    rawImage && typeof rawImage === "string"
+      ? rawImage.startsWith("http")
+        ? rawImage
+        : `${env.NEXT_PUBLIC_URL}/${rawImage}`
+      : siteConfig.ogImage;
 
-  const baseMetadata = generateDynamicMetadata({
-    title: title,
-    description: description,
-    image: absoluteImageUrl,
-    url: `/tournaments/${slug}`,
-    tags: [title, "AFC", "Free Fire", "Gaming"].filter(Boolean),
-  });
+  const canonicalUrl = `${siteConfig.url}/tournaments/${slug}`;
 
   return {
-    ...baseMetadata,
-    // Ensure OpenGraph is explicitly defined if your helper doesn't do it perfectly
+    title,
+    description,
     openGraph: {
-      ...baseMetadata.openGraph,
-      images: [{ url: absoluteImageUrl }],
+      title: `${title} | AFC`,
+      description,
+      url: canonicalUrl,
+      siteName: siteConfig.name,
+      images: [
+        {
+          url: absoluteImageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
       type: "website",
     },
-    // Optional: Add Structured Data for Google
-    other: {
-      "script:ld+json": JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Event",
-        name: title,
-        description: description,
-        image: absoluteImageUrl,
-        url: `${env.NEXT_PUBLIC_URL}/tournaments/${slug}`,
-        startDate: data.event_date || undefined,
-        eventStatus: "https://schema.org/EventScheduled",
-        eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
-        organizer: {
-          "@type": "Organization",
-          name: "African Freefire Community",
-          url: env.NEXT_PUBLIC_URL,
-        },
-        location: {
-          "@type": "VirtualLocation",
-          url: `${env.NEXT_PUBLIC_URL}/tournaments/${slug}`,
-        },
-      }),
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | AFC`,
+      description,
+      images: [absoluteImageUrl],
+    },
+    alternates: {
+      canonical: canonicalUrl,
     },
   };
 }

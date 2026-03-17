@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DEFAULT_IMAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
-import { formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
+import { cn, formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
 import { TabsContent } from "@radix-ui/react-tabs";
 import {
   IconCalendar,
@@ -64,6 +64,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import * as XLSX from "xlsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 // --- Type Definitions ---
 
@@ -100,6 +108,7 @@ interface EventDetails {
     player_id: number;
     username: string;
     status: string;
+    registered_at?: string;
   }>;
   tournament_teams: any[];
   stages: Array<{
@@ -542,8 +551,15 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const calculatedData = useMemo(() => {
     if (!eventDetails || !adminDetails) return null;
 
-    const totalRegistered = adminDetails.overview.total_registered;
-    const maxCapacity = adminDetails.overview.max_competitors;
+    const totalRegistered =
+      eventDetails.participant_type === "squad"
+        ? eventDetails.tournament_teams.filter(
+            (t: any) => t.status !== "pending",
+          ).length
+        : eventDetails.registered_competitors.filter(
+            (c) => c.status !== "pending",
+          ).length;
+    const maxCapacity = eventDetails.max_teams_or_players;
     const registrationProgress = Math.min(
       (totalRegistered / maxCapacity) * 100,
       100,
@@ -618,7 +634,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
   return (
     <div>
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+      <div className="flex flex-col lg:flex-row items-start md:items-center justify-between gap-2">
         <div className="w-full">
           <PageHeader back title={event_name} />
           <div className="flex gap-2 overflow-x-auto whitespace-nowrap p-1 custom-scroll">
@@ -651,8 +667,14 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </Badge>
           </div>
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          <Button className="flex-1 md:flex-none" asChild>
+        <div className="flex gap-2 w-full lg:w-auto">
+          <Button variant="outline" className="flex-1 lg:flex-none" asChild>
+            <Link href={`/a/events/create?duplicate=${slug}`}>
+              <IconCopy />
+              Duplicate
+            </Link>
+          </Button>
+          <Button className="flex-1 lg:flex-none" asChild>
             <Link href={`/a/events/${slug}/edit`}>
               <IconPencil />
               Manage Event
@@ -1477,8 +1499,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </Card>
           )}
 
-          <Card>
-            <CardHeader>
+          <Card className="gap-0">
+            <CardHeader className="border-b">
               <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
                 <span>Recent Registrations ({totalRegistered} total)</span>
                 {eventDetails.participant_type === "squad" && (
@@ -1494,8 +1516,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="mt-2 space-y-1 max-h-96 overflow-y-auto">
-              {adminDetails.registration_timeline.recent_registrations.map(
+            <CardContent className="space-y-1 max-h-96 overflow-y-auto">
+              {/* {eventDetails.registered_competitors.slice(0, 10).map(
                 (competitor, index) => (
                   <div
                     key={index}
@@ -1503,18 +1525,83 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                   >
                     <div>
                       <p className="font-medium text-sm">
-                        {competitor.competitor_name}
+                        {competitor.username}
                       </p>
                       <p className="text-muted-foreground capitalize text-xs">
                         {event_type} • Status: {competitor.status}
                       </p>
                     </div>
-                    <p className="text-muted-foreground text-xs ms:text-sm">
-                      {formatDate(competitor.registration_date)}
-                    </p>
+                    {competitor.registered_at && (
+                      <p className="text-muted-foreground text-xs ms:text-sm">
+                        {formatDate(competitor.registered_at)}
+                      </p>
+                    )}
                   </div>
                 ),
-              )}
+              )} */}
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
+                      {eventDetails.participant_type === "squad"
+                        ? "Teams"
+                        : "Players"}
+                    </TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* Logic for Solo Players */}
+                  {eventDetails.participant_type === "solo" &&
+                    eventDetails?.registered_competitors?.map((comp) => (
+                      <TableRow key={comp.player_id}>
+                        <TableCell className="capitalize font-medium">
+                          {comp.username}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          <span
+                            className={cn(
+                              "px-2 py-1 rounded-full text-xs",
+                              comp.status === "registered"
+                                ? "bg-green-100 text-green-700"
+                                : comp.status === "active"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700",
+                            )}
+                          >
+                            {comp.status}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+
+                  {/* Logic for Squads/Teams */}
+                  {eventDetails.participant_type === "squad" &&
+                    eventDetails?.tournament_teams?.map((team) => (
+                      <TableRow key={team.team_id || team.player_id}>
+                        <TableCell className="capitalize font-medium">
+                          {team.team_name}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          <span
+                            className={cn(
+                              "px-2 py-1 rounded-full text-xs",
+                              team.status === "registered"
+                                ? "bg-green-100 text-green-700"
+                                : team.status === "active"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700",
+                            )}
+                          >
+                            {team.status}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>

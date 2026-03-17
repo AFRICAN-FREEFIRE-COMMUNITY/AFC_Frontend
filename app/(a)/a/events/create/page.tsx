@@ -4,7 +4,7 @@ import React, { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
@@ -42,6 +42,8 @@ const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const duplicateSlug = searchParams.get("duplicate");
   const { token } = useAuth();
   const [isPending, startTransition] = useTransition();
 
@@ -147,6 +149,115 @@ export default function CreateEventPage() {
       form.setValue("restriction_mode", "allow_only");
     }
   }, [registration_restriction]);
+
+  // ── Duplicate pre-fill ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!duplicateSlug || !token) return;
+
+    const prefillFromEvent = async () => {
+      try {
+        const res = await fetch(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ slug: duplicateSlug }),
+          },
+        );
+        if (!res.ok) throw new Error();
+        const json = await res.json();
+        const d = json.event_details;
+
+        const mappedStages: StageType[] = (d.stages ?? []).map((stage: any) => ({
+          stage_name: stage.stage_name,
+          stage_discord_role_id: stage.stage_discord_role_id || "",
+          start_date: stage.start_date,
+          end_date: stage.end_date,
+          stage_format: stage.stage_format,
+          number_of_groups: stage.groups?.length ?? 1,
+          teams_qualifying_from_stage: stage.teams_qualifying_from_stage ?? 0,
+          prizepool: stage.prizepool?.toString() || "",
+          prizepool_cash_value: stage.prizepool_cash_value?.toString() || "",
+          prize_distribution: stage.prize_distribution || {},
+          groups: (stage.groups ?? []).map((group: any) => ({
+            group_name: group.group_name,
+            group_discord_role_id: "",
+            room_id: "",
+            room_name: "",
+            room_password: "",
+            playing_date: group.playing_date,
+            playing_time: group.playing_time?.slice(0, 5) || "00:00",
+            teams_qualifying: group.teams_qualifying,
+            match_count: group.match_count,
+            match_maps: group.match_maps || [],
+            prizepool: group.prizepool?.toString() || "",
+            prizepool_cash_value: group.prizepool_cash_value?.toString() || "",
+            prize_distribution: group.prize_distribution || {},
+          })),
+        }));
+
+        form.reset({
+          event_name: d.event_name,
+          competition_type: d.competition_type,
+          participant_type: d.participant_type,
+          event_type: d.event_type,
+          is_public: d.is_public ? "True" : "False",
+          max_teams_or_players: d.max_teams_or_players,
+          event_mode: d.event_mode,
+          number_of_stages: mappedStages.length,
+          stages: mappedStages,
+          prizepool: d.prizepool?.toString() || "",
+          prize_distribution: d.prize_distribution || {},
+          event_rules: d.event_rules || "",
+          rules_document: "",
+          start_date: d.start_date,
+          end_date: d.end_date,
+          registration_open_date: d.registration_open_date,
+          registration_end_date: d.registration_end_date,
+          registration_link: d.registration_link || "",
+          event_status: "upcoming",
+          publish_to_tournaments: false,
+          publish_to_news: false,
+          save_to_drafts: false,
+          registration_restriction: d.registration_restriction || "none",
+          restriction_mode: d.restriction_mode || "allow_only",
+          selected_locations: d.restricted_countries || [],
+          stream_channels: d.stream_channels?.length ? d.stream_channels : [""],
+          is_sponsored: d.is_sponsored || false,
+          sponsor_name: d.sponsor_name || "",
+          sponsor_usernames:
+            d.sponsors?.map((s: any) => s.sponsor_username) || [],
+          sponsor_requirement_description:
+            d.sponsor_requirement_description || "",
+          sponsor_field_label: d.sponsor_field_label || "",
+          is_waitlist_enabled: d["is_waitlist enabled"] || false,
+          waitlist_capacity: d.waitlist_capacity ?? undefined,
+          waitlist_discord_role_id: d["waitlist discord_ role_id"] || "",
+        });
+
+        setStageNames(mappedStages.map((s) => s.stage_name));
+
+        if (d.event_banner_url) {
+          setPreviewUrl(d.event_banner_url);
+        }
+        if (d.event_rules?.trim()) {
+          setRulesInputMethod("type");
+        } else if (d.uploaded_rules_url) {
+          setRulesInputMethod("upload");
+          setPreviewRuleUrl(d.uploaded_rules_url);
+        }
+
+        toast.success(`Duplicating "${d.event_name}" — edit the details then create.`);
+      } catch {
+        toast.error("Failed to load event for duplication.");
+      }
+    };
+
+    prefillFromEvent();
+  }, [duplicateSlug, token]);
 
   // ── Stage handlers ───────────────────────────────────────────────────────────
 
@@ -607,7 +718,12 @@ export default function CreateEventPage() {
 
   return (
     <div>
-      <PageHeader title="Create New Event" back />
+      <PageHeader title={duplicateSlug ? "Duplicate Event" : "Create New Event"} back />
+      {duplicateSlug && (
+        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          You&apos;re duplicating an existing event. All details have been pre-filled — update what you need, then create.
+        </div>
+      )}
 
       <Form {...form}>
         {/* @ts-ignore */}
