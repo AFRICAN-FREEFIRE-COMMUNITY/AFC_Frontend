@@ -295,6 +295,9 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
   const [sponsorIds, setSponsorIds] = useState<Record<string, string>>({});
   const [currentRoster, setCurrentRoster] = useState<RosterMember[]>([]);
   const [teamId, setTeamId] = useState<number | null>(null);
+  const [touchedRejectedIds, setTouchedRejectedIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const minPlayers = userTeam?.min_players || 4;
   const maxPlayers = userTeam?.max_players || 6;
@@ -335,6 +338,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
       });
       setSponsorIds(sponsorMap);
 
+      setTouchedRejectedIds(new Set());
       setStep("SELECT_MEMBERS");
       setOpen(true);
     } catch (err: any) {
@@ -597,20 +601,62 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                   )}
                   {selectedMembersData.map((member) => {
                     const isDuplicate = editDuplicateMemberIds.has(member.id);
+                    const rosterEntry = currentRoster.find(
+                      (r) => r.username === member.username,
+                    );
+                    const memberStatus = rosterEntry?.status;
+                    const isAccepted = memberStatus === "active";
+                    const isRejectedSponsor = memberStatus === "rejected";
+                    const rejectedUntouched =
+                      isRejectedSponsor && !touchedRejectedIds.has(member.id);
+
+                    let inputClassName = "border-input";
+                    if (isAccepted) {
+                      inputClassName =
+                        "border-green-500 focus-visible:ring-green-500";
+                    } else if (rejectedUntouched || isDuplicate) {
+                      inputClassName =
+                        "border-destructive focus-visible:ring-destructive";
+                    }
+
                     return (
                       <div key={member.id} className="space-y-1">
-                        <Label>{member.username}</Label>
+                        <div className="flex items-center gap-2">
+                          <Label>{member.username}</Label>
+                          {isAccepted && (
+                            <span className="text-xs font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded">
+                              Accepted
+                            </span>
+                          )}
+                          {isRejectedSponsor && (
+                            <span className="text-xs font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
+                              Rejected
+                            </span>
+                          )}
+                        </div>
                         <Input
-                          className={`${isDuplicate ? "border-destructive focus-visible:ring-destructive" : "border-input"}`}
+                          className={inputClassName}
                           placeholder={`Enter ${eventDetails.sponsor_field_label}`}
                           value={sponsorIds[member.id] || ""}
-                          onChange={(e) =>
+                          disabled={isAccepted}
+                          onChange={(e) => {
+                            if (isRejectedSponsor) {
+                              setTouchedRejectedIds(
+                                (prev) => new Set(prev).add(member.id),
+                              );
+                            }
                             setSponsorIds({
                               ...sponsorIds,
                               [member.id]: e.target.value,
-                            })
-                          }
+                            });
+                          }}
                         />
+                        {rejectedUntouched && !isDuplicate && (
+                          <p className="text-xs text-destructive">
+                            This player was rejected. Update their{" "}
+                            {eventDetails.sponsor_field_label}.
+                          </p>
+                        )}
                         {isDuplicate && (
                           <p className="text-xs text-destructive">
                             This value is already used by another member.
@@ -2612,7 +2658,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         return (
           <Alert className="mt-4 border-destructive/50 bg-destructive/10 text-destructive">
             <XCircle className="h-4 w-4" />
-            <p className="text-red-100">
+            <p className="text-red-900 dark:text-red-100">
               Your registration has been{" "}
               <span className="font-semibold inline-block">rejected</span> for
               this tournament. Please contact your team creator to update your

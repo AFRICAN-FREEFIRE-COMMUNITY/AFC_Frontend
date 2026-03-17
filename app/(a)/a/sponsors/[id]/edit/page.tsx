@@ -39,28 +39,36 @@ import { cn } from "@/lib/utils";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
-const schema = z.object({
-  full_name: z.string().min(1, "Full name is required"),
-  email: z.string().email("Valid email required"),
-  username: z.string().min(1, "Username is required"),
-  event_ids: z.array(z.number()).min(1, "Select at least one event"),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters." })
-    .refine((val) => /[a-z]/.test(val), {
-      message: "Password must contain at least one lowercase letter.",
-    })
-    .refine((val) => /[A-Z]/.test(val), {
-      message: "Password must contain at least one uppercase letter.",
-    })
-    .refine((val) => /[0-9]/.test(val), {
-      message: "Password must contain at least one number.",
-    })
-    .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
-      message: "Password must contain at least one special character.",
-    }),
-  confirmPassword: z.string(),
-});
+const schema = z
+  .object({
+    full_name: z.string().min(1, "Full name is required"),
+    email: z.string().email("Valid email required"),
+    username: z.string().min(1, "Username is required"),
+    event_ids: z.array(z.number()).min(1, "Select at least one event"),
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (!password) return; // no password change — skip all checks
+    if (password.length < 8) {
+      ctx.addIssue({ code: "custom", path: ["password"], message: "Password must be at least 8 characters." });
+    }
+    if (!/[a-z]/.test(password)) {
+      ctx.addIssue({ code: "custom", path: ["password"], message: "Password must contain at least one lowercase letter." });
+    }
+    if (!/[A-Z]/.test(password)) {
+      ctx.addIssue({ code: "custom", path: ["password"], message: "Password must contain at least one uppercase letter." });
+    }
+    if (!/[0-9]/.test(password)) {
+      ctx.addIssue({ code: "custom", path: ["password"], message: "Password must contain at least one number." });
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      ctx.addIssue({ code: "custom", path: ["password"], message: "Password must contain at least one special character." });
+    }
+    if (password !== confirmPassword) {
+      ctx.addIssue({ code: "custom", path: ["confirmPassword"], message: "Passwords do not match." });
+    }
+  });
 
 type FormValues = z.infer<typeof schema>;
 
@@ -135,7 +143,7 @@ export default function EditSponsorPage({
     }));
   };
 
-  const strength = checkStrength(password);
+  const strength = checkStrength(password ?? "");
 
   const strengthScore = useMemo(() => {
     return strength.filter((req) => req.met).length;
@@ -217,7 +225,7 @@ export default function EditSponsorPage({
           email: values.email,
           username: values.username,
           event_ids: values.event_ids,
-          password: values.password,
+          ...(values.password ? { password: values.password } : {}),
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
