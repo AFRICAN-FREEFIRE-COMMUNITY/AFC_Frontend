@@ -30,6 +30,7 @@ async function getEventData(slug: string) {
     if (!response.ok) return null;
 
     const data = await response.json();
+    console.log("[generateMetadata] API response keys:", Object.keys(data));
     // Adjusted to match your previous result structure
     return data.event_details || data.team || null;
   } catch (error) {
@@ -73,7 +74,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     rawImage && typeof rawImage === "string"
       ? rawImage.startsWith("http")
         ? rawImage
-        : `${env.NEXT_PUBLIC_URL}/${rawImage}`
+        : `${env.NEXT_PUBLIC_URL}/${rawImage.replace(/^\//, "")}`
       : siteConfig.ogImage;
 
   const canonicalUrl = `${siteConfig.url}/tournaments/${slug}`;
