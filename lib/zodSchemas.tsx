@@ -179,9 +179,9 @@ export const CreateTeamFormSchema = z.object({
   team_description: z.string().min(2, {
     message: "Team description must be at least 2 characters.",
   }),
-  country: z.string().min(2, {
-    message: "Country must be at least 2 characters.",
-  }),
+  // country: z.string().min(2, {
+  //   message: "Country must be at least 2 characters.",
+  // }),
   join_settings: z.string().min(2, {
     message: "Join settings must be selected.",
   }),

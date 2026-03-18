@@ -73,7 +73,7 @@ export default function CreateTeamForm() {
     defaultValues: {
       team_name: "",
       team_description: "",
-      country: "",
+      // country: "",
       team_tag: "",
       list_of_players_to_invite: [{ player: "" }],
       facebook_url: "",
@@ -113,7 +113,7 @@ export default function CreateTeamForm() {
           formData.append("team_logo", selectedFile);
         }
         formData.append("team_description", data.team_description);
-        formData.append("country", data.country);
+        // formData.append("country", data.country);
         formData.append("join_settings", data.join_settings);
         // Handle list_of_players_to_invite as JSON string
         if (
@@ -382,7 +382,7 @@ export default function CreateTeamForm() {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="country"
                 render={({ field }) => (
@@ -408,7 +408,7 @@ export default function CreateTeamForm() {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
               <FormField
                 control={form.control}
                 name="join_settings"
