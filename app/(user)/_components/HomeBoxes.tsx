@@ -77,7 +77,7 @@ export const HomeBoxes = () => {
           <CardTitle>Total Prize Pool</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-gold">$1,750</p>
+          <p className="text-4xl font-bold text-gold">$5,750</p>
         </CardContent>
       </Card>
     </div>
