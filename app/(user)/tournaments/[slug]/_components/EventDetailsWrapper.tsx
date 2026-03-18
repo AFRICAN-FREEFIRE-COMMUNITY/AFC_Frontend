@@ -299,8 +299,36 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
     new Set(),
   );
 
+  // ── NEW: all-competitors sponsor IDs fetched once when SPONSOR_IDS opens ──
+  const [allRegisteredSponsorIds, setAllRegisteredSponsorIds] = useState<
+    Map<string, string> // sponsorId → username who owns it
+  >(new Map());
+  const [isFetchingAllSponsors, setIsFetchingAllSponsors] = useState(false);
+
   const minPlayers = userTeam?.min_players || 4;
   const maxPlayers = userTeam?.max_players || 6;
+
+  // ── Fetch every competitor's sponsor_id for this event ──
+  const fetchAllSponsorIds = async () => {
+    if (!eventDetails.is_sponsored || !token) return;
+    setIsFetchingAllSponsors(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-competitors-and-their-sponsor-id/`,
+        { event_id: eventDetails.event_id },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const map = new Map<string, string>();
+      (res.data.competitors || []).forEach((c: any) => {
+        if (c.sponsor_id) map.set(c.sponsor_id.trim(), c.username);
+      });
+      setAllRegisteredSponsorIds(map);
+    } catch {
+      // Non-fatal — duplicate-across-event check just won't run
+    } finally {
+      setIsFetchingAllSponsors(false);
+    }
+  };
 
   const handleOpen = async () => {
     setIsLoadingRoster(true);
@@ -315,20 +343,16 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
       setCurrentRoster(data.roster || []);
       setTeamId(data.team_id);
 
-      // Build a lookup from username → roster member
       const rosterByUsername = new Map<string, RosterMember>();
       (data.roster || []).forEach((r: RosterMember) => {
         rosterByUsername.set(r.username, r);
       });
 
-      // Pre-select team members whose username appears in the current roster.
-      // We use team member's id (not user_id) because that's what the checkboxes compare against.
       const currentIds = (userTeam?.members || [])
         .filter((m) => rosterByUsername.has(m.username))
         .map((m) => m.id);
       setSelectedMemberIds(currentIds);
 
-      // Pre-populate sponsor IDs keyed by team member id (matches what SPONSOR_IDS step uses)
       const sponsorMap: Record<string, string> = {};
       (userTeam?.members || []).forEach((m) => {
         const rosterMember = rosterByUsername.get(m.username);
@@ -371,6 +395,8 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
       return;
     }
     if (eventDetails.is_sponsored) {
+      // Kick off the all-sponsors fetch in parallel while we show the step
+      fetchAllSponsorIds();
       setStep("SPONSOR_IDS");
     } else {
       handleSubmit();
@@ -420,6 +446,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
     );
   }, [userTeam, selectedMemberIds]);
 
+  // ── Duplicate detection (within team) ──
   const editSeenValues = new Set<string>();
   const editDuplicateMemberIds = new Set<string>();
   selectedMembersData.forEach((m) => {
@@ -438,9 +465,47 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
   });
   const editHasDuplicates = editDuplicateMemberIds.size > 0;
 
+  // ── NEW: Duplicate detection (against all registered competitors) ──
+  //    Build a set of sponsor_ids that belong to OTHER competitors
+  //    (i.e. not the current member being edited).
+  const getExternalConflict = (memberId: string): string | null => {
+    if (allRegisteredSponsorIds.size === 0) return null;
+    const val = (sponsorIds[memberId] || "").trim();
+    if (!val) return null;
+
+    // Find this member's current accepted sponsor_id so they can keep it
+    const rosterEntry = currentRoster.find(
+      (r) => r.user_id.toString() === memberId,
+    );
+    const ownCurrentId = rosterEntry?.user_id_from_sponsor?.trim() || null;
+
+    // If they're keeping their own existing accepted value, it's not a conflict
+    if (
+      ownCurrentId &&
+      val === ownCurrentId &&
+      rosterEntry?.status === "active"
+    ) {
+      return null;
+    }
+
+    const ownerUsername = allRegisteredSponsorIds.get(val);
+    if (!ownerUsername) return null;
+
+    // Conflict only if someone *else* already registered with this ID
+    const thisMember = selectedMembersData.find((m) => m.id === memberId);
+    if (ownerUsername === thisMember?.username) return null;
+
+    return ownerUsername;
+  };
+
+  const anyExternalConflict = selectedMembersData.some(
+    (m) => getExternalConflict(m.id) !== null,
+  );
+
   const canSubmitSponsor =
     selectedMembersData.every((m) => (sponsorIds[m.id] || "").trim() !== "") &&
-    !editHasDuplicates;
+    !editHasDuplicates &&
+    !anyExternalConflict; // ← NEW gate
 
   return (
     <>
@@ -591,16 +656,28 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                   </div>
                 )}
 
+                {/* ── NEW: loading indicator while fetching all sponsors ── */}
+                {isFetchingAllSponsors && (
+                  <div className="p-3 rounded-md bg-primary/10 text-sm text-muted-foreground flex items-center gap-2">
+                    <Loader text="Validating against registered players..." />
+                  </div>
+                )}
+
                 <div className="space-y-3 px-2">
-                  {editHasDuplicates && (
+                  {(editHasDuplicates || anyExternalConflict) && (
                     <p className="text-sm text-destructive">
-                      Each member must have a unique{" "}
-                      {eventDetails.sponsor_field_label}. Duplicates are not
-                      allowed.
+                      Each {eventDetails.sponsor_field_label} must be unique and
+                      not already used by another registered participant.
                     </p>
                   )}
                   {selectedMembersData.map((member) => {
-                    const isDuplicate = editDuplicateMemberIds.has(member.id);
+                    const isTeamDuplicate = editDuplicateMemberIds.has(
+                      member.id,
+                    );
+                    const externalConflictUser = getExternalConflict(member.id);
+                    const hasAnyError =
+                      isTeamDuplicate || !!externalConflictUser;
+
                     const rosterEntry = currentRoster.find(
                       (r) => r.username === member.username,
                     );
@@ -611,10 +688,10 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                       isRejectedSponsor && !touchedRejectedIds.has(member.id);
 
                     let inputClassName = "border-input";
-                    if (isAccepted) {
+                    if (isAccepted && !hasAnyError) {
                       inputClassName =
                         "border-green-500 focus-visible:ring-green-500";
-                    } else if (rejectedUntouched || isDuplicate) {
+                    } else if (rejectedUntouched || hasAnyError) {
                       inputClassName =
                         "border-destructive focus-visible:ring-destructive";
                     }
@@ -623,7 +700,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                       <div key={member.id} className="space-y-1">
                         <div className="flex items-center gap-2">
                           <Label>{member.username}</Label>
-                          {isAccepted && (
+                          {isAccepted && !hasAnyError && (
                             <span className="text-xs font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded">
                               Accepted
                             </span>
@@ -638,11 +715,11 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                           className={inputClassName}
                           placeholder={`Enter ${eventDetails.sponsor_field_label}`}
                           value={sponsorIds[member.id] || ""}
-                          disabled={isAccepted}
+                          disabled={isAccepted && !hasAnyError}
                           onChange={(e) => {
                             if (isRejectedSponsor) {
-                              setTouchedRejectedIds(
-                                (prev) => new Set(prev).add(member.id),
+                              setTouchedRejectedIds((prev) =>
+                                new Set(prev).add(member.id),
                               );
                             }
                             setSponsorIds({
@@ -651,15 +728,24 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                             });
                           }}
                         />
-                        {rejectedUntouched && !isDuplicate && (
+                        {/* Error messages — ordered by specificity */}
+                        {rejectedUntouched && !hasAnyError && (
                           <p className="text-xs text-destructive">
                             This player was rejected. Update their{" "}
                             {eventDetails.sponsor_field_label}.
                           </p>
                         )}
-                        {isDuplicate && (
+                        {isTeamDuplicate && (
                           <p className="text-xs text-destructive">
-                            This value is already used by another member.
+                            This value is already used by another selected
+                            member.
+                          </p>
+                        )}
+                        {/* ── NEW error ── */}
+                        {!isTeamDuplicate && externalConflictUser && (
+                          <p className="text-xs text-destructive">
+                            This {eventDetails.sponsor_field_label} is already
+                            registered by a player.
                           </p>
                         )}
                       </div>
@@ -677,7 +763,9 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                 </Button>
                 <Button
                   onClick={handleSubmit}
-                  disabled={!canSubmitSponsor || isSubmitting}
+                  disabled={
+                    !canSubmitSponsor || isSubmitting || isFetchingAllSponsors
+                  }
                 >
                   {isSubmitting ? <Loader text="Saving..." /> : "Save Changes"}
                 </Button>
@@ -689,6 +777,417 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
     </>
   );
 };
+
+// const EditRosterModal: React.FC<EditRosterModalProps> = ({
+//   eventDetails,
+//   userTeam,
+//   token,
+//   onSuccess,
+// }) => {
+//   const [open, setOpen] = useState(false);
+//   const [step, setStep] = useState<"SELECT_MEMBERS" | "SPONSOR_IDS">(
+//     "SELECT_MEMBERS",
+//   );
+//   const [isLoadingRoster, setIsLoadingRoster] = useState(false);
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+//   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+//   const [sponsorIds, setSponsorIds] = useState<Record<string, string>>({});
+//   const [currentRoster, setCurrentRoster] = useState<RosterMember[]>([]);
+//   const [teamId, setTeamId] = useState<number | null>(null);
+//   const [touchedRejectedIds, setTouchedRejectedIds] = useState<Set<string>>(
+//     new Set(),
+//   );
+
+//   const minPlayers = userTeam?.min_players || 4;
+//   const maxPlayers = userTeam?.max_players || 6;
+
+//   const handleOpen = async () => {
+//     setIsLoadingRoster(true);
+//     try {
+//       const res = await axios.post(
+//         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-roster-details/`,
+//         { event_id: eventDetails.event_id },
+//         { headers: { Authorization: `Bearer ${token}` } },
+//       );
+
+//       const data = res.data;
+//       setCurrentRoster(data.roster || []);
+//       setTeamId(data.team_id);
+
+//       // Build a lookup from username → roster member
+//       const rosterByUsername = new Map<string, RosterMember>();
+//       (data.roster || []).forEach((r: RosterMember) => {
+//         rosterByUsername.set(r.username, r);
+//       });
+
+//       // Pre-select team members whose username appears in the current roster.
+//       // We use team member's id (not user_id) because that's what the checkboxes compare against.
+//       const currentIds = (userTeam?.members || [])
+//         .filter((m) => rosterByUsername.has(m.username))
+//         .map((m) => m.id);
+//       setSelectedMemberIds(currentIds);
+
+//       // Pre-populate sponsor IDs keyed by team member id (matches what SPONSOR_IDS step uses)
+//       const sponsorMap: Record<string, string> = {};
+//       (userTeam?.members || []).forEach((m) => {
+//         const rosterMember = rosterByUsername.get(m.username);
+//         if (rosterMember?.user_id_from_sponsor) {
+//           sponsorMap[m.id] = rosterMember.user_id_from_sponsor;
+//         }
+//       });
+//       setSponsorIds(sponsorMap);
+
+//       setTouchedRejectedIds(new Set());
+//       setStep("SELECT_MEMBERS");
+//       setOpen(true);
+//     } catch (err: any) {
+//       toast.error(
+//         err.response?.data?.message || "Failed to load roster details",
+//       );
+//     } finally {
+//       setIsLoadingRoster(false);
+//     }
+//   };
+
+//   const handleMemberToggle = (memberId: string) => {
+//     // @ts-ignore
+//     setSelectedMemberIds((prev) => {
+//       if (prev.includes(memberId)) {
+//         return prev.filter((id: string) => id !== memberId);
+//       } else {
+//         if (prev.length >= maxPlayers) {
+//           toast.error(`You can only select up to ${maxPlayers} members`);
+//           return prev;
+//         }
+//         return [...prev, memberId];
+//       }
+//     });
+//   };
+
+//   const handleContinue = () => {
+//     if (selectedMemberIds.length < minPlayers) {
+//       toast.error(`Please select at least ${minPlayers} team members`);
+//       return;
+//     }
+//     if (eventDetails.is_sponsored) {
+//       setStep("SPONSOR_IDS");
+//     } else {
+//       handleSubmit();
+//     }
+//   };
+
+//   const handleSubmit = async () => {
+//     setIsSubmitting(true);
+//     try {
+//       const rosterMemberIds = selectedMemberIds.map((id) => parseInt(id));
+
+//       const payload: any = {
+//         event_id: eventDetails.event_id,
+//         team_id: teamId,
+//         roster_member_ids: rosterMemberIds,
+//       };
+
+//       if (eventDetails.is_sponsored) {
+//         const filteredSponsorIds: Record<string, string> = {};
+//         rosterMemberIds.forEach((uid) => {
+//           filteredSponsorIds[uid.toString()] = sponsorIds[uid.toString()] || "";
+//         });
+//         payload.sponsor_ids = filteredSponsorIds;
+//       }
+
+//       const res = await axios.post(
+//         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-roster/`,
+//         payload,
+//         { headers: { Authorization: `Bearer ${token}` } },
+//       );
+
+//       toast.success(res.data.message || "Registration updated successfully!");
+//       setOpen(false);
+//       onSuccess();
+//     } catch (err: any) {
+//       toast.error(
+//         err.response?.data?.message || "Failed to update registration",
+//       );
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   const selectedMembersData = useMemo(() => {
+//     return (
+//       userTeam?.members.filter((m) => selectedMemberIds.includes(m.id)) || []
+//     );
+//   }, [userTeam, selectedMemberIds]);
+
+//   const editSeenValues = new Set<string>();
+//   const editDuplicateMemberIds = new Set<string>();
+//   selectedMembersData.forEach((m) => {
+//     const val = (sponsorIds[m.id] || "").trim();
+//     if (val !== "") {
+//       if (editSeenValues.has(val)) {
+//         selectedMembersData.forEach((other) => {
+//           if ((sponsorIds[other.id] || "").trim() === val) {
+//             editDuplicateMemberIds.add(other.id);
+//           }
+//         });
+//       } else {
+//         editSeenValues.add(val);
+//       }
+//     }
+//   });
+//   const editHasDuplicates = editDuplicateMemberIds.size > 0;
+
+//   const canSubmitSponsor =
+//     selectedMembersData.every((m) => (sponsorIds[m.id] || "").trim() !== "") &&
+//     !editHasDuplicates;
+
+//   return (
+//     <>
+//       <Button
+//         variant="outline"
+//         className="w-full md:w-auto"
+//         onClick={handleOpen}
+//         disabled={isLoadingRoster}
+//       >
+//         {isLoadingRoster ? <Loader text="Loading..." /> : "Edit Registration"}
+//       </Button>
+
+//       <Dialog open={open} onOpenChange={(o) => !o && setOpen(false)}>
+//         <DialogContent className="flex flex-col max-h-[85vh]">
+//           {step === "SELECT_MEMBERS" && (
+//             <>
+//               <DialogHeader>
+//                 <DialogTitle>Edit Team Roster</DialogTitle>
+//                 <DialogDescription>
+//                   Update your players for {eventDetails.event_name}
+//                 </DialogDescription>
+//               </DialogHeader>
+
+//               {(() => {
+//                 const rejectedOnRoster = currentRoster.filter(
+//                   (r) => r.status === "rejected",
+//                 );
+//                 if (rejectedOnRoster.length === 0) return null;
+//                 const allRejected =
+//                   rejectedOnRoster.length === currentRoster.length;
+//                 return (
+//                   <Alert className="border-destructive/50 bg-destructive/10 text-destructive">
+//                     <XCircle className="h-4 w-4" />
+//                     <AlertDescription>
+//                       {allRejected ? (
+//                         <p>
+//                           <strong>All players</strong> on the current roster
+//                           have been rejected. Please select a new lineup.
+//                         </p>
+//                       ) : (
+//                         <p>
+//                           <strong>
+//                             {rejectedOnRoster.length}{" "}
+//                             {rejectedOnRoster.length === 1
+//                               ? "player"
+//                               : "players"}
+//                           </strong>{" "}
+//                           on the current roster{" "}
+//                           {rejectedOnRoster.length === 1 ? "has" : "have"} been
+//                           rejected. Review and update your lineup.
+//                         </p>
+//                       )}
+//                     </AlertDescription>
+//                   </Alert>
+//                 );
+//               })()}
+
+//               <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md">
+//                 <h3 className="font-semibold mb-3">
+//                   Select Players ({minPlayers}–{maxPlayers}):
+//                 </h3>
+//                 <div className="space-y-2">
+//                   {userTeam?.members.map((member) => {
+//                     const rosterEntry = currentRoster.find(
+//                       (r) => r.user_id.toString() === member.id,
+//                     );
+//                     const isRejected = rosterEntry?.status === "rejected";
+//                     const isCurrent = !!rosterEntry;
+//                     return (
+//                       <div
+//                         key={member.id}
+//                         className="flex items-center justify-between p-3 bg-background rounded-md border hover:border-primary transition"
+//                       >
+//                         <div className="flex items-center gap-3">
+//                           <Checkbox
+//                             id={`edit-member-${member.id}`}
+//                             checked={selectedMemberIds.includes(member.id)}
+//                             onCheckedChange={() =>
+//                               handleMemberToggle(member.id)
+//                             }
+//                           />
+//                           <label
+//                             htmlFor={`edit-member-${member.id}`}
+//                             className="font-medium cursor-pointer"
+//                           >
+//                             {member.username}
+//                           </label>
+//                         </div>
+//                         <div className="flex items-center gap-1">
+//                           {isCurrent && !isRejected && (
+//                             <Badge variant="outline" className="text-xs">
+//                               Current
+//                             </Badge>
+//                           )}
+//                           {isRejected && (
+//                             <Badge variant="destructive" className="text-xs">
+//                               Rejected
+//                             </Badge>
+//                           )}
+//                         </div>
+//                       </div>
+//                     );
+//                   })}
+//                 </div>
+//               </div>
+
+//               <div className="text-sm text-muted-foreground">
+//                 Selected: {selectedMemberIds.length} / {maxPlayers} players
+//               </div>
+
+//               <DialogFooter className="flex sm:justify-between">
+//                 <Button variant="secondary" onClick={() => setOpen(false)}>
+//                   Cancel
+//                 </Button>
+//                 <Button
+//                   onClick={handleContinue}
+//                   disabled={
+//                     selectedMemberIds.length < minPlayers ||
+//                     selectedMemberIds.length > maxPlayers ||
+//                     isSubmitting
+//                   }
+//                 >
+//                   {isSubmitting ? (
+//                     <Loader text="Saving..." />
+//                   ) : eventDetails.is_sponsored ? (
+//                     "Continue"
+//                   ) : (
+//                     "Save Changes"
+//                   )}
+//                 </Button>
+//               </DialogFooter>
+//             </>
+//           )}
+
+//           {step === "SPONSOR_IDS" && (
+//             <>
+//               <DialogHeader>
+//                 <DialogTitle>{eventDetails.sponsor_name} Details</DialogTitle>
+//                 <DialogDescription>
+//                   Update {eventDetails.sponsor_field_label} for your roster
+//                 </DialogDescription>
+//               </DialogHeader>
+
+//               <div className="flex-1 min-h-0 overflow-y-auto space-y-4 py-2">
+//                 {eventDetails.sponsor_requirement_description && (
+//                   <div className="p-3 rounded-md bg-primary/10 text-sm text-muted-foreground">
+//                     {eventDetails.sponsor_requirement_description}
+//                   </div>
+//                 )}
+
+//                 <div className="space-y-3 px-2">
+//                   {editHasDuplicates && (
+//                     <p className="text-sm text-destructive">
+//                       Each member must have a unique{" "}
+//                       {eventDetails.sponsor_field_label}. Duplicates are not
+//                       allowed.
+//                     </p>
+//                   )}
+//                   {selectedMembersData.map((member) => {
+//                     const isDuplicate = editDuplicateMemberIds.has(member.id);
+//                     const rosterEntry = currentRoster.find(
+//                       (r) => r.username === member.username,
+//                     );
+//                     const memberStatus = rosterEntry?.status;
+//                     const isAccepted = memberStatus === "active";
+//                     const isRejectedSponsor = memberStatus === "rejected";
+//                     const rejectedUntouched =
+//                       isRejectedSponsor && !touchedRejectedIds.has(member.id);
+
+//                     let inputClassName = "border-input";
+//                     if (isAccepted) {
+//                       inputClassName =
+//                         "border-green-500 focus-visible:ring-green-500";
+//                     } else if (rejectedUntouched || isDuplicate) {
+//                       inputClassName =
+//                         "border-destructive focus-visible:ring-destructive";
+//                     }
+
+//                     return (
+//                       <div key={member.id} className="space-y-1">
+//                         <div className="flex items-center gap-2">
+//                           <Label>{member.username}</Label>
+//                           {isAccepted && (
+//                             <span className="text-xs font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded">
+//                               Accepted
+//                             </span>
+//                           )}
+//                           {isRejectedSponsor && (
+//                             <span className="text-xs font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
+//                               Rejected
+//                             </span>
+//                           )}
+//                         </div>
+//                         <Input
+//                           className={inputClassName}
+//                           placeholder={`Enter ${eventDetails.sponsor_field_label}`}
+//                           value={sponsorIds[member.id] || ""}
+//                           disabled={isAccepted}
+//                           onChange={(e) => {
+//                             if (isRejectedSponsor) {
+//                               setTouchedRejectedIds((prev) =>
+//                                 new Set(prev).add(member.id),
+//                               );
+//                             }
+//                             setSponsorIds({
+//                               ...sponsorIds,
+//                               [member.id]: e.target.value,
+//                             });
+//                           }}
+//                         />
+//                         {rejectedUntouched && !isDuplicate && (
+//                           <p className="text-xs text-destructive">
+//                             This player was rejected. Update their{" "}
+//                             {eventDetails.sponsor_field_label}.
+//                           </p>
+//                         )}
+//                         {isDuplicate && (
+//                           <p className="text-xs text-destructive">
+//                             This value is already used by another member.
+//                           </p>
+//                         )}
+//                       </div>
+//                     );
+//                   })}
+//                 </div>
+//               </div>
+
+//               <DialogFooter className="flex sm:justify-between">
+//                 <Button
+//                   variant="secondary"
+//                   onClick={() => setStep("SELECT_MEMBERS")}
+//                 >
+//                   Back
+//                 </Button>
+//                 <Button
+//                   onClick={handleSubmit}
+//                   disabled={!canSubmitSponsor || isSubmitting}
+//                 >
+//                   {isSubmitting ? <Loader text="Saving..." /> : "Save Changes"}
+//                 </Button>
+//               </DialogFooter>
+//             </>
+//           )}
+//         </DialogContent>
+//       </Dialog>
+//     </>
+//   );
+// };
 
 const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
   // Initialize with first group's ID
@@ -1043,6 +1542,7 @@ interface ModalProps {
     selectedTeamMembers?: TeamMember[];
     validationResults?: DiscordValidationResult[];
   };
+  token: string | null;
   modalStep: ModalStep;
   setModalStep: (step: ModalStep) => void;
   handleSelectType: (type: RegistrationType) => void;
@@ -1091,6 +1591,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
   setSoloSponsorUuid,
   teamSponsorUuids,
   setTeamSponsorUuids,
+  token,
 }) => {
   const isSoloDisabled = eventDetails.participant_type === "squad";
   const isTeamDisabled = eventDetails.participant_type === "solo";
@@ -1102,6 +1603,32 @@ const RegistrationModals: React.FC<ModalProps> = ({
   const validationResultsRef = useRef(eventDetails.validationResults);
   const selectedTeamMembersRef = useRef(eventDetails.selectedTeamMembers);
 
+  const [allRegisteredSponsorIds, setAllRegisteredSponsorIds] = useState<
+    Map<string, string>
+  >(new Map());
+  const [isFetchingAllSponsors, setIsFetchingAllSponsors] = useState(false);
+
+  const fetchAllSponsorIds = async () => {
+    if (!eventDetails.is_sponsored || !token) return;
+    setIsFetchingAllSponsors(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-competitors-and-their-sponsor-id/`,
+        { event_id: eventDetails.event_id },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const map = new Map<string, string>();
+      (res.data.competitors || []).forEach((c: any) => {
+        if (c.sponsor_id) map.set(c.sponsor_id.trim(), c.username);
+      });
+      setAllRegisteredSponsorIds(map);
+    } catch {
+      // Non-fatal — duplicate-across-event check just won't run
+    } finally {
+      setIsFetchingAllSponsors(false);
+    }
+  };
+
   useEffect(() => {
     onCheckDiscordStatusRef.current = onCheckDiscordStatus;
   }, [onCheckDiscordStatus]);
@@ -1112,6 +1639,15 @@ const RegistrationModals: React.FC<ModalProps> = ({
     validationResultsRef.current = eventDetails.validationResults;
     selectedTeamMembersRef.current = eventDetails.selectedTeamMembers;
   }, [eventDetails.validationResults, eventDetails.selectedTeamMembers]);
+
+  useEffect(() => {
+    if (modalStep === "SPONSOR" && eventDetails.is_sponsored) {
+      fetchAllSponsorIds();
+    }
+    // fetchAllSponsorIds reads token + eventDetails.event_id via closure;
+    // they don't change while the modal is open so modalStep is the only dep needed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modalStep]);
 
   // Poll Discord status for team members — only restarts when modal step changes
   useEffect(() => {
@@ -1353,7 +1889,10 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <Button variant="secondary" onClick={() => setModalStep("INFO")}>
                 Back
               </Button>
-              <Button onClick={handleRulesContinue} disabled={!rulesAccepted}>
+              <Button
+                onClick={handleRulesContinue} // ← plain call; useEffect above handles the fetch
+                disabled={!rulesAccepted}
+              >
                 {eventDetails.is_sponsored ? "Continue" : "Continue to Discord"}
               </Button>
             </DialogFooter>
@@ -1361,37 +1900,181 @@ const RegistrationModals: React.FC<ModalProps> = ({
         );
 
       case "SPONSOR": {
+        // const teamMembers = eventDetails.selectedTeamMembers || [];
+        // const isTeamSponsor = regType === "team" && teamMembers.length > 0;
+        // const nextStep = regType === "team" ? "DISCORD_STATUS" : "DISCORD_LINK";
+
+        // // Detect duplicate sponsor values across team members
+        // const seenValues = new Set<string>();
+        // const duplicateMemberIds = new Set<string>();
+        // teamMembers.forEach((m) => {
+        //   const val = (teamSponsorUuids[m.id] || "").trim();
+        //   if (val !== "") {
+        //     if (seenValues.has(val)) {
+        //       // Mark all members with this value as duplicates
+        //       teamMembers.forEach((other) => {
+        //         if ((teamSponsorUuids[other.id] || "").trim() === val) {
+        //           duplicateMemberIds.add(other.id);
+        //         }
+        //       });
+        //     } else {
+        //       seenValues.add(val);
+        //     }
+        //   }
+        // });
+        // const hasDuplicates = duplicateMemberIds.size > 0;
+
+        // const canContinueSponsor = isTeamSponsor
+        //   ? teamMembers.every(
+        //       (m) => (teamSponsorUuids[m.id] || "").trim() !== "",
+        //     ) && !hasDuplicates
+        //   : soloSponsorUuid.trim() !== "";
+
         const teamMembers = eventDetails.selectedTeamMembers || [];
         const isTeamSponsor = regType === "team" && teamMembers.length > 0;
         const nextStep = regType === "team" ? "DISCORD_STATUS" : "DISCORD_LINK";
 
-        // Detect duplicate sponsor values across team members
+        // ── Within-team duplicate detection ──────────────────────────────────
         const seenValues = new Set<string>();
         const duplicateMemberIds = new Set<string>();
-        teamMembers.forEach((m) => {
-          const val = (teamSponsorUuids[m.id] || "").trim();
-          if (val !== "") {
-            if (seenValues.has(val)) {
-              // Mark all members with this value as duplicates
-              teamMembers.forEach((other) => {
-                if ((teamSponsorUuids[other.id] || "").trim() === val) {
-                  duplicateMemberIds.add(other.id);
-                }
-              });
-            } else {
-              seenValues.add(val);
+        if (isTeamSponsor) {
+          teamMembers.forEach((m) => {
+            const val = (teamSponsorUuids[m.id] || "").trim();
+            if (val !== "") {
+              if (seenValues.has(val)) {
+                teamMembers.forEach((other) => {
+                  if ((teamSponsorUuids[other.id] || "").trim() === val) {
+                    duplicateMemberIds.add(other.id);
+                  }
+                });
+              } else {
+                seenValues.add(val);
+              }
             }
-          }
-        });
+          });
+        }
         const hasDuplicates = duplicateMemberIds.size > 0;
+
+        // ── Cross-event duplicate detection ──────────────────────────────────
+        // Returns the username of whoever already registered with that sponsor ID,
+        // or null if it's unused / belongs to the current solo user.
+        const getSoloExternalConflict = (): string | null => {
+          if (!soloSponsorUuid.trim() || allRegisteredSponsorIds.size === 0)
+            return null;
+          const owner = allRegisteredSponsorIds.get(soloSponsorUuid.trim());
+          return owner || null; // for solo we never exclude — they don't have a prior entry
+        };
+
+        const getTeamMemberExternalConflict = (
+          memberId: string,
+        ): string | null => {
+          if (allRegisteredSponsorIds.size === 0) return null;
+          const val = (teamSponsorUuids[memberId] || "").trim();
+          if (!val) return null;
+          const owner = allRegisteredSponsorIds.get(val);
+          if (!owner) return null;
+          const thisMember = teamMembers.find((m) => m.id === memberId);
+          // If the owner IS this member they were previously registered (solo re-register edge case)
+          if (thisMember && owner === thisMember.username) return null;
+          return owner;
+        };
+
+        const anyTeamExternalConflict =
+          isTeamSponsor &&
+          teamMembers.some((m) => getTeamMemberExternalConflict(m.id) !== null);
+
+        const soloExternalConflict = !isTeamSponsor
+          ? getSoloExternalConflict()
+          : null;
 
         const canContinueSponsor = isTeamSponsor
           ? teamMembers.every(
               (m) => (teamSponsorUuids[m.id] || "").trim() !== "",
-            ) && !hasDuplicates
-          : soloSponsorUuid.trim() !== "";
+            ) &&
+            !hasDuplicates &&
+            !anyTeamExternalConflict
+          : soloSponsorUuid.trim() !== "" && !soloExternalConflict;
 
         return (
+          // <>
+          //   <DialogHeader>
+          //     <DialogTitle className="text-xl">
+          //       {eventDetails.sponsor_name} Requirement
+          //     </DialogTitle>
+          //     <DialogDescription>
+          //       Complete this step to finish registration
+          //     </DialogDescription>
+          //   </DialogHeader>
+
+          //   <div className="space-y-4 py-2">
+          //     <div className="p-3 rounded-md bg-primary/10 text-sm text-muted-foreground">
+          //       {eventDetails.sponsor_requirement_description}
+          //     </div>
+
+          //     {isTeamSponsor ? (
+          //       <div className="space-y-3">
+          //         {hasDuplicates && (
+          //           <p className="text-sm text-destructive">
+          //             Each member must have a unique{" "}
+          //             {eventDetails.sponsor_field_label}. Duplicates are not
+          //             allowed.
+          //           </p>
+          //         )}
+          //         {teamMembers.map((member) => {
+          //           const isDuplicate = duplicateMemberIds.has(member.id);
+          //           return (
+          //             <div key={member?.id} className="space-y-1">
+          //               <label className="text-sm font-medium">
+          //                 {member?.username}
+          //               </label>
+          //               <Input
+          //                 className={`${isDuplicate ? "border-destructive focus-visible:ring-destructive" : "border-input"}`}
+          //                 placeholder={`Enter ${eventDetails.sponsor_field_label}`}
+          //                 value={teamSponsorUuids[member.id] || ""}
+          //                 onChange={(e) =>
+          //                   setTeamSponsorUuids({
+          //                     ...teamSponsorUuids,
+          //                     [member.id]: e.target.value,
+          //                   })
+          //                 }
+          //               />
+          //               {isDuplicate && (
+          //                 <p className="text-xs text-destructive">
+          //                   This value is already used by another member.
+          //                 </p>
+          //               )}
+          //             </div>
+          //           );
+          //         })}
+          //       </div>
+          //     ) : (
+          //       <div className="space-y-1">
+          //         <label className="text-sm font-medium">
+          //           {eventDetails.sponsor_field_label}
+          //         </label>
+          //         <input
+          //           className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          //           placeholder={`Enter your ${eventDetails.sponsor_field_label}`}
+          //           value={soloSponsorUuid}
+          //           onChange={(e) => setSoloSponsorUuid(e.target.value)}
+          //         />
+          //       </div>
+          //     )}
+          //   </div>
+
+          //   <DialogFooter className="flex sm:justify-between">
+          //     <Button variant="secondary" onClick={() => setModalStep("RULES")}>
+          //       Back
+          //     </Button>
+          //     <Button
+          //       onClick={() => setModalStep(nextStep)}
+          //       disabled={!canContinueSponsor}
+          //     >
+          //       Continue
+          //     </Button>
+          //   </DialogFooter>
+          // </>
+
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
@@ -1407,24 +2090,37 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {eventDetails.sponsor_requirement_description}
               </div>
 
+              {isFetchingAllSponsors && (
+                <div className="p-3 rounded-md bg-primary/10 text-sm text-muted-foreground flex items-center gap-2">
+                  <Loader text="Validating against registered players..." />
+                </div>
+              )}
+
               {isTeamSponsor ? (
                 <div className="space-y-3">
-                  {hasDuplicates && (
+                  {(hasDuplicates || anyTeamExternalConflict) && (
                     <p className="text-sm text-destructive">
-                      Each member must have a unique{" "}
-                      {eventDetails.sponsor_field_label}. Duplicates are not
-                      allowed.
+                      Each {eventDetails.sponsor_field_label} must be unique and
+                      not already registered by another participant.
                     </p>
                   )}
                   {teamMembers.map((member) => {
-                    const isDuplicate = duplicateMemberIds.has(member.id);
+                    const isTeamDuplicate = duplicateMemberIds.has(member.id);
+                    const externalConflictUser = getTeamMemberExternalConflict(
+                      member.id,
+                    );
+                    const hasError = isTeamDuplicate || !!externalConflictUser;
                     return (
                       <div key={member?.id} className="space-y-1">
                         <label className="text-sm font-medium">
                           {member?.username}
                         </label>
                         <Input
-                          className={`${isDuplicate ? "border-destructive focus-visible:ring-destructive" : "border-input"}`}
+                          className={
+                            hasError
+                              ? "border-destructive focus-visible:ring-destructive"
+                              : "border-input"
+                          }
                           placeholder={`Enter ${eventDetails.sponsor_field_label}`}
                           value={teamSponsorUuids[member.id] || ""}
                           onChange={(e) =>
@@ -1434,9 +2130,16 @@ const RegistrationModals: React.FC<ModalProps> = ({
                             })
                           }
                         />
-                        {isDuplicate && (
+                        {isTeamDuplicate && (
                           <p className="text-xs text-destructive">
-                            This value is already used by another member.
+                            This value is already used by another selected
+                            member.
+                          </p>
+                        )}
+                        {!isTeamDuplicate && externalConflictUser && (
+                          <p className="text-xs text-destructive">
+                            This {eventDetails.sponsor_field_label} is already
+                            registered by a player.
                           </p>
                         )}
                       </div>
@@ -1449,11 +2152,21 @@ const RegistrationModals: React.FC<ModalProps> = ({
                     {eventDetails.sponsor_field_label}
                   </label>
                   <input
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className={`flex h-9 w-full rounded-md border ${soloExternalConflict ? "border-destructive focus-visible:ring-destructive" : "border-input"} bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring`}
                     placeholder={`Enter your ${eventDetails.sponsor_field_label}`}
                     value={soloSponsorUuid}
                     onChange={(e) => setSoloSponsorUuid(e.target.value)}
                   />
+                  {soloExternalConflict && (
+                    <p className="text-xs text-destructive">
+                      This {eventDetails.sponsor_field_label} is already
+                      registered by{" "}
+                      <span className="font-semibold">
+                        {soloExternalConflict}
+                      </span>
+                      .
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -1464,7 +2177,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               </Button>
               <Button
                 onClick={() => setModalStep(nextStep)}
-                disabled={!canContinueSponsor}
+                disabled={!canContinueSponsor || isFetchingAllSponsors}
               >
                 Continue
               </Button>
@@ -2995,6 +3708,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           selectedTeamMembers: selectedTeamMembersData,
           validationResults: validationResults,
         }}
+        token={token}
         modalStep={modalStep}
         setModalStep={setModalStep}
         handleSelectType={handleSelectType}

@@ -15,6 +15,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -53,6 +64,29 @@ export const ProfileContent = () => {
     } catch (error) {
       console.error("Error checking Discord status:", error);
     }
+  };
+
+  const handleDiscordDisconnect = async () => {
+    if (!token) return;
+
+    startTransition(async () => {
+      try {
+        await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/disconnect-discord-account/`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        setDiscordConnected(false);
+        toast.success("Discord account disconnected.");
+      } catch (error) {
+        console.error("Error disconnecting Discord:", error);
+        toast.error("Failed to disconnect Discord. Please try again.");
+      }
+    });
   };
 
   useEffect(() => {
@@ -138,20 +172,80 @@ export const ProfileContent = () => {
               <Button className="w-full" asChild>
                 <Link href="/profile/edit">Edit Profile</Link>
               </Button>
-              <Button
-                disabled={pending || discordConnected}
-                onClick={handleDiscordConnect}
-                variant={"secondary"}
+              {/* <Button
+                disabled={pending}
+                onClick={
+                  discordConnected
+                    ? handleDiscordDisconnect
+                    : handleDiscordConnect
+                }
+                variant={discordConnected ? "destructive" : "secondary"} // Change color to red if connected
                 className="w-full"
               >
-                {discordConnected ? (
-                  `Connected - ${user.discord_username}`
-                ) : pending ? (
-                  <Loader text="Connecting..." />
+                {pending ? (
+                  <Loader
+                    text={
+                      discordConnected ? "Disconnecting..." : "Connecting..."
+                    }
+                  />
+                ) : discordConnected ? (
+                  `Disconnect Discord (${user.discord_username})`
                 ) : (
-                  "Connect to discord"
+                  "Connect to Discord"
                 )}
-              </Button>
+              </Button> */}
+
+              {discordConnected ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      className="w-full"
+                      disabled={pending}
+                    >
+                      {pending ? (
+                        <Loader text="Disconnecting..." />
+                      ) : (
+                        `Disconnect - ${user.discord_username}`
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will disconnect your Discord account from your
+                        player profile. You will lose access to Discord-linked
+                        features until you reconnect.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDiscordDisconnect}
+                        className="bg-destructive text-white hover:bg-destructive/90"
+                      >
+                        Disconnect
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
+                <Button
+                  disabled={pending}
+                  onClick={handleDiscordConnect}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  {pending ? (
+                    <Loader text="Connecting..." />
+                  ) : (
+                    "Connect to Discord"
+                  )}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

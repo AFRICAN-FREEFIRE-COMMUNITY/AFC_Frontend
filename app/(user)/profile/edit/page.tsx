@@ -56,7 +56,7 @@ const Page = () => {
       avatar: "",
       ingameName: "",
       fullName: "",
-      country: "" as EditProfileFormSchemaType["country"],
+      // country: "" as EditProfileFormSchemaType["country"],
       email: "",
       uid: "",
     },
@@ -69,9 +69,9 @@ const Page = () => {
         avatar: user.profile_pic || "",
         ingameName: user.in_game_name || "",
         fullName: user.full_name || "",
-        country:
-          (user.country as EditProfileFormSchemaType["country"]) ||
-          ("" as EditProfileFormSchemaType["country"]),
+        // country:
+        //   (user.country as EditProfileFormSchemaType["country"]) ||
+        //   ("" as EditProfileFormSchemaType["country"]),
         email: user.email || "",
         uid: user.uid || "",
       });
@@ -86,7 +86,7 @@ const Page = () => {
 
         // Append all form fields to FormData
         formData.append("full_name", data.fullName);
-        formData.append("country", data.country);
+        // formData.append("country", data.country);
         formData.append("in_game_name", data.ingameName);
         formData.append("email", data.email);
         formData.append("uid", data.uid);
@@ -247,7 +247,7 @@ const Page = () => {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="country"
                 render={({ field }) => (
@@ -273,7 +273,7 @@ const Page = () => {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
               <div className="flex gap-2 items-center justify-between">
                 <Button className="flex-1" disabled={pending} type="submit">
                   {pending ? <Loader text="Saving..." /> : "Save changes"}

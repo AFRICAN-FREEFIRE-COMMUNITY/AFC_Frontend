@@ -16,7 +16,7 @@ export const useSignout = () => {
       toast.error("Oops! Failed to logout");
     } finally {
       localStorage.removeItem("lastVisitedPath"); // 🔹 clear last page
-      router.push("/?logout=true");
+      router.push("/login?logout=true");
     }
   };
 
