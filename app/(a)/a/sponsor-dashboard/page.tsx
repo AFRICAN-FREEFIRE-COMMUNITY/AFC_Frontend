@@ -47,9 +47,9 @@ import { PageHeader } from "@/components/PageHeader";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-type Status = "pending" | "confirmed" | "rejected";
+type Status = "pending" | "active" | "rejected";
 type ActionType = "confirm" | "reject";
-type StatusFilter = "all" | "pending" | "confirmed" | "rejected";
+type StatusFilter = "all" | "pending" | "active" | "rejected";
 
 interface Player {
   id: number;
@@ -74,7 +74,7 @@ interface RejectDialogState {
 function StatusBadge({ status }: { status: Status }) {
   const map: Record<Status, string> = {
     pending: "bg-yellow-100 text-yellow-700",
-    confirmed: "bg-green-100 text-green-700",
+    active: "bg-green-100 text-green-700",
     rejected: "bg-red-100 text-red-700",
   };
   return (
@@ -131,7 +131,7 @@ export default function SponsorDashboardPage() {
           username: e.member_username ?? e.player_username,
           team_name: e.team_name ?? null,
           user_id_from_sponsor: e.user_id_from_sponsor,
-          status: "pending" as Status,
+          status: e.status as Status,
         }));
 
         setPlayers(mapped);
@@ -147,8 +147,11 @@ export default function SponsorDashboardPage() {
 
   // ── Filtering ────────────────────────────────────────────────────────────────
 
-  const filtered = useMemo(() => {
+  useEffect(() => {
     setPage(1);
+  }, [search, statusFilter]);
+
+  const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return players.filter((p) => {
       const matchesSearch =
@@ -166,7 +169,7 @@ export default function SponsorDashboardPage() {
     () => ({
       all: players.length,
       pending: players.filter((p) => p.status === "pending").length,
-      confirmed: players.filter((p) => p.status === "confirmed").length,
+      active: players.filter((p) => p.status === "active").length,
       rejected: players.filter((p) => p.status === "rejected").length,
     }),
     [players],
@@ -192,8 +195,8 @@ export default function SponsorDashboardPage() {
         { member_id: String(id) },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      updateStatus(id, "confirmed");
-      toast.success(`${username} confirmed.`);
+      updateStatus(id, "active");
+      toast.success(`${username} active.`);
     } catch {
       toast.error(`Failed to confirm ${username}.`);
     } finally {
@@ -258,7 +261,7 @@ export default function SponsorDashboardPage() {
         description={
           <>
             {counts.all} registrant{counts.all !== 1 ? "s" : ""} ·{" "}
-            {counts.pending} pending · {counts.confirmed} confirmed ·{" "}
+            {counts.pending} pending · {counts.active} active ·{" "}
             {counts.rejected} rejected
           </>
         }
@@ -293,9 +296,7 @@ export default function SponsorDashboardPage() {
           <SelectContent>
             <SelectItem value="all">All ({counts.all})</SelectItem>
             <SelectItem value="pending">Pending ({counts.pending})</SelectItem>
-            <SelectItem value="confirmed">
-              Confirmed ({counts.confirmed})
-            </SelectItem>
+            <SelectItem value="active">Active ({counts.active})</SelectItem>
             <SelectItem value="rejected">
               Rejected ({counts.rejected})
             </SelectItem>
@@ -344,46 +345,40 @@ export default function SponsorDashboardPage() {
                           <StatusBadge status={p.status} />
                         </TableCell>
                         <TableCell className="text-right">
-                          {p.status === "pending" ? (
-                            <div className="flex gap-2 justify-end">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
-                                disabled={isActing}
-                                onClick={() => handleConfirm(p.id, p.username)}
-                              >
-                                {isActing &&
-                                pendingActions.get(p.id) === "confirm" ? (
-                                  <IconLoader2 className="size-3 animate-spin" />
-                                ) : (
-                                  <IconCheck className="size-3" />
-                                )}
-                                Confirm
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
-                                disabled={isActing}
-                                onClick={() =>
-                                  openRejectDialog(p.id, p.username)
-                                }
-                              >
-                                {isActing &&
-                                pendingActions.get(p.id) === "reject" ? (
-                                  <IconLoader2 className="size-3 animate-spin" />
-                                ) : (
-                                  <IconX className="size-3" />
-                                )}
-                                Reject
-                              </Button>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              —
-                            </span>
-                          )}
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
+                              disabled={isActing || p.status === "active"}
+                              onClick={() => handleConfirm(p.id, p.username)}
+                            >
+                              {isActing &&
+                              pendingActions.get(p.id) === "confirm" ? (
+                                <IconLoader2 className="size-3 animate-spin" />
+                              ) : (
+                                <IconCheck className="size-3" />
+                              )}
+                              Confirm
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
+                              disabled={isActing || p.status === "rejected"}
+                              onClick={() =>
+                                openRejectDialog(p.id, p.username)
+                              }
+                            >
+                              {isActing &&
+                              pendingActions.get(p.id) === "reject" ? (
+                                <IconLoader2 className="size-3 animate-spin" />
+                              ) : (
+                                <IconX className="size-3" />
+                              )}
+                              Reject
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

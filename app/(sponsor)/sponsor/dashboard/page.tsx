@@ -47,9 +47,9 @@ import { PageHeader } from "@/components/PageHeader";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-type Status = "pending" | "confirmed" | "rejected";
+type Status = "pending" | "active" | "rejected";
 type ActionType = "confirm" | "reject";
-type StatusFilter = "all" | "pending" | "confirmed" | "rejected";
+type StatusFilter = "all" | "pending" | "active" | "rejected";
 
 interface Player {
   // derived unique key for the row
@@ -75,7 +75,7 @@ interface RejectDialogState {
 function StatusBadge({ status }: { status: Status }) {
   const map: Record<Status, string> = {
     pending: "bg-yellow-100 text-yellow-700",
-    confirmed: "bg-green-100 text-green-700",
+    active: "bg-green-100 text-green-700",
     rejected: "bg-red-100 text-red-700",
   };
   return (
@@ -103,6 +103,8 @@ export default function SponsorDashboardPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [page, setPage] = useState(1);
+
+  console.log("timuwa");
 
   const [rejectDialog, setRejectDialog] = useState<RejectDialogState>({
     open: false,
@@ -133,8 +135,10 @@ export default function SponsorDashboardPage() {
           username: e.member_username ?? e.player_username,
           team_name: e.team_name ?? null,
           user_id_from_sponsor: e.user_id_from_sponsor,
-          status: "pending" as Status,
+          status: (e.status as string).trim().toLowerCase() as Status,
         }));
+
+        console.log(mapped);
 
         setPlayers(mapped);
       } catch {
@@ -168,7 +172,7 @@ export default function SponsorDashboardPage() {
     () => ({
       all: players.length,
       pending: players.filter((p) => p.status === "pending").length,
-      confirmed: players.filter((p) => p.status === "confirmed").length,
+      active: players.filter((p) => p.status === "active").length,
       rejected: players.filter((p) => p.status === "rejected").length,
     }),
     [players],
@@ -194,8 +198,8 @@ export default function SponsorDashboardPage() {
         { member_id: String(id) },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      updateStatus(id, "confirmed");
-      toast.success(`${username} confirmed.`);
+      updateStatus(id, "active");
+      toast.success(`${username} active.`);
     } catch {
       toast.error(`Failed to confirm ${username}.`);
     } finally {
@@ -259,7 +263,7 @@ export default function SponsorDashboardPage() {
         description={
           <>
             {counts.all} registrant{counts.all !== 1 ? "s" : ""} ·{" "}
-            {counts.pending} pending · {counts.confirmed} confirmed ·{" "}
+            {counts.pending} pending · {counts.active} active ·{" "}
             {counts.rejected} rejected
           </>
         }
@@ -294,9 +298,7 @@ export default function SponsorDashboardPage() {
           <SelectContent>
             <SelectItem value="all">All ({counts.all})</SelectItem>
             <SelectItem value="pending">Pending ({counts.pending})</SelectItem>
-            <SelectItem value="confirmed">
-              Confirmed ({counts.confirmed})
-            </SelectItem>
+            <SelectItem value="active">Active ({counts.active})</SelectItem>
             <SelectItem value="rejected">
               Rejected ({counts.rejected})
             </SelectItem>
@@ -331,7 +333,7 @@ export default function SponsorDashboardPage() {
                   {paginated.map((p) => {
                     const isActing = pendingActions.has(p.id);
                     return (
-                      <TableRow key={`${p.event_id}-${p.id}`}>
+                      <TableRow key={p.id}>
                         <TableCell>{p.username}</TableCell>
                         <TableCell>{p.team_name ?? "—"}</TableCell>
                         <TableCell>
