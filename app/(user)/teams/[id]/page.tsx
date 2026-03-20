@@ -1114,7 +1114,7 @@ const Page = ({ params }: { params: Params }) => {
                                           onClick={() =>
                                             requireAuth(() =>
                                               handleApproveJoinRequest(
-                                                request.request._id,
+                                                request.request_id,
                                               ),
                                             )
                                           }
