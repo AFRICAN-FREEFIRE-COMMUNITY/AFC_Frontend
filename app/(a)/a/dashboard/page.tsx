@@ -72,22 +72,22 @@ const page = () => {
     const fetchUsers = async () => {
       try {
         const users = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`,
         );
         const teams = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`,
         );
         const news = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`,
         );
         const tournaments = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`,
         );
         const scrims = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`,
         );
         const activities = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-admin-history/`
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-admin-history/`,
         );
 
         setTotalUsers(users?.data?.total_users);
@@ -361,7 +361,7 @@ const page = () => {
                     </TableCell>
                     <TableCell>{activity.description}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDate(activity.timestamp)}
+                      {formatDate(activity.timestamp, true)}
                     </TableCell>
                   </TableRow>
                 ))}

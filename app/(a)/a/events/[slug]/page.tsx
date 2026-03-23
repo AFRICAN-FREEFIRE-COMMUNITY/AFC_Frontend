@@ -109,6 +109,7 @@ interface EventDetails {
     username: string;
     status: string;
     registered_at?: string;
+    is_waitlisted?: boolean;
   }>;
   tournament_teams: any[];
   stages: Array<{
@@ -704,6 +705,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="registrations">Registrations</TabsTrigger>
+            <TabsTrigger value="waitlist">Waitlist</TabsTrigger>
             <TabsTrigger value="stages">Stages</TabsTrigger>
             <TabsTrigger value="prizes">Prizes</TabsTrigger>
             <TabsTrigger value="engagement">Engagement</TabsTrigger>
@@ -1555,7 +1557,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                 <TableBody>
                   {/* Logic for Solo Players */}
                   {eventDetails.participant_type === "solo" &&
-                    eventDetails?.registered_competitors?.map((comp) => (
+                    eventDetails?.registered_competitors
+                      ?.filter((c) => !c.is_waitlisted)
+                      .map((comp) => (
                       <TableRow key={comp.player_id}>
                         <TableCell className="capitalize font-medium">
                           {comp.username}
@@ -1579,7 +1583,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
                   {/* Logic for Squads/Teams */}
                   {eventDetails.participant_type === "squad" &&
-                    eventDetails?.tournament_teams?.map((team) => (
+                    eventDetails?.tournament_teams
+                      ?.filter((t: any) => !t.is_waitlisted)
+                      .map((team) => (
                       <TableRow key={team.team_id || team.player_id}>
                         <TableCell className="capitalize font-medium">
                           {team.team_name}
@@ -1600,6 +1606,90 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                         </TableCell>
                       </TableRow>
                     ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* --- Waitlist Tab --- */}
+        <TabsContent value="waitlist" className="mt-4 space-y-4">
+          <Card className="gap-0">
+            <CardHeader className="border-b">
+              <CardTitle>
+                Waitlist (
+                {eventDetails.participant_type === "squad"
+                  ? eventDetails.tournament_teams.filter(
+                      (t: any) => t.is_waitlisted,
+                    ).length
+                  : eventDetails.registered_competitors.filter(
+                      (c) => c.is_waitlisted,
+                    ).length}{" "}
+                total)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1 max-h-96 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
+                      {eventDetails.participant_type === "squad"
+                        ? "Teams"
+                        : "Players"}
+                    </TableHead>
+                    <TableHead>Registered At</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {eventDetails.participant_type === "solo" &&
+                    eventDetails.registered_competitors
+                      .filter((c) => c.is_waitlisted)
+                      .map((comp) => (
+                        <TableRow key={comp.player_id}>
+                          <TableCell className="capitalize font-medium">
+                            {comp.username}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {comp.registered_at
+                              ? formatDate(comp.registered_at)
+                              : "—"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+
+                  {eventDetails.participant_type === "squad" &&
+                    eventDetails.tournament_teams
+                      .filter((t: any) => t.is_waitlisted)
+                      .map((team: any) => (
+                        <TableRow key={team.team_id || team.player_id}>
+                          <TableCell className="capitalize font-medium">
+                            {team.team_name}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {team.registered_at
+                              ? formatDate(team.registered_at)
+                              : "—"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+
+                  {((eventDetails.participant_type === "solo" &&
+                    eventDetails.registered_competitors.filter(
+                      (c) => c.is_waitlisted,
+                    ).length === 0) ||
+                    (eventDetails.participant_type === "squad" &&
+                      eventDetails.tournament_teams.filter(
+                        (t: any) => t.is_waitlisted,
+                      ).length === 0)) && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={2}
+                        className="text-center text-muted-foreground py-8"
+                      >
+                        No one on the waitlist yet.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
