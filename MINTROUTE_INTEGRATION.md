@@ -10,9 +10,12 @@ See the backend repo for the full integration spec: `MINTROUTE_INTEGRATION.md`
 
 ---
 
-## Branch
+## Branch & Commit Rules
 
-All work lives on `shop/mintroute`. Do **not** merge to `master` until backend is certified.
+- All work lives on `shop/mintroute` in both repos
+- All commits go to `shop/mintroute` only
+- **Do NOT push to `master` unless explicitly instructed by the project owner**
+- Merging to `master` only happens on direct instruction — never automatically
 
 ---
 
