@@ -201,6 +201,7 @@ interface RosterMember {
   full_name: string;
   user_id_from_sponsor: string;
   status: string;
+  reason?: string;
 }
 
 interface LeaveEventModalProps {
@@ -742,8 +743,9 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                         {/* Error messages — ordered by specificity */}
                         {rejectedUntouched && !hasAnyError && (
                           <p className="text-xs text-destructive">
-                            This player was rejected. Update their{" "}
-                            {eventDetails.sponsor_field_label}.
+                            {rosterEntry?.reason
+                              ? `Reason: ${rosterEntry.reason}`
+                              : `This player was rejected. Update their ${eventDetails.sponsor_field_label}.`}
                           </p>
                         )}
                         {isTeamDuplicate && (
@@ -1359,6 +1361,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   id="uid-input"
                   placeholder="Enter your AFC UID"
                   value={uidInput}
+                  maxLength={12}
                   onChange={(e) => setUidInput(e.target.value)}
                   disabled={savingUid}
                 />
@@ -2563,17 +2566,18 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     setError(null);
 
     try {
-      const response = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ slug: slug }),
+      const endpoint = token
+        ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`
+        : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-not-logged-in/`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      );
+        body: JSON.stringify({ slug: slug }),
+      });
 
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -2655,9 +2659,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   ]);
 
   useEffect(() => {
-    if (slug && token) {
-      fetchEventDetails();
+    if (!slug) return;
 
+    fetchEventDetails();
+
+    if (token) {
       const fetchUser = async () => {
         const resCurrent = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
@@ -3066,8 +3072,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             <p className="text-red-900 dark:text-red-100">
               Your registration has been{" "}
               <span className="font-semibold inline-block">rejected</span> for
-              this tournament. Please contact your team creator to update your
-              registration.
+              this tournament.
             </p>
           </Alert>
         );
@@ -3157,25 +3162,30 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               disabled={eventDetails.event_status !== "upcoming"}
               className="w-full"
             >
-              {eventDetails.event_status === "upcoming"
-                ? "Register (External Link)"
-                : "Registration Closed"}
+              {!token
+                ? "Login to Register"
+                : eventDetails.event_status === "upcoming"
+                  ? "Register (External Link)"
+                  : "Registration Closed"}
             </Button>
           ) : (
             <Button
               onClick={() => requireAuth(handleRegisterClick)}
               disabled={
-                !!registrationDisabledReason ||
-                isCheckingInvite ||
-                (inviteStatus?.is_used && !eventDetails.is_public)
+                !!token &&
+                (!!registrationDisabledReason ||
+                  isCheckingInvite ||
+                  (inviteStatus?.is_used && !eventDetails.is_public))
               }
               className="w-full"
             >
-              {isCheckingInvite
-                ? "Validating invite..."
-                : inviteStatus?.is_used && !eventDetails.is_public
-                  ? "Invite Already Used"
-                  : registrationDisabledReason || "Register for Tournament"}
+              {!token
+                ? "Login to Register"
+                : isCheckingInvite
+                  ? "Validating invite..."
+                  : inviteStatus?.is_used && !eventDetails.is_public
+                    ? "Invite Already Used"
+                    : registrationDisabledReason || "Register for Tournament"}
             </Button>
           )}
         </div>
