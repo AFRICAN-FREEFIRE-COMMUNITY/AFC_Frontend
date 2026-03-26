@@ -67,14 +67,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? `${title} — ${parts.join(" • ")}`
       : `${title} is a competitive tournament on African Freefire Community. Register now!`;
 
-  // Safely resolve the banner URL — never let null/undefined produce a broken URL
+  // Safely resolve the banner URL — proxy through our domain so crawlers can reach it
   const rawImage = data.event_banner_url || data.team_logo;
-  const absoluteImageUrl =
+  const resolvedImage =
     rawImage && typeof rawImage === "string"
       ? rawImage.startsWith("http")
         ? rawImage
         : `${env.NEXT_PUBLIC_URL}/${rawImage.replace(/^\//, "")}`
-      : siteConfig.ogImage;
+      : null;
+  const absoluteImageUrl = resolvedImage
+    ? `${siteConfig.url}/api/og-image?url=${encodeURIComponent(resolvedImage)}`
+    : siteConfig.ogImage;
 
   const canonicalUrl = `${siteConfig.url}/tournaments/${slug}`;
 
