@@ -108,7 +108,6 @@ export const adminNavLinks: AdminNavLink[] = [
     label: "Admin Players",
     slug: "/a/players",
     icon: IconUsers,
-    comingSoon: true,
     allowedRoles: ["head_admin"],
   },
   {
