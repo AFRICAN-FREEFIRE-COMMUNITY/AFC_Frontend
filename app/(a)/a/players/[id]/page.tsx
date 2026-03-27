@@ -59,7 +59,7 @@ interface PlayerDetails {
   scrim_booyah: number;
   tournament_booyah: number;
   status?: "active" | "banned";
-  role?: string;
+  in_game_role?: string;
   email?: string;
   phone?: string;
   discord_username?: string;
@@ -337,7 +337,7 @@ const Page = ({ params }: Props) => {
               <div>
                 <p className="text-xs text-muted-foreground">Role</p>
                 <p className="text-sm mt-0.5 capitalize">
-                  {player.role ?? "—"}
+                  {player.in_game_role ?? "—"}
                 </p>
               </div>
               <div>

@@ -2215,7 +2215,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
 };
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
-  const { token, user, login } = useAuth();
+  const { token, user, login, loading: authLoading } = useAuth();
   const { openAuthModal } = useAuthModal();
   const router = useRouter();
 
@@ -2659,7 +2659,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   ]);
 
   useEffect(() => {
-    if (!slug) return;
+    // Wait until auth has fully resolved before fetching.
+    // This prevents the public endpoint from being called first and then
+    // overwriting the authenticated result (which has is_registered).
+    if (!slug || authLoading) return;
 
     fetchEventDetails();
 
@@ -2688,7 +2691,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
       fetchUser();
     }
-  }, [fetchEventDetails, slug, token]);
+  }, [fetchEventDetails, slug, token, authLoading]);
 
   const handleRegisterClick = useCallback(async () => {
     // Check ban status before anything else
