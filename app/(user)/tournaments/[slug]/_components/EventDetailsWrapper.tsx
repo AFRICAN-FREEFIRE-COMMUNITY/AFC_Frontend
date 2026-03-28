@@ -49,7 +49,12 @@ import { useAuthModal } from "@/components/AuthModal";
 import { AFC_DISCORD_SERVER, DEFAULT_IMAGE } from "@/constants";
 import axios from "axios";
 import Image from "next/image";
-import { IconRefresh, IconUsers, IconUsersGroup } from "@tabler/icons-react";
+import {
+  IconRefresh,
+  IconUsers,
+  IconUsersGroup,
+  IconLoader2,
+} from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -78,6 +83,8 @@ type ModalStep =
   | "CLOSED"
   | "INFO"
   | "TYPE"
+  | "UID_PROMPT"
+  | "UID_MISSING_MEMBERS"
   | "RULES"
   | "SPONSOR"
   | "DISCORD_LINK"
@@ -150,6 +157,7 @@ interface ApiResponse {
 interface TeamMember {
   id: string;
   username: string;
+  uid?: string | null;
   is_verified: boolean;
   discord_connected: boolean;
   discord_id: string | null; // ✅ FIX: Change from boolean to string | null
@@ -193,6 +201,7 @@ interface RosterMember {
   full_name: string;
   user_id_from_sponsor: string;
   status: string;
+  reason?: string;
 }
 
 interface LeaveEventModalProps {
@@ -734,8 +743,9 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                         {/* Error messages — ordered by specificity */}
                         {rejectedUntouched && !hasAnyError && (
                           <p className="text-xs text-destructive">
-                            This player was rejected. Update their{" "}
-                            {eventDetails.sponsor_field_label}.
+                            {rosterEntry?.reason
+                              ? `Reason: ${rosterEntry.reason}`
+                              : `This player was rejected. Update their ${eventDetails.sponsor_field_label}.`}
                           </p>
                         )}
                         {isTeamDuplicate && (
@@ -1140,9 +1150,15 @@ interface ModalProps {
   handleSelectType: (type: RegistrationType) => void;
   rulesAccepted: boolean;
   setRulesAccepted: (checked: boolean) => void;
+  handleGoToRules: () => void;
   handleRulesContinue: () => void;
   handleDiscordConnect: () => void;
   handleJoinedServer: () => void;
+  uidInput: string;
+  setUidInput: (v: string) => void;
+  savingUid: boolean;
+  handleSaveUid: () => void;
+  uidMissingMembers: string[];
   pendingJoined: boolean;
   isDiscordConnected: boolean;
   regType: RegistrationType | null;
@@ -1164,11 +1180,17 @@ const RegistrationModals: React.FC<ModalProps> = ({
   modalStep,
   setModalStep,
   handleSelectType,
+  handleGoToRules,
   rulesAccepted,
   setRulesAccepted,
   handleRulesContinue,
   handleDiscordConnect,
   handleJoinedServer,
+  uidInput,
+  setUidInput,
+  savingUid,
+  handleSaveUid,
+  uidMissingMembers,
   pendingJoined,
   isDiscordConnected,
   regType,
@@ -1313,11 +1335,93 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 >
                   Back
                 </Button>
-                <Button onClick={() => setModalStep("RULES")}>Continue</Button>
+                <Button onClick={handleGoToRules}>Continue</Button>
               </DialogFooter>
             </DialogContent>
           </>
         );
+
+      case "UID_PROMPT":
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-xl">AFC UID Required</DialogTitle>
+              <DialogDescription>
+                Your AFC UID is required to participate in this tournament.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                You haven&apos;t set your AFC UID on your profile yet. Please
+                enter it below to continue with registration.
+              </p>
+              <div className="space-y-1.5">
+                <Label htmlFor="uid-input">AFC UID</Label>
+                <Input
+                  id="uid-input"
+                  placeholder="Enter your AFC UID"
+                  value={uidInput}
+                  maxLength={12}
+                  onChange={(e) => setUidInput(e.target.value)}
+                  disabled={savingUid}
+                />
+              </div>
+            </div>
+            <DialogFooter className="flex sm:justify-between">
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  regType === "team"
+                    ? setModalStep("CLOSED")
+                    : setModalStep("INFO")
+                }
+                disabled={savingUid}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={handleSaveUid}
+                disabled={!uidInput.trim() || savingUid}
+              >
+                {savingUid && (
+                  <IconLoader2 className="size-4 animate-spin mr-2" />
+                )}
+                {savingUid ? "Saving..." : "Save & Continue"}
+              </Button>
+            </DialogFooter>
+          </>
+        );
+
+      case "UID_MISSING_MEMBERS": {
+        const lastMember = uidMissingMembers[uidMissingMembers.length - 1];
+        const otherMembers = uidMissingMembers.slice(0, -1);
+        const nameList =
+          otherMembers.length > 0
+            ? `${otherMembers.join(", ")} and ${lastMember}`
+            : lastMember;
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-xl">Missing AFC UIDs</DialogTitle>
+              <DialogDescription>
+                Some team members need to set their AFC UID before you can
+                register.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 text-sm">
+              <p>
+                <span className="font-semibold">{nameList}</span>{" "}
+                {uidMissingMembers.length === 1 ? "hasn't" : "haven't"} filled
+                their AFC UID yet. Ask them to update their profiles and come
+                back once everyone&apos;s UID is set.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setModalStep("CLOSED")}>Close</Button>
+            </DialogFooter>
+          </>
+        );
+      }
 
       case "TYPE":
         return (
@@ -2111,7 +2215,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
 };
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
-  const { token, user } = useAuth();
+  const { token, user, login, loading: authLoading } = useAuth();
   const { openAuthModal } = useAuthModal();
   const router = useRouter();
 
@@ -2181,6 +2285,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const [teamAfcServerStatus, setTeamAfcServerStatus] = useState<
     Record<string, boolean>
   >({});
+
+  // UID prompt state
+  const [uidInput, setUidInput] = useState("");
+  const [savingUid, setSavingUid] = useState(false);
+  const [uidMissingMembers, setUidMissingMembers] = useState<string[]>([]);
 
   // Ref to allow handleRulesContinue to call handleJoinedServer without circular deps
   const handleJoinedServerRef = useRef<() => void>(() => {});
@@ -2457,17 +2566,18 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     setError(null);
 
     try {
-      const response = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ slug: slug }),
+      const endpoint = token
+        ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`
+        : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-not-logged-in/`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      );
+        body: JSON.stringify({ slug: slug }),
+      });
 
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -2549,9 +2659,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   ]);
 
   useEffect(() => {
-    if (slug && token) {
-      fetchEventDetails();
+    // Wait until auth has fully resolved before fetching.
+    // This prevents the public endpoint from being called first and then
+    // overwriting the authenticated result (which has is_registered).
+    if (!slug || authLoading) return;
 
+    fetchEventDetails();
+
+    if (token) {
       const fetchUser = async () => {
         const resCurrent = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
@@ -2576,7 +2691,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
       fetchUser();
     }
-  }, [fetchEventDetails, slug, token]);
+  }, [fetchEventDetails, slug, token, authLoading]);
 
   const handleRegisterClick = useCallback(async () => {
     // Check ban status before anything else
@@ -2632,6 +2747,65 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     [fetchUserTeam],
   );
 
+  const handleGoToRules = useCallback(() => {
+    if (regType === "team") {
+      const selectedMembersData =
+        userTeam?.members.filter((m) => selectedMembers.includes(m.id)) ?? [];
+      const membersWithoutUid = selectedMembersData.filter(
+        (m) => !m.uid?.trim(),
+      );
+
+      if (membersWithoutUid.length > 0) {
+        const nonCurrentUserMissing = membersWithoutUid.filter(
+          (m) => String(m.id) !== String(user?.user_id),
+        );
+
+        if (nonCurrentUserMissing.length > 0) {
+          // One or more non-current-user members are missing UIDs — blocking
+          setUidMissingMembers(membersWithoutUid.map((m) => m.username));
+          setModalStep("UID_MISSING_MEMBERS");
+          return;
+        }
+
+        // Only the current user is missing their UID
+        setUidInput("");
+        setModalStep("UID_PROMPT");
+        return;
+      }
+    } else {
+      if (!user?.uid?.trim()) {
+        setUidInput("");
+        setModalStep("UID_PROMPT");
+        return;
+      }
+    }
+    setModalStep("RULES");
+  }, [user, regType, selectedMembers, userTeam]);
+
+  const handleSaveUid = useCallback(async () => {
+    if (!uidInput.trim()) return;
+    setSavingUid(true);
+    try {
+      const formData = new FormData();
+      formData.append("full_name", user?.full_name || "");
+      formData.append("in_game_name", user?.in_game_name || "");
+      formData.append("email", user?.email || "");
+      formData.append("uid", uidInput.trim());
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/edit-profile/`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const storedToken = localStorage.getItem("authToken");
+      if (storedToken) await login(storedToken);
+      setModalStep("RULES");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to save UID");
+    } finally {
+      setSavingUid(false);
+    }
+  }, [uidInput, user, token, login]);
+
   const handleTeamContinueToRules = useCallback(() => {
     // Store selected team members data
     const membersData =
@@ -2639,8 +2813,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     setSelectedTeamMembersData(membersData);
 
     setTeamModalStep("CLOSED");
-    setModalStep("RULES");
-  }, [userTeam, selectedMembers]);
+    handleGoToRules();
+  }, [userTeam, selectedMembers, handleGoToRules]);
 
   const handleRulesContinue = useCallback(() => {
     if (!rulesAccepted) return;
@@ -2901,8 +3075,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             <p className="text-red-900 dark:text-red-100">
               Your registration has been{" "}
               <span className="font-semibold inline-block">rejected</span> for
-              this tournament. Please contact your team creator to update your
-              registration.
+              this tournament.
             </p>
           </Alert>
         );
@@ -2992,25 +3165,30 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               disabled={eventDetails.event_status !== "upcoming"}
               className="w-full"
             >
-              {eventDetails.event_status === "upcoming"
-                ? "Register (External Link)"
-                : "Registration Closed"}
+              {!token
+                ? "Login to Register"
+                : eventDetails.event_status === "upcoming"
+                  ? "Register (External Link)"
+                  : "Registration Closed"}
             </Button>
           ) : (
             <Button
               onClick={() => requireAuth(handleRegisterClick)}
               disabled={
-                !!registrationDisabledReason ||
-                isCheckingInvite ||
-                (inviteStatus?.is_used && !eventDetails.is_public)
+                !!token &&
+                (!!registrationDisabledReason ||
+                  isCheckingInvite ||
+                  (inviteStatus?.is_used && !eventDetails.is_public))
               }
               className="w-full"
             >
-              {isCheckingInvite
-                ? "Validating invite..."
-                : inviteStatus?.is_used && !eventDetails.is_public
-                  ? "Invite Already Used"
-                  : registrationDisabledReason || "Register for Tournament"}
+              {!token
+                ? "Login to Register"
+                : isCheckingInvite
+                  ? "Validating invite..."
+                  : inviteStatus?.is_used && !eventDetails.is_public
+                    ? "Invite Already Used"
+                    : registrationDisabledReason || "Register for Tournament"}
             </Button>
           )}
         </div>
@@ -3239,10 +3417,16 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         modalStep={modalStep}
         setModalStep={setModalStep}
         handleSelectType={handleSelectType}
+        handleGoToRules={handleGoToRules}
         rulesAccepted={rulesAccepted}
         setRulesAccepted={setRulesAccepted}
         handleRulesContinue={handleRulesContinue}
         handleDiscordConnect={handleDiscordConnect}
+        uidInput={uidInput}
+        setUidInput={setUidInput}
+        savingUid={savingUid}
+        handleSaveUid={handleSaveUid}
+        uidMissingMembers={uidMissingMembers}
         handleJoinedServer={handleJoinedServer}
         pendingJoined={pendingJoined}
         isDiscordConnected={discordConnected}

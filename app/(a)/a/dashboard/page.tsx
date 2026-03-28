@@ -66,29 +66,38 @@ const page = () => {
   const [totalNews, setTotalNews] = useState<number>(0);
   const [totalTournaments, setTotalTournaments] = useState<number>(0);
   const [totalScrims, setTotalScrims] = useState<number>(0);
+  const [membersThisMonth, setMembersThisMonth] = useState<number>(0);
+  const [teamsThisMonth, setTeamsThisMonth] = useState<number>(0);
+  const [activeTournaments, setActiveTournaments] = useState<number>(0);
+  const [publishedNews, setPublishedNews] = useState<number>(0);
   const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const users = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`
-        );
-        const teams = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
-        );
-        const news = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`
-        );
-        const tournaments = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`
-        );
-        const scrims = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`
-        );
-        const activities = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-admin-history/`
-        );
+        const [
+          users,
+          teams,
+          news,
+          tournaments,
+          scrims,
+          activities,
+          membersMonth,
+          teamsMonth,
+          activeTournamentsRes,
+          pubNews,
+        ] = await Promise.all([
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`),
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`),
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`),
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`),
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`),
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-admin-history/`),
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-members-this-month/`),
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-team-this-month/`),
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-active-tournaments/`),
+          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-published-news/`),
+        ]);
 
         setTotalUsers(users?.data?.total_users);
         setTotalTeams(teams?.data?.teams.length);
@@ -96,6 +105,10 @@ const page = () => {
         setTotalTournaments(tournaments?.data?.total_tournaments);
         setTotalScrims(scrims?.data?.total_scrims);
         setRecentActivities(activities?.data?.admin_history);
+        setMembersThisMonth(membersMonth?.data?.total_members_this_month ?? 0);
+        setTeamsThisMonth(teamsMonth?.data?.total_teams_this_month ?? 0);
+        setActiveTournaments(activeTournamentsRes?.data?.total_active_tournaments ?? 0);
+        setPublishedNews(pubNews?.data?.total_published_news ?? 0);
       } catch (error) {
         setTotalUsers(0);
         setTotalTeams(0);
@@ -132,7 +145,8 @@ const page = () => {
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex items-center gap-1 text-sm text-green-600">
-                  <TrendingUp className="h-3 w-3" />+ 10 this month
+                  <TrendingUp className="h-3 w-3" />+{" "}
+                  {formatMoneyInput(membersThisMonth)} this month
                 </div>
               </div>
               <Button disabled className="w-full mt-3" size="md">
@@ -154,7 +168,8 @@ const page = () => {
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex items-center gap-1 text-sm text-green-600">
-                  <TrendingUp className="h-3 w-3" />+ 10 this month
+                  <TrendingUp className="h-3 w-3" />+{" "}
+                  {formatMoneyInput(teamsThisMonth)} this month
                 </div>
               </div>
               <Button asChild className="w-full mt-3" size="md">
@@ -178,7 +193,8 @@ const page = () => {
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex items-center gap-1 text-sm text-blue-600">
-                  <IconCalendar className="h-3 w-3" />0 active
+                  <IconCalendar className="h-3 w-3" />
+                  {activeTournaments} active
                 </div>
               </div>
               <Button asChild className="w-full mt-3" size="md">
@@ -228,7 +244,7 @@ const page = () => {
             <CardContent>
               <div className="text-2xl font-bold">{totalNews}</div>
               <div className="text-sm text-muted-foreground mt-1">
-                0 published
+                {publishedNews} published
               </div>
               <Button asChild className="w-full mt-3" size="md">
                 <Link href="/a/news">
@@ -361,7 +377,7 @@ const page = () => {
                     </TableCell>
                     <TableCell>{activity.description}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDate(activity.timestamp)}
+                      {formatDate(activity.timestamp, true)}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -51,7 +51,7 @@ export function CreateAccountForm() {
       fullName: "",
       email: "",
       // country: "" as RegisterFormSchemaType["country"],
-      uid: "",
+      // uid: "",
       password: "",
       confirmPassword: "",
       // Initialize the new field to false
@@ -105,7 +105,7 @@ export function CreateAccountForm() {
       try {
         const authData = {
           in_game_name: data.ingameName,
-          uid: data.uid,
+          // uid: data.uid,
           email: data.email,
           password: data.password,
           confirm_password: data.confirmPassword,
@@ -166,7 +166,7 @@ export function CreateAccountForm() {
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="uid"
           render={({ field }) => (
@@ -182,7 +182,7 @@ export function CreateAccountForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <FormField
           control={form.control}
           name="email"

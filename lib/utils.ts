@@ -53,40 +53,38 @@ export const formatMoneyInput = (inputValue: string | number | any) => {
   return decimal !== undefined ? `${whole}.${decimal}` : whole;
 };
 
-export function formatDate(dateString: string | any): string {
+export function formatDate(
+  dateString: string | Date,
+  withTime: boolean = false,
+): string {
   const date = new Date(dateString);
 
-  // Get the day, month and year
   const day = date.getDate();
   const month = date.toLocaleString("default", { month: "long" });
   const year = date.getFullYear();
 
-  // Function to get the ordinal suffix
-  // const getOrdinalSuffix = (num: number): string => {
-  //   const suffixes = ["th", "st", "nd", "rd"];
-  //   const modulo100 = num % 100;
-  //   const modulo10 = num % 10;
-  //   const suffix =
-  //     modulo10 <= 3 && modulo10 > 0 && modulo100 !== 11
-  //       ? suffixes[modulo10]
-  //       : suffixes[0];
-  //   return `${num}${suffix}`;
-  // };
   const getOrdinalSuffix = (num: number): string => {
-    const suffixes = ["th", "st", "nd", "rd"];
     const modulo100 = num % 100;
     const modulo10 = num % 10;
 
-    const suffix =
-      modulo10 <= 3 && modulo10 > 0 && !(modulo100 >= 11 && modulo100 <= 13)
-        ? suffixes[modulo10]
-        : suffixes[0];
-
-    return `${num}${suffix}`;
+    if (modulo100 >= 11 && modulo100 <= 13) return `${num}th`;
+    if (modulo10 === 1) return `${num}st`;
+    if (modulo10 === 2) return `${num}nd`;
+    if (modulo10 === 3) return `${num}rd`;
+    return `${num}th`;
   };
 
-  // Format the date
-  return `${month} ${getOrdinalSuffix(day)}, ${year}`;
+  const datePart = `${month} ${getOrdinalSuffix(day)}, ${year}`;
+
+  if (!withTime) return datePart;
+
+  const timePart = date.toLocaleString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  return `${datePart} • ${timePart}`;
 }
 
 export const formatWord = (role: string) => {

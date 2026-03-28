@@ -94,7 +94,8 @@ export default function EditSponsorPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id: sponsorUsername } = use(params);
+  const { id: rawId } = use(params);
+  const sponsorUsername = decodeURIComponent(rawId);
   const { token, loading: authLoading } = useAuth();
   const router = useRouter();
 

@@ -24,6 +24,7 @@ interface RegisteredTeamsTabProps {
       player_id: number;
       username: string;
       status: string;
+      is_waitlisted?: boolean;
     }>;
     tournament_teams: any[];
   };
@@ -35,8 +36,11 @@ export default function RegisteredTeamsTab({
   updateCompetitorStatus,
 }: RegisteredTeamsTabProps) {
   const teamCount =
-    eventDetails?.registered_competitors?.length ||
-    eventDetails.tournament_teams.length;
+    eventDetails.participant_type === "squad"
+      ? eventDetails.tournament_teams.filter((t: any) => !t.is_waitlisted)
+          .length
+      : eventDetails?.registered_competitors?.filter((c) => !c.is_waitlisted)
+          .length ?? 0;
 
   return (
     <Card>
@@ -77,7 +81,9 @@ export default function RegisteredTeamsTab({
             <TableBody>
               {/* Logic for Solo Players */}
               {eventDetails.participant_type === "solo" &&
-                eventDetails?.registered_competitors?.map((comp) => (
+                eventDetails?.registered_competitors
+                  ?.filter((c) => !c.is_waitlisted)
+                  .map((comp) => (
                   <TableRow key={comp.player_id}>
                     <TableCell className="capitalize font-medium">
                       {comp.username}
@@ -127,7 +133,9 @@ export default function RegisteredTeamsTab({
 
               {/* Logic for Squads/Teams */}
               {eventDetails.participant_type === "squad" &&
-                eventDetails?.tournament_teams?.map((team) => (
+                eventDetails?.tournament_teams
+                  ?.filter((t: any) => !t.is_waitlisted)
+                  .map((team) => (
                   <TableRow key={team.team_id || team.player_id}>
                     <TableCell className="capitalize font-medium">
                       {team.team_name}

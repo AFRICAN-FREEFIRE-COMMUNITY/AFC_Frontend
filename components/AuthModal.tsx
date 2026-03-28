@@ -304,7 +304,7 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
       email: "",
       password: "",
       confirmPassword: "",
-      uid: "",
+      // uid: "",
       acceptTerms: false as unknown as true, // typed as literal(true) but starts false
     },
   });
@@ -351,7 +351,7 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/signup/`,
           {
             in_game_name: data.ingameName,
-            uid: data.uid,
+            // uid: data.uid,
             email: data.email,
             password: data.password,
             confirm_password: data.confirmPassword,
@@ -435,7 +435,7 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="uid"
           render={({ field }) => (
@@ -451,7 +451,7 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         <FormField
           control={form.control}

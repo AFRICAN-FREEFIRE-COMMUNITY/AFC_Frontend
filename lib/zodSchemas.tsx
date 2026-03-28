@@ -51,9 +51,9 @@ export const RegisterFormSchema = z
   .object({
     ingameName: safeNameSchema("In-game name", 2),
     fullName: safeNameSchema("Full name", 2),
-    uid: z.string().min(8, {
-      message: "UID must be at least 8 characters.",
-    }),
+    // uid: z.string().min(8, {
+    //   message: "UID must be at least 8 characters.",
+    // }),
     email: z.string().email().min(2, {
       message: "Email must be at least 2 characters.",
     }),
@@ -121,9 +121,7 @@ export const EditProfileFormSchema = z.object({
   avatar: z.string().optional(),
   ingameName: safeNameSchema("In-game name", 2),
   fullName: safeNameSchema("Full name", 2),
-  uid: z.string().min(8, {
-    message: "UID must be at least 8 characters.",
-  }),
+  uid: z.string().optional(),
   email: z.string().email().min(2, {
     message: "Email must be at least 2 characters.",
   }),

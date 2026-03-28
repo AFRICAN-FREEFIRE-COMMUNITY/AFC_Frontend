@@ -1539,6 +1539,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 setWaitlistForm={setWaitlistForm}
                 onSave={saveWaitlistSettings}
                 saving={savingWaitlist}
+                eventDetails={eventDetails}
               />
             </TabsContent>
           </Tabs>

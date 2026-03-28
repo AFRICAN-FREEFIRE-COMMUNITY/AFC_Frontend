@@ -5,6 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatDate } from "@/lib/utils";
 import { IconLoader2 } from "@tabler/icons-react";
 
 export interface WaitlistForm {
@@ -18,6 +27,16 @@ interface WaitlistTabProps {
   setWaitlistForm: React.Dispatch<React.SetStateAction<WaitlistForm>>;
   onSave: () => void;
   saving: boolean;
+  eventDetails?: {
+    participant_type: string;
+    registered_competitors: Array<{
+      player_id: number;
+      username: string;
+      is_waitlisted?: boolean;
+      registered_at?: string;
+    }>;
+    tournament_teams: any[];
+  };
 }
 
 export default function WaitlistTab({
@@ -25,7 +44,19 @@ export default function WaitlistTab({
   setWaitlistForm,
   onSave,
   saving,
+  eventDetails,
 }: WaitlistTabProps) {
+  const waitlistedSolo =
+    eventDetails?.participant_type === "solo"
+      ? (eventDetails.registered_competitors?.filter(
+          (c) => c.is_waitlisted,
+        ) ?? [])
+      : [];
+  const waitlistedTeams =
+    eventDetails?.participant_type === "squad"
+      ? (eventDetails.tournament_teams?.filter((t: any) => t.is_waitlisted) ??
+        [])
+      : [];
   return (
     <div className="space-y-4">
       <Card>
@@ -107,6 +138,75 @@ export default function WaitlistTab({
           {saving ? "Saving..." : "Save Waitlist Settings"}
         </Button>
       </div>
+
+      {eventDetails && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              People on Waitlist (
+              {eventDetails.participant_type === "squad"
+                ? waitlistedTeams.length
+                : waitlistedSolo.length}
+              )
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    {eventDetails.participant_type === "squad"
+                      ? "Team"
+                      : "Player"}
+                  </TableHead>
+                  <TableHead>Registered At</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {eventDetails.participant_type === "solo" &&
+                  waitlistedSolo.map((comp) => (
+                    <TableRow key={comp.player_id}>
+                      <TableCell className="font-medium">
+                        {comp.username}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {comp.registered_at
+                          ? formatDate(comp.registered_at)
+                          : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                {eventDetails.participant_type === "squad" &&
+                  waitlistedTeams.map((team: any) => (
+                    <TableRow key={team.team_id || team.player_id}>
+                      <TableCell className="font-medium capitalize">
+                        {team.team_name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {team.registered_at
+                          ? formatDate(team.registered_at)
+                          : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                {(waitlistedSolo.length === 0 &&
+                  waitlistedTeams.length === 0) && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={2}
+                      className="text-center text-muted-foreground py-8"
+                    >
+                      No one on the waitlist yet.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
