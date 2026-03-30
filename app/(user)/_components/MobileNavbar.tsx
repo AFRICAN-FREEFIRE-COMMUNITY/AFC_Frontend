@@ -214,7 +214,7 @@ export function MobileNavbar() {
                       <div className="ml-6 mt-1 flex flex-col border-l border-muted pl-2 gap-1">
                         {items.map((subItem, subIdx) => {
                           const Icon = subItem.icon;
-                          const subShowNew = isNewLink(subItem.addedAt);
+                          const subShowNew = isNewLink(subItem?.addedAt);
 
                           return (
                             <Button

@@ -24,7 +24,27 @@ export const homeNavLinks = [
   { slug: "/awards", label: "Awards", icon: Award },
 ];
 
-export const homeNavLinksMobile = [
+interface NavLinks {
+  slug: string;
+  label: string;
+  icon: any;
+  onlyMobile?: boolean;
+  comingSoon?: boolean;
+  newLink?: boolean;
+  title?: string;
+  addedAt?: string;
+  submenu?: boolean;
+  items?: {
+    title: string;
+    label?: string;
+    slug: string;
+    icon: any;
+    comingSoon: boolean;
+    addedAt?: string;
+  }[];
+}
+
+export const homeNavLinksMobile: NavLinks[] = [
   { slug: "/home", label: "Home", icon: IconHome, onlyMobile: false },
   { slug: "/teams", label: "Teams", icon: IconUsers },
   {
@@ -53,7 +73,8 @@ export const homeNavLinksMobile = [
     addedAt: "2026-03-16",
   },
   {
-    title: "Shop",
+    label: "Shop",
+    slug: "/shop",
     icon: IconShoppingCart,
     submenu: true,
     // comingSoon: true,

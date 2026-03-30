@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +33,6 @@ import {
   IconSearch,
   IconUsers,
   IconUser,
-  IconTrophy,
   IconTarget,
   IconShield,
   IconMapPin,
@@ -41,340 +40,100 @@ import {
   IconCalendar,
   IconPlus,
   IconChevronRight,
-  IconStar,
   IconInfoCircle,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { DEFAULT_IMAGE } from "@/constants";
+import { DEFAULT_PROFILE_PICTURE } from "@/constants";
+import axios from "axios";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatDate } from "@/lib/utils";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const ROLES = ["Entry Fragger", "Support", "IGL", "Sniper", "Flex", "Rusher"];
-
-const TIERS = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master"];
-
-const REGIONS = [
-  "West Africa",
-  "East Africa",
-  "Southern Africa",
-  "North Africa",
+const ROLES: { value: string; label: string }[] = [
+  { value: "IGL", label: "In-Game Leader" },
+  { value: "RUSHER", label: "Rusher" },
+  { value: "SUPPORT", label: "Support" },
+  { value: "SNIPER", label: "Sniper" },
+  { value: "GRENADE", label: "Grenade" },
 ];
 
-const COMMITMENTS = ["Casual", "Semi-Pro", "Competitive"];
+const TIERS: { value: string; label: string }[] = [
+  { value: "TIER_1", label: "Tier 1" },
+  { value: "TIER_2", label: "Tier 2" },
+  { value: "TIER_3", label: "Tier 3" },
+];
 
-const AVAILABILITIES = ["Immediate", "Within a week", "Flexible"];
+const REGIONS: { value: string; label: string }[] = [
+  { value: "WA", label: "West Africa" },
+  { value: "EA", label: "East Africa" },
+  { value: "NA", label: "North Africa" },
+  { value: "SA", label: "South Africa" },
+  { value: "CA", label: "Central Africa" },
+];
+
+const COMMITMENTS: { value: string; label: string }[] = [
+  { value: "FULL_TIME", label: "Full Time" },
+  { value: "PART_TIME", label: "Part Time" },
+];
+
+const AVAILABILITIES: { value: string; label: string }[] = [
+  { value: "TRIAL", label: "Trial" },
+  { value: "PERMANENT", label: "Permanent" },
+  { value: "SCRIMS_ONLY", label: "Scrims Only" },
+];
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
 interface TeamRecruitmentPost {
   id: number;
-  teamName: string;
-  teamLogo: string;
-  rolesNeeded: string[];
-  minTier: string;
-  commitment: string;
-  region: string;
-  criteria: string;
-  postedBy: string;
-  postedAt: string;
-  expiresAt: string;
-  membersCount: number;
-  winsCount: number;
-  tournamentsPlayed: number;
+  team: string | null;
+  country: string | null;
+  roles_needed: string[] | null;
+  minimum_tier_required: string;
+  commitment_type: string;
+  expiry: string;
 }
 
 interface PlayerAvailablePost {
   id: number;
-  playerName: string;
-  playerAvatar: string;
-  primaryRole: string;
-  secondaryRole: string;
-  tier: string;
-  availability: string;
-  region: string;
-  additionalInfo: string;
-  postedAt: string;
-  expiresAt: string;
-  tournamentsPlayed: number;
-  winRate: number;
-  tierHistory: { season: string; tier: string }[];
+  player: string;
+  country: string | null;
+  primary_role: string;
+  secondary_role: string;
+  availability_type: string;
+  additional_info: string;
+  expiry: string;
 }
 
-// ─── Mock Data ───────────────────────────────────────────────────────────────
+// ─── Lookup helpers ──────────────────────────────────────────────────────────
 
-const mockTeamPosts: TeamRecruitmentPost[] = [
-  {
-    id: 1,
-    teamName: "Phoenix Esports",
-    teamLogo: DEFAULT_IMAGE,
-    rolesNeeded: ["Entry Fragger", "Support"],
-    minTier: "Gold",
-    commitment: "Competitive",
-    region: "West Africa",
-    criteria:
-      "We are looking for dedicated players who can commit to daily practice sessions and weekend tournaments. Must have experience in competitive Free Fire.",
-    postedBy: "Commander_X",
-    postedAt: "2026-02-10",
-    expiresAt: "2026-03-10",
-    membersCount: 3,
-    winsCount: 24,
-    tournamentsPlayed: 15,
-  },
-  {
-    id: 2,
-    teamName: "Shadow Wolves",
-    teamLogo: DEFAULT_IMAGE,
-    rolesNeeded: ["IGL", "Sniper"],
-    minTier: "Platinum",
-    commitment: "Semi-Pro",
-    region: "East Africa",
-    criteria:
-      "Looking for an experienced IGL who can lead the team in ranked and tournament matches. Sniper should have 70%+ headshot rate.",
-    postedBy: "WolfLeader",
-    postedAt: "2026-02-12",
-    expiresAt: "2026-03-12",
-    membersCount: 2,
-    winsCount: 18,
-    tournamentsPlayed: 10,
-  },
-  {
-    id: 3,
-    teamName: "Viper Squad",
-    teamLogo: DEFAULT_IMAGE,
-    rolesNeeded: ["Flex", "Rusher", "Support"],
-    minTier: "Silver",
-    commitment: "Casual",
-    region: "Southern Africa",
-    criteria:
-      "Chill team looking for players who want to have fun and improve together. No toxicity tolerated. Active on weekends mainly.",
-    postedBy: "ViperKing",
-    postedAt: "2026-02-08",
-    expiresAt: "2026-03-08",
-    membersCount: 1,
-    winsCount: 7,
-    tournamentsPlayed: 5,
-  },
-  {
-    id: 4,
-    teamName: "Blaze Gaming",
-    teamLogo: DEFAULT_IMAGE,
-    rolesNeeded: ["Entry Fragger"],
-    minTier: "Diamond",
-    commitment: "Competitive",
-    region: "West Africa",
-    criteria:
-      "Top-tier team recruiting an aggressive entry fragger. Must be available for scrims 5 days a week. Previous LAN experience preferred.",
-    postedBy: "BlazeAdmin",
-    postedAt: "2026-02-13",
-    expiresAt: "2026-03-13",
-    membersCount: 3,
-    winsCount: 42,
-    tournamentsPlayed: 22,
-  },
-  {
-    id: 5,
-    teamName: "Storm Riders",
-    teamLogo: DEFAULT_IMAGE,
-    rolesNeeded: ["Support", "IGL"],
-    minTier: "Gold",
-    commitment: "Semi-Pro",
-    region: "North Africa",
-    criteria:
-      "Growing team with strong aim but needs better coordination. Looking for an IGL who can call strategies and a support player for utility usage.",
-    postedBy: "StormCap",
-    postedAt: "2026-02-11",
-    expiresAt: "2026-03-11",
-    membersCount: 2,
-    winsCount: 12,
-    tournamentsPlayed: 8,
-  },
-  {
-    id: 6,
-    teamName: "Apex Legends FC",
-    teamLogo: DEFAULT_IMAGE,
-    rolesNeeded: ["Sniper", "Flex"],
-    minTier: "Platinum",
-    commitment: "Competitive",
-    region: "East Africa",
-    criteria:
-      "Professional outfit seeking skilled players. Must be able to adapt to multiple playstyles. Consistent tournament participation required.",
-    postedBy: "ApexBoss",
-    postedAt: "2026-02-09",
-    expiresAt: "2026-03-09",
-    membersCount: 2,
-    winsCount: 31,
-    tournamentsPlayed: 18,
-  },
-];
-
-const mockPlayerPosts: PlayerAvailablePost[] = [
-  {
-    id: 1,
-    playerName: "FireStrike_99",
-    playerAvatar: DEFAULT_IMAGE,
-    primaryRole: "Entry Fragger",
-    secondaryRole: "Rusher",
-    tier: "Diamond",
-    availability: "Immediate",
-    region: "West Africa",
-    additionalInfo:
-      "3 years of competitive experience. Previously played for Team Nova. Looking for a serious competitive team aiming for major tournaments.",
-    postedAt: "2026-02-13",
-    expiresAt: "2026-03-13",
-    tournamentsPlayed: 28,
-    winRate: 68,
-    tierHistory: [
-      { season: "Season 8", tier: "Diamond" },
-      { season: "Season 7", tier: "Platinum" },
-      { season: "Season 6", tier: "Platinum" },
-      { season: "Season 5", tier: "Gold" },
-    ],
-  },
-  {
-    id: 2,
-    playerName: "ShadowSnipe",
-    playerAvatar: DEFAULT_IMAGE,
-    primaryRole: "Sniper",
-    secondaryRole: "Support",
-    tier: "Platinum",
-    availability: "Within a week",
-    region: "East Africa",
-    additionalInfo:
-      "Sniper main with 75% headshot rate. Can also play support role. Available evenings and weekends.",
-    postedAt: "2026-02-12",
-    expiresAt: "2026-03-12",
-    tournamentsPlayed: 15,
-    winRate: 54,
-    tierHistory: [
-      { season: "Season 8", tier: "Platinum" },
-      { season: "Season 7", tier: "Gold" },
-      { season: "Season 6", tier: "Gold" },
-    ],
-  },
-  {
-    id: 3,
-    playerName: "TacticalMind",
-    playerAvatar: DEFAULT_IMAGE,
-    primaryRole: "IGL",
-    secondaryRole: "Flex",
-    tier: "Master",
-    availability: "Immediate",
-    region: "West Africa",
-    additionalInfo:
-      "Experienced IGL with deep game knowledge. Led my previous team to multiple tournament finals. Looking for a dedicated roster.",
-    postedAt: "2026-02-11",
-    expiresAt: "2026-03-11",
-    tournamentsPlayed: 42,
-    winRate: 72,
-    tierHistory: [
-      { season: "Season 8", tier: "Master" },
-      { season: "Season 7", tier: "Diamond" },
-      { season: "Season 6", tier: "Diamond" },
-      { season: "Season 5", tier: "Platinum" },
-    ],
-  },
-  {
-    id: 4,
-    playerName: "QuickDraw_KE",
-    playerAvatar: DEFAULT_IMAGE,
-    primaryRole: "Rusher",
-    secondaryRole: "Entry Fragger",
-    tier: "Gold",
-    availability: "Flexible",
-    region: "East Africa",
-    additionalInfo:
-      "Aggressive playstyle, good at close-range combat. Learning to be more versatile. Open to any team that wants to grow together.",
-    postedAt: "2026-02-10",
-    expiresAt: "2026-03-10",
-    tournamentsPlayed: 8,
-    winRate: 45,
-    tierHistory: [
-      { season: "Season 8", tier: "Gold" },
-      { season: "Season 7", tier: "Silver" },
-    ],
-  },
-  {
-    id: 5,
-    playerName: "Guardian_SA",
-    playerAvatar: DEFAULT_IMAGE,
-    primaryRole: "Support",
-    secondaryRole: "IGL",
-    tier: "Platinum",
-    availability: "Immediate",
-    region: "Southern Africa",
-    additionalInfo:
-      "Support main who excels at utility and team coordination. Good communication skills. Looking for competitive team.",
-    postedAt: "2026-02-09",
-    expiresAt: "2026-03-09",
-    tournamentsPlayed: 20,
-    winRate: 60,
-    tierHistory: [
-      { season: "Season 8", tier: "Platinum" },
-      { season: "Season 7", tier: "Platinum" },
-      { season: "Season 6", tier: "Gold" },
-    ],
-  },
-  {
-    id: 6,
-    playerName: "FlexKing_NG",
-    playerAvatar: DEFAULT_IMAGE,
-    primaryRole: "Flex",
-    secondaryRole: "Sniper",
-    tier: "Diamond",
-    availability: "Within a week",
-    region: "West Africa",
-    additionalInfo:
-      "Versatile player who can fill any role. Strong game sense and decision-making. Previous experience in regional qualifiers.",
-    postedAt: "2026-02-08",
-    expiresAt: "2026-03-08",
-    tournamentsPlayed: 32,
-    winRate: 63,
-    tierHistory: [
-      { season: "Season 8", tier: "Diamond" },
-      { season: "Season 7", tier: "Diamond" },
-      { season: "Season 6", tier: "Platinum" },
-      { season: "Season 5", tier: "Gold" },
-    ],
-  },
-];
+function labelFor(list: { value: string; label: string }[], value: string) {
+  return list.find((i) => i.value === value)?.label ?? value;
+}
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
 function getTierColor(tier: string) {
   switch (tier) {
-    case "Bronze":
-      return "bg-orange-900/20 text-orange-400 border-orange-800";
-    case "Silver":
-      return "bg-gray-500/20 text-gray-300 border-gray-600";
-    case "Gold":
+    case "TIER_1":
       return "bg-yellow-900/20 text-yellow-400 border-yellow-800";
-    case "Platinum":
+    case "TIER_2":
       return "bg-cyan-900/20 text-cyan-400 border-cyan-800";
-    case "Diamond":
-      return "bg-blue-900/20 text-blue-400 border-blue-800";
-    case "Master":
+    case "TIER_3":
       return "bg-purple-900/20 text-purple-400 border-purple-800";
     default:
       return "";
   }
 }
 
-function formatPostDate(date: string) {
-  const d = new Date(date);
-  const now = new Date();
-  const diff = Math.floor(
-    (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24),
-  );
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Yesterday";
-  if (diff < 7) return `${diff} days ago`;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function PlayerMarketPage() {
+  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState("teams");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Create Post dialog
   const [createPostOpen, setCreatePostOpen] = useState(false);
@@ -383,7 +142,6 @@ export default function PlayerMarketPage() {
   >(null);
 
   // Create Post form state — Team
-  const [newTeamName, setNewTeamName] = useState("");
   const [newTeamRoles, setNewTeamRoles] = useState<string[]>([]);
   const [newTeamMinTier, setNewTeamMinTier] = useState("");
   const [newTeamCommitment, setNewTeamCommitment] = useState("");
@@ -399,71 +157,82 @@ export default function PlayerMarketPage() {
   const [newPlayerInfo, setNewPlayerInfo] = useState("");
   const [newPlayerExpiry, setNewPlayerExpiry] = useState("");
 
+  // API data
+  const [teamPosts, setTeamPosts] = useState<TeamRecruitmentPost[]>([]);
+  const [playerPosts, setPlayerPosts] = useState<PlayerAvailablePost[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(true);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
+
   // View Details dialogs
   const [viewTeam, setViewTeam] = useState<TeamRecruitmentPost | null>(null);
   const [viewPlayer, setViewPlayer] = useState<PlayerAvailablePost | null>(
     null,
   );
 
+  useEffect(() => {
+    axios
+      .get<TeamRecruitmentPost[]>(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-team-recruitment-posts/`,
+      )
+      .then((res) => setTeamPosts(res.data))
+      .catch(() => toast.error("Failed to load team posts."))
+      .finally(() => setLoadingTeams(false));
+
+    axios
+      .get<PlayerAvailablePost[]>(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-player-availability-posts/`,
+      )
+      .then((res) => setPlayerPosts(res.data))
+      .catch(() => toast.error("Failed to load player posts."))
+      .finally(() => setLoadingPlayers(false));
+  }, []);
+
   // Teams tab filters
   const [teamSearch, setTeamSearch] = useState("");
-  const [teamRegionFilter, setTeamRegionFilter] = useState("all");
   const [teamCommitmentFilter, setTeamCommitmentFilter] = useState("all");
   const [teamTierFilter, setTeamTierFilter] = useState("all");
 
   // Players tab filters
   const [playerSearch, setPlayerSearch] = useState("");
-  const [playerRegionFilter, setPlayerRegionFilter] = useState("all");
   const [playerAvailabilityFilter, setPlayerAvailabilityFilter] =
     useState("all");
   const [playerRoleFilter, setPlayerRoleFilter] = useState("all");
 
   // Filtered data
   const filteredTeams = useMemo(() => {
-    return mockTeamPosts.filter((team) => {
-      const matchesSearch = team.teamName
+    return teamPosts.filter((team) => {
+      const matchesSearch = (team.team ?? "")
         .toLowerCase()
         .includes(teamSearch.toLowerCase());
-      const matchesRegion =
-        teamRegionFilter === "all" || team.region === teamRegionFilter;
       const matchesCommitment =
         teamCommitmentFilter === "all" ||
-        team.commitment === teamCommitmentFilter;
+        team.commitment_type === teamCommitmentFilter;
       const matchesTier =
-        teamTierFilter === "all" || team.minTier === teamTierFilter;
-      return matchesSearch && matchesRegion && matchesCommitment && matchesTier;
+        teamTierFilter === "all" ||
+        team.minimum_tier_required === teamTierFilter;
+      return matchesSearch && matchesCommitment && matchesTier;
     });
-  }, [teamSearch, teamRegionFilter, teamCommitmentFilter, teamTierFilter]);
+  }, [teamPosts, teamSearch, teamCommitmentFilter, teamTierFilter]);
 
   const filteredPlayers = useMemo(() => {
-    return mockPlayerPosts.filter((player) => {
-      const matchesSearch = player.playerName
+    return playerPosts.filter((player) => {
+      const matchesSearch = player.player
         .toLowerCase()
         .includes(playerSearch.toLowerCase());
-      const matchesRegion =
-        playerRegionFilter === "all" || player.region === playerRegionFilter;
       const matchesAvailability =
         playerAvailabilityFilter === "all" ||
-        player.availability === playerAvailabilityFilter;
+        player.availability_type === playerAvailabilityFilter;
       const matchesRole =
         playerRoleFilter === "all" ||
-        player.primaryRole === playerRoleFilter ||
-        player.secondaryRole === playerRoleFilter;
-      return (
-        matchesSearch && matchesRegion && matchesAvailability && matchesRole
-      );
+        player.primary_role === playerRoleFilter ||
+        player.secondary_role === playerRoleFilter;
+      return matchesSearch && matchesAvailability && matchesRole;
     });
-  }, [
-    playerSearch,
-    playerRegionFilter,
-    playerAvailabilityFilter,
-    playerRoleFilter,
-  ]);
+  }, [playerPosts, playerSearch, playerAvailabilityFilter, playerRoleFilter]);
 
   // Handlers
   const resetCreateForm = () => {
     setCreatePostType(null);
-    setNewTeamName("");
     setNewTeamRoles([]);
     setNewTeamMinTier("");
     setNewTeamCommitment("");
@@ -478,22 +247,82 @@ export default function PlayerMarketPage() {
     setNewPlayerExpiry("");
   };
 
-  const handleCreateTeamPost = () => {
-    toast.success("Team recruitment post created successfully!");
-    setCreatePostOpen(false);
-    resetCreateForm();
+  const handleCreateTeamPost = async () => {
+    if (
+      !newTeamRoles.length ||
+      !newTeamMinTier ||
+      !newTeamCommitment ||
+      !newTeamRegion ||
+      !newTeamExpiry
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/create-recruitment-post/`,
+        {
+          post_type: "TEAM_RECRUITMENT",
+          region: newTeamRegion,
+          post_expiry_date: newTeamExpiry,
+          roles_needed: newTeamRoles,
+          minimum_tier_required: newTeamMinTier,
+          commitment_type: newTeamCommitment,
+          recruitment_criteria: newTeamCriteria,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Team recruitment post created successfully!");
+      setCreatePostOpen(false);
+      resetCreateForm();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to create post.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleCreatePlayerPost = () => {
-    toast.success("Player availability post created successfully!");
-    setCreatePostOpen(false);
-    resetCreateForm();
+  const handleCreatePlayerPost = async () => {
+    if (
+      !newPlayerPrimary ||
+      !newPlayerAvailability ||
+      !newPlayerRegion ||
+      !newPlayerExpiry
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/create-recruitment-post/`,
+        {
+          post_type: "PLAYER_AVAILABLE",
+          region: newPlayerRegion,
+          post_expiry_date: newPlayerExpiry,
+          primary_role: newPlayerPrimary,
+          secondary_role: newPlayerSecondary,
+          availability_type: newPlayerAvailability,
+          additional_info: newPlayerInfo,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Player availability post created successfully!");
+      setCreatePostOpen(false);
+      resetCreateForm();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to create post.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col items-center md:flex-row w-full justify-between gap-4">
+      <div className="flex flex-col items-start md:items-center md:flex-row w-full justify-between gap-4">
         <PageHeader
+          back
           title="Player Market"
           description="Find teammates or advertise your availability"
         />
@@ -555,22 +384,6 @@ export default function PlayerMarketPage() {
               />
             </div>
             <Select
-              value={teamRegionFilter}
-              onValueChange={setTeamRegionFilter}
-            >
-              <SelectTrigger className="w-full md:w-[160px]">
-                <SelectValue placeholder="Region" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Regions</SelectItem>
-                {REGIONS.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {r}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
               value={teamCommitmentFilter}
               onValueChange={setTeamCommitmentFilter}
             >
@@ -580,8 +393,8 @@ export default function PlayerMarketPage() {
               <SelectContent>
                 <SelectItem value="all">All Levels</SelectItem>
                 {COMMITMENTS.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
+                  <SelectItem key={c.value} value={c.value}>
+                    {c.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -593,8 +406,8 @@ export default function PlayerMarketPage() {
               <SelectContent>
                 <SelectItem value="all">All Tiers</SelectItem>
                 {TIERS.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -602,7 +415,11 @@ export default function PlayerMarketPage() {
           </div>
 
           {/* Team Cards Grid */}
-          {filteredTeams.length === 0 ? (
+          {loadingTeams ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p className="text-sm">Loading...</p>
+            </div>
+          ) : filteredTeams.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <IconUsers className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p className="font-medium">No teams found</p>
@@ -619,67 +436,67 @@ export default function PlayerMarketPage() {
                     {/* Team header */}
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={team.teamLogo} alt={team.teamName} />
+                        <AvatarImage
+                          src={DEFAULT_PROFILE_PICTURE}
+                          alt={team.team ?? "Team"}
+                        />
                         <AvatarFallback>
-                          {team.teamName.charAt(0)}
+                          {(team.team ?? "T").charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">
-                          {team.teamName}
+                          {team.team ?? "Unknown Team"}
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          Posted by {team.postedBy} &middot;{" "}
-                          {formatPostDate(team.postedAt)}
+                          Expires {formatDate(team.expiry)}
                         </p>
                       </div>
                     </div>
 
                     {/* Roles needed */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {team.rolesNeeded.map((role) => (
-                        <Badge
-                          key={role}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {role}
-                        </Badge>
-                      ))}
-                    </div>
+                    {team.roles_needed && team.roles_needed.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {team.roles_needed.map((role, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {labelFor(ROLES, role)}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Info row */}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(team.minTier)}`}
-                      >
-                        <IconShield className="h-3 w-3" />
-                        {team.minTier}+
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <IconTarget className="h-3 w-3" />
-                        {team.commitment}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <IconMapPin className="h-3 w-3" />
-                        {team.region}
-                      </span>
+                      {team.minimum_tier_required && (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(team.minimum_tier_required)}`}
+                        >
+                          <IconShield className="h-3 w-3" />
+                          {labelFor(TIERS, team.minimum_tier_required)}+
+                        </span>
+                      )}
+                      {team.commitment_type && (
+                        <span className="flex items-center gap-1">
+                          <IconTarget className="h-3 w-3" />
+                          {labelFor(COMMITMENTS, team.commitment_type)}
+                        </span>
+                      )}
+                      {team.country && (
+                        <span className="flex items-center gap-1">
+                          <IconMapPin className="h-3 w-3" />
+                          {team.country}
+                        </span>
+                      )}
                     </div>
 
                     <Separator />
 
-                    {/* Stats + Action */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <IconUsers className="h-3.5 w-3.5" />
-                          {team.membersCount}/4
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <IconTrophy className="h-3.5 w-3.5" />
-                          {team.winsCount} wins
-                        </span>
-                      </div>
+                    {/* Action */}
+                    <div className="flex items-center justify-end">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -711,22 +528,6 @@ export default function PlayerMarketPage() {
               />
             </div>
             <Select
-              value={playerRegionFilter}
-              onValueChange={setPlayerRegionFilter}
-            >
-              <SelectTrigger className="w-full md:w-[160px]">
-                <SelectValue placeholder="Region" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Regions</SelectItem>
-                {REGIONS.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {r}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
               value={playerAvailabilityFilter}
               onValueChange={setPlayerAvailabilityFilter}
             >
@@ -736,8 +537,8 @@ export default function PlayerMarketPage() {
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 {AVAILABILITIES.map((a) => (
-                  <SelectItem key={a} value={a}>
-                    {a}
+                  <SelectItem key={a.value} value={a.value}>
+                    {a.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -751,9 +552,9 @@ export default function PlayerMarketPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
-                {ROLES.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {r}
+                {ROLES.map((r, index) => (
+                  <SelectItem key={r.value} value={r.value}>
+                    {r.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -761,7 +562,11 @@ export default function PlayerMarketPage() {
           </div>
 
           {/* Player Cards Grid */}
-          {filteredPlayers.length === 0 ? (
+          {loadingPlayers ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p className="text-sm">Loading...</p>
+            </div>
+          ) : filteredPlayers.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <IconUser className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p className="font-medium">No players found</p>
@@ -779,65 +584,53 @@ export default function PlayerMarketPage() {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarImage
-                          src={player.playerAvatar}
-                          alt={player.playerName}
+                          src={DEFAULT_PROFILE_PICTURE}
+                          alt={player.player}
                         />
                         <AvatarFallback>
-                          {player.playerName.charAt(0)}
+                          {player.player.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">
-                          {player.playerName}
+                          {player.player}
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          {formatPostDate(player.postedAt)}
+                          Expires {formatDate(player.expiry)}
                         </p>
                       </div>
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(player.tier)}`}
-                      >
-                        <IconShield className="h-3 w-3" />
-                        {player.tier}
-                      </span>
                     </div>
 
                     {/* Roles */}
                     <div className="flex flex-wrap gap-1.5">
                       <Badge variant="default" className="text-xs">
-                        {player.primaryRole}
+                        {labelFor(ROLES, player.primary_role)}
                       </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        {player.secondaryRole}
-                      </Badge>
+                      {player.secondary_role && (
+                        <Badge variant="secondary" className="text-xs">
+                          {labelFor(ROLES, player.secondary_role)}
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Info row */}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <IconClock className="h-3 w-3" />
-                        {player.availability}
+                        {labelFor(AVAILABILITIES, player.availability_type)}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <IconMapPin className="h-3 w-3" />
-                        {player.region}
-                      </span>
+                      {player.country && (
+                        <span className="flex items-center gap-1">
+                          <IconMapPin className="h-3 w-3" />
+                          {player.country}
+                        </span>
+                      )}
                     </div>
 
                     <Separator />
 
-                    {/* Stats + Action */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <IconTrophy className="h-3.5 w-3.5" />
-                          {player.tournamentsPlayed} tourneys
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <IconStar className="h-3.5 w-3.5" />
-                          {player.winRate}% WR
-                        </span>
-                      </div>
+                    {/* Action */}
+                    <div className="flex items-center justify-end">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -912,15 +705,6 @@ export default function PlayerMarketPage() {
           {createPostType === "team" && (
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <Label>Team Name *</Label>
-                <Input
-                  placeholder="Enter your team name"
-                  value={newTeamName}
-                  onChange={(e) => setNewTeamName(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label>Roles Needed *</Label>
                 <ToggleGroup
                   type="multiple"
@@ -931,11 +715,11 @@ export default function PlayerMarketPage() {
                 >
                   {ROLES.map((role) => (
                     <ToggleGroupItem
-                      key={role}
-                      value={role}
+                      key={role.value}
+                      value={role.value}
                       className="text-xs"
                     >
-                      {role}
+                      {role.label}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
@@ -952,9 +736,9 @@ export default function PlayerMarketPage() {
                       <SelectValue placeholder="Select tier" />
                     </SelectTrigger>
                     <SelectContent>
-                      {TIERS.map((t) => (
-                        <SelectItem key={t} value={t}>
-                          {t}
+                      {TIERS.map((t, index) => (
+                        <SelectItem key={index} value={t.value}>
+                          {t.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -970,9 +754,9 @@ export default function PlayerMarketPage() {
                       <SelectValue placeholder="Select level" />
                     </SelectTrigger>
                     <SelectContent>
-                      {COMMITMENTS.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {c}
+                      {COMMITMENTS.map((c, index) => (
+                        <SelectItem key={index} value={c.value}>
+                          {c.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -991,9 +775,9 @@ export default function PlayerMarketPage() {
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent>
-                      {REGIONS.map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {r}
+                      {REGIONS.map((r, index) => (
+                        <SelectItem key={index} value={r.value}>
+                          {r.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1026,7 +810,9 @@ export default function PlayerMarketPage() {
                 >
                   Back
                 </Button>
-                <Button onClick={handleCreateTeamPost}>Create Post</Button>
+                <Button onClick={handleCreateTeamPost} disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create Post"}
+                </Button>
               </DialogFooter>
             </div>
           )}
@@ -1045,9 +831,9 @@ export default function PlayerMarketPage() {
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ROLES.map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {r}
+                      {ROLES.map((r, index) => (
+                        <SelectItem key={index} value={r.value}>
+                          {r.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1063,9 +849,9 @@ export default function PlayerMarketPage() {
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ROLES.map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {r}
+                      {ROLES.map((r, index) => (
+                        <SelectItem key={index} value={r.value}>
+                          {r.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1084,9 +870,9 @@ export default function PlayerMarketPage() {
                       <SelectValue placeholder="Select availability" />
                     </SelectTrigger>
                     <SelectContent>
-                      {AVAILABILITIES.map((a) => (
-                        <SelectItem key={a} value={a}>
-                          {a}
+                      {AVAILABILITIES.map((a, index) => (
+                        <SelectItem key={index} value={a.value}>
+                          {a.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1102,9 +888,9 @@ export default function PlayerMarketPage() {
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent>
-                      {REGIONS.map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {r}
+                      {REGIONS.map((r, index) => (
+                        <SelectItem key={index} value={r.value}>
+                          {r.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1138,7 +924,12 @@ export default function PlayerMarketPage() {
                 >
                   Back
                 </Button>
-                <Button onClick={handleCreatePlayerPost}>Create Post</Button>
+                <Button
+                  onClick={handleCreatePlayerPost}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Creating..." : "Create Post"}
+                </Button>
               </DialogFooter>
             </div>
           )}
@@ -1158,121 +949,84 @@ export default function PlayerMarketPage() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-14 w-14">
                   <AvatarImage
-                    src={viewTeam.teamLogo}
-                    alt={viewTeam.teamName}
+                    src={DEFAULT_PROFILE_PICTURE}
+                    alt={viewTeam.team ?? "Team"}
                   />
-                  <AvatarFallback>{viewTeam.teamName.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>
+                    {(viewTeam.team ?? "T").charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <DialogTitle className="text-xl">
-                    {viewTeam.teamName}
+                    {viewTeam.team ?? "Unknown Team"}
                   </DialogTitle>
                   <p className="text-sm text-muted-foreground">
-                    Posted by {viewTeam.postedBy} &middot;{" "}
-                    {formatPostDate(viewTeam.postedAt)}
+                    Expires {new Date(viewTeam.expiry).toLocaleDateString()}
                   </p>
                 </div>
               </div>
             </DialogHeader>
 
             <div className="space-y-4">
-              {/* Recruitment Criteria */}
-              <div>
-                <h4 className="text-sm font-semibold mb-1.5">
-                  Recruitment Criteria
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  {viewTeam.criteria}
-                </p>
-              </div>
-
-              <Separator />
-
               {/* Roles & Requirements */}
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1.5">
-                    Roles Needed
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {viewTeam.rolesNeeded.map((role) => (
-                      <Badge key={role} variant="secondary">
-                        {role}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
+              {viewTeam.roles_needed && viewTeam.roles_needed.length > 0 && (
+                <div className="space-y-3">
                   <div>
-                    <p className="text-xs text-muted-foreground">Min Tier</p>
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border mt-1 ${getTierColor(viewTeam.minTier)}`}
-                    >
-                      <IconShield className="h-3 w-3" />
-                      {viewTeam.minTier}+
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Commitment</p>
-                    <p className="text-sm font-medium mt-1">
-                      {viewTeam.commitment}
+                    <p className="text-xs text-muted-foreground mb-1.5">
+                      Roles Needed
                     </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {viewTeam.roles_needed.map((role) => (
+                        <Badge key={role} variant="secondary">
+                          {labelFor(ROLES, role)}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Region</p>
-                    <p className="text-sm font-medium mt-1">
-                      {viewTeam.region}
-                    </p>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {viewTeam.minimum_tier_required && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          Min Tier
+                        </p>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border mt-1 ${getTierColor(viewTeam.minimum_tier_required)}`}
+                        >
+                          <IconShield className="h-3 w-3" />
+                          {labelFor(TIERS, viewTeam.minimum_tier_required)}+
+                        </span>
+                      </div>
+                    )}
+                    {viewTeam.commitment_type && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          Commitment
+                        </p>
+                        <p className="text-sm font-medium mt-1">
+                          {labelFor(COMMITMENTS, viewTeam.commitment_type)}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-
-              <Separator />
-
-              {/* Team Performance */}
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Team Performance</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  <Card className="bg-muted/50">
-                    <CardContent className="py-3 text-center">
-                      <p className="text-2xl font-bold">
-                        {viewTeam.membersCount}/4
-                      </p>
-                      <p className="text-xs text-muted-foreground">Members</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-muted/50">
-                    <CardContent className="py-3 text-center">
-                      <p className="text-2xl font-bold">{viewTeam.winsCount}</p>
-                      <p className="text-xs text-muted-foreground">Wins</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-muted/50">
-                    <CardContent className="py-3 text-center">
-                      <p className="text-2xl font-bold">
-                        {viewTeam.tournamentsPlayed}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Tournaments
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              )}
 
               <Separator />
 
               {/* Eligibility */}
               <div>
-                <h4 className="text-sm font-semibold mb-2">Eligibility</h4>
+                <h4 className="text-sm font-semibold mb-2">Details</h4>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    <IconMapPin className="h-3 w-3 mr-1" />
-                    {viewTeam.region}
-                  </Badge>
+                  {viewTeam.country && (
+                    <Badge variant="outline" className="text-xs">
+                      <IconMapPin className="h-3 w-3 mr-1" />
+                      {viewTeam.country}
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="text-xs">
                     <IconCalendar className="h-3 w-3 mr-1" />
-                    Expires {new Date(viewTeam.expiresAt).toLocaleDateString()}
+                    Expires {new Date(viewTeam.expiry).toLocaleDateString()}
                   </Badge>
                 </div>
               </div>
@@ -1284,7 +1038,9 @@ export default function PlayerMarketPage() {
               </DialogClose>
               <Button
                 onClick={() => {
-                  toast.success(`Application sent to ${viewTeam.teamName}!`);
+                  toast.success(
+                    `Application sent to ${viewTeam.team ?? "team"}!`,
+                  );
                   setViewTeam(null);
                 }}
               >
@@ -1308,29 +1064,26 @@ export default function PlayerMarketPage() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-14 w-14">
                   <AvatarImage
-                    src={viewPlayer.playerAvatar}
-                    alt={viewPlayer.playerName}
+                    src={DEFAULT_PROFILE_PICTURE}
+                    alt={viewPlayer.player}
                   />
                   <AvatarFallback>
-                    {viewPlayer.playerName.charAt(0)}
+                    {viewPlayer.player.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <DialogTitle className="text-xl">
-                    {viewPlayer.playerName}
+                    {viewPlayer.player}
                   </DialogTitle>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="default" className="text-xs">
-                      {viewPlayer.primaryRole}
+                      {labelFor(ROLES, viewPlayer.primary_role)}
                     </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {viewPlayer.secondaryRole}
-                    </Badge>
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(viewPlayer.tier)}`}
-                    >
-                      {viewPlayer.tier}
-                    </span>
+                    {viewPlayer.secondary_role && (
+                      <Badge variant="secondary" className="text-xs">
+                        {labelFor(ROLES, viewPlayer.secondary_role)}
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1338,94 +1091,34 @@ export default function PlayerMarketPage() {
 
             <div className="space-y-4">
               {/* About */}
-              <div>
-                <h4 className="text-sm font-semibold mb-1.5">About</h4>
-                <p className="text-sm text-muted-foreground">
-                  {viewPlayer.additionalInfo}
-                </p>
-              </div>
-
-              <Separator />
-
-              {/* Tier History */}
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Tier History</h4>
-                <div className="space-y-2">
-                  {viewPlayer.tierHistory.map((entry, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2 bg-muted/50 rounded-lg"
-                    >
-                      <span className="text-sm text-muted-foreground">
-                        {entry.season}
-                      </span>
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(entry.tier)}`}
-                      >
-                        <IconShield className="h-3 w-3" />
-                        {entry.tier}
-                      </span>
-                    </div>
-                  ))}
+              {viewPlayer.additional_info && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1.5">About</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {viewPlayer.additional_info}
+                  </p>
                 </div>
-              </div>
+              )}
 
               <Separator />
 
-              {/* Tournament Summary */}
+              {/* Details */}
               <div>
-                <h4 className="text-sm font-semibold mb-2">
-                  Tournament Summary
-                </h4>
-                <div className="grid grid-cols-3 gap-3">
-                  <Card className="bg-muted/50">
-                    <CardContent className="py-3 text-center">
-                      <p className="text-2xl font-bold">
-                        {viewPlayer.tournamentsPlayed}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Played</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-muted/50">
-                    <CardContent className="py-3 text-center">
-                      <p className="text-2xl font-bold">
-                        {Math.round(
-                          (viewPlayer.tournamentsPlayed * viewPlayer.winRate) /
-                            100,
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Wins</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-muted/50">
-                    <CardContent className="py-3 text-center">
-                      <p className="text-2xl font-bold">
-                        {viewPlayer.winRate}%
-                      </p>
-                      <p className="text-xs text-muted-foreground">Win Rate</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Eligibility */}
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Eligibility</h4>
+                <h4 className="text-sm font-semibold mb-2">Details</h4>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline" className="text-xs">
                     <IconClock className="h-3 w-3 mr-1" />
-                    {viewPlayer.availability}
+                    {labelFor(AVAILABILITIES, viewPlayer.availability_type)}
                   </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    <IconMapPin className="h-3 w-3 mr-1" />
-                    {viewPlayer.region}
-                  </Badge>
+                  {viewPlayer.country && (
+                    <Badge variant="outline" className="text-xs">
+                      <IconMapPin className="h-3 w-3 mr-1" />
+                      {viewPlayer.country}
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="text-xs">
                     <IconCalendar className="h-3 w-3 mr-1" />
-                    Expires{" "}
-                    {new Date(viewPlayer.expiresAt).toLocaleDateString()}
+                    Expires {new Date(viewPlayer.expiry).toLocaleDateString()}
                   </Badge>
                 </div>
               </div>
@@ -1437,7 +1130,7 @@ export default function PlayerMarketPage() {
               </DialogClose>
               <Button
                 onClick={() => {
-                  toast.success(`Invitation sent to ${viewPlayer.playerName}!`);
+                  toast.success(`Invitation sent to ${viewPlayer.player}!`);
                   setViewPlayer(null);
                 }}
               >

@@ -268,9 +268,9 @@ const Page = ({ params }: Props) => {
           <div>
             <h1 className="text-2xl font-bold">{player.name}</h1>
             <p className="text-muted-foreground text-sm">@{player.name}</p>
-            {player.role && (
+            {player.in_game_role && (
               <Badge variant="secondary" className="mt-1 capitalize">
-                {player.role}
+                {player.in_game_role}
               </Badge>
             )}
           </div>
