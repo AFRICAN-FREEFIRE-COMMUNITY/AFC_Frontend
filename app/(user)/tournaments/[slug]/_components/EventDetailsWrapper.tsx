@@ -3250,7 +3250,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             {eventDetails.participant_type === "solo" &&
               eventDetails?.registered_competitors?.map(
                 (reg: any, index: number) => (
-                  <Card key={`competitor-${reg.id || index}`}>
+                  <Card
+                    className="hover:border-primary group cursor-pointer"
+                    onClick={() => router.push(`/players/${reg.username}`)}
+                    key={`competitor-${reg.id || index}`}
+                  >
                     <CardContent className="flex items-center justify-between gap-2">
                       <div className="flex items-center justify-start gap-2">
                         <div className="px-4 py-2 rounded-full bg-primary text-white font-semibold text-base">
@@ -3275,14 +3279,18 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             {eventDetails.participant_type === "squad" &&
               eventDetails?.tournament_teams?.map(
                 (team: any, index: number) => (
-                  <Card key={`competitor-${team.id || index}`}>
+                  <Card
+                    className="hover:border-primary group cursor-pointer"
+                    onClick={() => router.push(`/teams/${team.team_name}`)}
+                    key={`competitor-${team.id || index}`}
+                  >
                     <CardContent className="flex items-center justify-between gap-2">
                       <div className="flex items-center justify-start gap-2">
                         <div className="px-4 py-2 rounded-full bg-primary text-white font-semibold text-base">
                           {index + 1}
                         </div>
                         <div>
-                          <p className="font-white font-semibold text-base">
+                          <p className="font-white group-hover:text-primary font-semibold text-base">
                             {team.team_name}
                           </p>
                         </div>

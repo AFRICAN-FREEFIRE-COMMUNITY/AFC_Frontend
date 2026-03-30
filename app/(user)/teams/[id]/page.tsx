@@ -448,14 +448,7 @@ const Page = ({ params }: { params: Params }) => {
   if (teamDetails)
     return (
       <div>
-        <Button
-          className="mb-4"
-          onClick={() => router.back()}
-          size="icon"
-          variant={"secondary"}
-        >
-          <IconArrowLeft />
-        </Button>
+        <PageHeader back title={teamDetails?.team_name} />
         <Card className={teamDetails.is_banned ? "border-red-500" : ""}>
           <CardHeader>
             <div className="flex flex-col md:flex-row items-start gap-4 md:gap-0 md:items-center justify-between">
