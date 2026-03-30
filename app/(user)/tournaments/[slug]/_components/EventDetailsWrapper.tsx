@@ -3261,7 +3261,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                           {index + 1}
                         </div>
                         <div>
-                          <p className="font-white font-semibold text-base">
+                          <p className="font-white font-semibold group-hover:text-primary text-base">
                             {reg.username}
                           </p>
                         </div>
