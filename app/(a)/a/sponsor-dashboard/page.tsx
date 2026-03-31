@@ -350,7 +350,7 @@ export default function SponsorDashboardPage() {
                               size="sm"
                               variant="outline"
                               className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
-                              disabled={isActing || p.status === "active"}
+                              // disabled={isActing || p.status === "active"}
                               onClick={() => handleConfirm(p.id, p.username)}
                             >
                               {isActing &&
@@ -366,9 +366,7 @@ export default function SponsorDashboardPage() {
                               variant="outline"
                               className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
                               // disabled={isActing || p.status === "rejected"}
-                              onClick={() =>
-                                openRejectDialog(p.id, p.username)
-                              }
+                              onClick={() => openRejectDialog(p.id, p.username)}
                             >
                               {isActing &&
                               pendingActions.get(p.id) === "reject" ? (
