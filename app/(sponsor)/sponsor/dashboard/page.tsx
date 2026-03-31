@@ -368,7 +368,7 @@ export default function SponsorDashboardPage() {
                                 size="sm"
                                 variant="outline"
                                 className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
-                                disabled={isActing}
+                                // disabled={isActing}
                                 onClick={() =>
                                   openRejectDialog(p.id, p.username)
                                 }
