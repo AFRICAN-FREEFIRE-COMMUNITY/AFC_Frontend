@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useTransition } from "react";
+import React, { useTransition, useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -33,6 +33,22 @@ export function VerifyTokenForm({ identifier, method }: Props) {
 
   const [pending, startTransition] = useTransition();
   const [pendingResend, startResendTransition] = useTransition();
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    timerRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current!);
+  }, [resendCooldown > 0]);
 
   const form = useForm<VerifyTokenFormSchemaType>({
     resolver: zodResolver(VerifyTokenFormSchema),
@@ -53,6 +69,7 @@ export function VerifyTokenForm({ identifier, method }: Props) {
         );
         if (response.statusText === "OK") {
           toast.success(response.data.message);
+          setResendCooldown(300);
         } else {
           toast.error("Oops! An error occurred");
         }
@@ -60,6 +77,12 @@ export function VerifyTokenForm({ identifier, method }: Props) {
         toast.error(error?.response?.data?.message || "Internal server error");
       }
     });
+  };
+
+  const formatCooldown = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
   function onSubmit(data: VerifyTokenFormSchemaType) {
@@ -129,10 +152,16 @@ export function VerifyTokenForm({ identifier, method }: Props) {
             type="button"
             className="w-full"
             variant={"secondary"}
-            disabled={pendingResend || pending}
+            disabled={pendingResend || pending || resendCooldown > 0}
             onClick={handleResendToken}
           >
-            {pendingResend ? <Loader text="Resending..." /> : "Resend token"}
+            {pendingResend ? (
+              <Loader text="Resending..." />
+            ) : resendCooldown > 0 ? (
+              `Resend token in ${formatCooldown(resendCooldown)}`
+            ) : (
+              "Resend token"
+            )}
           </Button>
         </div>
       </form>
