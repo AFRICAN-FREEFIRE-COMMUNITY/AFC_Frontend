@@ -35,7 +35,7 @@ interface Event {
   event_name: string;
   event_date: string;
   event_status: "upcoming" | "ongoing" | "completed";
-  competition_type: "tournament" | "scrim";
+  competition_type: "tournament" | "scrims";
   event_banner: string;
   slug: string;
   prizepool: string;
@@ -279,7 +279,7 @@ const EventsPage = () => {
     [filteredEvents],
   );
   const scrims = useMemo(
-    () => filteredEvents.filter((e) => e.competition_type === "scrim"),
+    () => filteredEvents.filter((e) => e.competition_type === "scrims"),
     [filteredEvents],
   );
 

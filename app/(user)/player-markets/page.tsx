@@ -134,6 +134,7 @@ export default function PlayerMarketPage() {
   const { token } = useAuth();
   const [activeTab, setActiveTab] = useState("teams");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
 
   // Create Post dialog
   const [createPostOpen, setCreatePostOpen] = useState(false);
@@ -315,6 +316,25 @@ export default function PlayerMarketPage() {
       toast.error(error?.response?.data?.message || "Failed to create post.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleApplyToTeam = async (postId: number, teamName: string | null) => {
+    setIsApplying(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/apply-to-team/`,
+        { post_id: String(postId) },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(`Application sent to ${teamName ?? "team"}!`);
+      setViewTeam(null);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to send application.",
+      );
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -1037,14 +1057,10 @@ export default function PlayerMarketPage() {
                 <Button variant="outline">Close</Button>
               </DialogClose>
               <Button
-                onClick={() => {
-                  toast.success(
-                    `Application sent to ${viewTeam.team ?? "team"}!`,
-                  );
-                  setViewTeam(null);
-                }}
+                onClick={() => handleApplyToTeam(viewTeam.id, viewTeam.team)}
+                disabled={isApplying}
               >
-                Apply to Join
+                {isApplying ? "Applying..." : "Apply to Join"}
               </Button>
             </DialogFooter>
           </DialogContent>

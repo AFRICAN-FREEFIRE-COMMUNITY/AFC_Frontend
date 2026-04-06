@@ -91,7 +91,7 @@ const Page = async ({ params }: { params: Params }) => {
   const { username } = await params;
 
   return (
-    <main className="container mx-auto py-6">
+    <main className="mx-auto py-6">
       <PlayerClient username={username} />
     </main>
   );

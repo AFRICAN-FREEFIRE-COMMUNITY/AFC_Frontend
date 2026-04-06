@@ -140,6 +140,8 @@ const Page = ({ params }: { params: Params }) => {
   const [joinRequests, setJoinRequests] = useState<any>();
   const [joinRequestsPage, setJoinRequestsPage] = useState(1);
   const [membersPage, setMembersPage] = useState(1);
+  const [playerMarketApplications, setPlayerMarketApplications] = useState<any[]>([]);
+  const [loadingApplications, setLoadingApplications] = useState(false);
 
   const { user, token } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -443,6 +445,18 @@ const Page = ({ params }: { params: Params }) => {
     });
   };
 
+  useEffect(() => {
+    if (!hasFullAccess || !token) return;
+    setLoadingApplications(true);
+    axios
+      .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-applications/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setPlayerMarketApplications(res.data))
+      .catch(() => toast.error("Failed to load player market applications."))
+      .finally(() => setLoadingApplications(false));
+  }, [hasFullAccess, token]);
+
   if (pending) return <FullLoader />;
 
   if (teamDetails)
@@ -600,6 +614,9 @@ const Page = ({ params }: { params: Params }) => {
                   <TabsTrigger value="social">Social Media</TabsTrigger>
                   {hasFullAccess && (
                     <TabsTrigger value="requests">Join Requests</TabsTrigger>
+                  )}
+                  {hasFullAccess && (
+                    <TabsTrigger value="applications">Applications</TabsTrigger>
                   )}
                 </TabsList>
                 <ScrollBar orientation="horizontal" />
@@ -1257,6 +1274,87 @@ const Page = ({ params }: { params: Params }) => {
                             </div>
                           )}
                         </>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {hasFullAccess && (
+                <TabsContent value="applications">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Player Market Applications</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {loadingApplications ? (
+                        <div className="text-center py-12 text-sm text-muted-foreground">
+                          Loading...
+                        </div>
+                      ) : playerMarketApplications.length === 0 ? (
+                        <NothingFound text="No applications received yet." />
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Player</TableHead>
+                              <TableHead>Applied</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Contact</TableHead>
+                              <TableHead>Action</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {playerMarketApplications.map((app: any) => (
+                              <TableRow key={app.id}>
+                                <TableCell className="font-medium">
+                                  {app.player}
+                                </TableCell>
+                                <TableCell className="text-muted-foreground text-sm">
+                                  {formatDate(app.applied_at)}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge
+                                    variant={
+                                      app.status === "PENDING"
+                                        ? "secondary"
+                                        : app.status === "ACCEPTED"
+                                          ? "default"
+                                          : "destructive"
+                                    }
+                                    className={
+                                      app.status === "ACCEPTED"
+                                        ? "bg-green-900/30 text-green-400 border-green-800 hover:bg-green-900/30"
+                                        : app.status === "PENDING"
+                                          ? "bg-yellow-900/20 text-yellow-400 border-yellow-800 hover:bg-yellow-900/20"
+                                          : ""
+                                    }
+                                  >
+                                    {app.status}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {app.contact_unlocked ? (
+                                    <Badge variant="outline" className="text-green-400 border-green-800">
+                                      Unlocked
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-muted-foreground">
+                                      Locked
+                                    </Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <Button size="sm" variant="ghost" asChild>
+                                    <Link href={`/players/${app.player}`}>
+                                      View Profile
+                                    </Link>
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                       )}
                     </CardContent>
                   </Card>
