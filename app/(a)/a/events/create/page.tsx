@@ -88,6 +88,7 @@ export default function CreateEventPage() {
       number_of_stages: 1,
       stages: [],
       prizepool: "",
+      prizepool_cash_value: undefined,
       prize_distribution: { "1st": 0, "2nd": 0, "3rd": 0 },
       event_rules: "",
       rules_document: "",
@@ -210,6 +211,7 @@ export default function CreateEventPage() {
           number_of_stages: mappedStages.length,
           stages: mappedStages,
           prizepool: d.prizepool?.toString() || "",
+          prizepool_cash_value: d.prizepool_cash_value ?? undefined,
           prize_distribution: d.prize_distribution || {},
           event_rules: d.event_rules || "",
           rules_document: "",
@@ -592,6 +594,10 @@ export default function CreateEventPage() {
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
+        formData.append(
+          "prizepool_cash_value",
+          (data.prizepool_cash_value ?? "").toString(),
+        );
 
         const finalEventStatus = data.save_to_drafts
           ? "draft"

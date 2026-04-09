@@ -4,6 +4,14 @@ import React, { useState, useEffect, use } from "react";
 import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -61,6 +69,10 @@ export default function IndividualLeaderboardPage({
     match: { match_id: number; match_name: string };
     view: MatchView;
   } | null>(null);
+
+  const [matchPickerOpen, setMatchPickerOpen] = useState(false);
+  const [pickerGroupId, setPickerGroupId] = useState<string>("");
+  const [pickerMatchId, setPickerMatchId] = useState<string>("");
 
   const fetchLeaderboard = async () => {
     try {
@@ -229,10 +241,37 @@ export default function IndividualLeaderboardPage({
   };
 
   const handleStartEditMatch = () => {
-    const m = currentGroup?.matches?.find(
-      (x: any) => x.match_id.toString() === selectedMatchId,
+    if (selectedMatchId !== "overall") {
+      const m = currentGroup?.matches?.find(
+        (x: any) => x.match_id.toString() === selectedMatchId,
+      );
+      if (!m) return;
+      setEditingMatch({
+        match: {
+          match_id: m.match_id,
+          match_name: `Match ${m.match_number} (${m.match_map})`,
+        },
+        view: "method",
+      });
+    } else {
+      setPickerGroupId(selectedGroupId);
+      setPickerMatchId("");
+      setMatchPickerOpen(true);
+    }
+  };
+
+  const handlePickerConfirm = () => {
+    const stage = eventData?.stages?.find(
+      (s: any) => s.stage_id.toString() === selectedStageId,
+    );
+    const group = stage?.groups?.find(
+      (g: any) => g.group_id.toString() === pickerGroupId,
+    );
+    const m = group?.matches?.find(
+      (x: any) => x.match_id.toString() === pickerMatchId,
     );
     if (!m) return;
+    setMatchPickerOpen(false);
     setEditingMatch({
       match: {
         match_id: m.match_id,
@@ -271,7 +310,7 @@ export default function IndividualLeaderboardPage({
               participantType={detailsParticipantType}
               killPoint={Number(currentGroup?.leaderboard?.kill_point ?? 1)}
             />
-            <Button asChild variant="outline" className="w-full md:w-auto">
+            <Button asChild variant="outline" size="sm" className="flex-1">
               <Link href={`/a/leaderboards/${id}/edit`}>
                 <IconPencil size={16} /> Edit Leaderboard
               </Link>
@@ -523,11 +562,9 @@ export default function IndividualLeaderboardPage({
 
             {/* Action buttons */}
             <div className="flex gap-2 flex-wrap">
-              {selectedMatchId !== "overall" && (
-                <Button onClick={handleStartEditMatch}>
-                  <IconEdit size={18} /> Edit Match Results
-                </Button>
-              )}
+              <Button onClick={handleStartEditMatch}>
+                <IconEdit size={18} /> Edit Match Results
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -572,6 +609,87 @@ export default function IndividualLeaderboardPage({
           onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
         />
       )}
+
+      {/* Match picker modal */}
+      <Dialog open={matchPickerOpen} onOpenChange={setMatchPickerOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Edit Match Results</DialogTitle>
+            <DialogDescription>
+              Select the group and match you want to edit.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>
+                <IconUsers size={14} className="inline mr-1" />
+                Group
+              </Label>
+              <Select
+                value={pickerGroupId}
+                onValueChange={(v) => {
+                  setPickerGroupId(v);
+                  setPickerMatchId("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currentStage?.groups?.map((g: any) => (
+                    <SelectItem key={g.group_id} value={g.group_id.toString()}>
+                      {g.group_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {pickerGroupId &&
+              (() => {
+                const pickerGroup = currentStage?.groups?.find(
+                  (g: any) => g.group_id.toString() === pickerGroupId,
+                );
+                return (
+                  <div className="space-y-2">
+                    <Label>
+                      <IconMap size={14} className="inline mr-1" />
+                      Match
+                    </Label>
+                    <Select
+                      value={pickerMatchId}
+                      onValueChange={setPickerMatchId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select match" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pickerGroup?.matches?.map((m: any) => (
+                          <SelectItem
+                            key={m.match_id}
+                            value={m.match_id.toString()}
+                          >
+                            Match {m.match_number} — {m.match_map}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })()}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMatchPickerOpen(false)}>
+              Cancel
+            </Button>
+            <Button disabled={!pickerMatchId} onClick={handlePickerConfirm}>
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

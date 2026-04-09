@@ -41,6 +41,16 @@ export function TeamInviteClient({
     }
   }, [inviteId, initialData]);
 
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Fetches team details based on invite ID
+   * If the invite ID is not valid, this function will return early
+   * Otherwise, it will attempt to fetch the team details from the backend
+   * If the request is successful, it will update the component's state with the fetched team details
+   * If the request fails, it will log an error to the console and display an error message to the user
+   * Finally, it will set the loading state to false regardless of whether the request was successful or not
+   */
+  /*******  91bdcffe-fd8a-44e7-822b-460beed5fb45  *******/
   const fetchTeamDetails = async () => {
     if (!inviteId) return;
 
@@ -112,6 +122,7 @@ export function TeamInviteClient({
             headers: { Authorization: `Bearer ${token}` },
           },
         );
+
         toast.success(response.data.message || "Invite declined");
         router.push("/teams");
       } catch (error: any) {
@@ -181,7 +192,8 @@ export function TeamInviteClient({
                   </Badge>
                 )}
                 <p className="text-muted-foreground">
-                  You have been invited to join this team!
+                  You have been invited to join this team as a{" "}
+                  <strong>{teamDetails?.role}</strong>!
                 </p>
               </div>
             </div>
@@ -336,11 +348,11 @@ export function TeamInviteClient({
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Authentication Required</AlertTitle>
-                <AlertDescription>
+                <AlertDescription className="flex items-center">
                   You need to{" "}
                   <Link
                     href={`/login?redirect=/invite/${inviteId}`}
-                    className="text-primary underline font-medium"
+                    className="text-primary underline inline font-medium"
                   >
                     log in
                   </Link>{" "}

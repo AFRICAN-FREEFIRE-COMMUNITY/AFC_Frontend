@@ -42,12 +42,24 @@ import {
   IconX,
   IconChevronDown,
   IconChevronRight,
+  IconUpload,
 } from "@tabler/icons-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
+import { ManualMatchResultStep } from "../../_components/ManualMatchResultStep";
+import { MatchMethodSelectionStep } from "../../_components/MatchMethodSelectionStep";
+import { ImageUploadStep } from "../../_components/ImageUploadStep";
+import { FileUploadStep } from "../../_components/FileUploadStep";
 
 type Params = { id: string };
 
@@ -184,6 +196,7 @@ export default function EditLeaderboardPage({
   const { token } = useAuth();
 
   const [eventData, setEventData] = useState<any>(null);
+  const [eventSlug, setEventSlug] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -195,6 +208,20 @@ export default function EditLeaderboardPage({
   const [participantType, setParticipantType] = useState<"solo" | "team">(
     "solo",
   );
+
+  // Tab control
+  const [activeTab, setActiveTab] = useState("matches");
+
+  // Upload drawer
+  const [uploadDrawerOpen, setUploadDrawerOpen] = useState(false);
+  const [uploadingMatch, setUploadingMatch] = useState<{
+    match_id: number;
+    match_name: string;
+    result_inputted: boolean;
+  } | null>(null);
+  const [uploadView, setUploadView] = useState<
+    "method" | "manual" | "image_upload" | "room_file_upload"
+  >("method");
 
   // Match editing
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
@@ -244,6 +271,9 @@ export default function EditLeaderboardPage({
       setEventData(data);
       setParticipantType(data.participant_type === "solo" ? "solo" : "team");
 
+      const slug = data.event_slug ?? data.slug ?? "";
+      if (slug) setEventSlug(slug);
+
       if (!selectedStageId && data.stages?.length > 0) {
         setSelectedStageId(data.stages[0].stage_id.toString());
         setSelectedGroupId(data.stages[0].groups[0]?.group_id.toString() ?? "");
@@ -255,9 +285,29 @@ export default function EditLeaderboardPage({
     }
   };
 
+  const fetchEventSlug = async () => {
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
+      );
+      const data = await res.json();
+      const event = (data.events ?? []).find(
+        (e: any) => e.event_id.toString() === id,
+      );
+      if (event?.slug) setEventSlug(event.slug);
+    } catch {}
+  };
+
   useEffect(() => {
     fetchData();
   }, [id, token]);
+
+  // Fallback slug lookup if not in leaderboard response
+  useEffect(() => {
+    if (eventData && !eventSlug) {
+      fetchEventSlug();
+    }
+  }, [eventData]);
 
   // When stage changes, reset group to first
   useEffect(() => {
@@ -658,6 +708,48 @@ export default function EditLeaderboardPage({
     });
   };
 
+  // ── Upload handlers ──────────────────────────────────────────────────────────
+
+  const handleOpenUpload = (m: MatchData) => {
+    setUploadingMatch({
+      match_id: m.match_id,
+      match_name: `Match ${m.match_number} (${m.match_map})`,
+      result_inputted: (m as any).result_inputted ?? false,
+    });
+    setUploadView("method");
+    setUploadDrawerOpen(true);
+  };
+
+  const handleUploadComplete = () => {
+    setUploadDrawerOpen(false);
+    setUploadingMatch(null);
+    fetchData();
+    setActiveTab("matches");
+  };
+
+  // ── Upload formData ───────────────────────────────────────────────────────────
+
+  const uploadFormData = uploadingMatch
+    ? {
+        event_slug: eventSlug,
+        event_id: id,
+        completed_match_ids: uploadingMatch.result_inputted
+          ? [uploadingMatch.match_id]
+          : [],
+        group_matches: currentGroup?.matches ?? [],
+        competitors_in_group: [],
+        group_leaderboard: currentGroup?.leaderboard ?? null,
+        placement_points: {},
+        kill_point: String(currentGroup?.leaderboard?.kill_point ?? "1"),
+        assist_point: String(currentGroup?.leaderboard?.assist_point ?? "0.5"),
+        damage_point: String(currentGroup?.leaderboard?.damage_point ?? "0.5"),
+        apply_to_all_maps: true,
+        leaderboard_id: currentGroup?.leaderboard?.leaderboard_id ?? null,
+        group_id: selectedGroupId,
+        stage_id: selectedStageId,
+      }
+    : null;
+
   // ── Render states ────────────────────────────────────────────────────────────
 
   if (loading) return <FullLoader />;
@@ -726,8 +818,8 @@ export default function EditLeaderboardPage({
       )}
 
       {/* Edit sections */}
-      <Tabs defaultValue="matches">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="matches">
             <IconMap size={14} className="mr-1" />
             Match Results
@@ -739,6 +831,10 @@ export default function EditLeaderboardPage({
           <TabsTrigger value="scoring">
             <IconSettings size={14} className="mr-1" />
             Scoring Config
+          </TabsTrigger>
+          <TabsTrigger value="upload">
+            <IconUpload size={14} className="mr-1" />
+            Upload Results
           </TabsTrigger>
         </TabsList>
 
@@ -1513,7 +1609,114 @@ export default function EditLeaderboardPage({
             </>
           )}
         </TabsContent>
+
+        {/* ── Upload Results Tab ── */}
+        <TabsContent value="upload" className="mt-4 space-y-4">
+          {groupMatches.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                No matches found for this group.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {groupMatches.map((m) => {
+                const done = (m as any).result_inputted ?? false;
+                return (
+                  <Card key={m.match_id} className="p-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">
+                          Match {m.match_number}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {m.match_map}
+                        </p>
+                      </div>
+                      <Badge variant={done ? "default" : "secondary"}>
+                        {done ? "Results Entered" : "Pending"}
+                      </Badge>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={done ? "outline" : "default"}
+                      onClick={() => handleOpenUpload(m)}
+                    >
+                      <IconUpload size={14} className="mr-1" />
+                      {done ? "Re-upload Results" : "Upload Results"}
+                    </Button>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
+
+      {/* ── Upload Results Drawer ── */}
+      <Sheet open={uploadDrawerOpen} onOpenChange={setUploadDrawerOpen}>
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-2xl overflow-y-auto p-0"
+        >
+          <SheetHeader className="p-6 pb-0">
+            <SheetTitle>
+              {uploadingMatch?.match_name ?? "Upload Results"}
+            </SheetTitle>
+            <SheetDescription>
+              Select an upload method for this match.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="p-6 space-y-4">
+            {uploadView === "method" && uploadingMatch && (
+              <MatchMethodSelectionStep
+                matchName={uploadingMatch.match_name}
+                onSelect={(method) =>
+                  setUploadView(
+                    method as "manual" | "image_upload" | "room_file_upload",
+                  )
+                }
+                onBack={() => setUploadDrawerOpen(false)}
+              />
+            )}
+
+            {uploadView === "manual" && uploadingMatch && uploadFormData && (
+              <ManualMatchResultStep
+                match={uploadingMatch}
+                formData={uploadFormData}
+                participantTypeOverride={participantType}
+                initialStats={
+                  groupMatches.find(
+                    (m) => m.match_id === uploadingMatch.match_id,
+                  )?.stats ?? []
+                }
+                onComplete={handleUploadComplete}
+                onBack={() => setUploadView("method")}
+              />
+            )}
+
+            {uploadView === "image_upload" && (
+              <ImageUploadStep
+                onNext={handleUploadComplete}
+                onBack={() => setUploadView("method")}
+              />
+            )}
+
+            {uploadView === "room_file_upload" &&
+              uploadingMatch &&
+              uploadFormData && (
+                <FileUploadStep
+                  match={uploadingMatch}
+                  formData={uploadFormData}
+                  participantTypeOverride={participantType}
+                  onNext={handleUploadComplete}
+                  onBack={() => setUploadView("method")}
+                />
+              )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

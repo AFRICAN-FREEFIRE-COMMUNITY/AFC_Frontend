@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition, use } from "react";
+import React, { useState, useEffect, useTransition, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -88,18 +88,26 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { formatDate, formatWord } from "@/lib/utils";
+import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
   IconAlertTriangle,
   IconArrowLeft,
   IconCopy,
   IconLogout,
   IconSearch,
+  IconExternalLink,
 } from "@tabler/icons-react";
 import { BanModal } from "@/app/(a)/a/_components/BanModal";
 import { PageHeader } from "@/components/PageHeader";
 import { NothingFound } from "@/components/NothingFound";
 import { useAuthModal } from "@/components/AuthModal";
+import {
+  ReviewApplicationDialog,
+  getStatusBadge,
+  type ApplicationRecord,
+} from "@/app/(user)/_components/ReviewApplicationDialog";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -142,6 +150,7 @@ const Page = ({ params }: { params: Params }) => {
   const [membersPage, setMembersPage] = useState(1);
   const [playerMarketApplications, setPlayerMarketApplications] = useState<any[]>([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
+  const [reviewApp, setReviewApp] = useState<ApplicationRecord | null>(null);
 
   const { user, token } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -231,13 +240,16 @@ const Page = ({ params }: { params: Params }) => {
   };
 
   const [pendingGenerateLink, startGenerateLinkTransition] = useTransition();
+  const [rolePickerOpen, setRolePickerOpen] = useState(false);
+  const [inviteRole, setInviteRole] = useState<string>("");
 
-  const handleGenerateInviteLink = () => {
+  const handleGenerateInviteLink = (role: string) => {
+    setRolePickerOpen(false);
     startGenerateLinkTransition(async () => {
       try {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/generate-invite-link/`,
-          { team_id: teamDetails.team_id },
+          { team_id: teamDetails.team_id, role },
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -457,6 +469,15 @@ const Page = ({ params }: { params: Params }) => {
       .finally(() => setLoadingApplications(false));
   }, [hasFullAccess, token]);
 
+  const appStats = useMemo(() => ({
+    total: playerMarketApplications.length,
+    pending: playerMarketApplications.filter((a) => a.status === "PENDING").length,
+    shortlisted: playerMarketApplications.filter((a) => a.status === "SHORTLISTED").length,
+    invited: playerMarketApplications.filter(
+      (a) => a.status === "INVITED" || a.status === "TRIAL_EXTENDED",
+    ).length,
+  }), [playerMarketApplications]);
+
   if (pending) return <FullLoader />;
 
   if (teamDetails)
@@ -613,10 +634,7 @@ const Page = ({ params }: { params: Params }) => {
                   <TabsTrigger value="statistics">Statistics</TabsTrigger>
                   <TabsTrigger value="social">Social Media</TabsTrigger>
                   {hasFullAccess && (
-                    <TabsTrigger value="requests">Join Requests</TabsTrigger>
-                  )}
-                  {hasFullAccess && (
-                    <TabsTrigger value="applications">Applications</TabsTrigger>
+                    <TabsTrigger value="requests">Requests & Applications</TabsTrigger>
                   )}
                 </TabsList>
                 <ScrollBar orientation="horizontal" />
@@ -1078,11 +1096,118 @@ const Page = ({ params }: { params: Params }) => {
 
               {hasFullAccess && (
                 <TabsContent value="requests">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Join Requests</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                  <div className="space-y-6">
+                    {/* ── Player Market Applications ─────────────────── */}
+                    <Card>
+                      <CardHeader>
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                          <div>
+                            <CardTitle className="text-base">
+                              Player Market Applications
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Applications from players via your recruitment post
+                            </p>
+                          </div>
+                          <Button variant="outline" size="sm" className="shrink-0" asChild>
+                            <Link href={`/teams/${teamDetails?.team_name}/applications`}>
+                              <IconExternalLink className="h-4 w-4 mr-1.5" />
+                              View All Applications
+                            </Link>
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        {loadingApplications ? (
+                          <div className="text-center py-8 text-sm text-muted-foreground">
+                            Loading...
+                          </div>
+                        ) : playerMarketApplications.length === 0 ? (
+                          <NothingFound text="No applications received yet." />
+                        ) : (
+                          <>
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Player</TableHead>
+                                  <TableHead>Applied</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead>Contact</TableHead>
+                                  <TableHead>Action</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {playerMarketApplications.map((app: any) => (
+                                  <TableRow key={app.id}>
+                                    <TableCell className="font-medium">
+                                      {app.player}
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground text-sm">
+                                      {formatDate(app.applied_at)}
+                                    </TableCell>
+                                    <TableCell>
+                                      {getStatusBadge(app.status)}
+                                    </TableCell>
+                                    <TableCell>
+                                      {app.contact_unlocked ? (
+                                        <Badge variant="outline" className="text-green-400 border-green-800 text-xs">
+                                          Unlocked
+                                        </Badge>
+                                      ) : (
+                                        <Badge variant="outline" className="text-muted-foreground text-xs">
+                                          Locked
+                                        </Badge>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setReviewApp(app)}
+                                      >
+                                        Review
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+
+                            {/* Summary stats */}
+                            <div className="flex items-center gap-6 pt-4 mt-2 border-t">
+                              <div>
+                                <p className="text-xl font-bold">{appStats.total}</p>
+                                <p className="text-xs text-muted-foreground">Total</p>
+                              </div>
+                              <div>
+                                <p className="text-xl font-bold text-yellow-400">{appStats.pending}</p>
+                                <p className="text-xs text-muted-foreground">Pending</p>
+                              </div>
+                              <div>
+                                <p className="text-xl font-bold text-cyan-400">{appStats.shortlisted}</p>
+                                <p className="text-xs text-muted-foreground">Shortlisted</p>
+                              </div>
+                              <div>
+                                <p className="text-xl font-bold text-green-400">{appStats.invited}</p>
+                                <p className="text-xs text-muted-foreground">Invited</p>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Separator />
+
+                    {/* ── Direct Join Requests ──────────────────────── */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Direct Join Requests</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Players who requested to join directly from your team page
+                        </p>
+                      </CardHeader>
+                      <CardContent>
                       {joinRequests?.length === 0 ? (
                         <NothingFound text="No pending join requests." />
                       ) : (
@@ -1275,89 +1400,9 @@ const Page = ({ params }: { params: Params }) => {
                           )}
                         </>
                       )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              )}
-
-              {hasFullAccess && (
-                <TabsContent value="applications">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Player Market Applications</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {loadingApplications ? (
-                        <div className="text-center py-12 text-sm text-muted-foreground">
-                          Loading...
-                        </div>
-                      ) : playerMarketApplications.length === 0 ? (
-                        <NothingFound text="No applications received yet." />
-                      ) : (
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Player</TableHead>
-                              <TableHead>Applied</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Contact</TableHead>
-                              <TableHead>Action</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {playerMarketApplications.map((app: any) => (
-                              <TableRow key={app.id}>
-                                <TableCell className="font-medium">
-                                  {app.player}
-                                </TableCell>
-                                <TableCell className="text-muted-foreground text-sm">
-                                  {formatDate(app.applied_at)}
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant={
-                                      app.status === "PENDING"
-                                        ? "secondary"
-                                        : app.status === "ACCEPTED"
-                                          ? "default"
-                                          : "destructive"
-                                    }
-                                    className={
-                                      app.status === "ACCEPTED"
-                                        ? "bg-green-900/30 text-green-400 border-green-800 hover:bg-green-900/30"
-                                        : app.status === "PENDING"
-                                          ? "bg-yellow-900/20 text-yellow-400 border-yellow-800 hover:bg-yellow-900/20"
-                                          : ""
-                                    }
-                                  >
-                                    {app.status}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  {app.contact_unlocked ? (
-                                    <Badge variant="outline" className="text-green-400 border-green-800">
-                                      Unlocked
-                                    </Badge>
-                                  ) : (
-                                    <Badge variant="outline" className="text-muted-foreground">
-                                      Locked
-                                    </Badge>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  <Button size="sm" variant="ghost" asChild>
-                                    <Link href={`/players/${app.player}`}>
-                                      View Profile
-                                    </Link>
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      )}
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </TabsContent>
               )}
             </Tabs>
@@ -1370,7 +1415,7 @@ const Page = ({ params }: { params: Params }) => {
                 <CardContent>
                   <div className="space-y-4">
                     <Button
-                      onClick={() => requireAuth(handleGenerateInviteLink)}
+                      onClick={() => requireAuth(() => { setInviteRole(""); setRolePickerOpen(true); })}
                       className="w-full"
                       disabled={pendingGenerateLink}
                     >
@@ -1523,6 +1568,52 @@ const Page = ({ params }: { params: Params }) => {
             )}
           </CardContent>
         </Card>
+      {/* ─── Review Application Modal ──────────────────────────────── */}
+      <ReviewApplicationDialog
+        app={reviewApp}
+        token={token}
+        onClose={() => setReviewApp(null)}
+        onStatusUpdated={(updated) =>
+          setPlayerMarketApplications((prev) =>
+            prev.map((a) => (a.id === updated.id ? updated : a)),
+          )
+        }
+      />
+
+      {/* Role picker modal for Generate Invite Link */}
+      <Dialog open={rolePickerOpen} onOpenChange={setRolePickerOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Generate Invite Link</DialogTitle>
+            <DialogDescription>
+              Select the role this invite link is for.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2 py-2">
+            {(["member", "coach", "analyst", "manager"] as const).map((role) => (
+              <Button
+                key={role}
+                variant={inviteRole === role ? "default" : "outline"}
+                className="capitalize"
+                onClick={() => setInviteRole(role)}
+              >
+                {role}
+              </Button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRolePickerOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!inviteRole}
+              onClick={() => handleGenerateInviteLink(inviteRole)}
+            >
+              Generate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
     );
 };

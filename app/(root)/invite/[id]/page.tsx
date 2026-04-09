@@ -36,6 +36,7 @@ async function getTeamInviteData(inviteId: string) {
     }
 
     const data = await response.json();
+
     return data.team;
   } catch (error) {
     console.error("Error fetching team invite:", error);

@@ -62,7 +62,6 @@ export const homeNavLinksMobile: NavLinks[] = [
     slug: "/player-markets",
     label: "Player Markets",
     icon: IconUsers,
-    comingSoon: true,
   },
   { slug: "/news", label: "News & Updates", icon: IconArticle },
   {

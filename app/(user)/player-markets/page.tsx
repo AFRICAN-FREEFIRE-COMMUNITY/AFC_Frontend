@@ -41,13 +41,24 @@ import {
   IconPlus,
   IconChevronRight,
   IconInfoCircle,
+  IconClipboardList,
+  IconTrophy,
+  IconCrosshair,
+  IconAward,
+  IconCheck,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { DEFAULT_PROFILE_PICTURE } from "@/constants";
+import { DEFAULT_PROFILE_PICTURE, countries } from "@/constants";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate } from "@/lib/utils";
+import {
+  ReviewApplicationDialog,
+  getStatusBadge,
+  type ApplicationRecord,
+} from "@/app/(user)/_components/ReviewApplicationDialog";
+import Link from "next/link";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -63,14 +74,6 @@ const TIERS: { value: string; label: string }[] = [
   { value: "TIER_1", label: "Tier 1" },
   { value: "TIER_2", label: "Tier 2" },
   { value: "TIER_3", label: "Tier 3" },
-];
-
-const REGIONS: { value: string; label: string }[] = [
-  { value: "WA", label: "West Africa" },
-  { value: "EA", label: "East Africa" },
-  { value: "NA", label: "North Africa" },
-  { value: "SA", label: "South Africa" },
-  { value: "CA", label: "Central Africa" },
 ];
 
 const COMMITMENTS: { value: string; label: string }[] = [
@@ -128,13 +131,136 @@ function getTierColor(tier: string) {
   }
 }
 
+// ─── Country Multi-Select ────────────────────────────────────────────────────
+
+function CountryMultiSelect({
+  value,
+  onChange,
+  placeholder = "Select countries...",
+}: {
+  value: string[];
+  onChange: (val: string[]) => void;
+  placeholder?: string;
+}) {
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const filtered = countries.filter((c) =>
+    c.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const toggle = (country: string) => {
+    onChange(
+      value.includes(country)
+        ? value.filter((c) => c !== country)
+        : [...value, country],
+    );
+  };
+
+  return (
+    <div className="relative">
+      {/* Trigger */}
+      <div
+        className="min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer flex flex-wrap gap-1.5"
+        onClick={() => setOpen((o) => !o)}
+      >
+        {value.length === 0 ? (
+          <span className="text-muted-foreground">{placeholder}</span>
+        ) : (
+          value.map((c) => (
+            <span
+              key={c}
+              className="inline-flex items-center gap-1 bg-secondary text-secondary-foreground rounded px-1.5 py-0.5 text-xs"
+            >
+              {c}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(c);
+                }}
+              >
+                <IconX className="h-3 w-3" />
+              </button>
+            </span>
+          ))
+        )}
+      </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+          <div className="p-2">
+            <Input
+              placeholder="Search countries..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              autoFocus
+            />
+          </div>
+          <ScrollArea className="h-52">
+            <div className="p-1">
+              {filtered.length === 0 ? (
+                <p className="text-xs text-center text-muted-foreground py-4">
+                  No countries found
+                </p>
+              ) : (
+                filtered.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => toggle(c)}
+                    className="w-full flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent text-left"
+                  >
+                    <div
+                      className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${
+                        value.includes(c)
+                          ? "bg-primary border-primary"
+                          : "border-input"
+                      }`}
+                    >
+                      {value.includes(c) && (
+                        <IconCheck className="h-3 w-3 text-primary-foreground" />
+                      )}
+                    </div>
+                    {c}
+                  </button>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+          {value.length > 0 && (
+            <div className="border-t p-2">
+              <button
+                type="button"
+                onClick={() => onChange([])}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Clear all ({value.length} selected)
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function PlayerMarketPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+
   const [activeTab, setActiveTab] = useState("teams");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
+  const [myApplications, setMyApplications] = useState<any[]>([]);
+  const [loadingMyApps, setLoadingMyApps] = useState(false);
+  const [teamApplications, setTeamApplications] = useState<any[]>([]);
+  const [loadingTeamApps, setLoadingTeamApps] = useState(false);
+  const [currentTeam, setCurrentTeam] = useState<any>(null);
+  const [isTeamLeader, setIsTeamLeader] = useState(false);
 
   // Create Post dialog
   const [createPostOpen, setCreatePostOpen] = useState(false);
@@ -146,7 +272,7 @@ export default function PlayerMarketPage() {
   const [newTeamRoles, setNewTeamRoles] = useState<string[]>([]);
   const [newTeamMinTier, setNewTeamMinTier] = useState("");
   const [newTeamCommitment, setNewTeamCommitment] = useState("");
-  const [newTeamRegion, setNewTeamRegion] = useState("");
+  const [newTeamCountries, setNewTeamCountries] = useState<string[]>([]);
   const [newTeamCriteria, setNewTeamCriteria] = useState("");
   const [newTeamExpiry, setNewTeamExpiry] = useState("");
 
@@ -154,7 +280,7 @@ export default function PlayerMarketPage() {
   const [newPlayerPrimary, setNewPlayerPrimary] = useState("");
   const [newPlayerSecondary, setNewPlayerSecondary] = useState("");
   const [newPlayerAvailability, setNewPlayerAvailability] = useState("");
-  const [newPlayerRegion, setNewPlayerRegion] = useState("");
+  const [newPlayerCountries, setNewPlayerCountries] = useState<string[]>([]);
   const [newPlayerInfo, setNewPlayerInfo] = useState("");
   const [newPlayerExpiry, setNewPlayerExpiry] = useState("");
 
@@ -169,6 +295,71 @@ export default function PlayerMarketPage() {
   const [viewPlayer, setViewPlayer] = useState<PlayerAvailablePost | null>(
     null,
   );
+
+  useEffect(() => {
+    if (!token || !user) return;
+
+    // First fetch the user's current team to determine their role
+    axios
+      .post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
+      .then((res) => {
+        const team = res.data.team;
+        setCurrentTeam(team);
+        const MANAGEMENT_ROLES = [
+          "team_captain",
+          "vice_captain",
+          "coach",
+          "manager",
+          "analyst",
+        ];
+        const leader =
+          team?.team_owner === user.in_game_name ||
+          MANAGEMENT_ROLES.includes(team?.user_role_in_team);
+        setIsTeamLeader(leader);
+
+        if (leader) {
+          // Fetch applications to their team
+          setLoadingTeamApps(true);
+          axios
+            .get(
+              `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-applications/`,
+              { headers: { Authorization: `Bearer ${token}` } },
+            )
+            .then((r) => setTeamApplications(r.data))
+            .catch(() => toast.error("Failed to load team applications."))
+            .finally(() => setLoadingTeamApps(false));
+        } else {
+          // Fetch their own applications
+          setLoadingMyApps(true);
+          axios
+            .get(
+              `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-my-applications/`,
+              { headers: { Authorization: `Bearer ${token}` } },
+            )
+            .then((r) => setMyApplications(r.data))
+            .catch(() => toast.error("Failed to load your applications."))
+            .finally(() => setLoadingMyApps(false));
+        }
+      })
+      .catch(() => {
+        // No team or failed — still fetch my applications
+        setLoadingMyApps(true);
+        axios
+          .get(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-my-applications/`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          )
+          .then((r) => setMyApplications(r.data))
+          .catch(() => toast.error("Failed to load your applications."))
+          .finally(() => setLoadingMyApps(false));
+      });
+  }, [token, user]);
 
   useEffect(() => {
     axios
@@ -192,6 +383,7 @@ export default function PlayerMarketPage() {
   const [teamSearch, setTeamSearch] = useState("");
   const [teamCommitmentFilter, setTeamCommitmentFilter] = useState("all");
   const [teamTierFilter, setTeamTierFilter] = useState("all");
+  const [reviewApp, setReviewApp] = useState<ApplicationRecord | null>(null);
 
   // Players tab filters
   const [playerSearch, setPlayerSearch] = useState("");
@@ -231,19 +423,21 @@ export default function PlayerMarketPage() {
     });
   }, [playerPosts, playerSearch, playerAvailabilityFilter, playerRoleFilter]);
 
+
+
   // Handlers
   const resetCreateForm = () => {
     setCreatePostType(null);
     setNewTeamRoles([]);
     setNewTeamMinTier("");
     setNewTeamCommitment("");
-    setNewTeamRegion("");
+    setNewTeamCountries([]);
     setNewTeamCriteria("");
     setNewTeamExpiry("");
     setNewPlayerPrimary("");
     setNewPlayerSecondary("");
     setNewPlayerAvailability("");
-    setNewPlayerRegion("");
+    setNewPlayerCountries([]);
     setNewPlayerInfo("");
     setNewPlayerExpiry("");
   };
@@ -253,7 +447,7 @@ export default function PlayerMarketPage() {
       !newTeamRoles.length ||
       !newTeamMinTier ||
       !newTeamCommitment ||
-      !newTeamRegion ||
+      !newTeamCountries.length ||
       !newTeamExpiry
     ) {
       toast.error("Please fill in all required fields.");
@@ -265,7 +459,7 @@ export default function PlayerMarketPage() {
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/create-recruitment-post/`,
         {
           post_type: "TEAM_RECRUITMENT",
-          region: newTeamRegion,
+          country_codes: newTeamCountries,
           post_expiry_date: newTeamExpiry,
           roles_needed: newTeamRoles,
           minimum_tier_required: newTeamMinTier,
@@ -288,7 +482,7 @@ export default function PlayerMarketPage() {
     if (
       !newPlayerPrimary ||
       !newPlayerAvailability ||
-      !newPlayerRegion ||
+      !newPlayerCountries.length ||
       !newPlayerExpiry
     ) {
       toast.error("Please fill in all required fields.");
@@ -300,7 +494,7 @@ export default function PlayerMarketPage() {
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/create-recruitment-post/`,
         {
           post_type: "PLAYER_AVAILABLE",
-          region: newPlayerRegion,
+          country_codes: newPlayerCountries,
           post_expiry_date: newPlayerExpiry,
           primary_role: newPlayerPrimary,
           secondary_role: newPlayerSecondary,
@@ -336,6 +530,12 @@ export default function PlayerMarketPage() {
     } finally {
       setIsApplying(false);
     }
+  };
+
+  const handleStatusUpdated = (updated: ApplicationRecord) => {
+    setTeamApplications((prev) =>
+      prev.map((a) => (a.id === updated.id ? updated : a)),
+    );
   };
 
   return (
@@ -386,6 +586,18 @@ export default function PlayerMarketPage() {
               <IconUser className="h-4 w-4 mr-1.5" />
               Players Open to Join
             </TabsTrigger>
+            {token && !isTeamLeader && (
+              <TabsTrigger value="my-applications" className="flex-1">
+                <IconClipboardList className="h-4 w-4 mr-1.5" />
+                My Applications
+              </TabsTrigger>
+            )}
+            {token && isTeamLeader && (
+              <TabsTrigger value="team-applications" className="flex-1">
+                <IconUsers className="h-4 w-4 mr-1.5" />
+                Team Applications
+              </TabsTrigger>
+            )}
           </TabsList>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
@@ -667,6 +879,208 @@ export default function PlayerMarketPage() {
             </div>
           )}
         </TabsContent>
+
+        {/* ─── Team Applications Tab ────────────────────────────────── */}
+        {token && isTeamLeader && (
+          <TabsContent value="team-applications" className="mt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-base font-semibold">
+                  {currentTeam?.team_name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Players who applied via your recruitment post
+                </p>
+              </div>
+            </div>
+            {loadingTeamApps ? (
+              <div className="text-center py-12 text-sm text-muted-foreground">
+                Loading...
+              </div>
+            ) : teamApplications.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-14 text-muted-foreground">
+                <IconUsers className="h-12 w-12 opacity-40" />
+                <p className="font-medium">No applications yet</p>
+                <p className="text-sm">
+                  Applications from your recruitment post will appear here
+                </p>
+              </div>
+            ) : (
+              teamApplications.map((app) => {
+                const statusColors: Record<string, string> = {
+                  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
+                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400 border-cyan-800",
+                  INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
+                  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  TRIAL_EXTENDED:
+                    "bg-purple-900/20 text-purple-400 border-purple-800",
+                  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+                };
+                return (
+                  <Card
+                    key={app.id}
+                    className="hover:border-primary/50 transition-colors"
+                  >
+                    <CardContent className="space-y-3">
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div>
+                          <p className="font-semibold">{app.player}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Applied {formatDate(app.applied_at)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${statusColors[app.status] ?? ""}`}
+                          >
+                            {app.status.replace("_", " ")}
+                          </Badge>
+                          {app.contact_unlocked && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs text-green-400 border-green-800"
+                            >
+                              Contact Unlocked
+                            </Badge>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setReviewApp(app)}
+                          >
+                            Review
+                          </Button>
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/player-markets/applications/${app.id}`}>
+                              <IconChevronRight className="h-3.5 w-3.5 mr-1" />
+                              View
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <IconTrophy className="h-3.5 w-3.5 text-yellow-400" />
+                          {app.tournament_wins} wins
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <IconCrosshair className="h-3.5 w-3.5 text-red-400" />
+                          {app.total_tournament_kills} kills
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <IconAward className="h-3.5 w-3.5 text-blue-400" />
+                          {app.tournament_finals_appearances} finals
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
+        )}
+
+        {/* ─── My Applications Tab ──────────────────────────────────── */}
+        {token && !isTeamLeader && (
+          <TabsContent value="my-applications" className="mt-4 space-y-3">
+            {loadingMyApps ? (
+              <div className="text-center py-12 text-sm text-muted-foreground">
+                Loading...
+              </div>
+            ) : myApplications.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-14 text-muted-foreground">
+                <IconClipboardList className="h-12 w-12 opacity-40" />
+                <p className="font-medium">No applications yet</p>
+                <p className="text-sm">
+                  Browse teams recruiting and apply to join
+                </p>
+              </div>
+            ) : (
+              myApplications.map((app) => {
+                const statusColors: Record<string, string> = {
+                  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
+                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400 border-cyan-800",
+                  INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
+                  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  TRIAL_EXTENDED:
+                    "bg-purple-900/20 text-purple-400 border-purple-800",
+                  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+                };
+                return (
+                  <Card
+                    key={app.id}
+                    className="hover:border-primary/50 transition-colors"
+                  >
+                    <CardContent className="space-y-3">
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div>
+                          <h3 className="font-semibold">{app.team}</h3>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Applied {formatDate(app.applied_at)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${statusColors[app.status] ?? ""}`}
+                          >
+                            {app.status.replace("_", " ")}
+                          </Badge>
+                          {app.contact_unlocked && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs text-green-400 border-green-800"
+                            >
+                              Contact Unlocked
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Performance mini-stats */}
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <IconTrophy className="h-3.5 w-3.5 text-yellow-400" />
+                          <span>{app.tournament_wins} wins</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <IconCrosshair className="h-3.5 w-3.5 text-red-400" />
+                          <span>{app.total_tournament_kills} kills</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <IconAward className="h-3.5 w-3.5 text-blue-400" />
+                          <span>
+                            {app.tournament_finals_appearances} finals
+                          </span>
+                        </span>
+                      </div>
+
+                      {app.invite_expires_at && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <IconCalendar className="h-3 w-3" />
+                          Invite expires {formatDate(app.invite_expires_at)}
+                        </p>
+                      )}
+
+                      <div className="flex justify-end pt-1">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/player-markets/applications/${app.id}`}>
+                            <IconChevronRight className="h-3.5 w-3.5 mr-1" />
+                            View
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* ─── Create Post Dialog ───────────────────────────────────────── */}
@@ -784,33 +1198,27 @@ export default function PlayerMarketPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>Region *</Label>
-                  <Select
-                    value={newTeamRegion}
-                    onValueChange={setNewTeamRegion}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REGIONS.map((r, index) => (
-                        <SelectItem key={index} value={r.value}>
-                          {r.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Expiry Date *</Label>
-                  <Input
-                    type="date"
-                    value={newTeamExpiry}
-                    onChange={(e) => setNewTeamExpiry(e.target.value)}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label>
+                  Countries *
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">
+                    (select countries you want applicants from)
+                  </span>
+                </Label>
+                <CountryMultiSelect
+                  value={newTeamCountries}
+                  onChange={setNewTeamCountries}
+                  placeholder="Select countries..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Expiry Date *</Label>
+                <Input
+                  type="date"
+                  value={newTeamExpiry}
+                  onChange={(e) => setNewTeamExpiry(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">
@@ -879,43 +1287,37 @@ export default function PlayerMarketPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>Availability *</Label>
-                  <Select
-                    value={newPlayerAvailability}
-                    onValueChange={setNewPlayerAvailability}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select availability" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {AVAILABILITIES.map((a, index) => (
-                        <SelectItem key={index} value={a.value}>
-                          {a.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Region *</Label>
-                  <Select
-                    value={newPlayerRegion}
-                    onValueChange={setNewPlayerRegion}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REGIONS.map((r, index) => (
-                        <SelectItem key={index} value={r.value}>
-                          {r.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>Availability *</Label>
+                <Select
+                  value={newPlayerAvailability}
+                  onValueChange={setNewPlayerAvailability}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select availability" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABILITIES.map((a, index) => (
+                      <SelectItem key={index} value={a.value}>
+                        {a.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Countries *
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">
+                    (select countries you're open to join from)
+                  </span>
+                </Label>
+                <CountryMultiSelect
+                  value={newPlayerCountries}
+                  onChange={setNewPlayerCountries}
+                  placeholder="Select countries..."
+                />
               </div>
 
               <div className="space-y-2">
@@ -1056,12 +1458,14 @@ export default function PlayerMarketPage() {
               <DialogClose asChild>
                 <Button variant="outline">Close</Button>
               </DialogClose>
-              <Button
-                onClick={() => handleApplyToTeam(viewTeam.id, viewTeam.team)}
-                disabled={isApplying}
-              >
-                {isApplying ? "Applying..." : "Apply to Join"}
-              </Button>
+              {!isTeamLeader && (
+                <Button
+                  onClick={() => handleApplyToTeam(viewTeam.id, viewTeam.team)}
+                  disabled={isApplying}
+                >
+                  {isApplying ? "Applying..." : "Apply to Join"}
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         )}
@@ -1156,6 +1560,12 @@ export default function PlayerMarketPage() {
           </DialogContent>
         )}
       </Dialog>
+      <ReviewApplicationDialog
+        app={reviewApp}
+        token={token}
+        onClose={() => setReviewApp(null)}
+        onStatusUpdated={handleStatusUpdated}
+      />
     </div>
   );
 }

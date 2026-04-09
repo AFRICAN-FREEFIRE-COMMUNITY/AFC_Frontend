@@ -166,6 +166,7 @@ export const EventFormSchema = z
     number_of_stages: z.coerce.number().min(1, "At least 1 stage required"),
     stages: z.array(StageSchema).min(1, "At least one stage required"),
     prizepool: z.string().min(1, "Prize pool required"),
+    prizepool_cash_value: z.coerce.number().optional(),
     prize_distribution: z.record(
       z.string(),
       z.string().min(1, "Prize amount required"),

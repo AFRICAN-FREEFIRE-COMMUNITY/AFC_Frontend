@@ -85,6 +85,7 @@ export const EventFormSchema = z
     number_of_stages: z.coerce.number().min(1, "At least 1 stage required"),
     stages: z.array(StageSchema).min(1, "At least one stage required"),
     prizepool: z.string().min(1, "Prize pool required"),
+    prizepool_cash_value: z.coerce.number().optional(),
     // prize_distribution: z.record(z.string(), z.coerce.number()),
     prize_distribution: z.record(
       z.string(),
@@ -157,6 +158,7 @@ export interface EventDetails {
   registration_open_date: string;
   registration_end_date: string;
   prizepool: string;
+  prizepool_cash_value?: number;
   prize_distribution: { [key: string]: number };
   event_rules: string;
   event_status: string;

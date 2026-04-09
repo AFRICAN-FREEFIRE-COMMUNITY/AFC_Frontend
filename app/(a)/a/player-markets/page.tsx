@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,8 +39,6 @@ import {
   IconUser,
   IconSearch,
   IconEye,
-  IconEyeOff,
-  IconBan,
   IconClock,
   IconAlertTriangle,
   IconFileText,
@@ -50,6 +48,8 @@ import {
 } from "@tabler/icons-react";
 import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/lib/env";
+import { formatDate } from "@/lib/utils";
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -229,6 +229,27 @@ const mockTeamListings: MockTeamListing[] = [
     ],
   },
 ];
+
+interface TeamRecruitmentPost {
+  id: number;
+  team: string | null;
+  countries: string[];
+  roles_needed: string[] | null;
+  minimum_tier_required: string;
+  commitment_type: string;
+  expiry: string;
+}
+
+interface PlayerAvailabilityPost {
+  id: number;
+  player: string;
+  country: string | null;
+  primary_role: string;
+  secondary_role: string;
+  availability_type: string;
+  additional_info: string;
+  expiry: string;
+}
 
 const mockPlayerListings: MockPlayerListing[] = [
   {
@@ -495,6 +516,20 @@ function getSeverityVariant(
   }
 }
 
+/** Derive a display status from expiry date */
+function getListingStatus(expiry: string): "Active" | "Expired" {
+  return new Date(expiry) >= new Date() ? "Active" : "Expired";
+}
+
+/** Format enum-style strings to title case: "TIER_1" → "Tier 1" */
+function formatEnum(value: string): string {
+  if (!value) return "—";
+  return value
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function AdminPlayerMarketPage() {
@@ -503,14 +538,10 @@ export default function AdminPlayerMarketPage() {
   // Team Listings state
   const [teamSearch, setTeamSearch] = useState("");
   const [teamStatusFilter, setTeamStatusFilter] = useState("all");
-  const [viewTeamListing, setViewTeamListing] =
-    useState<MockTeamListing | null>(null);
 
   // Player Listings state
   const [playerSearch, setPlayerSearch] = useState("");
   const [playerStatusFilter, setPlayerStatusFilter] = useState("all");
-  const [viewPlayerListing, setViewPlayerListing] =
-    useState<MockPlayerListing | null>(null);
 
   // Suspend modal state
   const [suspendModal, setSuspendModal] = useState<{
@@ -527,35 +558,43 @@ export default function AdminPlayerMarketPage() {
   const [viewReport, setViewReport] = useState<MockReport | null>(null);
   const [reportAction, setReportAction] = useState("");
 
-  // Filtered data
-  const filteredTeamListings = useMemo(() => {
-    return mockTeamListings.filter((t) => {
-      const matchesSearch =
-        t.teamName.toLowerCase().includes(teamSearch.toLowerCase()) ||
-        t.id.toLowerCase().includes(teamSearch.toLowerCase());
-      const matchesStatus =
-        teamStatusFilter === "all" || t.status === teamStatusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [teamSearch, teamStatusFilter]);
+  const [teamListings, setTeamListings] = useState<TeamRecruitmentPost[]>([]);
+  const [playerListings, setPlayerListings] = useState<
+    PlayerAvailabilityPost[]
+  >([]);
+  const [teamLoading, setTeamLoading] = useState(true);
+  const [playerLoading, setPlayerLoading] = useState(true);
 
-  const filteredPlayerListings = useMemo(() => {
-    return mockPlayerListings.filter((p) => {
-      const matchesSearch =
-        p.ign.toLowerCase().includes(playerSearch.toLowerCase()) ||
-        p.id.toLowerCase().includes(playerSearch.toLowerCase());
-      const matchesStatus =
-        playerStatusFilter === "all" || p.status === playerStatusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [playerSearch, playerStatusFilter]);
+  useEffect(() => {
+    fetch(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-team-recruitment-posts/`,
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data: TeamRecruitmentPost[]) => setTeamListings(data))
+      .catch(() => toast.error("Failed to load team listings"))
+      .finally(() => setTeamLoading(false));
 
-  // Overview stats (derived from mock data)
-  const activeTeamListings = mockTeamListings.filter(
-    (t) => t.status === "Active",
+    fetch(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-player-availability-posts/`,
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data: PlayerAvailabilityPost[]) => setPlayerListings(data))
+      .catch(() => toast.error("Failed to load player listings"))
+      .finally(() => setPlayerLoading(false));
+  }, []);
+
+  // Overview stats — team/player from real data, trials/reports still mock
+  const activeTeamListings = teamListings.filter(
+    (t) => getListingStatus(t.expiry) === "Active",
   ).length;
-  const activePlayerListings = mockPlayerListings.filter(
-    (p) => p.status === "Active",
+  const activePlayerListings = playerListings.filter(
+    (p) => getListingStatus(p.expiry) === "Active",
   ).length;
   const activeTrials = mockTrials.filter((t) => t.status === "Ongoing").length;
   const pendingReports = mockReports.filter(
@@ -682,7 +721,7 @@ export default function AdminPlayerMarketPage() {
             <div className="relative flex-1 w-full md:max-w-sm">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by team name or ID..."
+                placeholder="Search by team name..."
                 value={teamSearch}
                 onChange={(e) => setTeamSearch(e.target.value)}
                 className="pl-9"
@@ -698,135 +737,128 @@ export default function AdminPlayerMarketPage() {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Suspended">Suspended</SelectItem>
+                <SelectItem value="Expired">Expired</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Team Name</TableHead>
-                    <TableHead>Tier</TableHead>
-                    <TableHead>Roles Needed</TableHead>
-                    <TableHead>Applications</TableHead>
-                    <TableHead>Posted</TableHead>
-                    <TableHead>Expires</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTeamListings.map((listing) => (
-                    <TableRow key={listing.id}>
-                      <TableCell className="font-mono text-sm">
-                        {listing.id}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-medium">
-                            {listing.teamName}
-                          </span>
-                          {listing.verified ? (
-                            <IconCircleCheck className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <IconAlertTriangle className="h-4 w-4 text-yellow-500" />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="text-xs">
-                          {listing.tier}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {listing.rolesNeeded.map((role) => (
-                            <Badge
-                              key={role}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {role}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>{listing.applications}</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {listing.postedDate}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {listing.expiryDate}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusVariant(listing.status)}>
-                          {listing.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            title="Toggle visibility"
-                            onClick={() =>
-                              toast.info(
-                                `Toggled visibility for ${listing.teamName}`,
-                              )
-                            }
-                          >
-                            {listing.status === "Active" ? (
-                              <IconEyeOff className="h-4 w-4" />
-                            ) : (
-                              <IconEye className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            title="Suspend listing"
-                            onClick={() => {
-                              setSuspendModal({
-                                open: true,
-                                listingId: listing.id,
-                                listingType: "team",
-                              });
-                              setSuspendReason("");
-                            }}
-                          >
-                            <IconBan className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            title="View details"
-                            onClick={() => setViewTeamListing(listing)}
-                          >
-                            <IconEye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {filteredTeamListings.length === 0 && (
+              {teamLoading ? (
+                <div className="text-center py-12 text-sm text-muted-foreground">
+                  Loading...
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="text-center text-muted-foreground py-8"
-                      >
-                        No team listings found
-                      </TableCell>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Team</TableHead>
+                      <TableHead>Min Tier</TableHead>
+                      <TableHead>Commitment</TableHead>
+                      <TableHead>Roles Needed</TableHead>
+                      <TableHead>Countries</TableHead>
+                      <TableHead>Expires</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {teamListings
+                      .filter((t) => {
+                        const matchSearch = (t.team ?? "")
+                          .toLowerCase()
+                          .includes(teamSearch.toLowerCase());
+                        const status = getListingStatus(t.expiry);
+                        const matchStatus =
+                          teamStatusFilter === "all" ||
+                          status === teamStatusFilter;
+                        return matchSearch && matchStatus;
+                      })
+                      .map((listing) => {
+                        const status = getListingStatus(listing.expiry);
+                        return (
+                          <TableRow key={listing.id}>
+                            <TableCell className=" text-sm">
+                              #{listing.id}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {listing.team ?? (
+                                <span className="italic text-muted-foreground">
+                                  Unknown
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {listing.minimum_tier_required ? (
+                                <Badge variant="secondary" className="text-xs">
+                                  {formatEnum(listing.minimum_tier_required)}
+                                </Badge>
+                              ) : (
+                                "—"
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {formatEnum(listing.commitment_type) || "—"}
+                            </TableCell>
+                            <TableCell>
+                              {listing.roles_needed?.length ? (
+                                <div className="flex flex-wrap uppercase gap-1">
+                                  {listing.roles_needed.map((role) => (
+                                    <Badge
+                                      key={role}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {formatEnum(role)}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                "—"
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {listing.countries?.length ? (
+                                listing.countries.join(", ")
+                              ) : (
+                                <span className="text-muted-foreground">
+                                  Any
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {formatDate(listing.expiry)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  status === "Active" ? "default" : "secondary"
+                                }
+                                className={
+                                  status === "Active"
+                                    ? "bg-green-900/20 text-green-400 border-green-800"
+                                    : "text-muted-foreground"
+                                }
+                              >
+                                {status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    {teamListings.length === 0 && !teamLoading && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
+                          className="text-center text-muted-foreground py-8"
+                        >
+                          No team listings found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -837,7 +869,7 @@ export default function AdminPlayerMarketPage() {
             <div className="relative flex-1 w-full md:max-w-sm">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by IGN or ID..."
+                placeholder="Search by player name..."
                 value={playerSearch}
                 onChange={(e) => setPlayerSearch(e.target.value)}
                 className="pl-9"
@@ -853,125 +885,126 @@ export default function AdminPlayerMarketPage() {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Hidden">Hidden</SelectItem>
+                <SelectItem value="Expired">Expired</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>IGN</TableHead>
-                    <TableHead>Tier</TableHead>
-                    <TableHead>Primary Role</TableHead>
-                    <TableHead>Invitations</TableHead>
-                    <TableHead>Posted</TableHead>
-                    <TableHead>Expires</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredPlayerListings.map((listing) => (
-                    <TableRow key={listing.id}>
-                      <TableCell className="font-mono text-sm">
-                        {listing.id}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-medium">{listing.ign}</span>
-                          {listing.verified ? (
-                            <IconCircleCheck className="h-4 w-4 text-green-500" />
-                          ) : listing.flagged ? (
-                            <IconAlertTriangle className="h-4 w-4 text-yellow-500" />
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="text-xs">
-                          {listing.tier}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {listing.primaryRole}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{listing.invitations}</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {listing.postedDate}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {listing.expiryDate}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusVariant(listing.status)}>
-                          {listing.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            title="Toggle visibility"
-                            onClick={() =>
-                              toast.info(
-                                `Toggled visibility for ${listing.ign}`,
-                              )
-                            }
-                          >
-                            {listing.status === "Active" ? (
-                              <IconEyeOff className="h-4 w-4" />
-                            ) : (
-                              <IconEye className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            title="Suspend listing"
-                            onClick={() => {
-                              setSuspendModal({
-                                open: true,
-                                listingId: listing.id,
-                                listingType: "player",
-                              });
-                              setSuspendReason("");
-                            }}
-                          >
-                            <IconBan className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            title="View details"
-                            onClick={() => setViewPlayerListing(listing)}
-                          >
-                            <IconEye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {filteredPlayerListings.length === 0 && (
+              {playerLoading ? (
+                <div className="text-center py-12 text-sm text-muted-foreground">
+                  Loading...
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="text-center text-muted-foreground py-8"
-                      >
-                        No player listings found
-                      </TableCell>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Player</TableHead>
+                      <TableHead>Country</TableHead>
+                      <TableHead>Primary Role</TableHead>
+                      <TableHead>Secondary Role</TableHead>
+                      <TableHead>Availability</TableHead>
+                      <TableHead>Expires</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {playerListings
+                      .filter((p) => {
+                        const matchSearch = p.player
+                          .toLowerCase()
+                          .includes(playerSearch.toLowerCase());
+                        const status = getListingStatus(p.expiry);
+                        const matchStatus =
+                          playerStatusFilter === "all" ||
+                          status === playerStatusFilter;
+                        return matchSearch && matchStatus;
+                      })
+                      .map((listing) => {
+                        const status = getListingStatus(listing.expiry);
+                        return (
+                          <TableRow key={listing.id}>
+                            <TableCell className=" text-sm">
+                              #{listing.id}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {listing.player}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {listing.country ?? (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {listing.primary_role ? (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs uppercase"
+                                >
+                                  {formatEnum(listing.primary_role)}
+                                </Badge>
+                              ) : (
+                                "—"
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {listing.secondary_role ? (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs text-muted-foreground uppercase"
+                                >
+                                  {formatEnum(listing.secondary_role)}
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">
+                                  —
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {listing.availability_type ? (
+                                <Badge variant="secondary" className="text-xs">
+                                  {formatEnum(listing.availability_type)}
+                                </Badge>
+                              ) : (
+                                "—"
+                              )}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {formatDate(listing.expiry)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  status === "Active" ? "default" : "secondary"
+                                }
+                                className={
+                                  status === "Active"
+                                    ? "bg-green-900/20 text-green-400 border-green-800"
+                                    : "text-muted-foreground"
+                                }
+                              >
+                                {status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    {playerListings.length === 0 && !playerLoading && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
+                          className="text-center text-muted-foreground py-8"
+                        >
+                          No player listings found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -997,9 +1030,7 @@ export default function AdminPlayerMarketPage() {
                 <TableBody>
                   {mockTrials.map((trial) => (
                     <TableRow key={trial.id}>
-                      <TableCell className="font-mono text-sm">
-                        {trial.id}
-                      </TableCell>
+                      <TableCell className=" text-sm">{trial.id}</TableCell>
                       <TableCell className="font-medium">
                         {trial.player}
                       </TableCell>
@@ -1077,9 +1108,7 @@ export default function AdminPlayerMarketPage() {
                 <TableBody>
                   {mockReports.map((report) => (
                     <TableRow key={report.id}>
-                      <TableCell className="font-mono text-sm">
-                        {report.id}
-                      </TableCell>
+                      <TableCell className=" text-sm">{report.id}</TableCell>
                       <TableCell className="font-medium">
                         {report.reportedBy}
                       </TableCell>
@@ -1177,323 +1206,6 @@ export default function AdminPlayerMarketPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
-
-      {/* ─── Team Listing Details Modal ─────────────────────────────── */}
-      <Dialog
-        open={!!viewTeamListing}
-        onOpenChange={(open) => {
-          if (!open) setViewTeamListing(null);
-        }}
-      >
-        {viewTeamListing && (
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Team Listing Details</DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-4">
-              {/* ID & Status */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">ID</p>
-                  <p className="font-mono font-semibold">
-                    {viewTeamListing.id}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge variant={getStatusVariant(viewTeamListing.status)}>
-                    {viewTeamListing.status}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Tier & Posted */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Tier</p>
-                  <Badge variant="secondary" className="mt-0.5">
-                    {viewTeamListing.tier}
-                  </Badge>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Posted Date</p>
-                  <p className="text-sm font-medium">
-                    {viewTeamListing.postedDate}
-                  </p>
-                </div>
-              </div>
-
-              {/* Expiry & Verified */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Expiry Date</p>
-                  <p className="text-sm font-medium">
-                    {viewTeamListing.expiryDate}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Verified</p>
-                  <p className="text-sm font-medium">
-                    {viewTeamListing.verified ? "Yes" : "No"}
-                  </p>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Team Name */}
-              <div>
-                <p className="text-xs text-muted-foreground">Team Name</p>
-                <p className="font-semibold text-lg">
-                  {viewTeamListing.teamName}
-                </p>
-              </div>
-
-              {/* Roles Needed */}
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">
-                  Roles Needed
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {viewTeamListing.rolesNeeded.map((role) => (
-                    <Badge key={role} variant="default" className="text-xs">
-                      {role}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <p className="text-xs text-muted-foreground">Description</p>
-                <p className="text-sm">{viewTeamListing.description}</p>
-              </div>
-
-              {/* Requirements */}
-              <div>
-                <p className="text-xs text-muted-foreground">Requirements</p>
-                <p className="text-sm">{viewTeamListing.requirements}</p>
-              </div>
-
-              {/* Recent Performance */}
-              <div>
-                <p className="text-xs text-muted-foreground">
-                  Recent Performance
-                </p>
-                <p className="text-sm">{viewTeamListing.recentPerformance}</p>
-              </div>
-
-              <Separator />
-
-              {/* Applications */}
-              <div>
-                <p className="text-xs text-muted-foreground">Applications</p>
-                <p className="text-sm font-medium">
-                  {viewTeamListing.applications} applications received
-                </p>
-              </div>
-
-              {/* Applications Received */}
-              <div>
-                <p className="text-sm font-semibold mb-2">
-                  Applications Received
-                </p>
-                <div className="space-y-2">
-                  {viewTeamListing.applicationsReceived.map((app, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-sm">
-                          {app.playerName}{" "}
-                          <Badge variant="secondary" className="text-xs ml-1">
-                            {app.tier}
-                          </Badge>{" "}
-                          <Badge variant="outline" className="text-xs ml-1">
-                            {app.role}
-                          </Badge>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Applied: {app.appliedDate}
-                        </p>
-                      </div>
-                      <Badge variant={getStatusVariant(app.status)}>
-                        {app.status}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Close</Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        )}
-      </Dialog>
-
-      {/* ─── Player Listing Details Modal ───────────────────────────── */}
-      <Dialog
-        open={!!viewPlayerListing}
-        onOpenChange={(open) => {
-          if (!open) setViewPlayerListing(null);
-        }}
-      >
-        {viewPlayerListing && (
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Player Listing Details</DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-4">
-              {/* ID & Status */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">ID</p>
-                  <p className="font-mono font-semibold">
-                    {viewPlayerListing.id}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge variant={getStatusVariant(viewPlayerListing.status)}>
-                    {viewPlayerListing.status}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Tier & Posted */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Tier</p>
-                  <Badge variant="secondary" className="mt-0.5">
-                    {viewPlayerListing.tier}
-                  </Badge>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Posted Date</p>
-                  <p className="text-sm font-medium">
-                    {viewPlayerListing.postedDate}
-                  </p>
-                </div>
-              </div>
-
-              {/* Expiry & Verified */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Expiry Date</p>
-                  <p className="text-sm font-medium">
-                    {viewPlayerListing.expiryDate}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Verified</p>
-                  <p className="text-sm font-medium">
-                    {viewPlayerListing.verified ? "Yes" : "No"}
-                  </p>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* IGN */}
-              <div>
-                <p className="text-xs text-muted-foreground">IGN</p>
-                <p className="font-semibold text-lg">{viewPlayerListing.ign}</p>
-              </div>
-
-              {/* Roles */}
-              <div className="flex gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Primary Role
-                  </p>
-                  <Badge variant="default" className="text-xs">
-                    {viewPlayerListing.primaryRole}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Secondary Role
-                  </p>
-                  <Badge variant="secondary" className="text-xs">
-                    {viewPlayerListing.secondaryRole}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Bio */}
-              <div>
-                <p className="text-xs text-muted-foreground">Bio</p>
-                <p className="text-sm">{viewPlayerListing.bio}</p>
-              </div>
-
-              {/* Availability */}
-              <div>
-                <p className="text-xs text-muted-foreground">Availability</p>
-                <p className="text-sm">{viewPlayerListing.availability}</p>
-              </div>
-
-              {/* Achievements */}
-              <div>
-                <p className="text-xs text-muted-foreground">Achievements</p>
-                <p className="text-sm">{viewPlayerListing.achievements}</p>
-              </div>
-
-              <Separator />
-
-              {/* Invitations */}
-              <div>
-                <p className="text-xs text-muted-foreground">Invitations</p>
-                <p className="text-sm font-medium">
-                  {viewPlayerListing.invitations} invitations received
-                </p>
-              </div>
-
-              {/* Invitations Received */}
-              <div>
-                <p className="text-sm font-semibold mb-2">
-                  Invitations Received
-                </p>
-                <div className="space-y-2">
-                  {viewPlayerListing.invitationsReceived.map((inv, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-sm">
-                          {inv.teamName}{" "}
-                          <Badge variant="outline" className="text-xs ml-1">
-                            {inv.role}
-                          </Badge>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Invited: {inv.invitedDate}
-                        </p>
-                      </div>
-                      <Badge variant={getStatusVariant(inv.status)}>
-                        {inv.status}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Close</Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        )}
       </Dialog>
 
       {/* ─── Trial Timeline Modal ───────────────────────────────────── */}

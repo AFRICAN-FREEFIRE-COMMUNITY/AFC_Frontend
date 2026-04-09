@@ -88,6 +88,36 @@ export default function PrizeRulesTab({
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="prizepool_cash_value"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Prize Pool Cash Value</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min="0"
+                  value={field.value === undefined || field.value === null ? "" : field.value}
+                  onChange={(e) =>
+                    field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
+                  }
+                  onKeyDown={(e) => {
+                    if (
+                      !/^\d$/.test(e.key) &&
+                      !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  placeholder="e.g., 5000"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <Separator />
 
         <div className="space-y-3">

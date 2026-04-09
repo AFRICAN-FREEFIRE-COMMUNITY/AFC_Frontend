@@ -60,6 +60,37 @@ export function Step5PrizePool({ form }: Step5Props) {
           )}
         />
 
+        <FormField
+          // @ts-ignore
+          control={form.control}
+          name="prizepool_cash_value"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Prize Pool Cash Value</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min="0"
+                  value={field.value === undefined || field.value === null ? "" : field.value}
+                  onChange={(e) =>
+                    field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
+                  }
+                  onKeyDown={(e) => {
+                    if (
+                      !/^\d$/.test(e.key) &&
+                      !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  placeholder="e.g., 5000"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="space-y-3">
           <FormLabel>Prize Distribution</FormLabel>
           {Object.entries(prizeDistribution).map(([key, value]) => (

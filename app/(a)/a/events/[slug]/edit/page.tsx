@@ -212,6 +212,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         },
       ],
       prizepool: "",
+      prizepool_cash_value: undefined,
       prize_distribution: { "1": "", "2": "", "3": "" },
       rules_document: "",
       start_date: "",
@@ -274,6 +275,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           number_of_stages: eventDetails.number_of_stages,
           stages: mappedStages,
           prizepool: eventDetails.prizepool,
+          prizepool_cash_value: eventDetails.prizepool_cash_value ?? undefined,
           prize_distribution: eventDetails.prize_distribution,
           event_rules: eventDetails.event_rules,
           rules_document: eventDetails.uploaded_rules_url || "",
@@ -831,6 +833,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       );
       formData.append("event_mode", data.event_mode);
       formData.append("prizepool", data.prizepool);
+      formData.append(
+        "prizepool_cash_value",
+        (data.prizepool_cash_value ?? "").toString(),
+      );
       formData.append("number_of_stages", "2");
       formData.append("start_date", data.start_date);
       formData.append("end_date", data.end_date);
@@ -952,6 +958,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       );
       formData.append("event_mode", data.event_mode);
       formData.append("prizepool", data.prizepool);
+      formData.append(
+        "prizepool_cash_value",
+        (data.prizepool_cash_value ?? "").toString(),
+      );
       formData.append("number_of_stages", "2");
       formData.append("start_date", data.start_date);
       formData.append("end_date", data.end_date);
