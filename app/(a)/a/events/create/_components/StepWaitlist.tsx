@@ -95,7 +95,7 @@ export function StepWaitlist({ form }: StepWaitlistProps) {
               name="waitlist_discord_role_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Waitlist Discord Role ID</FormLabel>
+                  <FormLabel>Waitlist Discord Role ID <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. 123456789012345678" {...field} />
                   </FormControl>
