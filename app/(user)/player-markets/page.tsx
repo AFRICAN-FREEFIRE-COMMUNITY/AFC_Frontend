@@ -46,6 +46,8 @@ import {
   IconCrosshair,
   IconAward,
   IconCheck,
+  IconX,
+  IconMessage,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { DEFAULT_PROFILE_PICTURE, countries } from "@/constants";
@@ -58,6 +60,7 @@ import {
   getStatusBadge,
   type ApplicationRecord,
 } from "@/app/(user)/_components/ReviewApplicationDialog";
+import { TrialChatSidebar } from "@/app/(user)/_components/TrialChatSidebar";
 import Link from "next/link";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -262,6 +265,18 @@ export default function PlayerMarketPage() {
   const [currentTeam, setCurrentTeam] = useState<any>(null);
   const [isTeamLeader, setIsTeamLeader] = useState(false);
 
+  // Trial invites (player side)
+  const [myTrialInvites, setMyTrialInvites] = useState<any[]>([]);
+  const [loadingInvites, setLoadingInvites] = useState(false);
+  const [isRespondingToInvite, setIsRespondingToInvite] = useState<number | null>(null);
+
+  // Invite player to trial (team side)
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [isInviting, setIsInviting] = useState(false);
+
+  // Trial chat sidebar
+  const [chatSidebarOpen, setChatSidebarOpen] = useState(false);
+
   // Create Post dialog
   const [createPostOpen, setCreatePostOpen] = useState(false);
   const [createPostType, setCreatePostType] = useState<
@@ -345,10 +360,21 @@ export default function PlayerMarketPage() {
             .then((r) => setMyApplications(r.data))
             .catch(() => toast.error("Failed to load your applications."))
             .finally(() => setLoadingMyApps(false));
+
+          // Fetch trial invites
+          setLoadingInvites(true);
+          axios
+            .get(
+              `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/my-trial-invites/`,
+              { headers: { Authorization: `Bearer ${token}` } },
+            )
+            .then((r) => setMyTrialInvites(r.data))
+            .catch(() => toast.error("Failed to load trial invites."))
+            .finally(() => setLoadingInvites(false));
         }
       })
       .catch(() => {
-        // No team or failed — still fetch my applications
+        // No team or failed — still fetch my applications and invites
         setLoadingMyApps(true);
         axios
           .get(
@@ -358,6 +384,16 @@ export default function PlayerMarketPage() {
           .then((r) => setMyApplications(r.data))
           .catch(() => toast.error("Failed to load your applications."))
           .finally(() => setLoadingMyApps(false));
+
+        setLoadingInvites(true);
+        axios
+          .get(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/my-trial-invites/`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          )
+          .then((r) => setMyTrialInvites(r.data))
+          .catch(() => toast.error("Failed to load trial invites."))
+          .finally(() => setLoadingInvites(false));
       });
   }, [token, user]);
 
@@ -422,8 +458,6 @@ export default function PlayerMarketPage() {
       return matchesSearch && matchesAvailability && matchesRole;
     });
   }, [playerPosts, playerSearch, playerAvailabilityFilter, playerRoleFilter]);
-
-
 
   // Handlers
   const resetCreateForm = () => {
@@ -538,6 +572,53 @@ export default function PlayerMarketPage() {
     );
   };
 
+  const handleInvitePlayer = async () => {
+    if (!viewPlayer) return;
+    setIsInviting(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/invite-player-to-trial/`,
+        { post_id: String(viewPlayer.id), message: inviteMessage },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(`Trial invite sent to ${viewPlayer.player}!`);
+      setViewPlayer(null);
+      setInviteMessage("");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to send invite.");
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
+  const handleRespondToInvite = async (
+    inviteId: number,
+    action: "ACCEPT" | "DECLINE",
+  ) => {
+    setIsRespondingToInvite(inviteId);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/respond-to-trial-invite/`,
+        { invite_id: String(inviteId), action },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(
+        action === "ACCEPT" ? "Trial invite accepted!" : "Invite declined.",
+      );
+      setMyTrialInvites((prev) =>
+        prev.map((inv) =>
+          inv.invite_id === inviteId
+            ? { ...inv, status: action === "ACCEPT" ? "ACCEPTED" : "DECLINED" }
+            : inv,
+        ),
+      );
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to respond.");
+    } finally {
+      setIsRespondingToInvite(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col items-start md:items-center md:flex-row w-full justify-between gap-4">
@@ -546,16 +627,28 @@ export default function PlayerMarketPage() {
           title="Player Market"
           description="Find teammates or advertise your availability"
         />
-        <Button
-          className="w-full md:w-auto"
-          onClick={() => {
-            resetCreateForm();
-            setCreatePostOpen(true);
-          }}
-        >
-          <IconPlus className="h-4 w-4 mr-1" />
-          Create Post
-        </Button>
+        <div className="flex gap-2 w-full md:w-auto">
+          {token && (
+            <Button
+              variant="outline"
+              className="flex-1 md:flex-none"
+              onClick={() => setChatSidebarOpen(true)}
+            >
+              <IconMessage className="h-4 w-4 mr-1.5" />
+              Chats
+            </Button>
+          )}
+          <Button
+            className="flex-1 md:flex-none"
+            onClick={() => {
+              resetCreateForm();
+              setCreatePostOpen(true);
+            }}
+          >
+            <IconPlus className="h-4 w-4 mr-1" />
+            Create Post
+          </Button>
+        </div>
       </div>
 
       {/* Info Banner */}
@@ -590,6 +683,18 @@ export default function PlayerMarketPage() {
               <TabsTrigger value="my-applications" className="flex-1">
                 <IconClipboardList className="h-4 w-4 mr-1.5" />
                 My Applications
+              </TabsTrigger>
+            )}
+            {token && !isTeamLeader && (
+              <TabsTrigger value="my-invites" className="flex-1">
+                <IconCalendar className="h-4 w-4 mr-1.5" />
+                Trial Invites
+                {myTrialInvites.filter((i) => i.status === "PENDING").length >
+                  0 && (
+                  <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
+                    {myTrialInvites.filter((i) => i.status === "PENDING").length}
+                  </span>
+                )}
               </TabsTrigger>
             )}
             {token && isTeamLeader && (
@@ -880,6 +985,108 @@ export default function PlayerMarketPage() {
           )}
         </TabsContent>
 
+        {/* ─── My Trial Invites Tab ────────────────────────────────── */}
+        {token && !isTeamLeader && (
+          <TabsContent value="my-invites" className="mt-4 space-y-3">
+            {loadingInvites ? (
+              <div className="text-center py-12 text-sm text-muted-foreground">
+                Loading...
+              </div>
+            ) : myTrialInvites.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-14 text-muted-foreground">
+                <IconCalendar className="h-12 w-12 opacity-40" />
+                <p className="font-medium">No trial invites</p>
+                <p className="text-sm">
+                  Teams that invite you to trial will appear here
+                </p>
+              </div>
+            ) : (
+              myTrialInvites.map((invite) => {
+                const isPending = invite.status === "PENDING";
+                const isExpired =
+                  invite.expires_at &&
+                  new Date(invite.expires_at) < new Date();
+                const statusColors: Record<string, string> = {
+                  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
+                  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  DECLINED: "bg-red-900/20 text-red-400 border-red-800",
+                  EXPIRED: "bg-muted text-muted-foreground border-border",
+                };
+                const displayStatus = isExpired && isPending ? "EXPIRED" : invite.status;
+                return (
+                  <Card
+                    key={invite.invite_id}
+                    className="hover:border-primary/50 transition-colors"
+                  >
+                    <CardContent className="space-y-3">
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div>
+                          <h3 className="font-semibold">{invite.team}</h3>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Sent {formatDate(invite.created_at)}
+                          </p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${statusColors[displayStatus] ?? ""}`}
+                        >
+                          {displayStatus.replace("_", " ")}
+                        </Badge>
+                      </div>
+
+                      {invite.message && (
+                        <>
+                          <Separator />
+                          <p className="text-sm text-muted-foreground italic">
+                            &ldquo;{invite.message}&rdquo;
+                          </p>
+                        </>
+                      )}
+
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        {invite.expires_at && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <IconClock className="h-3 w-3" />
+                            {isExpired
+                              ? "Expired"
+                              : `Expires ${formatDate(invite.expires_at)}`}
+                          </p>
+                        )}
+                        {isPending && !isExpired && (
+                          <div className="flex items-center gap-2 ml-auto">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-400 border-red-800 hover:bg-red-900/20"
+                              disabled={isRespondingToInvite === invite.invite_id}
+                              onClick={() =>
+                                handleRespondToInvite(invite.invite_id, "DECLINE")
+                              }
+                            >
+                              Decline
+                            </Button>
+                            <Button
+                              size="sm"
+                              disabled={isRespondingToInvite === invite.invite_id}
+                              onClick={() =>
+                                handleRespondToInvite(invite.invite_id, "ACCEPT")
+                              }
+                            >
+                              {isRespondingToInvite === invite.invite_id
+                                ? "..."
+                                : "Accept"}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
+        )}
+
         {/* ─── Team Applications Tab ────────────────────────────────── */}
         {token && isTeamLeader && (
           <TabsContent value="team-applications" className="mt-4 space-y-4">
@@ -952,7 +1159,9 @@ export default function PlayerMarketPage() {
                             Review
                           </Button>
                           <Button size="sm" variant="outline" asChild>
-                            <Link href={`/player-markets/applications/${app.id}`}>
+                            <Link
+                              href={`/player-markets/applications/${app.id}`}
+                            >
                               <IconChevronRight className="h-3.5 w-3.5 mr-1" />
                               View
                             </Link>
@@ -1475,7 +1684,10 @@ export default function PlayerMarketPage() {
       <Dialog
         open={!!viewPlayer}
         onOpenChange={(open) => {
-          if (!open) setViewPlayer(null);
+          if (!open) {
+            setViewPlayer(null);
+            setInviteMessage("");
+          }
         }}
       >
         {viewPlayer && (
@@ -1542,20 +1754,33 @@ export default function PlayerMarketPage() {
                   </Badge>
                 </div>
               </div>
+
+              {/* Invite message — only for team leaders */}
+              {isTeamLeader && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label>Message to Player</Label>
+                    <Textarea
+                      placeholder="Introduce your team and why you'd like them to trial..."
+                      rows={3}
+                      value={inviteMessage}
+                      onChange={(e) => setInviteMessage(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             <DialogFooter className="gap-2">
               <DialogClose asChild>
                 <Button variant="outline">Close</Button>
               </DialogClose>
-              <Button
-                onClick={() => {
-                  toast.success(`Invitation sent to ${viewPlayer.player}!`);
-                  setViewPlayer(null);
-                }}
-              >
-                Invite to Team
-              </Button>
+              {isTeamLeader && (
+                <Button onClick={handleInvitePlayer} disabled={isInviting}>
+                  {isInviting ? "Sending..." : "Invite to Trial"}
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         )}
@@ -1565,6 +1790,11 @@ export default function PlayerMarketPage() {
         token={token}
         onClose={() => setReviewApp(null)}
         onStatusUpdated={handleStatusUpdated}
+      />
+
+      <TrialChatSidebar
+        open={chatSidebarOpen}
+        onClose={() => setChatSidebarOpen(false)}
       />
     </div>
   );

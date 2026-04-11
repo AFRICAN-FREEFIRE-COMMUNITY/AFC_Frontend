@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  IconArrowLeft,
   IconTrophy,
   IconCrosshair,
   IconAward,
@@ -28,13 +28,13 @@ import {
   IconSend,
   IconClock,
   IconShield,
-  IconUsers,
   IconTarget,
   IconMessage,
   IconCalendar,
   IconAlertTriangle,
   IconBrandDiscord,
   IconCheck,
+  IconLoader2,
 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -367,30 +367,10 @@ export default function ApplicationDetailPage({
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
-  return (
-    <div className="space-y-4">
-      {/* ── Back + Title ── */}
-      <div className="flex items-center gap-3">
-        <PageHeader
-          back
-          title={`Application #${details.id}`}
-          description={`Applied ${formatDate(details.applied_at)}`}
-        />
 
-        <div className="ml-auto">{getStatusBadge(details.status)}</div>
-      </div>
-
-      {/* ── Trial countdown (visible to both sides) ── */}
-      {isTrialActive && details.invite_expires_at && (
-        <div className="rounded-lg border px-4 py-3">
-          <TrialCountdown expiryDate={details.invite_expires_at} />
-        </div>
-      )}
-
-      {/* ── Main layout ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-2 items-start">
-        {/* ════════════════ LEFT: Details ════════════════ */}
-        <div className="space-y-2">
+  // ── Details column (reused in both mobile tabs & desktop grid) ────────────
+  const detailsColumn = (
+    <div className="space-y-2">
           {/* Team card */}
           <Card>
             <CardHeader className="border-b">
@@ -670,23 +650,21 @@ export default function ApplicationDetailPage({
               </CardContent>
             </Card>
           )}
-        </div>
+    </div>
+  );
 
-        {/* ════════════════ RIGHT: Chat ════════════════ */}
-        <Card className="flex flex-col h-[600px] lg:h-[calc(100vh-220px)]">
-          <CardHeader className="border-b">
-            {/* Chat header */}
-            <CardTitle className="flex items-center gap-3 shrink-0">
-              <IconMessage className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <span>Trial Chat</span>
-                {chatData && <p className="text-xs text-muted-foreground"></p>}
-              </div>
-            </CardTitle>
-            <CardDescription>
-              {chatData && `${chatData.team} & ${chatData.player}`}
-            </CardDescription>
-          </CardHeader>
+  // ── Chat card (reused in both mobile tabs & desktop grid) ─────────────────
+  const chatCard = (
+    <Card className="flex flex-col h-[calc(100svh-200px)] lg:h-[calc(100vh-220px)]">
+      <CardHeader className="border-b shrink-0">
+        <CardTitle className="flex items-center gap-2">
+          <IconMessage className="h-4 w-4 text-muted-foreground" />
+          Trial Chat
+        </CardTitle>
+        {chatData && (
+          <CardDescription>{chatData.team} &amp; {chatData.player}</CardDescription>
+        )}
+      </CardHeader>
 
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
@@ -777,12 +755,64 @@ export default function ApplicationDetailPage({
                   size="icon"
                   disabled={sending || !messageText.trim()}
                 >
-                  <IconSend className="h-4 w-4" />
+                  {sending ? (
+                    <IconLoader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <IconSend className="h-4 w-4" />
+                  )}
                 </Button>
               </form>
             )}
           </div>
         </Card>
+  );
+
+  // ─── Page return ──────────────────────────────────────────────────────────
+  return (
+    <div className="space-y-4">
+      {/* ── Header ── */}
+      <div className="flex items-center gap-3">
+        <PageHeader
+          back
+          title={`Application #${details.id}`}
+          description={`Applied ${formatDate(details.applied_at)}`}
+        />
+        <div className="ml-auto">{getStatusBadge(details.status)}</div>
+      </div>
+
+      {/* ── Trial countdown ── */}
+      {isTrialActive && details.invite_expires_at && (
+        <div className="rounded-lg border px-4 py-3">
+          <TrialCountdown expiryDate={details.invite_expires_at} />
+        </div>
+      )}
+
+      {/* ── Mobile: tabs ─────────────────────────────────────────────── */}
+      <div className="lg:hidden">
+        <Tabs defaultValue="details">
+          <TabsList className="w-full mb-3">
+            <TabsTrigger value="details" className="flex-1">
+              Details
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="flex-1">
+              <IconMessage className="h-3.5 w-3.5 mr-1.5" />
+              Chat
+              {!details.chat_id && (
+                <span className="ml-1.5 text-[10px] text-muted-foreground">
+                  (locked)
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="details">{detailsColumn}</TabsContent>
+          <TabsContent value="chat">{chatCard}</TabsContent>
+        </Tabs>
+      </div>
+
+      {/* ── Desktop: side-by-side grid ────────────────────────────────── */}
+      <div className="hidden lg:grid grid-cols-[360px_1fr] gap-2 items-start">
+        {detailsColumn}
+        {chatCard}
       </div>
     </div>
   );
