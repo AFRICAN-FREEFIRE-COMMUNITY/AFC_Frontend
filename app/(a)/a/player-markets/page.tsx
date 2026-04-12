@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import axios from "axios";
+import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +52,7 @@ import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
+import { ComingSoon } from "@/components/ComingSoon";
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -131,6 +134,50 @@ interface MockReport {
   description: string;
   evidenceCount: number;
   previousReportsCount: number;
+}
+
+// ─── Trials & Applications API Types ─────────────────────────────────────────
+
+interface TrialPlayer {
+  id: number;
+  username: string;
+  uid: string;
+  discord: string | null;
+  is_banned: boolean;
+}
+
+interface TrialTeam {
+  id: number;
+  name: string;
+  tag: string | null;
+  tier: string;
+}
+
+interface TrialPost {
+  id: number;
+  post_type: "TEAM_RECRUITMENT" | "PLAYER_AVAILABLE";
+  roles_needed: string[] | null;
+  commitment_type: string;
+}
+
+interface TrialApplication {
+  id: number;
+  status: string;
+  applied_at: string;
+  updated_at: string;
+  reason: string | null;
+  invite_expires_at: string | null;
+  contact_unlocked: boolean;
+  chat_id: number | null;
+  player: TrialPlayer;
+  team: TrialTeam;
+  post: TrialPost;
+}
+
+interface TrialsAndApplicationsResponse {
+  summary: { status: string; count: number }[];
+  total: number;
+  applications: TrialApplication[];
 }
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
@@ -521,6 +568,28 @@ function getListingStatus(expiry: string): "Active" | "Expired" {
   return new Date(expiry) >= new Date() ? "Active" : "Expired";
 }
 
+/** Color classes for trial/application statuses */
+function getTrialStatusColor(status: string): string {
+  switch (status) {
+    case "PENDING":
+      return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+    case "SHORTLISTED":
+      return "bg-cyan-500/10 text-cyan-500 border-cyan-500/20";
+    case "INVITED":
+      return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+    case "TRIAL_ONGOING":
+      return "bg-indigo-500/10 text-indigo-500 border-indigo-500/20";
+    case "ACCEPTED":
+      return "bg-green-500/10 text-green-500 border-green-500/20";
+    case "TRIAL_EXTENDED":
+      return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+    case "REJECTED":
+      return "bg-red-500/10 text-red-500 border-red-500/20";
+    default:
+      return "bg-muted text-muted-foreground";
+  }
+}
+
 /** Format enum-style strings to title case: "TIER_1" → "Tier 1" */
 function formatEnum(value: string): string {
   if (!value) return "—";
@@ -533,6 +602,7 @@ function formatEnum(value: string): string {
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function AdminPlayerMarketPage() {
+  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Team Listings state
@@ -551,8 +621,17 @@ export default function AdminPlayerMarketPage() {
   }>({ open: false, listingId: null, listingType: "team" });
   const [suspendReason, setSuspendReason] = useState("");
 
-  // Trials state
+  // Trials state (mock — kept for any legacy usage)
   const [viewTrial, setViewTrial] = useState<MockTrial | null>(null);
+
+  // Trials & Applications (real API)
+  const [trialsData, setTrialsData] =
+    useState<TrialsAndApplicationsResponse | null>(null);
+  const [trialsLoading, setTrialsLoading] = useState(true);
+  const [trialsSearch, setTrialsSearch] = useState("");
+  const [trialsStatusFilter, setTrialsStatusFilter] = useState("all");
+  const [selectedApplication, setSelectedApplication] =
+    useState<TrialApplication | null>(null);
 
   // Reports state
   const [viewReport, setViewReport] = useState<MockReport | null>(null);
@@ -587,19 +666,47 @@ export default function AdminPlayerMarketPage() {
       .then((data: PlayerAvailabilityPost[]) => setPlayerListings(data))
       .catch(() => toast.error("Failed to load player listings"))
       .finally(() => setPlayerLoading(false));
-  }, []);
 
-  // Overview stats — team/player from real data, trials/reports still mock
+    if (token) {
+      axios
+        .get<TrialsAndApplicationsResponse>(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/admin/all-trials-and-applications/`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        )
+        .then((res) => setTrialsData(res.data))
+        .catch(() => toast.error("Failed to load trials & applications"))
+        .finally(() => setTrialsLoading(false));
+    }
+  }, [token]);
+
+  // Overview stats — team/player from real data, trials from real API
   const activeTeamListings = teamListings.filter(
     (t) => getListingStatus(t.expiry) === "Active",
   ).length;
   const activePlayerListings = playerListings.filter(
     (p) => getListingStatus(p.expiry) === "Active",
   ).length;
-  const activeTrials = mockTrials.filter((t) => t.status === "Ongoing").length;
+  const activeTrials =
+    trialsData?.summary.find((s) => s.status === "TRIAL_ONGOING")?.count ?? 0;
   const pendingReports = mockReports.filter(
     (r) => r.status === "Pending",
   ).length;
+
+  // Filtered applications for the Trials & Applications tab
+  const filteredApplications = useMemo(() => {
+    const apps = trialsData?.applications ?? [];
+    return apps.filter((app) => {
+      const matchesStatus =
+        trialsStatusFilter === "all" || app.status === trialsStatusFilter;
+      const q = trialsSearch.toLowerCase();
+      const matchesSearch =
+        !q ||
+        app.player.username.toLowerCase().includes(q) ||
+        app.team.name.toLowerCase().includes(q) ||
+        String(app.id).includes(q);
+      return matchesStatus && matchesSearch;
+    });
+  }, [trialsData, trialsStatusFilter, trialsSearch]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -661,7 +768,7 @@ export default function AdminPlayerMarketPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{activeTrials}</div>
                 <p className="text-xs text-muted-foreground">
-                  {mockTrials.length} total
+                  {trialsData?.total ?? 0} total
                 </p>
               </CardContent>
             </Card>
@@ -1011,83 +1118,274 @@ export default function AdminPlayerMarketPage() {
 
         {/* ─── Tab 4: Trials & Applications ───────────────────────── */}
         <TabsContent value="trials" className="mt-4 space-y-4">
-          <h2 className="text-lg font-semibold">
-            Active Trials & Applications
-          </h2>
+          <h2 className="text-lg font-semibold">Trials & Applications</h2>
+
+          {/* Summary badges */}
+          {trialsData && (
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="text-xs px-3 py-1">
+                Total: {trialsData.total}
+              </Badge>
+              {trialsData.summary.map((s) => (
+                <Badge
+                  key={s.status}
+                  variant="outline"
+                  className={`text-xs px-3 py-1 ${getTrialStatusColor(s.status)}`}
+                >
+                  {formatEnum(s.status)}: {s.count}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {/* Filters */}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="relative flex-1">
+              <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search player, team, or ID..."
+                value={trialsSearch}
+                onChange={(e) => setTrialsSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select
+              value={trialsStatusFilter}
+              onValueChange={setTrialsStatusFilter}
+            >
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="SHORTLISTED">Shortlisted</SelectItem>
+                <SelectItem value="INVITED">Invited</SelectItem>
+                <SelectItem value="TRIAL_ONGOING">Trial Ongoing</SelectItem>
+                <SelectItem value="ACCEPTED">Accepted</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Table */}
           <Card>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Trial ID</TableHead>
+                    <TableHead className="w-12">#</TableHead>
                     <TableHead>Player</TableHead>
                     <TableHead>Team</TableHead>
+                    <TableHead>Post Type</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Days Remaining</TableHead>
+                    <TableHead>Applied</TableHead>
+                    <TableHead>Contact</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockTrials.map((trial) => (
-                    <TableRow key={trial.id}>
-                      <TableCell className=" text-sm">{trial.id}</TableCell>
-                      <TableCell className="font-medium">
-                        {trial.player}
+                  {trialsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                        Loading...
                       </TableCell>
-                      <TableCell>{trial.team}</TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusVariant(trial.status)}>
-                          {trial.status}
-                        </Badge>
+                    </TableRow>
+                  ) : filteredApplications.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                        No applications found.
                       </TableCell>
-                      <TableCell>
-                        {trial.status === "Accepted" ? (
-                          <span className="flex items-center gap-1 text-sm text-green-500">
-                            <CheckCircle2 className="h-4 w-4" />
-                            Accepted
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <IconClock className="h-4 w-4" />
-                            {trial.daysRemaining} days
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
+                    </TableRow>
+                  ) : (
+                    filteredApplications.map((app) => (
+                      <TableRow key={app.id}>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {app.id}
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{app.player.username}</div>
+                          <div className="text-xs text-muted-foreground">
+                            UID: {app.player.uid}
+                          </div>
+                          {app.player.discord && (
+                            <div className="text-xs text-muted-foreground">
+                              Discord: {app.player.discord}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div>{app.team.name}</div>
+                          {app.team.tag && (
+                            <div className="text-xs text-muted-foreground">
+                              [{app.team.tag}]
+                            </div>
+                          )}
+                          <div className="text-xs text-muted-foreground">
+                            Tier {app.team.tier}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {formatEnum(app.post.post_type)}
+                          {app.post.roles_needed && app.post.roles_needed.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {app.post.roles_needed.map((r) => (
+                                <Badge key={r} variant="secondary" className="text-xs py-0">
+                                  {formatEnum(r)}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`text-xs ${getTrialStatusColor(app.status)}`}>
+                            {formatEnum(app.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                          {formatDate(app.applied_at)}
+                        </TableCell>
+                        <TableCell>
+                          {app.contact_unlocked ? (
+                            <span className="flex items-center gap-1 text-xs text-green-500">
+                              <IconCircleCheck className="h-4 w-4" />
+                              Unlocked
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Locked</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            title="View timeline"
-                            onClick={() => setViewTrial(trial)}
+                            title="View details"
+                            onClick={() => setSelectedApplication(app)}
                           >
-                            <IconFileText className="h-4 w-4" />
+                            <IconEye className="h-4 w-4" />
                           </Button>
-                          {trial.status === "Ongoing" && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              title="Cancel trial"
-                              onClick={() =>
-                                toast.info(
-                                  `Trial ${trial.id} cancellation initiated`,
-                                )
-                              }
-                            >
-                              <IconClock className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ─── Application Detail Dialog ────────────────────────── */}
+        <Dialog
+          open={!!selectedApplication}
+          onOpenChange={(open) => !open && setSelectedApplication(null)}
+        >
+          <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>Application #{selectedApplication?.id}</DialogTitle>
+              <DialogDescription>
+                Full details for this trial / application.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedApplication && (
+              <div className="space-y-4 text-sm overflow-y-auto flex-1 pr-1">
+                {/* Status */}
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <Badge className={getTrialStatusColor(selectedApplication.status)}>
+                    {formatEnum(selectedApplication.status)}
+                  </Badge>
+                </div>
+
+                <Separator />
+
+                {/* Player */}
+                <div className="space-y-1">
+                  <p className="font-medium">Player</p>
+                  <p>{selectedApplication.player.username}</p>
+                  <p className="text-muted-foreground">UID: {selectedApplication.player.uid}</p>
+                  {selectedApplication.player.discord && (
+                    <p className="text-muted-foreground">Discord: {selectedApplication.player.discord}</p>
+                  )}
+                  {selectedApplication.player.is_banned && (
+                    <Badge variant="destructive" className="text-xs">Banned</Badge>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Team */}
+                <div className="space-y-1">
+                  <p className="font-medium">Team</p>
+                  <p>{selectedApplication.team.name}</p>
+                  {selectedApplication.team.tag && (
+                    <p className="text-muted-foreground">Tag: {selectedApplication.team.tag}</p>
+                  )}
+                  <p className="text-muted-foreground">Tier {selectedApplication.team.tier}</p>
+                </div>
+
+                <Separator />
+
+                {/* Post */}
+                <div className="space-y-1">
+                  <p className="font-medium">Post</p>
+                  <p>#{selectedApplication.post.id} — {formatEnum(selectedApplication.post.post_type)}</p>
+                  {selectedApplication.post.commitment_type && (
+                    <p className="text-muted-foreground">{formatEnum(selectedApplication.post.commitment_type)}</p>
+                  )}
+                  {selectedApplication.post.roles_needed && selectedApplication.post.roles_needed.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {selectedApplication.post.roles_needed.map((r) => (
+                        <Badge key={r} variant="secondary" className="text-xs">{formatEnum(r)}</Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Dates */}
+                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div>
+                    <p className="font-medium text-foreground">Applied</p>
+                    <p>{formatDate(selectedApplication.applied_at)}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Updated</p>
+                    <p>{formatDate(selectedApplication.updated_at)}</p>
+                  </div>
+                  {selectedApplication.invite_expires_at && (
+                    <div>
+                      <p className="font-medium text-foreground">Invite Expires</p>
+                      <p>{formatDate(selectedApplication.invite_expires_at)}</p>
+                    </div>
+                  )}
+                  {selectedApplication.chat_id && (
+                    <div>
+                      <p className="font-medium text-foreground">Chat ID</p>
+                      <p>#{selectedApplication.chat_id}</p>
+                    </div>
+                  )}
+                </div>
+
+                {selectedApplication.reason && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="font-medium mb-1">Reason</p>
+                      <p className="text-muted-foreground">{selectedApplication.reason}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* ─── Tab 5: Reports & Flags ─────────────────────────────── */}
         <TabsContent value="reports" className="mt-4 space-y-4">
@@ -1105,7 +1403,8 @@ export default function AdminPlayerMarketPage() {
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="relative">
+                  <ComingSoon />
                   {mockReports.map((report) => (
                     <TableRow key={report.id}>
                       <TableCell className=" text-sm">{report.id}</TableCell>

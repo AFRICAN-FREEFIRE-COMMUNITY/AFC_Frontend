@@ -269,9 +269,6 @@ export const ProfileContent = () => {
         </Card>
 
         <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Player Statistics</CardTitle>
-          </CardHeader>
           <CardContent>
             <Tabs defaultValue="overview">
               <ScrollArea>
@@ -279,7 +276,9 @@ export const ProfileContent = () => {
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="history">Team History</TabsTrigger>
                   <TabsTrigger value="achievements">Achievements</TabsTrigger>
-                  <TabsTrigger value="applications">My Applications</TabsTrigger>
+                  <TabsTrigger value="applications">
+                    My Applications
+                  </TabsTrigger>
                   {user.role === "admin" && (
                     <TabsTrigger value="admin">Admin Capabilities</TabsTrigger>
                   )}
@@ -381,11 +380,15 @@ export const ProfileContent = () => {
                   <div className="space-y-3">
                     {myApplications.map((app) => {
                       const statusColors: Record<string, string> = {
-                        PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
-                        SHORTLISTED: "bg-cyan-900/20 text-cyan-400 border-cyan-800",
+                        PENDING:
+                          "bg-yellow-900/20 text-yellow-400 border-yellow-800",
+                        SHORTLISTED:
+                          "bg-cyan-900/20 text-cyan-400 border-cyan-800",
                         INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
-                        ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
-                        TRIAL_EXTENDED: "bg-purple-900/20 text-purple-400 border-purple-800",
+                        ACCEPTED:
+                          "bg-green-900/20 text-green-400 border-green-800",
+                        TRIAL_EXTENDED:
+                          "bg-purple-900/20 text-purple-400 border-purple-800",
                         REJECTED: "bg-red-900/20 text-red-400 border-red-800",
                       };
                       return (
@@ -434,7 +437,9 @@ export const ProfileContent = () => {
                             )}
 
                             <Button size="sm" variant="outline" asChild>
-                              <Link href={`/player-markets/applications/${app.id}`}>
+                              <Link
+                                href={`/player-markets/applications/${app.id}`}
+                              >
                                 View
                               </Link>
                             </Button>
