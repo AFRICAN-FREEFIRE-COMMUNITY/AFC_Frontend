@@ -39,9 +39,10 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { ITEMS_PER_PAGE } from "@/constants";
-import { IconCheck, IconLoader2, IconSearch, IconX } from "@tabler/icons-react";
+import { IconCheck, IconDownload, IconLoader2, IconSearch, IconX } from "@tabler/icons-react";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -56,6 +57,7 @@ interface Player {
   event_id: number;
   event_name: string;
   username: string;
+  email: string | null;
   team_name: string | null;
   user_id_from_sponsor: string | null;
   status: Status;
@@ -129,6 +131,7 @@ export default function SponsorDashboardPage() {
           event_id: e.event_id,
           event_name: e.event_name,
           username: e.member_username ?? e.player_username,
+          email: e.email ?? e.member_email ?? null,
           team_name: e.team_name ?? null,
           user_id_from_sponsor: e.user_id_from_sponsor,
           status: e.status as Status,
@@ -242,6 +245,38 @@ export default function SponsorDashboardPage() {
     }
   };
 
+  // ── Export ───────────────────────────────────────────────────────────────────
+
+  const handleExport = () => {
+    const rows = filtered.map((p) => ({
+      Username: p.username,
+      Email: p.email ?? "",
+      Team: p.team_name ?? "",
+      Event: p.event_name,
+      "Sponsor ID": p.user_id_from_sponsor ?? "",
+      Status: p.status,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = [
+      { wch: 22 },
+      { wch: 32 },
+      { wch: 22 },
+      { wch: 28 },
+      { wch: 18 },
+      { wch: 10 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    const label =
+      statusFilter === "all" ? "All" : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+    XLSX.utils.book_append_sheet(wb, ws, `${label} Registrants`);
+
+    const filename = `sponsor-registrants-${statusFilter}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    toast.success(`Exported ${rows.length} registrant${rows.length !== 1 ? "s" : ""} to Excel`);
+  };
+
   // ── Render ───────────────────────────────────────────────────────────────────
 
   if (loading || authLoading) {
@@ -267,7 +302,7 @@ export default function SponsorDashboardPage() {
         }
       />
 
-      {/* Search + Filter */}
+      {/* Search + Filter + Export */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -302,6 +337,15 @@ export default function SponsorDashboardPage() {
             </SelectItem>
           </SelectContent>
         </Select>
+        <Button
+          variant="outline"
+          onClick={handleExport}
+          disabled={filtered.length === 0}
+          className="shrink-0"
+        >
+          <IconDownload className="size-4 mr-1" />
+          Export Excel
+        </Button>
       </div>
 
       {/* Table */}
