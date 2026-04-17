@@ -26,6 +26,13 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -48,6 +55,14 @@ import {
   IconCheck,
   IconX,
   IconMessage,
+  IconShare,
+  IconCopy,
+  IconBrandX,
+  IconBrandWhatsapp,
+  IconBrandFacebook,
+  IconBrandTelegram,
+  IconBrandReddit,
+  IconBrandLinkedin,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { DEFAULT_PROFILE_PICTURE, countries } from "@/constants";
@@ -132,6 +147,71 @@ function getTierColor(tier: string) {
     default:
       return "";
   }
+}
+
+// ─── Share Button ────────────────────────────────────────────────────────────
+
+function ShareButton({ url, text }: { url: string; text: string }) {
+  const handleCopy = () => {
+    navigator.clipboard.writeText(url);
+    toast.success("Link copied to clipboard!");
+  };
+
+  const openShare = (platform: string) => {
+    const enc = encodeURIComponent(url);
+    const encText = encodeURIComponent(text);
+    const map: Record<string, string> = {
+      twitter: `https://twitter.com/intent/tweet?url=${enc}&text=${encText}`,
+      whatsapp: `https://wa.me/?text=${encText}%20${enc}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${enc}`,
+      telegram: `https://t.me/share/url?url=${enc}&text=${encText}`,
+      reddit: `https://reddit.com/submit?url=${enc}&title=${encText}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${enc}`,
+    };
+    window.open(map[platform], "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="text-xs">
+          <IconShare className="h-3.5 w-3.5 mr-1" />
+          Share
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuItem onClick={handleCopy}>
+          <IconCopy className="h-4 w-4 mr-2" />
+          Copy Link
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => openShare("twitter")}>
+          <IconBrandX className="h-4 w-4 mr-2" />
+          Twitter / X
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openShare("whatsapp")}>
+          <IconBrandWhatsapp className="h-4 w-4 mr-2" />
+          WhatsApp
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openShare("facebook")}>
+          <IconBrandFacebook className="h-4 w-4 mr-2" />
+          Facebook
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openShare("telegram")}>
+          <IconBrandTelegram className="h-4 w-4 mr-2" />
+          Telegram
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openShare("reddit")}>
+          <IconBrandReddit className="h-4 w-4 mr-2" />
+          Reddit
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openShare("linkedin")}>
+          <IconBrandLinkedin className="h-4 w-4 mr-2" />
+          LinkedIn
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
 
 // ─── Country Multi-Select ────────────────────────────────────────────────────
@@ -268,7 +348,9 @@ export default function PlayerMarketPage() {
   // Trial invites (player side)
   const [myTrialInvites, setMyTrialInvites] = useState<any[]>([]);
   const [loadingInvites, setLoadingInvites] = useState(false);
-  const [isRespondingToInvite, setIsRespondingToInvite] = useState<number | null>(null);
+  const [isRespondingToInvite, setIsRespondingToInvite] = useState<
+    number | null
+  >(null);
 
   // Invite player to trial (team side)
   const [inviteMessage, setInviteMessage] = useState("");
@@ -692,7 +774,10 @@ export default function PlayerMarketPage() {
                 {myTrialInvites.filter((i) => i.status === "PENDING").length >
                   0 && (
                   <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
-                    {myTrialInvites.filter((i) => i.status === "PENDING").length}
+                    {
+                      myTrialInvites.filter((i) => i.status === "PENDING")
+                        .length
+                    }
                   </span>
                 )}
               </TabsTrigger>
@@ -833,7 +918,11 @@ export default function PlayerMarketPage() {
                     <Separator />
 
                     {/* Action */}
-                    <div className="flex items-center justify-end">
+                    <div className="flex items-center justify-between">
+                      <ShareButton
+                        url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets?post=team-${team.id}`}
+                        text={`${team.team ?? "A team"} is recruiting on AFC Player Market!`}
+                      />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -967,7 +1056,11 @@ export default function PlayerMarketPage() {
                     <Separator />
 
                     {/* Action */}
-                    <div className="flex items-center justify-end">
+                    <div className="flex items-center justify-between">
+                      <ShareButton
+                        url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets?post=player-${player.id}`}
+                        text={`${player.player} is open to joining a team on AFC Player Market!`}
+                      />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1004,15 +1097,15 @@ export default function PlayerMarketPage() {
               myTrialInvites.map((invite) => {
                 const isPending = invite.status === "PENDING";
                 const isExpired =
-                  invite.expires_at &&
-                  new Date(invite.expires_at) < new Date();
+                  invite.expires_at && new Date(invite.expires_at) < new Date();
                 const statusColors: Record<string, string> = {
                   PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
                   ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
                   DECLINED: "bg-red-900/20 text-red-400 border-red-800",
                   EXPIRED: "bg-muted text-muted-foreground border-border",
                 };
-                const displayStatus = isExpired && isPending ? "EXPIRED" : invite.status;
+                const displayStatus =
+                  isExpired && isPending ? "EXPIRED" : invite.status;
                 return (
                   <Card
                     key={invite.invite_id}
@@ -1058,18 +1151,28 @@ export default function PlayerMarketPage() {
                               size="sm"
                               variant="outline"
                               className="text-red-400 border-red-800 hover:bg-red-900/20"
-                              disabled={isRespondingToInvite === invite.invite_id}
+                              disabled={
+                                isRespondingToInvite === invite.invite_id
+                              }
                               onClick={() =>
-                                handleRespondToInvite(invite.invite_id, "DECLINE")
+                                handleRespondToInvite(
+                                  invite.invite_id,
+                                  "DECLINE",
+                                )
                               }
                             >
                               Decline
                             </Button>
                             <Button
                               size="sm"
-                              disabled={isRespondingToInvite === invite.invite_id}
+                              disabled={
+                                isRespondingToInvite === invite.invite_id
+                              }
                               onClick={() =>
-                                handleRespondToInvite(invite.invite_id, "ACCEPT")
+                                handleRespondToInvite(
+                                  invite.invite_id,
+                                  "ACCEPT",
+                                )
                               }
                             >
                               {isRespondingToInvite === invite.invite_id
@@ -1664,8 +1767,14 @@ export default function PlayerMarketPage() {
             </div>
 
             <DialogFooter className="gap-2">
+              <ShareButton
+                url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets?post=team-${viewTeam.id}`}
+                text={`${viewTeam.team ?? "A team"} is recruiting on AFC Player Market!`}
+              />
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button size={"sm"} variant="outline">
+                  Close
+                </Button>
               </DialogClose>
               {!isTeamLeader && (
                 <Button
@@ -1773,8 +1882,14 @@ export default function PlayerMarketPage() {
             </div>
 
             <DialogFooter className="gap-2">
+              <ShareButton
+                url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets?post=player-${viewPlayer.id}`}
+                text={`${viewPlayer.player} is open to joining a team on AFC Player Market!`}
+              />
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button size={"sm"} variant="outline">
+                  Close
+                </Button>
               </DialogClose>
               {isTeamLeader && (
                 <Button onClick={handleInvitePlayer} disabled={isInviting}>
