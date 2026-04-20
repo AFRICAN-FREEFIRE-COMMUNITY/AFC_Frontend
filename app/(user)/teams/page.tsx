@@ -375,57 +375,139 @@ function page() {
           </Card>
         </TabsContent>
         <TabsContent value="my-team" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>My Team</CardTitle>
-              <CardDescription>View and manage my team</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {myTeam ? (
-                <Card
-                  className={`card-hover gap-1.5 ${
-                    myTeam.is_banned ? "border-destructive" : ""
-                  }`}
-                >
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage
-                          src={myTeam.team_logo}
-                          alt={`${myTeam.team_name} logo`}
-                          className="object-cover"
-                        />
-                        <AvatarFallback>{myTeam.team_name[0]}</AvatarFallback>
-                      </Avatar>
-                      <span className="uppercase text-lg md:text-xl">
+          {myTeam ? (
+            <Card className={myTeam.is_banned ? "border-destructive" : ""}>
+              <CardContent className="space-y-5">
+                {/* Header */}
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16 rounded-lg border shrink-0">
+                    <AvatarImage
+                      src={myTeam.team_logo}
+                      alt={`${myTeam.team_name} logo`}
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="rounded-lg text-lg font-bold">
+                      {myTeam.team_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-lg font-semibold leading-tight truncate uppercase">
                         {myTeam.team_name}
-                      </span>
-                      {myTeam.is_banned && (
-                        <Badge variant="destructive">BANNED</Badge>
+                      </h2>
+                      {myTeam.team_tag && (
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          [{myTeam.team_tag}]
+                        </Badge>
                       )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm md:text-base">
-                    <p>
-                      Members: {myTeam.member_count ? myTeam.member_count : 0}
-                    </p>
-                    <p>Tier: {myTeam.team_tier}</p>
-                    <div className="flex justify-between mt-4">
-                      <Button variant={"gradient"} className="w-full" asChild>
-                        <Link href={`/teams/${myTeam.team_name}`}>
-                          View Team
-                        </Link>
-                      </Button>
+                      <Badge variant="outline" className="text-xs shrink-0">
+                        Tier {myTeam.team_tier}
+                      </Badge>
+                      {myTeam.is_banned && (
+                        <Badge
+                          variant="destructive"
+                          className="text-xs shrink-0"
+                        >
+                          Banned
+                        </Badge>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  You are not currently part of any team.
+                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+                      {myTeam.country && <span>{myTeam.country}</span>}
+                      <span>
+                        {myTeam.member_count ?? 0} member
+                        {myTeam.member_count !== 1 ? "s" : ""}
+                      </span>
+                      {myTeam.creation_date && (
+                        <span>
+                          Founded{" "}
+                          {new Date(myTeam.creation_date).toLocaleDateString(
+                            "en-GB",
+                            { month: "short", year: "numeric" },
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+
+                {myTeam.team_description && (
+                  <p className="text-sm text-muted-foreground leading-relaxed border-t pt-4">
+                    {myTeam.team_description}
+                  </p>
+                )}
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                      Your Role
+                    </p>
+                    <p className="text-sm font-medium mt-0.5 capitalize">
+                      {myTeam.user_role_in_team?.replace(/_/g, " ") ?? "Member"}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                      Owner
+                    </p>
+                    <p className="text-sm font-medium mt-0.5 truncate">
+                      {myTeam.team_owner}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                      Joined
+                    </p>
+                    <p className="text-sm font-medium mt-0.5">
+                      {myTeam.join_date
+                        ? new Date(myTeam.join_date).toLocaleDateString(
+                            "en-GB",
+                            { day: "numeric", month: "short", year: "numeric" },
+                          )
+                        : "—"}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                      Join Policy
+                    </p>
+                    <p className="text-sm font-medium mt-0.5 capitalize">
+                      {myTeam.join_settings?.replace(/_/g, " ") ?? "—"}
+                    </p>
+                  </div>
+                  {myTeam.in_game_role && (
+                    <div className="rounded-lg border bg-muted/30 p-3">
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                        In-Game Role
+                      </p>
+                      <p className="text-sm font-medium mt-0.5">
+                        {myTeam.in_game_role}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-1">
+                  <Button
+                    variant="gradient"
+                    className="w-full button-gradient"
+                    asChild
+                  >
+                    <Link href={`/teams/${myTeam.team_name}`}>
+                      View Full Team
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="text-center text-muted-foreground py-12">
+                You are not currently part of any team.
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

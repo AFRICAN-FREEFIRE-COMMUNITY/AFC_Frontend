@@ -57,6 +57,7 @@ import {
   IconMessage,
   IconShare,
   IconCopy,
+  IconTrash,
   IconBrandX,
   IconBrandWhatsapp,
   IconBrandFacebook,
@@ -386,6 +387,33 @@ export default function PlayerMarketPage() {
   const [playerPosts, setPlayerPosts] = useState<PlayerAvailablePost[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
+
+  // My Posts
+  const [isDeletingPost, setIsDeletingPost] = useState<number | null>(null);
+
+  const myTeamPosts = teamPosts.filter(
+    (p) => p.team === currentTeam?.team_name,
+  );
+  const myPlayerPosts = playerPosts.filter(
+    (p) => p.player === user?.in_game_name,
+  );
+
+  const handleDeletePost = async (postId: number) => {
+    setIsDeletingPost(postId);
+    try {
+      await axios.delete(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/delete-post/${postId}/`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setTeamPosts((prev) => prev.filter((p) => p.id !== postId));
+      setPlayerPosts((prev) => prev.filter((p) => p.id !== postId));
+      toast.success("Post deleted.");
+    } catch {
+      toast.error("Failed to delete post.");
+    } finally {
+      setIsDeletingPost(null);
+    }
+  };
 
   // View Details dialogs
   const [viewTeam, setViewTeam] = useState<TeamRecruitmentPost | null>(null);
@@ -749,6 +777,23 @@ export default function PlayerMarketPage() {
         </CardContent>
       </Card>
 
+      {/* Temporary Tier Disclaimer */}
+      <Card className="border-yellow-500/50 bg-yellow-500/5">
+        <CardContent className="flex items-start gap-1">
+          <IconInfoCircle className="size-3 text-yellow-500 shrink-0" />
+          <div className="text-xs text-muted-foreground">
+            <p>
+              <span className="font-medium text-yellow-600 dark:text-yellow-400">
+                Temporary Notice:
+              </span>{" "}
+              All teams and players are currently assigned Tier 3 status. Tier
+              standings will be automatically updated over time based on
+              activity and performance.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <ScrollArea>
@@ -786,6 +831,18 @@ export default function PlayerMarketPage() {
               <TabsTrigger value="team-applications" className="flex-1">
                 <IconUsers className="h-4 w-4 mr-1.5" />
                 Team Applications
+              </TabsTrigger>
+            )}
+            {token && currentTeam && (
+              <TabsTrigger value="my-team" className="flex-1">
+                <IconShield className="h-4 w-4 mr-1.5" />
+                My Team
+              </TabsTrigger>
+            )}
+            {token && (
+              <TabsTrigger value="my-posts" className="flex-1">
+                <IconClipboardList className="h-4 w-4 mr-1.5" />
+                My Posts
               </TabsTrigger>
             )}
           </TabsList>
@@ -1390,6 +1447,335 @@ export default function PlayerMarketPage() {
                   </Card>
                 );
               })
+            )}
+          </TabsContent>
+        )}
+
+        {/* ─── My Team Tab ──────────────────────────────────────────── */}
+        {token && currentTeam && (
+          <TabsContent value="my-team" className="mt-4">
+            <Card>
+              <CardContent className="space-y-5">
+                {/* Header */}
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16 rounded-lg border">
+                    <AvatarImage src={currentTeam.team_logo ?? undefined} />
+                    <AvatarFallback className="rounded-lg text-lg font-bold">
+                      {currentTeam.team_name?.charAt(0) ?? "T"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-lg font-semibold leading-tight truncate">
+                        {currentTeam.team_name}
+                      </h2>
+                      {currentTeam.team_tag && (
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          [{currentTeam.team_tag}]
+                        </Badge>
+                      )}
+                      <Badge
+                        variant="outline"
+                        className={`text-xs shrink-0 ${getTierColor(`TIER_${currentTeam.team_tier}`)}`}
+                      >
+                        Tier {currentTeam.team_tier}
+                      </Badge>
+                      {currentTeam.is_banned && (
+                        <Badge
+                          variant="destructive"
+                          className="text-xs shrink-0"
+                        >
+                          Banned
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+                      {currentTeam.country && (
+                        <span className="flex items-center gap-1">
+                          <IconMapPin className="h-3 w-3" />
+                          {currentTeam.country}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <IconUsers className="h-3 w-3" />
+                        {currentTeam.member_count} member
+                        {currentTeam.member_count !== 1 ? "s" : ""}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <IconCalendar className="h-3 w-3" />
+                        Founded {formatDate(currentTeam.creation_date)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Description */}
+                {currentTeam.team_description && (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {currentTeam.team_description}
+                  </p>
+                )}
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                      Your Role
+                    </p>
+                    <p className="text-sm font-medium mt-0.5 capitalize">
+                      {currentTeam.user_role_in_team?.replace(/_/g, " ") ??
+                        "Member"}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                      Owner
+                    </p>
+                    <p className="text-sm font-medium mt-0.5 truncate">
+                      {currentTeam.team_owner}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                      Joined
+                    </p>
+                    <p className="text-sm font-medium mt-0.5">
+                      {formatDate(currentTeam.join_date)}
+                    </p>
+                  </div>
+                  {currentTeam.in_game_role && (
+                    <div className="rounded-lg border bg-muted/30 p-3">
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                        In-Game Role
+                      </p>
+                      <p className="text-sm font-medium mt-0.5">
+                        {labelFor(ROLES, currentTeam.in_game_role)}
+                      </p>
+                    </div>
+                  )}
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                      Joining
+                    </p>
+                    <p className="text-sm font-medium mt-0.5 capitalize">
+                      {currentTeam.join_settings?.replace(/_/g, " ") ?? "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <div className="flex justify-end pt-1">
+                  <Link href={`/team/${currentTeam.team_id}`}>
+                    <Button size="sm">
+                      View Full Team
+                      <IconChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {/* ─── My Posts Tab ─────────────────────────────────────────── */}
+        {token && (
+          <TabsContent value="my-posts" className="mt-4 space-y-4">
+            {isTeamLeader ? (
+              <>
+                <div>
+                  <p className="text-base font-semibold">My Recruitment Posts</p>
+                  <p className="text-xs text-muted-foreground">
+                    Team recruitment posts you&apos;ve created
+                  </p>
+                </div>
+                {myTeamPosts.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <IconClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p className="font-medium">No posts yet</p>
+                    <p className="text-sm">
+                      Create a recruitment post to start finding players
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {myTeamPosts.map((post) => (
+                      <Card
+                        key={post.id}
+                        className="hover:border-primary/50 transition-colors"
+                      >
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={DEFAULT_PROFILE_PICTURE} />
+                              <AvatarFallback>
+                                {(post.team ?? "T").charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold truncate">
+                                {post.team ?? "Unknown Team"}
+                              </h3>
+                              <p className="text-xs text-muted-foreground">
+                                Expires {formatDate(post.expiry)}
+                              </p>
+                            </div>
+                          </div>
+
+                          {post.roles_needed && post.roles_needed.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {post.roles_needed.map((role, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">
+                                  {labelFor(ROLES, role)}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            {post.minimum_tier_required && (
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(post.minimum_tier_required)}`}
+                              >
+                                <IconShield className="h-3 w-3" />
+                                {labelFor(TIERS, post.minimum_tier_required)}+
+                              </span>
+                            )}
+                            {post.commitment_type && (
+                              <span className="flex items-center gap-1">
+                                <IconTarget className="h-3 w-3" />
+                                {labelFor(COMMITMENTS, post.commitment_type)}
+                              </span>
+                            )}
+                            {post.country && (
+                              <span className="flex items-center gap-1">
+                                <IconMapPin className="h-3 w-3" />
+                                {post.country}
+                              </span>
+                            )}
+                          </div>
+
+                          <Separator />
+
+                          <div className="flex items-center justify-between">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs text-destructive hover:text-destructive"
+                              disabled={isDeletingPost === post.id}
+                              onClick={() => handleDeletePost(post.id)}
+                            >
+                              <IconTrash className="h-3.5 w-3.5 mr-1" />
+                              {isDeletingPost === post.id ? "Deleting..." : "Delete"}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs"
+                              onClick={() => setViewTeam(post)}
+                            >
+                              View Details
+                              <IconChevronRight className="h-3.5 w-3.5 ml-0.5" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div>
+                  <p className="text-base font-semibold">My Availability Posts</p>
+                  <p className="text-xs text-muted-foreground">
+                    Posts you&apos;ve created to find a team
+                  </p>
+                </div>
+                {myPlayerPosts.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <IconClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p className="font-medium">No posts yet</p>
+                    <p className="text-sm">
+                      Create a post to let teams know you&apos;re available
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {myPlayerPosts.map((post) => (
+                      <Card
+                        key={post.id}
+                        className="hover:border-primary/50 transition-colors"
+                      >
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={DEFAULT_PROFILE_PICTURE} />
+                              <AvatarFallback>
+                                {post.player.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold truncate">
+                                {post.player}
+                              </h3>
+                              <p className="text-xs text-muted-foreground">
+                                Expires {formatDate(post.expiry)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5">
+                            <Badge variant="secondary" className="text-xs">
+                              <IconCrosshair className="h-3 w-3 mr-1" />
+                              {labelFor(ROLES, post.primary_role)}
+                            </Badge>
+                            {post.secondary_role && (
+                              <Badge variant="outline" className="text-xs">
+                                {labelFor(ROLES, post.secondary_role)}
+                              </Badge>
+                            )}
+                            <Badge variant="outline" className="text-xs">
+                              {labelFor(AVAILABILITIES, post.availability_type)}
+                            </Badge>
+                          </div>
+
+                          {post.additional_info && (
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {post.additional_info}
+                            </p>
+                          )}
+
+                          <Separator />
+
+                          <div className="flex items-center justify-between">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs text-destructive hover:text-destructive"
+                              disabled={isDeletingPost === post.id}
+                              onClick={() => handleDeletePost(post.id)}
+                            >
+                              <IconTrash className="h-3.5 w-3.5 mr-1" />
+                              {isDeletingPost === post.id ? "Deleting..." : "Delete"}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs"
+                              onClick={() => setViewPlayer(post)}
+                            >
+                              View Details
+                              <IconChevronRight className="h-3.5 w-3.5 ml-0.5" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
         )}
