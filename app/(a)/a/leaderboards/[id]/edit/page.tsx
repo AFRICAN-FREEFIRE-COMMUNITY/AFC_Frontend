@@ -1696,8 +1696,9 @@ export default function EditLeaderboardPage({
               />
             )}
 
-            {uploadView === "image_upload" && (
+            {uploadView === "image_upload" && uploadingMatch && (
               <ImageUploadStep
+                match={uploadingMatch}
                 onNext={handleUploadComplete}
                 onBack={() => setUploadView("method")}
               />

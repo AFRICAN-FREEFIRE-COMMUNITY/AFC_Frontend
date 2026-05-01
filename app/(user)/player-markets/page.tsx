@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Select,
   SelectTrigger,
@@ -390,6 +391,37 @@ export default function PlayerMarketPage() {
 
   // My Posts
   const [isDeletingPost, setIsDeletingPost] = useState<number | null>(null);
+
+  // inside your component, near the top with other hooks:
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const post = searchParams.get("post");
+    if (!post) return;
+
+    const [type, idStr] = post.split("-");
+    const id = parseInt(idStr, 10);
+    if (isNaN(id)) return;
+
+    if (type === "team") {
+      // Wait for teamPosts to be loaded
+      if (loadingTeams) return;
+      const found = teamPosts.find((p) => p.id === id);
+      if (found) {
+        setViewTeam(found);
+        // Clean up URL without navigating away
+        router.replace("/player-markets", { scroll: false });
+      }
+    } else if (type === "player") {
+      if (loadingPlayers) return;
+      const found = playerPosts.find((p) => p.id === id);
+      if (found) {
+        setViewPlayer(found);
+        router.replace("/player-markets", { scroll: false });
+      }
+    }
+  }, [searchParams, teamPosts, playerPosts, loadingTeams, loadingPlayers]);
 
   const myTeamPosts = teamPosts.filter(
     (p) => p.team === currentTeam?.team_name,
@@ -1585,7 +1617,9 @@ export default function PlayerMarketPage() {
             {isTeamLeader ? (
               <>
                 <div>
-                  <p className="text-base font-semibold">My Recruitment Posts</p>
+                  <p className="text-base font-semibold">
+                    My Recruitment Posts
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     Team recruitment posts you&apos;ve created
                   </p>
@@ -1623,15 +1657,20 @@ export default function PlayerMarketPage() {
                             </div>
                           </div>
 
-                          {post.roles_needed && post.roles_needed.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5">
-                              {post.roles_needed.map((role, i) => (
-                                <Badge key={i} variant="secondary" className="text-xs">
-                                  {labelFor(ROLES, role)}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
+                          {post.roles_needed &&
+                            post.roles_needed.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {post.roles_needed.map((role, i) => (
+                                  <Badge
+                                    key={i}
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    {labelFor(ROLES, role)}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
 
                           <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             {post.minimum_tier_required && (
@@ -1667,7 +1706,9 @@ export default function PlayerMarketPage() {
                               onClick={() => handleDeletePost(post.id)}
                             >
                               <IconTrash className="h-3.5 w-3.5 mr-1" />
-                              {isDeletingPost === post.id ? "Deleting..." : "Delete"}
+                              {isDeletingPost === post.id
+                                ? "Deleting..."
+                                : "Delete"}
                             </Button>
                             <Button
                               variant="ghost"
@@ -1688,7 +1729,9 @@ export default function PlayerMarketPage() {
             ) : (
               <>
                 <div>
-                  <p className="text-base font-semibold">My Availability Posts</p>
+                  <p className="text-base font-semibold">
+                    My Availability Posts
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     Posts you&apos;ve created to find a team
                   </p>
@@ -1758,7 +1801,9 @@ export default function PlayerMarketPage() {
                               onClick={() => handleDeletePost(post.id)}
                             >
                               <IconTrash className="h-3.5 w-3.5 mr-1" />
-                              {isDeletingPost === post.id ? "Deleting..." : "Delete"}
+                              {isDeletingPost === post.id
+                                ? "Deleting..."
+                                : "Delete"}
                             </Button>
                             <Button
                               variant="ghost"
