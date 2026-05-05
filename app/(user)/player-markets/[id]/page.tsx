@@ -154,10 +154,14 @@ export async function generateMetadata({
     image = toAbsoluteUrl(post.player_avatar);
   }
 
+  const ogImage = image
+    ? `${siteConfig.url}/api/og-image?url=${encodeURIComponent(image)}`
+    : siteConfig.ogImage;
+
   return generateDynamicMetadata({
     title,
     description,
-    image: image || siteConfig.ogImage,
+    image: ogImage,
     url: `/player-markets/${id}`,
     type: "profile",
     tags: [
