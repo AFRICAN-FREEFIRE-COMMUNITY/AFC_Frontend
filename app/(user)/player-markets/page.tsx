@@ -1171,7 +1171,7 @@ function PlayerMarketPage() {
                     {/* Action */}
                     <div className="flex items-center justify-between">
                       <ShareButton
-                        url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets?post=team-${team.id}`}
+                        url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/team-${team.id}`}
                         text={`${team.team ?? "A team"} is recruiting on AFC Player Market!`}
                       />
                       <Button
@@ -1309,7 +1309,7 @@ function PlayerMarketPage() {
                     {/* Action */}
                     <div className="flex items-center justify-between">
                       <ShareButton
-                        url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets?post=player-${player.id}`}
+                        url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/player-${player.id}`}
                         text={`${player.player} is open to joining a team on AFC Player Market!`}
                       />
                       <Button
@@ -2633,7 +2633,7 @@ function PlayerMarketPage() {
 
             <DialogFooter className="gap-2">
               <ShareButton
-                url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets?post=team-${viewTeam.id}`}
+                url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/team-${viewTeam.id}`}
                 text={`${viewTeam.team ?? "A team"} is recruiting on AFC Player Market!`}
               />
               <DialogClose asChild>
@@ -2748,7 +2748,7 @@ function PlayerMarketPage() {
 
             <DialogFooter className="gap-2">
               <ShareButton
-                url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets?post=player-${viewPlayer.id}`}
+                url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/player-${viewPlayer.id}`}
                 text={`${viewPlayer.player} is open to joining a team on AFC Player Market!`}
               />
               <DialogClose asChild>

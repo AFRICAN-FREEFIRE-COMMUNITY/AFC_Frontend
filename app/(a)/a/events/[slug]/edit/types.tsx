@@ -45,7 +45,7 @@ export const STAGE_FORMATS = [
 export const GroupSchema = z.object({
   group_id: z.number().optional(),
   group_name: z.string().min(1, "Group name required"),
-  group_discord_role_id: z.string().min(1, "Discord Role ID required"),
+  group_discord_role_id: z.string().optional(),
   room_id: z.string().optional(),
   room_name: z.string().optional(),
   room_password: z.string().optional(),
@@ -59,7 +59,7 @@ export const GroupSchema = z.object({
 export const StageSchema = z.object({
   stage_id: z.number().optional(),
   stage_name: z.string().min(1, "Stage name required"),
-  stage_discord_role_id: z.string().min(1, "Discord Role ID required"),
+  stage_discord_role_id: z.string().optional(),
   start_date: z.string().min(1, "Start date required"),
   end_date: z.string().min(1, "End date required"),
   number_of_groups: z.coerce.number().min(1, "Must have at least 1 group"),
@@ -118,6 +118,10 @@ export const EventFormSchema = z
     is_waitlist_enabled: z.boolean().optional(),
     waitlist_capacity: z.coerce.number().optional(),
     waitlist_discord_role_id: z.string().optional(),
+    event_start_time: z.string().optional(),
+    event_end_time: z.string().optional(),
+    registration_start_time: z.string().optional(),
+    registration_end_time: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -192,6 +196,10 @@ export interface EventDetails {
   is_waitlist_enabled?: boolean;
   waitlist_capacity?: number | null;
   waitlist_discord_role_id?: string | null;
+  event_start_time?: string | null;
+  event_end_time?: string | null;
+  registration_start_time?: string | null;
+  registration_end_time?: string | null;
   stages: Array<{
     id: number;
     stage_id: number;
@@ -293,18 +301,6 @@ export const validateStageData = (
     }
 
     if (
-      !stage.stage_discord_role_id ||
-      stage.stage_discord_role_id.trim() === ""
-    ) {
-      errors.push({
-        field: `stages.${sIdx}.stage_discord_role_id`,
-        message: `Stage ${sIdx + 1}: Discord Role ID is required`,
-        tab: "stages_groups",
-        stageIndex: sIdx,
-      });
-    }
-
-    if (
       stage.teams_qualifying_from_stage === undefined ||
       stage.teams_qualifying_from_stage === null ||
       stage.teams_qualifying_from_stage < 0
@@ -373,21 +369,6 @@ export const validateStageData = (
             message: `Stage ${sIdx + 1}, Group ${
               gIdx + 1
             }: Playing time is required`,
-            tab: "stages_groups",
-            stageIndex: sIdx,
-            groupIndex: gIdx,
-          });
-        }
-
-        if (
-          !group.group_discord_role_id ||
-          group.group_discord_role_id.trim() === ""
-        ) {
-          errors.push({
-            field: `stages.${sIdx}.groups.${gIdx}.group_discord_role_id`,
-            message: `Stage ${sIdx + 1}, Group ${
-              gIdx + 1
-            }: Discord Role ID is required`,
             tab: "stages_groups",
             stageIndex: sIdx,
             groupIndex: gIdx,

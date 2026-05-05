@@ -212,7 +212,7 @@ export function Step1EventDetails({
           />
         )}
 
-        {/* Registration Dates */}
+        {/* Registration Dates & Times */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             // @ts-ignore
@@ -242,9 +242,37 @@ export function Step1EventDetails({
               </FormItem>
             )}
           />
+          <FormField
+            // @ts-ignore
+            control={form.control}
+            name="registration_start_time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Registration Start Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            // @ts-ignore
+            control={form.control}
+            name="registration_end_time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Registration End Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-        {/* Event Dates */}
+        {/* Event Dates & Times */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             // @ts-ignore
@@ -269,6 +297,34 @@ export function Step1EventDetails({
                 <FormLabel>Event End Date</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            // @ts-ignore
+            control={form.control}
+            name="event_start_time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Event Start Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            // @ts-ignore
+            control={form.control}
+            name="event_end_time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Event End Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

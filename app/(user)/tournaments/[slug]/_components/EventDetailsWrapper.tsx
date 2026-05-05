@@ -127,6 +127,10 @@ interface EventDetails {
   end_date: string;
   registration_open_date: string;
   registration_end_date: string;
+  registration_start_time?: string | null;
+  registration_end_time?: string | null;
+  event_start_time?: string | null;
+  event_end_time?: string | null;
   prizepool: string;
   prize_distribution: { [key: string]: number };
   event_rules: string;
@@ -2914,13 +2918,44 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   // Determine if user can register
   const canRegister = eventDetails.is_public || hasValidInvite;
+
+  const combineDateAndTime = (date: string, time?: string | null) => {
+    if (!time) return new Date(date);
+    return new Date(`${date}T${time}`);
+  };
+
+  const now = new Date();
+  const registrationOpenDateTime = combineDateAndTime(
+    eventDetails.registration_open_date,
+    eventDetails.registration_start_time,
+  );
+  const registrationCloseDateTime = combineDateAndTime(
+    eventDetails.registration_end_date,
+    eventDetails.registration_end_time,
+  );
+  const eventStartDateTime = combineDateAndTime(
+    eventDetails.start_date,
+    eventDetails.event_start_time,
+  );
+  const eventEndDateTime = combineDateAndTime(
+    eventDetails.end_date,
+    eventDetails.event_end_time,
+  );
+
+  const isEventEnded = now > eventEndDateTime;
+  const isEventStarted = now >= eventStartDateTime;
+
   const registrationDisabledReason = !canRegister
     ? "Private event - invite required"
     : eventDetails.event_status !== "upcoming"
       ? "Registration Closed"
-      : new Date() > new Date(eventDetails.registration_end_date)
-        ? "Registration Closed"
-        : null;
+      : isEventEnded
+        ? "Event Has Ended"
+        : now < registrationOpenDateTime
+          ? "Registration Not Open Yet"
+          : now > registrationCloseDateTime
+            ? "Registration Closed"
+            : null;
 
   const statusVariant: Record<
     string,
@@ -3134,7 +3169,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               </Button>
 
               {/* Show Edit and Leave buttons only if event hasn't started */}
-              {new Date(eventDetails.start_date) > new Date() && (
+              {!isEventStarted && (
                 <>
                   {eventDetails.participant_type === "squad" && (
                     <EditRosterModal
@@ -3162,14 +3197,23 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   window.open(eventDetails.registration_link, "_blank"),
                 )
               }
-              disabled={eventDetails.event_status !== "upcoming"}
+              disabled={
+                eventDetails.event_status !== "upcoming" ||
+                isEventEnded ||
+                now < registrationOpenDateTime ||
+                now > registrationCloseDateTime
+              }
               className="w-full"
             >
               {!token
                 ? "Login to Register"
-                : eventDetails.event_status === "upcoming"
-                  ? "Register (External Link)"
-                  : "Registration Closed"}
+                : isEventEnded
+                  ? "Event Has Ended"
+                  : now < registrationOpenDateTime
+                    ? "Registration Not Open Yet"
+                    : now > registrationCloseDateTime || eventDetails.event_status !== "upcoming"
+                      ? "Registration Closed"
+                      : "Register (External Link)"}
             </Button>
           ) : (
             <Button

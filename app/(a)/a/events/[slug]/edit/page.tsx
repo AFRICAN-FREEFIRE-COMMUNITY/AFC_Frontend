@@ -224,6 +224,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       publish_to_tournaments: false,
       publish_to_news: false,
       save_to_drafts: false,
+      event_start_time: "",
+      event_end_time: "",
+      registration_start_time: "",
+      registration_end_time: "",
     },
   });
 
@@ -285,6 +289,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           registration_end_date: eventDetails.registration_end_date,
           registration_link: eventDetails.registration_link || "",
           event_status: eventDetails.event_status,
+          event_start_time: eventDetails.event_start_time || "",
+          event_end_time: eventDetails.event_end_time || "",
+          registration_start_time: eventDetails.registration_start_time || "",
+          registration_end_time: eventDetails.registration_end_time || "",
           publish_to_tournaments: eventDetails.tournament_tier !== "",
           publish_to_news: false,
           save_to_drafts: false,

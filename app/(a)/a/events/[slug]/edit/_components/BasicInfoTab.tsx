@@ -503,6 +503,7 @@ export default function BasicInfoTab({
           )}
         />
 
+        {/* Registration Dates & Times */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -510,7 +511,9 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Registration Opens</FormLabel>
-                <Input type="date" {...field} />
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -521,18 +524,52 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Registration Closes</FormLabel>
-                <Input type="date" {...field} />
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
             control={form.control}
+            name="registration_start_time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Registration Start Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="registration_end_time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Registration End Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Event Dates & Times */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
             name="start_date"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Event Start Date</FormLabel>
-                <Input type="date" {...field} />
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -543,7 +580,35 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Event End Date</FormLabel>
-                <Input type="date" {...field} />
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="event_start_time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Event Start Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="event_end_time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Event End Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

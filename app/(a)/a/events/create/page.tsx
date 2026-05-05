@@ -111,6 +111,10 @@ export default function CreateEventPage() {
       is_waitlist_enabled: false,
       waitlist_capacity: undefined,
       waitlist_discord_role_id: "",
+      event_start_time: "",
+      event_end_time: "",
+      registration_start_time: "",
+      registration_end_time: "",
     },
   });
 
@@ -238,6 +242,10 @@ export default function CreateEventPage() {
           is_waitlist_enabled: d["is_waitlist enabled"] || false,
           waitlist_capacity: d.waitlist_capacity ?? undefined,
           waitlist_discord_role_id: d["waitlist discord_ role_id"] || "",
+          event_start_time: d.event_start_time?.slice(0, 5) || "",
+          event_end_time: d.event_end_time?.slice(0, 5) || "",
+          registration_start_time: d.registration_start_time?.slice(0, 5) || "",
+          registration_end_time: d.registration_end_time?.slice(0, 5) || "",
         });
 
         setStageNames(mappedStages.map((s) => s.stage_name));
@@ -610,6 +618,10 @@ export default function CreateEventPage() {
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
         formData.append("registration_link", data.registration_link || "");
+        if (data.event_start_time) formData.append("event_start_time", data.event_start_time);
+        if (data.event_end_time) formData.append("event_end_time", data.event_end_time);
+        if (data.registration_start_time) formData.append("registration_start_time", data.registration_start_time);
+        if (data.registration_end_time) formData.append("registration_end_time", data.registration_end_time);
         formData.append(
           "registration_restriction",
           data?.registration_restriction ?? "none",

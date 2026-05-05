@@ -45,7 +45,10 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [uploading, startUpload] = useTransition();
 
+  const matchId = match?.match_id;
+
   const fetchImages = useCallback(async () => {
+    if (!matchId) return;
     setLoadingImages(true);
     try {
       const res = await fetch(
@@ -56,7 +59,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ match_id: match.match_id }),
+          body: JSON.stringify({ match_id: matchId }),
         },
       );
       const data = await res.json();
@@ -70,7 +73,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
     } finally {
       setLoadingImages(false);
     }
-  }, [match.match_id, token]);
+  }, [matchId, token]);
 
   useEffect(() => {
     fetchImages();
@@ -100,11 +103,11 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
   };
 
   const handleUpload = () => {
-    if (pendingFiles.length === 0) return;
+    if (pendingFiles.length === 0 || !matchId) return;
 
     startUpload(async () => {
       const formData = new FormData();
-      formData.append("match_id", String(match.match_id));
+      formData.append("match_id", String(matchId));
       pendingFiles.forEach((f) => formData.append("images", f));
 
       try {
@@ -162,7 +165,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
   return (
     <Card className="gap-0">
       <CardHeader>
-        <CardTitle>{match.match_name}: Image Upload</CardTitle>
+        <CardTitle>{match?.match_name ?? "Match"}: Image Upload</CardTitle>
         <CardDescription>
           Upload screenshots of match results. Existing images are shown below.
         </CardDescription>

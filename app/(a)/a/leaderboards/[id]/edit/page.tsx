@@ -43,7 +43,17 @@ import {
   IconChevronDown,
   IconChevronRight,
   IconUpload,
+  IconCopy,
 } from "@tabler/icons-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -246,6 +256,7 @@ export default function EditLeaderboardPage({
     Record<number, MatchScoringConfig>
   >({});
   const [savingMatchScoring, setSavingMatchScoring] = useState(false);
+  const [applyingToAll, setApplyingToAll] = useState(false);
 
   // ── Data fetching ───────────────────────────────────────────────────────────
 
@@ -392,6 +403,15 @@ export default function EditLeaderboardPage({
   const matchLeaderboard = [...(currentMatch?.stats ?? [])].sort(
     (a, b) => b.effective_total - a.effective_total,
   );
+
+  // Match ID lists for batch scoring apply
+  const groupMatchIds = groupMatches.map((m) => m.match_id);
+  const allMatchIds: number[] =
+    eventData?.stages?.flatMap((s: any) =>
+      (s.groups ?? []).flatMap((g: any) =>
+        (g.matches ?? []).map((m: any) => m.match_id as number),
+      ),
+    ) ?? [];
 
   // ── Edit row helpers ─────────────────────────────────────────────────────────
 
@@ -649,6 +669,83 @@ export default function EditLeaderboardPage({
       toast.error(err.message || "Failed to update scoring");
     } finally {
       setSavingMatchScoring(false);
+    }
+  };
+
+  // ── Apply scoring config to multiple matches ─────────────────────────────────
+
+  const handleApplyScoringToMatches = async (
+    matchIds: number[],
+    label: string,
+  ) => {
+    if (selectedMatchId === null) return;
+    const config = matchScoring[selectedMatchId];
+    if (!config) return;
+
+    const placementPointsObj: Record<string, number> = {};
+    config.ranks.forEach((r, idx) => {
+      placementPointsObj[(idx + 1).toString()] = parseFloat(r.val) || 0;
+    });
+
+    const scoringSettings = {
+      kill_point: parseFloat(config.killPoint) || 0,
+      placement_points: placementPointsObj,
+      points_per_assist: parseFloat(config.pointsPerAssist) || 0,
+      points_per_1000_damage: parseFloat(config.pointsPer1000Damage) || 0,
+    };
+
+    setApplyingToAll(true);
+    try {
+      const results = await Promise.allSettled(
+        matchIds.map((matchId) =>
+          fetch(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-scoring-config/`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                match_id: matchId,
+                scoring_settings: scoringSettings,
+              }),
+            },
+          ),
+        ),
+      );
+
+      const failed = results.filter((r) => r.status === "rejected").length;
+
+      // Update local state for any matches already loaded in the current group
+      setMatchScoring((prev) => {
+        const updated = { ...prev };
+        for (const matchId of matchIds) {
+          if (matchId in updated) {
+            updated[matchId] = {
+              killPoint: config.killPoint,
+              pointsPerAssist: config.pointsPerAssist,
+              pointsPer1000Damage: config.pointsPer1000Damage,
+              ranks: config.ranks.map((r) => ({ ...r })),
+            };
+          }
+        }
+        return updated;
+      });
+
+      if (failed > 0) {
+        toast.warning(
+          `Applied to ${matchIds.length - failed} match${matchIds.length - failed !== 1 ? "es" : ""}. ${failed} failed.`,
+        );
+      } else {
+        toast.success(
+          `Scoring applied to ${matchIds.length} match${matchIds.length !== 1 ? "es" : ""} — ${label}!`,
+        );
+      }
+    } catch {
+      toast.error("Failed to apply scoring configuration");
+    } finally {
+      setApplyingToAll(false);
     }
   };
 
@@ -1581,17 +1678,132 @@ export default function EditLeaderboardPage({
                           </div>
                         </div>
 
-                        <div className="flex justify-end">
+                        <div className="flex justify-end gap-2">
+                          {/* Apply to multiple matches */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="outline"
+                                disabled={applyingToAll || savingMatchScoring}
+                              >
+                                {applyingToAll ? (
+                                  <span className="flex items-center gap-2">
+                                    <IconLoader2 size={14} className="animate-spin" />
+                                    Applying…
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-2">
+                                    <IconCopy size={14} />
+                                    Apply to…
+                                    <IconChevronDown size={12} />
+                                  </span>
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-72 max-h-96 overflow-y-auto">
+                              <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                                Copy current config to…
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+
+                              {/* Current group — quick access */}
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleApplyScoringToMatches(
+                                    groupMatchIds,
+                                    `this group`,
+                                  )
+                                }
+                              >
+                                <IconMap size={14} className="mr-2 text-muted-foreground" />
+                                This group
+                                <span className="ml-auto text-xs text-muted-foreground">
+                                  {groupMatchIds.length} match{groupMatchIds.length !== 1 ? "es" : ""}
+                                </span>
+                              </DropdownMenuItem>
+
+                              <DropdownMenuSeparator />
+
+                              {/* Dynamic: every stage + each of its groups */}
+                              {(eventData?.stages ?? []).map((stage: any) => {
+                                const stageIds: number[] =
+                                  (stage.groups ?? []).flatMap((g: any) =>
+                                    (g.matches ?? []).map((m: any) => m.match_id as number),
+                                  );
+                                return (
+                                  <DropdownMenuGroup key={stage.stage_id}>
+                                    {/* Stage row */}
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleApplyScoringToMatches(
+                                          stageIds,
+                                          stage.stage_name,
+                                        )
+                                      }
+                                    >
+                                      <IconTrophy size={14} className="mr-2 text-muted-foreground" />
+                                      <span className="font-medium">{stage.stage_name}</span>
+                                      <span className="ml-auto text-xs text-muted-foreground">
+                                        {stageIds.length} match{stageIds.length !== 1 ? "es" : ""}
+                                      </span>
+                                    </DropdownMenuItem>
+
+                                    {/* Group rows (indented) */}
+                                    {(stage.groups ?? []).map((group: any) => {
+                                      const groupIds: number[] = (group.matches ?? []).map(
+                                        (m: any) => m.match_id as number,
+                                      );
+                                      return (
+                                        <DropdownMenuItem
+                                          key={group.group_id}
+                                          className="pl-8"
+                                          onClick={() =>
+                                            handleApplyScoringToMatches(
+                                              groupIds,
+                                              `${stage.stage_name} › ${group.group_name}`,
+                                            )
+                                          }
+                                        >
+                                          <IconUsers size={13} className="mr-2 text-muted-foreground" />
+                                          {group.group_name}
+                                          <span className="ml-auto text-xs text-muted-foreground">
+                                            {groupIds.length} match{groupIds.length !== 1 ? "es" : ""}
+                                          </span>
+                                        </DropdownMenuItem>
+                                      );
+                                    })}
+                                  </DropdownMenuGroup>
+                                );
+                              })}
+
+                              <DropdownMenuSeparator />
+
+                              {/* Entire event */}
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleApplyScoringToMatches(
+                                    allMatchIds,
+                                    `entire event`,
+                                  )
+                                }
+                              >
+                                <IconSettings size={14} className="mr-2 text-muted-foreground" />
+                                Entire event
+                                <span className="ml-auto text-xs text-muted-foreground">
+                                  {allMatchIds.length} match{allMatchIds.length !== 1 ? "es" : ""}
+                                </span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+
+                          {/* Save current match only */}
                           <Button
                             onClick={handleSaveMatchScoring}
-                            disabled={savingMatchScoring}
+                            disabled={savingMatchScoring || applyingToAll}
                           >
                             {savingMatchScoring ? (
                               <span className="flex items-center gap-2">
-                                <IconLoader2
-                                  size={14}
-                                  className="animate-spin"
-                                />
+                                <IconLoader2 size={14} className="animate-spin" />
                                 Saving…
                               </span>
                             ) : (
