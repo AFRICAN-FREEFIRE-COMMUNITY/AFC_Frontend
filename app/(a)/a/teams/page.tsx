@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition, useMemo } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Pagination,
   PaginationContent,
@@ -39,11 +40,13 @@ import { BanModal } from "../_components/BanModal";
 import { ITEMS_PER_PAGE } from "@/constants";
 
 const page = () => {
+  const { token } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTier, setFilterTier] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [pending, startTransition] = useTransition();
   const [teams, setTeams] = useState<any>();
+  const [rankingTeams, setRankingTeams] = useState(false);
 
   const fetchTeams = async () => {
     startTransition(async () => {
@@ -105,11 +108,33 @@ const page = () => {
     setCurrentPage(1);
   }, [searchTerm, filterTier]);
 
+  const handleRankTeams = async () => {
+    setRankingTeams(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/rank-teams-into-tiers/`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Teams ranked into tiers successfully!");
+      fetchTeams();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to rank teams.");
+    } finally {
+      setRankingTeams(false);
+    }
+  };
+
   if (pending) return <FullLoader />;
 
   return (
     <div>
-      <PageHeader title="Team Management" />
+      <div className="flex items-center justify-between mb-4">
+        <PageHeader title="Team Management" />
+        <Button onClick={handleRankTeams} disabled={rankingTeams} variant="outline" size="sm">
+          {rankingTeams ? "Ranking..." : "Rank Teams into Tiers"}
+        </Button>
+      </div>
 
       <div className="flex justify-between items-center mb-2">
         <div className="flex flex-col md:flex-row w-full items-start md:items-center gap-2">

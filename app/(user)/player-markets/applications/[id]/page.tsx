@@ -237,6 +237,9 @@ export default function ApplicationDetailPage({
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
   const [actioning, startAction] = useTransition();
+  const [contactInfo, setContactInfo] = useState<{ discord: string; uid: string } | null>(null);
+  const [isUnlockingContact, setIsUnlockingContact] = useState(false);
+  const [isFinalizingTrial, setIsFinalizingTrial] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -319,6 +322,50 @@ export default function ApplicationDetailPage({
         toast.error(err?.response?.data?.message || "Failed to update status.");
       }
     });
+  };
+
+  // ── Unlock contact info ───────────────────────────────────────────────────
+  const handleUnlockContact = async () => {
+    if (!details) return;
+    setIsUnlockingContact(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/get-player-contact/`,
+        { application_id: details.id },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setContactInfo(res.data);
+      setDetails((prev) => prev ? { ...prev, contact_unlocked: true } : prev);
+      toast.success("Contact info unlocked.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to unlock contact.");
+    } finally {
+      setIsUnlockingContact(false);
+    }
+  };
+
+  // ── Finalize trial (accept / reject / extend) ─────────────────────────────
+  const handleFinalizeTrial = async (action: "ACCEPT" | "REJECT" | "EXTEND") => {
+    if (!details) return;
+    setIsFinalizingTrial(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/finalize-trial/`,
+        { application_id: details.id, action },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const statusMap: Record<string, string> = {
+        ACCEPT: "ACCEPTED",
+        REJECT: "REJECTED",
+        EXTEND: "TRIAL_EXTENDED",
+      };
+      setDetails((prev) => prev ? { ...prev, status: statusMap[action] ?? prev.status } : prev);
+      toast.success("Trial updated.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to update trial.");
+    } finally {
+      setIsFinalizingTrial(false);
+    }
   };
 
   // ── Send message ──────────────────────────────────────────────────────────
@@ -521,7 +568,7 @@ export default function ApplicationDetailPage({
           </Card>
 
           {/* Contact */}
-          {details.contact_unlocked && chatData && (
+          {isTeamSide && (
             <Card>
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-2">
@@ -530,10 +577,39 @@ export default function ApplicationDetailPage({
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-xs space-y-1.5">
-                <div>
-                  <p className="text-muted-foreground">Player IGN</p>
-                  <p className="font-medium">{chatData.player}</p>
-                </div>
+                {contactInfo ? (
+                  <>
+                    <div>
+                      <p className="text-muted-foreground">Discord</p>
+                      <p className="font-medium">{contactInfo.discord}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">UID</p>
+                      <p className="font-medium">{contactInfo.uid}</p>
+                    </div>
+                  </>
+                ) : details.contact_unlocked ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-xs"
+                    onClick={handleUnlockContact}
+                    disabled={isUnlockingContact}
+                  >
+                    <IconBrandDiscord className="h-3.5 w-3.5 mr-1.5" />
+                    {isUnlockingContact ? "Loading..." : "View Contact Info"}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={handleUnlockContact}
+                    disabled={isUnlockingContact || details.status === "PENDING"}
+                  >
+                    <IconBrandDiscord className="h-3.5 w-3.5 mr-1.5" />
+                    {isUnlockingContact ? "Unlocking..." : "Unlock Contact Info"}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
@@ -582,8 +658,8 @@ export default function ApplicationDetailPage({
                     <Button
                       className="w-full"
                       size="sm"
-                      disabled={actioning}
-                      onClick={() => handleAction("ACCEPT")}
+                      disabled={isFinalizingTrial}
+                      onClick={() => handleFinalizeTrial("ACCEPT")}
                     >
                       <IconCheck className="h-4 w-4 mr-1.5" />
                       Accept Player
@@ -592,8 +668,8 @@ export default function ApplicationDetailPage({
                       className="w-full"
                       variant="outline"
                       size="sm"
-                      disabled={actioning}
-                      onClick={() => handleAction("EXTEND_TRIAL")}
+                      disabled={isFinalizingTrial}
+                      onClick={() => handleFinalizeTrial("EXTEND")}
                     >
                       <IconCalendar className="h-4 w-4 mr-1.5" />
                       Extend Trial
@@ -602,8 +678,8 @@ export default function ApplicationDetailPage({
                       className="w-full"
                       variant="destructive"
                       size="sm"
-                      disabled={actioning}
-                      onClick={() => handleAction("REJECT")}
+                      disabled={isFinalizingTrial}
+                      onClick={() => handleFinalizeTrial("REJECT")}
                     >
                       <IconX className="h-4 w-4 mr-1.5" />
                       Reject

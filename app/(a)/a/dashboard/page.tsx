@@ -71,6 +71,9 @@ const page = () => {
   const [activeTournaments, setActiveTournaments] = useState<number>(0);
   const [publishedNews, setPublishedNews] = useState<number>(0);
   const [recentActivities, setRecentActivities] = useState([]);
+  const [popularFormat, setPopularFormat] = useState<string | null>(null);
+  const [killStats, setKillStats] = useState<{ total_solo_kills: number; total_team_kills: number; total_kills: number } | null>(null);
+  const [playerMatchStats, setPlayerMatchStats] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -98,6 +101,17 @@ const page = () => {
           axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-active-tournaments/`),
           axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-published-news/`),
         ]);
+
+        // Fetch additional stats in parallel (non-blocking — failures don't crash the dashboard)
+        Promise.all([
+          axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-most-popular-event-format/`).catch(() => null),
+          axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-kills/`).catch(() => null),
+          axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-tournament-player-match-stats/`).catch(() => null),
+        ]).then(([fmt, kills, stats]) => {
+          if (fmt) setPopularFormat(fmt.data?.most_popular_format ?? null);
+          if (kills) setKillStats(kills.data ?? null);
+          if (stats) setPlayerMatchStats(Array.isArray(stats.data) ? stats.data : []);
+        });
 
         setTotalUsers(users?.data?.total_users);
         setTotalTeams(teams?.data?.teams.length);
@@ -297,6 +311,84 @@ const page = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Kill Stats + Popular Format */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Platform Kills</CardTitle>
+              <IconSwords className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatMoneyInput(killStats?.total_kills ?? 0)}</div>
+              <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                <p>Solo: {formatMoneyInput(killStats?.total_solo_kills ?? 0)}</p>
+                <p>Team: {formatMoneyInput(killStats?.total_team_kills ?? 0)}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Most Popular Event Format</CardTitle>
+              <IconCalendar className="h-4 w-4 text-violet-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold capitalize">
+                {popularFormat ? popularFormat.replace(/_/g, " ") : "—"}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">Based on all events</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Player Match Stats Records</CardTitle>
+              <IconActivity className="h-4 w-4 text-emerald-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatMoneyInput(playerMatchStats.length)}</div>
+              <div className="text-xs text-muted-foreground mt-1">Individual match stat entries</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Top Player Match Stats */}
+        {playerMatchStats.length > 0 && (
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <IconSwords className="h-4 w-4" />
+                Top Player Match Stats (by Kills)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Player</TableHead>
+                    <TableHead>Kills</TableHead>
+                    <TableHead>Damage</TableHead>
+                    <TableHead>Assists</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...playerMatchStats]
+                    .sort((a, b) => b.kills - a.kills)
+                    .slice(0, 10)
+                    .map((s, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">{s.player_username}</TableCell>
+                        <TableCell>{s.kills}</TableCell>
+                        <TableCell>{s.damage}</TableCell>
+                        <TableCell>{s.assists}</TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">

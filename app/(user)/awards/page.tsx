@@ -59,12 +59,16 @@ import {
   Award,
   PartyPopper,
   Crown,
-  Home,
-  Share2,
+  CheckCircle2,
+  Vote,
 } from "lucide-react";
 import Link from "next/link";
 import { FullLoader } from "@/components/Loader";
 import { Badge } from "@/components/ui/badge";
+import axios from "axios";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 // Using your existing interface structure
 interface WinnerNominee {
@@ -400,122 +404,270 @@ const MANUAL_WINNERS: SectionWinners[] = [
 //   },
 // ];
 
+interface VoteSection {
+  id: number;
+  name: string;
+  max_votes: number;
+  categories: VoteCategory[];
+}
+
+interface VoteCategory {
+  category_id: number;
+  name: string;
+  nominees: { id: number; name: string }[];
+}
+
 export default function page() {
+  const { token } = useAuth();
   const [winnersData] = useState<SectionWinners[]>(MANUAL_WINNERS);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>(MANUAL_WINNERS[0].id);
+
+  // Voting state
+  const [voteSections, setVoteSections] = useState<VoteSection[]>([]);
+  const [loadingVote, setLoadingVote] = useState(true);
+  const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
+  const [selections, setSelections] = useState<Record<number, number>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [votedSections, setVotedSections] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    const fetchSections = async () => {
+      try {
+        const res = await axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/sections/all/`);
+        const raw: { id: number; name: string; max_votes: number }[] = res.data?.sections ?? res.data ?? [];
+
+        const withCategories = await Promise.all(
+          raw.map(async (section) => {
+            try {
+              const catRes = await axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/category-nominee/all/`);
+              const allCats: { category_id: number; name: string; section_id: number; nominees: { id: number; name: string }[] }[] =
+                catRes.data?.categories ?? catRes.data ?? [];
+              const categories = allCats.filter((c) => c.section_id === section.id);
+              return { ...section, categories };
+            } catch {
+              return { ...section, categories: [] };
+            }
+          }),
+        );
+        setVoteSections(withCategories.filter((s) => s.categories.length > 0));
+        if (withCategories.length > 0) setActiveSectionId(withCategories[0].id);
+      } catch {
+        // voting not available
+      } finally {
+        setLoadingVote(false);
+      }
+    };
+    fetchSections();
+  }, []);
+
+  const handleSelect = (categoryId: number, nomineeId: number) => {
+    setSelections((prev) => ({ ...prev, [categoryId]: nomineeId }));
+  };
+
+  const handleSubmitVotes = async (sectionId: number) => {
+    if (!token) { toast.error("Please log in to vote."); return; }
+    const section = voteSections.find((s) => s.id === sectionId);
+    if (!section) return;
+    const votes = section.categories
+      .filter((c) => selections[c.category_id] !== undefined)
+      .map((c) => ({ category_id: c.category_id, nominee_id: selections[c.category_id] }));
+    if (votes.length === 0) { toast.error("Select at least one nominee."); return; }
+    setSubmitting(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/votes/submit/`,
+        { section_id: sectionId, votes },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Votes submitted!");
+      setVotedSections((prev) => new Set(prev).add(sectionId));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to submit votes.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="py-10">
-      <div>
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-              NFCA 2025 WINNERS
-            </h1>
-            <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />
-          </div>
-
-          <p className="text-muted-foreground text-base max-w-2xl mx-auto mb-8">
-            The people have spoken. Join us in celebrating the elite creators
-            and players who defined excellence in the Nigerian Free Fire
-            community this year.
-          </p>
-
-          {/* <div className="flex flex-wrap justify-center gap-4">
-            <Button className="rounded-full" asChild variant="default">
-              <Link href="/home">
-                <Home /> Home
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-full"
-              onClick={() => window.print()}
-            >
-              <Share2 /> Share Results
-            </Button>
-          </div> */}
+      <div className="text-center mb-10">
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+            NFCA 2025
+          </h1>
+          <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />
         </div>
+        <p className="text-muted-foreground text-base max-w-2xl mx-auto">
+          Nigerian Free Fire Community Awards — celebrate the best creators and players in the community.
+        </p>
       </div>
 
-      <main className="mt-10">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full max-w-md mx-auto mb-12">
+      <Tabs defaultValue={voteSections.length > 0 ? "vote" : "winners"} className="w-full">
+        <TabsList className={`w-full max-w-xs mx-auto mb-8 ${voteSections.length > 0 ? "" : "hidden"}`}>
+          {voteSections.length > 0 && (
+            <TabsTrigger value="vote" className="flex-1">
+              <Vote className="h-4 w-4 mr-1.5" />
+              Vote
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="winners" className="flex-1">
+            <Trophy className="h-4 w-4 mr-1.5" />
+            Winners
+          </TabsTrigger>
+        </TabsList>
+
+        {/* ── Vote Tab ── */}
+        {voteSections.length > 0 && (
+          <TabsContent value="vote">
+            {loadingVote ? (
+              <div className="text-center py-16 text-muted-foreground text-sm">Loading...</div>
+            ) : (
+              <div className="space-y-6">
+                {voteSections.length > 1 && (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {voteSections.map((s) => (
+                      <Button
+                        key={s.id}
+                        size="sm"
+                        variant={activeSectionId === s.id ? "default" : "outline"}
+                        onClick={() => setActiveSectionId(s.id)}
+                      >
+                        {votedSections.has(s.id) && <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-green-400" />}
+                        {s.name}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                {voteSections
+                  .filter((s) => s.id === activeSectionId)
+                  .map((section) => (
+                    <div key={section.id}>
+                      {votedSections.has(section.id) ? (
+                        <Card className="border-green-700/40 bg-green-900/10 text-center py-10">
+                          <CardContent>
+                            <CheckCircle2 className="h-12 w-12 text-green-400 mx-auto mb-3" />
+                            <p className="font-semibold text-green-400">Votes submitted for {section.name}!</p>
+                            <p className="text-xs text-muted-foreground mt-1">Thank you for voting.</p>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <>
+                          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {section.categories.map((category) => (
+                              <Card key={category.category_id} className="border-primary/20">
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="text-sm font-semibold">{category.name}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-1.5">
+                                  {category.nominees.map((nominee) => {
+                                    const selected = selections[category.category_id] === nominee.id;
+                                    return (
+                                      <button
+                                        key={nominee.id}
+                                        onClick={() => handleSelect(category.category_id, nominee.id)}
+                                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors border ${
+                                          selected
+                                            ? "bg-primary/20 border-primary text-primary font-medium"
+                                            : "border-input hover:bg-muted"
+                                        }`}
+                                      >
+                                        {selected && <CheckCircle2 className="h-3.5 w-3.5 inline mr-1.5" />}
+                                        {nominee.name}
+                                      </button>
+                                    );
+                                  })}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                          <div className="flex justify-center pt-4">
+                            <Button
+                              onClick={() => handleSubmitVotes(section.id)}
+                              disabled={submitting}
+                              className="min-w-[160px]"
+                            >
+                              {submitting ? "Submitting..." : `Submit Votes for ${section.name}`}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </TabsContent>
+        )}
+
+        {/* ── Winners Tab ── */}
+        <TabsContent value="winners">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full max-w-md mx-auto mb-12">
+              {winnersData.map((section) => (
+                <TabsTrigger
+                  key={section.id}
+                  value={section.name.toLowerCase().replace(/\s+/g, "-")}
+                >
+                  {section.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
             {winnersData.map((section) => (
-              <TabsTrigger
+              <TabsContent
                 key={section.id}
                 value={section.name.toLowerCase().replace(/\s+/g, "-")}
               >
-                {section.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {winnersData.map((section) => (
-            <TabsContent
-              key={section.id}
-              value={section.name.toLowerCase().replace(/\s+/g, "-")}
-            >
-              <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                {section.categories.map((category) => (
-                  <Card
-                    key={category.id}
-                    className="relative overflow-hidden border-2 border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300 group"
-                  >
-                    {/* Decorative Background Icon */}
-                    <PartyPopper className="absolute -right-4 -bottom-4 h-24 w-24 text-primary/5 group-hover:text-primary/10 transition-colors" />
-
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary/70">
-                        <Award className="h-4 w-4" />
-                        {category.name}
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="pt-4">
-                      <div className="relative z-10">
-                        <h3 className="text-xl md:text-xl font-semibold text-foreground mb-1">
-                          {category.winner.name}
-                        </h3>
-                        <Badge className="flex items-center text-yellow-600 bg-yellow-500/10">
-                          <Trophy className="h-4 w-4 mr-2" />
-                          Official Winner
-                        </Badge>
-                      </div>
-
-                      {/* Stats/Votes bar (Optional) */}
-                      <div className="mt-6 pt-4 border-t border-muted">
-                        <div className="flex justify-between items-center text-xs text-muted-foreground">
-                          <span>Community Favorite</span>
-                          <div className="flex gap-1">
-                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  {section.categories.map((category) => (
+                    <Card
+                      key={category.id}
+                      className="relative overflow-hidden border-2 border-yellow-500/20 hover:border-yellow-500/50 transition-all duration-300 group"
+                    >
+                      <PartyPopper className="absolute -right-4 -bottom-4 h-24 w-24 text-primary/5 group-hover:text-primary/10 transition-colors" />
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary/70">
+                          <Award className="h-4 w-4" />
+                          {category.name}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        <div className="relative z-10">
+                          <h3 className="text-xl font-semibold text-foreground mb-1">
+                            {category.winner.name}
+                          </h3>
+                          <Badge className="flex items-center text-yellow-600 bg-yellow-500/10">
+                            <Trophy className="h-4 w-4 mr-2" />
+                            Official Winner
+                          </Badge>
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-muted">
+                          <div className="flex justify-between items-center text-xs text-muted-foreground">
+                            <span>Community Favorite</span>
+                            <div className="flex gap-1">
+                              <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                              <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                              <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
 
-        {/* Closing Message */}
-        <div className="mt-20 text-center p-12 rounded-3xl bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/10">
-          <Trophy className="h-12 w-12 text-primary mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">
-            Congratulations to all Nominees!
-          </h2>
-          <p className="text-muted-foreground">
-            Every participant has contributed to making the Nigerian Free Fire
-            community what it is today. See you in NFCA 2026!
-          </p>
-        </div>
-      </main>
+          <div className="mt-20 text-center p-12 rounded-3xl bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/10">
+            <Trophy className="h-12 w-12 text-primary mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Congratulations to all Nominees!</h2>
+            <p className="text-muted-foreground">
+              Every participant has contributed to making the Nigerian Free Fire community what it is today. See you in NFCA 2026!
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

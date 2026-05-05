@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -59,6 +59,7 @@ import {
   IconShare,
   IconCopy,
   IconTrash,
+  IconPencil,
   IconBrandX,
   IconBrandWhatsapp,
   IconBrandFacebook,
@@ -332,7 +333,7 @@ function CountryMultiSelect({
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
-export default function PlayerMarketPage() {
+function PlayerMarketPage() {
   const { token, user } = useAuth();
 
   const [activeTab, setActiveTab] = useState("teams");
@@ -390,6 +391,28 @@ export default function PlayerMarketPage() {
   // My Posts
   const [isDeletingPost, setIsDeletingPost] = useState<number | null>(null);
 
+  // Edit Post
+  const [editPostOpen, setEditPostOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<{ id: number; type: "team" | "player" } | null>(null);
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [isLoadingEditPost, setIsLoadingEditPost] = useState(false);
+
+  // Edit form state — Team
+  const [editTeamRoles, setEditTeamRoles] = useState<string[]>([]);
+  const [editTeamMinTier, setEditTeamMinTier] = useState("");
+  const [editTeamCommitment, setEditTeamCommitment] = useState("");
+  const [editTeamCountries, setEditTeamCountries] = useState<string[]>([]);
+  const [editTeamCriteria, setEditTeamCriteria] = useState("");
+  const [editTeamExpiry, setEditTeamExpiry] = useState("");
+
+  // Edit form state — Player
+  const [editPlayerPrimary, setEditPlayerPrimary] = useState("");
+  const [editPlayerSecondary, setEditPlayerSecondary] = useState("");
+  const [editPlayerAvailability, setEditPlayerAvailability] = useState("");
+  const [editPlayerCountries, setEditPlayerCountries] = useState<string[]>([]);
+  const [editPlayerInfo, setEditPlayerInfo] = useState("");
+  const [editPlayerExpiry, setEditPlayerExpiry] = useState("");
+
   // inside your component, near the top with other hooks:
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -432,8 +455,11 @@ export default function PlayerMarketPage() {
     setIsDeletingPost(postId);
     try {
       await axios.delete(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/delete-post/${postId}/`,
-        { headers: { Authorization: `Bearer ${token}` } },
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/delete-post/`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { post_id: postId },
+        },
       );
       setTeamPosts((prev) => prev.filter((p) => p.id !== postId));
       setPlayerPosts((prev) => prev.filter((p) => p.id !== postId));
@@ -442,6 +468,144 @@ export default function PlayerMarketPage() {
       toast.error("Failed to delete post.");
     } finally {
       setIsDeletingPost(null);
+    }
+  };
+
+  const openEditPost = async (postId: number, type: "team" | "player") => {
+    setIsLoadingEditPost(true);
+    try {
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/post-details/`,
+        { params: { post_id: postId } },
+      );
+      const data = res.data;
+      if (type === "team") {
+        setEditTeamRoles(data.roles_needed ?? []);
+        setEditTeamMinTier(data.minimum_tier_required ?? "");
+        setEditTeamCommitment(data.commitment_type ?? "");
+        setEditTeamCountries(
+          (data.countries ?? []).map((c: { name: string }) => c.name),
+        );
+        setEditTeamCriteria(data.recruitment_criteria ?? "");
+        setEditTeamExpiry(data.post_expiry_date ?? "");
+      } else {
+        setEditPlayerPrimary(data.primary_role ?? "");
+        setEditPlayerSecondary(data.secondary_role ?? "");
+        setEditPlayerAvailability(data.availability_type ?? "");
+        setEditPlayerCountries(
+          (data.countries ?? []).map((c: { name: string }) => c.name),
+        );
+        setEditPlayerInfo(data.additional_info ?? "");
+        setEditPlayerExpiry(data.post_expiry_date ?? "");
+      }
+      setEditingPost({ id: postId, type });
+      setEditPostOpen(true);
+    } catch {
+      toast.error("Failed to load post details.");
+    } finally {
+      setIsLoadingEditPost(false);
+    }
+  };
+
+  const handleEditTeamPost = async () => {
+    if (!editingPost) return;
+    if (
+      !editTeamRoles.length ||
+      !editTeamMinTier ||
+      !editTeamCommitment ||
+      !editTeamCountries.length ||
+      !editTeamExpiry
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    setIsEditSubmitting(true);
+    try {
+      await axios.patch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/edit-post/`,
+        {
+          post_id: editingPost.id,
+          post_expiry_date: editTeamExpiry,
+          roles_needed: editTeamRoles,
+          minimum_tier_required: editTeamMinTier,
+          commitment_type: editTeamCommitment,
+          recruitment_criteria: editTeamCriteria,
+          country_names: editTeamCountries,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Post updated successfully!");
+      setTeamPosts((prev) =>
+        prev.map((p) =>
+          p.id === editingPost.id
+            ? {
+                ...p,
+                roles_needed: editTeamRoles,
+                minimum_tier_required: editTeamMinTier,
+                commitment_type: editTeamCommitment,
+                expiry: editTeamExpiry,
+                country: editTeamCountries[0] ?? p.country,
+              }
+            : p,
+        ),
+      );
+      setEditPostOpen(false);
+      setEditingPost(null);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to update post.");
+    } finally {
+      setIsEditSubmitting(false);
+    }
+  };
+
+  const handleEditPlayerPost = async () => {
+    if (!editingPost) return;
+    if (
+      !editPlayerPrimary ||
+      !editPlayerAvailability ||
+      !editPlayerCountries.length ||
+      !editPlayerExpiry
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    setIsEditSubmitting(true);
+    try {
+      await axios.patch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/edit-post/`,
+        {
+          post_id: editingPost.id,
+          post_expiry_date: editPlayerExpiry,
+          primary_role: editPlayerPrimary,
+          secondary_role: editPlayerSecondary,
+          availability_type: editPlayerAvailability,
+          additional_info: editPlayerInfo,
+          country_names: editPlayerCountries,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Post updated successfully!");
+      setPlayerPosts((prev) =>
+        prev.map((p) =>
+          p.id === editingPost.id
+            ? {
+                ...p,
+                primary_role: editPlayerPrimary,
+                secondary_role: editPlayerSecondary,
+                availability_type: editPlayerAvailability,
+                additional_info: editPlayerInfo,
+                expiry: editPlayerExpiry,
+                country: editPlayerCountries[0] ?? p.country,
+              }
+            : p,
+        ),
+      );
+      setEditPostOpen(false);
+      setEditingPost(null);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to update post.");
+    } finally {
+      setIsEditSubmitting(false);
     }
   };
 
@@ -1696,18 +1860,30 @@ export default function PlayerMarketPage() {
                           <Separator />
 
                           <div className="flex items-center justify-between">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-xs text-destructive hover:text-destructive"
-                              disabled={isDeletingPost === post.id}
-                              onClick={() => handleDeletePost(post.id)}
-                            >
-                              <IconTrash className="h-3.5 w-3.5 mr-1" />
-                              {isDeletingPost === post.id
-                                ? "Deleting..."
-                                : "Delete"}
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs text-destructive hover:text-destructive"
+                                disabled={isDeletingPost === post.id}
+                                onClick={() => handleDeletePost(post.id)}
+                              >
+                                <IconTrash className="h-3.5 w-3.5 mr-1" />
+                                {isDeletingPost === post.id
+                                  ? "Deleting..."
+                                  : "Delete"}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs"
+                                disabled={isLoadingEditPost}
+                                onClick={() => openEditPost(post.id, "team")}
+                              >
+                                <IconPencil className="h-3.5 w-3.5 mr-1" />
+                                {isLoadingEditPost ? "Loading..." : "Edit"}
+                              </Button>
+                            </div>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -1791,18 +1967,30 @@ export default function PlayerMarketPage() {
                           <Separator />
 
                           <div className="flex items-center justify-between">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-xs text-destructive hover:text-destructive"
-                              disabled={isDeletingPost === post.id}
-                              onClick={() => handleDeletePost(post.id)}
-                            >
-                              <IconTrash className="h-3.5 w-3.5 mr-1" />
-                              {isDeletingPost === post.id
-                                ? "Deleting..."
-                                : "Delete"}
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs text-destructive hover:text-destructive"
+                                disabled={isDeletingPost === post.id}
+                                onClick={() => handleDeletePost(post.id)}
+                              >
+                                <IconTrash className="h-3.5 w-3.5 mr-1" />
+                                {isDeletingPost === post.id
+                                  ? "Deleting..."
+                                  : "Delete"}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs"
+                                disabled={isLoadingEditPost}
+                                onClick={() => openEditPost(post.id, "player")}
+                              >
+                                <IconPencil className="h-3.5 w-3.5 mr-1" />
+                                {isLoadingEditPost ? "Loading..." : "Edit"}
+                              </Button>
+                            </div>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -2099,6 +2287,254 @@ export default function PlayerMarketPage() {
         </DialogContent>
       </Dialog>
 
+      {/* ─── Edit Post Dialog ────────────────────────────────────────── */}
+      <Dialog
+        open={editPostOpen}
+        onOpenChange={(open) => {
+          setEditPostOpen(open);
+          if (!open) setEditingPost(null);
+        }}
+      >
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingPost?.type === "team"
+                ? "Edit Team Recruitment Post"
+                : "Edit Player Availability Post"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingPost?.type === "team"
+                ? "Update the details for your team recruitment post."
+                : "Update your availability post."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Team Edit Form */}
+          {editingPost?.type === "team" && (
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label>Roles Needed *</Label>
+                <ToggleGroup
+                  type="multiple"
+                  variant="outline"
+                  value={editTeamRoles}
+                  onValueChange={setEditTeamRoles}
+                  className="flex flex-wrap justify-start"
+                >
+                  {ROLES.map((role) => (
+                    <ToggleGroupItem
+                      key={role.value}
+                      value={role.value}
+                      className="text-xs"
+                    >
+                      {role.label}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Minimum Tier *</Label>
+                  <Select
+                    value={editTeamMinTier}
+                    onValueChange={setEditTeamMinTier}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select tier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIERS.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Commitment Level *</Label>
+                  <Select
+                    value={editTeamCommitment}
+                    onValueChange={setEditTeamCommitment}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COMMITMENTS.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Countries *
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">
+                    (select countries you want applicants from)
+                  </span>
+                </Label>
+                <CountryMultiSelect
+                  value={editTeamCountries}
+                  onChange={setEditTeamCountries}
+                  placeholder="Select countries..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Expiry Date *</Label>
+                <Input
+                  type="date"
+                  value={editTeamExpiry}
+                  onChange={(e) => setEditTeamExpiry(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Recruitment Criteria</Label>
+                <Textarea
+                  placeholder="Describe what you're looking for in a teammate..."
+                  rows={4}
+                  value={editTeamCriteria}
+                  onChange={(e) => setEditTeamCriteria(e.target.value)}
+                />
+              </div>
+
+              <DialogFooter className="gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditPostOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleEditTeamPost}
+                  disabled={isEditSubmitting}
+                >
+                  {isEditSubmitting ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+
+          {/* Player Edit Form */}
+          {editingPost?.type === "player" && (
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Primary Role *</Label>
+                  <Select
+                    value={editPlayerPrimary}
+                    onValueChange={setEditPlayerPrimary}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLES.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>
+                          {r.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Secondary Role</Label>
+                  <Select
+                    value={editPlayerSecondary}
+                    onValueChange={setEditPlayerSecondary}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLES.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>
+                          {r.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Availability *</Label>
+                <Select
+                  value={editPlayerAvailability}
+                  onValueChange={setEditPlayerAvailability}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select availability" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABILITIES.map((a) => (
+                      <SelectItem key={a.value} value={a.value}>
+                        {a.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Countries *
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">
+                    (select countries you're open to join from)
+                  </span>
+                </Label>
+                <CountryMultiSelect
+                  value={editPlayerCountries}
+                  onChange={setEditPlayerCountries}
+                  placeholder="Select countries..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Expiry Date *</Label>
+                <Input
+                  type="date"
+                  value={editPlayerExpiry}
+                  onChange={(e) => setEditPlayerExpiry(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Additional Info</Label>
+                <Textarea
+                  placeholder="Tell teams about yourself, your experience, and what you're looking for..."
+                  rows={4}
+                  value={editPlayerInfo}
+                  onChange={(e) => setEditPlayerInfo(e.target.value)}
+                />
+              </div>
+
+              <DialogFooter className="gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditPostOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleEditPlayerPost}
+                  disabled={isEditSubmitting}
+                >
+                  {isEditSubmitting ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* ─── View Team Details Dialog ─────────────────────────────────── */}
       <Dialog
         open={!!viewTeam}
@@ -2341,5 +2777,13 @@ export default function PlayerMarketPage() {
         onClose={() => setChatSidebarOpen(false)}
       />
     </div>
+  );
+}
+
+export default function PlayerMarketPageWrapper() {
+  return (
+    <Suspense>
+      <PlayerMarketPage />
+    </Suspense>
   );
 }

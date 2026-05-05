@@ -222,6 +222,8 @@ const Page = ({ params }: Props) => {
   const { token } = useAuth();
   const [player, setPlayer] = useState<PlayerDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loginHistory, setLoginHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const fetchPlayer = async () => {
     try {
@@ -288,6 +290,7 @@ const Page = ({ params }: Props) => {
                 "team-history",
                 "performance-history",
                 "profile-changes",
+                "login-history",
               ].map((tab) => (
                 <TabsTrigger
                   key={tab}
@@ -609,6 +612,63 @@ const Page = ({ params }: Props) => {
                     No profile changes recorded yet.
                   </TableCell>
                 </TableRow>
+              </TableBody>
+            </Table>
+          </TabsContent>
+
+          {/* Login History */}
+          <TabsContent value="login-history">
+            <div className="flex justify-end mb-3">
+              <button
+                className="text-xs text-primary hover:underline"
+                onClick={async () => {
+                  if (!player) return;
+                  setLoadingHistory(true);
+                  try {
+                    const res = await axios.post(
+                      `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-user-login-history/`,
+                      { username: player.name },
+                      { headers: { Authorization: `Bearer ${token}` } },
+                    );
+                    setLoginHistory(res.data?.login_history ?? []);
+                  } catch {
+                    toast.error("Failed to load login history.");
+                  } finally {
+                    setLoadingHistory(false);
+                  }
+                }}
+              >
+                {loadingHistory ? "Loading..." : "Load Login History"}
+              </button>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>IP Address</TableHead>
+                  <TableHead>Country</TableHead>
+                  <TableHead>City</TableHead>
+                  <TableHead>Timestamp</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loginHistory.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      {loadingHistory ? "Loading..." : "No login history loaded yet."}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  loginHistory.map((entry, i) => (
+                    <TableRow key={i}>
+                      <TableCell>{entry.ip_address}</TableCell>
+                      <TableCell>{entry.country ?? "—"}</TableCell>
+                      <TableCell>{entry.city ?? "—"}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TabsContent>

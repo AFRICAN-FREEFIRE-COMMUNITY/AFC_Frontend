@@ -675,6 +675,11 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               Duplicate
             </Link>
           </Button>
+          <Button className="flex-1 lg:flex-none" asChild variant="outline">
+            <Link href={`/a/events/${slug}/ocr`}>
+              OCR Results
+            </Link>
+          </Button>
           <Button className="flex-1 lg:flex-none" asChild>
             <Link href={`/a/events/${slug}/edit`}>
               <IconPencil />
@@ -709,6 +714,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             <TabsTrigger value="stages">Stages</TabsTrigger>
             <TabsTrigger value="prizes">Prizes</TabsTrigger>
             <TabsTrigger value="engagement">Engagement</TabsTrigger>
+            <TabsTrigger value="discord-tools">Discord Tools</TabsTrigger>
           </TabsList>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
@@ -1895,9 +1901,293 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </Card>
           </div>
         </TabsContent>
+
+        {/* ── Discord Tools Tab ── */}
+        <TabsContent value="discord-tools" className="mt-4 space-y-4">
+          {/* Discord role sync tools */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Discord Role Management</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                {
+                  label: "Sync Event Registrations with Discord Roles",
+                  description: "Assign Discord roles to all registered competitors for this event.",
+                  endpoint: `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/sync-event-registrations-with-discord-roles/`,
+                  body: { event_id: eventDetails.event_id },
+                },
+                {
+                  label: "Sync Group Discord Roles",
+                  description: "Assign Discord roles for all groups in all stages of this event.",
+                  endpoint: `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/sync-group-discord-roles/`,
+                  body: { event_id: eventDetails.event_id },
+                },
+                {
+                  label: "Reconcile Group Roles",
+                  description: "Fix any inconsistencies between group membership and Discord roles.",
+                  endpoint: `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/reconcile-group-roles/`,
+                  body: { event_id: eventDetails.event_id },
+                },
+                {
+                  label: "Retry Failed Discord Role Assignments",
+                  description: "Re-attempt all Discord role assignments that previously failed.",
+                  endpoint: `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/retry-failed-discord-roles/`,
+                  body: { event_id: eventDetails.event_id },
+                },
+              ].map((action) => (
+                <DiscordToolButton
+                  key={action.label}
+                  label={action.label}
+                  description={action.description}
+                  endpoint={action.endpoint}
+                  body={action.body}
+                  token={token}
+                />
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Registration utilities */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Registration Utilities</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <RemoveNonNigeriaButton eventId={eventDetails.event_id} token={token} />
+            </CardContent>
+          </Card>
+
+          {/* Stage / Group user ID lookup */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Stage & Group User ID Lookup</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {adminDetails.stages.map((stage: any) => (
+                <div key={stage.stage_id} className="space-y-2">
+                  <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                    <div>
+                      <p className="text-sm font-medium">{stage.stage_name}</p>
+                      <p className="text-xs text-muted-foreground">Get all user IDs in this stage</p>
+                    </div>
+                    <UserIdButton
+                      label="Stage IDs"
+                      endpoint={`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-user-id-in-stage/`}
+                      body={{ stage_id: stage.stage_id }}
+                      token={token}
+                    />
+                  </div>
+                  {stage.groups?.map((group: any) => (
+                    <div key={group.group_id} className="ml-4 space-y-2">
+                      <div className="flex items-center justify-between gap-4 rounded-lg border border-dashed p-3">
+                        <div>
+                          <p className="text-sm font-medium">{group.group_name}</p>
+                          <p className="text-xs text-muted-foreground">Get user IDs · Delete group notifications</p>
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          <UserIdButton
+                            label="Group IDs"
+                            endpoint={`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-user-id-in-group/`}
+                            body={{ group_id: group.group_id }}
+                            token={token}
+                          />
+                          <DiscordToolButton
+                            label="Delete Notifs"
+                            description=""
+                            endpoint={`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/delete-notifications-from-users-in-a-group/`}
+                            body={{ group_id: group.group_id }}
+                            token={token}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+              {adminDetails.stages.length === 0 && (
+                <p className="text-xs text-muted-foreground">No stages defined for this event.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
 };
+
+function RemoveNonNigeriaButton({ eventId, token }: { eventId: number; token: string | null }) {
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState<any[] | null>(null);
+  const [wouldRemove, setWouldRemove] = useState<number | null>(null);
+
+  const runDryRun = async () => {
+    setLoading(true);
+    setPreview(null);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/remove-non-nigeria-registered-competitors/`,
+        { event_id: String(eventId), dry_run: "true" },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setWouldRemove(res.data?.would_remove_count ?? 0);
+      setPreview(res.data?.preview_first_50 ?? []);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to run dry run.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runActual = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/remove-non-nigeria-registered-competitors/`,
+        { event_id: String(eventId), dry_run: "false" },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(res.data?.message ?? "Non-Nigeria competitors removed.");
+      setPreview(null);
+      setWouldRemove(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+        <div className="flex-1">
+          <p className="text-sm font-medium">Remove Non-Nigeria Registered Competitors</p>
+          <p className="text-xs text-muted-foreground">
+            Removes registrations from players whose latest login was outside Nigeria. Run a dry-run preview first.
+          </p>
+          {preview !== null && (
+            <div className="mt-2 space-y-1">
+              <p className="text-xs font-medium text-yellow-500">
+                Dry run: {wouldRemove} registration(s) would be removed
+              </p>
+              {preview.slice(0, 5).map((p, i) => (
+                <p key={i} className="text-xs text-muted-foreground">
+                  {p.user__username} — {p.last_country}
+                </p>
+              ))}
+              {preview.length > 5 && (
+                <p className="text-xs text-muted-foreground">…and {preview.length - 5} more</p>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col gap-2 shrink-0">
+          <Button size="sm" variant="outline" onClick={runDryRun} disabled={loading}>
+            {loading ? <IconLoader2 className="h-4 w-4 animate-spin" /> : "Dry Run"}
+          </Button>
+          {preview !== null && wouldRemove !== null && wouldRemove > 0 && (
+            <Button size="sm" variant="destructive" onClick={runActual} disabled={loading}>
+              Remove {wouldRemove}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UserIdButton({
+  label,
+  endpoint,
+  body,
+  token,
+}: {
+  label: string;
+  endpoint: string;
+  body: object;
+  token: string | null;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [ids, setIds] = useState<string[] | null>(null);
+
+  const fetch = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.post(endpoint, body, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const userIds: string[] = res.data?.user_ids ?? [];
+      setIds(userIds);
+      if (userIds.length > 0) {
+        navigator.clipboard.writeText(userIds.join(", "));
+        toast.success(`${userIds.length} user ID(s) copied to clipboard.`);
+      } else {
+        toast.info("No user IDs found.");
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Button size="sm" variant="outline" onClick={fetch} disabled={loading} className="shrink-0">
+      {loading ? <IconLoader2 className="h-4 w-4 animate-spin" /> : label}
+    </Button>
+  );
+}
+
+function DiscordToolButton({
+  label,
+  description,
+  endpoint,
+  body,
+  token,
+}: {
+  label: string;
+  description: string;
+  endpoint: string;
+  body: object;
+  token: string | null;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const run = async () => {
+    setLoading(true);
+    setResult(null);
+    try {
+      const res = await axios.post(endpoint, body, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setResult(res.data?.message ?? "Done.");
+      toast.success(res.data?.message ?? `${label} completed.`);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Failed.";
+      setResult(`Error: ${msg}`);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+      <div className="space-y-0.5 flex-1">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+        {result && (
+          <p className={`text-xs mt-1 ${result.startsWith("Error") ? "text-destructive" : "text-green-500"}`}>
+            {result}
+          </p>
+        )}
+      </div>
+      <Button size="sm" variant="outline" onClick={run} disabled={loading} className="shrink-0">
+        {loading ? <IconLoader2 className="h-4 w-4 animate-spin" /> : "Run"}
+      </Button>
+    </div>
+  );
+}
 
 export default Page;

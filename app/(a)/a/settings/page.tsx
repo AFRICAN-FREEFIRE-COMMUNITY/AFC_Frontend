@@ -602,6 +602,82 @@ const page = () => {
     return permission?.name || permissionId;
   };
 
+  // ── Login history ────────────────────────────────────────────────────────
+  const [loginHistory, setLoginHistory] = useState<any[]>([]);
+  const [loadingLoginHistory, setLoadingLoginHistory] = useState(false);
+
+  const fetchLoginHistory = async () => {
+    setLoadingLoginHistory(true);
+    try {
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-login-history/`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setLoginHistory(res.data?.login_history ?? []);
+    } catch {
+      toast.error("Failed to load login history.");
+    } finally {
+      setLoadingLoginHistory(false);
+    }
+  };
+
+  // ── Admin activities ─────────────────────────────────────────────────────
+  const [adminActivities, setAdminActivities] = useState<any[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
+
+  const fetchAdminActivities = async () => {
+    setLoadingActivities(true);
+    try {
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-admin-activities/`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setAdminActivities(res.data?.admin_activities ?? []);
+    } catch {
+      toast.error("Failed to load admin activities.");
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
+
+  // ── Bulk notifications ───────────────────────────────────────────────────
+  const [bulkNotifMessage, setBulkNotifMessage] = useState("");
+  const [bulkNotifUsernames, setBulkNotifUsernames] = useState("");
+  const [sendingBulkNotif, setSendingBulkNotif] = useState(false);
+
+  const handleSendBulkNotification = async () => {
+    const usernames = bulkNotifUsernames
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (!bulkNotifMessage.trim() || usernames.length === 0) {
+      toast.error("Enter a message and at least one username.");
+      return;
+    }
+    const recipientIds = adminUsers
+      .filter((u) => usernames.includes(u.username))
+      .map((u) => Number(u.id));
+    if (recipientIds.length === 0) {
+      toast.error("No matching users found for the entered usernames.");
+      return;
+    }
+    setSendingBulkNotif(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/send-notification-to-multiple-users/`,
+        { recipient_ids: recipientIds, message: bulkNotifMessage.trim() },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(`Notification sent to ${recipientIds.length} user(s).`);
+      setBulkNotifMessage("");
+      setBulkNotifUsernames("");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to send notification.");
+    } finally {
+      setSendingBulkNotif(false);
+    }
+  };
+
   const exportToExcel = () => {
     try {
       // Format the data specifically for Excel
@@ -656,11 +732,15 @@ const page = () => {
             <TabsTrigger value="admins">Admin Users</TabsTrigger>
             <TabsTrigger value="all-users">All Users</TabsTrigger>
             <TabsTrigger value="roles">Roles & Permissions</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="login-history">Login History</TabsTrigger>
+            <TabsTrigger value="activities">Admin Activities</TabsTrigger>
           </TabsList>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
 
         <TabsContent value="admins" className="space-y-4">
+          <AdminInfoCard token={token} />
           <Card>
             <CardHeader>
               <CardTitle>Administrator Management</CardTitle>
@@ -1773,9 +1853,208 @@ const page = () => {
             </div>
           )}
         </TabsContent>
+
+        {/* ── Bulk Notifications ─────────────────────────────────────────── */}
+        <TabsContent value="notifications" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Send Bulk Notification</CardTitle>
+              <CardDescription>
+                Send a notification to multiple users at once. Enter usernames separated by commas.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Recipients (usernames, comma-separated)</Label>
+                <Input
+                  placeholder="e.g. player1, player2, player3"
+                  value={bulkNotifUsernames}
+                  onChange={(e) => setBulkNotifUsernames(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {bulkNotifUsernames
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean).length} recipient(s) entered
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Message</Label>
+                <textarea
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[100px] resize-y"
+                  placeholder="Enter notification message..."
+                  value={bulkNotifMessage}
+                  onChange={(e) => setBulkNotifMessage(e.target.value)}
+                />
+              </div>
+              <Button
+                onClick={handleSendBulkNotification}
+                disabled={sendingBulkNotif}
+              >
+                {sendingBulkNotif ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {sendingBulkNotif ? "Sending..." : "Send Notification"}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── Login History ──────────────────────────────────────────────── */}
+        <TabsContent value="login-history" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              All user login records across the platform
+            </p>
+            <Button size="sm" variant="outline" onClick={fetchLoginHistory} disabled={loadingLoginHistory}>
+              {loadingLoginHistory ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {loadingLoginHistory ? "Loading..." : "Load History"}
+            </Button>
+          </div>
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>IP Address</TableHead>
+                    <TableHead>Country</TableHead>
+                    <TableHead>City</TableHead>
+                    <TableHead>Timestamp</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loginHistory.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground text-sm">
+                        {loadingLoginHistory ? "Loading..." : "Click 'Load History' to fetch login records."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    loginHistory.map((entry, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">{entry.user}</TableCell>
+                        <TableCell>{entry.ip_address}</TableCell>
+                        <TableCell>{entry.country ?? "—"}</TableCell>
+                        <TableCell>{entry.city ?? "—"}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── Admin Activities ───────────────────────────────────────────── */}
+        <TabsContent value="activities" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Latest 100 admin actions across the platform
+            </p>
+            <Button size="sm" variant="outline" onClick={fetchAdminActivities} disabled={loadingActivities}>
+              {loadingActivities ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {loadingActivities ? "Loading..." : "Load Activities"}
+            </Button>
+          </div>
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Admin</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Timestamp</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {adminActivities.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-10 text-muted-foreground text-sm">
+                        {loadingActivities ? "Loading..." : "Click 'Load Activities' to fetch records."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    adminActivities.map((activity, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">{activity.admin_user}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">{activity.action}</Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-sm truncate">
+                          {activity.description}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {activity.timestamp ? new Date(activity.timestamp).toLocaleString() : "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
 };
+
+function AdminInfoCard({ token }: { token: string | null }) {
+  const [info, setInfo] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-admin-info/`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setInfo(res.data?.data ?? null);
+    } catch {
+      // silently fail — non-admin users won't have access
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, [token]);
+
+  if (!info && !loading) return null;
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+          Your Admin Profile
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-xs text-muted-foreground">Loading...</p>
+        ) : info ? (
+          <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
+            <div><p className="text-xs text-muted-foreground">Name</p><p className="font-medium">{info.name}</p></div>
+            <div><p className="text-xs text-muted-foreground">Email</p><p className="font-medium">{info.email}</p></div>
+            <div><p className="text-xs text-muted-foreground">Status</p><p className="font-medium capitalize">{info.status}</p></div>
+            <div>
+              <p className="text-xs text-muted-foreground">Roles</p>
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                {info.admin_roles?.length > 0
+                  ? info.admin_roles.map((r: string) => <Badge key={r} variant="outline" className="text-xs">{r}</Badge>)
+                  : <span className="text-xs text-muted-foreground">None</span>}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default page;
