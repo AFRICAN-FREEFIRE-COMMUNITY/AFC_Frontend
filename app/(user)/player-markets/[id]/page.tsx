@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { generateDynamicMetadata, siteConfig } from "@/lib/seo";
+import { env } from "@/lib/env";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -93,9 +94,8 @@ function getTierColor(tier: string) {
 function toAbsoluteUrl(url: string | null | undefined): string | undefined {
   if (!url) return undefined;
   if (url.startsWith("http")) return url;
-  const base =
-    process.env.NEXT_PUBLIC_BACKEND_API_URL?.replace(/\/api\/?$/, "") ?? "";
-  return `${base}${url}`;
+  const base = env.NEXT_PUBLIC_BACKEND_API_URL.replace(/\/+$/, "");
+  return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
 // ─── Data Fetching ────────────────────────────────────────────────────────────
@@ -154,14 +154,10 @@ export async function generateMetadata({
     image = toAbsoluteUrl(post.player_avatar);
   }
 
-  const ogImage = image
-    ? `${siteConfig.url}/api/og-image?url=${encodeURIComponent(image)}`
-    : siteConfig.ogImage;
-
   return generateDynamicMetadata({
     title,
     description,
-    image: ogImage,
+    image: image ?? siteConfig.ogImage,
     url: `/player-markets/${id}`,
     type: "profile",
     tags: [
