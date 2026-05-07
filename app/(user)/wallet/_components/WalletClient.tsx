@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Lock, Send, History, Ticket, Wallet, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { Loader2, Send, History, Ticket, Wallet, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { KYCBanner } from "@/components/KYCBanner";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { BalanceCard } from "./BalanceCard";
 import { HistoryTable } from "./HistoryTable";
 import { DepositPanel } from "./DepositPanel";
+import { SendPanel } from "./SendPanel";
+import { WithdrawPanel } from "./WithdrawPanel";
 import { WalletProvider, useWallet } from "@/contexts/WalletContext";
 import { getCurrentUser } from "@/lib/mock-wager/handlers/auth";
 import { runSeed } from "@/lib/mock-wager/seed";
@@ -159,19 +161,29 @@ function WalletInner({ user }: { user: User | null }) {
         </TabsContent>
 
         <TabsContent value="withdraw" className="mt-4">
-          <ComingSoon
-            icon={<Lock className="size-5 text-muted-foreground" />}
-            title="Withdrawals open in M7"
-            description="Bank withdrawal via Paystack Transfer + USDT crypto rails. Tier-Lite verification required."
-          />
+          {balance && user ? (
+            <WithdrawPanel
+              userId={user.id}
+              fx={balance.fx}
+              balance={balance}
+              onSuccess={refresh}
+            />
+          ) : (
+            <NoWalletYet />
+          )}
         </TabsContent>
 
         <TabsContent value="send" className="mt-4">
-          <ComingSoon
-            icon={<Send className="size-5 text-muted-foreground" />}
-            title="P2P transfers open in M7"
-            description="Send coins to any AFC username with a 1% fee. Tier-Lite required."
-          />
+          {balance && user ? (
+            <SendPanel
+              userId={user.id}
+              fx={balance.fx}
+              balance={balance}
+              onSuccess={refresh}
+            />
+          ) : (
+            <NoWalletYet />
+          )}
         </TabsContent>
 
         <TabsContent value="history" className="mt-4">
@@ -218,27 +230,6 @@ function NoWalletYet() {
   );
 }
 
-function ComingSoon({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="flex flex-col items-start gap-2">
-        <div className="flex size-9 items-center justify-center rounded-full bg-muted">
-          {icon}
-        </div>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardContent>
-    </Card>
-  );
-}
 
 // Internal voucher form for the Vouchers tab.
 function VoucherTabBody({

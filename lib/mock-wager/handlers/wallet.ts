@@ -1,4 +1,4 @@
-// Wallet handler — credit / debit / getBalance / listTxns.
+// Wallet handler — credit / debit / getBalance / listTxns + sendP2P + startWithdrawal.
 //
 // All money in kobo. Source-tags: PURCHASED / WON / GIFT.
 // Spend ladder for debit: GIFT → WON → PURCHASED.
@@ -10,13 +10,22 @@
 import { getDB } from "../store";
 import { mockNow } from "../clock";
 import { publish } from "../pubsub";
-import { GIFT_DAILY_CAP_KOBO } from "../../utils";
+import {
+  GIFT_DAILY_CAP_KOBO,
+  HOUSE_USER_ID,
+  MIN_WITHDRAW_KOBO,
+  P2P_DAILY_CAP_KOBO,
+  P2P_FEE_BPS,
+} from "../../utils";
 import type {
   Balance,
   FxSnapshot,
+  P2PResult,
   SourceTag,
   WalletTxn,
   WalletTxnKind,
+  WithdrawRail,
+  WithdrawalRequest,
 } from "../types";
 
 // --- Errors ---------------------------------------------------------------
@@ -436,4 +445,190 @@ export async function listTxns(input: ListTxnsInput): Promise<WalletTxn[]> {
   const offset = input.offset ?? 0;
   const limit = input.limit ?? txns.length;
   return txns.slice(offset, offset + limit);
+}
+
+// --- sendP2P --------------------------------------------------------------
+
+export class RecipientNotFound extends Error {
+  constructor(username: string) {
+    super(`Recipient '${username}' not found`);
+    this.name = "RecipientNotFound";
+  }
+}
+
+export class CannotSendToSelf extends Error {
+  constructor() {
+    super("Cannot P2P to your own account");
+    this.name = "CannotSendToSelf";
+  }
+}
+
+export class P2PDailyCapExceeded extends Error {
+  constructor(public remaining_kobo: number, public requested_kobo: number) {
+    super(
+      `Daily cap exceeded: remaining ${remaining_kobo}, requested ${requested_kobo}`,
+    );
+    this.name = "P2PDailyCapExceeded";
+  }
+}
+
+export interface SendP2PInput {
+  sender_id: string;
+  recipient_username: string;
+  amount_kobo: number;
+  note?: string;
+}
+
+/**
+ * Sender debits (amount + 1% fee). Recipient credits amount as PURCHASED.
+ * House credits the fee as WON. Atomicity is best-effort across handlers
+ * (each is itself transactional). Daily ₦25M outbound cap enforced per sender.
+ */
+export async function sendP2P(input: SendP2PInput): Promise<P2PResult> {
+  if (input.amount_kobo <= 0) {
+    throw new Error("amount must be positive");
+  }
+  const db = await getDB();
+  const recipient = await db.getFromIndex(
+    "users",
+    "by-username",
+    input.recipient_username,
+  );
+  if (!recipient) throw new RecipientNotFound(input.recipient_username);
+  if (recipient.id === input.sender_id) throw new CannotSendToSelf();
+
+  const fee_kobo = Math.floor((input.amount_kobo * P2P_FEE_BPS) / 10000);
+  const total_debit = input.amount_kobo + fee_kobo;
+
+  // Daily cap check (rolling 24h sum of P2P_OUT |amount|)
+  const used = await sumP2POutLast24h(input.sender_id);
+  const remaining = P2P_DAILY_CAP_KOBO - used;
+  if (input.amount_kobo > remaining) {
+    throw new P2PDailyCapExceeded(remaining, input.amount_kobo);
+  }
+
+  const transferId = `p2p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+
+  // Step 1: debit sender
+  const debitRes = await debit({
+    user_id: input.sender_id,
+    amount_kobo: total_debit,
+    kind: "P2P_OUT",
+    ref_type: "p2p_transfer",
+    ref_id: transferId,
+    idempotency_key: `p2p-out-${transferId}`,
+  });
+
+  // Step 2: credit recipient
+  const recipientTxn = await credit({
+    user_id: recipient.id,
+    amount_kobo: input.amount_kobo,
+    kind: "P2P_IN",
+    source_tag: "PURCHASED",
+    ref_type: "p2p_transfer",
+    ref_id: transferId,
+    idempotency_key: `p2p-in-${transferId}`,
+  });
+
+  // Step 3: house gets fee
+  let feeTxnId: string | null = null;
+  if (fee_kobo > 0) {
+    const feeTxn = await credit({
+      user_id: HOUSE_USER_ID,
+      amount_kobo: fee_kobo,
+      kind: "P2P_FEE",
+      source_tag: "WON",
+      ref_type: "p2p_transfer",
+      ref_id: transferId,
+      idempotency_key: `p2p-fee-${transferId}`,
+    });
+    feeTxnId = feeTxn.id;
+  }
+
+  return {
+    transfer_id: transferId,
+    amount_kobo: input.amount_kobo,
+    fee_kobo,
+    recipient_username: input.recipient_username,
+    receipt_txn_ids: [
+      ...debitRes.txns.map((t) => t.id),
+      recipientTxn.id,
+      ...(feeTxnId ? [feeTxnId] : []),
+    ],
+  };
+}
+
+async function sumP2POutLast24h(user_id: string): Promise<number> {
+  const db = await getDB();
+  const wallets = await db.getAllFromIndex("wallets", "by-user", user_id);
+  if (wallets.length === 0) return 0;
+  const wallet = wallets[0];
+  const txns = await db.getAllFromIndex("wallet_txns", "by-wallet", wallet.id);
+  const cutoff = mockNow() - 24 * 60 * 60 * 1000;
+  return txns
+    .filter(
+      (t) =>
+        t.kind === "P2P_OUT" &&
+        new Date(t.created_at).getTime() >= cutoff,
+    )
+    .reduce((a, t) => a + Math.abs(t.amount_kobo), 0);
+}
+
+export async function getP2PUsedToday(user_id: string): Promise<number> {
+  return sumP2POutLast24h(user_id);
+}
+
+// --- startWithdrawal ------------------------------------------------------
+
+export class WithdrawalBelowMin extends Error {
+  constructor(public amount_kobo: number, public min_kobo: number) {
+    super(`Withdrawal ${amount_kobo} below min ${min_kobo}`);
+    this.name = "WithdrawalBelowMin";
+  }
+}
+
+export interface StartWithdrawalInput {
+  user_id: string;
+  amount_kobo: number;
+  rail: WithdrawRail;
+  destination: Record<string, unknown>;
+}
+
+/**
+ * Holds funds (debits) and creates a WithdrawalRequest in REQUESTED state.
+ * Admin approve/reject lives in admin handlers. Cosign required >₦5M.
+ */
+export async function startWithdrawal(
+  input: StartWithdrawalInput,
+): Promise<WithdrawalRequest> {
+  if (input.amount_kobo < MIN_WITHDRAW_KOBO) {
+    throw new WithdrawalBelowMin(input.amount_kobo, MIN_WITHDRAW_KOBO);
+  }
+  const db = await getDB();
+  const wid = `wd_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+
+  // Hold the funds — debit ladder applies (GIFT → WON → PURCHASED).
+  await debit({
+    user_id: input.user_id,
+    amount_kobo: input.amount_kobo,
+    kind: "WITHDRAW_HOLD",
+    ref_type: "withdrawal",
+    ref_id: wid,
+    idempotency_key: `wd-hold-${wid}`,
+  });
+
+  const cosign_required = input.amount_kobo > 500_000_00;
+  const wd: WithdrawalRequest = {
+    id: wid,
+    user_id: input.user_id,
+    amount_kobo: input.amount_kobo,
+    rail: input.rail,
+    destination: input.destination,
+    status: "REQUESTED",
+    approved_by_admin_id: null,
+    cosign_status: cosign_required ? "AWAITING" : "NOT_REQUIRED",
+    created_at: new Date(mockNow()).toISOString(),
+  };
+  await db.put("withdrawal_requests", wd);
+  return wd;
 }
