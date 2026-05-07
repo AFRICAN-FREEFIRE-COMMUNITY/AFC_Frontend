@@ -51,7 +51,9 @@ export function settle(input: SettleInput): SettleResult {
   const rake = Math.floor((pool_kobo * rake_bps) / 10000);
   const net_pool = pool_kobo - rake;
 
-  const payouts: Record<string, number> = {};
+  // Use a null-prototype object so user_ids that collide with
+  // Object.prototype keys (e.g. "toString", "constructor") don't poison lookups.
+  const payouts: Record<string, number> = Object.create(null);
   let paid_total = 0;
   for (const line of winning_lines) {
     const share = Math.floor((net_pool * line.stake_kobo) / winner_total);
