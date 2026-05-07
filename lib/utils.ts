@@ -162,27 +162,32 @@ export function calculateDaysDifference(
   return diffDays;
 }
 
+const moneyFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export function formatMoney(
   amount_kobo: number,
   fx: FxSnapshot,
 ): { coins: string; naira: string; usd: string } {
+  if (
+    !Number.isFinite(amount_kobo) ||
+    !Number.isFinite(fx.ngn_per_usd) ||
+    fx.ngn_per_usd <= 0
+  ) {
+    return { coins: "—", naira: "—", usd: "—" };
+  }
   const sign = amount_kobo < 0 ? "-" : "";
   const abs = Math.abs(amount_kobo);
   const coins = abs / 50_000;
   const naira = abs / 100;
   const usd = naira / fx.ngn_per_usd;
 
-  const fmt = (n: number, opts?: Intl.NumberFormatOptions) =>
-    n.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-      ...opts,
-    });
-
   return {
-    coins: `${sign}${fmt(coins)}`,
-    naira: `${sign}₦${fmt(naira)}`,
-    usd: `${sign}$${fmt(usd)}`,
+    coins: `${sign}${moneyFormatter.format(coins)}`,
+    naira: `${sign}₦${moneyFormatter.format(naira)}`,
+    usd: `${sign}$${moneyFormatter.format(usd)}`,
   };
 }
 

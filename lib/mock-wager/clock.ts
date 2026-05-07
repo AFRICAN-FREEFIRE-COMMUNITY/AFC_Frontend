@@ -70,3 +70,11 @@ function emit(kind: ClockEvent, payload?: { delta_ms?: number }): void {
 export function isPastLockAt(lock_at: string): boolean {
   return mockNow() >= new Date(lock_at).getTime();
 }
+
+if (typeof import.meta !== "undefined" && (import.meta as { hot?: { dispose: (fn: () => void) => void } }).hot) {
+  (import.meta as { hot: { dispose: (fn: () => void) => void } }).hot.dispose(() => {
+    if (tickInterval) clearInterval(tickInterval);
+    tickInterval = null;
+    listeners.clear();
+  });
+}

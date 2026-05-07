@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { openMockDB, getDB } from "../store";
+import { openMockDB, getDB, resetDB } from "../store";
 
 describe("mock-wager store", () => {
   beforeEach(async () => {
-    indexedDB.deleteDatabase("afc-wager-mock");
+    await resetDB();
   });
 
   it("opens DB and creates expected stores", async () => {

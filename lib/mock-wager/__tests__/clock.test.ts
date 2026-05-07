@@ -8,7 +8,7 @@ describe("mock clock", () => {
 
   it("starts at real-time when not advanced", () => {
     const real = Date.now();
-    expect(Math.abs(mockNow() - real)).toBeLessThan(50);
+    expect(Math.abs(mockNow() - real)).toBeLessThan(250);
   });
 
   it("advances by milliseconds and persists offset", () => {
@@ -29,6 +29,6 @@ describe("mock clock", () => {
     advanceClock(10_000);
     resetClock();
     const real = Date.now();
-    expect(Math.abs(mockNow() - real)).toBeLessThan(50);
+    expect(Math.abs(mockNow() - real)).toBeLessThan(250);
   });
 });

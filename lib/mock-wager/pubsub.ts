@@ -43,7 +43,12 @@ export function subscribe<T extends PubsubMessage["type"] | "*">(
   getBC(); // init
   if (!localListeners.has(type)) localListeners.set(type, new Set());
   localListeners.get(type)!.add(listener);
-  return () => localListeners.get(type)?.delete(listener);
+  return () => {
+    const set = localListeners.get(type);
+    if (!set) return;
+    set.delete(listener);
+    if (set.size === 0) localListeners.delete(type);
+  };
 }
 
 export function teardownPubsub(): void {

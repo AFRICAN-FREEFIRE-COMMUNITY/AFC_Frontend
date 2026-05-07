@@ -45,4 +45,26 @@ describe("formatMoney", () => {
     expect(out.naira).toBe("-₦500.00");
     expect(out.usd).toBe("-$0.33");
   });
+
+  it("returns em-dash triple for NaN amount", () => {
+    const out = formatMoney(Number.NaN, fxBase);
+    expect(out).toEqual({ coins: "—", naira: "—", usd: "—" });
+  });
+
+  it("returns em-dash triple for Infinity amount", () => {
+    const out = formatMoney(Number.POSITIVE_INFINITY, fxBase);
+    expect(out).toEqual({ coins: "—", naira: "—", usd: "—" });
+  });
+
+  it("returns em-dash triple for zero fx_rate", () => {
+    const fxZero = { ...fxBase, ngn_per_usd: 0 };
+    const out = formatMoney(50_000, fxZero);
+    expect(out).toEqual({ coins: "—", naira: "—", usd: "—" });
+  });
+
+  it("returns em-dash triple for negative fx_rate", () => {
+    const fxNeg = { ...fxBase, ngn_per_usd: -10 };
+    const out = formatMoney(50_000, fxNeg);
+    expect(out).toEqual({ coins: "—", naira: "—", usd: "—" });
+  });
 });

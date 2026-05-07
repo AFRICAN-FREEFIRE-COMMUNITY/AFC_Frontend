@@ -188,6 +188,8 @@ export async function resetDB(): Promise<void> {
     const req = indexedDB.deleteDatabase("afc-wager-mock");
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
+    req.onblocked = () =>
+      reject(new Error("resetDB blocked: another connection holds the DB"));
   });
 }
 
