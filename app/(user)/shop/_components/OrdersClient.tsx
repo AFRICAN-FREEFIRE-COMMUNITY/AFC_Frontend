@@ -43,6 +43,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { WalletTopupsTab } from "../../orders/_components/WalletTopupsTab";
 
 export interface OrderItem {
   product_name: string;
@@ -186,132 +193,168 @@ export default function OrdersClient() {
         description="View and track your diamond purchases"
       />
 
-      {orders.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <IconShoppingBag className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <CardTitle className="mb-2">No orders yet</CardTitle>
-            <CardDescription className="text-muted-foreground mb-4">
-              You haven&apos;t made any purchases yet.
-            </CardDescription>
-            <Button asChild>
-              <Link href="/shop">Browse Shop</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="gap-1 bg-transparent">
-          <CardHeader>
-            <CardTitle>Order History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">ID</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedOrders.map((order) => (
-                    <TableRow key={order.order_id}>
-                      <TableCell className="font-medium">
-                        #{order.order_id}
-                      </TableCell>
-                      <TableCell className="max-w-[200px] truncate">
-                        {renderItemsSummary(order.items)}
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        ₦{formatMoneyInput(order.total)}
-                      </TableCell>
-                      <TableCell>{formatDate(order.created_at)}</TableCell>
-                      <TableCell className="capitalize">
-                        <Badge variant={getStatusBadgeVariant(order.status)}>
-                          {order.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/orders/${order.order_id}`}>
-                            Details
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <p className="hidden md:block text-sm text-muted-foreground">
-                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
-                    {Math.min(currentPage * ITEMS_PER_PAGE, orders.length)} of{" "}
-                    {orders.length}
-                  </p>
-                  <Pagination className="w-full md:w-auto mx-0">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() =>
-                            setCurrentPage((p) => Math.max(1, p - 1))
-                          }
-                          className={
-                            currentPage === 1
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(
-                          (page) =>
-                            page === 1 ||
-                            page === totalPages ||
-                            Math.abs(page - currentPage) <= 1,
-                        )
-                        .map((page, idx, arr) => (
-                          <React.Fragment key={page}>
-                            {idx > 0 && arr[idx - 1] !== page - 1 && (
-                              <PaginationItem>
-                                <PaginationEllipsis />
-                              </PaginationItem>
-                            )}
-                            <PaginationItem>
-                              <PaginationLink
-                                isActive={currentPage === page}
-                                onClick={() => setCurrentPage(page)}
-                                className="cursor-pointer"
-                              >
-                                {page}
-                              </PaginationLink>
-                            </PaginationItem>
-                          </React.Fragment>
-                        ))}
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() =>
-                            setCurrentPage((p) => Math.min(totalPages, p + 1))
-                          }
-                          className={
-                            currentPage === totalPages
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
+      <Tabs defaultValue="orders" className="gap-3">
+        <TabsList className="w-full max-w-sm">
+          <TabsTrigger value="orders">Shop Orders</TabsTrigger>
+          <TabsTrigger value="topups">Wallet Topups</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="orders">
+          {orders.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <IconShoppingBag className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <CardTitle className="mb-2">No orders yet</CardTitle>
+                <CardDescription className="text-muted-foreground mb-4">
+                  You haven&apos;t made any purchases yet.
+                </CardDescription>
+                <Button asChild>
+                  <Link href="/shop">Browse Shop</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="gap-1 bg-transparent">
+              <CardHeader>
+                <CardTitle>Order History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[100px]">ID</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedOrders.map((order) => (
+                        <TableRow key={order.order_id}>
+                          <TableCell className="font-medium">
+                            #{order.order_id}
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate">
+                            {renderItemsSummary(order.items)}
+                          </TableCell>
+                          <TableCell className="font-semibold">
+                            ₦{formatMoneyInput(order.total)}
+                          </TableCell>
+                          <TableCell>
+                            {formatDate(order.created_at)}
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            <Badge
+                              variant={getStatusBadgeVariant(order.status)}
+                            >
+                              {order.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/orders/${order.order_id}`}>
+                                Details
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-4">
+                      <p className="hidden md:block text-sm text-muted-foreground">
+                        Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                        {Math.min(
+                          currentPage * ITEMS_PER_PAGE,
+                          orders.length,
+                        )}{" "}
+                        of {orders.length}
+                      </p>
+                      <Pagination className="w-full md:w-auto mx-0">
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={() =>
+                                setCurrentPage((p) => Math.max(1, p - 1))
+                              }
+                              className={
+                                currentPage === 1
+                                  ? "pointer-events-none opacity-50"
+                                  : "cursor-pointer"
+                              }
+                            />
+                          </PaginationItem>
+                          {Array.from(
+                            { length: totalPages },
+                            (_, i) => i + 1,
+                          )
+                            .filter(
+                              (page) =>
+                                page === 1 ||
+                                page === totalPages ||
+                                Math.abs(page - currentPage) <= 1,
+                            )
+                            .map((page, idx, arr) => (
+                              <React.Fragment key={page}>
+                                {idx > 0 && arr[idx - 1] !== page - 1 && (
+                                  <PaginationItem>
+                                    <PaginationEllipsis />
+                                  </PaginationItem>
+                                )}
+                                <PaginationItem>
+                                  <PaginationLink
+                                    isActive={currentPage === page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className="cursor-pointer"
+                                  >
+                                    {page}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              </React.Fragment>
+                            ))}
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() =>
+                                setCurrentPage((p) =>
+                                  Math.min(totalPages, p + 1),
+                                )
+                              }
+                              className={
+                                currentPage === totalPages
+                                  ? "pointer-events-none opacity-50"
+                                  : "cursor-pointer"
+                              }
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="topups">
+          <Card className="gap-1 bg-transparent">
+            <CardHeader>
+              <CardTitle>Wallet Topups</CardTitle>
+              <CardDescription>
+                Funds you&apos;ve added to your AFC Wallet — one row per
+                deposit, across all rails.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <WalletTopupsTab />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
