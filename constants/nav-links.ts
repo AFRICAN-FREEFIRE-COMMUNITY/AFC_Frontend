@@ -2,6 +2,7 @@ import {
   IconArticle,
   IconCalendar,
   IconChartBarPopular,
+  IconCoins,
   IconFolder,
   IconHome,
   IconInfoCircle,
@@ -14,6 +15,7 @@ import {
   IconTrophy,
   IconUsers,
   IconUsersGroup,
+  IconWallet,
 } from "@tabler/icons-react";
 import { Award } from "lucide-react";
 
@@ -62,6 +64,20 @@ export const homeNavLinksMobile: NavLinks[] = [
     slug: "/player-markets",
     label: "Player Markets",
     icon: IconUsers,
+  },
+  {
+    slug: "/wagers",
+    label: "Wagers",
+    icon: IconCoins,
+    newLink: true,
+    addedAt: "2026-05-07",
+  },
+  {
+    slug: "/wallet",
+    label: "AFC Wallet",
+    icon: IconWallet,
+    newLink: true,
+    addedAt: "2026-05-07",
   },
   { slug: "/news", label: "News & Updates", icon: IconArticle },
   {
@@ -172,6 +188,18 @@ export const adminNavLinks: AdminNavLink[] = [
     slug: "/a/shop",
     icon: IconShoppingCart,
     allowedRoles: ["head_admin", "shop_admin"],
+  },
+  {
+    label: "Admin Wagers",
+    slug: "/a/wagers",
+    icon: IconCoins,
+    allowedRoles: ["head_admin", "wager_admin"],
+  },
+  {
+    label: "Admin Wallet",
+    slug: "/a/wallet",
+    icon: IconWallet,
+    allowedRoles: ["head_admin", "wallet_admin"],
   },
   {
     label: "Votes",

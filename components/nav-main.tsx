@@ -4,6 +4,7 @@ import { type Icon } from "@tabler/icons-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { type LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import {
   SidebarGroup,
@@ -16,6 +17,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { env } from "@/lib/env";
+import { CURRENT_USER_KEY } from "@/lib/mock-wager/handlers/auth";
+
+const MOCK_ADMIN_USER_IDS = new Set([
+  "head_admin_jay",
+  "wager_admin_jane",
+  "wallet_admin_kofi",
+]);
+
+const MOCK_ADMIN_ROLES_BY_USER: Record<string, string[]> = {
+  head_admin_jay: ["head_admin"],
+  wager_admin_jane: ["wager_admin"],
+  wallet_admin_kofi: ["wallet_admin"],
+};
 
 export function NavMain({
   items,
@@ -32,6 +47,29 @@ export function NavMain({
   const { setOpenMobile } = useSidebar();
   const { user, isAdmin } = useAuth();
 
+  // Mock-mode: when DevPanel sets a seeded admin user_id in localStorage,
+  // expose their mocked roles so admin nav renders without a real Django session.
+  const [mockRoles, setMockRoles] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (!env.NEXT_PUBLIC_WAGER_MOCK) return;
+    if (typeof window === "undefined") return;
+    const read = () => {
+      try {
+        const id = window.localStorage?.getItem?.(CURRENT_USER_KEY);
+        if (id && MOCK_ADMIN_USER_IDS.has(id)) {
+          setMockRoles(MOCK_ADMIN_ROLES_BY_USER[id] ?? []);
+        } else {
+          setMockRoles(null);
+        }
+      } catch {
+        setMockRoles(null);
+      }
+    };
+    read();
+    window.addEventListener("storage", read);
+    return () => window.removeEventListener("storage", read);
+  }, [pathname]);
+
   const handleLinkClick = () => {
     setOpenMobile(false);
   };
@@ -43,6 +81,13 @@ export function NavMain({
     role.toLowerCase().replace(/\s+/g, "_");
 
   const canAccess = (linkAllowedRoles?: string[]) => {
+    // Mock-mode shortcut: seeded admin in localStorage sees their mocked roles.
+    if (mockRoles) {
+      if (mockRoles.includes("head_admin")) return true;
+      if (!linkAllowedRoles || linkAllowedRoles.length === 0) return true;
+      return mockRoles.some((r) => linkAllowedRoles.includes(r));
+    }
+
     // 1. If user isn't logged in or isn't an admin at all, block.
     if (!user || !isAdmin) return false;
 
