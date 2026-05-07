@@ -10,10 +10,13 @@ import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { DataTable } from "@/components/data-table";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/app/(user)/_components/ProtectedRoute";
+import { MockBootstrap } from "@/components/MockBootstrap";
+import { DevPanel } from "@/components/DevPanel";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <ProtectedRoute adminOnly={true}>
+      <MockBootstrap />
       <SidebarProvider
         style={
           {
@@ -32,6 +35,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
         </SidebarInset>
       </SidebarProvider>
+      <DevPanel />
     </ProtectedRoute>
   );
 }

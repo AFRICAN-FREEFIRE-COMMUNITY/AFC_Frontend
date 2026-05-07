@@ -2,11 +2,19 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FullLoader } from "@/components/Loader";
 import { adminNavLinks } from "@/constants/nav-links";
+import { env } from "@/lib/env";
+import { CURRENT_USER_KEY } from "@/lib/mock-wager/handlers/auth";
 
 const PUBLIC_ROUTES = ["/news", "/about", "/contact", "/unauthorized"];
+
+const MOCK_ADMIN_USER_IDS = new Set([
+  "head_admin_jay",
+  "wager_admin_jane",
+  "wallet_admin_kofi",
+]);
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -20,6 +28,26 @@ export function ProtectedRoute({
   const { isAuthenticated, loading, user, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  // MOCK=1 escape hatch: when an admin persona is set in the mock-wager
+  // localStorage (via DevPanel), bypass the real-auth check entirely so the
+  // E2E suite + local demo can exercise admin pages without a Django session.
+  const [mockAdminUnlocked, setMockAdminUnlocked] = useState(false);
+  useEffect(() => {
+    if (!env.NEXT_PUBLIC_WAGER_MOCK) return;
+    if (typeof window === "undefined") return;
+    const read = () => {
+      try {
+        const id = window.localStorage?.getItem?.(CURRENT_USER_KEY);
+        setMockAdminUnlocked(!!id && MOCK_ADMIN_USER_IDS.has(id));
+      } catch {
+        setMockAdminUnlocked(false);
+      }
+    };
+    read();
+    window.addEventListener("storage", read);
+    return () => window.removeEventListener("storage", read);
+  }, [pathname]);
 
   const isPublicRoute = PUBLIC_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -59,10 +87,15 @@ export function ProtectedRoute({
     return true;
   };
 
-  const hasAccess = adminOnly ? hasRequiredAdminRole() : isAuthenticated;
+  const hasAccess = adminOnly
+    ? hasRequiredAdminRole() || mockAdminUnlocked
+    : isAuthenticated || mockAdminUnlocked;
 
   useEffect(() => {
     if (!loading) {
+      // Mock-mode bypass: skip both redirects entirely.
+      if (mockAdminUnlocked) return;
+
       // 1. Not logged in -> Login
       if (!isAuthenticated && !isPublicRoute) {
         router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
@@ -79,7 +112,7 @@ export function ProtectedRoute({
         router.replace("/unauthorized");
       }
     }
-  }, [isAuthenticated, loading, pathname, adminOnly, isAdmin]);
+  }, [isAuthenticated, loading, pathname, adminOnly, isAdmin, mockAdminUnlocked]);
 
   if (loading) {
     return <FullLoader text="Loading" />;
