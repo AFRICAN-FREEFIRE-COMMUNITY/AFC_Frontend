@@ -75,6 +75,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ActiveWagersTab } from "./ActiveWagersTab";
 
 // Set to true when Discord is required for tournament registration
 const DISCORD_REQUIRED = false;
@@ -3412,6 +3413,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             </ul>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Active Wagers (M13.1) — wager mock looks up by slug or event_id. */}
+      <div className="mt-8">
+        <ActiveWagersTab eventIdOrSlug={slug} />
       </div>
 
       {/* Banned Modal */}
