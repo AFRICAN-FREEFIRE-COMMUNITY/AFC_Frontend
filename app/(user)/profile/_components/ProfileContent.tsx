@@ -4,6 +4,9 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 // import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WagerHistoryTab } from "@/app/(user)/wagers/_components/WagerHistoryTab";
+import { runSeed } from "@/lib/mock-wager/seed";
+import { getCurrentUser as getMockCurrentUser } from "@/lib/mock-wager/handlers/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -56,6 +59,23 @@ export const ProfileContent = () => {
   const [myApplications, setMyApplications] = useState<any[]>([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
   const { user, token } = useAuth();
+
+  // M13.2 — wager-mock user_id resolution. AFC's real user.id is numeric and
+  // doesn't map to the wager mock's seeded "player_1" / "player_2" / etc., so
+  // we fall back to the seeded current user (or "player_1") for the demo.
+  const [wagerUserId, setWagerUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await runSeed();
+      const cur = await getMockCurrentUser();
+      if (cancelled) return;
+      setWagerUserId(cur?.id ?? "player_1");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const checkDiscordConnection = async () => {
     if (!token) return;
@@ -279,6 +299,7 @@ export const ProfileContent = () => {
                   <TabsTrigger value="applications">
                     My Applications
                   </TabsTrigger>
+                  <TabsTrigger value="wagers">My Wagers</TabsTrigger>
                   {user.role === "admin" && (
                     <TabsTrigger value="admin">Admin Capabilities</TabsTrigger>
                   )}
@@ -447,6 +468,16 @@ export const ProfileContent = () => {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="wagers" data-testid="profile-my-wagers">
+                {wagerUserId ? (
+                  <WagerHistoryTab userId={wagerUserId} title="My wagers" />
+                ) : (
+                  <div className="text-center py-10 text-sm text-muted-foreground">
+                    Loading...
                   </div>
                 )}
               </TabsContent>
