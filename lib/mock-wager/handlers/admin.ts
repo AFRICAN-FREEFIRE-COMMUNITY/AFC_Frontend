@@ -395,6 +395,82 @@ export async function unfreezeWallet(input: UnfreezeWalletInput): Promise<void> 
   });
 }
 
+// --- Global txns (admin) --------------------------------------------------
+
+export interface ListAllTxnsInput {
+  user_id?: string;
+  kind?: string;
+  source_tag?: string;
+  since?: string;
+  until?: string;
+  min_kobo?: number;
+  max_kobo?: number;
+  limit?: number;
+  offset?: number;
+}
+
+export interface AllTxnsRow {
+  id: string;
+  user_id: string;
+  username: string;
+  amount_kobo: number;
+  kind: string;
+  source_tag: string;
+  ref_type: string;
+  ref_id: string;
+  created_at: string;
+}
+
+export async function listAllTxns(
+  input: ListAllTxnsInput,
+): Promise<AllTxnsRow[]> {
+  const db = await getDB();
+  const wallets = await db.getAll("wallets");
+  const users = await db.getAll("users");
+  const userById = new Map(users.map((u) => [u.id, u]));
+  let rows: AllTxnsRow[] = [];
+  for (const w of wallets) {
+    const txns = await db.getAllFromIndex("wallet_txns", "by-wallet", w.id);
+    const u = userById.get(w.user_id);
+    for (const t of txns) {
+      rows.push({
+        id: t.id,
+        user_id: w.user_id,
+        username: u?.username ?? w.user_id,
+        amount_kobo: t.amount_kobo,
+        kind: t.kind,
+        source_tag: t.source_tag,
+        ref_type: t.ref_type,
+        ref_id: t.ref_id,
+        created_at: t.created_at,
+      });
+    }
+  }
+  if (input.user_id) rows = rows.filter((r) => r.user_id === input.user_id);
+  if (input.kind) rows = rows.filter((r) => r.kind === input.kind);
+  if (input.source_tag) rows = rows.filter((r) => r.source_tag === input.source_tag);
+  if (input.since) {
+    const since_ms = new Date(input.since).getTime();
+    rows = rows.filter((r) => new Date(r.created_at).getTime() >= since_ms);
+  }
+  if (input.until) {
+    const until_ms = new Date(input.until).getTime();
+    rows = rows.filter((r) => new Date(r.created_at).getTime() <= until_ms);
+  }
+  if (input.min_kobo != null) {
+    rows = rows.filter((r) => Math.abs(r.amount_kobo) >= input.min_kobo!);
+  }
+  if (input.max_kobo != null) {
+    rows = rows.filter((r) => Math.abs(r.amount_kobo) <= input.max_kobo!);
+  }
+  rows.sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+  const offset = input.offset ?? 0;
+  const limit = input.limit ?? rows.length;
+  return rows.slice(offset, offset + limit);
+}
+
 // --- Audit log ------------------------------------------------------------
 
 export interface ListAuditLogInput {
