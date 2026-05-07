@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { FxSnapshot } from "./mock-wager/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -160,3 +161,39 @@ export function calculateDaysDifference(
 
   return diffDays;
 }
+
+export function formatMoney(
+  amount_kobo: number,
+  fx: FxSnapshot,
+): { coins: string; naira: string; usd: string } {
+  const sign = amount_kobo < 0 ? "-" : "";
+  const abs = Math.abs(amount_kobo);
+  const coins = abs / 50_000;
+  const naira = abs / 100;
+  const usd = naira / fx.ngn_per_usd;
+
+  const fmt = (n: number, opts?: Intl.NumberFormatOptions) =>
+    n.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      ...opts,
+    });
+
+  return {
+    coins: `${sign}${fmt(coins)}`,
+    naira: `${sign}₦${fmt(naira)}`,
+    usd: `${sign}$${fmt(usd)}`,
+  };
+}
+
+export const KOBO_PER_COIN = 50_000;
+export const COIN_NGN = 500;
+export const MIN_DEPOSIT_KOBO = 50_000; // ₦500 = 1 coin
+export const MIN_WAGER_KOBO = 10_000; // ₦100 = 0.2 coins
+export const MIN_WITHDRAW_KOBO = 250_000; // ₦2,500
+export const HOUSE_USER_ID = "house";
+export const RAKE_BPS = 500; // 5%
+export const CANCEL_FEE_BPS = 100; // 1%
+export const P2P_FEE_BPS = 100; // 1%
+export const P2P_DAILY_CAP_KOBO = 2_500_000_000; // ₦25M
+export const GIFT_DAILY_CAP_KOBO = 10_000_000; // ₦100,000
