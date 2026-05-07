@@ -16,6 +16,7 @@ import { NotificationDropdown } from "./NotificationDropdown";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { homeNavLinks } from "@/constants/nav-links";
+import { WalletPill } from "@/components/WalletPill";
 
 export const Header = () => {
   const pathname = usePathname();
@@ -87,6 +88,11 @@ export const Header = () => {
           </nav>
 
           <div className="flex items-center gap-2 md:gap-3">
+            {user && (
+              <div className="hidden sm:block">
+                <WalletPill hasUser={!!user} />
+              </div>
+            )}
             <NotificationDropdown
               notifications={notifications}
               unreadCount={unreadCount}
