@@ -10,7 +10,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
 import { BanModal } from "../../_components/BanModal";
@@ -19,30 +46,79 @@ import { Separator } from "@/components/ui/separator";
 import { NothingFound } from "@/components/NothingFound";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import {
+  IconUserMinus,
+  IconUserPlus,
+  IconAlertTriangle,
+} from "@tabler/icons-react";
+
+const MANAGEMENT_ROLES = [
+  { value: "member", label: "Member" },
+  { value: "vice_captain", label: "Vice Captain" },
+  { value: "team_captain", label: "Team Captain" },
+  { value: "coach", label: "Coach" },
+  { value: "manager", label: "Manager" },
+  { value: "analyst", label: "Analyst" },
+];
 
 type TeamDetailsClientProps = {
   teamId: string;
-  initialData?: any; // Server-fetched team data
+  initialData?: any;
 };
 
 export function TeamDetailsClient({
   teamId,
   initialData,
 }: TeamDetailsClientProps) {
-  const { token } = useAuth();
+  const { token, isAdminByRoleOrRoles } = useAuth();
   const [teamDetails, setTeamDetails] = useState(initialData || null);
   const [loading, setLoading] = useState(!initialData);
 
-  // Only fetch if we don't have initialData
+  // Remove member state
+  const [removeTarget, setRemoveTarget] = useState<any | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+
+  // Add member state
+  const [addOpen, setAddOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
+  const [selectedRole, setSelectedRole] = useState("member");
+  const [isAdding, setIsAdding] = useState(false);
+
   useEffect(() => {
     if (!initialData && teamId && token) {
       fetchTeamDetails();
     }
   }, [teamId, token, initialData]);
 
+  // Debounced player search
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await fetch(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/admin-search-players/?q=${encodeURIComponent(searchQuery)}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        const data = await res.json();
+        setSearchResults(data.players || []);
+      } catch {
+        toast.error("Failed to search players");
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchQuery, token]);
+
   const fetchTeamDetails = async () => {
     if (!teamId) return;
-
     setLoading(true);
     try {
       const decodedId = decodeURIComponent(teamId);
@@ -57,35 +133,108 @@ export function TeamDetailsClient({
           body: JSON.stringify({ team_name: decodedId }),
         },
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch team details");
-      }
-
+      if (!response.ok) throw new Error("Failed to fetch team details");
       const data = await response.json();
       setTeamDetails(data.team);
     } catch (error: any) {
-      console.error("Error fetching team details:", error);
       toast.error(error.message || "Failed to load team details");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <FullLoader />;
-  }
+  const handleRemove = async () => {
+    if (!removeTarget) return;
+    setIsRemoving(true);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/admin-remove-member/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            team_id: teamDetails.team_id,
+            member_id: removeTarget.id,
+          }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      toast.success(data.message);
+      setRemoveTarget(null);
+      fetchTeamDetails();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!selectedPlayer) return;
+    setIsAdding(true);
+    try {
+      const memberCount =
+        teamDetails.total_members ?? teamDetails.members?.length ?? 0;
+      const body: Record<string, any> = {
+        team_id: teamDetails.team_id,
+        player_id: selectedPlayer.user_id,
+        management_role: selectedRole,
+      };
+      if (selectedPlayer.current_team) body.force_move = true;
+      if (memberCount >= 8) body.override_limit = true;
+
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/admin-add-member/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      toast.success(data.message);
+      closeAddDialog();
+      fetchTeamDetails();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const closeAddDialog = () => {
+    setAddOpen(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    setSelectedPlayer(null);
+    setSelectedRole("member");
+  };
+
+  if (loading) return <FullLoader />;
 
   if (!teamDetails) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Team Not Found</h1>
         <p className="text-muted-foreground">
-          The team you're looking for doesn't exist or has been removed.
+          The team you&apos;re looking for doesn&apos;t exist or has been
+          removed.
         </p>
       </div>
     );
   }
+
+  const memberCount =
+    teamDetails.total_members ?? teamDetails.members?.length ?? 0;
+  const isTeamFull = memberCount >= 8;
 
   return (
     <div>
@@ -99,7 +248,7 @@ export function TeamDetailsClient({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {/* Team Overview Card */}
+        {/* Team Overview */}
         <Card>
           <CardHeader>
             <CardTitle>Team Overview</CardTitle>
@@ -138,10 +287,22 @@ export function TeamDetailsClient({
           </CardContent>
         </Card>
 
-        {/* Team Members Card */}
+        {/* Team Members */}
         <Card>
           <CardHeader>
-            <CardTitle>Team Members</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Team Members ({memberCount})</CardTitle>
+              {isAdminByRoleOrRoles && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setAddOpen(true)}
+                >
+                  <IconUserPlus className="size-4 mr-1.5" />
+                  Add Member
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {teamDetails?.members && teamDetails.members.length > 0 ? (
@@ -150,17 +311,50 @@ export function TeamDetailsClient({
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Role</TableHead>
+                    {isAdminByRoleOrRoles && (
+                      <TableHead className="w-12" />
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {teamDetails.members.map((member: any) => (
-                    <TableRow key={member.id || member.username}>
-                      <TableCell>{member.username}</TableCell>
-                      <TableCell className="capitalize">
-                        {member.in_game_role || "Member"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {teamDetails.members.map((member: any) => {
+                    const isOwner =
+                      member.username === teamDetails.team_owner;
+                    return (
+                      <TableRow key={member.id || member.username}>
+                        <TableCell>
+                          <span>{member.username}</span>
+                          {isOwner && (
+                            <Badge
+                              variant="outline"
+                              className="ml-2 text-xs"
+                            >
+                              Owner
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          {member.in_game_role ||
+                            member.management_role ||
+                            "Member"}
+                        </TableCell>
+                        {isAdminByRoleOrRoles && (
+                          <TableCell>
+                            {!isOwner && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="size-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => setRemoveTarget(member)}
+                              >
+                                <IconUserMinus className="size-4" />
+                              </Button>
+                            )}
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             ) : (
@@ -169,7 +363,7 @@ export function TeamDetailsClient({
           </CardContent>
         </Card>
 
-        {/* Tournament Performance Card */}
+        {/* Tournament Performance */}
         <Card>
           <CardHeader>
             <CardTitle>Tournament Performance</CardTitle>
@@ -203,7 +397,7 @@ export function TeamDetailsClient({
           </CardContent>
         </Card>
 
-        {/* Recent Matches Card */}
+        {/* Recent Matches */}
         <Card>
           <CardHeader>
             <CardTitle>Recent Matches</CardTitle>
@@ -249,6 +443,180 @@ export function TeamDetailsClient({
           </CardContent>
         </Card>
       </div>
+
+      {/* ── Remove Member Confirmation ── */}
+      <AlertDialog
+        open={!!removeTarget}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to remove{" "}
+              <strong>{removeTarget?.username}</strong> from{" "}
+              <strong>{teamDetails.team_name}</strong> as an admin action.
+              The player will be notified and can be re-added at any time.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemove}
+              disabled={isRemoving}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isRemoving ? "Removing..." : "Remove Member"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Add Member Dialog ── */}
+      <Dialog open={addOpen} onOpenChange={(open) => !open && closeAddDialog()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Member to {teamDetails.team_name}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Over-limit warning */}
+            {isTeamFull && (
+              <div className="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
+                <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
+                <span>
+                  This team already has{" "}
+                  <strong>{memberCount} members</strong>, exceeding the normal
+                  8-member limit. Adding a member will override this cap.
+                </span>
+              </div>
+            )}
+
+            {/* Player search / selected */}
+            {!selectedPlayer ? (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Search Player</p>
+                <Input
+                  placeholder="Search by username or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+
+                {searchLoading && (
+                  <div className="flex justify-center py-2">
+                    <Spinner className="size-5" />
+                  </div>
+                )}
+
+                {!searchLoading && searchResults.length > 0 && (
+                  <div className="max-h-48 overflow-y-auto rounded-md border divide-y">
+                    {searchResults.map((player) => (
+                      <button
+                        key={player.user_id}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+                        onClick={() => {
+                          setSelectedPlayer(player);
+                          setSearchQuery("");
+                          setSearchResults([]);
+                        }}
+                      >
+                        <p className="font-medium">{player.username}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {player.email}
+                        </p>
+                        {player.current_team && (
+                          <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                            On team: {player.current_team.team_name}
+                          </p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {!searchLoading &&
+                  searchQuery.length >= 2 &&
+                  searchResults.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-2">
+                      No players found.
+                    </p>
+                  )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Selected Player</p>
+                <div className="rounded-md border p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">
+                        {selectedPlayer.username}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {selectedPlayer.email}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs"
+                      onClick={() => setSelectedPlayer(null)}
+                    >
+                      Change
+                    </Button>
+                  </div>
+
+                  {/* Force-move warning */}
+                  {selectedPlayer.current_team && (
+                    <div className="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-2 py-1.5 text-xs text-yellow-700 dark:text-yellow-400">
+                      <IconAlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                      <span>
+                        This player is currently on{" "}
+                        <strong>
+                          {selectedPlayer.current_team.team_name}
+                        </strong>
+                        . Confirming will remove them from that team first.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Role picker */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Management Role</p>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MANAGEMENT_ROLES.map((r) => (
+                    <SelectItem key={r.value} value={r.value}>
+                      {r.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={closeAddDialog}
+              disabled={isAdding}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAdd}
+              disabled={!selectedPlayer || isAdding}
+            >
+              {isAdding ? "Adding..." : "Add Member"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
