@@ -1538,6 +1538,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 onStartTournament={() =>
                   setOpenConfirmStartTournamentModal(true)
                 }
+                onRefresh={fetchEventDetails}
               />
             </TabsContent>
 
