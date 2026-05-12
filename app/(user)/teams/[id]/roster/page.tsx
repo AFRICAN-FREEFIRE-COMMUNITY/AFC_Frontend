@@ -106,12 +106,11 @@ export default function page({ params }: { params: Params }) {
           management_role:
             roleType === "managementRole"
               ? newRole
-              : existingChange?.management_role ||
-                currentMember.management_role,
+              : existingChange?.management_role ?? currentMember.management_role,
           in_game_role:
             roleType === "inGameRole"
               ? newRole
-              : existingChange?.in_game_role || currentMember.in_game_role,
+              : existingChange?.in_game_role ?? currentMember.in_game_role ?? "",
         };
 
         newChanges.set(memberId, update);
@@ -170,7 +169,7 @@ export default function page({ params }: { params: Params }) {
 
   // Check if current user is the one being displayed (cannot kick yourself)
   const isSelf = (member: any) => {
-    return member.username === user?.in_game_name;
+    return member.username === user?.username;
   };
 
   const handleSave = async () => {
@@ -183,24 +182,55 @@ export default function page({ params }: { params: Params }) {
       try {
         const updates = Array.from(roleChanges.values());
 
-        await axios.post(
+        const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/manage-team-roster/`,
-          {
-            team_id: teamDetails?.team_id,
-            updates,
-          },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { team_id: teamDetails?.team_id, updates },
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        toast.success("Team roster updated successfully!");
-        setRoleChanges(new Map()); // Clear changes after successful save
-        router.push(`/teams/${id}`);
+        const { results = [], has_errors } = res.data;
+
+        if (!has_errors) {
+          toast.success("Team roster updated successfully!");
+          setRoleChanges(new Map());
+          router.push(`/teams/${id}`);
+        } else {
+          // Show a toast per failure so the user knows exactly what didn't save
+          results.forEach((r: any) => {
+            if (r.status === "failed" || r.status === "partial") {
+              r.reasons?.forEach((reason: string) => {
+                toast.error(`${r.username}: ${reason}`);
+              });
+            }
+          });
+
+          const succeeded = results.filter((r: any) => r.status === "success").length;
+          if (succeeded > 0) {
+            toast.success(`${succeeded} update(s) saved successfully.`);
+            // Refresh so saved changes reflect immediately
+            const refresh = await axios.post(
+              `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+              { team_name: decodeURIComponent(id) }
+            );
+            setTeamDetails(refresh.data.team);
+          }
+
+          // Keep only the failed changes in state so user can fix them
+          const failedIds = new Set(
+            results
+              .filter((r: any) => r.status === "failed" || r.status === "partial")
+              .map((r: any) => r.member_id)
+          );
+          setRoleChanges((prev) => {
+            const next = new Map(prev);
+            for (const id of prev.keys()) {
+              if (!failedIds.has(id)) next.delete(id);
+            }
+            return next;
+          });
+        }
       } catch (error: any) {
-        toast.error(
-          error?.response?.data?.message || "Failed to update roster"
-        );
+        toast.error(error?.response?.data?.message || "Failed to update roster");
       }
     });
   };
@@ -226,7 +256,9 @@ export default function page({ params }: { params: Params }) {
                 {teamDetails?.members?.map((member: any) => {
                   const pendingChange = roleChanges.get(member.id);
                   const currentInGameRole =
-                    pendingChange?.in_game_role || member.in_game_role;
+                    pendingChange !== undefined
+                      ? (pendingChange.in_game_role ?? "")
+                      : (member.in_game_role ?? "");
                   const currentManagementRole =
                     pendingChange?.management_role || member.management_role;
 
@@ -242,9 +274,10 @@ export default function page({ params }: { params: Params }) {
                           }
                         >
                           <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder="No role" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="">— No role —</SelectItem>
                             <SelectItem value="rusher">Rusher</SelectItem>
                             <SelectItem value="support">Support</SelectItem>
                             <SelectItem value="grenader">Grenader</SelectItem>
