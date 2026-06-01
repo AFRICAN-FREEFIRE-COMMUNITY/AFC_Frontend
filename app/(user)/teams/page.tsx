@@ -41,6 +41,7 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { ITEMS_PER_PAGE } from "@/constants";
+import { TransferWindowBanner } from "@/components/rankings/TransferWindowBanner";
 
 function page() {
   const [search, setSearch] = useState("");
@@ -148,6 +149,9 @@ function page() {
           <Link href="/teams/create">Create Team</Link>
         </Button>
       </div>
+
+      {/* Transfer-window OPEN/CLOSED status — self-fetching, mirrors /rankings */}
+      <TransferWindowBanner className="mb-4" />
 
       <div className="mb-4">
         <Input

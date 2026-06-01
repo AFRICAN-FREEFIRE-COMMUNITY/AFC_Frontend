@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { FullLoader } from "@/components/Loader";
 import { adminNavLinks } from "@/constants/nav-links";
 
-const PUBLIC_ROUTES = ["/news", "/about", "/contact", "/unauthorized"];
+const PUBLIC_ROUTES = ["/news", "/about", "/contact", "/unauthorized", "/rankings"];
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

@@ -79,6 +79,7 @@ import {
   type ApplicationRecord,
 } from "@/app/(user)/_components/ReviewApplicationDialog";
 import { TrialChatSidebar } from "@/app/(user)/_components/TrialChatSidebar";
+import { TransferWindowBanner } from "@/components/rankings/TransferWindowBanner";
 import Link from "next/link";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -954,6 +955,9 @@ function PlayerMarketPage() {
           </Button>
         </div>
       </div>
+
+      {/* Transfer-window OPEN/CLOSED status — self-fetching, mirrors /rankings */}
+      <TransferWindowBanner />
 
       {/* Info Banner */}
       <Card className="bg-primary/5 border-primary/20">

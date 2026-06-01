@@ -154,7 +154,13 @@ export default function page({ params }: { params: Params }) {
         );
         setTeamDetails(res.data.team);
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Failed to kick member");
+        // kick-team-member returns its errors under `error` (incl. the transfer-window-closed
+        // block); fall back to `message` then a generic string so the specific reason shows.
+        toast.error(
+          error?.response?.data?.error ||
+            error?.response?.data?.message ||
+            "Failed to kick member"
+        );
       }
     });
   };

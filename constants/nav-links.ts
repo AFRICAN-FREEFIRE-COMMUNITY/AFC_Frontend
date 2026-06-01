@@ -164,8 +164,7 @@ export const adminNavLinks: AdminNavLink[] = [
     label: "Admin Rankings",
     slug: "/a/rankings",
     icon: IconArticle,
-    comingSoon: true,
-    allowedRoles: ["head_admin"],
+    allowedRoles: ["head_admin", "metrics_admin"],
   },
   {
     label: "Admin Shop",

@@ -108,22 +108,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           requestUrl.includes("/auth/forgot-password") ||
           requestUrl.includes("/auth/reset-password");
 
-        if (error.response?.status === 401 && !isAuthEndpoint && token) {
-          const errorMessage =
-            error.response?.data?.message?.toLowerCase() || "";
-          // Check for common token expiration/invalid messages
-          if (
-            errorMessage.includes("token") ||
-            errorMessage.includes("expired") ||
-            errorMessage.includes("invalid") ||
-            errorMessage.includes("unauthorized") ||
-            errorMessage.includes("authentication")
-          ) {
-            Cookies.remove(COOKIE_NAME, { path: "/" });
-            setUser(null);
-            setToken(null);
-            window.dispatchEvent(new CustomEvent("auth:session-expired"));
-          }
+        // Only a 401 from the canonical token-VALIDATION endpoint (get-user-profile) is
+        // treated as a real session expiry that logs the user out. A 401 from any other
+        // data endpoint is left for the caller to handle (toast etc.) and does NOT clear the
+        // session — this stops a single stray/transient 401 (e.g. a request that raced the
+        // token, or an endpoint returning 401 for an unrelated reason) from logging the user
+        // out mid-work. A genuinely-expired token is still caught on the next profile fetch.
+        const isTokenValidation = requestUrl.includes("/auth/get-user-profile");
+
+        if (error.response?.status === 401 && !isAuthEndpoint && isTokenValidation && token) {
+          Cookies.remove(COOKIE_NAME, { path: "/" });
+          setUser(null);
+          setToken(null);
+          window.dispatchEvent(new CustomEvent("auth:session-expired"));
         }
         return Promise.reject(error);
       },
