@@ -1,6 +1,15 @@
 import axios from "axios";
 import { env } from "@/lib/env";
 
+/**
+ * Typed client for the PUBLIC (read-only, unauthenticated) rankings API (prefix /rankings/).
+ *
+ * Returns the canonical {results, pagination, month?/season?} envelope straight from the
+ * backend — no Bearer token, since these endpoints are open to everyone. This is the
+ * public counterpart to lib/rankingsAdmin.ts, which hits the same /rankings/ prefix but
+ * carries the auth_token Bearer header for the head_admin / metrics_admin write surface.
+ */
+
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
 
 // Canonical envelope from the rankings API: { results: [...], pagination: {...}, month?/season? }
@@ -69,11 +78,16 @@ async function get<T>(path: string, params?: Record<string, any>): Promise<Envel
   return res.data;
 }
 
+// PUBLIC rankings client (no auth), consumed by app/(user)/rankings/page.tsx; the
+// Bearer-gated admin twin is lib/rankingsAdmin.ts.
 export const rankingsApi = {
   teamsMonthly: (month?: string) => get<TeamRow>("teams/monthly/", month ? { month } : undefined),
   teamsQuarterly: (seasonId?: number) => get<TeamRow>("teams/quarterly/", seasonId ? { season_id: seasonId } : undefined),
   playersMonthly: (month?: string) => get<PlayerRow>("players/monthly/", month ? { month } : undefined),
   playersQuarterly: (seasonId?: number) => get<PlayerRow>("players/quarterly/", seasonId ? { season_id: seasonId } : undefined),
+  // Feeds the transfer-window banner on /rankings, /teams and /player-markets; response
+  // carries Phase-2c flags (transfer_window_is_open, transfer_window_close,
+  // rankings_published, tiers_published).
   currentSeason: async (): Promise<Season | null> => {
     const res = await axios.get(`${BASE}/rankings/seasons/current/`);
     return res.data;

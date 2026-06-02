@@ -23,9 +23,13 @@ import { rankingsApi, TeamRow, PlayerRow, Season } from "@/lib/rankings";
 import {
   IconHash, IconUsers, IconTrophy, IconChevronDown, IconChevronRight, IconMoodEmpty,
   IconInfoCircle, IconCrown, IconChartBar, IconStairsUp, IconSearch,
-  IconArrowsExchange, IconLock, IconClock,
+  IconClock,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import {
+  TransferWindowBanner,
+} from "@/components/rankings/TransferWindowBanner";
 
 type Subject = "teams" | "players";
 
@@ -40,74 +44,6 @@ type SeasonFlags = Season & {
   rankings_published?: boolean;
   tiers_published?: boolean;
 };
-
-// Pretty date for the transfer-window close (e.g. "Aug 14, 2026, 6:00 PM"). Falls back gracefully.
-function fmtDateTime(iso?: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  return d.toLocaleString("en-US", {
-    month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
-  });
-}
-
-/**
- * Prominent, impossible-to-miss transfer-window banner. Lives directly under the page
- * header. Driven off the loaded season's transfer_window_is_open + transfer_window_close.
- * Matches the page's card idiom (rounded-md border) using the site's primary (green) /
- * destructive colors. Renders nothing until a season is loaded.
- */
-function TransferWindowBanner({ season }: { season: SeasonFlags | null }) {
-  if (!season) return null;
-  const open = season.transfer_window_is_open === true;
-  const closeStr = fmtDateTime(season.transfer_window_close);
-
-  return (
-    <div
-      className={cn(
-        "mb-5 flex items-center gap-3 rounded-md border px-4 py-3.5 sm:px-5",
-        open
-          ? "border-primary/50 bg-primary/10 text-foreground"
-          : "border-destructive/50 bg-destructive/10 text-foreground",
-      )}
-    >
-      <span
-        className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-full",
-          open ? "bg-primary/20 text-primary" : "bg-destructive/20 text-destructive",
-        )}
-      >
-        {open ? <IconArrowsExchange className="size-5" /> : <IconLock className="size-5" />}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-bold sm:text-base">
-          <span className={open ? "text-primary" : "text-destructive"}>
-            {open ? "🟢 Transfer window is OPEN" : "🔴 Transfer window is CLOSED"}
-          </span>
-          {open && closeStr && (
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground sm:text-sm">
-              <IconClock className="size-3.5" /> closes {closeStr}
-            </span>
-          )}
-        </p>
-        <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-          {open
-            ? "Roster moves are allowed right now."
-            : "Roster moves are locked until the window reopens."}
-        </p>
-      </div>
-      <Badge
-        variant="outline"
-        className={cn(
-          "hidden shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold sm:inline-flex",
-          open ? "border-primary/60 text-primary" : "border-destructive/60 text-destructive",
-        )}
-      >
-        {open ? "OPEN" : "CLOSED"}
-      </Badge>
-    </div>
-  );
-}
 
 // Empty state shown when a season's rankings/tiers haven't been published yet (Phase 2c gating).
 function NotPublished({ seasonName, what }: { seasonName?: string; what: string }) {
@@ -132,7 +68,7 @@ function SearchBar({ value, onChange, placeholder }: { value: string; onChange: 
   );
 }
 
-/* explainer */
+// ─── How-it-works explainer (rankings vs tiers) ──────────────────────────────
 function HowItWorks() {
   const Section = ({ icon, title, children }: any) => (
     <div className="flex gap-3">
@@ -212,7 +148,9 @@ function NoMatch({ q }: { q: string }) {
   );
 }
 
-/* RANKINGS (standings, teams & players) */
+// ─── Rankings view - live standings, teams & players ─────────────────────────
+// Reads rankingsApi.teamsMonthly() / playersMonthly() → /rankings/teams|players/monthly/;
+// rankings_published gates the empty-vs-NotPublished branch (false → "Not published yet").
 function RankingsView() {
   const [subject, setSubject] = useState<Subject>("teams");
   const [teams, setTeams] = useState<TeamRow[]>([]);
@@ -358,7 +296,7 @@ function RankingsView() {
   );
 }
 
-/* TIERS (teams only, expandable bands) */
+// ─── Tiers view - teams only, expandable per-tier bands ──────────────────────
 function TierTeamRow({ row, elite }: { row: any; elite?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
@@ -428,6 +366,9 @@ function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any
   );
 }
 
+// Reads rankingsApi.teamsQuarterly(seasonId). tiers_published can be false while
+// rankings_published is true (backend returns tier null), so we show the tiers-coming-soon
+// notice instead of dropping teams; grouping into bands uses TierBadge.
 function TiersView() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState<number | undefined>(undefined);
@@ -442,7 +383,7 @@ function TiersView() {
       setSeasons(r.results);
       const active = r.results.find((s) => s.is_active) ?? r.results[0];
       setSeasonId(active?.season_id);
-    }).catch(() => {});
+    }).catch((error) => toast.error(error?.response?.data?.message || "Failed to load rankings"));
   }, []);
 
   useEffect(() => {
@@ -529,17 +470,10 @@ function Empty({ period }: { period: string }) {
   );
 }
 
-/* page */
+// ─── Page - header + transfer-window banner + Rankings/Tiers tabs ────────────
 export default function RankingsPage() {
-  // Current season drives the prominent transfer-window banner (Phase 2c runtime flags).
-  const [season, setSeason] = useState<SeasonFlags | null>(null);
-
-  useEffect(() => {
-    rankingsApi.currentSeason()
-      .then((s) => setSeason((s as SeasonFlags) ?? null))
-      .catch(() => {});
-  }, []);
-
+  // The transfer-window banner self-fetches the current season (Phase 2c flags); the
+  // per-view RankingsView/TiersView fetch their own standings data independently.
   return (
     <div>
       <PageHeader
@@ -548,7 +482,7 @@ export default function RankingsPage() {
         action={<HowItWorks />}
       />
 
-      <TransferWindowBanner season={season} />
+      <TransferWindowBanner className="mb-5" />
 
       <Tabs defaultValue="rankings">
         <TabsList className="mb-5 h-10">

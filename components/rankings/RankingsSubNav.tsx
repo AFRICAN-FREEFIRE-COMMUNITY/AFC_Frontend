@@ -1,5 +1,9 @@
 "use client";
 
+// Admin sub-nav for the Rankings dashboard, mounted once by app/(a)/a/rankings/layout.tsx so
+// every /a/rankings/* page shows it; order mirrors the admin workflow; role-gating is handled
+// upstream by adminNavLinks (head_admin + metrics_admin) in constants/nav-links.ts.
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";

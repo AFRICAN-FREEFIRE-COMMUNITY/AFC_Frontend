@@ -14,7 +14,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialog, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FullLoader } from "@/components/Loader";
@@ -52,6 +52,9 @@ type EventOption = { event_id: number; event_name: string };
 type TeamOption = { team_id: number; team_name: string };
 
 const MATCH_LIMIT = 8;
+// Minimum reason length for every audit-logged write (matches the backend gate and the
+// sibling rankings admin pages: results / overrides / social / seasons / ghost-teams).
+const MIN_REASON = 10;
 
 export default function PrizeMoneyPage() {
   // ── season scope ── undefined = not resolved yet, null = resolved but none active
@@ -166,7 +169,7 @@ export default function PrizeMoneyPage() {
     addEventId > 0 &&
     addTeamId > 0 &&
     Number(addAmount) > 0 &&
-    addReason.trim().length >= 10;
+    addReason.trim().length >= MIN_REASON;
 
   function resetAdd() {
     setAddEventText("");
@@ -219,7 +222,7 @@ export default function PrizeMoneyPage() {
   const editValid =
     editRow !== null &&
     Number(editAmount) > 0 &&
-    editReason.trim().length >= 10;
+    editReason.trim().length >= MIN_REASON;
 
   async function handleEditSave() {
     if (!editRow || !editValid) return;
@@ -249,7 +252,7 @@ export default function PrizeMoneyPage() {
     setDeleteReason("");
   }
 
-  const deleteValid = deleteRow !== null && deleteReason.trim().length >= 10;
+  const deleteValid = deleteRow !== null && deleteReason.trim().length >= MIN_REASON;
 
   async function handleDelete() {
     if (!deleteRow || !deleteValid) return;
@@ -348,7 +351,7 @@ export default function PrizeMoneyPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-red-500 hover:text-red-500"
+                          className="text-destructive hover:text-destructive"
                           onClick={() => openDelete(r)}
                         >
                           <IconTrash className="mr-1 size-3.5" /> Delete
@@ -490,7 +493,7 @@ export default function PrizeMoneyPage() {
 
             <div className="space-y-1.5">
               <Label>
-                Reason <span className="text-red-500">*</span>
+                Reason <span className="text-destructive">*</span>
               </Label>
               <Textarea
                 value={addReason}
@@ -499,9 +502,7 @@ export default function PrizeMoneyPage() {
                 rows={3}
               />
               <p className="text-[11px] text-muted-foreground">
-                {addReason.trim().length < 10
-                  ? `${10 - addReason.trim().length} more character${10 - addReason.trim().length === 1 ? "" : "s"} required`
-                  : "Reason will be recorded in the audit log."}
+                {addReason.trim().length}/{MIN_REASON} characters minimum.
               </p>
             </div>
           </div>
@@ -556,7 +557,7 @@ export default function PrizeMoneyPage() {
 
               <div className="space-y-1.5">
                 <Label>
-                  Reason <span className="text-red-500">*</span>
+                  Reason <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
                   value={editReason}
@@ -565,9 +566,7 @@ export default function PrizeMoneyPage() {
                   rows={3}
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  {editReason.trim().length < 10
-                    ? `${10 - editReason.trim().length} more character${10 - editReason.trim().length === 1 ? "" : "s"} required`
-                    : "Reason will be recorded in the audit log."}
+                  {editReason.trim().length}/{MIN_REASON} characters minimum.
                 </p>
               </div>
             </div>
@@ -598,7 +597,7 @@ export default function PrizeMoneyPage() {
 
           <div className="space-y-1.5">
             <Label>
-              Reason <span className="text-red-500">*</span>
+              Reason <span className="text-destructive">*</span>
             </Label>
             <Textarea
               value={deleteReason}
@@ -607,21 +606,19 @@ export default function PrizeMoneyPage() {
               rows={3}
             />
             <p className="text-[11px] text-muted-foreground">
-              {deleteReason.trim().length < 10
-                ? `${10 - deleteReason.trim().length} more character${10 - deleteReason.trim().length === 1 ? "" : "s"} required`
-                : "Reason will be recorded in the audit log."}
+              {deleteReason.trim().length}/{MIN_REASON} characters minimum.
             </p>
           </div>
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <Button
+              variant="destructive"
               onClick={(e) => { e.preventDefault(); handleDelete(); }}
               disabled={!deleteValid || deleteSaving}
-              className="bg-red-500 text-white hover:bg-red-600"
             >
               {deleteSaving ? "Deleting…" : "Delete"}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

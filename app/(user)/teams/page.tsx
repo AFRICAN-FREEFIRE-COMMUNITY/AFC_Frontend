@@ -150,7 +150,9 @@ function page() {
         </Button>
       </div>
 
-      {/* Transfer-window OPEN/CLOSED status — self-fetching, mirrors /rankings */}
+      {/* Transfer-window OPEN/CLOSED status — self-fetching the active ranking
+          season; when CLOSED the backend freezes leave/kick/disband (afc_team),
+          so this banner explains why those actions are blocked here. */}
       <TransferWindowBanner className="mb-4" />
 
       <div className="mb-4">

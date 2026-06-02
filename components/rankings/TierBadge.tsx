@@ -1,6 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
+// Tier pill (outline Badge) mapping a 0-3 tier index to label and colour; single source for tier presentation across /rankings and the admin surfaces; min values mirror the scoring spec thresholds.
+
 // spec §11, 0=Elite, 1=Competitive, 2=Rising, 3=Entry
 export const tierMeta: Record<number, { label: string; cls: string; min: number }> = {
   0: { label: "Elite", cls: "text-amber-400 border-amber-500/60", min: 150 },

@@ -58,7 +58,7 @@ import { ITEMS_PER_PAGE } from "@/constants";
 import { Textarea } from "@/components/ui/textarea";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 
-// --- Ghost Teams (provisional placeholder teams used by Rankings & Tiering) ---
+// ── Ghost Teams (provisional placeholder teams used by Rankings & Tiering) ───
 // Shape mirrors the backend serialize_ghost() payload (afc_rankings/admin_ghost.py):
 // claim_status can also be "revoked"; the table's else-branch renders it as "Unclaimed".
 type GhostClaimStatus = "unclaimed" | "pending" | "claimed" | "revoked";
@@ -88,7 +88,7 @@ const page = () => {
   const [teams, setTeams] = useState<any>();
   const [rankingTeams, setRankingTeams] = useState(false);
 
-  // --- Ghost Teams (LIVE — afc_rankings ghost-teams admin API) ---
+  // ── Ghost Teams (LIVE — afc_rankings ghost-teams admin API) ──────────────
   const MIN_REASON = 10;
   const [ghostTeams, setGhostTeams] = useState<GhostTeam[]>([]);
   const [ghostLoading, setGhostLoading] = useState(true);
@@ -123,6 +123,8 @@ const page = () => {
       prev.length <= 1 ? prev : prev.filter((p) => p.id !== id),
     );
 
+  // live ghost-teams admin API (afc_rankings); ghost teams are provisional
+  // placeholders that hold tournament results until a real team claims them.
   const fetchGhostTeams = async () => {
     setGhostLoading(true);
     try {
@@ -437,7 +439,7 @@ const page = () => {
         </CardContent>
       </Card>
 
-      {/* --- Ghost Teams (MOCKUP) --- */}
+      {/* ── Ghost Teams — live afc_rankings ghost-teams admin (create / delete, reason-gated) ── */}
       <Card className="gap-0 mt-4">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">

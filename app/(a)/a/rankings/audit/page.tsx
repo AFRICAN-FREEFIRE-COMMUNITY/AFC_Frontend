@@ -23,8 +23,11 @@ import {
   IconCalendarStats, IconFilter, IconAlertTriangle,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-// All object_types an audit row can carry (spec §16, every write is logged).
+// One entry per object_type the backend audit logger emits (admin_audit; spec §16, every
+// write is logged). Every reason-gated action across the sibling rankings admin pages —
+// results / overrides / ghost-teams / social / prize / seasons — lands here as one of these.
 const OBJECT_TYPES = [
   { value: "tournament_result", label: "Tournament result" },
   { value: "scrim_result", label: "Scrim result" },
@@ -339,7 +342,7 @@ export default function AuditLogPage() {
                     {fmtTime(r.changed_at)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={"rounded-full text-xs " + (TYPE_TONE[r.object_type] ?? "")}>
+                    <Badge variant="outline" className={cn("rounded-full text-xs", TYPE_TONE[r.object_type])}>
                       {TYPE_LABEL[r.object_type] ?? r.object_type}
                     </Badge>
                   </TableCell>

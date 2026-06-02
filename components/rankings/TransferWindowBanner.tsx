@@ -26,9 +26,12 @@ type SeasonFlags = Season & {
 function fmtDate(iso?: string) {
   if (!iso) return "";
   const d = new Date(iso);
-  return isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  return isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+// Rendered on /teams, /player-markets and /rankings; self-fetches rankingsApi.currentSeason();
+// OPEN/CLOSED mirrors the backend roster lock (when CLOSED, afc_team exit_team/kick_team_member/
+// disband_team are frozen server-side); single banner used app-wide.
 export function TransferWindowBanner({ className }: { className?: string }) {
   const [season, setSeason] = useState<SeasonFlags | null>(null);
 

@@ -545,6 +545,7 @@ export default function ResultMarkersPage() {
   return (
     <div className="space-y-4">
       <PageHeader
+        back
         title="Result Markers"
         description="Control which tournament results count toward rankings. Disable a whole event, or exclude specific teams or players from counting."
       />

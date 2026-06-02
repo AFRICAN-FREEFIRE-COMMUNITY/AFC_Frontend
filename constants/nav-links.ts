@@ -160,6 +160,9 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconNews,
     allowedRoles: ["head_admin", "news_admin"],
   },
+  // Admin Rankings is also gated app-wide in AuthContext.isAdmin /
+  // isAdminByRoleOrRoles; keep metrics_admin in sync there or a metrics_admin-only
+  // user sees this link but is not treated as admin elsewhere.
   {
     label: "Admin Rankings",
     slug: "/a/rankings",

@@ -221,6 +221,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user.roles?.some((role) =>
           [
             "head_admin",
+            "metrics_admin",
             "shop_admin",
             "news_admin",
             "teams_admin",
@@ -237,6 +238,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (user.role === "player" &&
         hasAnyRole([
           "head_admin",
+          "metrics_admin",
           "shop_admin",
           "news_admin",
           "teams_admin",

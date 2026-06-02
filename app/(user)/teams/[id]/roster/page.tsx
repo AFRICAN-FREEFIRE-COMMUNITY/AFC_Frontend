@@ -154,8 +154,10 @@ export default function page({ params }: { params: Params }) {
         );
         setTeamDetails(res.data.team);
       } catch (error: any) {
-        // kick-team-member returns its errors under `error` (incl. the transfer-window-closed
-        // block); fall back to `message` then a generic string so the specific reason shows.
+        // reads the `error` key first because team/kick-team-member returns the
+        // transfer-window-closed block under that key; the window state is also
+        // shown on /teams and /rankings. Fall back to `message` then a generic
+        // string so the specific reason still shows.
         toast.error(
           error?.response?.data?.error ||
             error?.response?.data?.message ||

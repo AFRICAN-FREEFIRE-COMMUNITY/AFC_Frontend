@@ -24,7 +24,12 @@ import {
 import { FullLoader } from "@/components/Loader";
 import { TierBadge } from "@/components/rankings/TierBadge";
 import { TIER_LABELS } from "@/lib/rankingsMock";
-import { rankingsApi, Season, TeamRow as ApiTeamRow, PlayerRow as ApiPlayerRow } from "@/lib/rankings";
+import {
+  rankingsApi,
+  Season,
+  TeamRow as ApiTeamRow,
+  PlayerRow as ApiPlayerRow,
+} from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import {
   IconGavel, IconBan, IconArrowBackUp, IconSearch, IconHash, IconAlertTriangle,
@@ -463,6 +468,25 @@ function BanZeroPlayerDialog({
   );
 }
 
+/* ---------------------------------------------------------------- Stat card (shared summary tile) */
+// Same signature as results/page.tsx — keep the rankings admin summary tiles identical.
+function StatCard({ icon, title, value, sub, tone }: {
+  icon: React.ReactNode; title: string; value: React.ReactNode; sub?: string; tone?: string;
+}) {
+  return (
+    <Card className="gap-1 transition-shadow hover:shadow-lg">
+      <CardHeader className="flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <span className={cn("text-muted-foreground", tone)}>{icon}</span>
+      </CardHeader>
+      <CardContent>
+        <p className="text-2xl font-bold tabular-nums">{value}</p>
+        {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ---------------------------------------------------------------- Page */
 export default function OverridesAndBansPage() {
   const [tab, setTab] = useState<"teams" | "players">("teams");
@@ -504,11 +528,12 @@ export default function OverridesAndBansPage() {
     return () => { active = false; };
   }, []);
 
-  // Admin surface: read the ungated draft so unpublished seasons still list teams/players
-  // to override. The public quarterly endpoints return empty until the season is published;
-  // adminTeamsQuarterly / adminPlayersQuarterly return the same {results, season, pagination}
-  // shape with the per-row override state (tier_overridden / is_zeroed / points_deducted /
-  // effective_score) intact.
+  // Admin surface: MUST read the ungated draft endpoints (adminTeamsQuarterly /
+  // adminPlayersQuarterly) so unpublished seasons still list teams/players to override.
+  // The public teams/players/quarterly reads return nothing until the season is published
+  // from the overview Publish card — the draft endpoints return the same {results, season,
+  // pagination} shape with the per-row override state (tier_overridden / is_zeroed /
+  // points_deducted / effective_score) intact.
   const loadTeams = async (seasonId: number) => {
     const r = await rankingsAdminApi.adminTeamsQuarterly(seasonId);
     setTeams(r.results);
@@ -644,64 +669,36 @@ export default function OverridesAndBansPage() {
   return (
     <div className="space-y-4">
       <PageHeader
+        back
         title="Overrides & Bans"
         description="Manually correct tier assignments and zero out cheating teams or players. Every action is logged with a reason."
       />
 
       {/* status strip */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
-        <Card className="gap-1 transition-shadow hover:shadow-lg">
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tier overrides</CardTitle>
-            <span className={cn("text-muted-foreground")}>
-              <IconGavel className="size-4" />
-            </span>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold tabular-nums">{overriddenCount}</p>
-            <p className="text-xs text-muted-foreground">Teams on a manual tier</p>
-          </CardContent>
-        </Card>
-        <Card className="gap-1 transition-shadow hover:shadow-lg">
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Point deductions</CardTitle>
-            <span className={cn("text-muted-foreground", "text-orange-400")}>
-              <IconArrowDown className="size-4" />
-            </span>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold tabular-nums">{deductedTeamsCount}</p>
-            <p className="text-xs text-muted-foreground">
-              {totalDeducted > 0
-                ? `${totalDeducted} pts removed this quarter`
-                : "Teams with a partial penalty"}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="gap-1 transition-shadow hover:shadow-lg">
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Zeroed teams</CardTitle>
-            <span className={cn("text-muted-foreground", "text-destructive")}>
-              <IconBan className="size-4" />
-            </span>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold tabular-nums">{zeroedCount}</p>
-            <p className="text-xs text-muted-foreground">Banned this quarter</p>
-          </CardContent>
-        </Card>
-        <Card className="gap-1 transition-shadow hover:shadow-lg">
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Zeroed players</CardTitle>
-            <span className={cn("text-muted-foreground", "text-destructive")}>
-              <IconUser className="size-4" />
-            </span>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold tabular-nums">{playersView.filter((p) => p.zeroed).length}</p>
-            <p className="text-xs text-muted-foreground">Banned this quarter</p>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={<IconGavel className="size-4" />}
+          title="Tier overrides" value={overriddenCount}
+          sub="Teams on a manual tier"
+        />
+        <StatCard
+          icon={<IconArrowDown className="size-4" />}
+          title="Point deductions" value={deductedTeamsCount}
+          sub={totalDeducted > 0 ? `${totalDeducted} pts removed this quarter` : "Teams with a partial penalty"}
+          tone="text-orange-400"
+        />
+        <StatCard
+          icon={<IconBan className="size-4" />}
+          title="Zeroed teams" value={zeroedCount}
+          sub="Banned this quarter"
+          tone="text-destructive"
+        />
+        <StatCard
+          icon={<IconUser className="size-4" />}
+          title="Zeroed players" value={playersView.filter((p) => p.zeroed).length}
+          sub="Banned this quarter"
+          tone="text-destructive"
+        />
       </div>
 
       {/* tabs + search */}
