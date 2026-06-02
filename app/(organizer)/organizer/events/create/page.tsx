@@ -103,7 +103,30 @@ export default function OrganizerCreateEventPage() {
       stream_channels: [],
       event_mode: "",
       number_of_stages: 1,
-      stages: [],
+      // The shared admin EventFormSchema requires >=1 fully-valid stage. The organizer
+      // form has no stage editor — it auto-builds the real single stage from the chosen
+      // mode + dates at submit (buildDefaultStages), which is what actually gets sent. This
+      // placeholder stage exists ONLY to satisfy the resolver so submission isn't blocked;
+      // it is never sent to the backend.
+      stages: [
+        {
+          stage_name: "Main Stage",
+          start_date: "2026-01-01",
+          end_date: "2026-01-01",
+          number_of_groups: 1,
+          stage_format: "br_normal",
+          groups: [
+            {
+              group_name: "Group A",
+              playing_date: "2026-01-01",
+              playing_time: "18:00",
+              teams_qualifying: 1,
+              match_count: 1,
+              match_maps: ["Bermuda"],
+            },
+          ],
+        },
+      ],
       prizepool: "",
       prizepool_cash_value: undefined,
       // Empty object passes the schema's record() vacuously — an organizer can submit
@@ -116,6 +139,12 @@ export default function OrganizerCreateEventPage() {
       end_date: "",
       registration_open_date: "",
       registration_end_date: "",
+      // times (optional) — paired with the dates above so organizers can set when
+      // registration + the event open/close, not just the day.
+      registration_start_time: "",
+      registration_end_time: "",
+      event_start_time: "",
+      event_end_time: "",
       registration_link: "",
       event_status: "upcoming",
       publish_to_tournaments: false,
@@ -220,6 +249,11 @@ export default function OrganizerCreateEventPage() {
         formData.append("end_date", data.end_date);
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
+        // times (optional) — match the admin submit field names so the backend stores them.
+        formData.append("registration_start_time", data.registration_start_time || "");
+        formData.append("registration_end_time", data.registration_end_time || "");
+        formData.append("event_start_time", data.event_start_time || "");
+        formData.append("event_end_time", data.event_end_time || "");
         formData.append("registration_link", data.registration_link || "");
 
         // ── No location restriction on the organizer form (keep it simple). ──
@@ -268,10 +302,19 @@ export default function OrganizerCreateEventPage() {
     });
   };
 
-  // Wraps form.handleSubmit so each button submits with its own draft flag.
+  // Wraps form.handleSubmit so each button submits with its own draft flag. The onError
+  // branch surfaces the first validation error as a toast — without it a failed validation
+  // makes the button look dead (no request, no feedback).
   const onSubmit = (asDraft: boolean) =>
-    // @ts-ignore — same resolver-cast the admin page uses on handleSubmit.
-    form.handleSubmit((data: EventFormType) => submit(data, asDraft));
+    form.handleSubmit(
+      // @ts-ignore — same resolver-cast the admin page uses; the zodResolver widens the
+      // form's internal TFieldValues so the typed success handler doesn't line up exactly.
+      (data: EventFormType) => submit(data, asDraft),
+      (errors) => {
+        const first = Object.values(errors)[0] as { message?: string } | undefined;
+        toast.error(first?.message || "Please fix the highlighted fields and try again.");
+      },
+    );
 
   // ── Permission gate ─────────────────────────────────────────────────────────
   // No create permission → a read-only notice instead of the form (mirrors the
@@ -457,68 +500,132 @@ export default function OrganizerCreateEventPage() {
                 />
               </div>
 
-              {/* Registration window. */}
+              {/* Registration window — each side takes a date AND a time. */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  // @ts-ignore
-                  control={form.control}
-                  name="registration_open_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Registration Opens</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  // @ts-ignore
-                  control={form.control}
-                  name="registration_end_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Registration Closes</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2">
+                  <FormLabel>Registration Opens</FormLabel>
+                  <div className="grid grid-cols-[1fr_auto] gap-2">
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="registration_open_date"
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="registration_start_time"
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input type="time" className="w-28" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <FormLabel>Registration Closes</FormLabel>
+                  <div className="grid grid-cols-[1fr_auto] gap-2">
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="registration_end_date"
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="registration_end_time"
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input type="time" className="w-28" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Event window. */}
+              {/* Event window — each side takes a date AND a time. */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  // @ts-ignore
-                  control={form.control}
-                  name="start_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Start Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  // @ts-ignore
-                  control={form.control}
-                  name="end_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event End Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2">
+                  <FormLabel>Event Start</FormLabel>
+                  <div className="grid grid-cols-[1fr_auto] gap-2">
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="start_date"
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="event_start_time"
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input type="time" className="w-28" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <FormLabel>Event End</FormLabel>
+                  <div className="grid grid-cols-[1fr_auto] gap-2">
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="end_date"
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      // @ts-ignore
+                      control={form.control}
+                      name="event_end_time"
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input type="time" className="w-28" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Banner upload (optional) — trimmed dropzone from the admin Step1. */}
