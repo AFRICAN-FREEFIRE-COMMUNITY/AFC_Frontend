@@ -16,6 +16,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useSignout } from "@/hooks/use-signout";
 import {
+  IconBuilding,
   IconChevronDown,
   IconLogout,
   IconMenu2,
@@ -35,7 +36,7 @@ export function MobileNavbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
 
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isOrganizer } = useAuth();
 
   const normalizeRole = (role: string) =>
     role.toLowerCase().replace(/\s+/g, "_");
@@ -331,6 +332,28 @@ export function MobileNavbar() {
                       )}
                     </Button>
                   ))}
+              </>
+            )}
+
+            {/* Organizer Section — shown to org members (the `organizer` role),
+                independent of admin access, so a pure organizer can reach their
+                portal. Mirrors the gated Organizer Dashboard link in the admin sidebar. */}
+            {isOrganizer && (
+              <>
+                <Separator className="my-2" />
+                <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
+                  Organizer
+                </p>
+                <Button
+                  className="justify-start"
+                  asChild
+                  variant={isActive("/organizer/overview") ? "default" : "ghost"}
+                  onClick={handleLinkClick}
+                >
+                  <Link href="/organizer/overview">
+                    <IconBuilding size={18} className="mr-2" /> Organizer Dashboard
+                  </Link>
+                </Button>
               </>
             )}
           </div>
