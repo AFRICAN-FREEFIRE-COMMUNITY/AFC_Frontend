@@ -83,10 +83,10 @@ export default function OrganizerOverviewPage() {
       try {
         const res = await organizersApi.getOrganization(slug);
         setOrg(res?.organization ?? null);
-        // getOrganization returns the org detail; the members/events lists used
-        // for the headline counts come back alongside it where present.
-        setMemberCount((res?.members ?? []).length);
-        setEventCount((res?.events ?? []).length);
+        // getOrganization returns the org detail with the headline counts inline
+        // (member_count = active members, event_count = events homed here).
+        setMemberCount(res?.organization?.member_count ?? 0);
+        setEventCount(res?.organization?.event_count ?? 0);
       } catch (err: any) {
         toast.error(
           err?.response?.data?.message || "Failed to load organization.",
