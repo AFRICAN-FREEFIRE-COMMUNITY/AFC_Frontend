@@ -49,6 +49,9 @@ const SELECTED_ORG_KEY = "organizer:selected-slug";
 const NAV_ITEMS = [
   { label: "Overview", href: "/organizer/overview" },
   { label: "Events", href: "/organizer/events" },
+  // "Design" — the org's leaderboard-design request surface (submit + history),
+  // gated per-page on the membership's can_submit_designs permission (or owner).
+  { label: "Design", href: "/organizer/design" },
   { label: "Profile", href: "/organizer/profile" },
   { label: "Members", href: "/organizer/members" },
 ];

@@ -8,6 +8,7 @@ import {
   IconInfoCircle,
   IconMessage,
   IconNews,
+  IconPhoto,
   IconSettings,
   IconShield,
   IconShoppingCart,
@@ -159,6 +160,14 @@ export const adminNavLinks: AdminNavLink[] = [
     label: "Organizations",
     slug: "/a/organizations",
     icon: IconUsersGroup,
+    allowedRoles: ["head_admin", "organizer_admin"],
+  },
+  {
+    // AFC review queue for organizer leaderboard-design requests. Gated the same
+    // way as Organizations (head_admin + organizer_admin) since it's the same team.
+    label: "Design Requests",
+    slug: "/a/organizations/design-requests",
+    icon: IconPhoto,
     allowedRoles: ["head_admin", "organizer_admin"],
   },
   {

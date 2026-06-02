@@ -39,6 +39,11 @@ async function aGet<T = any>(path: string, params?: Record<string, any>): Promis
 async function aPost<T = any>(path: string, body?: any): Promise<T> {
   return (await axios.post(url(path), body ?? {}, { headers: authHeaders() })).data;
 }
+// Multipart POST — for FormData bodies (file uploads). We do NOT set a Content-Type
+// header so axios fills in the multipart boundary itself, mirroring editOrganizationProfile.
+async function aPostForm<T = any>(path: string, body: FormData): Promise<T> {
+  return (await axios.post(url(path), body, { headers: authHeaders() })).data;
+}
 async function aPatch<T = any>(path: string, body?: any): Promise<T> {
   return (await axios.patch(url(path), body ?? {}, { headers: authHeaders() })).data;
 }
@@ -62,6 +67,15 @@ export const organizersApi = {
   adminDeleteOrganization: (slug: string) => aDelete(`admin/delete-organization/${slug}/`),
   adminManageMember: (slug: string, body: any) => aPost(`admin/manage-organization-member/${slug}/`, body),
 
+  // ── DESIGN REQUESTS — AFC admin review queue (list all + update one) ─────
+  // adminListDesignRequests paginates server-side: pass { status?, limit, offset };
+  // returns { results, total_count, has_more } — same shape as adminListOrganizations.
+  adminListDesignRequests: (params?: Record<string, any>) =>
+    aGet("admin/design-requests/", params),
+  // adminUpdateDesignRequest changes status + resolution_notes on one request.
+  adminUpdateDesignRequest: (id: number | string, body: any) =>
+    aPatch(`admin/design-requests/${id}/`, body),
+
   // ── ORGANIZER — owner/member managing their own organization ─────────────
   getMyOrganizations: () => aGet("get-my-organizations/"),
   getOrganization: (slug: string) => aGet(`get-organization/${slug}/`),
@@ -70,6 +84,15 @@ export const organizersApi = {
   // Content-Type — mirroring app/(user)/teams/[id]/edit/page.tsx.
   editOrganizationProfile: (slug: string, body: any, _isForm?: boolean) =>
     aPatch(`edit-organization-profile/${slug}/`, body),
+  // ── DESIGN REQUESTS — organizer-side (submit + list for one org) ─────────
+  // submitDesignRequest goes up as multipart FormData (title, notes?, reference_image?)
+  // so the optional reference image rides along — mirrors editOrganizationProfile's
+  // FormData path. axios sets the multipart boundary itself (no explicit Content-Type).
+  submitDesignRequest: (slug: string, body: FormData) =>
+    aPostForm(`design-requests/${slug}/`, body),
+  // listDesignRequests returns the org's own requests: { results: [...] }.
+  listDesignRequests: (slug: string) => aGet(`design-requests/${slug}/`),
+
   getOrganizationMembers: (slug: string) => aGet(`get-organization-members/${slug}/`),
   addOrganizationMember: (slug: string, body: any) => aPost(`add-organization-member/${slug}/`, body),
   editOrganizationMember: (slug: string, userId: number | string, body: any) =>
