@@ -62,6 +62,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isOrganizer: boolean;
   isAdminByRoleOrRoles: boolean;
   hasRole: (role: string) => boolean;
   hasAnyRole: (roles: string[]) => boolean;
@@ -221,6 +222,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user.roles?.some((role) =>
           [
             "head_admin",
+            "organizer_admin",
             "metrics_admin",
             "shop_admin",
             "news_admin",
@@ -238,6 +240,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (user.role === "player" &&
         hasAnyRole([
           "head_admin",
+          "organizer_admin",
           "metrics_admin",
           "shop_admin",
           "news_admin",
@@ -247,6 +250,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           "sponsor",
         ]))
     : false;
+
+  // An organizer is a non-admin role that owns/runs an organization. It is NOT a
+  // platform admin (deliberately kept out of the isAdmin arrays above) — pages use
+  // this flag to gate organizer-only surfaces.
+  const isOrganizer = hasAnyRole(["organizer"]);
 
   return (
     <AuthContext.Provider
@@ -258,6 +266,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout,
         isAuthenticated: !!user,
         isAdmin,
+        isOrganizer,
         hasRole,
         hasAnyRole,
         isAdminByRoleOrRoles,

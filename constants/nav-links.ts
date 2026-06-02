@@ -155,6 +155,12 @@ export const adminNavLinks: AdminNavLink[] = [
     allowedRoles: ["head_admin", "event_admin"],
   },
   {
+    label: "Organizations",
+    slug: "/a/organizations",
+    icon: IconUsersGroup,
+    allowedRoles: ["head_admin", "organizer_admin"],
+  },
+  {
     label: "Admin News",
     slug: "/a/news",
     icon: IconNews,
