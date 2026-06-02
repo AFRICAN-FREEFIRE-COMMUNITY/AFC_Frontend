@@ -207,9 +207,16 @@ export default function OrganizationDetailPage({
   // only that row's button is disabled while the request runs.
   const [verifyBusy, setVerifyBusy] = useState<number | null>(null);
 
+  // Controlled active tab — so a background refetch never bounces the admin back to
+  // the first (Profile) tab after an in-tab action like Verify.
+  const [tab, setTab] = useState("profile");
+
   // ── Fetch + seed the profile form ─────────────────────────────────────────
-  const fetchDetail = useCallback(async () => {
-    setLoading(true);
+  // silent=true does a background refetch (after an in-tab action like Verify) WITHOUT
+  // flipping the full-page loader — so the page doesn't unmount + bounce back to the
+  // first tab. The initial mount load passes silent=false to show the loader.
+  const fetchDetail = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res: OrgDetail = await organizersApi.adminGetOrganization(slug);
       setDetail(res);
@@ -229,7 +236,7 @@ export default function OrganizationDetailPage({
         err?.response?.data?.message || "Failed to load organization.",
       );
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [slug]);
 
@@ -255,7 +262,7 @@ export default function OrganizationDetailPage({
         status,
       });
       toast.success("Organization updated.");
-      fetchDetail();
+      fetchDetail(true);
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message || "Failed to update organization.",
@@ -278,7 +285,7 @@ export default function OrganizationDetailPage({
         suspend: !isSuspended,
       });
       toast.success(isSuspended ? "Organization unsuspended." : "Organization suspended.");
-      fetchDetail();
+      fetchDetail(true);
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message || "Failed to update suspension state.",
@@ -323,7 +330,7 @@ export default function OrganizationDetailPage({
       setMemberRole("sub_organizer");
       setMemberPermissions(emptyPermissions());
       setAddOpen(false);
-      fetchDetail();
+      fetchDetail(true);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to add member.");
     } finally {
@@ -340,7 +347,7 @@ export default function OrganizationDetailPage({
       });
       toast.success("Member removed.");
       setRemoveTarget(null);
-      fetchDetail();
+      fetchDetail(true);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to remove member.");
     } finally {
@@ -356,7 +363,7 @@ export default function OrganizationDetailPage({
         username: member.username,
       });
       toast.success(`${member.username} is now the owner.`);
-      fetchDetail();
+      fetchDetail(true);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to set owner.");
     } finally {
@@ -388,7 +395,7 @@ export default function OrganizationDetailPage({
           ? "Rankings unverified."
           : "Rankings verified.",
       );
-      fetchDetail();
+      fetchDetail(true);
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message || "Failed to update verification state.",
@@ -422,7 +429,7 @@ export default function OrganizationDetailPage({
         description={`/${organization.slug}`}
       />
 
-      <Tabs defaultValue="profile" className="mt-2">
+      <Tabs value={tab} onValueChange={setTab} className="mt-2">
         <TabsList className="w-full">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="members">Members</TabsTrigger>
