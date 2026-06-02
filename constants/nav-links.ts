@@ -171,6 +171,16 @@ export const adminNavLinks: AdminNavLink[] = [
     allowedRoles: ["head_admin", "organizer_admin"],
   },
   {
+    // AFC review queue for user-submitted reports against organizations (rankings
+    // manipulation, fake results, …). Same gating as Organizations / Design Requests
+    // (head_admin + organizer_admin) since the same team triages org integrity.
+    // Reuses IconShield (already imported) to read as an integrity/moderation tool.
+    label: "Org Reports",
+    slug: "/a/organizations/reports",
+    icon: IconShield,
+    allowedRoles: ["head_admin", "organizer_admin"],
+  },
+  {
     label: "Admin News",
     slug: "/a/news",
     icon: IconNews,

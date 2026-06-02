@@ -100,6 +100,34 @@ export const organizersApi = {
   removeOrganizationMember: (slug: string, userId: number | string) =>
     aDelete(`remove-organization-member/${slug}/${userId}/`),
 
+  // ── REVIEWS — event ratings + comments (Phase 4) ─────────────────────────
+  // rateEvent upserts the caller's 1–5 rating (one per event+user); returns the new aggregate.
+  rateEvent: (eventId: number | string, score: number) =>
+    aPost(`events/${eventId}/rate/`, { score }),
+  // getEventRating returns { average, count, my_score } — auth is OPTIONAL (anonymous callers
+  // still get average+count; my_score is null without a valid token). Ratings are anonymous to
+  // organizers — only the aggregate is ever exposed.
+  getEventRating: (eventId: number | string) => aGet(`events/${eventId}/rating/`),
+  // commentEvent posts a comment that ONLY the event's organizer (+ AFC) can read.
+  commentEvent: (eventId: number | string, text: string) =>
+    aPost(`events/${eventId}/comment/`, { text }),
+  // getEventComments — organizer-only (can_view_reviews); returns the comments on their event.
+  getEventComments: (eventId: number | string) => aGet(`event-comments/${eventId}/`),
+
+  // ── METRICS — organizer dashboard (Phase 4) ──────────────────────────────
+  // getOrgMetrics aggregates the org's events: events_count, registered teams/players,
+  // total kills, average rating. Gated on can_view_metrics.
+  getOrgMetrics: (slug: string) => aGet(`metrics/${slug}/`),
+
+  // ── REPORTS — a user reports an org; AFC reviews + resolves (Phase 4) ─────
+  // reportOrganization goes up as multipart FormData (category, details, event_id?, evidence?).
+  reportOrganization: (slug: string, body: FormData) =>
+    aPostForm(`report-organization/${slug}/`, body),
+  adminListReports: (params?: Record<string, any>) => aGet("admin/reports/", params),
+  // adminUpdateReport sets status/resolution_notes; pass exclude_event:true to also unverify
+  // the reported event for rankings (the integrity action).
+  adminUpdateReport: (id: number | string, body: any) => aPatch(`admin/reports/${id}/`, body),
+
   // ── PUBLIC — public org page (NO auth header) ────────────────────────────
   getOrganizationPublic: (slug: string) => pGet(`get-organization-public/${slug}/`),
 };

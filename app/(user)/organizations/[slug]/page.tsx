@@ -25,15 +25,37 @@ import {
   IconBrandInstagram,
   IconBrandYoutube,
   IconBrandDiscord,
+  IconFlag,
 } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { FullLoader } from "@/components/Loader";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { FullLoader, Loader } from "@/components/Loader";
 import { NothingFound } from "@/components/NothingFound";
 import { organizersApi } from "@/lib/organizers";
 import { formatDate } from "@/lib/utils";
 import { DEFAULT_IMAGE } from "@/constants";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthModal } from "@/components/AuthModal";
 import { toast } from "sonner";
 
 // ── Types — the public-endpoint payload (lib/organizers.ts getOrganizationPublic) ──
@@ -158,6 +180,182 @@ const SocialLinks: React.FC<{ socials: PublicOrganization["socials"] }> = ({
   );
 };
 
+// ── Report organization dialog ──
+// A logged-in user reports an org for review by AFC. Posts via
+// organizersApi.reportOrganization(slug, FormData) — multipart so the optional
+// evidence image rides along (same FormData idiom the rest of the app uses for
+// uploads). Anonymous visitors are prompted to log in (useAuthModal) instead of
+// opening the dialog. Category mirrors the backend's allowed values.
+const REPORT_CATEGORIES = [
+  { value: "rankings_manipulation", label: "Rankings manipulation" },
+  { value: "fake_results", label: "Fake results" },
+  { value: "unfair_conduct", label: "Unfair conduct" },
+  { value: "other", label: "Other" },
+] as const;
+
+const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
+  slug,
+  orgName,
+}) => {
+  const { token } = useAuth();
+  const { openAuthModal } = useAuthModal();
+
+  const [open, setOpen] = useState(false);
+  const [category, setCategory] = useState<string>("");
+  const [details, setDetails] = useState("");
+  const [evidence, setEvidence] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset the form whenever the dialog closes so a re-open starts clean.
+  const resetForm = () => {
+    setCategory("");
+    setDetails("");
+    setEvidence(null);
+  };
+
+  // Gate the trigger on auth: logged-out users get the login modal, not the form.
+  const handleTriggerClick = () => {
+    if (!token) {
+      openAuthModal({ defaultTab: "login" });
+      return;
+    }
+    setOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    if (!category) {
+      toast.error("Please choose a reason");
+      return;
+    }
+    if (!details.trim()) {
+      toast.error("Please describe the issue");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      // Multipart body — evidence image is optional, only appended when present.
+      const formData = new FormData();
+      formData.append("category", category);
+      formData.append("details", details.trim());
+      if (evidence) formData.append("evidence", evidence);
+
+      await organizersApi.reportOrganization(slug, formData);
+      toast.success("Report submitted. AFC will review it.");
+      setOpen(false);
+      resetForm();
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to submit your report",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) resetForm();
+      }}
+    >
+      {/* The trigger handles auth itself, so it's a plain button (not asChild on
+          DialogTrigger) — that lets us intercept the click for logged-out users. */}
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={(e) => {
+            // Stop the trigger from auto-opening; handleTriggerClick decides.
+            if (!token) {
+              e.preventDefault();
+            }
+            handleTriggerClick();
+          }}
+        >
+          <IconFlag className="size-4" />
+          Report
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Report {orgName}</DialogTitle>
+          <DialogDescription>
+            Tell AFC what's wrong. Reports are reviewed by the AFC team and kept
+            confidential.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          {/* Reason */}
+          <div className="space-y-1.5">
+            <Label>Reason</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose a reason" />
+              </SelectTrigger>
+              <SelectContent>
+                {REPORT_CATEGORIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Details */}
+          <div className="space-y-1.5">
+            <Label htmlFor="report-details">Details</Label>
+            <Textarea
+              id="report-details"
+              placeholder="Describe what happened…"
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              rows={4}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* Optional evidence image */}
+          <div className="space-y-1.5">
+            <Label htmlFor="report-evidence">Evidence (optional)</Label>
+            <Input
+              id="report-evidence"
+              type="file"
+              accept="image/*"
+              disabled={isSubmitting}
+              onChange={(e) => setEvidence(e.target.files?.[0] ?? null)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Attach a screenshot if it helps explain the issue.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter className="flex sm:justify-between">
+          <Button
+            variant="secondary"
+            onClick={() => setOpen(false)}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!category || !details.trim() || isSubmitting}
+          >
+            {isSubmitting ? <Loader text="Submitting..." /> : "Submit report"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // ── Page ──
 type Params = Promise<{ slug: string }>;
 
@@ -245,6 +443,12 @@ const Page = ({ params }: { params: Params }) => {
             <p className="mt-1 text-sm text-muted-foreground">
               Rating coming soon
             </p>
+          </div>
+
+          {/* Report organization — pushed to the right on desktop. The dialog
+              gates itself on auth (logged-out users get the login modal). */}
+          <div className="md:ml-auto md:pb-1">
+            <ReportOrganizationDialog slug={org.slug} orgName={org.name} />
           </div>
         </CardContent>
       </Card>

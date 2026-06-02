@@ -75,6 +75,8 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+// Rate-this-event + organizer-feedback widget (stars + comment box).
+import { EventReviewCard } from "./EventReviewCard";
 
 // Set to true when Discord is required for tournament registration
 const DISCORD_REQUIRED = false;
@@ -3413,6 +3415,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* ── Rate this event + organizer feedback ──
+          Logged-in users get editable stars + a private comment box; anonymous
+          visitors see the aggregate read-only. Uses the numeric event_id the
+          page already loaded. */}
+      <EventReviewCard
+        eventId={eventDetails.event_id}
+        eventName={eventDetails.event_name}
+      />
 
       {/* Banned Modal */}
       <Dialog open={showBannedModal} onOpenChange={setShowBannedModal}>

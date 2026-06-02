@@ -54,6 +54,12 @@ const NAV_ITEMS = [
   { label: "Design", href: "/organizer/design" },
   { label: "Profile", href: "/organizer/profile" },
   { label: "Members", href: "/organizer/members" },
+  // "Metrics" — the org's aggregate stats (events / teams / players / kills / rating),
+  // gated per-page on can_view_metrics (or owner).
+  { label: "Metrics", href: "/organizer/metrics" },
+  // "Reviews" — the org's per-event ratings + ANONYMOUS comments,
+  // gated per-page on can_view_reviews (or owner).
+  { label: "Reviews", href: "/organizer/reviews" },
 ];
 
 // ── Guard ────────────────────────────────────────────────────────────────────
