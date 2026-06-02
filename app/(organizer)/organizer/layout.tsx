@@ -43,9 +43,12 @@ import {
 // localStorage key that remembers the last org the user switched to (by slug).
 const SELECTED_ORG_KEY = "organizer:selected-slug";
 
-// The three portal sub-routes the top sub-nav links to.
+// The portal sub-routes the top sub-nav links to.
+// "Events" sits between Overview and Profile — it's the org's events surface
+// (list + create), gated per-page on the membership's can_create_events permission.
 const NAV_ITEMS = [
   { label: "Overview", href: "/organizer/overview" },
+  { label: "Events", href: "/organizer/events" },
   { label: "Profile", href: "/organizer/profile" },
   { label: "Members", href: "/organizer/members" },
 ];

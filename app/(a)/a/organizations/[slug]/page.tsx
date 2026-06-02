@@ -21,6 +21,10 @@
 import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import axios from "axios";
+import Cookies from "js-cookie";
+
+import { env } from "@/lib/env";
 
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -135,6 +139,9 @@ interface OrgEvent {
   event_name: string;
   status: string;
   is_draft: boolean;
+  // whether this event's rankings have been verified by an admin (drives the
+  // Rankings column + the Verify/Unverify toggle in the Events tab).
+  rankings_verified: boolean;
 }
 
 interface OrgDetail {
@@ -194,6 +201,11 @@ export default function OrganizationDetailPage({
   // ── Per-member action state (remove / set_owner) ──────────────────────────
   const [memberBusy, setMemberBusy] = useState<number | null>(null);
   const [removeTarget, setRemoveTarget] = useState<OrgMember | null>(null);
+
+  // ── Per-event rankings-verify action state (Events tab) ───────────────────
+  // holds the event_id of the row whose Verify/Unverify toggle is in flight, so
+  // only that row's button is disabled while the request runs.
+  const [verifyBusy, setVerifyBusy] = useState<number | null>(null);
 
   // ── Fetch + seed the profile form ─────────────────────────────────────────
   const fetchDetail = useCallback(async () => {
@@ -355,6 +367,36 @@ export default function OrganizationDetailPage({
   // toggle a single permission switch in the add-member form
   const togglePermission = (key: PermissionKey) =>
     setMemberPermissions((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  // ── Toggle rankings verification for one event (Events tab) ───────────────
+  // Calls the admin-gated POST /events/verify-event/ with the flipped verified
+  // flag, then refetches the org detail so the row reflects the new state.
+  // This endpoint lives under the /events/ prefix (not /organizers/), so we call
+  // axios directly with the same Bearer-from-auth_token-cookie auth that
+  // organizersApi uses, rather than going through that client.
+  const handleToggleVerify = async (ev: OrgEvent) => {
+    setVerifyBusy(ev.event_id);
+    try {
+      const token = Cookies.get("auth_token");
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/verify-event/`,
+        { event_id: ev.event_id, verified: !ev.rankings_verified },
+        { headers: { Authorization: `Bearer ${token ?? ""}` } },
+      );
+      toast.success(
+        ev.rankings_verified
+          ? "Rankings unverified."
+          : "Rankings verified.",
+      );
+      fetchDetail();
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to update verification state.",
+      );
+    } finally {
+      setVerifyBusy(null);
+    }
+  };
 
   if (loading) return <FullLoader />;
 
@@ -640,6 +682,9 @@ export default function OrganizationDetailPage({
                       <TableHead>Event</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Draft</TableHead>
+                      {/* ── Rankings verification column ── */}
+                      <TableHead>Rankings</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -662,6 +707,41 @@ export default function OrganizationDetailPage({
                           ) : (
                             <Badge variant="outline">Published</Badge>
                           )}
+                        </TableCell>
+
+                        {/* ── Rankings: Verified (green) / Unverified (muted) ── */}
+                        <TableCell>
+                          {ev.rankings_verified ? (
+                            <Badge
+                              variant="outline"
+                              className="border-green-600/60 text-green-400"
+                            >
+                              Verified
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="text-muted-foreground"
+                            >
+                              Unverified
+                            </Badge>
+                          )}
+                        </TableCell>
+
+                        {/* ── Verify / Unverify toggle (POST /events/verify-event/) ── */}
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={verifyBusy === ev.event_id}
+                            onClick={() => handleToggleVerify(ev)}
+                          >
+                            {verifyBusy === ev.event_id
+                              ? "Working..."
+                              : ev.rankings_verified
+                                ? "Unverify"
+                                : "Verify"}
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

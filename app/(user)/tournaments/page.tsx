@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
@@ -41,11 +42,20 @@ interface Event {
   prizepool: string;
   number_of_participants: number;
   total_registered_competitors: number;
+  // ── organizer attribution (from get-all-events) ──
+  // Events run by an external organization carry their identity; events with no
+  // organization are AFC-official (these fields come back null/empty).
+  organization_id?: number | null;
+  organization_name?: string | null;
+  organization_slug?: string | null;
 }
 
 type StatusFilter = "all" | "upcoming" | "ongoing" | "completed";
 type DateSort = "newest" | "oldest";
 type MonthFilter = "all" | string; // "YYYY-MM"
+// "all" = every organizer, "afc" = AFC-official (no organization_name),
+// otherwise the literal organization_name value to match.
+type OrganizerFilter = "all" | "afc" | string;
 
 // --- Event Card ---
 const EventCard: React.FC<{ event: Event }> = ({ event }) => {
@@ -83,6 +93,25 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
           {event.event_status.charAt(0).toUpperCase() +
             event.event_status.slice(1)}
         </p>
+
+        {/* ── Organizer badge ──
+            Only shown when the event is run by an external organization. Outline
+            Badge in the AFC tier-badge idiom; links to that org's public page
+            when a slug is present (asChild keeps the badge styling on the <Link>). */}
+        {event.organization_name && (
+          <div>
+            {event.organization_slug ? (
+              <Badge variant="outline" asChild>
+                <Link href={`/organizations/${event.organization_slug}`}>
+                  {event.organization_name}
+                </Link>
+              </Badge>
+            ) : (
+              <Badge variant="outline">{event.organization_name}</Badge>
+            )}
+          </div>
+        )}
+
         <Button className="w-full" variant={"outline"} asChild>
           <Link href={`/tournaments/${event.slug}`}>View Details</Link>
         </Button>
@@ -203,6 +232,8 @@ const EventsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [monthFilter, setMonthFilter] = useState<MonthFilter>("all");
+  const [organizerFilter, setOrganizerFilter] =
+    useState<OrganizerFilter>("all");
   const [dateSort, setDateSort] = useState<DateSort>("newest");
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -253,6 +284,20 @@ const EventsPage = () => {
     return months;
   }, [events]);
 
+  // Derive sorted distinct organizer names present in the fetched events. Used
+  // to build the "Organizer" dropdown — only organizers that actually appear are
+  // listed (plus the static "All organizers" and "AFC (official)" options that
+  // the dropdown adds itself). Events with no organization_name are AFC-official
+  // and are reachable via the "afc" option, not listed here.
+  const organizerOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const e of events) {
+      const name = e.organization_name?.trim();
+      if (name) seen.add(name);
+    }
+    return Array.from(seen).sort((a, b) => a.localeCompare(b));
+  }, [events]);
+
   // Apply filters + sort before splitting by competition type
   const filteredEvents = useMemo(() => {
     let result = events;
@@ -265,6 +310,17 @@ const EventsPage = () => {
       result = result.filter((e) => e.event_date.startsWith(monthFilter));
     }
 
+    // ── Organizer filter ──
+    // "afc" keeps only events with no organization_name (AFC-official); any other
+    // non-"all" value matches the event's organization_name exactly.
+    if (organizerFilter === "afc") {
+      result = result.filter((e) => !e.organization_name?.trim());
+    } else if (organizerFilter !== "all") {
+      result = result.filter(
+        (e) => e.organization_name?.trim() === organizerFilter,
+      );
+    }
+
     result = [...result].sort((a, b) => {
       const diff =
         new Date(a.event_date).getTime() - new Date(b.event_date).getTime();
@@ -272,7 +328,7 @@ const EventsPage = () => {
     });
 
     return result;
-  }, [events, statusFilter, monthFilter, dateSort]);
+  }, [events, statusFilter, monthFilter, organizerFilter, dateSort]);
 
   const tournaments = useMemo(
     () => filteredEvents.filter((e) => e.competition_type === "tournament"),
@@ -315,6 +371,28 @@ const EventsPage = () => {
           />
         </div>
         <div className="flex w-full md:w-auto items-center gap-2 justify-center">
+          {/* ── Organizer filter ──
+              Built from the distinct organization_name values in the fetched
+              events. "All organizers" is the default; "AFC (official)" matches
+              events that have no organization. */}
+          <Select
+            value={organizerFilter}
+            onValueChange={(v) => setOrganizerFilter(v as OrganizerFilter)}
+          >
+            <SelectTrigger className="w-full md:w-44 text-xs">
+              <SelectValue placeholder="All organizers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All organizers</SelectItem>
+              <SelectItem value="afc">AFC (official)</SelectItem>
+              {organizerOptions.map((name) => (
+                <SelectItem key={name} value={name}>
+                  {name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Select
             value={monthFilter}
             onValueChange={(v) => setMonthFilter(v as MonthFilter)}
