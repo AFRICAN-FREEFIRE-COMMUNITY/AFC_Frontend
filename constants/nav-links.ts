@@ -1,5 +1,6 @@
 import {
   IconArticle,
+  IconBuilding,
   IconCalendar,
   IconChartBarPopular,
   IconFolder,
@@ -211,6 +212,16 @@ export const adminNavLinks: AdminNavLink[] = [
     slug: "/a/sponsor-dashboard",
     icon: IconStar,
     allowedRoles: ["sponsor_admin"],
+  },
+  // The organizer's own portal (their org dashboard, scoped to orgs they belong to).
+  // Gated to the `organizer` role so it shows in the sidebar exactly like Sponsor
+  // Dashboard does for sponsors. Pure-organizer (non-admin) users reach /organizer
+  // directly; this entry surfaces it for admin-and-organizer users in the sidebar.
+  {
+    label: "Organizer Dashboard",
+    slug: "/organizer/overview",
+    icon: IconBuilding,
+    allowedRoles: ["organizer"],
   },
   {
     label: "Back to user dashboard",

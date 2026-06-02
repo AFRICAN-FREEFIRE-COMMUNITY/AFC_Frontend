@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IconBuilding, IconLogout } from "@tabler/icons-react";
+import { IconArrowLeft, IconBuilding, IconLogout } from "@tabler/icons-react";
 import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -151,12 +151,25 @@ function OrganizerShell({ children }: { children: ReactNode }) {
       {/* Header — same shell as the sponsor portal, with logout. */}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
         <div className="container mx-auto h-20 flex items-center justify-between">
-          <Link href={"/home"} className="flex items-center space-x-2">
-            <Logo size="small" />
-            <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
-              African Freefire Community
-            </span>
-          </Link>
+          <div className="flex items-center gap-2">
+            {/* Back button — leaves the portal for wherever the user came from
+                (the admin dashboard for admin-organizers, /home otherwise). */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground gap-1.5"
+              onClick={() => router.back()}
+            >
+              <IconArrowLeft className="size-4" />
+              <span className="hidden sm:inline">Back</span>
+            </Button>
+            <Link href={"/home"} className="flex items-center space-x-2">
+              <Logo size="small" />
+              <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
+                African Freefire Community
+              </span>
+            </Link>
+          </div>
           <div className="flex items-center gap-3">
             {user && (
               <span className="text-sm text-muted-foreground hidden sm:block">
