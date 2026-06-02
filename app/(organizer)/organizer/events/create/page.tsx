@@ -211,11 +211,38 @@ export default function OrganizerCreateEventPage() {
     ];
   };
 
+  // ── Chronology validation ─────────────────────────────────────────────────
+  // Combine each date with its paired time into a real timestamp (missing time = 00:00),
+  // then enforce the sensible ordering: registration opens before it closes, the event
+  // can't start before registration closes, and must end after it starts. Returns the
+  // first problem message, or null when the window is valid.
+  const checkDateOrder = (data: EventFormType): string | null => {
+    const ts = (date?: string, time?: string) =>
+      date ? new Date(`${date}T${time && time.length ? time : "00:00"}`) : null;
+    const regOpen = ts(data.registration_open_date, data.registration_start_time);
+    const regClose = ts(data.registration_end_date, data.registration_end_time);
+    const evStart = ts(data.start_date, data.event_start_time);
+    const evEnd = ts(data.end_date, data.event_end_time);
+    if (regOpen && regClose && regClose <= regOpen)
+      return "Registration must close after it opens.";
+    if (regClose && evStart && evStart < regClose)
+      return "The event can't start before registration closes.";
+    if (evStart && evEnd && evEnd <= evStart)
+      return "The event must end after it starts.";
+    return null;
+  };
+
   // ── Submit ────────────────────────────────────────────────────────────────
   // `asDraft` comes from which button the organizer pressed (Save draft / Publish).
   // Rules are optional for organizers, so we send whichever branch (typed/uploaded)
   // is active and leave the other empty — no hard rules requirement to enforce here.
   const submit = (data: EventFormType, asDraft: boolean) => {
+    // Block submission (with a clear reason) if the date/time window is out of order.
+    const orderError = checkDateOrder(data);
+    if (orderError) {
+      toast.error(orderError);
+      return;
+    }
     startTransition(async () => {
       try {
         const formData = new FormData();
