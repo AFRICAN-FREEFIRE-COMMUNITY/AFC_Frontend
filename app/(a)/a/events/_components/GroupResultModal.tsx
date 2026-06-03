@@ -106,7 +106,10 @@ export const GroupResultModal = ({
           rank: index + 1,
           username: entry.competitor__user__username,
           kills: entry.total_kills,
-          points: entry.total_points,
+          // Show effective_total (placement+kills+bonus-penalty + any Point-Rush
+          // carry-over) — this is what the backend ranks by, so the Points number
+          // matches the row order. Falls back to total_points for older payloads.
+          points: entry.effective_total ?? entry.total_points,
           isQualified: index < groupDetails.teams_qualifying,
           // Champion-Point + Point-Rush read-time flags (per row, from the API).
           isChampion: !!entry.is_champion,
