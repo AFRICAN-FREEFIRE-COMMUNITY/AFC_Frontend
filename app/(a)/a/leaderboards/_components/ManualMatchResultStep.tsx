@@ -70,6 +70,14 @@ interface Props {
   initialStats?: any[];
   /** Skips participant-type detection when already known (e.g. from eventData.participant_type) */
   participantTypeOverride?: "solo" | "team";
+  /**
+   * When the active stage is a Champion-Point stage, the entry ORDER decides the
+   * champion (first competitor to Booyah while already at/above the threshold).
+   * Parents that know the active stage thread its `champion_point_enabled` flag here
+   * so we can warn the admin to enter matches in play order. Optional: flows without
+   * stage context (e.g. the create wizard) simply omit it and no banner shows.
+   */
+  championPointEnabled?: boolean;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -81,6 +89,7 @@ export function ManualMatchResultStep({
   onBack,
   initialStats,
   participantTypeOverride,
+  championPointEnabled,
 }: Props) {
   const { token } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -364,6 +373,18 @@ export function ManualMatchResultStep({
       </CardHeader>
 
       <CardContent className="pt-4 space-y-4">
+        {/* ── Champion-Point ordered-entry warning ──────────────────────────
+            On a Champion-Point stage the order results are entered IS the play
+            order the backend replays to crown the champion, so the admin must
+            enter matches in the order they were actually played. Amber-tinted
+            alert div (matches the repo's inline-alert idiom). */}
+        {championPointEnabled && (
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+            Champion-Point stage: enter matches in the order they were played —
+            the entry order decides the champion.
+          </div>
+        )}
+
         {participantType === "team" ? (
           /* ── TEAM MODE ─────────────────────────────────────────────────── */
           teamResults.length === 0 ? (

@@ -28,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, formatDate } from "@/lib/utils";
-import { IconTrophy, IconLoader2 } from "@tabler/icons-react";
+import { IconTrophy, IconLoader2, IconCrown } from "@tabler/icons-react";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
@@ -98,6 +98,9 @@ export const GroupResultModal = ({
     if (!groupDetails) return [];
 
     if (viewMatchId === "overall") {
+      // IMPORTANT: keep the server order. The backend already pins the
+      // Champion-Point winner to index 0 and the positional qualified/eliminated
+      // logic depends on this order — so we map by index, never re-sort here.
       return (groupDetails.overall_leaderboard || []).map(
         (entry: any, index: number) => ({
           rank: index + 1,
@@ -105,6 +108,9 @@ export const GroupResultModal = ({
           kills: entry.total_kills,
           points: entry.total_points,
           isQualified: index < groupDetails.teams_qualifying,
+          // Champion-Point + Point-Rush read-time flags (per row, from the API).
+          isChampion: !!entry.is_champion,
+          carryOverPoints: entry.carry_over_points ?? 0,
         }),
       );
     } else {
@@ -120,6 +126,8 @@ export const GroupResultModal = ({
           kills: s.kills,
           points: s.total_points,
           isQualified: false,
+          isChampion: false,
+          carryOverPoints: 0,
         }))
         .sort((a: any, b: any) => a.rank - b.rank);
     }
@@ -177,6 +185,17 @@ export const GroupResultModal = ({
               </p>
             </div>
 
+            {/* ── Champion-Point: "crowned" banner when the stage is decided ──
+                The backend sets is_decided once a competitor Booyahs while already
+                over the threshold; it also pins that competitor (champion_id) to
+                index 0 of the overall leaderboard. Only show on the overall view. */}
+            {viewMatchId === "overall" && groupDetails?.is_decided && (
+              <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300">
+                <IconCrown size={16} className="text-amber-400" />
+                Champion crowned — this group is decided.
+              </div>
+            )}
+
             <Select value={viewMatchId} onValueChange={setViewMatchId}>
               <SelectTrigger>
                 <SelectValue placeholder="Select View" />
@@ -213,7 +232,26 @@ export const GroupResultModal = ({
                           #{row.rank}
                         </TableCell>
                         <TableCell className="font-medium">
-                          {row.username}
+                          <div className="flex items-center gap-1.5">
+                            {/* Crown the Champion-Point winner (pinned to #1 by API). */}
+                            {row.isChampion && (
+                              <IconCrown
+                                size={14}
+                                className="text-amber-400 shrink-0"
+                              />
+                            )}
+                            <span>{row.username}</span>
+                            {/* Point-Rush carry-over hint: banked bonus seeded into
+                                this stage's total. Only shown when > 0. */}
+                            {row.carryOverPoints > 0 && (
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] px-1 py-0 text-amber-300 border-amber-500/40"
+                              >
+                                +{row.carryOverPoints}
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-center">
                           {row.kills}

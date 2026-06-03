@@ -588,6 +588,8 @@ export default function IndividualLeaderboardPage({
           formData={detailsFormData}
           participantTypeOverride={detailsParticipantType}
           initialStats={currentMatch?.stats ?? []}
+          // Surface the ordered-entry banner only on Champion-Point stages.
+          championPointEnabled={currentStage?.champion_point_enabled ?? false}
           onComplete={handleEditComplete}
           onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
         />

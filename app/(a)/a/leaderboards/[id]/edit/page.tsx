@@ -1903,6 +1903,8 @@ export default function EditLeaderboardPage({
                     (m) => m.match_id === uploadingMatch.match_id,
                   )?.stats ?? []
                 }
+                // Surface the ordered-entry banner only on Champion-Point stages.
+                championPointEnabled={currentStage?.champion_point_enabled ?? false}
                 onComplete={handleUploadComplete}
                 onBack={() => setUploadView("method")}
               />
