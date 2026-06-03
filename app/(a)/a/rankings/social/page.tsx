@@ -24,6 +24,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
 
 /**
  * Social Verification — LIVE (wired to /rankings/admin/seasons/<id>/social/).
@@ -290,12 +291,22 @@ export default function SocialVerificationPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Social Verification"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Social Verification
+            <InfoTip id="rankings.social._page" className="ml-1.5" />
+          </span>
+        }
         description="Teams connect their own Instagram and TikTok. Admins verify, unverify, or correct the follower counts. Capped at 10 points."
         action={
-          <Button className="w-full md:w-auto" onClick={handleVerifyAll} disabled={submitting}>
-            <IconShieldCheck className="mr-1.5 size-4" /> Save &amp; verify all
-          </Button>
+          // ⓘ sits beside the verify-all button (sibling, not nested).
+          <div className="flex w-full items-center gap-1 md:w-auto">
+            <Button className="w-full md:w-auto" onClick={handleVerifyAll} disabled={submitting}>
+              <IconShieldCheck className="mr-1.5 size-4" /> Save &amp; verify all
+            </Button>
+            <InfoTip id="rankings.social.verify_all" />
+          </div>
         }
       />
 
@@ -515,11 +526,17 @@ export default function SocialVerificationPage() {
                           >
                             <IconShieldOff className="mr-1 size-3.5" /> Unverify
                           </Button>
+                          {/* ⓘ explains pulling a team's social points (sibling of the unverify button). */}
+                          <InfoTip id="rankings.social.unverify" />
                         </div>
                       ) : (
-                        <Button size="sm" disabled={submitting} onClick={() => handleVerifyRow(r)}>
-                          <IconShieldCheck className="mr-1 size-3.5" /> Save &amp; verify
-                        </Button>
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <Button size="sm" disabled={submitting} onClick={() => handleVerifyRow(r)}>
+                            <IconShieldCheck className="mr-1 size-3.5" /> Save &amp; verify
+                          </Button>
+                          {/* ⓘ explains awarding social points on verify (sibling of the verify button). */}
+                          <InfoTip id="rankings.social.verify" />
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>

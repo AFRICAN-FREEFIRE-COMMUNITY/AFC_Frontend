@@ -28,6 +28,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Backend (afc_rankings/admin_ghost.py serialize_ghost) can return any of these four;
 // `revoked` is reset to `unclaimed` server-side on revoke, so it's rare but handled.
@@ -501,13 +502,19 @@ export default function GhostTeamsAdminPage() {
                       {r.claim_status === "pending" && (
                         <>
                           <Button size="sm" onClick={() => setApprove(r)}>Approve claim</Button>
+                          {/* ⓘ explains the irreversible history transfer (sibling of the action buttons). */}
+                          <InfoTip id="rankings.ghost.approve_claim" />
                           <Button size="sm" variant="outline" onClick={() => setRevoke(r)}>Revoke</Button>
+                          <InfoTip id="rankings.ghost.revoke_claim" />
                         </>
                       )}
                       {r.claim_status === "claimed" && (
-                        <Button size="sm" variant="outline" onClick={() => setRevokeClaimed(r)}>
-                          Revoke claim
-                        </Button>
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => setRevokeClaimed(r)}>
+                            Revoke claim
+                          </Button>
+                          <InfoTip id="rankings.ghost.revoke_claim" />
+                        </>
                       )}
                     </div>
                   </TableCell>
@@ -526,12 +533,22 @@ export default function GhostTeamsAdminPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Ghost Teams"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Ghost Teams
+            <InfoTip id="rankings.ghost._page" className="ml-1.5" />
+          </span>
+        }
         description="Provisional off-platform teams used to record results before a real team registers and claims them."
         action={
-          <Button onClick={() => setCreateOpen(true)}>
-            <IconPlus className="mr-1.5 size-4" /> Create ghost team
-          </Button>
+          // ⓘ sits beside the create button (sibling, not nested).
+          <div className="flex items-center gap-1">
+            <Button onClick={() => setCreateOpen(true)}>
+              <IconPlus className="mr-1.5 size-4" /> Create ghost team
+            </Button>
+            <InfoTip id="rankings.ghost.create" />
+          </div>
         }
       />
 
@@ -600,6 +617,7 @@ export default function GhostTeamsAdminPage() {
             <div className="space-y-2">
               <Label htmlFor="g-ext">
                 External ID <span className="text-muted-foreground normal-case">(optional)</span>
+                <InfoTip id="rankings.ghost.external_id" className="ml-1" />
               </Label>
               <div className="relative">
                 <IconExternalLink className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

@@ -50,6 +50,7 @@ import {
 import { ITEMS_PER_PAGE } from "@/constants";
 import { IconPlus, IconSearch, IconX } from "@tabler/icons-react";
 import { organizersApi } from "@/lib/organizers";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Row shape returned by adminListOrganizations (afc_organizers admin serializer).
 interface OrgRow {
@@ -189,13 +190,23 @@ export default function OrganizationsAdminPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-1">
         <PageHeader
-          title="Organizations"
+          // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+          title={
+            <span className="inline-flex items-center">
+              Organizations
+              <InfoTip id="organizations._page" className="ml-1.5" />
+            </span>
+          }
           description={`${totalCount} organization${totalCount !== 1 ? "s" : ""}`}
         />
-        <Button className="w-full md:w-auto" onClick={() => setCreateOpen(true)}>
-          <IconPlus />
-          Create organization
-        </Button>
+        {/* ⓘ sits beside the create button (sibling, not nested). */}
+        <div className="flex w-full items-center gap-1 md:w-auto">
+          <Button className="w-full md:w-auto" onClick={() => setCreateOpen(true)}>
+            <IconPlus />
+            Create organization
+          </Button>
+          <InfoTip id="organizations.create" />
+        </div>
       </div>
 
       {/* Search — debounce-free; each keystroke triggers a server refetch via
@@ -355,7 +366,10 @@ export default function OrganizationsAdminPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="org-owner">Owner username</Label>
+              <Label htmlFor="org-owner">
+                Owner username
+                <InfoTip id="organizations.owner_username" className="ml-1" />
+              </Label>
               <Input
                 id="org-owner"
                 value={createOwner}

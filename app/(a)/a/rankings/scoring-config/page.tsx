@@ -25,6 +25,8 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
+import type { HelpId } from "@/lib/help-content";
 
 /**
  * Scoring Configuration — wired to the Phase-2 rankings admin write API.
@@ -404,9 +406,10 @@ function ScaleTable({
   );
 }
 
-/** Section header inside a card: title + spec ref + helper line. */
-function GroupHead({ icon, title, spec, helper }: {
+/** Section header inside a card: title + spec ref + helper line (+ optional ⓘ). */
+function GroupHead({ icon, title, spec, helper, helpId }: {
   icon: React.ReactNode; title: string; spec: string; helper: string;
+  helpId?: HelpId; // centralized copy id for the section ⓘ next to the spec badge
 }) {
   return (
     <div className="space-y-1">
@@ -416,6 +419,7 @@ function GroupHead({ icon, title, spec, helper }: {
         <Badge variant="outline" className="rounded-full border-blue-600/60 text-[10px] font-normal text-blue-400">
           {spec}
         </Badge>
+        {helpId && <InfoTip id={helpId} />}
       </CardTitle>
       <p className="text-xs text-muted-foreground">{helper}</p>
     </div>
@@ -541,21 +545,34 @@ export default function ScoringConfigPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Scoring Configuration"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Scoring Configuration
+            <InfoTip id="rankings.scoring._page" className="ml-1.5" />
+          </span>
+        }
         description="The weights, brackets and thresholds that drive every ranking and tier calculation. Changes are versioned and recalculate scores across the season."
         action={
+          // Each action ⓘ is a SIBLING of its button (not nested) — Reset stages defaults, Save drafts a version.
           <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
-            <Button variant="outline" className="w-full sm:w-auto" onClick={resetDefaults}>
-              <IconRotateClockwise2 className="mr-1.5 size-4" /> Reset to spec defaults
-            </Button>
-            <Button className="w-full sm:w-auto" onClick={openSave} disabled={dirtyCount === 0}>
-              <IconDeviceFloppy className="mr-1.5 size-4" /> Save changes
-              {dirtyCount > 0 && (
-                <Badge variant="outline" className="ml-1 rounded-full border-background/40 bg-background/20 px-1.5 py-0 text-[10px] tabular-nums">
-                  {dirtyCount}
-                </Badge>
-              )}
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" className="w-full sm:w-auto" onClick={resetDefaults}>
+                <IconRotateClockwise2 className="mr-1.5 size-4" /> Reset to spec defaults
+              </Button>
+              <InfoTip id="rankings.scoring.reset_defaults" />
+            </div>
+            <div className="flex items-center gap-1">
+              <Button className="w-full sm:w-auto" onClick={openSave} disabled={dirtyCount === 0}>
+                <IconDeviceFloppy className="mr-1.5 size-4" /> Save changes
+                {dirtyCount > 0 && (
+                  <Badge variant="outline" className="ml-1 rounded-full border-background/40 bg-background/20 px-1.5 py-0 text-[10px] tabular-nums">
+                    {dirtyCount}
+                  </Badge>
+                )}
+              </Button>
+              <InfoTip id="rankings.scoring.save" />
+            </div>
           </div>
         }
       />
@@ -604,7 +621,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconTargetArrow className="size-4" />}
-              title="Tier multipliers" spec="§4"
+              title="Tier multipliers" spec="§4" helpId="rankings.scoring.tier_multipliers._section"
               helper="Applied to placement, kill and finals points only — never to win bonus, scrim, prize or social."
             />
           </CardHeader>
@@ -628,7 +645,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconTrophy className="size-4" />}
-              title="Win bonus & finals base" spec="§4.4 / §4.5"
+              title="Win bonus & finals base" spec="§4.4 / §4.5" helpId="rankings.scoring.win_bonus._section"
               helper="Win bonus is flat per tier (not compressed, not multiplied). Finals bonus = base × tier multiplier."
             />
           </CardHeader>
@@ -664,7 +681,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconStairsUp className="size-4" />}
-              title="Placement points per match" spec="§4.1"
+              title="Placement points per match" spec="§4.1" helpId="rankings.scoring.placement_points._section"
               helper="Points awarded by finishing position each match. 11th and beyond award 0."
             />
           </CardHeader>
@@ -705,7 +722,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconStack2 className="size-4" />}
-              title="Tier thresholds" spec="§11"
+              title="Tier thresholds" spec="§11" helpId="rankings.scoring.thresholds._section"
               helper="Minimum total score (inclusive) to reach each tier. Entry is the default floor below the lowest cut-off."
             />
           </CardHeader>
@@ -768,7 +785,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconSkull className="size-4" />}
-              title="Kill compression scale" spec="§4.2"
+              title="Kill compression scale" spec="§4.2" helpId="rankings.scoring.kill_scale._section"
               helper="Cumulative raw kills compress to bounded points. Upper bound is inclusive; the last row is open-ended."
             />
           </CardHeader>
@@ -783,7 +800,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconStairsUp className="size-4" />}
-              title="Placement compression scale" spec="§4.3"
+              title="Placement compression scale" spec="§4.3" helpId="rankings.scoring.placement_scale._section"
               helper="Cumulative raw placement points compress to bounded points. Upper bound inclusive; last row open-ended."
             />
           </CardHeader>
@@ -798,7 +815,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconCoin className="size-4" />}
-              title="Prize money points" spec="§7.2"
+              title="Prize money points" spec="§7.2" helpId="rankings.scoring.prize_scale._section"
               helper="Quarterly team tiering only. Total quarterly prize money (₦) maps to bounded points."
             />
           </CardHeader>
@@ -813,7 +830,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconBrandInstagram className="size-4" />}
-              title="Social media points" spec="§7.3"
+              title="Social media points" spec="§7.3" helpId="rankings.scoring.social_scale._section"
               helper="Teams only, capped at 10. Combined Instagram + TikTok followers map to bounded points."
             />
           </CardHeader>
@@ -828,7 +845,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconSwords className="size-4" />}
-              title="Scrim rules" spec="§6 / §12"
+              title="Scrim rules" spec="§6 / §12" helpId="rankings.scoring.scrim._section"
               helper="Scrims contribute at reduced weight and are capped relative to tournament output, then by day and month."
             />
           </CardHeader>
@@ -880,7 +897,7 @@ export default function ScoringConfigPage() {
           <CardHeader>
             <GroupHead
               icon={<IconUser className="size-4" />}
-              title="Player flat weights" spec="§7"
+              title="Player flat weights" spec="§7" helpId="rankings.scoring.player_weights._section"
               helper="Per-event flat points that build an individual player's quarterly score."
             />
           </CardHeader>

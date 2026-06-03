@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import axios from "axios";
 import { env } from "@/lib/env";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Live shape returned by admin_prize.serialize_prize (read its dict for the exact fields).
 type PrizeRow = {
@@ -279,12 +280,22 @@ export default function PrizeMoneyPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Prize Money"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Prize Money
+            <InfoTip id="rankings.prize._page" className="ml-1.5" />
+          </span>
+        }
         description="Record tournament prize payouts. Amounts are entered directly in Naira, there is no exchange-rate system."
         action={
-          <Button onClick={() => { setAddOpen(true); loadPickerOptions(); }}>
-            <IconPlus className="mr-1.5 size-4" /> Add prize
-          </Button>
+          // ⓘ sits beside the add-prize button (sibling, not nested).
+          <div className="flex items-center gap-1">
+            <Button onClick={() => { setAddOpen(true); loadPickerOptions(); }}>
+              <IconPlus className="mr-1.5 size-4" /> Add prize
+            </Button>
+            <InfoTip id="rankings.prize.add" />
+          </div>
         }
       />
 
@@ -471,7 +482,10 @@ export default function PrizeMoneyPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Amount (₦)</Label>
+              <Label>
+                Amount (₦)
+                <InfoTip id="rankings.prize.amount" className="ml-1" />
+              </Label>
               <div className="relative">
                 <IconCurrencyNaira className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input

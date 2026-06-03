@@ -63,6 +63,7 @@ import {
 import { ITEMS_PER_PAGE } from "@/constants";
 import { formatDate } from "@/lib/utils";
 import { organizersApi } from "@/lib/organizers";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // ── Row shape (mirrors the admin OrganizationReport serializer) ──────────────
 // organization_name / reporter_username / event_name are joined fields the admin
@@ -228,7 +229,13 @@ export default function OrgReportsAdminPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Org Reports"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Org Reports
+            <InfoTip id="organizations.reports._page" className="ml-1.5" />
+          </span>
+        }
         description={`${totalCount} report${totalCount !== 1 ? "s" : ""}`}
       />
 
@@ -305,13 +312,17 @@ export default function OrgReportsAdminPage() {
                         {row.created_at ? formatDate(row.created_at) : "—"}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openEdit(row)}
-                        >
-                          Resolve
-                        </Button>
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEdit(row)}
+                          >
+                            Resolve
+                          </Button>
+                          {/* ⓘ explains the resolve lifecycle + optional event exclusion (sibling of the button). */}
+                          <InfoTip id="organizations.reports.resolve" />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -440,7 +451,10 @@ export default function OrgReportsAdminPage() {
 
             {/* Status. */}
             <div className="space-y-2">
-              <Label htmlFor="report-status">Status</Label>
+              <Label htmlFor="report-status">
+                Status
+                <InfoTip id="organizations.reports.status" className="ml-1" />
+              </Label>
               <Select
                 value={editStatus}
                 onValueChange={(v) => setEditStatus(v as Status)}
@@ -490,6 +504,7 @@ export default function OrgReportsAdminPage() {
                   }
                 >
                   Also exclude the reported event from rankings
+                  <InfoTip id="organizations.reports.exclude_event" className="ml-1" />
                 </Label>
                 <p className="text-xs text-muted-foreground">
                   {editTarget?.event_id

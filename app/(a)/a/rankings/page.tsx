@@ -45,6 +45,8 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
+import type { HelpId } from "@/lib/help-content";
 
 const TIERS = [0, 1, 2, 3] as const;
 const MIN_REASON = 10;
@@ -174,9 +176,17 @@ export default function AdminRankingsPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Rankings & Tiering"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Rankings & Tiering
+            <InfoTip id="rankings._page" className="ml-1.5" />
+          </span>
+        }
         description="Control the tournament data, evaluation, and seasons that drive the public rankings."
         action={
+          // ⓘ sits as a SIBLING of the season Select (not nested) so the tip explains the scope picker.
+          <div className="flex items-center gap-1">
           <Select value={seasonId ? String(seasonId) : undefined} onValueChange={(v) => setSeasonId(Number(v))}>
             <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="Season" /></SelectTrigger>
             <SelectContent>
@@ -187,6 +197,8 @@ export default function AdminRankingsPage() {
               ))}
             </SelectContent>
           </Select>
+          <InfoTip id="rankings.season_select" />
+          </div>
         }
       />
 
@@ -212,23 +224,38 @@ export default function AdminRankingsPage() {
       {/* run evaluation + tier distribution */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-1">
-          <CardHeader><CardTitle className="text-base">Quarterly Evaluation</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="flex items-center text-base">
+              Quarterly Evaluation
+              <InfoTip id="rankings.evaluation._section" className="ml-1.5" />
+            </CardTitle>
+          </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
               Locks each team&apos;s tier for the next quarter from the current scores. Head Admin or Metrics Admin only.
             </p>
-            <Button className="w-full" disabled={!seasonId} onClick={() => setEvalOpen(true)}>
-              <IconPlayerPlay className="mr-1.5 size-4" /> Run Quarterly Evaluation
-            </Button>
-            <Button variant="outline" className="w-full" disabled={!seasonId} onClick={() => setRecalcOpen(true)}>
-              <IconRefresh className="mr-1.5 size-4" /> Recalculate a Team / Player
-            </Button>
+            {/* ⓘ sits beside each action button (sibling, not nested) — explains what the run/recalc actually does. */}
+            <div className="flex items-center gap-1">
+              <Button className="w-full" disabled={!seasonId} onClick={() => setEvalOpen(true)}>
+                <IconPlayerPlay className="mr-1.5 size-4" /> Run Quarterly Evaluation
+              </Button>
+              <InfoTip id="rankings.run_evaluation" />
+            </div>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" className="w-full" disabled={!seasonId} onClick={() => setRecalcOpen(true)}>
+                <IconRefresh className="mr-1.5 size-4" /> Recalculate a Team / Player
+              </Button>
+              <InfoTip id="rankings.recalc_entity" />
+            </div>
           </CardContent>
         </Card>
 
         <Card className="lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="text-base">Tier Distribution</CardTitle>
+            <CardTitle className="flex items-center text-base">
+              Tier Distribution
+              <InfoTip id="rankings.tier_distribution._section" className="ml-1.5" />
+            </CardTitle>
             {belowFloor > 0 && (
               <Badge variant="outline" className="rounded-full text-[10px] text-muted-foreground">
                 {belowFloor} below activity floor
@@ -251,7 +278,10 @@ export default function AdminRankingsPage() {
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-2">
           <div>
-            <CardTitle className="text-base">Publish to public</CardTitle>
+            <CardTitle className="flex items-center text-base">
+              Publish to public
+              <InfoTip id="rankings.publish._section" className="ml-1.5" />
+            </CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
               The public rankings and tier badges stay hidden until you publish them. Each surface is
               controlled separately — publish one without the other.
@@ -264,6 +294,7 @@ export default function AdminRankingsPage() {
             desc="The public team & player ladder."
             published={rankingsPublished}
             disabled={!seasonId}
+            helpId="rankings.publish_rankings"
             onToggle={() => setPublishTarget({ kind: "rankings", next: !rankingsPublished })}
           />
           <PublishRow
@@ -271,6 +302,7 @@ export default function AdminRankingsPage() {
             desc="The locked tier badges (S / A / B / C)."
             published={tiersPublished}
             disabled={!seasonId}
+            helpId="rankings.publish_tiers"
             onToggle={() => setPublishTarget({ kind: "tiers", next: !tiersPublished })}
           />
         </CardContent>
@@ -298,7 +330,10 @@ export default function AdminRankingsPage() {
       {/* teams table + search */}
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-2">
-          <CardTitle className="text-base">Teams · {season?.name ?? ""}</CardTitle>
+          <CardTitle className="flex items-center text-base">
+            Teams · {season?.name ?? ""}
+            <InfoTip id="rankings.teams_table._section" className="ml-1.5" />
+          </CardTitle>
           <div className="relative w-full sm:w-64">
             <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search teams" className="h-9 pl-8" />
@@ -387,19 +422,25 @@ function PublishRow({
   desc,
   published,
   disabled,
+  helpId,
   onToggle,
 }: {
   label: string;
   desc: string;
   published: boolean;
   disabled?: boolean;
+  helpId: HelpId; // centralized copy id for the per-surface publish ⓘ
   onToggle: () => void;
 }) {
   return (
     <div className="flex flex-col gap-3 rounded-md border bg-card p-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-medium">{label}</p>
+          {/* ⓘ sits beside the surface label so the publish/unpublish action is explained inline. */}
+          <p className="flex items-center text-sm font-medium">
+            {label}
+            <InfoTip id={helpId} className="ml-1" />
+          </p>
           <p className="text-xs text-muted-foreground">{desc}</p>
         </div>
         <Badge

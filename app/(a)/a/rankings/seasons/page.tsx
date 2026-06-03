@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { rankingsApi } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
 
 interface Season {
   season_id: number;
@@ -165,12 +166,22 @@ export default function SeasonsAdminPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Seasons"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Seasons
+            <InfoTip id="rankings.seasons._page" className="ml-1.5" />
+          </span>
+        }
         description="Define competition seasons, open and close the transfer window, and run the quarterly tier evaluation."
         action={
-          <Button onClick={() => setCreateOpen(true)}>
-            <IconPlus className="mr-1.5 size-4" /> Create season
-          </Button>
+          // ⓘ sits beside the create button (sibling, not nested).
+          <div className="flex items-center gap-1">
+            <Button onClick={() => setCreateOpen(true)}>
+              <IconPlus className="mr-1.5 size-4" /> Create season
+            </Button>
+            <InfoTip id="rankings.seasons.create" />
+          </div>
         }
       />
 
@@ -265,9 +276,13 @@ export default function SeasonsAdminPage() {
                           <Button size="sm" variant="outline" onClick={() => setWindowTarget(s)}>
                             <IconArrowsExchange className="mr-1 size-3.5" /> Transfer window
                           </Button>
+                          {/* ⓘ beside the transfer-window action (sibling of the row buttons). */}
+                          <InfoTip id="rankings.seasons.transfer_window" />
                           <Button size="sm" variant="outline" onClick={() => setEvalTarget(s)}>
                             <IconPlayerPlay className="mr-1 size-3.5" /> Run evaluation
                           </Button>
+                          {/* ⓘ beside the run-evaluation action (sibling of the row buttons). */}
+                          <InfoTip id="rankings.seasons.run_evaluation" />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -284,6 +299,7 @@ export default function SeasonsAdminPage() {
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <IconHistory className="size-4 text-muted-foreground" /> Transfer window log
+            <InfoTip id="rankings.seasons.transfer_log._section" />
           </CardTitle>
           <Badge variant="outline" className="rounded-full text-[10px] text-muted-foreground">
             {transferLog.length} {transferLog.length === 1 ? "entry" : "entries"}
@@ -548,7 +564,10 @@ function SeasonFormDialog({
 
           <div className="flex items-center justify-between rounded-md border p-3">
             <div>
-              <Label className="normal-case text-foreground">Active season</Label>
+              <Label className="normal-case text-foreground">
+                Active season
+                <InfoTip id="rankings.seasons.active_season" className="ml-1" />
+              </Label>
               <p className="mt-1 text-xs text-muted-foreground">
                 Only one season should be active, this drives the public board.
               </p>

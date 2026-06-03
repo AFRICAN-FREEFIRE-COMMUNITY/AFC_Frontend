@@ -24,6 +24,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // One entry per object_type the backend audit logger emits (admin_audit; spec §16, every
 // write is logged). Every reason-gated action across the sibling rankings admin pages —
@@ -229,12 +230,22 @@ export default function AuditLogPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Audit Log"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Audit Log
+            <InfoTip id="rankings.audit._page" className="ml-1.5" />
+          </span>
+        }
         description="Every ranking edit, override, and recalculation, who, what, when, and why. Plus the admins-only raw scoring data."
         action={
-          <Button variant="outline" onClick={() => setRawOpen(true)}>
-            <IconDatabase className="mr-1.5 size-4" /> Raw data viewer
-          </Button>
+          // ⓘ sits beside the raw-data button (sibling, not nested).
+          <div className="flex items-center gap-1">
+            <Button variant="outline" onClick={() => setRawOpen(true)}>
+              <IconDatabase className="mr-1.5 size-4" /> Raw data viewer
+            </Button>
+            <InfoTip id="rankings.audit.raw_viewer" />
+          </div>
         }
       />
 

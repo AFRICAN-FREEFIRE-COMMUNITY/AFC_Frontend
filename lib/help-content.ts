@@ -172,6 +172,216 @@ export const HELP = {
     "Extra points to add on top of the calculated score — e.g. an admin reward.",
   "leaderboards.result_penalty_points":
     "Points to subtract from the calculated score — e.g. a rules penalty.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Rankings & Tiering — the system that scores every team and player each
+  // quarter and locks them into tiers (Elite / Competitive / Rising / Entry).
+  // One sub-section per /a/rankings/* page; identical controls reuse one id.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Rankings › Overview ─────────────────────────────────────────────────────
+  "rankings._page":
+    "The control room for the public rankings — pick a season, evaluate tiers, publish, and fix individual scores. Everything that drives the team and player ladders lives here or one click away.",
+  "rankings.season_select":
+    "Which season's scores you're viewing and acting on. The active season is what the public board reads.",
+  "rankings.evaluation._section":
+    "Lock tiers for the quarter, or re-derive one team or player's score. Head Admin or Metrics Admin only.",
+  "rankings.run_evaluation":
+    "Locks every team and player into a tier for the next quarter from their current scores. Preview the result first — it writes nothing — then run to commit.",
+  "rankings.recalc_entity":
+    "Re-derive a single team or player's score from the source results, without re-running the whole season. Queued through the same pipeline as live edits.",
+  "rankings.tier_distribution._section":
+    "How many teams currently sit in each tier (Elite / Competitive / Rising / Entry) for this season.",
+  "rankings.publish._section":
+    "The public ladder and tier badges stay hidden until you publish them. Rankings and tiers are controlled separately — publish one without the other.",
+  "rankings.publish_rankings":
+    "Make the public team and player ladder visible for this season. Hidden as a draft until you do.",
+  "rankings.publish_tiers":
+    "Make the locked tier badges (S / A / B / C) visible to the public for this season, independently of the ladder.",
+  "rankings.teams_table._section":
+    "Every team's current quarterly standing for this season — rank, tier, tournaments, kills and total score. Drill into a team to edit its result markers.",
+
+  // ── Rankings › Scoring Config (the weights behind every score) ──────────────
+  "rankings.scoring._page":
+    "The weights, brackets and thresholds behind every ranking and tier calculation. Saving drafts a new immutable version and recalculates every team and player's score for the season.",
+  "rankings.scoring.save":
+    "Drafts a new immutable config version from the current values and queues a full recalculation across the season. A reason is required for the audit log.",
+  "rankings.scoring.reset_defaults":
+    "Loads the spec defaults from constants.py into the editor. Nothing is saved until you Save — this just stages them.",
+  "rankings.scoring.tier_multipliers._section":
+    "Per-tier multipliers applied to placement, kill and finals points only — never to win bonus, scrim, prize or social points.",
+  "rankings.scoring.win_bonus._section":
+    "Flat points for a win (not compressed, not multiplied) plus the finals-appearance base, which is multiplied by the tier multiplier.",
+  "rankings.scoring.placement_points._section":
+    "Points awarded by finishing position in each match. 11th place and beyond award 0.",
+  "rankings.scoring.thresholds._section":
+    "The minimum total score (inclusive) a team needs to reach each tier. Entry is the default floor below the lowest cut-off.",
+  "rankings.scoring.kill_scale._section":
+    "Cumulative raw kills compress to bounded points so high-kill teams don't run away with the score. The last row is open-ended.",
+  "rankings.scoring.placement_scale._section":
+    "Cumulative raw placement points compress to bounded points, the same way the kill scale does. The last row is open-ended.",
+  "rankings.scoring.prize_scale._section":
+    "Quarterly team tiering only — total prize money won (₦) maps to bounded points.",
+  "rankings.scoring.social_scale._section":
+    "Teams only, capped at 10 points — combined Instagram + TikTok followers map to bounded points.",
+  "rankings.scoring.scrim._section":
+    "Scrims count at a reduced weight and are capped relative to a team's tournament output, then capped again per day and per month.",
+  "rankings.scoring.player_weights._section":
+    "Flat per-event points that build an individual player's quarterly score — MVP, finals, team win, participation and scrim contributions.",
+
+  // ── Rankings › Tournament Tiers (how events classify into Tier 1–3) ─────────
+  "rankings.tiers._page":
+    "Decide how each event is classified into Tier 1–3, which sets its scoring multiplier. Rules run top-down — the first rule a tournament matches sets its tier.",
+  "rankings.tiers.save":
+    "Applies your rule changes to how every future event is classified. Already-locked results aren't re-tiered. A reason is required for the audit log.",
+  "rankings.tiers.reset":
+    "Discards your unsaved edits and reverts the rules to the last saved version.",
+  "rankings.tiers.rule_priority":
+    "Drag to reorder. Rules are evaluated top-down and the first match wins, so put the most specific rules highest.",
+  "rankings.tiers.match_mode":
+    "Match ALL requires every condition to hold; Match ANY fires if any single condition holds.",
+  "rankings.tiers.default_tier":
+    "The tier an event falls into when it matches none of the rules above.",
+  "rankings.tiers.test._section":
+    "Enter sample event details to see which rule fires and the tier it would get — a dry run against the live classifier, nothing is saved.",
+
+  // ── Rankings › Result Markers (which results count) ─────────────────────────
+  "rankings.results._page":
+    "Control which tournament results count toward rankings. Switch a whole event's winner / placement / kills off, or exclude specific teams or players. Turning anything off needs a reason.",
+  "rankings.results.count_winner":
+    "Whether the event's winner bonus counts toward rankings. Turn off to drop just the win points for this event.",
+  "rankings.results.count_placement":
+    "Whether placement points from this event count toward rankings.",
+  "rankings.results.count_kills":
+    "Whether kill points from this event count toward rankings.",
+  "rankings.results.toggle_all":
+    "Turn every marker (winner, placement, kills) on or off for this event at once. Disabling all removes the event from rankings entirely.",
+  "rankings.results.exclusions":
+    "Exclude specific teams or players so their results in this event don't count, while everyone else's still does.",
+  "rankings.results.bulk_disable":
+    "Stop the selected events from counting toward rankings in one action. Requires a reason.",
+
+  // ── Rankings › Seasons (windows + the quarterly lock) ───────────────────────
+  "rankings.seasons._page":
+    "Define competition seasons, open and close the transfer window, and run the quarterly tier evaluation. The active season is what the public board reads.",
+  "rankings.seasons.create":
+    "Set up a new competition season — its dates, transfer window, and whether it's the active one driving the public board.",
+  "rankings.seasons.active_season":
+    "Only one season should be active at a time — it's the one the public ranking board reads from.",
+  "rankings.seasons.transfer_window":
+    "Open, close or extend the window during which players may switch teams without breaking their ranking history.",
+  "rankings.seasons.run_evaluation":
+    "Lock every team and player into a tier for the quarter from their current scores. Re-running overwrites the previously assigned tiers.",
+  "rankings.seasons.transfer_log._section":
+    "Every open, close and extend of this season's transfer window — who changed it, when, and the reason given.",
+
+  // ── Rankings › Ghost Teams (off-platform placeholders) ──────────────────────
+  "rankings.ghost._page":
+    "Provisional placeholder teams that hold off-platform results until a registered team claims them. Approving a claim transfers all that history to the real team.",
+  "rankings.ghost.create":
+    "Create a placeholder team with a provisional roster so off-platform results can be recorded before a real team registers.",
+  "rankings.ghost.external_id":
+    "Optional reference linking this placeholder to its off-platform source (e.g. a Discord tag or bracket code), so you can match it later.",
+  "rankings.ghost.approve_claim":
+    "Transfer all of this ghost team's history, stats and prize money to the claiming team and recalculate the quarter. Only undone by a head-admin revoke.",
+  "rankings.ghost.revoke_claim":
+    "Reject a pending claim request, or detach an already-approved claim — which pulls the transferred history back off the team and recalculates.",
+
+  // ── Rankings › Social Verification ──────────────────────────────────────────
+  "rankings.social._page":
+    "Teams connect their own Instagram and TikTok from their dashboard. Here you verify, unverify, or correct the follower counts that award up to 10 social points.",
+  "rankings.social.verify":
+    "Confirm a connected team's combined follower count for the quarter, awarding it social points on the bracket scale. Re-verifying an already-verified team needs a reason.",
+  "rankings.social.unverify":
+    "Pull a team's social points until it's checked again. The connected counts are kept, but award 0 points while unverified.",
+  "rankings.social.verify_all":
+    "Verify every connected, not-yet-verified team at once — first-time verifications only.",
+
+  // ── Rankings › Prize Money ──────────────────────────────────────────────────
+  "rankings.prize._page":
+    "Record tournament prize payouts in Naira. Prize money feeds each team's quarterly score on the §7.2 prize scale — there is no currency conversion.",
+  "rankings.prize.add":
+    "Log a prize payout for a team in an event. The amount is entered directly in Naira and feeds the team's quarterly prize-money points.",
+  "rankings.prize.amount":
+    "The payout amount in Naira. Entered as-is — no exchange rate or conversion is applied.",
+
+  // ── Rankings › Overrides & Bans (manual corrections) ────────────────────────
+  "rankings.overrides._page":
+    "Manually correct tier assignments and zero out cheating teams or players. Every action here is logged with a reason and sticks until you change it.",
+  "rankings.overrides.override_tier":
+    "Force a team onto a specific tier regardless of its computed score. The override sticks until you clear it — set it back to the computed tier to remove it.",
+  "rankings.overrides.deduct_points":
+    "Subtract a set number of points as a partial penalty while leaving the team ranked. Deductions accumulate and can be reset.",
+  "rankings.overrides.clear_deduction":
+    "Remove a team's partial point penalty and restore its full computed score.",
+  "rankings.overrides.ban_zero_team":
+    "Force a team's score to 0 and the bottom tier for the whole quarter. Use only for confirmed cheating — it isn't lifted by recalculation, only by an explicit restore.",
+  "rankings.overrides.restore_team":
+    "Lift a team's ban-zero so the next recalculation rebuilds its score and tier from scratch.",
+  "rankings.overrides.ban_zero_player":
+    "Zero a single player's contribution for the quarter (e.g. confirmed individual cheating) and recalculate their team. Players inherit their team's tier and can't be tier-overridden.",
+
+  // ── Rankings › Audit Log ────────────────────────────────────────────────────
+  "rankings.audit._page":
+    "Every ranking edit, override and recalculation — who did it, what changed, when, and why. Visible to Head Admin and Metrics Admin only.",
+  "rankings.audit.raw_viewer":
+    "Look up the uncompressed, component-by-component breakdown behind any team or player's current-quarter score. Admins-only — these raw values are never shown publicly.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Organizations — third-party organizers who run events on AFC. The admin
+  // surface manages the orgs themselves plus two review queues: design requests
+  // and integrity reports. One sub-section per /a/organizations/* page.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Organizations › List ────────────────────────────────────────────────────
+  "organizations._page":
+    "Every organization that runs events on AFC. Search the list, drill into one to manage its profile, members and events, or create a new org and assign its owner.",
+  "organizations.create":
+    "Spin up a new organization and hand it to an existing user as owner. The owner starts with every organizer permission.",
+  "organizations.owner_username":
+    "The existing AFC user who will own this organization. They get all organizer permissions by default.",
+
+  // ── Organizations › Detail (tabs) ───────────────────────────────────────────
+  "organizations.detail._page":
+    "Manage a single organization — edit its profile, control who can do what, review its events, and handle reports filed against it.",
+  "organizations.profile._section":
+    "The org's public-facing details — name, email, description and social links — plus its active/suspended status.",
+  "organizations.members._section":
+    "Everyone in this organization and what they can do. Add members, hand over ownership, or remove someone.",
+  "organizations.events._section":
+    "Every event this organization runs. Verify an event's rankings so its results count, or unverify to pull them.",
+  "organizations.reports._section":
+    "Integrity reports filed against this organization. Each is handled from the central Org Reports queue.",
+  "organizations.suspend":
+    "Temporarily block the organization's access without deleting it. Unsuspend to restore everything as it was.",
+  "organizations.delete":
+    "Soft-delete the organization. Its events re-home to AFC so their history is kept. This can't be undone.",
+  "organizations.add_member":
+    "Add an existing AFC user to this org and choose exactly which organizer actions they can take.",
+  "organizations.member_permissions":
+    "The granular actions this member can take — creating events, uploading results, managing registrations, and so on. Owners hold all of them automatically.",
+  "organizations.set_owner":
+    "Hand organization ownership to this member. They gain every permission; the previous owner becomes a regular member.",
+  "organizations.verify_event":
+    "Mark this event's rankings as verified so its results count toward the public ladder. Unverify to pull them back out.",
+
+  // ── Organizations › Design Requests (review queue) ──────────────────────────
+  "organizations.design._page":
+    "The review queue for organizer leaderboard-design requests across every organization. Move each request through its lifecycle and leave notes the organizer then sees.",
+  "organizations.design.resolve":
+    "Move this request along (open → in progress → applied / rejected) and write resolution notes the organizer reads on their Design page.",
+  "organizations.design.status":
+    "Where the request sits in its lifecycle: Open (untouched), In progress (being worked), Applied (done), or Rejected.",
+
+  // ── Organizations › Reports (integrity review queue) ────────────────────────
+  "organizations.reports._page":
+    "The review queue for reports filed against organizations — suspected rankings manipulation, fake results, unfair conduct. Resolve each one and, if needed, pull the reported event from rankings.",
+  "organizations.reports.resolve":
+    "Move this report along (open → reviewing → resolved / dismissed), record what you found, and optionally exclude the reported event from rankings.",
+  "organizations.reports.status":
+    "Where the report sits: Open (unhandled), Reviewing (being looked into), Resolved (action taken), or Dismissed (no action needed).",
+  "organizations.reports.exclude_event":
+    "Unverify the reported event so its results stop counting toward rankings — the integrity action for a substantiated report. Only available when the report is tied to an event.",
 } as const;
 
 export type HelpId = keyof typeof HELP;

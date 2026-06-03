@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 import { env } from "@/lib/env";
+import { InfoTip } from "@/components/ui/info-tip";
 
 /**
  * Result Markers — counting-control surface wired to the LIVE backend
@@ -546,7 +547,13 @@ export default function ResultMarkersPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Result Markers"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Result Markers
+            <InfoTip id="rankings.results._page" className="ml-1.5" />
+          </span>
+        }
         description="Control which tournament results count toward rankings. Disable a whole event, or exclude specific teams or players from counting."
       />
 
@@ -638,6 +645,8 @@ export default function ResultMarkersPage() {
               >
                 <IconCircleMinus className="mr-1 size-3.5" /> Disable counting
               </Button>
+              {/* ⓘ beside the bulk action (sibling) — explains the multi-event disable. */}
+              <InfoTip id="rankings.results.bulk_disable" />
               <Button size="sm" variant="ghost" onClick={clearSelection}>
                 <IconX className="mr-1 size-3.5" /> Clear selection
               </Button>
@@ -660,13 +669,22 @@ export default function ResultMarkersPage() {
                 <TableHead className="text-foreground">Tier</TableHead>
                 <TableHead className="text-center text-foreground">Teams</TableHead>
                 <TableHead className="text-center text-foreground">
-                  <span className="inline-flex items-center gap-1"><IconTrophy className="size-3.5" /> Winner</span>
+                  <span className="inline-flex items-center gap-1">
+                    <IconTrophy className="size-3.5" /> Winner
+                    <InfoTip id="rankings.results.count_winner" />
+                  </span>
                 </TableHead>
                 <TableHead className="text-center text-foreground">
-                  <span className="inline-flex items-center gap-1"><IconMedal className="size-3.5" /> Placement</span>
+                  <span className="inline-flex items-center gap-1">
+                    <IconMedal className="size-3.5" /> Placement
+                    <InfoTip id="rankings.results.count_placement" />
+                  </span>
                 </TableHead>
                 <TableHead className="text-center text-foreground">
-                  <span className="inline-flex items-center gap-1"><IconSwords className="size-3.5" /> Kills</span>
+                  <span className="inline-flex items-center gap-1">
+                    <IconSwords className="size-3.5" /> Kills
+                    <InfoTip id="rankings.results.count_kills" />
+                  </span>
                 </TableHead>
                 <TableHead className="text-foreground">Status</TableHead>
                 <TableHead className="text-right text-foreground">Actions</TableHead>
@@ -770,6 +788,8 @@ export default function ResultMarkersPage() {
                         >
                           {allOn ? "Disable all" : "Enable all"}
                         </Button>
+                        {/* ⓘ beside the per-event toggle-all (sibling of both action buttons). */}
+                        <InfoTip id="rankings.results.toggle_all" />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -847,7 +867,10 @@ export default function ResultMarkersPage() {
 
               {/* add a new exclusion */}
               <div className="space-y-3 rounded-md border bg-muted/20 p-3">
-                <p className="text-xs font-semibold text-foreground">Add exclusion</p>
+                <p className="flex items-center text-xs font-semibold text-foreground">
+                  Add exclusion
+                  <InfoTip id="rankings.results.exclusions" className="ml-1" />
+                </p>
                 <div className="flex gap-2">
                   <Select value={addType} onValueChange={(v) => changeAddType(v as "team" | "player")}>
                     <SelectTrigger className="h-9 w-[120px] text-xs">

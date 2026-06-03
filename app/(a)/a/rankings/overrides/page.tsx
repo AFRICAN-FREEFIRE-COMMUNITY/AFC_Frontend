@@ -37,6 +37,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
 
 const TIERS = [0, 1, 2, 3] as const;
 const MIN_REASON = 10;
@@ -670,7 +671,13 @@ export default function OverridesAndBansPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Overrides & Bans"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Overrides & Bans
+            <InfoTip id="rankings.overrides._page" className="ml-1.5" />
+          </span>
+        }
         description="Manually correct tier assignments and zero out cheating teams or players. Every action is logged with a reason."
       />
 
@@ -802,42 +809,56 @@ export default function OverridesAndBansPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex flex-wrap items-center justify-end gap-2">
+                            {/* Each action ⓘ is a SIBLING of its button — explains what the manual correction does. */}
                             <Button size="sm" variant="outline" onClick={() => setOverrideTeam(t)}>
                               <IconGavel className="mr-1 size-3.5" /> Override tier
                             </Button>
+                            <InfoTip id="rankings.overrides.override_tier" />
                             {!t.is_zeroed && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 hover:text-orange-400"
-                                onClick={() => setDeductTeam(t)}
-                              >
-                                <IconMinus className="mr-1 size-3.5" /> Deduct
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 hover:text-orange-400"
+                                  onClick={() => setDeductTeam(t)}
+                                >
+                                  <IconMinus className="mr-1 size-3.5" /> Deduct
+                                </Button>
+                                <InfoTip id="rankings.overrides.deduct_points" />
+                              </>
                             )}
                             {!t.is_zeroed && deducted > 0 && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-muted-foreground hover:text-foreground"
-                                onClick={() => setClearTeam(t)}
-                              >
-                                <IconArrowBackUp className="mr-1 size-3.5" /> Reset
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-muted-foreground hover:text-foreground"
+                                  onClick={() => setClearTeam(t)}
+                                >
+                                  <IconArrowBackUp className="mr-1 size-3.5" /> Reset
+                                </Button>
+                                <InfoTip id="rankings.overrides.clear_deduction" />
+                              </>
                             )}
                             {t.is_zeroed ? (
-                              <Button size="sm" variant="outline" onClick={() => setRestoreTeamRow(t)}>
-                                <IconArrowBackUp className="mr-1 size-3.5" /> Restore
-                              </Button>
+                              <>
+                                <Button size="sm" variant="outline" onClick={() => setRestoreTeamRow(t)}>
+                                  <IconArrowBackUp className="mr-1 size-3.5" /> Restore
+                                </Button>
+                                <InfoTip id="rankings.overrides.restore_team" />
+                              </>
                             ) : (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                onClick={() => setBanTeam(t)}
-                              >
-                                <IconBan className="mr-1 size-3.5" /> Ban-zero
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => setBanTeam(t)}
+                                >
+                                  <IconBan className="mr-1 size-3.5" /> Ban-zero
+                                </Button>
+                                <InfoTip id="rankings.overrides.ban_zero_team" />
+                              </>
                             )}
                           </div>
                         </TableCell>
@@ -918,19 +939,23 @@ export default function OverridesAndBansPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={p.zeroed}
-                          className={cn(
-                            !p.zeroed &&
-                              "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive",
-                          )}
-                          onClick={() => setBanPlayer(p)}
-                        >
-                          <IconBan className="mr-1 size-3.5" />
-                          {p.zeroed ? "Zeroed" : "Ban-zero player"}
-                        </Button>
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={p.zeroed}
+                            className={cn(
+                              !p.zeroed &&
+                                "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive",
+                            )}
+                            onClick={() => setBanPlayer(p)}
+                          >
+                            <IconBan className="mr-1 size-3.5" />
+                            {p.zeroed ? "Zeroed" : "Ban-zero player"}
+                          </Button>
+                          {/* ⓘ explains zeroing one player's contribution (sibling of the button). */}
+                          <InfoTip id="rankings.overrides.ban_zero_player" />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

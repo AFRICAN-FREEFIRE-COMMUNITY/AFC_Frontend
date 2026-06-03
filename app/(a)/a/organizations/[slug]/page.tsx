@@ -74,6 +74,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { organizersApi } from "@/lib/organizers";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // ── Types (mirror the adminGetOrganization payload) ──────────────────────────
 
@@ -425,16 +426,35 @@ export default function OrganizationDetailPage({
     <div className="flex flex-col gap-3">
       <PageHeader
         back
-        title={organization.name}
+        // Wrap the title so the page-level ⓘ sits right after the org name (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            {organization.name}
+            <InfoTip id="organizations.detail._page" className="ml-1.5" />
+          </span>
+        }
         description={`/${organization.slug}`}
       />
 
       <Tabs value={tab} onValueChange={setTab} className="mt-2">
+        {/* Each section ⓘ is a SIBLING of its tab trigger (never nested in a button). */}
         <TabsList className="w-full">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="members">Members</TabsTrigger>
-          <TabsTrigger value="events">Events</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <span className="inline-flex flex-1 items-center justify-center">
+            <TabsTrigger value="profile" className="w-full">Profile</TabsTrigger>
+            <InfoTip id="organizations.profile._section" className="ml-1" />
+          </span>
+          <span className="inline-flex flex-1 items-center justify-center">
+            <TabsTrigger value="members" className="w-full">Members</TabsTrigger>
+            <InfoTip id="organizations.members._section" className="ml-1" />
+          </span>
+          <span className="inline-flex flex-1 items-center justify-center">
+            <TabsTrigger value="events" className="w-full">Events</TabsTrigger>
+            <InfoTip id="organizations.events._section" className="ml-1" />
+          </span>
+          <span className="inline-flex flex-1 items-center justify-center">
+            <TabsTrigger value="reports" className="w-full">Reports</TabsTrigger>
+            <InfoTip id="organizations.reports._section" className="ml-1" />
+          </span>
         </TabsList>
 
         {/* ── Profile tab — editable form + suspend / delete ── */}
@@ -551,7 +571,8 @@ export default function OrganizationDetailPage({
                     : "Temporarily block the organization's access."}
                 </p>
               </div>
-              <div className="flex gap-2">
+              {/* Each danger-zone ⓘ is a SIBLING of its button (not nested). */}
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   onClick={handleToggleSuspend}
@@ -563,12 +584,14 @@ export default function OrganizationDetailPage({
                       ? "Unsuspend"
                       : "Suspend"}
                 </Button>
+                <InfoTip id="organizations.suspend" />
                 <Button
                   variant="destructive"
                   onClick={() => setDeleteOpen(true)}
                 >
                   Delete
                 </Button>
+                <InfoTip id="organizations.delete" />
               </div>
             </CardContent>
           </Card>
@@ -580,15 +603,18 @@ export default function OrganizationDetailPage({
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
                 <CardTitle>Members</CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0"
-                  onClick={() => setAddOpen(true)}
-                >
-                  <IconPlus className="size-4" />
-                  Add member
-                </Button>
+                {/* ⓘ sits beside the add-member button (sibling, not nested). */}
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAddOpen(true)}
+                  >
+                    <IconPlus className="size-4" />
+                    Add member
+                  </Button>
+                  <InfoTip id="organizations.add_member" />
+                </div>
               </div>
             </CardHeader>
             <CardContent className="mt-2">
@@ -598,7 +624,12 @@ export default function OrganizationDetailPage({
                     <TableHead>Username</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Permissions</TableHead>
+                    <TableHead>
+                      <span className="inline-flex items-center">
+                        Permissions
+                        <InfoTip id="organizations.member_permissions" className="ml-1" />
+                      </span>
+                    </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -636,14 +667,18 @@ export default function OrganizationDetailPage({
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
                             {m.role !== "owner" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={memberBusy === m.user_id}
-                                onClick={() => handleSetOwner(m)}
-                              >
-                                Set owner
-                              </Button>
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={memberBusy === m.user_id}
+                                  onClick={() => handleSetOwner(m)}
+                                >
+                                  Set owner
+                                </Button>
+                                {/* ⓘ explains the ownership hand-over (sibling of the action buttons). */}
+                                <InfoTip id="organizations.set_owner" />
+                              </>
                             )}
                             <Button
                               variant="outline"
@@ -737,18 +772,22 @@ export default function OrganizationDetailPage({
 
                         {/* ── Verify / Unverify toggle (POST /events/verify-event/) ── */}
                         <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={verifyBusy === ev.event_id}
-                            onClick={() => handleToggleVerify(ev)}
-                          >
-                            {verifyBusy === ev.event_id
-                              ? "Working..."
-                              : ev.rankings_verified
-                                ? "Unverify"
-                                : "Verify"}
-                          </Button>
+                          <div className="inline-flex items-center justify-end gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={verifyBusy === ev.event_id}
+                              onClick={() => handleToggleVerify(ev)}
+                            >
+                              {verifyBusy === ev.event_id
+                                ? "Working..."
+                                : ev.rankings_verified
+                                  ? "Unverify"
+                                  : "Verify"}
+                            </Button>
+                            {/* ⓘ explains what verifying an event's rankings means (sibling of the button). */}
+                            <InfoTip id="organizations.verify_event" />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -816,7 +855,10 @@ export default function OrganizationDetailPage({
 
             {/* permission switch grid — one switch per can_* key */}
             <div className="space-y-2">
-              <Label>Permissions</Label>
+              <Label>
+                Permissions
+                <InfoTip id="organizations.member_permissions" className="ml-1" />
+              </Label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {PERMISSION_KEYS.map((key) => (
                   <label

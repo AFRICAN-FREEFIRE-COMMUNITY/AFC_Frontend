@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FullLoader } from "@/components/Loader";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
+import { InfoTip } from "@/components/ui/info-tip";
 
 /**
  * Tournament Tiers — wired to the Phase-2 admin API (afc_rankings/admin_tournament_tiers.py).
@@ -220,6 +221,8 @@ function SortableRule({
           <IconGripVertical className="size-4" />
         </button>
         <Badge variant="outline" className="rounded-full text-[11px] tabular-nums">Rule {index + 1}</Badge>
+        {/* ⓘ on the rule index explains drag-to-prioritise + first-match-wins (sibling of the drag handle, not nested). */}
+        <InfoTip id="rankings.tiers.rule_priority" />
 
         {/* match all / any */}
         <div className="inline-flex h-7 items-center rounded-md bg-muted p-[3px] text-xs">
@@ -236,6 +239,8 @@ function SortableRule({
             </button>
           ))}
         </div>
+        {/* ⓘ next to the ALL/ANY switch (sibling of the toggle buttons). */}
+        <InfoTip id="rankings.tiers.match_mode" />
 
         {matchedInTest && (
           <Badge variant="outline" className="rounded-full border-primary/50 text-[10px] text-primary">
@@ -505,16 +510,29 @@ export default function TournamentTiersPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Tournament Tiers"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Tournament Tiers
+            <InfoTip id="rankings.tiers._page" className="ml-1.5" />
+          </span>
+        }
         description="Decide how events are classified into Tier 1–3. Rules run top-down — the first rule a tournament matches sets its tier, which drives the scoring multiplier."
         action={
+          // Each action ⓘ is a SIBLING of its button (not nested) — Reset reverts, Save commits the rule set.
           <div className="flex w-full gap-2 md:w-auto">
-            <Button variant="outline" className="flex-1 md:flex-none" onClick={reset} disabled={saving}>
-              <IconRestore className="mr-1.5 size-4" /> Reset
-            </Button>
-            <Button className="flex-1 md:flex-none" disabled={!dirty || saving} onClick={() => { setReason(""); setSaveOpen(true); }}>
-              <IconDeviceFloppy className="mr-1.5 size-4" /> Save rules{dirty ? " *" : ""}
-            </Button>
+            <div className="flex flex-1 items-center gap-1 md:flex-none">
+              <Button variant="outline" className="flex-1 md:flex-none" onClick={reset} disabled={saving}>
+                <IconRestore className="mr-1.5 size-4" /> Reset
+              </Button>
+              <InfoTip id="rankings.tiers.reset" />
+            </div>
+            <div className="flex flex-1 items-center gap-1 md:flex-none">
+              <Button className="flex-1 md:flex-none" disabled={!dirty || saving} onClick={() => { setReason(""); setSaveOpen(true); }}>
+                <IconDeviceFloppy className="mr-1.5 size-4" /> Save rules{dirty ? " *" : ""}
+              </Button>
+              <InfoTip id="rankings.tiers.save" />
+            </div>
           </div>
         }
       />
@@ -577,7 +595,10 @@ export default function TournamentTiersPage() {
           {/* default (pinned) */}
           <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed bg-muted/20 px-3 py-3">
             <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">Default</Badge>
-            <span className="text-xs text-muted-foreground">Anything that matches no rule above</span>
+            <span className="inline-flex items-center text-xs text-muted-foreground">
+              Anything that matches no rule above
+              <InfoTip id="rankings.tiers.default_tier" className="ml-1" />
+            </span>
             <IconArrowRight className="size-4 text-muted-foreground" />
             <Select value={String(defaultTier)} onValueChange={(v) => { setDefaultTier(Number(v) as Tier); setDirty(true); }}>
               <SelectTrigger className="h-8 w-[150px] text-xs"><SelectValue /></SelectTrigger>
@@ -600,6 +621,7 @@ export default function TournamentTiersPage() {
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-1.5 text-base">
                 <IconFlask className="size-4 text-primary" /> Test a tournament
+                <InfoTip id="rankings.tiers.test._section" />
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">

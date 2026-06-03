@@ -60,6 +60,7 @@ import {
 import { ITEMS_PER_PAGE } from "@/constants";
 import { formatDate } from "@/lib/utils";
 import { organizersApi } from "@/lib/organizers";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // ── Row shape (mirrors the admin design-request serializer) ───────────────────
 interface DesignRequestRow {
@@ -203,7 +204,13 @@ export default function DesignRequestsAdminPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Design Requests"
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Design Requests
+            <InfoTip id="organizations.design._page" className="ml-1.5" />
+          </span>
+        }
         description={`${totalCount} request${totalCount !== 1 ? "s" : ""}`}
       />
 
@@ -275,13 +282,17 @@ export default function DesignRequestsAdminPage() {
                         {row.created_at ? formatDate(row.created_at) : "—"}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openEdit(row)}
-                        >
-                          Manage
-                        </Button>
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEdit(row)}
+                          >
+                            Manage
+                          </Button>
+                          {/* ⓘ explains the resolve/notes lifecycle action (sibling of the button). */}
+                          <InfoTip id="organizations.design.resolve" />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -392,7 +403,10 @@ export default function DesignRequestsAdminPage() {
 
             {/* Status. */}
             <div className="space-y-2">
-              <Label htmlFor="design-status">Status</Label>
+              <Label htmlFor="design-status">
+                Status
+                <InfoTip id="organizations.design.status" className="ml-1" />
+              </Label>
               <Select
                 value={editStatus}
                 onValueChange={(v) => setEditStatus(v as Status)}
