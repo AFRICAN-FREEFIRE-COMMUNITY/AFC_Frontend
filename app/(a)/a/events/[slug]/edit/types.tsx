@@ -1,21 +1,15 @@
 import { z } from "zod";
 import { toast } from "sonner";
+// Shared bracket-types + labels (see lib/eventFormats.ts). Re-exported below under the
+// historic formattedWord / STAGE_FORMATS names so existing importers keep working — the
+// point-rush / champion-rush pseudo-formats were dropped (now per-stage toggles).
+import { STAGE_FORMATS as SHARED_STAGE_FORMATS, FORMAT_LABEL } from "@/lib/eventFormats";
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-export const formattedWord: Record<string, string> = {
-  "br - normal": "Battle Royale - Normal",
-  "br - roundrobin": "Battle Royale - Round Robin",
-  "br - point rush": "Battle Royale - Point Rush",
-  "br - champion rush": "Battle Royale - Champion Rush",
-  "cs - normal": "Clash Squad - Normal",
-  "cs - league": "Clash Squad - League",
-  "cs - knockout": "Clash Squad - Knockout",
-  "cs - double elimination": "Clash Squad - Double Elimination",
-  "cs - round robin": "Clash Squad - Round Robin",
-};
+export const formattedWord = FORMAT_LABEL;
 
 export const AVAILABLE_MAPS = [
   "Bermuda",
@@ -26,17 +20,7 @@ export const AVAILABLE_MAPS = [
   "Solara",
 ];
 
-export const STAGE_FORMATS = [
-  "br - normal",
-  "br - roundrobin",
-  "br - point rush",
-  "br - champion rush",
-  "cs - normal",
-  "cs - league",
-  "cs - knockout",
-  "cs - double elimination",
-  "cs - round robin",
-];
+export const STAGE_FORMATS = SHARED_STAGE_FORMATS;
 
 // ============================================================================
 // SCHEMAS
@@ -67,6 +51,14 @@ export const StageSchema = z.object({
   groups: z.array(GroupSchema).min(1, "At least one group required"),
   teams_qualifying_from_stage: z.coerce.number().min(0).default(0),
   total_teams_in_stage: z.coerce.number().min(0).default(0),
+  // ── Scoring-mode config (sub-project A). Both modes are independent + combinable. ──
+  // Champion-Point: first competitor to Booyah while already at/above the threshold wins.
+  champion_point_enabled: z.boolean().default(false),
+  champion_point_threshold: z.coerce.number().optional(), // required when enabled
+  // Point-Rush: this stage's per-lobby placement bonus is banked into a LATER stage.
+  point_rush_enabled: z.boolean().default(false),
+  point_rush_reward: z.record(z.string(), z.coerce.number()).optional(), // {"1":10,"2":7,...}
+  point_rush_target_index: z.coerce.number().optional(), // 0-based index of the target stage
 });
 
 export const EventFormSchema = z
@@ -212,6 +204,14 @@ export interface EventDetails {
     stage_format: string;
     teams_qualifying_from_stage: number;
     stage_status: string;
+    // ── Scoring-mode config echoed by get-event-details (sub-project A). ──
+    // point_rush_target_stage_id is a STAGE id; the form needs it mapped to a 0-based
+    // index (point_rush_target_index) on rehydration — done in edit/page.tsx.
+    champion_point_enabled?: boolean;
+    champion_point_threshold?: number | null;
+    point_rush_enabled?: boolean;
+    point_rush_reward?: Record<string, number>;
+    point_rush_target_stage_id?: number | null;
     groups: Array<{
       id: number; // This is what comes from backend
       group_id?: number; // Add this as well for compatibility

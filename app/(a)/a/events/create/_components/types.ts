@@ -119,6 +119,10 @@
 // };
 
 import { z } from "zod";
+// Shared bracket-types + labels live in one module now (see lib/eventFormats.ts) so the
+// create flow, edit flow, and organizer flow can't drift. Re-exported below under the
+// historic STAGE_FORMATS / FORMATTED_WORD names so existing importers keep working.
+import { STAGE_FORMATS as SHARED_STAGE_FORMATS, FORMAT_LABEL } from "@/lib/eventFormats";
 
 export const GroupSchema = z.object({
   group_name: z.string().min(1, "Group name required"),
@@ -148,6 +152,14 @@ export const StageSchema = z.object({
   prizepool: z.string().optional(),
   prizepool_cash_value: z.string().optional(),
   prize_distribution: z.record(z.string(), z.string()).optional(),
+  // ── Scoring-mode config (sub-project A). Both modes are independent + combinable. ──
+  // Champion-Point: first competitor to Booyah while already at/above the threshold wins.
+  champion_point_enabled: z.boolean().default(false),
+  champion_point_threshold: z.coerce.number().optional(), // required when enabled
+  // Point-Rush: this stage's per-lobby placement bonus is banked into a LATER stage.
+  point_rush_enabled: z.boolean().default(false),
+  point_rush_reward: z.record(z.string(), z.coerce.number()).optional(), // {"1":10,"2":7,...}
+  point_rush_target_index: z.coerce.number().optional(), // 0-based index of the target stage
 });
 
 export const EventFormSchema = z
@@ -224,17 +236,11 @@ export type EventFormType = z.infer<typeof EventFormSchema>;
 export type StageType = z.infer<typeof StageSchema>;
 export type GroupType = z.infer<typeof GroupSchema>;
 
-export const STAGE_FORMATS = [
-  "br - normal",
-  "br - roundrobin",
-  "br - point rush",
-  "br - champion rush",
-  "cs - normal",
-  "cs - league",
-  "cs - knockout",
-  "cs - double elimination",
-  "cs - round robin",
-];
+// Re-exported from the shared module so existing importers (StageModal, etc.) keep the
+// same names. The point-rush / champion-rush pseudo-formats were dropped here — they are
+// now per-stage toggles, not bracket types (see lib/eventFormats.ts).
+export const STAGE_FORMATS = SHARED_STAGE_FORMATS;
+export const FORMATTED_WORD = FORMAT_LABEL;
 
 export const AVAILABLE_MAPS = [
   "Bermuda",
@@ -244,15 +250,3 @@ export const AVAILABLE_MAPS = [
   "Alpine",
   "Solara",
 ];
-
-export const FORMATTED_WORD: Record<string, string> = {
-  "br - normal": "Battle Royale - Normal",
-  "br - roundrobin": "Battle Royale - Round Robin",
-  "br - point rush": "Battle Royale - Point Rush",
-  "br - champion rush": "Battle Royale - Champion Rush",
-  "cs - normal": "Clash Squad - Normal",
-  "cs - league": "Clash Squad - League",
-  "cs - knockout": "Clash Squad - Knockout",
-  "cs - double elimination": "Clash Squad - Double Elimination",
-  "cs - round robin": "Clash Squad - Round Robin",
-};

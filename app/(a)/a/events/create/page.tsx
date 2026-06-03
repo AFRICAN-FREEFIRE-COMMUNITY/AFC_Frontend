@@ -38,6 +38,12 @@ const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
   prizepool: "",
   prizepool_cash_value: "",
   prize_distribution: {},
+  // ── Scoring-mode defaults (sub-project A): both modes off until toggled. ──
+  champion_point_enabled: false,
+  champion_point_threshold: undefined,
+  point_rush_enabled: false,
+  point_rush_reward: {},
+  point_rush_target_index: undefined,
 };
 
 export default function CreateEventPage() {
@@ -176,6 +182,15 @@ export default function CreateEventPage() {
         const json = await res.json();
         const d = json.event_details;
 
+        // Map each source stage_id to its 0-based position so a duplicated event's
+        // Point-Rush carry-over target (echoed as a stage_id) becomes a target_index.
+        const dupStageIndexById = new Map<number, number>(
+          (d.stages ?? []).map((s: any, i: number) => [
+            s.stage_id ?? s.id,
+            i,
+          ]),
+        );
+
         const mappedStages: StageType[] = (d.stages ?? []).map((stage: any) => ({
           stage_name: stage.stage_name,
           stage_discord_role_id: stage.stage_discord_role_id || "",
@@ -187,6 +202,15 @@ export default function CreateEventPage() {
           prizepool: stage.prizepool?.toString() || "",
           prizepool_cash_value: stage.prizepool_cash_value?.toString() || "",
           prize_distribution: stage.prize_distribution || {},
+          // ── Scoring-mode config carried over when duplicating an event. ──
+          champion_point_enabled: stage.champion_point_enabled ?? false,
+          champion_point_threshold: stage.champion_point_threshold ?? undefined,
+          point_rush_enabled: stage.point_rush_enabled ?? false,
+          point_rush_reward: stage.point_rush_reward || {},
+          point_rush_target_index:
+            stage.point_rush_target_stage_id != null
+              ? dupStageIndexById.get(stage.point_rush_target_stage_id)
+              : undefined,
           groups: (stage.groups ?? []).map((group: any) => ({
             group_name: group.group_name,
             group_discord_role_id: "",
@@ -305,6 +329,12 @@ export default function CreateEventPage() {
         prizepool: existing.prizepool || "",
         prizepool_cash_value: existing.prizepool_cash_value || "",
         prize_distribution: existing.prize_distribution || {},
+        // ── Scoring-mode config carried back into the modal for re-editing. ──
+        champion_point_enabled: existing.champion_point_enabled ?? false,
+        champion_point_threshold: existing.champion_point_threshold,
+        point_rush_enabled: existing.point_rush_enabled ?? false,
+        point_rush_reward: existing.point_rush_reward ?? {},
+        point_rush_target_index: existing.point_rush_target_index,
       });
       setTempGroups(existing.groups);
     } else {
@@ -431,6 +461,12 @@ export default function CreateEventPage() {
       prizepool: stageModalData.prizepool,
       prizepool_cash_value: stageModalData.prizepool_cash_value,
       prize_distribution: stageModalData.prize_distribution,
+      // ── Scoring-mode config (sub-project A) — rides into the FormData stages array. ──
+      champion_point_enabled: stageModalData.champion_point_enabled,
+      champion_point_threshold: stageModalData.champion_point_threshold,
+      point_rush_enabled: stageModalData.point_rush_enabled,
+      point_rush_reward: stageModalData.point_rush_reward,
+      point_rush_target_index: stageModalData.point_rush_target_index,
     };
 
     const currentStages = [...stages];
@@ -834,6 +870,8 @@ export default function CreateEventPage() {
           setModalStep={setStageModalStep}
           stageModalData={stageModalData}
           setStageModalData={setStageModalData}
+          stageNames={stageNames}
+          editingStageIndex={editingStageIndex}
           tempGroups={tempGroups}
           onGroupCountChange={handleGroupCountChange}
           onUpdateGroupDetail={updateGroupDetail}

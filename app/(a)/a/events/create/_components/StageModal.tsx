@@ -386,6 +386,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -416,6 +417,12 @@ export interface StageModalData {
   prizepool: any;
   prizepool_cash_value: any;
   prize_distribution: Record<string, string>;
+  // ── Scoring-mode config (sub-project A). Independent + combinable toggles. ──
+  champion_point_enabled: boolean;
+  champion_point_threshold?: number;
+  point_rush_enabled: boolean;
+  point_rush_reward: Record<string, number>; // {"1":10,"2":7,...} placement→bonus
+  point_rush_target_index?: number; // 0-based index of the LATER stage that banks the bonus
 }
 
 interface StageModalProps {
@@ -425,6 +432,10 @@ interface StageModalProps {
   setModalStep: (step: number) => void;
   stageModalData: StageModalData;
   setStageModalData: (data: StageModalData) => void;
+  // Stage names + which stage is being edited — used to list the *later* stages a
+  // Point-Rush target can point at (a stage can only bank into a stage after it).
+  stageNames: string[];
+  editingStageIndex: number | null;
   tempGroups: GroupType[];
   onGroupCountChange: (count: number) => void;
   onUpdateGroupDetail: (
@@ -557,6 +568,8 @@ export function StageModal({
   setModalStep,
   stageModalData,
   setStageModalData,
+  stageNames,
+  editingStageIndex,
   tempGroups,
   onGroupCountChange,
   onUpdateGroupDetail,
@@ -670,6 +683,224 @@ export function StageModal({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* ── Scoring modes (sub-project A): Champion-Point + Point-Rush ──────────
+                Both are independent per-stage toggles. Champion-Point is a match-point
+                win rule; Point-Rush banks this stage's placement bonus into a later
+                stage. They can be on together. */}
+            <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+              <p className="text-sm font-semibold text-primary">
+                Scoring Modes (optional)
+              </p>
+
+              {/* Champion-Point toggle + threshold */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <label className="text-sm font-medium block">
+                      Champion-Point
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      First team to Booyah while already at/above the threshold
+                      wins the stage.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={stageModalData.champion_point_enabled}
+                    onCheckedChange={(checked) =>
+                      setStageModalData({
+                        ...stageModalData,
+                        champion_point_enabled: checked,
+                      })
+                    }
+                  />
+                </div>
+                {stageModalData.champion_point_enabled && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Champion Point Threshold
+                    </label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={stageModalData.champion_point_threshold ?? ""}
+                      onChange={(e) =>
+                        setStageModalData({
+                          ...stageModalData,
+                          champion_point_threshold:
+                            e.target.value === ""
+                              ? undefined
+                              : Number(e.target.value),
+                        })
+                      }
+                      placeholder="e.g. 80"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Point-Rush toggle + reward table + target later-stage */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <label className="text-sm font-medium block">
+                      Point-Rush
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      Award per-lobby placement bonuses here and bank them into a
+                      later stage.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={stageModalData.point_rush_enabled}
+                    onCheckedChange={(checked) =>
+                      setStageModalData({
+                        ...stageModalData,
+                        point_rush_enabled: checked,
+                      })
+                    }
+                  />
+                </div>
+
+                {stageModalData.point_rush_enabled && (
+                  <div className="space-y-3">
+                    {/* Reward table: rows of placement → bonus points (add/remove). */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium block text-muted-foreground">
+                        Placement Rewards
+                      </label>
+                      {Object.keys(stageModalData.point_rush_reward).length ===
+                        0 && (
+                        <p className="text-xs text-muted-foreground italic">
+                          No rewards added yet. Click below to add a placement.
+                        </p>
+                      )}
+                      {Object.entries(stageModalData.point_rush_reward).map(
+                        ([placement, points]) => (
+                          <div
+                            key={placement}
+                            className="flex items-center gap-2"
+                          >
+                            <span className="text-xs text-muted-foreground w-16 shrink-0">
+                              Place {placement}
+                            </span>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={points}
+                              onChange={(e) =>
+                                setStageModalData({
+                                  ...stageModalData,
+                                  point_rush_reward: {
+                                    ...stageModalData.point_rush_reward,
+                                    [placement]:
+                                      e.target.value === ""
+                                        ? 0
+                                        : Number(e.target.value),
+                                  },
+                                })
+                              }
+                              placeholder="bonus points"
+                              className="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const updated = {
+                                  ...stageModalData.point_rush_reward,
+                                };
+                                delete updated[placement];
+                                setStageModalData({
+                                  ...stageModalData,
+                                  point_rush_reward: updated,
+                                });
+                              }}
+                              className="shrink-0 text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ),
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Next placement = highest existing + 1 (defaults to 1).
+                          const keys = Object.keys(
+                            stageModalData.point_rush_reward,
+                          ).map(Number);
+                          const next = keys.length ? Math.max(...keys) + 1 : 1;
+                          setStageModalData({
+                            ...stageModalData,
+                            point_rush_reward: {
+                              ...stageModalData.point_rush_reward,
+                              [String(next)]: 0,
+                            },
+                          });
+                        }}
+                        className="w-full mt-1"
+                      >
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Placement Reward
+                      </Button>
+                    </div>
+
+                    {/* Target stage: only stages AFTER the one being edited. */}
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Carry-Over Target Stage
+                      </label>
+                      <Select
+                        value={
+                          stageModalData.point_rush_target_index === undefined
+                            ? ""
+                            : String(stageModalData.point_rush_target_index)
+                        }
+                        onValueChange={(value) =>
+                          setStageModalData({
+                            ...stageModalData,
+                            point_rush_target_index: Number(value),
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a later stage" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {stageNames
+                            // keep each stage's original index, then drop this stage + earlier ones
+                            .map((name, idx) => ({ name, idx }))
+                            .filter(
+                              ({ idx }) =>
+                                editingStageIndex === null ||
+                                idx > editingStageIndex,
+                            )
+                            .map(({ name, idx }) => (
+                              <SelectItem key={idx} value={String(idx)}>
+                                {name || `Stage ${idx + 1}`}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      {stageNames.filter(
+                        (_, idx) =>
+                          editingStageIndex === null ||
+                          idx > editingStageIndex,
+                      ).length === 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Add a later stage to use as the carry-over target.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div>

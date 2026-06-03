@@ -95,6 +95,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     prizepool: string;
     prizepool_cash_value: string;
     prize_distribution: Record<string, string>;
+    // ── Scoring-mode config (sub-project A). Independent + combinable toggles. ──
+    champion_point_enabled: boolean;
+    champion_point_threshold?: number;
+    point_rush_enabled: boolean;
+    point_rush_reward: Record<string, number>;
+    point_rush_target_index?: number;
   }>({
     stage_name: "",
     start_date: "",
@@ -107,6 +113,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     prizepool: "",
     prizepool_cash_value: "",
     prize_distribution: {},
+    // ── Scoring-mode defaults: both modes off until toggled. ──
+    champion_point_enabled: false,
+    champion_point_threshold: undefined,
+    point_rush_enabled: false,
+    point_rush_reward: {},
+    point_rush_target_index: undefined,
   });
 
   // ── Remove stage modal ─────────────────────────────────────────────────────
@@ -250,12 +262,28 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   useEffect(() => {
     if (eventDetails && !initialLoading) {
+      // The form drives Point-Rush by a 0-based stage INDEX (point_rush_target_index),
+      // but get-event-details echoes the target as a stage_id (point_rush_target_stage_id).
+      // Build a stage_id → index lookup so we can translate it back on rehydration.
+      const stageIndexById = new Map<number, number>(
+        eventDetails.stages.map((s, i) => [s.stage_id || s.id, i]),
+      );
+
       const mappedStages = eventDetails.stages.map((stage) => ({
         ...stage,
         stage_id: stage.stage_id || stage.id,
         prizepool: stage.prizepool || "",
         prizepool_cash_value: stage.prizepool_cash_value || "",
         prize_distribution: stage.prize_distribution || {},
+        // ── Scoring-mode config: normalise nullable threshold + resolve target index. ──
+        champion_point_enabled: stage.champion_point_enabled ?? false,
+        champion_point_threshold: stage.champion_point_threshold ?? undefined,
+        point_rush_enabled: stage.point_rush_enabled ?? false,
+        point_rush_reward: stage.point_rush_reward || {},
+        point_rush_target_index:
+          stage.point_rush_target_stage_id != null
+            ? stageIndexById.get(stage.point_rush_target_stage_id)
+            : undefined,
         groups: stage.groups.map((group) => ({
           ...group,
           group_id: group.group_id,
@@ -533,6 +561,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         prizepool: existingStage.prizepool || "",
         prizepool_cash_value: existingStage.prizepool_cash_value || "",
         prize_distribution: existingStage.prize_distribution || {},
+        // ── Scoring-mode config carried back into the modal for re-editing. ──
+        champion_point_enabled: existingStage.champion_point_enabled ?? false,
+        champion_point_threshold: existingStage.champion_point_threshold,
+        point_rush_enabled: existingStage.point_rush_enabled ?? false,
+        point_rush_reward: existingStage.point_rush_reward ?? {},
+        point_rush_target_index: existingStage.point_rush_target_index,
       });
       setTempGroups(
         existingStage.groups.map((g) => ({
@@ -556,6 +590,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         prizepool: "",
         prizepool_cash_value: "",
         prize_distribution: {},
+        // ── Scoring-mode defaults for a brand-new stage. ──
+        champion_point_enabled: false,
+        champion_point_threshold: undefined,
+        point_rush_enabled: false,
+        point_rush_reward: {},
+        point_rush_target_index: undefined,
       });
       setTempGroups(
         Array.from({ length: 2 }, (_, i) => ({
@@ -612,6 +652,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       prizepool: "",
       prizepool_cash_value: "",
       prize_distribution: {},
+      // ── Scoring-mode defaults for a brand-new stage. ──
+      champion_point_enabled: false,
+      champion_point_threshold: undefined,
+      point_rush_enabled: false,
+      point_rush_reward: {},
+      point_rush_target_index: undefined,
     };
 
     form.setValue("stages", [...currentStages, newStage], {
@@ -793,6 +839,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       prizepool: stageModalData.prizepool,
       prizepool_cash_value: stageModalData.prizepool_cash_value,
       prize_distribution: stageModalData.prize_distribution,
+      // ── Scoring-mode config (sub-project A) — rides into the FormData stages array. ──
+      champion_point_enabled: stageModalData.champion_point_enabled,
+      champion_point_threshold: stageModalData.champion_point_threshold,
+      point_rush_enabled: stageModalData.point_rush_enabled,
+      point_rush_reward: stageModalData.point_rush_reward,
+      point_rush_target_index: stageModalData.point_rush_target_index,
     };
 
     const currentStages = [...form.getValues("stages")];

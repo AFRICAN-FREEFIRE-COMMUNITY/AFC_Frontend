@@ -189,6 +189,14 @@ export default function OrganizerCreateEventPage() {
         prizepool: data.prizepool || 0,
         prizepool_cash_value: data.prizepool_cash_value || 0,
         prize_distribution: data.prize_distribution || {},
+        // ── Scoring-mode parity with the admin wizard (sub-project A). The organizer
+        // form doesn't expose these toggles, so they default to off — but they ride in
+        // the payload so the backend's create-event reads the same stage shape. ──
+        champion_point_enabled: false,
+        champion_point_threshold: undefined,
+        point_rush_enabled: false,
+        point_rush_reward: {},
+        point_rush_target_index: undefined,
         groups: [
           {
             group_name: "Group 1",
