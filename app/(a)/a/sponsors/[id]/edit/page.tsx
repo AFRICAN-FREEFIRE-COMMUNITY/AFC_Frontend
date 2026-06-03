@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { InfoTip } from "@/components/ui/info-tip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   IconCheck,
@@ -246,9 +247,15 @@ export default function EditSponsorPage({
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
       <PageHeader
         back
-        title={`Edit Sponsor: ${sponsorUsername}`}
+        title={
+          <span className="inline-flex items-center">
+            Edit Sponsor: {sponsorUsername}
+            <InfoTip id="sponsors.edit._page" className="ml-1.5" />
+          </span>
+        }
         description="Update sponsor details and event assignments."
       />
 
@@ -313,7 +320,10 @@ export default function EditSponsorPage({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="flex items-center">
+                      Password
+                      <InfoTip id="sponsors.edit.password" className="ml-1" />
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -445,6 +455,7 @@ export default function EditSponsorPage({
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2">
                 Assigned Events
+                <InfoTip id="sponsors.edit.assigned_events" />
                 {selectedIds.length > 0 && (
                   <Badge variant="secondary">
                     {selectedIds.length} selected

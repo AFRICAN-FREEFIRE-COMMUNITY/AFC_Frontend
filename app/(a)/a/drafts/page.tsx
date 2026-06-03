@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/pagination";
 import { toast } from "sonner";
 import { DeleteEventModal } from "../events/_components/DeleteEventModal";
+import { InfoTip } from "@/components/ui/info-tip";
 import { ITEMS_PER_PAGE } from "@/constants";
 
 interface DraftedEvent {
@@ -79,7 +80,15 @@ const DraftedEventsTable = ({
             <TableHead>Event Name</TableHead>
             <TableHead>Participant Type</TableHead>
             <TableHead>Created At</TableHead>
-            <TableHead></TableHead>
+            {/* Action-column header carries the per-row action ⓘs once (instead of
+                repeating them on every row) — Continue editing + Delete. */}
+            <TableHead>
+              <span className="flex items-center justify-end gap-1">
+                Actions
+                <InfoTip id="drafts.continue_editing" />
+                <InfoTip id="drafts.delete" />
+              </span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -247,7 +256,16 @@ const page = () => {
 
   return (
     <div>
-      <PageHeader back title="Drafts" />
+      {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
+      <PageHeader
+        back
+        title={
+          <span className="inline-flex items-center">
+            Drafts
+            <InfoTip id="drafts._page" className="ml-1.5" />
+          </span>
+        }
+      />
 
       <div className="mt-4 grid gap-2 grid-cols-1 sm:grid-cols-2">
         <Card className="hover:shadow-lg transition-shadow gap-1">
@@ -310,7 +328,10 @@ const page = () => {
         <TabsContent value="all">
           <Card>
             <CardHeader>
-              <CardTitle>All Drafted Events</CardTitle>
+              <CardTitle className="flex items-center">
+                All Drafted Events
+                <InfoTip id="drafts.all._section" className="ml-1.5" />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {pendingAll ? (
@@ -332,7 +353,10 @@ const page = () => {
         <TabsContent value="mine">
           <Card>
             <CardHeader>
-              <CardTitle>My Drafted Events</CardTitle>
+              <CardTitle className="flex items-center">
+                My Drafted Events
+                <InfoTip id="drafts.mine._section" className="ml-1.5" />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {pendingMy ? (

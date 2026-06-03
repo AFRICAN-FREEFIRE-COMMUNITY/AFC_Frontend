@@ -5,6 +5,7 @@ import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { SectionCards } from "@/components/section-cards";
 import { Button } from "@/components/ui/button";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -142,14 +143,23 @@ const page = () => {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <PageHeader title="Admin dashboard" />
+        {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
+        <PageHeader
+          title={
+            <span className="inline-flex items-center">
+              Admin dashboard
+              <InfoTip id="dashboard._page" className="ml-1.5" />
+            </span>
+          }
+        />
         {/* Main Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2 mb-4">
           {/* Members Metrics */}
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium flex items-center">
                 Total Members
+                <InfoTip id="dashboard.total_members" className="ml-1" />
               </CardTitle>
               <IconUsers className="h-4 w-4 text-blue-600" />
             </CardHeader>
@@ -173,7 +183,10 @@ const page = () => {
           {/* Teams Metrics */}
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Teams</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center">
+                Total Teams
+                <InfoTip id="dashboard.total_teams" className="ml-1" />
+              </CardTitle>
               <Shield className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
@@ -198,7 +211,10 @@ const page = () => {
           {/* Tournaments Metrics */}
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tournaments</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center">
+                Tournaments
+                <InfoTip id="dashboard.tournaments" className="ml-1" />
+              </CardTitle>
               <IconTrophy className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
@@ -223,7 +239,10 @@ const page = () => {
           {/* Scrims Metrics */}
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Scrims</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center">
+                Scrims
+                <InfoTip id="dashboard.scrims" className="ml-1" />
+              </CardTitle>
               <IconSwords className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
@@ -250,8 +269,9 @@ const page = () => {
           {/* News Metrics */}
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium flex items-center">
                 News & Announcements
+                <InfoTip id="dashboard.news" className="ml-1" />
               </CardTitle>
               <IconArticle className="h-4 w-4 text-indigo-600" />
             </CardHeader>
@@ -272,8 +292,9 @@ const page = () => {
           {/* Shop Metrics */}
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium flex items-center">
                 Diamond Bundles
+                <InfoTip id="dashboard.diamond_bundles" className="ml-1" />
               </CardTitle>
               <IconDiamond className="h-4 w-4 text-cyan-600" />
             </CardHeader>
@@ -292,8 +313,9 @@ const page = () => {
           {/* Revenue Metrics */}
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium flex items-center">
                 Total Revenue
+                <InfoTip id="dashboard.revenue" className="ml-1" />
               </CardTitle>
               <IconStar className="h-4 w-4 text-green-600" />
             </CardHeader>
@@ -316,7 +338,10 @@ const page = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Platform Kills</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center">
+                Total Platform Kills
+                <InfoTip id="dashboard.platform_kills" className="ml-1" />
+              </CardTitle>
               <IconSwords className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
@@ -330,7 +355,10 @@ const page = () => {
 
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Most Popular Event Format</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center">
+                Most Popular Event Format
+                <InfoTip id="dashboard.popular_format" className="ml-1" />
+              </CardTitle>
               <IconCalendar className="h-4 w-4 text-violet-500" />
             </CardHeader>
             <CardContent>
@@ -343,7 +371,10 @@ const page = () => {
 
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Player Match Stats Records</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center">
+                Player Match Stats Records
+                <InfoTip id="dashboard.match_stat_records" className="ml-1" />
+              </CardTitle>
               <IconActivity className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
@@ -450,6 +481,7 @@ const page = () => {
             <CardTitle className="flex items-center gap-2">
               <IconActivity className="h-5 w-5" />
               Recent Admin Activities
+              <InfoTip id="dashboard.recent_activities._section" />
             </CardTitle>
           </CardHeader>
           <CardContent>

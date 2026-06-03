@@ -634,8 +634,8 @@ const Page = ({ params }: Props) => {
           {/* Login History */}
           <TabsContent value="login-history">
             <div className="flex justify-end items-center gap-1 mb-3">
-              {/* ⓘ sits beside the load action (sibling, not nested in the button). */}
-              <InfoTip id="players.detail.login_history" />
+              {/* Button-then-ⓘ: ⓘ sits AFTER the load action (sibling, not nested
+                  in the button) so it reads uniform with every other action+ⓘ pair. */}
               <button
                 className="text-xs text-primary hover:underline"
                 onClick={async () => {
@@ -657,6 +657,7 @@ const Page = ({ params }: Props) => {
               >
                 {loadingHistory ? "Loading..." : "Load Login History"}
               </button>
+              <InfoTip id="players.detail.login_history" />
             </div>
             <Table>
               <TableHeader>

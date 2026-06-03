@@ -73,6 +73,7 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { formatWord } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { IconDownload, IconPencil } from "@tabler/icons-react";
 
 // Backend interfaces
@@ -712,19 +713,29 @@ const page = () => {
     <div className="space-y-6">
       {suspendPending && <FullLoader />}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+        {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
         <PageHeader
-          title="Settings"
+          title={
+            <span className="inline-flex items-center">
+              Settings
+              <InfoTip id="settings._page" className="ml-1.5" />
+            </span>
+          }
           description={`Manage administrator roles and permissions (${adminUsers.length}
         total users, ${adminOnlyUsers.length} admins)`}
         />
-        <Button
-          variant="outline"
-          onClick={exportToExcel}
-          className="w-full md:w-auto"
-        >
-          <IconDownload />
-          Export to Excel
-        </Button>
+        {/* ⓘ sits beside the export action (sibling, not nested in the button). */}
+        <div className="flex w-full md:w-auto items-center gap-1.5">
+          <Button
+            variant="outline"
+            onClick={exportToExcel}
+            className="w-full md:w-auto"
+          >
+            <IconDownload />
+            Export to Excel
+          </Button>
+          <InfoTip id="settings.export_excel" />
+        </div>
       </div>
       <Tabs defaultValue="admins" className="space-y-4">
         <ScrollArea>
@@ -743,7 +754,10 @@ const page = () => {
           <AdminInfoCard token={token} />
           <Card>
             <CardHeader>
-              <CardTitle>Administrator Management</CardTitle>
+              <CardTitle className="flex items-center">
+                Administrator Management
+                <InfoTip id="settings.admins._section" className="ml-1.5" />
+              </CardTitle>
               <CardDescription>
                 Manage administrator accounts, roles, and access permissions
               </CardDescription>
@@ -765,7 +779,17 @@ const page = () => {
                     <TableHead>Type</TableHead>
                     <TableHead>Roles</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    {/* Action-column header carries the per-row action ⓘs once
+                        (instead of repeating them on every row) — edit roles,
+                        suspend, and the destructive delete. */}
+                    <TableHead>
+                      <span className="flex items-center gap-1">
+                        Actions
+                        <InfoTip id="settings.edit_user_roles" />
+                        <InfoTip id="settings.suspend_user" />
+                        <InfoTip id="settings.delete_user" />
+                      </span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1077,7 +1101,10 @@ const page = () => {
         <TabsContent value="all-users" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>All Users</CardTitle>
+              <CardTitle className="flex items-center">
+                All Users
+                <InfoTip id="settings.all_users._section" className="ml-1.5" />
+              </CardTitle>
               <CardDescription>
                 View and manage all users in the system (admins and players)
               </CardDescription>
@@ -1657,16 +1684,23 @@ const page = () => {
         <TabsContent value="roles" className="space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+            <p className="flex items-center text-sm text-muted-foreground">
               {getDisplayRoles().length} role{getDisplayRoles().length !== 1 ? "s" : ""}
+              {/* Section ⓘ for the Roles & Permissions tab (sibling, not in a tab-trigger).
+                  The per-card destructive delete-role action is explained once here. */}
+              <InfoTip id="settings.roles._section" className="ml-1" />
+              <InfoTip id="settings.delete_role" />
             </p>
-            <Dialog open={isCreateRoleOpen} onOpenChange={setIsCreateRoleOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Create Role
-                </Button>
-              </DialogTrigger>
+            {/* ⓘ sits beside the create action (sibling, not nested in the button). */}
+            <div className="flex items-center gap-1.5">
+              <InfoTip id="settings.create_role" />
+              <Dialog open={isCreateRoleOpen} onOpenChange={setIsCreateRoleOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Create Role
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>Create New Role</DialogTitle>
@@ -1708,7 +1742,8 @@ const page = () => {
                   </Button>
                 </DialogFooter>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+            </div>
           </div>
 
           {rolesLoading ? (
@@ -1858,7 +1893,10 @@ const page = () => {
         <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Send Bulk Notification</CardTitle>
+              <CardTitle className="flex items-center">
+                Send Bulk Notification
+                <InfoTip id="settings.notifications._section" className="ml-1.5" />
+              </CardTitle>
               <CardDescription>
                 Send a notification to multiple users at once. Enter usernames separated by commas.
               </CardDescription>
@@ -1901,8 +1939,10 @@ const page = () => {
         {/* ── Login History ──────────────────────────────────────────────── */}
         <TabsContent value="login-history" className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+            <p className="flex items-center text-sm text-muted-foreground">
               All user login records across the platform
+              {/* Section ⓘ for the Login History tab (sibling, not in a tab-trigger). */}
+              <InfoTip id="settings.login_history._section" className="ml-1" />
             </p>
             <Button size="sm" variant="outline" onClick={fetchLoginHistory} disabled={loadingLoginHistory}>
               {loadingLoginHistory ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
@@ -1950,8 +1990,10 @@ const page = () => {
         {/* ── Admin Activities ───────────────────────────────────────────── */}
         <TabsContent value="activities" className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+            <p className="flex items-center text-sm text-muted-foreground">
               Latest 100 admin actions across the platform
+              {/* Section ⓘ for the Admin Activities tab (sibling, not in a tab-trigger). */}
+              <InfoTip id="settings.activities._section" className="ml-1" />
             </p>
             <Button size="sm" variant="outline" onClick={fetchAdminActivities} disabled={loadingActivities}>
               {loadingActivities ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}

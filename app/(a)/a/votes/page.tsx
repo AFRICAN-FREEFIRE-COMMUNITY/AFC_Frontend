@@ -66,6 +66,7 @@ import { EditCategoryModal } from "./_components/EditCategoryModal";
 import { EditNomineeModal } from "./_components/EditNomineeModal";
 import { RemoveNomineeModal } from "./_components/RemoveNomineeModal";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Separator } from "@/components/ui/separator";
 
 // Real API fetch functions
@@ -868,7 +869,15 @@ export default function Page() {
 
   return (
     <div>
-      <PageHeader title="Voting Analytics Dashboard" />
+      {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
+      <PageHeader
+        title={
+          <span className="inline-flex items-center">
+            Voting Analytics Dashboard
+            <InfoTip id="votes._page" className="ml-1.5" />
+          </span>
+        }
+      />
       {/* Main Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2 mb-2">
         <Card className="hover:shadow-lg transition-shadow">
@@ -903,7 +912,10 @@ export default function Page() {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="line-clamp-1">Completion Rate</CardTitle>
+            <CardTitle className="line-clamp-1 flex items-center">
+              Completion Rate
+              <InfoTip id="votes.completion_rate" className="ml-1" />
+            </CardTitle>
             <CheckCircle className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -992,7 +1004,10 @@ export default function Page() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Voting Status Distribution</CardTitle>
+                <CardTitle className="flex items-center">
+                  Voting Status Distribution
+                  <InfoTip id="votes.overview._section" className="ml-1.5" />
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -1093,7 +1108,10 @@ export default function Page() {
         <TabsContent value="sections" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>All Sections</CardTitle>
+              <CardTitle className="flex items-center">
+                All Sections
+                <InfoTip id="votes.sections._section" className="ml-1.5" />
+              </CardTitle>
               <CardDescription>
                 Overview of all award sections in the system
               </CardDescription>
@@ -1198,7 +1216,10 @@ export default function Page() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Category Voting Performance</CardTitle>
+              <CardTitle className="flex items-center">
+                Category Voting Performance
+                <InfoTip id="votes.categories._section" className="ml-1.5" />
+              </CardTitle>
               <CardDescription>
                 Vote distribution across all categories
               </CardDescription>
@@ -1323,8 +1344,9 @@ export default function Page() {
                         }`
                       : ""}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="flex items-center">
                     Vote distribution across nominees
+                    <InfoTip id="votes.nominees._section" className="ml-1" />
                   </CardDescription>
                 </div>
               </div>
@@ -1577,7 +1599,10 @@ export default function Page() {
               <div className="flex items-center gap-2">
                 <Trophy className="w-6 h-6 text-yellow-500" />
                 <div>
-                  <CardTitle>Category Winners</CardTitle>
+                  <CardTitle className="flex items-center">
+                    Category Winners
+                    <InfoTip id="votes.winners._section" className="ml-1.5" />
+                  </CardTitle>
                   <CardDescription>
                     Winners for each award category based on vote counts
                   </CardDescription>
@@ -1718,7 +1743,10 @@ export default function Page() {
         <TabsContent value="timeline" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Voting Timeline</CardTitle>
+              <CardTitle className="flex items-center">
+                Voting Timeline
+                <InfoTip id="votes.timeline._section" className="ml-1.5" />
+              </CardTitle>
               <CardDescription>Track voting activity over time</CardDescription>
             </CardHeader>
             <CardContent>
@@ -1833,7 +1861,10 @@ export default function Page() {
         <TabsContent value="top-performers" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Top Performing Nominees</CardTitle>
+              <CardTitle className="flex items-center">
+                Top Performing Nominees
+                <InfoTip id="votes.top_performers._section" className="ml-1.5" />
+              </CardTitle>
               <CardDescription>
                 Top 10 nominees by vote count across all categories
               </CardDescription>
@@ -1962,13 +1993,19 @@ export default function Page() {
               <Card>
                 <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-start  gap-2 md:justify-between">
                   <div>
-                    <CardTitle>Manage Categories</CardTitle>
+                    <CardTitle className="flex items-center">
+                      Manage Categories
+                      <InfoTip id="votes.management._section" className="ml-1.5" />
+                    </CardTitle>
                     <CardDescription className="mt-1">
                       Add, edit, or delete voting categories
                     </CardDescription>
                   </div>
                   <div className="flex items-center justify-end gap-2 w-full md:w-auto">
+                    {/* Action ⓘs sit beside each modal trigger (siblings, not nested). */}
+                    <InfoTip id="votes.add_section" />
                     <AddSectionModal onSectionAdded={fetchSections} />
+                    <InfoTip id="votes.create_category" />
                     <CreateCategoryModal
                       sections={sections}
                       handleAddNewCategory={handleAddNewCategory}
@@ -2045,7 +2082,11 @@ export default function Page() {
                             <TableHead>Nominees</TableHead>
                             <TableHead>Votes</TableHead>
                             <TableHead className="text-right">
-                              Actions
+                              {/* Destructive per-row delete is explained once here. */}
+                              <span className="flex items-center justify-end gap-1">
+                                Actions
+                                <InfoTip id="votes.delete_category" />
+                              </span>
                             </TableHead>
                           </TableRow>
                         </TableHeader>
@@ -2193,11 +2234,14 @@ export default function Page() {
                     </CardDescription>
                   </div>
                   <div className="flex items-center w-full md:w-auto justify-end gap-2">
+                    {/* Action ⓘs sit beside each modal trigger (siblings, not nested). */}
+                    <InfoTip id="votes.assign_nominee" />
                     <AssignNomineeModal
                       categories={categories}
                       nominees={nominees}
                       setStats={setStats}
                     />
+                    <InfoTip id="votes.create_nominee" />
                     <CreateNomineeModal onNomineeAdded={fetchNominees} />
                   </div>
                 </CardHeader>
@@ -2273,7 +2317,11 @@ export default function Page() {
                             <TableHead>Category</TableHead>
                             <TableHead>Section</TableHead>
                             <TableHead className="text-right">
-                              Actions
+                              {/* Destructive per-row delete is explained once here. */}
+                              <span className="flex items-center justify-end gap-1">
+                                Actions
+                                <InfoTip id="votes.delete_nominee" />
+                              </span>
                             </TableHead>
                           </TableRow>
                         </TableHeader>

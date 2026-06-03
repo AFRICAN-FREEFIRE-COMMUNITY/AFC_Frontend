@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/contexts/AuthContext";
+import { InfoTip } from "@/components/ui/info-tip";
 import { env } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import {
@@ -92,16 +93,26 @@ export default function SponsorsAdminPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col md:flex-row items-start:md:items-center justify-between gap-1">
+        {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
         <PageHeader
-          title="Sponsors"
+          title={
+            <span className="inline-flex items-center">
+              Sponsors
+              <InfoTip id="sponsors._page" className="ml-1.5" />
+            </span>
+          }
           description={`${sponsors.length} sponsor account${sponsors.length !== 1 ? "s" : ""}`}
         />
-        <Button asChild className="w-full md:w-auto">
-          <Link href="/a/sponsors/create">
-            <IconPlus />
-            Create Sponsor Account
-          </Link>
-        </Button>
+        {/* ⓘ sits beside the create action (sibling, not nested in the button). */}
+        <div className="flex w-full md:w-auto items-center gap-1.5">
+          <Button asChild className="w-full md:w-auto">
+            <Link href="/a/sponsors/create">
+              <IconPlus />
+              Create Sponsor Account
+            </Link>
+          </Button>
+          <InfoTip id="sponsors.create" />
+        </div>
       </div>
 
       <div className="relative">

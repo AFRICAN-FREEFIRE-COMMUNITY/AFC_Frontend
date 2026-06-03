@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { InfoTip } from "@/components/ui/info-tip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
@@ -355,9 +356,15 @@ export default function CreateSponsorPage() {
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
       <PageHeader
         back
-        title="Create Sponsor Account"
+        title={
+          <span className="inline-flex items-center">
+            Create Sponsor Account
+            <InfoTip id="sponsors.create._page" className="ml-1.5" />
+          </span>
+        }
         description="Set up login credentials for a sponsor and assign their events."
       />
 
@@ -394,7 +401,10 @@ export default function CreateSponsorPage() {
                   name="uid"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>UID</FormLabel>
+                      <FormLabel className="flex items-center">
+                        UID
+                        <InfoTip id="sponsors.create.uid" className="ml-1" />
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="e.g. 123456789" {...field} />
                       </FormControl>
@@ -564,6 +574,7 @@ export default function CreateSponsorPage() {
                 <span className="text-xs font-normal text-muted-foreground">
                   (optional)
                 </span>
+                <InfoTip id="sponsors.create.assign_events" />
                 {selectedEventIds.length > 0 && (
                   <Badge variant="secondary">
                     {selectedEventIds.length} selected

@@ -487,7 +487,7 @@ export const HELP = {
   "shop.coupon_max_uses":
     "How many times this code can be redeemed across all buyers before it stops working.",
   "shop.coupon_min_order":
-    "The smallest order total a buyer needs before this coupon applies. Leave at 0 for no minimum.",
+    "The smallest order amount (in $) a buyer must reach before this coupon applies. Leave at 0 for no minimum.",
 
   // ── Shop › Product variant fields ───────────────────────────────────────────
   "shop.variant._section":
@@ -528,6 +528,163 @@ export const HELP = {
     "Where the article is filed on the public site — General, Tournament updates, or Ban announcements. Drives how readers filter the feed.",
   "news.related_event":
     "Optionally tie the article to a tournament so it shows alongside that event. Leave blank for general news.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Sponsors — sponsor login accounts. AFC creates a credentialed account for a
+  // sponsor and assigns it to the events they're sponsoring; the sponsor then
+  // signs in to its own dashboard. List + a two-step create wizard + edit.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Sponsors › List ─────────────────────────────────────────────────────────
+  "sponsors._page":
+    "Login accounts for the brands sponsoring AFC events. Search the list, edit an account's details or event assignments, or create a new sponsor account.",
+  "sponsors.create":
+    "Set up a brand-new sponsor: create its login credentials, then pick which events it's allowed to see in its dashboard.",
+
+  // ── Sponsors › Create wizard ────────────────────────────────────────────────
+  "sponsors.create._page":
+    "Create a sponsor login in two steps — first the account credentials, then the events it's assigned to. The password is shown only once at the end, so save it before closing.",
+  "sponsors.create.uid":
+    "The sponsor's in-game UID. Stored on the account so their tasks and submissions can be matched back to them.",
+  "sponsors.create.assign_events":
+    "Pick the events this sponsor is tied to — these are the only ones it can see and act on from its dashboard. Optional; you can assign events later from the edit screen.",
+
+  // ── Sponsors › Edit ─────────────────────────────────────────────────────────
+  "sponsors.edit._page":
+    "Update a sponsor's details and the events it's assigned to. Leave the password blank to keep the current one — fill it in only to set a new password.",
+  "sponsors.edit.password":
+    "Only fill this in to reset the sponsor's password. Leave both password fields blank to keep their existing one unchanged.",
+  "sponsors.edit.assigned_events":
+    "The events this sponsor can see and act on from its dashboard. Tick to add, untick to remove — at least one event is required.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Votes — the awards voting console. Read-only analytics across the top
+  // (votes, voters, per-section / per-category / per-nominee breakdowns,
+  // winners, timeline) plus a Management tab that creates and edits the
+  // sections, categories and nominees players vote on. One tip per tab/section.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Page-level tip (top of the Voting Analytics dashboard).
+  "votes._page":
+    "The awards voting console — live analytics on every vote cast, plus the tools to build the ballot (sections, categories and nominees) players choose from.",
+
+  // ── Top metric cards ────────────────────────────────────────────────────────
+  "votes.completion_rate":
+    "The share of voters who finished every category they started. Completed and partial counts are estimated from voter totals.",
+
+  // ── Analytics tabs ──────────────────────────────────────────────────────────
+  "votes.overview._section":
+    "At-a-glance split of completed vs partial vs not-started voters, and a side-by-side of how each section is performing.",
+  "votes.sections._section":
+    "The top-level groupings of the ballot (e.g. Content Creator Awards, Esports Awards). Each card totals the votes across its categories.",
+  "votes.categories._section":
+    "Every award category and the share of total votes it has drawn. Filter by section to focus on one part of the ballot.",
+  "votes.nominees._section":
+    "Vote counts and percentages for the nominees within a category. Percentages are relative to the nominees shown, not the whole ballot.",
+  "votes.winners._section":
+    "The current front-runner in each category by vote count. These update live as votes come in — they aren't final until voting closes.",
+  "votes.timeline._section":
+    "Daily voting volume over the campaign, with peak and average days, so you can see when turnout spiked.",
+  "votes.top_performers._section":
+    "The ten nominees with the most votes across the entire ballot, regardless of category.",
+  "votes.management._section":
+    "Build and maintain the ballot itself — add or edit the sections, categories and nominees, and assign nominees into the categories they compete in.",
+
+  // ── Management actions ──────────────────────────────────────────────────────
+  "votes.add_section":
+    "Create a top-level ballot grouping (e.g. \"Esports Awards\") that categories are then filed under.",
+  "votes.create_category":
+    "Add an award category to a section. Players vote for one nominee per category.",
+  "votes.create_nominee":
+    "Add a nominee to the pool. A nominee isn't on any ballot until you assign it to a category.",
+  "votes.assign_nominee":
+    "Place an existing nominee into a category so players can vote for them there. A nominee can compete in more than one category.",
+  "votes.delete_category":
+    "Permanently delete this category and detach its nominees. Votes cast in it are removed. This can't be undone.",
+  "votes.delete_nominee":
+    "Permanently remove this nominee from the system and every category it's in. This can't be undone.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Drafts — saved, unpublished events. Any event saved to drafts (from the
+  // create wizard) lands here until it's finished and published. Two views:
+  // every admin's drafts, and just your own.
+  // ══════════════════════════════════════════════════════════════════════════
+  "drafts._page":
+    "Events that were saved but not yet published. Pick one up where you left off in the create wizard, or delete it. Drafts aren't visible to players until published.",
+  "drafts.all._section":
+    "Every drafted event across all admins. Continue editing reopens it in the wizard; deleting removes the draft for good.",
+  "drafts.mine._section":
+    "Only the drafts you created yourself, for quick access to your own unfinished events.",
+  "drafts.continue_editing":
+    "Reopen this draft in the event wizard to finish it and publish. Nothing goes live until you publish.",
+  "drafts.delete":
+    "Permanently delete this draft. It isn't published, so no players are affected — but this can't be undone.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Settings — admin user + role administration. Manages who has admin access,
+  // which roles they hold, the role catalogue itself, plus bulk notifications
+  // and read-only login/activity audit logs.
+  // ══════════════════════════════════════════════════════════════════════════
+  "settings._page":
+    "Control who has admin access and what they can do — manage admin users, the roles they hold, the role catalogue, plus bulk notifications and platform audit logs.",
+  "settings.export_excel":
+    "Download every user (admins and players) with their email, status and roles as an Excel file.",
+
+  // ── Settings tabs ───────────────────────────────────────────────────────────
+  "settings.admins._section":
+    "Users who hold at least one admin role. Edit their roles, suspend or reactivate access, or remove them.",
+  "settings.all_users._section":
+    "Every account on the platform — admins and regular players. Promote a player by assigning roles, or manage their access here.",
+  "settings.roles._section":
+    "The catalogue of admin roles and the permissions each grants. Create new roles or delete ones no longer used.",
+  "settings.notifications._section":
+    "Send a one-off notification to several users at once by listing their usernames. Useful for admin-wide announcements.",
+  "settings.login_history._section":
+    "On-demand audit of every user sign-in (IP, location, time). Loaded only when you ask, since the records are large.",
+  "settings.activities._section":
+    "On-demand audit of the latest 100 admin actions across the platform — who did what, and when.",
+
+  // ── Settings actions / destructive ──────────────────────────────────────────
+  "settings.edit_user_roles":
+    "Add or remove this user's admin roles. Removing every role turns an admin back into a regular player.",
+  "settings.suspend_user":
+    "Block this user's access without deleting the account. Reactivate at any time to restore it.",
+  "settings.delete_user":
+    "Permanently delete this user and all of their data. This can't be undone.",
+  "settings.create_role":
+    "Define a new admin role that can then be assigned to users. Give it a clear name and description.",
+  "settings.delete_role":
+    "Permanently delete this role and strip it from every user who holds it. This can't be undone.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Dashboard — the admin home. Read-only snapshot of the whole platform:
+  // member/team/event counts, store and revenue, kill totals, and a recent
+  // admin-activity log. A tip per metric card explaining what each number means.
+  // ══════════════════════════════════════════════════════════════════════════
+  "dashboard._page":
+    "The admin home — a live snapshot of the platform's members, teams, events, store and activity, with quick links into each area to manage it.",
+  "dashboard.total_members":
+    "Every registered account on AFC, with how many of them joined this month.",
+  "dashboard.total_teams":
+    "Every registered team, with how many were created this month.",
+  "dashboard.tournaments":
+    "Total tournaments ever run, and how many are live right now.",
+  "dashboard.scrims":
+    "Total scrims (casual practice matches) ever run, and how many are active.",
+  "dashboard.news":
+    "Total news articles written, and how many are currently published to the public site.",
+  "dashboard.diamond_bundles":
+    "Diamond bundles sold through the store, and the current best-seller.",
+  "dashboard.revenue":
+    "Total store revenue in Naira (₦), including the portion that came from diamond sales.",
+  "dashboard.platform_kills":
+    "Every kill recorded across all matches on AFC, split between solo and team modes.",
+  "dashboard.popular_format":
+    "The event format players have entered most often across every event run.",
+  "dashboard.match_stat_records":
+    "How many individual player match-stat entries have been logged — a measure of how much match data the platform holds.",
+  "dashboard.recent_activities._section":
+    "The most recent admin actions across the platform — who did what, and when.",
 } as const;
 
 export type HelpId = keyof typeof HELP;
