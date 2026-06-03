@@ -104,7 +104,9 @@ export const GroupResultModal = ({
       return (groupDetails.overall_leaderboard || []).map(
         (entry: any, index: number) => ({
           rank: index + 1,
-          username: entry.competitor__user__username,
+          // Solo rows carry competitor__user__username; TEAM rows carry team_name.
+          // Fall back so team-event leaderboards aren't blank.
+          username: entry.competitor__user__username ?? entry.team_name,
           kills: entry.total_kills,
           // Show effective_total (placement+kills+bonus-penalty + any Point-Rush
           // carry-over) — this is what the backend ranks by, so the Points number
