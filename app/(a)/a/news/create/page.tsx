@@ -35,6 +35,7 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import Image from "next/image";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 
@@ -103,7 +104,16 @@ function page() {
   return (
     <div>
       <Form {...form}>
-        <PageHeader back title="Create News" />
+        <PageHeader
+          back
+          // Title is a ReactNode so the page-level ⓘ can sit right after it.
+          title={
+            <span className="inline-flex items-center">
+              Create News
+              <InfoTip id="news.create._page" className="ml-1.5" />
+            </span>
+          }
+        />
         <Card>
           <CardHeader>
             <CardTitle>News Details</CardTitle>
@@ -144,7 +154,10 @@ function page() {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>
+                      Category
+                      <InfoTip id="news.category" className="ml-1" />
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -171,7 +184,10 @@ function page() {
                 name="event"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Related Event (Optional)</FormLabel>
+                    <FormLabel>
+                      Related Event (Optional)
+                      <InfoTip id="news.related_event" className="ml-1" />
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}

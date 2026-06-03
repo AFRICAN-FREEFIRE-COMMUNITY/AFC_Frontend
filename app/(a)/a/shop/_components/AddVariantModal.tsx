@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Loader } from "@/components/Loader";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Zod schema for variant
 const AddVariantSchema = z.object({
@@ -167,7 +168,10 @@ export function AddVariantModal({
                 name="sku"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SKU</FormLabel>
+                    <FormLabel>
+                      SKU
+                      <InfoTip id="shop.variant_sku" className="ml-1" />
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="e.g., DIA-100" {...field} />
                     </FormControl>
@@ -206,7 +210,10 @@ export function AddVariantModal({
                 name="diamonds_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Diamonds Amount</FormLabel>
+                    <FormLabel>
+                      Diamonds Amount
+                      <InfoTip id="shop.variant_diamonds" className="ml-1" />
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"

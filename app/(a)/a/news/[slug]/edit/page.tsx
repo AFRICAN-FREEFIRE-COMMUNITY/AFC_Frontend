@@ -33,6 +33,7 @@ import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { SaveConfirmModal } from "../../../events/[slug]/edit/_components/SaveConfirmModal";
@@ -204,7 +205,16 @@ export default function EditNewsForm({ params }: { params: Params }) {
         onCancel={() => setConfirmOpen(false)}
         onConfirm={handleConfirmPublish}
       />
-      <PageHeader title={`Edit News: ${newsDetails?.news_title}`} back />
+      <PageHeader
+        // Title is a ReactNode so the page-level ⓘ can sit right after it.
+        title={
+          <span className="inline-flex items-center">
+            Edit News: {newsDetails?.news_title}
+            <InfoTip id="news.edit._page" className="ml-1.5" />
+          </span>
+        }
+        back
+      />
       <Form {...form}>
         <Card>
           <CardContent className="space-y-4">
@@ -243,7 +253,10 @@ export default function EditNewsForm({ params }: { params: Params }) {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>
+                      Category
+                      <InfoTip id="news.category" className="ml-1" />
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -270,7 +283,10 @@ export default function EditNewsForm({ params }: { params: Params }) {
                 name="event"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Related Event (Optional)</FormLabel>
+                    <FormLabel>
+                      Related Event (Optional)
+                      <InfoTip id="news.related_event" className="ml-1" />
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}

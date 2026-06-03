@@ -382,6 +382,152 @@ export const HELP = {
     "Where the report sits: Open (unhandled), Reviewing (being looked into), Resolved (action taken), or Dismissed (no action needed).",
   "organizations.reports.exclude_event":
     "Unverify the reported event so its results stop counting toward rankings — the integrity action for a substantiated report. Only available when the report is tied to an event.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Teams — admin team management. The list ranks every team into tiers and
+  // bans/unbans; the detail screen manages a single team's roster, tier and
+  // ownership. Ghost teams (provisional placeholders) live in Rankings, reused
+  // here, so their copy stays under the rankings.ghost.* ids.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Teams › List ────────────────────────────────────────────────────────────
+  "teams._page":
+    "Every registered team on AFC. Search and filter by tier, open a team to manage its roster, or ban a team that breaks the rules.",
+  "teams.rank_into_tiers":
+    "Re-run the tier algorithm across every team, sorting them into Tier 1–3 from their current stats. Use after a batch of results lands.",
+  "teams.list._section":
+    "All teams with their tier, member count, wins and earnings. View opens the team's detail page; Ban/Unban toggles platform access.",
+  "teams.ghost._section":
+    "Provisional placeholder teams that hold tournament results before a real team claims them. Shared with Rankings & Tiering — claims and history transfers happen there.",
+
+  // ── Teams › Detail ──────────────────────────────────────────────────────────
+  "teams.detail._page":
+    "Manage a single team — review its stats and history, edit its roster, override its tier, or hand ownership to another member.",
+  "teams.detail.members._section":
+    "Everyone on this team and their management role. Add an existing player, or remove anyone except the owner.",
+  "teams.detail.add_member":
+    "Search for an existing player and add them to this team. Moving a player off another team, or going past the 8-member cap, needs an extra confirmation.",
+  "teams.detail.remove_member":
+    "Take this player off the team. They're notified and can be re-added at any time. The owner can't be removed — transfer ownership first.",
+  "teams.detail.actions._section":
+    "Admin-only controls for this team: override its tier or transfer ownership. Both notify the team and are logged.",
+  "teams.detail.change_tier":
+    "Manually move the team to a chosen tier, overriding the ranking system's assignment. The owner is notified.",
+  "teams.detail.transfer_ownership":
+    "Hand ownership to another team member. The current owner becomes a regular member — undone only by transferring again.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Players — admin player management. The list shows stat leaders and bans;
+  // the detail screen is a full profile with stats, history and login records.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Players › List ──────────────────────────────────────────────────────────
+  "players._page":
+    "Every registered player on AFC. Filter by team or status, scan the stat leaders, and ban or unban individual players.",
+  "players.list._section":
+    "All players with their team, kills, wins and MVPs. View opens the player's full profile; Ban/Unban toggles their platform access.",
+
+  // ── Players › Detail ────────────────────────────────────────────────────────
+  "players.detail._page":
+    "A player's full admin profile — contact details, lifetime stats, match and event history, and login records. Ban or unban from here too.",
+  "players.detail.statistics._section":
+    "Career performance split across tournaments and scrims — KDR, win rate, kills, wins and booyahs.",
+  "players.detail.login_history":
+    "On demand, pull this player's recent sign-in records (IP, location, time) — useful for spotting account sharing or suspicious access.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Player Market — admin oversight of the recruitment marketplace: team and
+  // player listings, the trials/applications pipeline, and integrity reports.
+  // One sub-section per tab.
+  // ══════════════════════════════════════════════════════════════════════════
+  "player_market._page":
+    "Oversight of the player market — recruitment listings, the trials and applications pipeline, and reports filed against either side. Read-only for most tabs; act on listings and reports.",
+  "player_market.overview._section":
+    "At-a-glance counts of active listings, ongoing trials and pending reports, plus the auto-enforcement health checks that keep banned entities hidden.",
+  "player_market.team_listings._section":
+    "Recruitment posts from teams looking for players — the roles, tier and commitment each is after. Expired posts drop off automatically.",
+  "player_market.player_listings._section":
+    "Availability posts from players looking for a team — their roles, country and availability. Expired posts drop off automatically.",
+  "player_market.trials._section":
+    "Every application and trial across the market, from first apply through invite, trial and final decision. Open one to see its full history.",
+  "player_market.reports._section":
+    "Reports and flagged content from across the market — harassment, fake listings, expired-but-visible posts. Review each and take action.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Shop — the diamond store admin. Dashboard, inventory (products + variants),
+  // coupons, and orders. Each list has create/edit subpages. Prices are USD on
+  // products but orders settle in Naira (₦) through Paystack.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Shop › Dashboard ────────────────────────────────────────────────────────
+  "shop._page":
+    "The store control room — revenue and order snapshots, live stock levels, and quick links into inventory and orders.",
+  "shop.stock_status._section":
+    "Current on-hand quantity for each product variant. Red means out or critically low, yellow is running low, green is healthy.",
+
+  // ── Shop › Inventory ────────────────────────────────────────────────────────
+  "shop.inventory._page":
+    "Manage what the store sells — diamond products and their variants, stock levels, and the coupons buyers can apply at checkout.",
+  "shop.add_product":
+    "Create a new product and its variants in one go — each variant is a buyable SKU with its own price, diamond amount and stock.",
+  "shop.products._section":
+    "Every product and its variant count, combined stock and price range. Edit drills into the variants; Deactivate hides it from the store without deleting it.",
+  "shop.delete_product":
+    "Permanently remove this product and all its variants. This can't be undone — deactivate instead if you only want to hide it.",
+  "shop.upload_codes._section":
+    "Bulk-replenish a limited-stock product by uploading a CSV of diamond codes, one per line. Each code becomes a unit of sellable stock.",
+  "shop.coupons._section":
+    "Discount codes buyers apply at checkout. Create new ones, or deactivate/delete existing codes. Stats live on each coupon's page.",
+  "shop.delete_coupon":
+    "Permanently remove this coupon code. Past redemptions are kept for the records, but the code can no longer be used.",
+
+  // ── Shop › Coupon create / edit fields ──────────────────────────────────────
+  "shop.coupon_discount_type":
+    "Percentage takes a share off the order total; Fixed Amount takes a flat dollar value off. This sets how Discount Value is read.",
+  "shop.coupon_max_uses":
+    "How many times this code can be redeemed across all buyers before it stops working.",
+  "shop.coupon_min_order":
+    "The smallest order total a buyer needs before this coupon applies. Leave at 0 for no minimum.",
+
+  // ── Shop › Product variant fields ───────────────────────────────────────────
+  "shop.variant._section":
+    "Each variant is one buyable option of the product — its own SKU, price, diamond amount and stock. A product needs at least one.",
+  "shop.variant_sku":
+    "A unique code identifying this variant in orders and stock (e.g. DIA-100). Keep it stable — it's what fulfilment and reports key on.",
+  "shop.variant_diamonds":
+    "How many in-game diamonds this variant grants the buyer. Drives what's delivered on a paid order.",
+  "shop.limited_stock":
+    "On: the store tracks a finite stock count and stops selling at zero. Off: the variant is always purchasable (unlimited supply).",
+
+  // ── Shop › Orders ───────────────────────────────────────────────────────────
+  "shop.orders._page":
+    "Every order across the store. Filter by status, search by ID or product, and open an order to see its items and take admin action.",
+  "shop.orders.list._section":
+    "All orders with their buyer, items, status and total (in ₦). Pending means awaiting payment; Paid has settled through Paystack.",
+  "shop.order_detail._page":
+    "Everything about one order — the buyer's details, the items and totals, and admin actions like marking it paid.",
+  "shop.mark_as_paid":
+    "Manually settle this order as paid — for payments confirmed outside Paystack (e.g. a bank transfer). Use only once you've verified the money landed.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // News — admin news/article management. The list filters and manages every
+  // article; create and edit share the same fields. Articles surface on the
+  // public site once published.
+  // ══════════════════════════════════════════════════════════════════════════
+  "news._page":
+    "Every news article on AFC. Search, filter by category, status or date, then create a new one or edit, view and delete existing articles.",
+  "news.create":
+    "Write and publish a new article. It goes live on the public News page as soon as you publish.",
+  "news.delete":
+    "Permanently remove this article from the site. This can't be undone.",
+  "news.create._page":
+    "Write a new article — give it a title, body, category and cover image, then publish it to the public News page.",
+  "news.edit._page":
+    "Update a published article. Changes go live on the public News page as soon as you save.",
+  "news.category":
+    "Where the article is filed on the public site — General, Tournament updates, or Ban announcements. Drives how readers filter the feed.",
+  "news.related_event":
+    "Optionally tie the article to a tournament so it shows alongside that event. Leave blank for general news.",
 } as const;
 
 export type HelpId = keyof typeof HELP;

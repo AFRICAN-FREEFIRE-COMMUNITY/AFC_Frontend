@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import {
   IconCurrencyDollar,
   IconPackage,
@@ -207,7 +208,16 @@ export default function AdminShopPage() {
 
   return (
     <div className="flex flex-col gap-2">
-      <PageHeader back title="Shop Dashboard" />
+      <PageHeader
+        back
+        // Title is a ReactNode so the page-level ⓘ can sit right after it.
+        title={
+          <span className="inline-flex items-center">
+            Shop Dashboard
+            <InfoTip id="shop._page" className="ml-1.5" />
+          </span>
+        }
+      />
 
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
@@ -336,7 +346,11 @@ export default function AdminShopPage() {
           {/* Current Stock Status */}
           <Card>
             <CardHeader>
-              <CardTitle>Current Stock Status</CardTitle>
+              {/* Section ⓘ inline with the stock-status heading. */}
+              <CardTitle className="flex items-center">
+                Current Stock Status
+                <InfoTip id="shop.stock_status._section" className="ml-1.5" />
+              </CardTitle>
               <CardDescription>
                 Overview of your virtual diamond inventory.
               </CardDescription>

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import {
   Copy,
   Check,
@@ -164,6 +165,8 @@ export default function OrderDetailsPage() {
               <Badge variant={getStatusBadgeVariant(order.status)}>
                 {order.status.toUpperCase()}
               </Badge>
+              {/* Page-level ⓘ for the order detail screen. */}
+              <InfoTip id="shop.order_detail._page" />
             </p>
           </>
         }
@@ -261,25 +264,31 @@ export default function OrderDetailsPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader className="border-b [.border-b]:pb-3">
+              {/* No section ⓘ here: the mark-as-paid control below carries its own
+                  tip and the page-level ⓘ already covers this screen. */}
               <CardTitle>Admin Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {order.status !== "paid" && (
-                <Button
-                  className="w-full justify-start"
-                  disabled={pending}
-                  variant="default"
-                  onClick={handleMarkAsPaid}
-                >
-                  {pending ? (
-                    <Loader text="Marking..." />
-                  ) : (
-                    <>
-                      <CheckCircle />
-                      Mark as Paid
-                    </>
-                  )}
-                </Button>
+                // ⓘ sits beside the mark-as-paid action (sibling, not nested in the button).
+                <div className="flex items-center gap-1">
+                  <Button
+                    className="flex-1 justify-start"
+                    disabled={pending}
+                    variant="default"
+                    onClick={handleMarkAsPaid}
+                  >
+                    {pending ? (
+                      <Loader text="Marking..." />
+                    ) : (
+                      <>
+                        <CheckCircle />
+                        Mark as Paid
+                      </>
+                    )}
+                  </Button>
+                  <InfoTip id="shop.mark_as_paid" />
+                </div>
               )}
               <Button
                 className="w-full justify-start"

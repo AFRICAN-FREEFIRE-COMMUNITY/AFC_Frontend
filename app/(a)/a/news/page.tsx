@@ -21,6 +21,7 @@ import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { DeleteNewsModal } from "./_components/DeleteNewsModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -218,13 +219,25 @@ const page = () => {
   return (
     <div>
       <div className="flex flex-col md:flex-row items-start justify-start md:justify-between md:items-center mb-6">
-        <PageHeader title="News Management" />
-        <Button className="w-full md:w-auto" asChild>
-          <Link href="/a/news/create">
-            <IconCirclePlus />
-            Create New
-          </Link>
-        </Button>
+        <PageHeader
+          // Title is a ReactNode so the page-level ⓘ can sit right after it.
+          title={
+            <span className="inline-flex items-center">
+              News Management
+              <InfoTip id="news._page" className="ml-1.5" />
+            </span>
+          }
+        />
+        {/* ⓘ sits beside the create action (sibling of the button). */}
+        <div className="flex w-full items-center gap-1 md:w-auto">
+          <Button className="w-full md:w-auto" asChild>
+            <Link href="/a/news/create">
+              <IconCirclePlus />
+              Create New
+            </Link>
+          </Button>
+          <InfoTip id="news.create" />
+        </div>
       </div>
 
       {/* Search and Filter Section */}

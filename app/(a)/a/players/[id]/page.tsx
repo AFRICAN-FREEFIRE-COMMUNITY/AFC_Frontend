@@ -40,6 +40,7 @@ import {
 import { Ban, ShieldCheck, CheckCircle2, ArrowLeft } from "lucide-react";
 import { formatMoneyInput } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface PlayerDetails {
@@ -258,7 +259,16 @@ const Page = ({ params }: Props) => {
     <div className="flex flex-col gap-4">
       {/* Top bar */}
       <div className="flex items-center justify-between">
-        <PageHeader back title={`${player.name}`} />
+        <PageHeader
+          back
+          // Title is a ReactNode so the page-level ⓘ can sit right after it.
+          title={
+            <span className="inline-flex items-center">
+              {player.name}
+              <InfoTip id="players.detail._page" className="ml-1.5" />
+            </span>
+          }
+        />
         <BanPlayerModal player={player} onSuccess={fetchPlayer} />
       </div>
 
@@ -410,6 +420,11 @@ const Page = ({ params }: Props) => {
 
           {/* Statistics */}
           <TabsContent value="statistics">
+            {/* Section ⓘ heads the stats grid (sibling of the muted label). */}
+            <div className="mb-4 flex items-center gap-1 text-xs font-medium text-muted-foreground">
+              Career statistics
+              <InfoTip id="players.detail.statistics._section" />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
               <div>
                 <p className="text-xs text-muted-foreground">KDR</p>
@@ -618,7 +633,9 @@ const Page = ({ params }: Props) => {
 
           {/* Login History */}
           <TabsContent value="login-history">
-            <div className="flex justify-end mb-3">
+            <div className="flex justify-end items-center gap-1 mb-3">
+              {/* ⓘ sits beside the load action (sibling, not nested in the button). */}
+              <InfoTip id="players.detail.login_history" />
               <button
                 className="text-xs text-primary hover:underline"
                 onClick={async () => {

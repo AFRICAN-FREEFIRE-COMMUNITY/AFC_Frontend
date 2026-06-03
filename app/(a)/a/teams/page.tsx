@@ -57,6 +57,7 @@ import { BanModal } from "../_components/BanModal";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { Textarea } from "@/components/ui/textarea";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // ── Ghost Teams (provisional placeholder teams used by Rankings & Tiering) ───
 // Shape mirrors the backend serialize_ghost() payload (afc_rankings/admin_ghost.py):
@@ -277,10 +278,22 @@ const page = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <PageHeader title="Team Management" />
-        <Button onClick={handleRankTeams} disabled={rankingTeams} variant="outline" size="sm">
-          {rankingTeams ? "Ranking..." : "Rank Teams into Tiers"}
-        </Button>
+        <PageHeader
+          // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+          title={
+            <span className="inline-flex items-center">
+              Team Management
+              <InfoTip id="teams._page" className="ml-1.5" />
+            </span>
+          }
+        />
+        {/* ⓘ sits beside the rank-teams action (sibling, not nested in the button). */}
+        <div className="flex items-center gap-1">
+          <Button onClick={handleRankTeams} disabled={rankingTeams} variant="outline" size="sm">
+            {rankingTeams ? "Ranking..." : "Rank Teams into Tiers"}
+          </Button>
+          <InfoTip id="teams.rank_into_tiers" />
+        </div>
       </div>
 
       <div className="flex justify-between items-center mb-2">
@@ -307,7 +320,11 @@ const page = () => {
 
       <Card className="gap-0">
         <CardHeader>
-          <CardTitle>Teams</CardTitle>
+          {/* Section ⓘ sits inline with the card title (sibling of the text). */}
+          <CardTitle className="flex items-center">
+            Teams
+            <InfoTip id="teams.list._section" className="ml-1.5" />
+          </CardTitle>
         </CardHeader>
         <CardContent className="mt-2">
           <Table>
@@ -444,20 +461,27 @@ const page = () => {
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div>
-              <CardTitle>Ghost Teams</CardTitle>
+              {/* Section ⓘ inline with the Ghost Teams heading. */}
+              <CardTitle className="flex items-center">
+                Ghost Teams
+                <InfoTip id="teams.ghost._section" className="ml-1.5" />
+              </CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
                 Provisional placeholder teams for tournament results before a
                 real team claims them. Used by Rankings &amp; Tiering.
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              onClick={() => setCreateGhostOpen(true)}
-            >
-              Create ghost team
-            </Button>
+            {/* ⓘ sits beside the create action (sibling of the button). */}
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCreateGhostOpen(true)}
+              >
+                Create ghost team
+              </Button>
+              <InfoTip id="rankings.ghost.create" />
+            </div>
           </div>
         </CardHeader>
         <CardContent className="mt-2">

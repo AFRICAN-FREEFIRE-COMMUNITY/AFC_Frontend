@@ -39,6 +39,7 @@ import { IconCirclePlus, IconTrash } from "@tabler/icons-react";
 import { AddProductSchema, AddProductSchemaType } from "@/lib/zodSchemas";
 import { env } from "@/lib/env";
 import { Loader } from "@/components/Loader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { useAuth } from "@/contexts/AuthContext";
 import { shopProductTypes } from "@/constants";
 
@@ -195,7 +196,10 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="mt-0">Limited Stock?</FormLabel>
+                    <FormLabel className="mt-0">
+                      Limited Stock?
+                      <InfoTip id="shop.limited_stock" className="ml-1" />
+                    </FormLabel>
                   </FormItem>
                 )}
               />
@@ -203,7 +207,11 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
 
             <hr />
             <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-sm">Product Variants</h3>
+              {/* Section ⓘ inline with the variants heading. */}
+              <h3 className="font-semibold text-sm flex items-center">
+                Product Variants
+                <InfoTip id="shop.variant._section" className="ml-1.5" />
+              </h3>
               <Button
                 type="button"
                 variant="outline"
@@ -260,7 +268,10 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
                     name={`variants.${index}.sku`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>SKU</FormLabel>
+                        <FormLabel>
+                          SKU
+                          <InfoTip id="shop.variant_sku" className="ml-1" />
+                        </FormLabel>
                         <FormControl>
                           <Input placeholder="DIA-100" {...field} />
                         </FormControl>

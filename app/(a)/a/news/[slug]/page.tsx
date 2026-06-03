@@ -16,6 +16,7 @@ import { formatDate } from "@/lib/utils";
 import { RenderDescription } from "@/components/text-editor/RenderDescription";
 import { DeleteNewsModal } from "../_components/DeleteNewsModal";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { DEFAULT_IMAGE } from "@/constants";
 import { ShareButton } from "@/components/ShareButton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -97,7 +98,13 @@ const page = ({ params }: { params: Params }) => {
                 </div>
               </>
             }
-            title={`${newsDetails.news_title} Details`}
+            title={
+              <span className="inline-flex items-center">
+                {newsDetails.news_title} Details
+                {/* Page-level ⓘ for the news detail/admin view. */}
+                <InfoTip id="news._page" className="ml-1.5" />
+              </span>
+            }
             back
           />{" "}
           <div className="flex w-full lg:w-auto items-center gap-2">
@@ -106,6 +113,7 @@ const page = ({ params }: { params: Params }) => {
                 <Edit className="mr-2 h-4 w-4" /> Edit
               </Link>
             </Button>
+            {/* ⓘ sits beside the delete trigger (sibling — the modal renders its own button). */}
             <DeleteNewsModal
               newsId={newsDetails.news_id}
               newsTitle={newsDetails.news_title}
@@ -113,6 +121,7 @@ const page = ({ params }: { params: Params }) => {
               showLabel
               isIcon={false}
             />
+            <InfoTip id="news.delete" />
           </div>
         </div>
 

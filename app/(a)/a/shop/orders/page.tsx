@@ -30,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Search, MoreHorizontal, Eye, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -189,7 +190,13 @@ export default function page() {
     <div className="space-y-4">
       <PageHeader
         back
-        title="Admin Orders"
+        // Title is a ReactNode so the page-level ⓘ can sit right after it.
+        title={
+          <span className="inline-flex items-center">
+            Admin Orders
+            <InfoTip id="shop.orders._page" className="ml-1.5" />
+          </span>
+        }
         description="Manage and track all shop orders across the platform"
       />
 
@@ -215,6 +222,11 @@ export default function page() {
         </ScrollArea>
       </Tabs>
 
+      {/* Section ⓘ heads the orders table (sibling of the muted label). */}
+      <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+        Orders
+        <InfoTip id="shop.orders.list._section" />
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

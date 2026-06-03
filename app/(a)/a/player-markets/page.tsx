@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { InfoTip } from "@/components/ui/info-tip";
 import {
   IconUsers,
   IconUser,
@@ -711,7 +712,13 @@ export default function AdminPlayerMarketPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Player Market Administration"
+        // Title is a ReactNode so the page-level ⓘ can sit right after it.
+        title={
+          <span className="inline-flex items-center">
+            Player Market Administration
+            <InfoTip id="player_market._page" className="ml-1.5" />
+          </span>
+        }
         description="Comprehensive management, control, and oversight of all player market activities"
         back
       />
@@ -730,6 +737,11 @@ export default function AdminPlayerMarketPage() {
 
         {/* ─── Tab 1: Overview ────────────────────────────────────── */}
         <TabsContent value="overview" className="mt-4 space-y-4">
+          {/* Section ⓘ heads the overview stat cards (sibling of the muted label). */}
+          <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+            Market overview
+            <InfoTip id="player_market.overview._section" />
+          </div>
           {/* Stat Cards */}
           <div className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
             <Card>
@@ -824,6 +836,11 @@ export default function AdminPlayerMarketPage() {
 
         {/* ─── Tab 2: Team Listings ───────────────────────────────── */}
         <TabsContent value="team-listings" className="mt-4 space-y-4">
+          {/* Section ⓘ heads the team-listings tab. */}
+          <h2 className="text-lg font-semibold flex items-center">
+            Team Listings
+            <InfoTip id="player_market.team_listings._section" className="ml-1.5" />
+          </h2>
           <div className="flex flex-col md:flex-row gap-2 items-start md:items-center justify-between">
             <div className="relative flex-1 w-full md:max-w-sm">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -972,6 +989,11 @@ export default function AdminPlayerMarketPage() {
 
         {/* ─── Tab 3: Player Listings ─────────────────────────────── */}
         <TabsContent value="player-listings" className="mt-4 space-y-4">
+          {/* Section ⓘ heads the player-listings tab. */}
+          <h2 className="text-lg font-semibold flex items-center">
+            Player Listings
+            <InfoTip id="player_market.player_listings._section" className="ml-1.5" />
+          </h2>
           <div className="flex flex-col md:flex-row gap-2 items-start md:items-center justify-between">
             <div className="relative flex-1 w-full md:max-w-sm">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1118,7 +1140,11 @@ export default function AdminPlayerMarketPage() {
 
         {/* ─── Tab 4: Trials & Applications ───────────────────────── */}
         <TabsContent value="trials" className="mt-4 space-y-4">
-          <h2 className="text-lg font-semibold">Trials & Applications</h2>
+          {/* Section ⓘ inline with the tab's heading. */}
+          <h2 className="text-lg font-semibold flex items-center">
+            Trials & Applications
+            <InfoTip id="player_market.trials._section" className="ml-1.5" />
+          </h2>
 
           {/* Summary badges */}
           {trialsData && (
@@ -1389,7 +1415,11 @@ export default function AdminPlayerMarketPage() {
 
         {/* ─── Tab 5: Reports & Flags ─────────────────────────────── */}
         <TabsContent value="reports" className="mt-4 space-y-4">
-          <h2 className="text-lg font-semibold">Reports & Flagged Content</h2>
+          {/* Section ⓘ inline with the tab's heading. */}
+          <h2 className="text-lg font-semibold flex items-center">
+            Reports & Flagged Content
+            <InfoTip id="player_market.reports._section" className="ml-1.5" />
+          </h2>
           <Card>
             <CardContent className="p-0">
               <Table>

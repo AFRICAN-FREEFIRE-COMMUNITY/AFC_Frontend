@@ -39,6 +39,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FullLoader, Loader } from "@/components/Loader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { formatMoneyInput } from "@/lib/utils";
 import { env } from "@/lib/env";
 import { ITEMS_PER_PAGE } from "@/constants";
@@ -292,7 +293,16 @@ const page = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader back title="Player Management" />
+      <PageHeader
+        back
+        // Title is a ReactNode so the page-level ⓘ can sit right after it.
+        title={
+          <span className="inline-flex items-center">
+            Player Management
+            <InfoTip id="players._page" className="ml-1.5" />
+          </span>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2">
@@ -438,11 +448,13 @@ const page = () => {
       {/* Table */}
       <Card className="gap-0">
         <CardHeader>
-          <CardTitle>
+          {/* Section ⓘ inline with the Players table heading. */}
+          <CardTitle className="flex items-center">
             Players{" "}
-            <span className="text-muted-foreground font-normal text-sm">
+            <span className="text-muted-foreground font-normal text-sm ml-1">
               ({filtered.length})
             </span>
+            <InfoTip id="players.list._section" className="ml-1.5" />
           </CardTitle>
         </CardHeader>
         <CardContent>

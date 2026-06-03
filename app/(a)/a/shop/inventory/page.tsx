@@ -93,6 +93,7 @@ import {
 import { ComingSoon } from "@/components/ComingSoon";
 import { DeleteCouponModal } from "../_components/DeleteCouponModal";
 import { ToggleCouponStatusModal } from "../_components/ToggleCouponStatusModal";
+import { InfoTip } from "@/components/ui/info-tip";
 
 interface Variant {
   id: number;
@@ -283,8 +284,17 @@ export default function InventoryManagementPage() {
     <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <PageHeader back title="Inventory Management" />
-        <div className="w-full md:w-auto flex flex-wrap gap-2">
+        <PageHeader
+          back
+          // Title is a ReactNode so the page-level ⓘ can sit right after it.
+          title={
+            <span className="inline-flex items-center">
+              Inventory Management
+              <InfoTip id="shop.inventory._page" className="ml-1.5" />
+            </span>
+          }
+        />
+        <div className="w-full md:w-auto flex flex-wrap items-center gap-2">
           <Button variant="outline" asChild>
             <Link href="/a/shop/coupons">
               <IconChartBar />
@@ -301,7 +311,9 @@ export default function InventoryManagementPage() {
             <IconDownload  />
             Export
           </Button> */}
+          {/* ⓘ sits beside the add-product trigger (sibling — the modal renders its own button). */}
           <AddProductModal onSuccess={() => fetchProducts()} />
+          <InfoTip id="shop.add_product" />
         </div>
       </div>
 
@@ -320,7 +332,11 @@ export default function InventoryManagementPage() {
       {/* Products Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Virtual Diamond Products</CardTitle>
+          {/* Section ⓘ inline with the products heading. */}
+          <CardTitle className="flex items-center">
+            Virtual Diamond Products
+            <InfoTip id="shop.products._section" className="ml-1.5" />
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             Manage your virtual diamond products and their stock.
           </p>
@@ -518,7 +534,11 @@ export default function InventoryManagementPage() {
       {/* Upload Diamond Codes */}
       <Card>
         <CardHeader>
-          <CardTitle>Upload Diamond Codes</CardTitle>
+          {/* Section ⓘ inline with the upload-codes heading. */}
+          <CardTitle className="flex items-center">
+            Upload Diamond Codes
+            <InfoTip id="shop.upload_codes._section" className="ml-1.5" />
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             Upload a CSV file containing new diamond codes to replenish stock.
           </p>
@@ -557,7 +577,11 @@ export default function InventoryManagementPage() {
       {/* Coupons and Discounts */}
       <Card>
         <CardHeader>
-          <CardTitle>Coupons and Discounts</CardTitle>
+          {/* Section ⓘ inline with the coupons heading. */}
+          <CardTitle className="flex items-center">
+            Coupons and Discounts
+            <InfoTip id="shop.coupons._section" className="ml-1.5" />
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             Manage your active and inactive coupons.
           </p>
@@ -780,7 +804,11 @@ export default function InventoryManagementPage() {
                       name="discount_type"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Discount Type *</FormLabel>
+                          {/* Field ⓘ nested in the FormLabel (stopPropagation guard handles the click). */}
+                          <FormLabel>
+                            Discount Type *
+                            <InfoTip id="shop.coupon_discount_type" className="ml-1" />
+                          </FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
@@ -822,7 +850,10 @@ export default function InventoryManagementPage() {
                       name="max_uses"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Maximum Uses *</FormLabel>
+                          <FormLabel>
+                            Maximum Uses *
+                            <InfoTip id="shop.coupon_max_uses" className="ml-1" />
+                          </FormLabel>
                           <FormControl>
                             <Input type="number" {...field} />
                           </FormControl>
@@ -836,7 +867,10 @@ export default function InventoryManagementPage() {
                       name="min_order_amount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Min Order Amount ($)</FormLabel>
+                          <FormLabel>
+                            Min Order Amount ($)
+                            <InfoTip id="shop.coupon_min_order" className="ml-1" />
+                          </FormLabel>
                           <FormControl>
                             <Input type="number" {...field} />
                           </FormControl>

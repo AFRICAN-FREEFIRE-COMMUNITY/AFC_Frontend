@@ -43,6 +43,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader } from "@/components/Loader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { shopProductTypes } from "@/constants";
 import { useRouter } from "next/navigation";
 import { DeleteVariantModal } from "../../_components/DeleteVariantModal";
@@ -283,14 +284,27 @@ const Page = ({ params }: { params: Params }) => {
   return (
     <div className="space-y-4">
       <div className="flex items-start md:items-center justify-between gap-2 flex-col md:flex-row">
-        <PageHeader back title={`Edit: ${productDetails.name}`} />
-        <DeleteProductModal
-          productId={String(productDetails.id)}
-          productName={productDetails.name}
-          open={openDeleteModal}
-          onOpenChange={setOpenDeleteModal}
-          onSuccess={() => router.push("/a/shop/products")}
+        <PageHeader
+          back
+          // Title is a ReactNode so the inventory-page ⓘ can sit right after it.
+          title={
+            <span className="inline-flex items-center">
+              Edit: {productDetails.name}
+              <InfoTip id="shop.inventory._page" className="ml-1.5" />
+            </span>
+          }
         />
+        {/* ⓘ sits beside the delete trigger (sibling — the modal renders its own button). */}
+        <div className="flex items-center gap-1">
+          <DeleteProductModal
+            productId={String(productDetails.id)}
+            productName={productDetails.name}
+            open={openDeleteModal}
+            onOpenChange={setOpenDeleteModal}
+            onSuccess={() => router.push("/a/shop/products")}
+          />
+          <InfoTip id="shop.delete_product" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -407,7 +421,10 @@ const Page = ({ params }: { params: Params }) => {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
-                            <FormLabel>Limited Stock</FormLabel>
+                            <FormLabel>
+                              Limited Stock
+                              <InfoTip id="shop.limited_stock" className="ml-1" />
+                            </FormLabel>
                             <p className="text-xs text-muted-foreground">
                               Track inventory for this product
                             </p>
@@ -428,8 +445,10 @@ const Page = ({ params }: { params: Params }) => {
                   {/* UPDATED: Replace the old Add Variant button with the modal */}
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="font-semibold text-base">
+                      {/* Section ⓘ inline with the variants heading. */}
+                      <h3 className="font-semibold text-base flex items-center">
                         Product Variants
+                        <InfoTip id="shop.variant._section" className="ml-1.5" />
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         Manage different variants of this product
@@ -492,7 +511,10 @@ const Page = ({ params }: { params: Params }) => {
                             name={`variants.${index}.sku`}
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">SKU</FormLabel>
+                                <FormLabel className="text-xs">
+                                  SKU
+                                  <InfoTip id="shop.variant_sku" className="ml-1" />
+                                </FormLabel>
                                 <FormControl>
                                   <Input {...field} />
                                 </FormControl>
@@ -537,6 +559,7 @@ const Page = ({ params }: { params: Params }) => {
                               <FormItem>
                                 <FormLabel className="text-xs">
                                   Diamonds
+                                  <InfoTip id="shop.variant_diamonds" className="ml-1" />
                                 </FormLabel>
                                 <FormControl>
                                   <Input type="number" {...field} />

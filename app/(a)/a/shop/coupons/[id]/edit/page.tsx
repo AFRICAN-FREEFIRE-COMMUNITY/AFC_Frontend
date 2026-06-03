@@ -41,6 +41,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader } from "@/components/Loader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { useRouter } from "next/navigation";
 import { DeleteCouponModal } from "../../../_components/DeleteCouponModal";
 
@@ -225,14 +226,27 @@ const Page = ({ params }: { params: Params }) => {
   return (
     <div className="space-y-4">
       <div className="flex items-start md:items-center justify-between gap-2 flex-col md:flex-row">
-        <PageHeader back title={`Edit: ${couponDetails?.code}`} />
-        <DeleteCouponModal
-          couponId={String(couponDetails?.id)}
-          couponCode={couponDetails?.code || ""}
-          open={openDeleteModal}
-          onOpenChange={setOpenDeleteModal}
-          onSuccess={() => router.push("/a/shop/coupons")}
+        <PageHeader
+          back
+          // Title is a ReactNode so the inventory-coupon ⓘ can sit right after it.
+          title={
+            <span className="inline-flex items-center">
+              Edit: {couponDetails?.code}
+              <InfoTip id="shop.coupons._section" className="ml-1.5" />
+            </span>
+          }
         />
+        {/* ⓘ sits beside the delete trigger (sibling — the modal renders its own button). */}
+        <div className="flex items-center gap-1">
+          <DeleteCouponModal
+            couponId={String(couponDetails?.id)}
+            couponCode={couponDetails?.code || ""}
+            open={openDeleteModal}
+            onOpenChange={setOpenDeleteModal}
+            onSuccess={() => router.push("/a/shop/coupons")}
+          />
+          <InfoTip id="shop.delete_coupon" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -270,7 +284,10 @@ const Page = ({ params }: { params: Params }) => {
                       name="discount_type"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Discount Type *</FormLabel>
+                          <FormLabel>
+                            Discount Type *
+                            <InfoTip id="shop.coupon_discount_type" className="ml-1" />
+                          </FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
@@ -311,7 +328,10 @@ const Page = ({ params }: { params: Params }) => {
                       name="max_uses"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Maximum Uses *</FormLabel>
+                          <FormLabel>
+                            Maximum Uses *
+                            <InfoTip id="shop.coupon_max_uses" className="ml-1" />
+                          </FormLabel>
                           <FormControl>
                             <Input type="number" {...field} />
                           </FormControl>
@@ -324,7 +344,10 @@ const Page = ({ params }: { params: Params }) => {
                       name="min_order_amount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Min Order Amount ($)</FormLabel>
+                          <FormLabel>
+                            Min Order Amount ($)
+                            <InfoTip id="shop.coupon_min_order" className="ml-1" />
+                          </FormLabel>
                           <FormControl>
                             <Input type="number" {...field} />
                           </FormControl>

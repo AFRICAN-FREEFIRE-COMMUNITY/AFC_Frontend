@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
 import { BanModal } from "../../_components/BanModal";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { NothingFound } from "@/components/NothingFound";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
@@ -328,7 +329,16 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
     <div className="space-y-4">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <PageHeader title={`${teamDetails.team_name} Details`} back />
+        <PageHeader
+          // Title is a ReactNode so the page-level ⓘ can sit right after it.
+          title={
+            <span className="inline-flex items-center">
+              {teamDetails.team_name} Details
+              <InfoTip id="teams.detail._page" className="ml-1.5" />
+            </span>
+          }
+          back
+        />
         <BanModal
           is_banned={teamDetails.is_banned}
           teamName={teamDetails.team_name}
@@ -442,11 +452,19 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Team Members ({memberCount})</CardTitle>
+              {/* Section ⓘ inline with the members heading. */}
+              <CardTitle className="flex items-center">
+                Team Members ({memberCount})
+                <InfoTip id="teams.detail.members._section" className="ml-1.5" />
+              </CardTitle>
               {isAdminByRoleOrRoles && (
-                <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>
-                  <IconUserPlus className="size-4 mr-1.5" /> Add Member
-                </Button>
+                // ⓘ sits beside the add-member action (sibling of the button).
+                <div className="flex items-center gap-1">
+                  <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>
+                    <IconUserPlus className="size-4 mr-1.5" /> Add Member
+                  </Button>
+                  <InfoTip id="teams.detail.add_member" />
+                </div>
               )}
             </div>
           </CardHeader>
@@ -458,7 +476,12 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
                     <TableHead>Player</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Discord</TableHead>
-                    {isAdminByRoleOrRoles && <TableHead className="w-10" />}
+                    {isAdminByRoleOrRoles && (
+                      // Column-header ⓘ explains the per-row remove action (avoids one ⓘ per row).
+                      <TableHead className="w-10">
+                        <InfoTip id="teams.detail.remove_member" />
+                      </TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -708,15 +731,21 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
       {isAdminByRoleOrRoles && (
         <Card>
           <CardHeader>
+            {/* Section ⓘ inline with the Admin Actions heading. */}
             <CardTitle className="flex items-center gap-2">
               <UserCog className="h-5 w-5" /> Admin Actions
+              <InfoTip id="teams.detail.actions._section" />
             </CardTitle>
             <CardDescription>Administrative controls for this team.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Change Tier */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Change Team Tier</Label>
+              {/* Field ⓘ nested in the Label — the InfoTip's stopPropagation guard keeps the click off the field. */}
+              <Label className="text-sm font-medium">
+                Change Team Tier
+                <InfoTip id="teams.detail.change_tier" className="ml-1" />
+              </Label>
               <p className="text-xs text-muted-foreground">
                 Current tier: <span className="font-semibold">Tier {teamDetails.team_tier}</span>. Manually override the tier assigned by the ranking system.
               </p>
@@ -745,7 +774,10 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
 
             {/* Transfer Ownership */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Transfer Ownership</Label>
+              <Label className="text-sm font-medium">
+                Transfer Ownership
+                <InfoTip id="teams.detail.transfer_ownership" className="ml-1" />
+              </Label>
               <p className="text-xs text-muted-foreground">
                 Transfer ownership from <span className="font-semibold">{teamDetails.team_owner}</span> to another team member.
               </p>
