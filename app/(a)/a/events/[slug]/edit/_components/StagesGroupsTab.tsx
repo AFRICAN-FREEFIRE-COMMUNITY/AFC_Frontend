@@ -713,7 +713,7 @@ export default function StagesGroupsTab({
                           </CardContent>
                         </Card>
                       </div>
-                      <div className="flex w-full lg:w-auto items-start gap-2">
+                      <div className="flex w-full lg:w-auto items-center gap-2">
                         <GroupResultModal
                           activeGroup={group}
                           stageName={stage.stage_name}
@@ -727,13 +727,14 @@ export default function StagesGroupsTab({
                           onClick={() => onSeedGroup(group)}
                         >
                           Seed to Next Stage
-                          {/* Edit-only live-event action — explain what seeding does. */}
-                          <InfoTip
-                            id="events.edit.seed_to_next_stage"
-                            side="top"
-                            className="ml-1 text-primary-foreground/80 hover:text-primary-foreground"
-                          />
                         </Button>
+                        {/*
+                          Edit-only live-event action — explain what seeding does.
+                          The ⓘ (a real <button>) sits OUTSIDE the Seed button as a
+                          sibling, not nested inside it: a <button> inside a <button>
+                          is invalid HTML and triggers a hydration/DOM-nesting error.
+                        */}
+                        <InfoTip id="events.edit.seed_to_next_stage" side="top" />
                       </div>
                     </CardContent>
                   </Card>

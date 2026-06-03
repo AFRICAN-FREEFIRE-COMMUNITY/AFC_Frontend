@@ -1484,16 +1484,28 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         <form className="space-y-6">
           <Tabs value={currentTab} onValueChange={setCurrentTab}>
             <TabsList className="w-full justify-start overflow-x-auto mb-2">
-              {/* Each tab carries a section-level ⓘ explaining what that area does. */}
-              <TabsTrigger value="basic_info" className="px-6 relative">
-                Basic Info
+              {/*
+                Each tab carries a section-level ⓘ explaining what that area does.
+                The ⓘ (a real <button>) is rendered as a SIBLING of the
+                TabsTrigger — NOT inside it — because a <button> nested in a
+                <button> is invalid HTML (validateDOMNesting / hydration error).
+                Each trigger+ⓘ pair lives in a `relative inline-flex flex-1`
+                wrapper: the wrapper owns the flex sizing + the error-dot anchor,
+                while the trigger keeps `w-full` so it still fills the cell.
+              */}
+              <span className="relative inline-flex flex-1 items-center justify-center">
+                <TabsTrigger value="basic_info" className="px-6 w-full">
+                  Basic Info
+                </TabsTrigger>
                 <InfoTip id="events.edit.basic_info._section" className="ml-1" />
                 {tabErrors.basic_info && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
-              </TabsTrigger>
-              <TabsTrigger value="registered_teams" className="px-6 relative">
-                Registered Teams
+              </span>
+              <span className="relative inline-flex flex-1 items-center justify-center">
+                <TabsTrigger value="registered_teams" className="px-6 w-full">
+                  Registered Teams
+                </TabsTrigger>
                 <InfoTip
                   id="events.edit.registered_teams._section"
                   className="ml-1"
@@ -1501,9 +1513,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 {tabErrors.registered_teams && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
-              </TabsTrigger>
-              <TabsTrigger value="stages_groups" className="px-6 relative">
-                Stages & Groups
+              </span>
+              <span className="relative inline-flex flex-1 items-center justify-center">
+                <TabsTrigger value="stages_groups" className="px-6 w-full">
+                  Stages & Groups
+                </TabsTrigger>
                 <InfoTip
                   id="events.edit.stages_groups._section"
                   className="ml-1"
@@ -1511,32 +1525,40 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 {tabErrors.stages_groups && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
-              </TabsTrigger>
-              <TabsTrigger value="prize_rules" className="px-6 relative">
-                Prize & Rules
+              </span>
+              <span className="relative inline-flex flex-1 items-center justify-center">
+                <TabsTrigger value="prize_rules" className="px-6 w-full">
+                  Prize & Rules
+                </TabsTrigger>
                 <InfoTip id="events.edit.prize_rules._section" className="ml-1" />
                 {tabErrors.prize_rules && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
-              </TabsTrigger>
-              <TabsTrigger value="actions" className="px-6 relative">
-                Event Actions
+              </span>
+              <span className="relative inline-flex flex-1 items-center justify-center">
+                <TabsTrigger value="actions" className="px-6 w-full">
+                  Event Actions
+                </TabsTrigger>
                 <InfoTip id="events.edit.actions._section" className="ml-1" />
-              </TabsTrigger>
-              <TabsTrigger value="sponsor" className="px-6 relative">
-                Sponsor
+              </span>
+              <span className="relative inline-flex flex-1 items-center justify-center">
+                <TabsTrigger value="sponsor" className="px-6 w-full">
+                  Sponsor
+                </TabsTrigger>
                 <InfoTip id="events.edit.sponsor._section" className="ml-1" />
                 {sponsorForm.is_sponsored && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
                 )}
-              </TabsTrigger>
-              <TabsTrigger value="waitlist" className="px-6 relative">
-                Waitlist
+              </span>
+              <span className="relative inline-flex flex-1 items-center justify-center">
+                <TabsTrigger value="waitlist" className="px-6 w-full">
+                  Waitlist
+                </TabsTrigger>
                 <InfoTip id="events.edit.waitlist._section" className="ml-1" />
                 {waitlistForm.is_waitlist_enabled && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
                 )}
-              </TabsTrigger>
+              </span>
             </TabsList>
 
             <TabsContent value="basic_info">
