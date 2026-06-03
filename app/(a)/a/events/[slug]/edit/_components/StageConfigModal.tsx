@@ -31,6 +31,12 @@ import {
   formattedWord,
   type EventFormType,
 } from "../types";
+// Shared Round-Robin builder (sub-project B) — same panel used by the create flow.
+import {
+  RoundRobinPanel,
+  type RoundRobinConfig,
+  type RoundRobinTeamOption,
+} from "../../../_components/RoundRobinPanel";
 
 // ── Reusable Prize Pool Section ────────────────────────────────────────────────
 
@@ -175,6 +181,8 @@ interface StageConfigModalProps {
     point_rush_enabled: boolean;
     point_rush_reward: Record<string, number>; // {"1":10,"2":7,...} placement→bonus
     point_rush_target_index?: number; // 0-based index of the LATER stage that banks the bonus
+    // ── Round-Robin config (sub-project B) — only for "br - round robin" stages. ──
+    round_robin: RoundRobinConfig;
   };
   setStageModalData: (data: any) => void;
   tempGroups: any[];
@@ -186,6 +194,9 @@ interface StageConfigModalProps {
   handleSaveStageLogic: () => void;
   passwordVisibility: Record<number, boolean>;
   toggleVisibility: (groupIndex: number) => void;
+  // Registered teams (TEAM PK + name) the admin can drop into round-robin base
+  // groups. Comes from the event's tournament_teams.
+  availableTeams: RoundRobinTeamOption[];
 }
 
 // ── Main Modal ─────────────────────────────────────────────────────────────────
@@ -208,6 +219,7 @@ export function StageConfigModal({
   handleSaveStageLogic,
   passwordVisibility,
   toggleVisibility,
+  availableTeams,
 }: StageConfigModalProps) {
   const form = useFormContext<EventFormType>();
 
@@ -300,6 +312,20 @@ export function StageConfigModal({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* ── Round-Robin builder (sub-project B): only for the BR Round-Robin
+                bracket. On edit the event has registrations, so the base-group team
+                picker is live (availableTeams = the event's tournament_teams). The
+                per-group Step-2 config is ignored by the backend for this format. */}
+            {stageModalData.stage_format === "br - round robin" && (
+              <RoundRobinPanel
+                config={stageModalData.round_robin}
+                onChange={(rr) =>
+                  setStageModalData({ ...stageModalData, round_robin: rr })
+                }
+                availableTeams={availableTeams}
+              />
+            )}
 
             {/* ── Scoring modes (sub-project A): Champion-Point + Point-Rush ──────────
                 Both are independent per-stage toggles. Champion-Point is a match-point

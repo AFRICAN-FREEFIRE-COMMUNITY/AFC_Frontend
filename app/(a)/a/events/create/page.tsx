@@ -27,6 +27,7 @@ import { Step7PublishSave } from "./_components/Step7PublishSave";
 import { StepSponsorRequirement } from "./_components/StepSponsorRequirement";
 import { StepWaitlist } from "./_components/StepWaitlist";
 import { StageModal, StageModalData } from "./_components/StageModal";
+import { DEFAULT_ROUND_ROBIN_CONFIG } from "../_components/RoundRobinPanel";
 
 const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
   stage_name: "",
@@ -45,6 +46,8 @@ const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
   point_rush_enabled: false,
   point_rush_reward: {},
   point_rush_target_index: undefined,
+  // ── Round-Robin default (sub-project B): two empty base groups, auto-schedule. ──
+  round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
 };
 
 export default function CreateEventPage() {
@@ -336,6 +339,8 @@ export default function CreateEventPage() {
         point_rush_enabled: existing.point_rush_enabled ?? false,
         point_rush_reward: existing.point_rush_reward ?? {},
         point_rush_target_index: existing.point_rush_target_index,
+        // ── Round-Robin config carried back (default if the stage had none). ──
+        round_robin: existing.round_robin ?? DEFAULT_ROUND_ROBIN_CONFIG,
       });
       setTempGroups(existing.groups);
     } else {
@@ -468,6 +473,12 @@ export default function CreateEventPage() {
       point_rush_enabled: stageModalData.point_rush_enabled,
       point_rush_reward: stageModalData.point_rush_reward,
       point_rush_target_index: stageModalData.point_rush_target_index,
+      // ── Round-Robin config (sub-project B) — only meaningful for the BR
+      //    Round-Robin format; sent only when that format is selected so other
+      //    bracket types don't carry a stray round_robin payload. ──
+      ...(stageModalData.stage_format === "br - round robin"
+        ? { round_robin: stageModalData.round_robin }
+        : {}),
     };
 
     const currentStages = [...stages];

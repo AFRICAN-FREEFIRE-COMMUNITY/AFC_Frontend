@@ -404,6 +404,11 @@ import {
   GroupType,
   STAGE_FORMATS,
 } from "./types";
+// Shared Round-Robin builder (sub-project B) — same panel used by the edit flow.
+import {
+  RoundRobinPanel,
+  type RoundRobinConfig,
+} from "../../_components/RoundRobinPanel";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -424,6 +429,9 @@ export interface StageModalData {
   point_rush_enabled: boolean;
   point_rush_reward: Record<string, number>; // {"1":10,"2":7,...} placement→bonus
   point_rush_target_index?: number; // 0-based index of the LATER stage that banks the bonus
+  // ── Round-Robin config (sub-project B). Edited only when stage_format is
+  //    "br - round robin"; rides into the FormData stages array on save. ──
+  round_robin: RoundRobinConfig;
 }
 
 interface StageModalProps {
@@ -686,6 +694,19 @@ export function StageModal({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* ── Round-Robin builder (sub-project B): only for the BR Round-Robin
+                bracket. The classic per-group config in Step 2 is ignored by the
+                backend for this format — game-day lobbies come from the base groups
+                + schedule below. No team picker on create (no registrations yet). */}
+            {stageModalData.stage_format === "br - round robin" && (
+              <RoundRobinPanel
+                config={stageModalData.round_robin}
+                onChange={(rr) =>
+                  setStageModalData({ ...stageModalData, round_robin: rr })
+                }
+              />
+            )}
 
             {/* ── Scoring modes (sub-project A): Champion-Point + Point-Rush ──────────
                 Both are independent per-stage toggles. Champion-Point is a match-point

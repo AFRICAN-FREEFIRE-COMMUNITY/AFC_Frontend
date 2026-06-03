@@ -390,6 +390,7 @@ import { IconMap, IconTrophy } from "@tabler/icons-react";
 import { Loader } from "@/components/Loader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { GroupResultModal } from "../../../_components/GroupResultModal";
+import { RoundRobinResultsModal } from "../../../_components/RoundRobinResultsModal";
 import { SeedToGroupModal } from "../../../_components/SeedToGroupModal";
 import { SendNotificationModal } from "../../../_components/SendNotificationModal";
 import { AddTeamsModal } from "../../../_components/AddTeamsModal";
@@ -496,6 +497,16 @@ export default function StagesGroupsTab({
                   </div>
 
                   <div className="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                    {/* Round-Robin (sub-project B): stage-level cumulative / per-day
+                        standings. Only for the BR Round-Robin format + a saved stage. */}
+                    {stage.stage_format === "br - round robin" &&
+                      stage?.stage_id && (
+                        <RoundRobinResultsModal
+                          eventId={eventDetails.event_id}
+                          stageId={stage.stage_id}
+                          stageName={stage.stage_name}
+                        />
+                      )}
                     {eventDetails.participant_type === "squad" &&
                       stage?.stage_id && (
                         <AddTeamsModal

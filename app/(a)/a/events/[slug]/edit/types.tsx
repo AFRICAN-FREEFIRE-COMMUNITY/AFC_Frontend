@@ -40,6 +40,29 @@ export const GroupSchema = z.object({
   match_maps: z.array(z.string()).min(1, "At least one map must be selected"),
 });
 
+// ── Round-Robin config schema (sub-project B) — mirrors the create-flow schema. ──
+// Permissive on purpose: the shared RoundRobinPanel owns the editing UX and the
+// backend enforces the structural rules. team_ids hold TEAM PKs.
+export const RoundRobinConfigSchema = z.object({
+  round_robin_groups: z.array(
+    z.object({
+      label: z.string(),
+      order: z.coerce.number(),
+      team_ids: z.array(z.coerce.number()),
+    }),
+  ),
+  generate_schedule: z.boolean(),
+  games_per_day: z.coerce.number(),
+  game_days: z.array(
+    z.object({
+      game_day: z.coerce.number(),
+      source_group_indices: z.array(z.coerce.number()),
+      match_count: z.coerce.number(),
+      match_maps: z.array(z.string()),
+    }),
+  ),
+});
+
 export const StageSchema = z.object({
   stage_id: z.number().optional(),
   stage_name: z.string().min(1, "Stage name required"),
@@ -59,6 +82,9 @@ export const StageSchema = z.object({
   point_rush_enabled: z.boolean().default(false),
   point_rush_reward: z.record(z.string(), z.coerce.number()).optional(), // {"1":10,"2":7,...}
   point_rush_target_index: z.coerce.number().optional(), // 0-based index of the target stage
+  // ── Round-Robin config (sub-project B). Present only for "br - round robin"
+  //    stages; rehydrated from stage.round_robin and threaded into the FormData. ──
+  round_robin: RoundRobinConfigSchema.optional(),
 });
 
 export const EventFormSchema = z
@@ -212,6 +238,28 @@ export interface EventDetails {
     point_rush_enabled?: boolean;
     point_rush_reward?: Record<string, number>;
     point_rush_target_stage_id?: number | null;
+    // ── Round-Robin structure echoed by get-event-details (sub-project B). ──
+    // round_robin_groups carry server group_ids + team_ids (TEAM PKs); game_days
+    // carry the materialised lobbies. Rehydrated into the form's round_robin
+    // config in edit/page.tsx (lobbies → source_group_indices via a group lookup).
+    round_robin?: {
+      round_robin_groups: Array<{
+        group_id: number;
+        label: string;
+        order: number;
+        team_ids: number[];
+        team_names?: string[];
+      }>;
+      game_days: Array<{
+        game_day: number;
+        lobbies: Array<{
+          group_id: number;
+          source_group_ids: number[];
+          match_count?: number;
+          match_maps?: string[];
+        }>;
+      }>;
+    };
     groups: Array<{
       id: number; // This is what comes from backend
       group_id?: number; // Add this as well for compatibility

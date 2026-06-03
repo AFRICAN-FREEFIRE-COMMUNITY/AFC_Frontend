@@ -74,6 +74,20 @@ export const HELP = {
   "events.create.match_maps":
     "The maps played in this group. Use +/− to set how many times each map is played.",
 
+  // ── Round-Robin stage builder (sub-project B) — only shown when the stage
+  //    format is Battle Royale - Round Robin. Base groups are the fixed A/B/C
+  //    identities; game-day lobbies merge two base groups each. ────────────────
+  "events.create.rr_base_groups":
+    "The fixed base groups (A, B, C…). A team belongs to exactly one base group for the whole stage — game-day lobbies are then formed by merging two base groups at a time.",
+  "events.create.rr_group_teams":
+    "Assign the registered teams that make up this base group. Each team can sit in only one base group. (Teams can only be assigned once the event has registrations.)",
+  "events.create.rr_generate_schedule":
+    "On: auto-build the round-robin schedule — every pair of base groups meets once, one pairing per game-day. Off: add the game-day lobbies by hand below.",
+  "events.create.rr_games_per_day":
+    "How many matches each game-day lobby plays. Applied to every auto-generated lobby.",
+  "events.create.rr_game_days":
+    "The manual game-day list. Each game-day is a lobby that merges the base groups you pick, plus its match count and maps. Add one per day you want to run.",
+
   // ── Waitlist ───────────────────────────────────────────────────────────────
   "events.create.is_waitlist_enabled":
     "Turn on to let players queue once the event is full and auto-fill any spots that open up.",

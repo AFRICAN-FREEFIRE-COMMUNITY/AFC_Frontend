@@ -32,11 +32,64 @@ import PrizeRulesTab from "./_components/PrizeRulesTab";
 import ActionsTab from "./_components/ActionsTab";
 import { StageConfigModal } from "./_components/StageConfigModal";
 import { RemoveStageModal } from "./_components/RemoveStageModal";
+// Shared Round-Robin config types + default (sub-project B).
+import {
+  DEFAULT_ROUND_ROBIN_CONFIG,
+  type RoundRobinConfig,
+} from "../../_components/RoundRobinPanel";
 import { ParticipantTypeWarningModal } from "./_components/ParticipantTypeWarningModal";
 import { SaveConfirmModal } from "./_components/SaveConfirmModal";
 import StagesGroupsTab from "./_components/StagesGroupsTab";
 import SponsorTab from "./_components/SponsorTab";
 import WaitlistTab from "./_components/WaitlistTab";
+
+// ── Round-Robin rehydration (sub-project B) ─────────────────────────────────────
+// Translate the backend's get-event-details echo into the form's RoundRobinConfig.
+// The echo carries base groups (with server group_ids + team_ids) and game_days whose
+// lobbies merge groups by GROUP ID; the form edits groups by 0-based INDEX, so we map
+// each lobby's source_group_ids back to indices via a group_id → index lookup. Returns
+// the default config when the stage has no round-robin structure.
+function rehydrateRoundRobin(
+  rr: EventDetails["stages"][number]["round_robin"],
+): RoundRobinConfig {
+  if (!rr || !rr.round_robin_groups?.length) {
+    return DEFAULT_ROUND_ROBIN_CONFIG;
+  }
+
+  // Keep the server group order so indices line up with the editor's group list.
+  const orderedGroups = [...rr.round_robin_groups].sort(
+    (a, b) => a.order - b.order,
+  );
+  const indexByGroupId = new Map<number, number>(
+    orderedGroups.map((g, i) => [g.group_id, i]),
+  );
+
+  // Flatten the echoed game_days → one form game-day per lobby (a day can hold
+  // multiple lobbies). source_group_ids → source_group_indices via the lookup.
+  const gameDays = (rr.game_days || []).flatMap((day) =>
+    (day.lobbies || []).map((lobby) => ({
+      game_day: day.game_day,
+      source_group_indices: (lobby.source_group_ids || [])
+        .map((gid) => indexByGroupId.get(gid))
+        .filter((i): i is number => i !== undefined),
+      match_count: lobby.match_count ?? 1,
+      match_maps: lobby.match_maps ?? ["Bermuda"],
+    })),
+  );
+
+  return {
+    round_robin_groups: orderedGroups.map((g) => ({
+      label: g.label,
+      order: g.order,
+      team_ids: g.team_ids || [],
+    })),
+    // If the backend already materialised game days, default the toggle to MANUAL so
+    // the admin sees the real schedule; otherwise leave auto-generate on.
+    generate_schedule: gameDays.length === 0,
+    games_per_day: gameDays[0]?.match_count ?? 1,
+    game_days: gameDays,
+  };
+}
 
 // ============================================================================
 // PAGE COMPONENT
@@ -102,6 +155,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     point_rush_enabled: boolean;
     point_rush_reward: Record<string, number>;
     point_rush_target_index?: number;
+    // ── Round-Robin config (sub-project B) — only for "br - round robin" stages. ──
+    round_robin: RoundRobinConfig;
   }>({
     stage_name: "",
     start_date: "",
@@ -120,6 +175,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     point_rush_enabled: false,
     point_rush_reward: {},
     point_rush_target_index: undefined,
+    // ── Round-Robin default: two empty base groups, auto-schedule. ──
+    round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
   });
 
   // ── Remove stage modal ─────────────────────────────────────────────────────
@@ -285,6 +342,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           stage.point_rush_target_stage_id != null
             ? stageIndexById.get(stage.point_rush_target_stage_id)
             : undefined,
+        // ── Round-Robin config (sub-project B): rebuild the form shape from the
+        //    echoed structure. The backend uses base-group IDS for lobby merges; the
+        //    form uses 0-based INDICES — translate via a group_id → index lookup so
+        //    the schedule survives a round-trip. Defaults when the stage has none. ──
+        round_robin: rehydrateRoundRobin(stage.round_robin),
         groups: stage.groups.map((group) => ({
           ...group,
           group_id: group.group_id,
@@ -568,6 +630,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         point_rush_enabled: existingStage.point_rush_enabled ?? false,
         point_rush_reward: existingStage.point_rush_reward ?? {},
         point_rush_target_index: existingStage.point_rush_target_index,
+        // ── Round-Robin config carried back (default if the stage had none). ──
+        round_robin: existingStage.round_robin ?? DEFAULT_ROUND_ROBIN_CONFIG,
       });
       setTempGroups(
         existingStage.groups.map((g) => ({
@@ -597,6 +661,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         point_rush_enabled: false,
         point_rush_reward: {},
         point_rush_target_index: undefined,
+        // ── Round-Robin default for a brand-new stage. ──
+        round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
       });
       setTempGroups(
         Array.from({ length: 2 }, (_, i) => ({
@@ -846,6 +912,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       point_rush_enabled: stageModalData.point_rush_enabled,
       point_rush_reward: stageModalData.point_rush_reward,
       point_rush_target_index: stageModalData.point_rush_target_index,
+      // ── Round-Robin config (sub-project B) — sent only for the BR Round-Robin
+      //    format so other bracket types don't carry a stray round_robin payload. ──
+      ...(stageModalData.stage_format === "br - round robin"
+        ? { round_robin: stageModalData.round_robin }
+        : {}),
     };
 
     const currentStages = [...form.getValues("stages")];
@@ -1717,6 +1788,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           handleSaveStageLogic={handleSaveStageLogic}
           passwordVisibility={passwordVisibility}
           toggleVisibility={toggleVisibility}
+          // Registered teams → round-robin base-group team picker (TEAM PK + name).
+          availableTeams={(eventDetails?.tournament_teams ?? [])
+            .filter((t: any) => t?.team_id != null && t?.team_name)
+            .map((t: any) => ({ team_id: t.team_id, team_name: t.team_name }))}
         />
 
         <RemoveStageModal

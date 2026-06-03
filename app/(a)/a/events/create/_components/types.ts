@@ -140,6 +140,30 @@ export const GroupSchema = z.object({
   prize_distribution: z.record(z.string(), z.string()).optional(),
 });
 
+// ── Round-Robin config schema (sub-project B). ───────────────────────────────────
+// Kept deliberately permissive: the RoundRobinPanel drives the editing UX and the
+// backend enforces the real structural rules (one base group per team, etc.). We only
+// shape it enough so it survives the form + serialises cleanly into the stages array.
+export const RoundRobinConfigSchema = z.object({
+  round_robin_groups: z.array(
+    z.object({
+      label: z.string(),
+      order: z.coerce.number(),
+      team_ids: z.array(z.coerce.number()), // TEAM PKs
+    }),
+  ),
+  generate_schedule: z.boolean(),
+  games_per_day: z.coerce.number(),
+  game_days: z.array(
+    z.object({
+      game_day: z.coerce.number(),
+      source_group_indices: z.array(z.coerce.number()),
+      match_count: z.coerce.number(),
+      match_maps: z.array(z.string()),
+    }),
+  ),
+});
+
 export const StageSchema = z.object({
   stage_name: z.string().min(1, "Stage name required"),
   stage_discord_role_id: z.string().optional(),
@@ -160,6 +184,12 @@ export const StageSchema = z.object({
   point_rush_enabled: z.boolean().default(false),
   point_rush_reward: z.record(z.string(), z.coerce.number()).optional(), // {"1":10,"2":7,...}
   point_rush_target_index: z.coerce.number().optional(), // 0-based index of the target stage
+  // ── Round-Robin config (sub-project B). Present only for "br - round robin" stages. ──
+  // Threaded verbatim into the FormData stages array; the backend reads
+  // round_robin_groups (team_ids = TEAM PKs) + generate_schedule (+ games_per_day) OR
+  // a manual game_days list. Validated loosely (passthrough) — the round-robin panel
+  // owns the editing UX; the backend is the source of truth for structural rules.
+  round_robin: RoundRobinConfigSchema.optional(),
 });
 
 export const EventFormSchema = z

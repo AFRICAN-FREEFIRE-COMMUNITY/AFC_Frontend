@@ -26,7 +26,6 @@
 // matching the Organizations / Events detail pages.
 
 import { use, useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -155,7 +154,6 @@ export default function PartnerDetailPage({
 }) {
   const { slug: rawSlug } = use(params);
   const slug = decodeURIComponent(rawSlug);
-  const router = useRouter();
 
   const [detail, setDetail] = useState<PartnerDetail | null>(null);
   const [keys, setKeys] = useState<PartnerKey[]>([]);

@@ -14,6 +14,11 @@
 export const STAGE_FORMATS = [
   "br - normal",
   "br - roundrobin",
+  // The live BR Round-Robin bracket (sub-project B). Distinct from the legacy
+  // "br - roundrobin" key above (a dead alias kept only for back-compat) — the
+  // backend's Stages.STAGE_FORMAT_CHOICES uses the spaced "br - round robin"
+  // value, and only THIS value triggers the base-groups + game-day-lobbies builder.
+  "br - round robin",
   "cs - normal",
   "cs - league",
   "cs - knockout",
@@ -25,6 +30,7 @@ export const STAGE_FORMATS = [
 export const FORMAT_LABEL: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
   "br - roundrobin": "Battle Royale - Round Robin",
+  "br - round robin": "Battle Royale - Round Robin",
   "cs - normal": "Clash Squad - Normal",
   "cs - league": "Clash Squad - League",
   "cs - knockout": "Clash Squad - Knockout",
