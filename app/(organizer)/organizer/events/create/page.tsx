@@ -63,6 +63,14 @@ import { useOrganizer } from "../../_components/OrganizerContext";
 import { EventFormSchema, EventFormType } from "@/app/(a)/a/events/create/_components/types";
 import { Step5PrizePool } from "@/app/(a)/a/events/create/_components/Step5PrizePool";
 import { Step6EventRules } from "@/app/(a)/a/events/create/_components/Step6EventRules";
+// Round-Robin parity (sub-project B): the same shared builder panel + default config the
+// admin wizard uses, so an organizer choosing the BR Round-Robin mode gets the SAME base
+// groups + schedule editor and ships the SAME round_robin payload shape to create-event.
+import {
+  RoundRobinPanel,
+  DEFAULT_ROUND_ROBIN_CONFIG,
+  type RoundRobinConfig,
+} from "@/app/(a)/a/events/_components/RoundRobinPanel";
 
 // Accepted banner upload types (same set the admin Step1 + team-edit pages allow).
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
@@ -84,6 +92,16 @@ export default function OrganizerCreateEventPage() {
   const [previewRuleUrl, setPreviewRuleUrl] = useState("");
   const [rulesInputMethod, setRulesInputMethod] = useState<"type" | "upload">("type");
   const bannerInputRef = React.useRef<HTMLInputElement>(null);
+
+  // ── Round-Robin config (sub-project B) ──────────────────────────────────────
+  // The organizer form synthesises ONE stage from event_mode, so the round-robin
+  // builder lives at page level (not per-stage like the admin wizard). It's edited
+  // by the RoundRobinPanel below and only sent when event_mode is "br - round robin"
+  // (see buildDefaultStages) — mirroring how the admin page only attaches round_robin
+  // to a stage whose stage_format is the BR Round-Robin bracket.
+  const [roundRobinConfig, setRoundRobinConfig] = useState<RoundRobinConfig>(
+    DEFAULT_ROUND_ROBIN_CONFIG,
+  );
 
   // ── Form ──────────────────────────────────────────────────────────────────
   // Same EventFormSchema as the admin wizard; defaults pre-pick the organizer-sensible
@@ -197,6 +215,13 @@ export default function OrganizerCreateEventPage() {
         point_rush_enabled: false,
         point_rush_reward: {},
         point_rush_target_index: undefined,
+        // ── Round-Robin parity with the admin wizard (sub-project B). Only the BR
+        // Round-Robin mode carries a round_robin payload (base groups + schedule);
+        // other modes omit it so the backend doesn't see a stray config — exactly
+        // how the admin page conditionally attaches round_robin by stage_format. ──
+        ...(data.event_mode === "br - round robin"
+          ? { round_robin: roundRobinConfig }
+          : {}),
         groups: [
           {
             group_name: "Group 1",
@@ -493,9 +518,14 @@ export default function OrganizerCreateEventPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {/* The two most common formats — keep the organizer form lean. */}
+                          {/* The common formats — keep the organizer form lean. BR
+                              Round-Robin is included for admin-wizard parity: picking it
+                              reveals the same base-groups + schedule builder below. */}
                           <SelectItem value="br - normal">
                             Battle Royale - Normal
+                          </SelectItem>
+                          <SelectItem value="br - round robin">
+                            Battle Royale - Round Robin
                           </SelectItem>
                           <SelectItem value="cs - normal">
                             Clash Squad - Normal
@@ -534,6 +564,19 @@ export default function OrganizerCreateEventPage() {
                   )}
                 />
               </div>
+
+              {/* ── Round-Robin builder (sub-project B) ─────────────────────────────
+                  Only shown when the BR Round-Robin mode is picked — the same shared
+                  RoundRobinPanel the admin wizard renders, so the organizer edits the
+                  same base groups + schedule and the resulting round_robin config is
+                  threaded into the synthesised stage (buildDefaultStages). No team
+                  picker here (no registrations yet on create), matching the admin flow. */}
+              {form.watch("event_mode") === "br - round robin" && (
+                <RoundRobinPanel
+                  config={roundRobinConfig}
+                  onChange={setRoundRobinConfig}
+                />
+              )}
 
               {/* Registration window — each side takes a date AND a time. */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
