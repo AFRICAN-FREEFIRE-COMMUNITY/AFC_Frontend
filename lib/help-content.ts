@@ -685,6 +685,63 @@ export const HELP = {
     "How many individual player match-stat entries have been logged — a measure of how much match data the platform holds.",
   "dashboard.recent_activities._section":
     "The most recent admin actions across the platform — who did what, and when.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Partners — the Data-API partner program. A partner is an AFC-approved external
+  // consumer of completed/published tournament data (e.g. a stats site or a broadcast
+  // partner) that reads it through a versioned REST API. EVERYTHING a partner can see
+  // is configured here: its scope (which events) and its toggles (which resources and
+  // which fields), plus its rotatable API keys. The list manages every partner; the
+  // detail screen has three tabs — Profile, Scope & Toggles, Keys.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Partners › List ─────────────────────────────────────────────────────────
+  "partners._page":
+    "Every approved data-API partner. A partner pulls completed, published tournament data through AFC's read API. Search the list, open one to set its scope, toggles and keys, or create a new partner.",
+  "partners.create":
+    "Provision a new partner. It starts with every toggle off and no scope, so it can read nothing until you grant access from its detail page.",
+  "partners.contact_email":
+    "An internal contact for this partner (e.g. their technical owner). Admin-only — it is never exposed through the partner API.",
+  "partners.active_keys":
+    "How many of this partner's API keys are currently active. Revoked keys aren't counted.",
+
+  // ── Partners › Detail (tabs) ────────────────────────────────────────────────
+  "partners.detail._page":
+    "Manage one partner — review its profile and status, grant exactly what it can read (scope + toggles), and issue or revoke the API keys it authenticates with.",
+  "partners.profile._section":
+    "The partner's identity and standing — its name, internal contact email, and active/suspended status. Suspend here to freeze all of its access at once.",
+  "partners.scope._section":
+    "What this partner can read, in two layers: SCOPE picks which events are visible; TOGGLES pick which resources respond and which fields appear. Everything defaults off — grant only what's needed.",
+  "partners.keys._section":
+    "The partner's API keys. Issue a key to give it access (the full key is shown only once), or revoke a key to cut access immediately. Stored keys are never shown again.",
+  "partners.suspend":
+    "Temporarily block every one of this partner's keys without revoking them individually. Unsuspend to restore access exactly as it was.",
+
+  // ── Partners › Scope ────────────────────────────────────────────────────────
+  "partners.scope_grants._section":
+    "Which events this partner may read. An event must ALSO be published to the partner API before it appears, no matter how it's granted here. Combine the three grants below freely.",
+  "partners.allow_all_native_afc":
+    "Grant every native AFC event (one with no external organizer) in a single switch, including future ones. Leave off to grant events one by one instead.",
+  "partners.allowed_events":
+    "Grant specific events to this partner. Only published events become readable — granting an unpublished event has no effect until it's published.",
+  "partners.allowed_organizations":
+    "Grant every event run by the selected organizations — current and future. Use this instead of picking each of an organizer's events by hand.",
+
+  // ── Partners › Toggles ──────────────────────────────────────────────────────
+  "partners.resource_toggles._section":
+    "Which API endpoints respond for this partner. Each switch turns a whole resource on or off — e.g. with Matches off, the matches endpoint returns nothing even for events in scope.",
+  "partners.field_toggles._section":
+    "Which fields appear inside the resources the partner can already read — e.g. turn Kills on to include kill counts, Prize on to include prize money. Off means the field is omitted entirely.",
+
+  // ── Partners › Keys ─────────────────────────────────────────────────────────
+  "partners.keys_table._section":
+    "Every key this partner holds, shown by its prefix only — the secret is hashed and never stored, so it can't be displayed after issuing. Track last-used here and revoke any key that should stop working.",
+  "partners.issue_key":
+    "Mint a new API key for this partner. The full key is displayed exactly once, immediately after issuing — copy it then, because it can never be retrieved again.",
+  "partners.rate_limit":
+    "The maximum requests per minute this key may make. Requests beyond it are rejected with a 429 until the next minute. Defaults to 60.",
+  "partners.revoke_key":
+    "Permanently disable this key. Any integration using it stops authenticating immediately. This can't be undone — issue a new key to restore access.",
 } as const;
 
 export type HelpId = keyof typeof HELP;
