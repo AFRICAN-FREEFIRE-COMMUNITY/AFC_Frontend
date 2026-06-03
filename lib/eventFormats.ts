@@ -13,11 +13,16 @@
 // The bracket types a stage can run. `as const` so callers get a precise string union.
 export const STAGE_FORMATS = [
   "br - normal",
+  // Legacy bracket value. The backend's Stages.STAGE_FORMAT_CHOICES labels this
+  // key "Battle Royale - Knockout" (NOT "Round Robin"), so we mirror that label in
+  // FORMAT_LABEL below. It is kept selectable for parity with the backend choices +
+  // back-compat with stages already stored as "br - roundrobin"; it does NOT drive
+  // the round-robin builder.
   "br - roundrobin",
-  // The live BR Round-Robin bracket (sub-project B). Distinct from the legacy
-  // "br - roundrobin" key above (a dead alias kept only for back-compat) — the
-  // backend's Stages.STAGE_FORMAT_CHOICES uses the spaced "br - round robin"
-  // value, and only THIS value triggers the base-groups + game-day-lobbies builder.
+  // The live BR Round-Robin bracket (sub-project B). The backend uses the SPACED
+  // "br - round robin" value, and only THIS value triggers the base-groups +
+  // game-day-lobbies builder — which is why it is a separate key from the legacy
+  // unspaced "br - roundrobin"/Knockout entry above.
   "br - round robin",
   "cs - normal",
   "cs - league",
@@ -29,7 +34,10 @@ export const STAGE_FORMATS = [
 // Display label for each bracket type (used in the stage-format <Select> options).
 export const FORMAT_LABEL: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
-  "br - roundrobin": "Battle Royale - Round Robin",
+  // Mirror the backend label for the legacy unspaced key (it is "Knockout" there,
+  // not "Round Robin") so the dropdown no longer shows two identical "Round Robin"
+  // options — only the spaced "br - round robin" below is the real round-robin.
+  "br - roundrobin": "Battle Royale - Knockout",
   "br - round robin": "Battle Royale - Round Robin",
   "cs - normal": "Clash Squad - Normal",
   "cs - league": "Clash Squad - League",
