@@ -5,6 +5,7 @@ import { UseFormReturn } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { InfoTip } from "@/components/ui/info-tip";
 import { EventFormType } from "./types";
 
 interface Step7Props {
@@ -19,7 +20,10 @@ export function Step7PublishSave({ form }: Step7Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 7: Publish &amp; Save</CardTitle>
+        <CardTitle className="flex items-center">
+          Step 7: Publish &amp; Save
+          <InfoTip id="events.create.publish._section" className="ml-1.5" />
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2 pt-4 border-t">
@@ -38,7 +42,10 @@ export function Step7PublishSave({ form }: Step7Props) {
                     disabled={saveToDraftsWatch}
                   />
                 </FormControl>
-                <FormLabel className="!mt-0 cursor-pointer">Publish to Tournaments</FormLabel>
+                <FormLabel className="!mt-0 cursor-pointer">
+                  Publish to Tournaments
+                  <InfoTip id="events.create.publish_to_tournaments" className="ml-1" />
+                </FormLabel>
               </FormItem>
             )}
           />
@@ -56,7 +63,10 @@ export function Step7PublishSave({ form }: Step7Props) {
                     disabled={publishToTournamentsWatch || publishToNewsWatch}
                   />
                 </FormControl>
-                <FormLabel className="!mt-0 cursor-pointer">Save as Draft</FormLabel>
+                <FormLabel className="!mt-0 cursor-pointer">
+                  Save as Draft
+                  <InfoTip id="events.create.save_to_drafts" className="ml-1" />
+                </FormLabel>
               </FormItem>
             )}
           />

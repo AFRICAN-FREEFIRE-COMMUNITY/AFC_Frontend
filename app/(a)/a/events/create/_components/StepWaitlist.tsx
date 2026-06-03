@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { InfoTip } from "@/components/ui/info-tip";
 import { EventFormType } from "./types";
 
 interface StepWaitlistProps {
@@ -31,7 +32,10 @@ export function StepWaitlist({ form }: StepWaitlistProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 8: Waitlist</CardTitle>
+        <CardTitle className="flex items-center">
+          Step 8: Waitlist
+          <InfoTip id="events.create.waitlist._section" className="ml-1.5" />
+        </CardTitle>
         <CardDescription>
           Allow players to join a waitlist if the event reaches max capacity.
         </CardDescription>
@@ -40,7 +44,10 @@ export function StepWaitlist({ form }: StepWaitlistProps) {
         {/* Toggle */}
         <div className="flex items-center justify-between rounded-lg border p-4">
           <div className="space-y-0.5">
-            <Label htmlFor="waitlist-toggle">Enable Waitlist</Label>
+            <Label htmlFor="waitlist-toggle">
+              Enable Waitlist
+              <InfoTip id="events.create.is_waitlist_enabled" className="ml-1" />
+            </Label>
             <p className="text-xs text-muted-foreground">
               When the event is full, players can join a waitlist and be
               admitted if spots open up.
@@ -72,7 +79,10 @@ export function StepWaitlist({ form }: StepWaitlistProps) {
               name="waitlist_capacity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Waitlist Capacity</FormLabel>
+                  <FormLabel>
+                    Waitlist Capacity
+                    <InfoTip id="events.create.waitlist_capacity" className="ml-1" />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="number"

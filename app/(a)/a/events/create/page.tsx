@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 
@@ -772,7 +773,16 @@ export default function CreateEventPage() {
 
   return (
     <div>
-      <PageHeader title={duplicateSlug ? "Duplicate Event" : "Create New Event"} back />
+      <PageHeader
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            {duplicateSlug ? "Duplicate Event" : "Create New Event"}
+            <InfoTip id="events.create._page" className="ml-1.5" />
+          </span>
+        }
+        back
+      />
       {duplicateSlug && (
         <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
           You&apos;re duplicating an existing event. All details have been pre-filled — update what you need, then create.

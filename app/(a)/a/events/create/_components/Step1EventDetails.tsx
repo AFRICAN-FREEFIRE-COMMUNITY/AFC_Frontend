@@ -35,6 +35,8 @@ import {
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { countries, REGIONS_MAP } from "@/constants";
+import { InfoTip } from "@/components/ui/info-tip";
+import { type HelpId } from "@/lib/help-content";
 import { EventFormType } from "./types";
 
 interface Step1Props {
@@ -88,7 +90,10 @@ export function Step1EventDetails({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 1: Event Details</CardTitle>
+        <CardTitle className="flex items-center">
+          Step 1: Event Details
+          <InfoTip id="events.create.step1._section" className="ml-1.5" />
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Event Name */}
@@ -111,6 +116,8 @@ export function Step1EventDetails({
             {
               name: "competition_type" as const,
               label: "Competition Type",
+              // `tip` keys the centralized help copy so each select carries a why.
+              tip: "events.create.competition_type" as HelpId,
               options: [
                 { value: "tournament", label: "Tournament" },
                 { value: "scrims", label: "Scrims" },
@@ -119,6 +126,7 @@ export function Step1EventDetails({
             {
               name: "participant_type" as const,
               label: "Participant Type",
+              tip: "events.create.participant_type" as HelpId,
               options: [
                 { value: "solo", label: "Solo" },
                 { value: "duo", label: "Duo" },
@@ -128,6 +136,7 @@ export function Step1EventDetails({
             {
               name: "event_type" as const,
               label: "Event Type",
+              tip: "events.create.event_type" as HelpId,
               options: [
                 { value: "internal", label: "Internal event" },
                 { value: "external", label: "External event" },
@@ -136,12 +145,13 @@ export function Step1EventDetails({
             {
               name: "is_public" as const,
               label: "Event Privacy",
+              tip: "events.create.is_public" as HelpId,
               options: [
                 { value: "True", label: "Public" },
                 { value: "False", label: "Private" },
               ],
             },
-          ].map(({ name, label, options }) => (
+          ].map(({ name, label, tip, options }) => (
             <FormField
               key={name}
               // @ts-ignore
@@ -149,7 +159,10 @@ export function Step1EventDetails({
               name={name}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{label}</FormLabel>
+                  <FormLabel>
+                    {label}
+                    <InfoTip id={tip} className="ml-1" />
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -178,7 +191,10 @@ export function Step1EventDetails({
           name="max_teams_or_players"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Max Teams/Players</FormLabel>
+              <FormLabel>
+                Max Teams/Players
+                <InfoTip id="events.create.max_teams_or_players" className="ml-1" />
+              </FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -220,7 +236,10 @@ export function Step1EventDetails({
             name="registration_open_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Opens</FormLabel>
+                <FormLabel>
+                  Registration Opens
+                  <InfoTip id="events.create.registration_open" className="ml-1" />
+                </FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -248,7 +267,7 @@ export function Step1EventDetails({
             name="registration_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Start Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormLabel>Registration Start Time <span className="text-muted-foreground font-normal">(optional)</span><InfoTip id="events.create.registration_time" className="ml-1" /></FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -280,7 +299,10 @@ export function Step1EventDetails({
             name="start_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Start Date</FormLabel>
+                <FormLabel>
+                  Event Start Date
+                  <InfoTip id="events.create.event_dates" className="ml-1" />
+                </FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -308,7 +330,7 @@ export function Step1EventDetails({
             name="event_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Start Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormLabel>Event Start Time <span className="text-muted-foreground font-normal">(optional)</span><InfoTip id="events.create.event_time" className="ml-1" /></FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>

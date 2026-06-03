@@ -7,6 +7,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { InfoTip } from "@/components/ui/info-tip";
 import { EventFormType } from "./types";
 
 interface Step5Props {
@@ -37,7 +38,10 @@ export function Step5PrizePool({ form }: Step5Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 5: Prize Pool &amp; Distribution</CardTitle>
+        <CardTitle className="flex items-center">
+          Step 5: Prize Pool &amp; Distribution
+          <InfoTip id="events.create.prizes._section" className="ml-1.5" />
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <FormField

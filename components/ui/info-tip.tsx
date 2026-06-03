@@ -38,7 +38,9 @@ export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
       <PopoverContent
         side={side}
         onOpenAutoFocus={(e) => e.preventDefault()}
-        className="max-w-xs text-xs leading-relaxed"
+        // popover.tsx hardcodes a fixed w-72 — override with w-auto so short tips
+        // shrink to fit while max-w-xs still caps the wide ones.
+        className="w-auto max-w-xs text-xs leading-relaxed"
       >
         {content}
       </PopoverContent>

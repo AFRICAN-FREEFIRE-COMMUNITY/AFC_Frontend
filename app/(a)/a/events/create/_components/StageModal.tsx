@@ -396,6 +396,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2, Plus, Minus } from "lucide-react";
+import { InfoTip } from "@/components/ui/info-tip";
 import { formatDate } from "@/lib/utils";
 import {
   AVAILABLE_MAPS,
@@ -665,6 +666,7 @@ export function StageModal({
             <div>
               <label className="text-sm font-medium mb-2 block">
                 Stage Format
+                <InfoTip id="events.create.stage_format" className="ml-1" />
               </label>
               <Select
                 value={stageModalData.stage_format}
@@ -700,6 +702,7 @@ export function StageModal({
                   <div>
                     <label className="text-sm font-medium block">
                       Champion-Point
+                      <InfoTip id="events.create.champion_point" className="ml-1" />
                     </label>
                     <p className="text-xs text-muted-foreground">
                       First team to Booyah while already at/above the threshold
@@ -720,6 +723,7 @@ export function StageModal({
                   <div>
                     <label className="text-sm font-medium mb-2 block">
                       Champion Point Threshold
+                      <InfoTip id="events.create.champion_point_threshold" className="ml-1" />
                     </label>
                     <Input
                       type="number"
@@ -748,6 +752,7 @@ export function StageModal({
                   <div>
                     <label className="text-sm font-medium block">
                       Point-Rush
+                      <InfoTip id="events.create.point_rush" className="ml-1" />
                     </label>
                     <p className="text-xs text-muted-foreground">
                       Award per-lobby placement bonuses here and bank them into a
@@ -771,6 +776,7 @@ export function StageModal({
                     <div className="space-y-2">
                       <label className="text-xs font-medium block text-muted-foreground">
                         Placement Rewards
+                        <InfoTip id="events.create.point_rush_reward" className="ml-1" />
                       </label>
                       {Object.keys(stageModalData.point_rush_reward).length ===
                         0 && (
@@ -855,6 +861,7 @@ export function StageModal({
                     <div>
                       <label className="text-sm font-medium mb-2 block">
                         Carry-Over Target Stage
+                        <InfoTip id="events.create.point_rush_target" className="ml-1" />
                       </label>
                       <Select
                         value={
@@ -929,6 +936,7 @@ export function StageModal({
             <div>
               <label className="text-sm font-medium mb-2 block">
                 Number of Groups
+                <InfoTip id="events.create.number_of_groups" className="ml-1" />
               </label>
               <Input
                 type="number"
@@ -1090,6 +1098,7 @@ export function StageModal({
                 <div>
                   <label className="text-sm font-medium mb-2 block">
                     Teams Qualifying from this Group
+                    <InfoTip id="events.create.teams_qualifying" className="ml-1" />
                   </label>
                   <Input
                     type="number"
@@ -1110,6 +1119,7 @@ export function StageModal({
                 <div>
                   <label className="text-sm font-medium mb-2 block">
                     Match Count
+                    <InfoTip id="events.create.match_count" className="ml-1" />
                   </label>
                   <Input
                     type="number"
@@ -1146,6 +1156,7 @@ export function StageModal({
                 <div>
                   <label className="text-sm font-medium mb-2 block">
                     Maps to be Played <span className="text-red-500">*</span>
+                    <InfoTip id="events.create.match_maps" className="ml-1" />
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {AVAILABLE_MAPS.map((map) => {

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { InfoTip } from "@/components/ui/info-tip";
 import { EventFormType } from "./types";
 
 // ─── Step 2: Event Mode ───────────────────────────────────────────────────────
@@ -18,7 +19,10 @@ export function Step2EventMode({ form }: Step2Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 2: Event Mode</CardTitle>
+        <CardTitle className="flex items-center">
+          Step 2: Event Mode
+          <InfoTip id="events.create.event_mode._section" className="ml-1.5" />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <FormField
@@ -27,7 +31,10 @@ export function Step2EventMode({ form }: Step2Props) {
           name="event_mode"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Select Event Mode</FormLabel>
+              <FormLabel>
+                Select Event Mode
+                <InfoTip id="events.create.event_mode" className="ml-1" />
+              </FormLabel>
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value}>
                   {["virtual", "physical", "hybrid"].map((mode) => (
@@ -70,7 +77,10 @@ export function Step3StageCount({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 3: Select Number of Stages</CardTitle>
+        <CardTitle className="flex items-center">
+          Step 3: Select Number of Stages
+          <InfoTip id="events.create.stages._section" className="ml-1.5" />
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <FormField
@@ -79,7 +89,10 @@ export function Step3StageCount({
           name="number_of_stages"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>How many stages?</FormLabel>
+              <FormLabel>
+                How many stages?
+                <InfoTip id="events.create.number_of_stages" className="ml-1" />
+              </FormLabel>
               <FormControl>
                 <Input
                   type="number"

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { IconFile, IconFileText, IconUpload, IconX } from "@tabler/icons-react";
+import { InfoTip } from "@/components/ui/info-tip";
 import { EventFormType } from "./types";
 
 interface Step6Props {
@@ -52,7 +53,10 @@ export function Step6EventRules({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 6: Event Rules</CardTitle>
+        <CardTitle className="flex items-center">
+          Step 6: Event Rules
+          <InfoTip id="events.create.rules._section" className="ml-1.5" />
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Method Toggle */}

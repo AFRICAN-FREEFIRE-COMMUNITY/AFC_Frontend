@@ -25,6 +25,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { IconLoader2 } from "@tabler/icons-react";
 import axios from "axios";
+import { InfoTip } from "@/components/ui/info-tip";
 import { EventFormType } from "./types";
 
 interface Sponsor {
@@ -80,7 +81,10 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 7: Sponsor Requirement</CardTitle>
+        <CardTitle className="flex items-center">
+          Step 7: Sponsor Requirement
+          <InfoTip id="events.create.sponsor._section" className="ml-1.5" />
+        </CardTitle>
         <CardDescription>
           Configure whether participants need to complete a sponsor action
           before registering.
