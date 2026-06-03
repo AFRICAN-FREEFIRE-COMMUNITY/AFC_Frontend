@@ -388,6 +388,7 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
 import { IconMap, IconTrophy } from "@tabler/icons-react";
 import { Loader } from "@/components/Loader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { GroupResultModal } from "../../../_components/GroupResultModal";
 import { SeedToGroupModal } from "../../../_components/SeedToGroupModal";
 import { SendNotificationModal } from "../../../_components/SendNotificationModal";
@@ -726,6 +727,12 @@ export default function StagesGroupsTab({
                           onClick={() => onSeedGroup(group)}
                         >
                           Seed to Next Stage
+                          {/* Edit-only live-event action — explain what seeding does. */}
+                          <InfoTip
+                            id="events.edit.seed_to_next_stage"
+                            side="top"
+                            className="ml-1 text-primary-foreground/80 hover:text-primary-foreground"
+                          />
                         </Button>
                       </div>
                     </CardContent>

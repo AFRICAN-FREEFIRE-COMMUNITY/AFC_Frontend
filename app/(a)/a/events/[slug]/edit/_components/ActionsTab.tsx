@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader } from "@/components/Loader";
+import { InfoTip } from "@/components/ui/info-tip";
 import {
   CheckCircle2,
   ChevronRight,
@@ -284,7 +285,10 @@ export default function ActionsTab({
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium">Start Tournament</p>
+              <p className="text-sm font-medium inline-flex items-center">
+                Start Tournament
+                <InfoTip id="events.edit.start_tournament" className="ml-1" />
+              </p>
               <p className="text-xs text-muted-foreground">
                 Seed registered players into Stage 1.
               </p>
@@ -305,7 +309,10 @@ export default function ActionsTab({
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium">Cancel Event</p>
+              <p className="text-sm font-medium inline-flex items-center">
+                Cancel Event
+                <InfoTip id="events.edit.cancel_event" className="ml-1" />
+              </p>
               <p className="text-xs text-muted-foreground">
                 Mark as cancelled and notify all registered players.
               </p>
@@ -324,7 +331,10 @@ export default function ActionsTab({
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium">Mark as Complete</p>
+              <p className="text-sm font-medium inline-flex items-center">
+                Mark as Complete
+                <InfoTip id="events.edit.complete_event" className="ml-1" />
+              </p>
               <p className="text-xs text-muted-foreground">
                 Finalise the event and lock all results.
               </p>
@@ -357,7 +367,10 @@ export default function ActionsTab({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <p className="text-sm font-medium">Seed Competitors to Groups</p>
+            <p className="text-sm font-medium inline-flex items-center">
+              Seed Competitors to Groups
+              <InfoTip id="events.edit.seed_to_groups" className="ml-1" />
+            </p>
             <p className="text-xs text-muted-foreground">
               Randomly distribute stage competitors into groups.
             </p>
@@ -393,7 +406,10 @@ export default function ActionsTab({
           <Separator />
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Advance to Next Stage</p>
+            <p className="text-sm font-medium inline-flex items-center">
+              Advance to Next Stage
+              <InfoTip id="events.edit.advance_stage" className="ml-1" />
+            </p>
             <p className="text-xs text-muted-foreground">
               Push top competitors from a group into the next stage.
             </p>
@@ -478,7 +494,10 @@ export default function ActionsTab({
           <Separator />
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Sync Discord Roles</p>
+            <p className="text-sm font-medium inline-flex items-center">
+              Sync Discord Roles
+              <InfoTip id="events.edit.sync_discord" className="ml-1" />
+            </p>
             <p className="text-xs text-muted-foreground">
               Re-assign missing Discord group roles for a specific group.
             </p>
@@ -558,7 +577,10 @@ export default function ActionsTab({
           <Separator />
 
           <div>
-            <p className="text-sm font-medium mb-1">Export Participants</p>
+            <p className="text-sm font-medium mb-1 inline-flex items-center">
+              Export Participants
+              <InfoTip id="events.edit.export_participants" className="ml-1" />
+            </p>
             <p className="text-xs text-muted-foreground mb-3">
               Download a list of all registered players/teams.
             </p>

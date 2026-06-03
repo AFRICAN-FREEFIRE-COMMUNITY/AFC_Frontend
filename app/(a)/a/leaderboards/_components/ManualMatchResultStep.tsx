@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IconLoader2, IconMap } from "@tabler/icons-react";
 import { Loader } from "@/components/Loader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -364,6 +365,7 @@ export function ManualMatchResultStep({
         <CardTitle className="flex items-center gap-2">
           <IconMap size={20} className="text-muted-foreground" />
           {match.match_name} — Manual Input
+          <InfoTip id="leaderboards.manual_result._section" />
         </CardTitle>
         <CardDescription>
           Enter results for each{" "}
@@ -412,7 +414,10 @@ export function ManualMatchResultStep({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label>Placement</Label>
+                  <Label>
+                    Placement
+                    <InfoTip id="leaderboards.result_placement" className="ml-1" />
+                  </Label>
                   <Input
                     type="number"
                     min="0"
@@ -453,6 +458,10 @@ export function ManualMatchResultStep({
                             <div className="space-y-1">
                               <Label className="text-xs text-muted-foreground">
                                 Kills
+                                <InfoTip
+                                  id="leaderboards.result_kills"
+                                  className="ml-1"
+                                />
                               </Label>
                               <Input
                                 type="number"
@@ -473,6 +482,10 @@ export function ManualMatchResultStep({
                             <div className="space-y-1">
                               <Label className="text-xs text-muted-foreground">
                                 Damage
+                                <InfoTip
+                                  id="leaderboards.result_damage"
+                                  className="ml-1"
+                                />
                               </Label>
                               <Input
                                 type="number"
@@ -493,6 +506,10 @@ export function ManualMatchResultStep({
                             <div className="space-y-1">
                               <Label className="text-xs text-muted-foreground">
                                 Assists
+                                <InfoTip
+                                  id="leaderboards.result_assists"
+                                  className="ml-1"
+                                />
                               </Label>
                               <Input
                                 type="number"
@@ -548,6 +565,10 @@ export function ManualMatchResultStep({
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">
                         Placement
+                        <InfoTip
+                          id="leaderboards.result_placement"
+                          className="ml-1"
+                        />
                       </Label>
                       <Input
                         type="number"
@@ -567,6 +588,7 @@ export function ManualMatchResultStep({
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">
                         Kills
+                        <InfoTip id="leaderboards.result_kills" className="ml-1" />
                       </Label>
                       <Input
                         type="number"
@@ -586,6 +608,10 @@ export function ManualMatchResultStep({
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">
                         Bonus Points
+                        <InfoTip
+                          id="leaderboards.result_bonus_points"
+                          className="ml-1"
+                        />
                       </Label>
                       <Input
                         type="number"
@@ -605,6 +631,10 @@ export function ManualMatchResultStep({
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">
                         Penalty Points
+                        <InfoTip
+                          id="leaderboards.result_penalty_points"
+                          className="ml-1"
+                        />
                       </Label>
                       <Input
                         type="number"

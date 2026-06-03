@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/table";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { DownloadLeaderboardButton } from "./_components/DownloadLeaderboardButton";
+import { InfoTip } from "@/components/ui/info-tip";
 
 interface LeaderboardProps {
   leaderboard_id: number;
@@ -141,7 +142,16 @@ const page = () => {
 
   return (
     <div className="space-y-4">
-      <PageHeader back title="Leaderboards Management" />
+      <PageHeader
+        back
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            Leaderboards Management
+            <InfoTip id="leaderboards._page" className="ml-1.5" />
+          </span>
+        }
+      />
       <div className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
         <Card className="hover:shadow-lg transition-shadow gap-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

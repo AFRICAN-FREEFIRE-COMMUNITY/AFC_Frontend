@@ -41,6 +41,7 @@ import {
 import Image from "next/image";
 import { Loader } from "@/components/Loader";
 import { countries, REGIONS_MAP } from "@/constants";
+import { InfoTip } from "@/components/ui/info-tip";
 import type { EventFormType, EventDetails } from "../types";
 
 interface BasicInfoTabProps {
@@ -144,7 +145,14 @@ export default function BasicInfoTab({
             name="max_teams_or_players"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Max Teams/Players</FormLabel>
+                <FormLabel>
+                  Max Teams/Players
+                  {/* Reuse the create-wizard copy — identical field. */}
+                  <InfoTip
+                    id="events.create.max_teams_or_players"
+                    className="ml-1"
+                  />
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -172,7 +180,13 @@ export default function BasicInfoTab({
             name="competition_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Competition Type</FormLabel>
+                <FormLabel>
+                  Competition Type
+                  <InfoTip
+                    id="events.create.competition_type"
+                    className="ml-1"
+                  />
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -197,7 +211,13 @@ export default function BasicInfoTab({
             name="participant_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Participant Type</FormLabel>
+                <FormLabel>
+                  Participant Type
+                  <InfoTip
+                    id="events.create.participant_type"
+                    className="ml-1"
+                  />
+                </FormLabel>
                 <Select
                   value={field.value}
                   onValueChange={(value) => {
@@ -233,7 +253,10 @@ export default function BasicInfoTab({
             name="event_mode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Mode</FormLabel>
+                <FormLabel>
+                  Event Mode
+                  <InfoTip id="events.create.event_mode" className="ml-1" />
+                </FormLabel>
                 <Select
                   value={field.value}
                   onValueChange={field.onChange}
@@ -259,7 +282,10 @@ export default function BasicInfoTab({
             name="event_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Type</FormLabel>
+                <FormLabel>
+                  Event Type
+                  <InfoTip id="events.create.event_type" className="ml-1" />
+                </FormLabel>
                 <Select
                   value={field.value}
                   onValueChange={field.onChange}
@@ -284,7 +310,10 @@ export default function BasicInfoTab({
             name="is_public"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Privacy</FormLabel>
+                <FormLabel>
+                  Event Privacy
+                  <InfoTip id="events.create.is_public" className="ml-1" />
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value} // ✅ Add this line
@@ -510,7 +539,13 @@ export default function BasicInfoTab({
             name="registration_open_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Opens</FormLabel>
+                <FormLabel>
+                  Registration Opens
+                  <InfoTip
+                    id="events.create.registration_open"
+                    className="ml-1"
+                  />
+                </FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -566,7 +601,10 @@ export default function BasicInfoTab({
             name="start_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Start Date</FormLabel>
+                <FormLabel>
+                  Event Start Date
+                  <InfoTip id="events.create.event_dates" className="ml-1" />
+                </FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -791,6 +829,10 @@ export default function BasicInfoTab({
                 </FormControl>
                 <FormLabel className="!mt-0 cursor-pointer">
                   Publish to Tournaments
+                  <InfoTip
+                    id="events.create.publish_to_tournaments"
+                    className="ml-1"
+                  />
                 </FormLabel>
               </FormItem>
             )}
@@ -810,6 +852,7 @@ export default function BasicInfoTab({
                 </FormControl>
                 <FormLabel className="!mt-0 cursor-pointer">
                   Save as Draft
+                  <InfoTip id="events.create.save_to_drafts" className="ml-1" />
                 </FormLabel>
               </FormItem>
             )}

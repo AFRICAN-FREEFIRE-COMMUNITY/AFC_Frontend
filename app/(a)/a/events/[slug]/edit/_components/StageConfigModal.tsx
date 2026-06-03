@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { EyeIcon, EyeOffIcon, Trash2, Plus, Minus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { InfoTip } from "@/components/ui/info-tip";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import {
@@ -273,7 +274,11 @@ export function StageConfigModal({
             </div>
 
             <div>
-              <Label className="mb-2.5">Stage Format</Label>
+              <Label className="mb-2.5">
+                Stage Format
+                {/* Reuse the create-wizard copy — identical scoring control. */}
+                <InfoTip id="events.create.stage_format" className="ml-1" />
+              </Label>
               <Select
                 value={stageModalData.stage_format}
                 onValueChange={(value) =>
@@ -309,7 +314,13 @@ export function StageConfigModal({
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <Label>Champion-Point</Label>
+                    <Label>
+                      Champion-Point
+                      <InfoTip
+                        id="events.create.champion_point"
+                        className="ml-1"
+                      />
+                    </Label>
                     <p className="text-xs text-muted-foreground mt-1">
                       First team to Booyah while already at/above the threshold
                       wins the stage.
@@ -353,7 +364,10 @@ export function StageConfigModal({
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <Label>Point-Rush</Label>
+                    <Label>
+                      Point-Rush
+                      <InfoTip id="events.create.point_rush" className="ml-1" />
+                    </Label>
                     <p className="text-xs text-muted-foreground mt-1">
                       Award per-lobby placement bonuses here and bank them into a
                       later stage.
@@ -528,7 +542,10 @@ export function StageConfigModal({
             </div>
 
             <div>
-              <Label className="mb-2.5">Number of Groups</Label>
+              <Label className="mb-2.5">
+                Number of Groups
+                <InfoTip id="events.create.number_of_groups" className="ml-1" />
+              </Label>
               <Input
                 type="number"
                 min={1}
@@ -711,7 +728,10 @@ export function StageConfigModal({
 
                 {/* Match Count */}
                 <div>
-                  <Label className="mb-2.5">Match count</Label>
+                  <Label className="mb-2.5">
+                    Match count
+                    <InfoTip id="events.create.match_count" className="ml-1" />
+                  </Label>
                   <Input
                     type="number"
                     min={1}
@@ -746,6 +766,7 @@ export function StageConfigModal({
                 <div>
                   <Label className="mb-2.5">
                     Maps to be Played <span className="text-red-500">*</span>
+                    <InfoTip id="events.create.match_maps" className="ml-1" />
                   </Label>
                   <div className="flex flex-wrap gap-2">
                     {AVAILABLE_MAPS.map((map) => {

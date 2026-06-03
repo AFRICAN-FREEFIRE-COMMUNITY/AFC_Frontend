@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type RankEntry = { id: number; val: string };
 
@@ -81,7 +82,10 @@ function KillAssistDamageFields({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="space-y-1.5">
-        <Label>Points per Kill</Label>
+        <Label>
+          Points per Kill
+          <InfoTip id="leaderboards.kill_point" className="ml-1" />
+        </Label>
         <Input
           type="number"
           step="0.5"
@@ -90,7 +94,10 @@ function KillAssistDamageFields({
         />
       </div>
       <div className="space-y-1.5">
-        <Label>Points per Assist</Label>
+        <Label>
+          Points per Assist
+          <InfoTip id="leaderboards.assist_point" className="ml-1" />
+        </Label>
         <Input
           type="number"
           step="0.5"
@@ -99,7 +106,10 @@ function KillAssistDamageFields({
         />
       </div>
       <div className="space-y-1.5">
-        <Label>Points per Damage (per 1000)</Label>
+        <Label>
+          Points per Damage (per 1000)
+          <InfoTip id="leaderboards.damage_point" className="ml-1" />
+        </Label>
         <Input
           type="number"
           step="0.5"
@@ -279,7 +289,10 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
   return (
     <Card className="gap-0">
       <CardHeader>
-        <CardTitle>Configure Point System</CardTitle>
+        <CardTitle className="flex items-center">
+          Configure Point System
+          <InfoTip id="leaderboards.point_system._section" className="ml-1.5" />
+        </CardTitle>
         <CardDescription>
           Set how many points are awarded for placement, kills, assists, and
           damage. Keep in mind, kills is always visible in the leaderboard.
@@ -302,6 +315,7 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
           <div className="space-y-0.5">
             <Label htmlFor="apply-all" className="cursor-pointer font-medium">
               Apply this point system to all maps
+              <InfoTip id="leaderboards.apply_to_all_maps" className="ml-1" />
             </Label>
             {!applyToAllMaps && (
               <p className="text-xs text-muted-foreground">
@@ -316,7 +330,10 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
           <>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="font-medium">Placement Points</Label>
+                <Label className="font-medium">
+                  Placement Points
+                  <InfoTip id="leaderboards.placement_points" className="ml-1" />
+                </Label>
                 <Button variant="outline" size="sm" onClick={addRank}>
                   <IconPlus size={13} className="mr-1" />
                   + Add Placement
@@ -386,7 +403,13 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
                       {/* Placement Points per map */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <Label className="text-xs font-medium text-muted-foreground">Placement Points</Label>
+                          <Label className="text-xs font-medium text-muted-foreground">
+                            Placement Points
+                            <InfoTip
+                              id="leaderboards.placement_points"
+                              className="ml-1"
+                            />
+                          </Label>
                           <Button variant="outline" size="sm" onClick={() => addMapRank(m.match_id)}>
                             <IconPlus size={13} className="mr-1" />
                             + Add

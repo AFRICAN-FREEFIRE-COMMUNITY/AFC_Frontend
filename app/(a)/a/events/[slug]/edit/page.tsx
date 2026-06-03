@@ -8,6 +8,7 @@ import { Form } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import axios from "axios";
@@ -1468,47 +1469,70 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         onConfirm={() => handleConfirmSeed(selectedGroupForSeed?.group_id)}
       />
 
-      <PageHeader back title={eventTitle} />
+      <PageHeader
+        back
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        title={
+          <span className="inline-flex items-center">
+            {eventTitle}
+            <InfoTip id="events.edit._page" className="ml-1.5" />
+          </span>
+        }
+      />
 
       <Form {...form}>
         <form className="space-y-6">
           <Tabs value={currentTab} onValueChange={setCurrentTab}>
             <TabsList className="w-full justify-start overflow-x-auto mb-2">
+              {/* Each tab carries a section-level ⓘ explaining what that area does. */}
               <TabsTrigger value="basic_info" className="px-6 relative">
                 Basic Info
+                <InfoTip id="events.edit.basic_info._section" className="ml-1" />
                 {tabErrors.basic_info && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
               </TabsTrigger>
               <TabsTrigger value="registered_teams" className="px-6 relative">
                 Registered Teams
+                <InfoTip
+                  id="events.edit.registered_teams._section"
+                  className="ml-1"
+                />
                 {tabErrors.registered_teams && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
               </TabsTrigger>
               <TabsTrigger value="stages_groups" className="px-6 relative">
                 Stages & Groups
+                <InfoTip
+                  id="events.edit.stages_groups._section"
+                  className="ml-1"
+                />
                 {tabErrors.stages_groups && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
               </TabsTrigger>
               <TabsTrigger value="prize_rules" className="px-6 relative">
                 Prize & Rules
+                <InfoTip id="events.edit.prize_rules._section" className="ml-1" />
                 {tabErrors.prize_rules && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
               </TabsTrigger>
               <TabsTrigger value="actions" className="px-6 relative">
                 Event Actions
+                <InfoTip id="events.edit.actions._section" className="ml-1" />
               </TabsTrigger>
               <TabsTrigger value="sponsor" className="px-6 relative">
                 Sponsor
+                <InfoTip id="events.edit.sponsor._section" className="ml-1" />
                 {sponsorForm.is_sponsored && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
                 )}
               </TabsTrigger>
               <TabsTrigger value="waitlist" className="px-6 relative">
                 Waitlist
+                <InfoTip id="events.edit.waitlist._section" className="ml-1" />
                 {waitlistForm.is_waitlist_enabled && (
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
                 )}

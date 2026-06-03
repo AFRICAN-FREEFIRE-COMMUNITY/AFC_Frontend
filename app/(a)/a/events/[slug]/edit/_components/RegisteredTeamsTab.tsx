@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
 import { DisqualifyModal } from "../../../_components/DisqualifyModal";
 import { ReactivateModal } from "../../../_components/ReactivateModal";
 import { AddTeamsModal } from "../../../_components/AddTeamsModal";
@@ -52,15 +53,19 @@ export default function RegisteredTeamsTab({
             {teamCount})
           </span>
           {eventDetails.participant_type === "squad" && (
-            <AddTeamsModal
-              mode="event"
-              targetId={eventDetails.event_id}
-              targetName={eventDetails.event_name}
-              existingTeamIds={eventDetails.tournament_teams.map(
-                (t: any) => t.team_id,
-              )}
-              onSuccess={() => window.location.reload()}
-            />
+            <span className="inline-flex items-center gap-1">
+              <AddTeamsModal
+                mode="event"
+                targetId={eventDetails.event_id}
+                targetName={eventDetails.event_name}
+                existingTeamIds={eventDetails.tournament_teams.map(
+                  (t: any) => t.team_id,
+                )}
+                onSuccess={() => window.location.reload()}
+              />
+              {/* Edit-only: manually placing teams into the event. */}
+              <InfoTip id="events.edit.add_teams" />
+            </span>
           )}
         </CardTitle>
       </CardHeader>

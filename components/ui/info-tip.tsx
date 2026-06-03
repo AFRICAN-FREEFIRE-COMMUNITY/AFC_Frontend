@@ -26,7 +26,14 @@ export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
           aria-label="More info"
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
-          onClick={() => setOpen((o) => !o)}
+          onClick={(e) => {
+            // When the ⓘ is nested inside a <label>/<FormLabel>, a bare click would
+            // bubble to the label and focus/toggle its associated field. Stop it so
+            // tapping the icon only opens the tip — never touches the input.
+            e.stopPropagation();
+            e.preventDefault();
+            setOpen((o) => !o);
+          }}
           className={cn(
             "inline-flex align-middle text-muted-foreground hover:text-primary focus:text-primary focus:outline-none",
             className,

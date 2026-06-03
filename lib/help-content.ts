@@ -85,6 +85,93 @@ export const HELP = {
     "Make the event live on the public Tournaments page so players can find and register.",
   "events.create.save_to_drafts":
     "Save your progress without publishing. Drafts aren't visible to players until you publish them.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Events › Edit flow (tabbed). The edit screen exposes the same fields as the
+  // create wizard PLUS live-event controls (seeding, verify, results). Where a
+  // field is identical to create we REUSE the create id (e.g. stage_format) so
+  // there is one source of copy — the ids below are only the edit-only extras.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Page-level tip (top of the edit screen).
+  "events.edit._page":
+    "Edit a live or upcoming event — update its details, manage registered teams and stages, then save. Some changes affect players who have already registered.",
+
+  // ── Tab / section tips (one per edit tab heading) ──────────────────────────
+  "events.edit.basic_info._section":
+    "The event's core details — name, format, dates and registration window. Editing these after players register can affect their sign-ups.",
+  "events.edit.registered_teams._section":
+    "Everyone who has registered. Disqualify or reactivate competitors, or add teams in manually.",
+  "events.edit.stages_groups._section":
+    "Every stage and its groups. Edit a stage's setup, seed competitors into the next round, or enter results.",
+  "events.edit.prize_rules._section":
+    "The overall prize pool and the rules players agree to. Per-stage and per-group prizes are set inside each stage.",
+  "events.edit.actions._section":
+    "Run-the-event controls — start or end the tournament, seed and advance stages, broadcast announcements, and export data.",
+  "events.edit.sponsor._section":
+    "Gate registration behind a sponsor task (e.g. install an app and submit a UUID), and review who has completed it.",
+  "events.edit.waitlist._section":
+    "Let players queue once the event is full, and see who is currently waiting for a spot.",
+
+  // ── Edit-only stage actions (live events) ──────────────────────────────────
+  "events.edit.seed_to_next_stage":
+    "Send the qualifying competitors from this group up into the next stage. Run this once the group's results are final.",
+  "events.edit.add_teams":
+    "Manually place teams into this event, stage or group — useful for invited teams or fixing a missed registration.",
+
+  // ── Event Actions tab controls ─────────────────────────────────────────────
+  "events.edit.start_tournament":
+    "Lock registration and seed everyone into Stage 1. The event becomes live and players can no longer sign up.",
+  "events.edit.cancel_event":
+    "Mark the event cancelled and notify every registered player. Use when the event won't go ahead.",
+  "events.edit.complete_event":
+    "Finalise the event and lock all results so nothing can be changed afterwards.",
+  "events.edit.seed_to_groups":
+    "Randomly distribute a stage's competitors across its groups. Run before the stage's matches begin.",
+  "events.edit.advance_stage":
+    "Push the top competitors from a chosen group into the next stage.",
+  "events.edit.sync_discord":
+    "Re-assign any missing Discord roles for a group — handy if a role didn't apply when players were seeded.",
+  "events.edit.export_participants":
+    "Download the full list of registered players or teams as a CSV or Excel file.",
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Leaderboards › point-system config + manual result entry
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Page-level tip (Leaderboards management list).
+  "leaderboards._page":
+    "Build and manage match leaderboards — pick an event, set how points are scored, then enter or import each match's results.",
+
+  // ── Point-system section + fields ──────────────────────────────────────────
+  "leaderboards.point_system._section":
+    "Defines how a match is scored: how many points each finishing position is worth, plus points for kills, assists and damage.",
+  "leaderboards.placement_points":
+    "Points awarded for each finishing position — e.g. 1st = 100, 2nd = 80. Add a row for every position you want to score.",
+  "leaderboards.kill_point":
+    "Points added for each kill a competitor gets. Kills are always shown on the leaderboard.",
+  "leaderboards.assist_point":
+    "Points added for each assist a player records.",
+  "leaderboards.damage_point":
+    "Points added for every 1000 damage a player deals.",
+  "leaderboards.apply_to_all_maps":
+    "On: one point system scores every map in this group. Off: configure each map's scoring separately.",
+
+  // ── Manual result-entry section + fields ───────────────────────────────────
+  "leaderboards.manual_result._section":
+    "Enter this match's results by hand. Uncheck anyone who didn't play so they aren't scored for this match.",
+  "leaderboards.result_placement":
+    "Where the team or player finished this match (1 = winner). Drives the placement points above.",
+  "leaderboards.result_kills":
+    "Total kills this competitor got in the match.",
+  "leaderboards.result_damage":
+    "Total damage this player dealt in the match — scored per 1000.",
+  "leaderboards.result_assists":
+    "Total assists this player recorded in the match.",
+  "leaderboards.result_bonus_points":
+    "Extra points to add on top of the calculated score — e.g. an admin reward.",
+  "leaderboards.result_penalty_points":
+    "Points to subtract from the calculated score — e.g. a rules penalty.",
 } as const;
 
 export type HelpId = keyof typeof HELP;
