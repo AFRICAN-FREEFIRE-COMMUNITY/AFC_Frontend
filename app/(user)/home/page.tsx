@@ -168,9 +168,13 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-4">
-                {shopItems.map((item) => (
+                {shopItems.map((item, index) => (
                   <li
-                    key={item.id}
+                    // Key by index: shopItems is static mock placeholder data with repeated
+                    // ids (1/2/3 x4), so item.id is not unique -> React "duplicate key"
+                    // warning. The list never reorders, so index is a safe stable key here.
+                    // Swap to a real unique id when this is wired to the shop API.
+                    key={index}
                     className="flex items-center space-x-4 border-b pb-4 last:border-b-0 last:pb-0"
                   >
                     <Image
