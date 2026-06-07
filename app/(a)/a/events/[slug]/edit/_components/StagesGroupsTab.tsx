@@ -581,9 +581,14 @@ export default function StagesGroupsTab({
                                 onSuccess={() => window.location.reload()}
                               />
                             )}
+                          {/* Per-group broadcast composer (labelled "Message group").
+                              Names passed so the dialog titles itself with the exact
+                              stage > group it will message. */}
                           <SendNotificationModal
                             eventId={eventDetails.event_id}
                             groupId={group.group_id}
+                            groupName={group.group_name}
+                            stageName={stage.stage_name}
                             onSuccess={() => {}}
                           />
                         </div>

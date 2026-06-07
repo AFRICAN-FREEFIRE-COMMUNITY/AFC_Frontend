@@ -65,6 +65,11 @@ interface BasicInfoTabProps {
   // edit flow passes this (organizer events are always external to AFC, so the field
   // is AFC-admin-only). Defaults to false so the admin flow is unchanged.
   hideEventType?: boolean;
+  // When true, the "Registration Link (Required for External)" field is hidden. The
+  // organizer edit flow passes this (the link is an AFC-only concern). Defaults false
+  // so the admin flow still shows it. The existing value stays in form state and is
+  // re-sent on save, so hiding never clears it.
+  hideRegistrationLink?: boolean;
 }
 
 export default function BasicInfoTab({
@@ -85,6 +90,7 @@ export default function BasicInfoTab({
   loadingEvent,
   pendingSubmit,
   hideEventType = false,
+  hideRegistrationLink = false,
 }: BasicInfoTabProps) {
   const form = useFormContext<EventFormType>();
 
@@ -343,7 +349,9 @@ export default function BasicInfoTab({
           />
         </div>
 
-        {eventType && (
+        {/* Registration Link — AFC-only; organizer edit hides it (hideRegistrationLink).
+            The value persists in form state and is re-sent on save. */}
+        {eventType && !hideRegistrationLink && (
           <FormField
             control={form.control}
             name="registration_link"

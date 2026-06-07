@@ -128,6 +128,8 @@ export const HELP = {
     "Let players queue once the event is full, and see who is currently waiting for a spot.",
 
   // ── Edit-only stage actions (live events) ──────────────────────────────────
+  "events.edit.group_broadcast":
+    "Message everyone in this group. Pick 'Custom message' to send your own title and text, or 'Room details' to push each map's Room ID, Name and Password automatically. This is group-scoped (only this group), unlike the event-wide Broadcast in the Actions tab.",
   "events.edit.seed_to_next_stage":
     "Send the qualifying competitors from this group up into the next stage. Run this once the group's results are final.",
   "events.edit.add_teams":

@@ -48,6 +48,11 @@ interface Step1Props {
   // When true, the internal/external Event Type select is dropped. AFC-only field;
   // the organizer create flow passes this and defaults event_type to "external".
   hideEventType?: boolean;
+  // When true, the "Registration Link (Required for External)" field is dropped.
+  // Organizer events are always external, but the registration link is an AFC-only
+  // concern, so the organizer create flow passes this. Defaults false (AFC admin
+  // create still shows + collects it as before).
+  hideRegistrationLink?: boolean;
 }
 
 export function Step1EventDetails({
@@ -57,6 +62,7 @@ export function Step1EventDetails({
   previewUrl,
   setPreviewUrl,
   hideEventType = false,
+  hideRegistrationLink = false,
 }: Step1Props) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -219,8 +225,9 @@ export function Step1EventDetails({
           )}
         />
 
-        {/* External Registration Link */}
-        {eventType && (
+        {/* External Registration Link — AFC-only; organizer flow hides it
+            (hideRegistrationLink) since the link isn't needed for org events. */}
+        {eventType && !hideRegistrationLink && (
           <FormField
             // @ts-ignore
             control={form.control}

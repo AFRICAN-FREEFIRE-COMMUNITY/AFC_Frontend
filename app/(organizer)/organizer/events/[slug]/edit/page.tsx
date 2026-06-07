@@ -1779,6 +1779,9 @@ export default function OrganizerEditEventPage({
                 // Internal/External Event Type is AFC-only; hide it for organizers.
                 // The existing event_type value is kept and re-sent on save.
                 hideEventType
+                // Registration link is an AFC-only concern; hide it for organizers.
+                // The existing value (if any) is kept and re-sent on save.
+                hideRegistrationLink
               />
             </TabsContent>
 

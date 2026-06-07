@@ -70,6 +70,7 @@ import { ManualMatchResultStep } from "../../_components/ManualMatchResultStep";
 import { MatchMethodSelectionStep } from "../../_components/MatchMethodSelectionStep";
 import { ImageUploadStep } from "../../_components/ImageUploadStep";
 import { FileUploadStep } from "../../_components/FileUploadStep";
+import { GroupBulkUploadPanel } from "../../_components/GroupBulkUploadPanel";
 
 type Params = { id: string };
 
@@ -245,6 +246,8 @@ export default function EditLeaderboardPage({
     {},
   );
   const [savingMatch, setSavingMatch] = useState(false);
+  // Whole-group "Save all maps" in-flight flag (fans out one save per map).
+  const [savingAllMaps, setSavingAllMaps] = useState(false);
 
   // Total leaderboard
   const [overall, setOverall] = useState<OverallEntry[]>([]);
@@ -453,18 +456,22 @@ export default function EditLeaderboardPage({
 
   // ── Save match results ───────────────────────────────────────────────────────
 
-  const handleSaveMatch = async () => {
-    if (selectedMatchId === null) return;
-    const rows = editRows[selectedMatchId] ?? [];
-    setSavingMatch(true);
-    try {
-      let endpoint: string;
-      let body: any;
+  // Build the exact per-map save request (endpoint + body) for ONE map from the
+  // already-loaded editRows/playerGroups state. Factored out of handleSaveMatch so the
+  // single-map Save AND the new "Save all maps" fan-out share one source of truth for
+  // the request shape (solo -> edit-solo-match-result/rows; team -> edit-match-result/
+  // results[] with nested players[]). Returns null when the map has no rows loaded.
+  const buildMatchSaveRequest = (
+    matchId: number,
+  ): { endpoint: string; body: any } | null => {
+    const rows = editRows[matchId] ?? [];
+    if (rows.length === 0) return null;
 
-      if (participantType === "solo") {
-        endpoint = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-solo-match-result/`;
-        body = {
-          match_id: selectedMatchId.toString(),
+    if (participantType === "solo") {
+      return {
+        endpoint: `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-solo-match-result/`,
+        body: {
+          match_id: matchId.toString(),
           rows: rows.map((r) => ({
             competitor_id: r.id,
             placement: r.placement,
@@ -473,52 +480,104 @@ export default function EditLeaderboardPage({
             bonus_points: r.bonus_points,
             penalty_points: r.penalty_points,
           })),
-        };
-      } else {
-        const groups = playerGroups[selectedMatchId] ?? [];
-        endpoint = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-result/`;
-        body = {
-          match_id: selectedMatchId,
-          results: rows.map((r) => {
-            const teamGroup = groups.find((g) => g.teamId === r.id);
-            return {
-              tournament_team_id: r.id,
-              placement: r.placement,
-              played: r.played,
-              bonus_points: r.bonus_points,
-              penalty_points: r.penalty_points,
-              players: (teamGroup?.players ?? []).map((p) => ({
-                user_id: p.player_id,
-                kills: p.kills,
-                damage: p.damage,
-                assists: p.assists,
-                played: p.played,
-              })),
-            };
-          }),
-        };
-      }
-
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body),
-      });
+      };
+    }
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || err.detail || "Save failed");
-      }
+    const groups = playerGroups[matchId] ?? [];
+    return {
+      endpoint: `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-result/`,
+      body: {
+        match_id: matchId,
+        results: rows.map((r) => {
+          const teamGroup = groups.find((g) => g.teamId === r.id);
+          return {
+            tournament_team_id: r.id,
+            placement: r.placement,
+            played: r.played,
+            bonus_points: r.bonus_points,
+            penalty_points: r.penalty_points,
+            players: (teamGroup?.players ?? []).map((p) => ({
+              user_id: p.player_id,
+              kills: p.kills,
+              damage: p.damage,
+              assists: p.assists,
+              played: p.played,
+            })),
+          };
+        }),
+      },
+    };
+  };
 
+  // POST one map's results. Throws on a non-OK response so callers (single + bulk) can
+  // count successes/failures uniformly.
+  const saveMatchById = async (matchId: number): Promise<void> => {
+    const req = buildMatchSaveRequest(matchId);
+    if (!req) return; // nothing entered for this map -> skip (not an error)
+    const res = await fetch(req.endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(req.body),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || err.detail || "Save failed");
+    }
+  };
+
+  const handleSaveMatch = async () => {
+    if (selectedMatchId === null) return;
+    setSavingMatch(true);
+    try {
+      await saveMatchById(selectedMatchId);
       toast.success("Match results saved!");
       fetchData();
     } catch (err: any) {
       toast.error(err.message || "Failed to save match results");
     } finally {
       setSavingMatch(false);
+    }
+  };
+
+  // ── Save ALL maps of the current group at once ───────────────────────────────
+  // The user asked to edit a whole group in one go instead of map-by-map. Every map's
+  // rows are already in editRows/playerGroups (loaded by the group-change effect), so
+  // this fans out one per-map save per map via Promise.allSettled (same idiom as
+  // handleApplyScoringToMatches), reports an "X of Y saved" summary, and refreshes once.
+  const handleSaveAllMaps = async () => {
+    // Only maps that actually have rows loaded are saveable.
+    const saveableIds = groupMatchIds.filter(
+      (mid) => (editRows[mid] ?? []).length > 0,
+    );
+    if (saveableIds.length === 0) {
+      toast.error("No map results to save in this group yet.");
+      return;
+    }
+    setSavingAllMaps(true);
+    try {
+      const results = await Promise.allSettled(
+        saveableIds.map((mid) => saveMatchById(mid)),
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      const ok = saveableIds.length - failed;
+      if (failed > 0) {
+        toast.warning(
+          `Saved ${ok} of ${saveableIds.length} maps. ${failed} failed.`,
+        );
+      } else {
+        toast.success(
+          `Saved all ${ok} map${ok !== 1 ? "s" : ""} in this group.`,
+        );
+      }
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save the group's maps");
+    } finally {
+      setSavingAllMaps(false);
     }
   };
 
@@ -1403,9 +1462,30 @@ export default function EditLeaderboardPage({
                     </Card>
                   )}
 
-                  {/* Save button */}
-                  <div className="flex justify-end">
-                    <Button onClick={handleSaveMatch} disabled={savingMatch}>
+                  {/* Save buttons: this map only, or every map in the group at once.
+                      "Save all maps" fans out one save per map (handleSaveAllMaps). */}
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleSaveAllMaps}
+                      disabled={savingAllMaps || savingMatch}
+                    >
+                      {savingAllMaps ? (
+                        <span className="flex items-center gap-2">
+                          <IconLoader2 size={14} className="animate-spin" />
+                          Saving all maps…
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <IconDeviceFloppy size={14} />
+                          Save all maps ({groupMatchIds.length})
+                        </span>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={handleSaveMatch}
+                      disabled={savingMatch || savingAllMaps}
+                    >
                       {savingMatch ? (
                         <span className="flex items-center gap-2">
                           <IconLoader2 size={14} className="animate-spin" />
@@ -1414,7 +1494,7 @@ export default function EditLeaderboardPage({
                       ) : (
                         <span className="flex items-center gap-2">
                           <IconDeviceFloppy size={14} />
-                          Save Match Results
+                          Save this map
                         </span>
                       )}
                     </Button>
@@ -1831,36 +1911,54 @@ export default function EditLeaderboardPage({
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {groupMatches.map((m) => {
-                const done = (m as any).result_inputted ?? false;
-                return (
-                  <Card key={m.match_id} className="p-4 flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">
-                          Match {m.match_number}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {m.match_map}
-                        </p>
+            <>
+              {/* Bulk: upload screenshots for several maps at once (whole group). */}
+              <GroupBulkUploadPanel
+                matches={groupMatches.map((m) => ({
+                  match_id: m.match_id,
+                  match_number: m.match_number,
+                  match_map: m.match_map,
+                }))}
+                apiBase={env.NEXT_PUBLIC_BACKEND_API_URL}
+                token={token}
+                onComplete={fetchData}
+              />
+
+              {/* Or upload one map at a time (per-map drawer). */}
+              <p className="text-xs font-medium text-muted-foreground pt-1">
+                Or upload a single map:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {groupMatches.map((m) => {
+                  const done = (m as any).result_inputted ?? false;
+                  return (
+                    <Card key={m.match_id} className="p-4 flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">
+                            Match {m.match_number}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {m.match_map}
+                          </p>
+                        </div>
+                        <Badge variant={done ? "default" : "secondary"}>
+                          {done ? "Results Entered" : "Pending"}
+                        </Badge>
                       </div>
-                      <Badge variant={done ? "default" : "secondary"}>
-                        {done ? "Results Entered" : "Pending"}
-                      </Badge>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant={done ? "outline" : "default"}
-                      onClick={() => handleOpenUpload(m)}
-                    >
-                      <IconUpload size={14} className="mr-1" />
-                      {done ? "Re-upload Results" : "Upload Results"}
-                    </Button>
-                  </Card>
-                );
-              })}
-            </div>
+                      <Button
+                        size="sm"
+                        variant={done ? "outline" : "default"}
+                        onClick={() => handleOpenUpload(m)}
+                      >
+                        <IconUpload size={14} className="mr-1" />
+                        {done ? "Re-upload Results" : "Upload Results"}
+                      </Button>
+                    </Card>
+                  );
+                })}
+              </div>
+            </>
           )}
         </TabsContent>
       </Tabs>
