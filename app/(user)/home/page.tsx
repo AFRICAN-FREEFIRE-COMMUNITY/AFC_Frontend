@@ -18,6 +18,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
 import { HomeBoxes } from "../_components/HomeBoxes";
+// Two compact blocks (latest events + latest player-market posts) added below the
+// stat boxes per the approved home-additions mockup.
+import { HomeLatestSections } from "../_components/HomeLatestSections";
 import { LatestNews } from "../_components/LatestNews";
 import { useEffect, useState } from "react";
 import { ComingSoon } from "@/components/ComingSoon";
@@ -207,6 +210,9 @@ export default function HomePage() {
           </Card>
         </div>
       </div>
+      {/* Latest events + player-market posts sit below the News/Shop row and above
+          the Rankings & Tiers table, per the approved layout. */}
+      <HomeLatestSections />
       <Card>
         <CardHeader>
           <CardTitle>Rankings and Tiers</CardTitle>
