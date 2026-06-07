@@ -60,7 +60,7 @@ import {
   type MarketReportRow,
 } from "@/lib/playerMarket";
 import { MarketBanDialog } from "./_components/MarketBanDialog";
-import { IconBan } from "@tabler/icons-react";
+import { IconBan, IconFlag } from "@tabler/icons-react";
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -696,8 +696,68 @@ export default function AdminPlayerMarketPage() {
   const [resolveStatus, setResolveStatus] = useState("open");
   const [resolveNotes, setResolveNotes] = useState("");
   const [resolveSaving, setResolveSaving] = useState(false);
-  // Ban dialog: the report a ban is being actioned from.
+  // Ban dialog: the report a ban is being actioned from (bans the REPORTED subject).
   const [banTarget, setBanTarget] = useState<MarketReportRow | null>(null);
+
+  // ── Ban-the-REPORTER flow (feature "J-market-rules", J5) ─────────────────────
+  // When a report is judged false / abusive, the moderator can ban the REPORTER (not
+  // the reported subject) from the market. Reuses the same admin_market_ban endpoint
+  // with scope="player" + target_id = report.reporter_id (exposed by _serialize_report).
+  // A small confirm dialog collects the reason; the ban is permanent by default here
+  // (duration_days omitted -> permanent), matching how the main Ban dialog treats a
+  // serious violation, but the reason is editable so the moderator owns the wording.
+  const [banReporterTarget, setBanReporterTarget] =
+    useState<MarketReportRow | null>(null);
+  const [banReporterReason, setBanReporterReason] = useState("");
+  const [banReporterSaving, setBanReporterSaving] = useState(false);
+
+  // Open the confirm dialog seeded with a sensible default reason.
+  const openBanReporter = (row: MarketReportRow) => {
+    setBanReporterTarget(row);
+    setBanReporterReason(
+      "Filing a false or abusive report on the Player Market. Reports must be honest and backed by evidence.",
+    );
+  };
+
+  // Ban the reporter via admin_market_ban (scope player, target = reporter id). On
+  // success we also stamp the originating report "dismissed" so the queue reflects that
+  // the report was rejected and the reporter actioned.
+  const confirmBanReporter = async () => {
+    if (!banReporterTarget || banReporterSaving) return;
+    const reporterId = banReporterTarget.reporter_id;
+    if (!reporterId) {
+      toast.error("This report has no reporter on record to ban.");
+      return;
+    }
+    if (!banReporterReason.trim()) {
+      toast.error("A ban reason is required.");
+      return;
+    }
+    setBanReporterSaving(true);
+    try {
+      // Permanent ban (duration_days omitted). report_id is NOT passed so the report is
+      // not flagged "banned" (that status means the SUBJECT was banned); we mark the
+      // report "dismissed" separately below to show it was rejected.
+      await playerMarketApi.adminBan({
+        scope: "player",
+        target_id: reporterId,
+        reason: banReporterReason.trim(),
+      });
+      await playerMarketApi.adminUpdateReport(banReporterTarget.id, {
+        status: "dismissed",
+        resolution_notes: `Reporter (${banReporterTarget.reporter_username ?? "unknown"}) banned for a false/abusive report. ${banReporterReason.trim()}`,
+      });
+      toast.success(
+        `Reporter ${banReporterTarget.reporter_username ?? ""} banned from the market.`.trim(),
+      );
+      setBanReporterTarget(null);
+      fetchReports();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to ban reporter.");
+    } finally {
+      setBanReporterSaving(false);
+    }
+  };
 
   // Fetch the report queue. Server-side filters (status/category/search). The endpoint
   // returns { results, total_count, has_more }; this tab shows the first page (the
@@ -1673,9 +1733,24 @@ export default function AdminPlayerMarketPage() {
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => setBanTarget(report)}
+                                title="Ban the reported team or player"
                               >
                                 <IconBan className="h-3.5 w-3.5 mr-1" />
                                 Ban
+                              </Button>
+                            )}
+                            {/* J5: ban the REPORTER when the report is false / abusive.
+                                Only shown when the reporter id is on record. */}
+                            {report.reporter_id && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-red-500/50 text-red-500 hover:text-red-500"
+                                onClick={() => openBanReporter(report)}
+                                title="Ban the reporter for a false or abusive report"
+                              >
+                                <IconFlag className="h-3.5 w-3.5 mr-1" />
+                                Ban reporter
                               </Button>
                             )}
                           </div>
@@ -2080,6 +2155,74 @@ export default function AdminPlayerMarketPage() {
         onClose={() => setBanTarget(null)}
         onBanned={fetchReports}
       />
+
+      {/* ─── Ban-the-REPORTER confirm dialog (feature "J-market-rules", J5) ─────────
+          Bans the user who FILED a false / abusive report (not the reported subject),
+          via admin_market_ban scope=player target_id=reporter_id. Permanent by default;
+          the reason is editable. Closing the report as "dismissed" happens in the
+          handler so the queue reflects that the report itself was rejected. */}
+      <Dialog
+        open={!!banReporterTarget}
+        onOpenChange={(open) => !open && setBanReporterTarget(null)}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <IconFlag className="h-5 w-5 text-red-500" />
+              Ban reporter (false report)
+            </DialogTitle>
+            <DialogDescription>
+              Bans{" "}
+              <span className="font-medium text-foreground">
+                {banReporterTarget?.reporter_username ?? "this reporter"}
+              </span>{" "}
+              from the Player Market for filing a false or abusive report. They
+              will no longer be able to create posts, apply, or invite. This
+              report is closed as dismissed.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-1">
+            <div className="space-y-2">
+              <Label htmlFor="ban-reporter-reason">
+                Reason <span className="text-red-500">*</span>{" "}
+                <span className="text-muted-foreground">
+                  (shown to the banned reporter)
+                </span>
+              </Label>
+              <Textarea
+                id="ban-reporter-reason"
+                value={banReporterReason}
+                onChange={(e) => setBanReporterReason(e.target.value)}
+                rows={3}
+                placeholder="Explain why this reporter is being banned. Reference that the report was false or abusive."
+              />
+            </div>
+            <p className="rounded-md border border-red-500/30 bg-red-500/5 p-3 text-sm text-muted-foreground">
+              This is a permanent market ban on the reporter. Use it only when a
+              report is clearly false, fabricated, or abusive.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setBanReporterTarget(null)}
+              disabled={banReporterSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmBanReporter}
+              disabled={banReporterSaving || !banReporterReason.trim()}
+            >
+              <IconFlag className="h-4 w-4 mr-1" />
+              {banReporterSaving ? "Banning..." : "Ban reporter"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

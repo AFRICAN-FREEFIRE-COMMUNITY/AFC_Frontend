@@ -23,7 +23,7 @@ import { HomeBoxes } from "../_components/HomeBoxes";
 import { HomeLatestSections } from "../_components/HomeLatestSections";
 import { LatestNews } from "../_components/LatestNews";
 import { useEffect, useState } from "react";
-import { ComingSoon } from "@/components/ComingSoon";
+import { FeaturedShop } from "../_components/FeaturedShop";
 import { quarterlyTiers, teamRankings } from "@/constants";
 import { ProtectedRoute } from "../_components/ProtectedRoute";
 // Subtle clickable team name -> public team page.
@@ -37,82 +37,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
-
-// Mock data for shop items
-const shopItems = [
-  {
-    id: 1,
-    name: "Golden Dragon AK",
-    price: 1000,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 2,
-    name: "Ninja Outfit",
-    price: 800,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 3,
-    name: "Legendary Emote: Victory Dance",
-    price: 500,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 1,
-    name: "Golden Dragon AK",
-    price: 1000,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 2,
-    name: "Ninja Outfit",
-    price: 800,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 3,
-    name: "Legendary Emote: Victory Dance",
-    price: 500,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 1,
-    name: "Golden Dragon AK",
-    price: 1000,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 2,
-    name: "Ninja Outfit",
-    price: 800,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 3,
-    name: "Legendary Emote: Victory Dance",
-    price: 500,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 1,
-    name: "Golden Dragon AK",
-    price: 1000,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 2,
-    name: "Ninja Outfit",
-    price: 800,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-  {
-    id: 3,
-    name: "Legendary Emote: Victory Dance",
-    price: 500,
-    image: "/placeholder.svg?height=100&width=100",
-  },
-];
 
 function SponsorRedirectModal() {
   const { user } = useAuth();
@@ -166,48 +90,9 @@ export default function HomePage() {
         </div>
 
         <div>
-          <Card className="relative overflow-hidden">
-            <ComingSoon />
-            <CardHeader>
-              <CardTitle>Featured Shop Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-4">
-                {shopItems.map((item, index) => (
-                  <li
-                    // Key by index: shopItems is static mock placeholder data with repeated
-                    // ids (1/2/3 x4), so item.id is not unique -> React "duplicate key"
-                    // warning. The list never reorders, so index is a safe stable key here.
-                    // Swap to a real unique id when this is wired to the shop API.
-                    key={index}
-                    className="flex items-center space-x-4 border-b pb-4 last:border-b-0 last:pb-0"
-                  >
-                    <Image
-                      src={item.image || "/placeholder.svg"}
-                      alt={item.name}
-                      width={50}
-                      height={50}
-                      className="rounded"
-                    />
-                    <div className="flex-grow">
-                      <h3 className="font-semibold">{item.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {item.price} Diamonds
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/shop/${item.id}`}>
-                        View <ExternalLink className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-              <Button asChild className="mt-4 w-full">
-                <Link href="/shop">Visit Shop</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Real, live storefront teaser (was a mock list behind a "Coming Soon"
+              overlay). Fetches active products from the public shop endpoint. */}
+          <FeaturedShop />
         </div>
       </div>
       {/* Latest events + player-market posts sit below the News/Shop row and above

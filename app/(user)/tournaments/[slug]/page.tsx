@@ -2,7 +2,20 @@ import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
-import { generateDynamicMetadata, siteConfig } from "@/lib/seo";
+// SEO helpers (lib/seo.ts):
+//   generateDynamicMetadata → OG/Twitter fallback metadata
+//   generateEventSchema     → JSON-LD SportsEvent for this tournament
+//   generateBreadcrumbSchema→ Home > Tournaments > <event> trail
+//   resolveOgImage          → proxy the backend banner so crawlers can fetch it
+//   jsonLd                  → render a schema object as a <script ld+json>
+import {
+  generateDynamicMetadata,
+  siteConfig,
+  generateEventSchema,
+  generateBreadcrumbSchema,
+  resolveOgImage,
+  jsonLd,
+} from "@/lib/seo";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -112,10 +125,50 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 // 3. Page Component
+//
+// We re-use getEventData (already memoized-ish via Next fetch cache from
+// generateMetadata's identical request) to embed JSON-LD in the INITIAL HTML.
+// This is what search + AI crawlers read — the interactive UI still renders
+// entirely inside the client EventDetailsWrapper below, unaffected.
 const Page = async ({ params }: Props) => {
   const { slug } = await params;
+  const data = await getEventData(slug);
 
-  return <EventDetailsWrapper slug={slug} />;
+  // Build the structured data only when the event actually loaded (graceful
+  // fallback: no <script> rather than a schema full of nulls).
+  let eventSchema: object | null = null;
+  let breadcrumbSchema: object | null = null;
+  if (data) {
+    const eventName = data.event_name || "Tournament";
+    const canonicalUrl = `${siteConfig.url}/tournaments/${slug}`;
+    eventSchema = generateEventSchema({
+      name: eventName,
+      url: canonicalUrl,
+      startDate: data.start_date,
+      endDate: data.end_date,
+      // Proxy the backend banner through /api/og-image so crawlers can fetch it.
+      image: data.event_banner_url ? resolveOgImage(data.event_banner_url) : null,
+      // The not-logged-in detail endpoint omits org name/slug; the list endpoint
+      // carries them. Pass through if present, otherwise omit (no fabrication).
+      organizerName: data.organization_name || null,
+      organizerSlug: data.organization_slug || null,
+      // prizepool is free text ("1750.0 WORTH OF PRIZES") → surfaced as an offer note.
+      prizeText: data.prizepool || null,
+    });
+    breadcrumbSchema = generateBreadcrumbSchema([
+      { name: "Home", path: "/" },
+      { name: "Tournaments", path: "/tournaments" },
+      { name: eventName, path: `/tournaments/${slug}` },
+    ]);
+  }
+
+  return (
+    <>
+      {eventSchema && <script {...jsonLd(eventSchema)} />}
+      {breadcrumbSchema && <script {...jsonLd(breadcrumbSchema)} />}
+      <EventDetailsWrapper slug={slug} />
+    </>
+  );
 };
 
 export default Page;

@@ -30,9 +30,27 @@
  * Visual spec: tasks/team-stats-mockup.html (approved). AFC design constants apply
  * (gold accent, green primary headings, rounded-md cards, text-xs tables, pill segs).
  * No em/en dashes anywhere in user-facing copy.
+ *
+ * PRIVACY (added):
+ *   Detailed team stats are visible ONLY to CURRENT MEMBERS of this team (and AFC
+ *   admins). The backend (afc_team/views.py :: get_team_details) is the real
+ *   boundary: it returns stats_visible=false and ZEROES the numbers for non-members.
+ *
+ *   The team page (teams/[id]/page.tsx, owned separately) fetches get-team-details
+ *   WITHOUT a token, so its payload is the anonymous (zeroed) one for everyone. To
+ *   let actual members see their real stats without editing that page, THIS tab
+ *   re-fetches get-team-details ITSELF with the logged-in viewer's Bearer token and
+ *   prefers that authoritative, server-gated copy. The page-passed `team` prop is the
+ *   fallback (used before the authed fetch resolves, or when logged out). When the
+ *   effective payload says stats_visible===false we render a "members only" message
+ *   instead of the numbers. The team's public identity (name, tier, member count)
+ *   lives on the page header outside this tab and stays visible regardless.
  */
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +80,7 @@ import {
   IconTrendingUp,
   IconTrendingDown,
   IconTrophy,
+  IconLock,
 } from "@tabler/icons-react";
 
 /* ── Types mirroring the get-team-details contract ────────────────────────── */
@@ -104,6 +123,8 @@ type TierHistoryEntry = {
 
 type TeamStatisticsTabProps = {
   team: {
+    // Used by this tab to re-fetch a token-gated copy of the stats (see below).
+    team_name?: string;
     team_tier?: string;
     total_earnings?: string;
     total_wins?: number;
@@ -114,6 +135,13 @@ type TeamStatisticsTabProps = {
     tournament_performance?: TournamentPerformance[];
     recent_matches?: RecentMatch[];
     tier_history?: TierHistoryEntry[];
+    // PRIVACY (backend afc_team/views.py :: get_team_details): true only when the
+    // viewer is a CURRENT member of this team or an AFC admin. When false the
+    // backend zeroes the detailed numbers and empties the lists, and we show a
+    // "members only" message instead of the stats window. The team's public
+    // identity (name, tier, member count) lives on the page header, not here, so
+    // it stays visible regardless.
+    stats_visible?: boolean;
   };
 };
 
@@ -167,7 +195,61 @@ const tierChipClass = (tier: number | null, label: string | null): string => {
   return "text-muted-foreground";
 };
 
-const TeamStatisticsTab = ({ team }: TeamStatisticsTabProps) => {
+const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
+  const { token } = useAuth();
+
+  /* ── Token-aware stats payload (the privacy boundary) ──────────────────────
+     The parent page fetches get-team-details WITHOUT a token, so its `teamProp`
+     is the anonymous (zeroed) payload for everyone. We re-fetch the SAME endpoint
+     here WITH the viewer's Bearer token; the backend then returns the real,
+     member-gated numbers (stats_visible=true for members/admins). We keep teamProp
+     as the immediate fallback so the tab renders instantly, then swap to the authed
+     copy when it resolves. Logged-out viewers never fetch and just use teamProp
+     (which is correctly the private/zeroed payload). */
+  const [authedTeam, setAuthedTeam] = useState<
+    TeamStatisticsTabProps["team"] | null
+  >(null);
+  // True while a logged-in viewer's authed re-fetch is in flight. We use this to
+  // avoid flashing the "members only" message before we know the real verdict.
+  const [resolvingStats, setResolvingStats] = useState(false);
+
+  useEffect(() => {
+    // No token (anonymous) or no team name to key off -> stick with the prop.
+    const teamName = teamProp?.team_name;
+    if (!token || !teamName) {
+      setAuthedTeam(null);
+      setResolvingStats(false);
+      return;
+    }
+
+    let active = true;
+    setResolvingStats(true);
+    axios
+      .post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+        { team_name: teamName },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      .then((res) => {
+        if (active) setAuthedTeam(res.data?.team ?? null);
+      })
+      .catch(() => {
+        // Non-blocking: fall back to the page-passed prop on any failure.
+        if (active) setAuthedTeam(null);
+      })
+      .finally(() => {
+        if (active) setResolvingStats(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [token, teamProp?.team_name]);
+
+  // The effective payload everything below reads from: the authed (server-gated)
+  // copy when available, otherwise the page-passed prop.
+  const team = authedTeam ?? teamProp;
+
   /* ── Source arrays (defensive defaults) ───────────────────────────────── */
   const allPerf: TournamentPerformance[] = useMemo(
     () => team?.tournament_performance ?? [],
@@ -419,6 +501,47 @@ const TeamStatisticsTab = ({ team }: TeamStatisticsTabProps) => {
         ? "bg-background text-foreground shadow-sm"
         : "text-muted-foreground hover:text-foreground"
     }`;
+
+  /* ── PRIVACY GATE ──────────────────────────────────────────────────────────
+     Detailed team stats are visible ONLY to current team members (and AFC admins).
+     The backend signals this with team.stats_visible; when it is explicitly false
+     it has already zeroed the numbers and emptied the lists, so we MUST NOT render
+     the stats window (it would just show a wall of zeros). Instead show a clear
+     "members only" message. We treat undefined as visible for backward-compat with
+     any caller/older payload that doesn't send the flag. The team's public identity
+     (name, tier, member count) is rendered by the page header outside this tab, so
+     it remains visible. All hooks above run unconditionally, so this early return is
+     safe (it does not change hook order).
+
+     While a logged-in viewer's authed re-fetch is still in flight we show a small
+     loader instead of the (possibly-false) prop verdict, so a member never sees the
+     "members only" message flash before their real stats arrive. */
+  const statsVisible = team?.stats_visible !== false;
+
+  if (!statsVisible) {
+    // Still resolving the authed verdict for a logged-in viewer -> wait, don't flash.
+    if (resolvingStats) {
+      return (
+        <div className="rounded-md border bg-card px-6 py-12 text-center text-sm text-muted-foreground shadow-sm">
+          Loading team stats...
+        </div>
+      );
+    }
+    return (
+      <div className="rounded-md border bg-card px-6 py-12 shadow-sm flex flex-col items-center justify-center text-center">
+        <div className="mb-3 rounded-full bg-muted p-3">
+          <IconLock className="size-6 text-muted-foreground" />
+        </div>
+        <p className="text-sm font-semibold text-foreground">
+          Team stats are visible to team members only.
+        </p>
+        <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+          Join this team to see its detailed performance, tournament history, and
+          match breakdowns.
+        </p>
+      </div>
+    );
+  }
 
   /* ── Render ───────────────────────────────────────────────────────────── */
   return (

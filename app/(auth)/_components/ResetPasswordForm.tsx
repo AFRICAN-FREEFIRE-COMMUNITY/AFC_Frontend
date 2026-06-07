@@ -216,11 +216,11 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
                     size="icon"
                     type="button"
                     onClick={toggleConfirmVisibility}
-                    aria-label={isVisible ? "Hide password" : "Show password"}
+                    aria-label={isConfirmVisible ? "Hide password" : "Show password"}
                     aria-pressed={isConfirmVisible}
                     aria-controls="password"
                   >
-                    {isVisible ? (
+                    {isConfirmVisible ? (
                       <EyeOffIcon className="size-4" aria-hidden="true" />
                     ) : (
                       <EyeIcon className="size-4" aria-hidden="true" />

@@ -25,6 +25,12 @@ import {
   IconBrandInstagram,
   IconBrandYoutube,
   IconBrandDiscord,
+  IconBrandTiktok,
+  IconBrandFacebook,
+  IconBrandTwitch,
+  IconBrandSnapchat,
+  IconBrandTelegram,
+  IconWorld,
   IconFlag,
 } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -76,12 +82,9 @@ interface PublicOrganization {
   logo: string | null;
   default_banner: string | null;
   description: string | null;
-  socials: {
-    x?: string | null;
-    instagram?: string | null;
-    youtube?: string | null;
-    discord?: string | null;
-  } | null;
+  // Arbitrary { platform: url } map - the organizer can add ANY platform (TikTok,
+  // Twitch, a website, ...), not just a fixed four. Rendered generically below.
+  socials: Record<string, string> | null;
   events: PublicOrgEvent[];
   rating: number | null;
 }
@@ -136,38 +139,60 @@ const EventCard: React.FC<{ event: PublicOrgEvent }> = ({ event }) => {
 };
 
 // ── Social links ──
-// Renders only the platforms actually present on the org. Tabler brand icons -
-// the same family used everywhere else in the app for socials.
-const SOCIAL_LINKS = [
-  { key: "x", label: "X", Icon: IconBrandX },
-  { key: "instagram", label: "Instagram", Icon: IconBrandInstagram },
-  { key: "youtube", label: "YouTube", Icon: IconBrandYoutube },
-  { key: "discord", label: "Discord", Icon: IconBrandDiscord },
-] as const;
+// Maps a known platform key to its brand icon + display label. Any platform NOT in
+// this map (a custom one the organizer typed) still renders, with a generic globe
+// icon and a capitalized label, so TikTok / Twitch / a personal site all show up.
+const SOCIAL_ICONS: Record<
+  string,
+  { label: string; Icon: typeof IconBrandX }
+> = {
+  x: { label: "X", Icon: IconBrandX },
+  twitter: { label: "X", Icon: IconBrandX },
+  instagram: { label: "Instagram", Icon: IconBrandInstagram },
+  youtube: { label: "YouTube", Icon: IconBrandYoutube },
+  discord: { label: "Discord", Icon: IconBrandDiscord },
+  tiktok: { label: "TikTok", Icon: IconBrandTiktok },
+  facebook: { label: "Facebook", Icon: IconBrandFacebook },
+  twitch: { label: "Twitch", Icon: IconBrandTwitch },
+  snapchat: { label: "Snapchat", Icon: IconBrandSnapchat },
+  telegram: { label: "Telegram", Icon: IconBrandTelegram },
+  website: { label: "Website", Icon: IconWorld },
+};
 
-// Returns the platforms that carry a non-empty url - empty when none are present,
-// which the page uses to decide whether to render the "Connect" card at all.
+// Capitalize a custom platform key for display ("tiktok" -> "Tiktok", already-mapped
+// platforms use their nicer label from SOCIAL_ICONS).
+const prettyPlatform = (key: string) =>
+  key.charAt(0).toUpperCase() + key.slice(1);
+
+// Every non-empty { platform, url } entry, regardless of platform. Drives both the
+// "render the Connect card at all?" check and the link list.
 const presentSocials = (socials: PublicOrganization["socials"]) => {
   if (!socials) return [];
-  return SOCIAL_LINKS.filter(({ key }) => {
-    const url = socials[key as keyof typeof socials];
-    return typeof url === "string" && url.trim() !== "";
-  });
+  return Object.entries(socials)
+    .filter(([, url]) => typeof url === "string" && url.trim() !== "")
+    .map(([key, url]) => {
+      const known = SOCIAL_ICONS[key.toLowerCase()];
+      return {
+        key,
+        url: url as string,
+        label: known?.label ?? prettyPlatform(key),
+        Icon: known?.Icon ?? IconWorld,
+      };
+    });
 };
 
 const SocialLinks: React.FC<{ socials: PublicOrganization["socials"] }> = ({
   socials,
 }) => {
   const present = presentSocials(socials);
-  // Early-out (also narrows `socials` to non-null for the map body below).
-  if (!socials || present.length === 0) return null;
+  if (present.length === 0) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {present.map(({ key, label, Icon }) => (
+      {present.map(({ key, url, label, Icon }) => (
         <Link
           key={key}
-          href={socials[key as keyof typeof socials] as string}
+          href={url}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-muted-foreground hover:text-primary transition"

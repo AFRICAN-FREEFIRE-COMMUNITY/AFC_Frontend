@@ -218,6 +218,9 @@ export default function ResultMarkersPage() {
         }
         if (!active) return;
         setSeason(s);
+        // No season exists -> the per-season effect below early-returns and never clears
+        // `loading`, leaving the page stuck on "Loading result markers" forever. Clear it here.
+        if (!s) setLoading(false);
       } catch (err: any) {
         if (!active) return;
         toast.error(err?.response?.data?.message || "Failed to load season");

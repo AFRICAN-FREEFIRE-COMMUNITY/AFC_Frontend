@@ -1348,7 +1348,16 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {eventDetails.competition_type}
               </p>
               <p>Date: {formatDate(eventDetails.start_date)}</p>
-              <p>Prize Pool: ${formatMoneyInput(eventDetails.prizepool)}</p>
+              {/* Format the raw prizepool string (e.g. "1750.0") with thousands
+                  separators and no trailing ".0", mirroring the render at the
+                  Prize Pool block further down this file. Falls back to the raw
+                  value when it isn't a plain number. */}
+              <p>
+                Prize Pool:{" "}
+                {/^\d+(\.\d+)?$/.test(eventDetails.prizepool)
+                  ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+                  : eventDetails.prizepool}
+              </p>
               <p>
                 Location:{" "}
                 <span className="capitalize">{eventDetails.event_mode}</span>

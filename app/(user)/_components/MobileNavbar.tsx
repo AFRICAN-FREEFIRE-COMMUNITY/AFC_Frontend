@@ -102,8 +102,9 @@ export function MobileNavbar() {
     // Convert to days
     const diffInDays = diffInTime / (1000 * 3600 * 24);
 
-    // Return true if it's between 0 and 5 days old
-    return diffInDays >= 0 && diffInDays <= 5;
+    // Show the "new" badge for the first 7 days after a link is added/unlocked, then it
+    // auto-disappears (no manual cleanup needed - just set addedAt to the unlock date).
+    return diffInDays >= 0 && diffInDays <= 7;
   };
 
   return (
@@ -194,7 +195,7 @@ export function MobileNavbar() {
                         {showNewBadge && !comingSoon && (
                           <Badge
                             variant="default"
-                            className="glow-new-badge text-[10px] text-white"
+                            className="glow-new-badge text-[11px] font-bold uppercase tracking-wide text-white"
                           >
                             New
                           </Badge>

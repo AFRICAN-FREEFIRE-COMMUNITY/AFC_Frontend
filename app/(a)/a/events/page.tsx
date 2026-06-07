@@ -275,7 +275,9 @@ const page = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatMoneyInput(totalAvgParticipants)}
+              {/* Round the raw float (e.g. 441.857...) to a whole number, then
+                  format with thousands separators for display. */}
+              {formatMoneyInput(Math.round(totalAvgParticipants))}
             </div>
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">

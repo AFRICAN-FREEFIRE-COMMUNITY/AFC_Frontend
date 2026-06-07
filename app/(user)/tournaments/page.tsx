@@ -71,6 +71,7 @@ interface OrganizerDirectoryItem {
   slug: string | null; // null only for the synthetic "AFC Official" card
   name: string;
   logo: string | null;
+  default_banner: string | null; // org cover image, shown atop each directory card
   description: string | null;
   event_count: number;
   verified: boolean;
@@ -294,13 +295,28 @@ const OrganizerCard: React.FC<{
 
   return (
     <Card
-      className="bg-card rounded-md border py-6 shadow-sm h-full cursor-pointer transition-colors hover:border-primary/45"
+      className="bg-card rounded-md border p-0 gap-0 shadow-sm h-full cursor-pointer overflow-hidden transition-colors hover:border-primary/45"
       onClick={() => onOpen(org)}
     >
-      <CardContent className="flex flex-col gap-3 h-full">
-        {/* Logo + name + verified tick */}
-        <div className="flex items-center gap-3">
-          <Avatar className="h-12 w-12 rounded-md">
+      {/* ── Banner header: the organizer's cover image so users can SEE the org's
+          branding at a glance. Falls back to the AFC primary/gold gradient when the
+          org hasn't uploaded one. (default_banner comes from get-organizations-public.) */}
+      <div className="relative h-24 w-full bg-gradient-to-br from-primary/20 to-gold/20">
+        {org.default_banner && (
+          <Image
+            src={org.default_banner}
+            alt={`${org.name} banner`}
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className="object-cover"
+          />
+        )}
+      </div>
+
+      <CardContent className="flex flex-col gap-3 h-full p-6 pt-0">
+        {/* Logo + name + verified tick. The logo overlaps the banner (-mt-8). */}
+        <div className="flex items-center gap-3 -mt-8">
+          <Avatar className="h-14 w-14 rounded-md border-4 border-card bg-card">
             <AvatarImage
               src={org.logo || undefined}
               alt={org.name}
@@ -310,7 +326,7 @@ const OrganizerCard: React.FC<{
               {org.name?.[0] ?? "?"}
             </AvatarFallback>
           </Avatar>
-          <div className="min-w-0">
+          <div className="min-w-0 mt-8">
             <div className="flex items-center gap-1.5">
               <span className="font-bold truncate">{org.name}</span>
               {/* Verified tick: shown only when AFC has verified at least one of
@@ -443,6 +459,7 @@ const OrganizerDirectory: React.FC<{
       slug: null,
       name: "AFC Official",
       logo: null,
+      default_banner: null, // synthetic card has no uploaded banner -> gradient fallback
       description:
         "Events run directly by the African Freefire Community. Flagship leagues, majors, and weekly community scrims.",
       event_count: afcEvents.length,

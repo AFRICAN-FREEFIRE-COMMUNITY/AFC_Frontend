@@ -18,6 +18,102 @@ import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Search, Calendar as CalendarIcon } from "lucide-react";
 
+// ── Action-description rendering ─────────────────────────────────────────────
+// Some audit rows (e.g. event edits) store the action as a raw JSON blob like
+//   { "event_id": 163, "changes": ["is_public: 'True' -> 'False'"] }
+// instead of plain English. renderDescription() detects those rows and turns
+// them into readable text. Consumed only by the Action column below
+// (activity.description, fetched from GET /auth/get-admin-history/).
+
+// A single change entry can arrive either as a pre-formatted string
+// ("is_public: 'True' -> 'False'") or as a structured object
+// ({ field, old, new }). normalizeChange() flattens both into one line and
+// strips the surrounding quotes the backend wraps values in.
+const normalizeChange = (change: any): string => {
+  if (typeof change === "string") {
+    // Drop the single quotes the backend adds around values so it reads as
+    // "is_public: True -> False" instead of "is_public: 'True' -> 'False'".
+    return change.replace(/'/g, "");
+  }
+  if (change && typeof change === "object") {
+    const field = change.field ?? change.name ?? "field";
+    const oldVal = change.old ?? change.from ?? change.previous;
+    const newVal = change.new ?? change.to ?? change.current;
+    if (oldVal !== undefined || newVal !== undefined) {
+      return `${field}: ${oldVal} -> ${newVal}`;
+    }
+    return field;
+  }
+  return String(change);
+};
+
+// Builds a short headline for an object-shaped action, e.g.
+// "Edited event #163" from { event_id: 163, ... }. Falls back to a generic
+// label when no recognizable id field is present.
+const buildHeadline = (data: any): string => {
+  if (data.event_id !== undefined) return `Edited event #${data.event_id}`;
+  if (data.match_id !== undefined) return `Edited match #${data.match_id}`;
+  if (data.team_id !== undefined) return `Edited team #${data.team_id}`;
+  if (data.product_id !== undefined) return `Edited product #${data.product_id}`;
+  if (data.id !== undefined) return `Edited record #${data.id}`;
+  return "Updated record";
+};
+
+// Turns a raw description into JSX. If it is a JSON object/array, render a
+// readable summary (headline + bulleted changes); otherwise render the string
+// unchanged. Any parse failure falls back to the raw string so we never hide
+// data from the admin.
+const renderDescription = (description: string) => {
+  const trimmed = (description ?? "").trim();
+
+  // Only attempt JSON parsing when it actually looks like JSON.
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    try {
+      const data = JSON.parse(trimmed);
+
+      // Pull the changes list out of either the object or a bare array.
+      const changes: any[] = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.changes)
+          ? data.changes
+          : [];
+
+      const lines = changes.map(normalizeChange).filter(Boolean);
+
+      // Object with an id and a single change: render the compact one-liner
+      // ("Edited event #163: is_public True -> False").
+      if (!Array.isArray(data) && lines.length === 1) {
+        return `${buildHeadline(data)}: ${lines[0]}`;
+      }
+
+      // Object/array with multiple changes: headline plus a bulleted list.
+      if (lines.length > 0) {
+        const headline = Array.isArray(data) ? null : buildHeadline(data);
+        return (
+          <div className="flex flex-col gap-0.5">
+            {headline && <span className="font-medium">{headline}</span>}
+            <ul className="list-disc list-inside text-muted-foreground">
+              {lines.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      // Parsed JSON but found no changes to summarize: show the headline alone
+      // for objects, otherwise fall through to the raw string.
+      if (!Array.isArray(data)) {
+        return buildHeadline(data);
+      }
+    } catch {
+      // Not valid JSON after all: fall through and render the raw string.
+    }
+  }
+
+  return description;
+};
+
 const Page = () => {
   const [loading, setLoading] = useState(true);
   const [recentActivities, setRecentActivities] = useState([]);
@@ -108,7 +204,9 @@ const Page = () => {
                   {activity.admin_user}
                 </TableCell>
                 <TableCell className="max-w-sm overflow-x-hidden">
-                  {activity.description}
+                  {/* Renders plain strings as-is; JSON blobs become a readable
+                      summary via renderDescription() defined above. */}
+                  {renderDescription(activity.description)}
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground whitespace-nowrap">
                   {formatDate(activity.timestamp)}

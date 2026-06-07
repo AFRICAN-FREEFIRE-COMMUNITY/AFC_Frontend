@@ -4,8 +4,12 @@
 // Mirrors app/(sponsor)/sponsor/layout.tsx: an OrganizerGuard (modelled on the
 // sponsor's SponsorGuard) wrapping a header + content shell. On top of the sponsor
 // shell this layout adds two organizer-specific pieces:
-//   1. A left/top sub-nav (Overview · Profile · Members) - shadcn pill/segment Tabs
-//      driven by the active route (NOT underline tabs, per AFC design constants).
+//   1. A left sub-nav (Overview · Events · Design · Profile · Members · Metrics ·
+//      Reviews) - now a shadcn collapsible <Sidebar>, the SAME pattern as the admin
+//      dashboard (app/(a)/a/layout.tsx → AppSidebar + SiteHeader's <SidebarTrigger />).
+//      This keeps a PERSISTENT top-left hamburger ("Toggle Sidebar") that never
+//      disappears, instead of the old horizontal Tabs that overflowed/vanished on
+//      narrow screens. Active link styling mirrors NavMain (bg-primary fill).
 //   2. An ORG SWITCHER - fetches getMyOrganizations() once, remembers the chosen
 //      org slug in state + localStorage. One org → no switcher chrome, just use it.
 //      Many orgs → a shadcn <Select> to switch between them.
@@ -13,6 +17,10 @@
 // The selected slug + that membership's permissions are handed to the child pages
 // through a tiny <OrganizerProvider> context (see ./_components/OrganizerContext),
 // so pages never re-fetch the membership list or thread a ?org= query param.
+//
+// Sidebar plumbing (SidebarProvider / Sidebar / SidebarTrigger / SidebarInset) is
+// the exact same shadcn stack the admin layout uses - see components/ui/sidebar.tsx
+// and components/site-header.tsx for the reference implementation we copy here.
 // ─────────────────────────────────────────────────────────────────────────────
 
 "use client";
@@ -29,11 +37,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IconArrowLeft, IconBuilding, IconLogout } from "@tabler/icons-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import {
+  IconArrowLeft,
+  IconBuilding,
+  IconLogout,
+  IconHome,
+  IconLayoutDashboard,
+} from "@tabler/icons-react";
 import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { organizersApi } from "@/lib/organizers";
 import {
   OrganizerProvider,
@@ -61,6 +90,110 @@ const NAV_ITEMS = [
   // gated per-page on can_view_reviews (or owner).
   { label: "Reviews", href: "/organizer/reviews" },
 ];
+
+// ── Sidebar ──────────────────────────────────────────────────────────────────
+// The organizer sub-nav as a shadcn collapsible Sidebar, mirroring the admin's
+// AppSidebar (components/app-sidebar.tsx) + NavMain (components/nav-main.tsx).
+// Same active-link idiom as NavMain: the current route gets the primary fill.
+// collapsible="offcanvas" matches AppSidebar so the SidebarTrigger hamburger in
+// the header toggles it open/closed on every screen size.
+
+function OrganizerSidebar() {
+  const pathname = usePathname();
+  // Close the mobile drawer after navigating, same as NavMain.handleLinkClick.
+  const { setOpenMobile } = useSidebar();
+  // isAdmin drives the "Admin Dashboard" exit link: a platform admin who is also an
+  // organizer can jump straight back to the admin area from this menu; everyone else
+  // gets the "User Dashboard" link back to the main site. This is what the hamburger
+  // menu is for here (navigating OUT of the org portal), per the user's request.
+  const { isAdmin } = useAuth();
+
+  // Links that LEAVE the organizer portal (rendered as a separate menu group below
+  // the org sub-nav). Admin Dashboard only shows for platform admins.
+  const exitItems = [
+    { label: "User Dashboard", href: "/home", icon: IconHome },
+    ...(isAdmin
+      ? [
+          {
+            label: "Admin Dashboard",
+            href: "/a/dashboard",
+            icon: IconLayoutDashboard,
+          },
+        ]
+      : []),
+  ];
+
+  return (
+    <Sidebar collapsible="offcanvas">
+      <SidebarHeader>
+        <div className="flex items-center justify-start gap-2">
+          <Logo size="small" />
+          <span className="font-medium text-sm text-muted-foreground">
+            Organizer Portal
+          </span>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent className="flex flex-col gap-2">
+            <SidebarMenu>
+              {NAV_ITEMS.map((item) => {
+                // Active = current path is, or sits under, this nav href.
+                const isActive =
+                  pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      tooltip={item.label}
+                      asChild
+                      className={cn(
+                        isActive &&
+                          "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
+                      )}
+                    >
+                      <Link
+                        href={item.href}
+                        onClick={() => setOpenMobile(false)}
+                      >
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* ── Leave the portal ── navigation OUT of the organizer area. */}
+        <SidebarGroup className="mt-auto">
+          <Separator className="mb-2" />
+          <SidebarGroupContent className="flex flex-col gap-2">
+            <SidebarMenu>
+              {exitItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton tooltip={item.label} asChild>
+                      <Link
+                        href={item.href}
+                        onClick={() => setOpenMobile(false)}
+                      >
+                        <Icon className="size-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+}
 
 // ── Guard ────────────────────────────────────────────────────────────────────
 // Mirror of the sponsor SponsorGuard, gated on isOrganizer instead of a role
@@ -96,7 +229,6 @@ function OrganizerGuard({ children }: { children: ReactNode }) {
 function OrganizerShell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
 
   // The full membership list from getMyOrganizations() (org + role + permissions).
   const [memberships, setMemberships] = useState<OrgMembership[]>([]);
@@ -146,134 +278,131 @@ function OrganizerShell({ children }: { children: ReactNode }) {
       localStorage.setItem(SELECTED_ORG_KEY, slug);
   };
 
-  // The active sub-nav value is whichever NAV_ITEM the current path starts with.
-  const activeNav =
-    NAV_ITEMS.find((item) => pathname.startsWith(item.href))?.href ??
-    NAV_ITEMS[0].href;
-
   // The currently-selected membership (drives the context handed to child pages).
   const selectedMembership = memberships.find(
     (m) => m.organization.slug === selectedSlug,
   );
 
   // ── Render ──────────────────────────────────────────────────────────────────
+  // Same shadcn shell as the admin dashboard: SidebarProvider wraps a collapsible
+  // <Sidebar> (the sub-nav) + a <SidebarInset> for the header/content. The header's
+  // <SidebarTrigger /> is the SAME persistent top-left hamburger the admin uses
+  // (components/site-header.tsx), so it stays visible on every screen size.
 
   return (
-    <div>
-      {/* Header - same shell as the sponsor portal, with logout. */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
-        <div className="container mx-auto h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* Back button - leaves the portal for wherever the user came from
-                (the admin dashboard for admin-organizers, /home otherwise). */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground gap-1.5"
-              onClick={() => router.back()}
-            >
-              <IconArrowLeft className="size-4" />
-              <span className="hidden sm:inline">Back</span>
-            </Button>
-            <Link href={"/home"} className="flex items-center space-x-2">
-              <Logo size="small" />
-              <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
-                African Freefire Community
-              </span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-3">
-            {user && (
-              <span className="text-sm text-muted-foreground hidden sm:block">
-                {user.in_game_name}
-              </span>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground gap-1.5"
-              onClick={logout}
-            >
-              <IconLogout className="size-4" />
-              <span className="hidden sm:inline">Log out</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+    <SidebarProvider>
+      {/* Left nav as a collapsible sidebar (mirrors admin AppSidebar). */}
+      <OrganizerSidebar />
 
-      {/* Content */}
-      <main className="flex-1 container py-8">
-        {loading ? (
-          <FullLoader text="Loading your organizations..." />
-        ) : memberships.length === 0 ? (
-          // No org membership at all - nothing to show, point the user back home.
-          <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
-            <IconBuilding className="size-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              You aren&apos;t a member of any organization yet.
-            </p>
-            <Button variant="outline" onClick={() => router.push("/home")}>
-              Back to home
-            </Button>
+      <SidebarInset>
+        {/* Header - same shell as the sponsor portal, with logout, now fronted
+            by the SidebarTrigger hamburger that toggles OrganizerSidebar. */}
+        <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
+          <div className="container mx-auto h-20 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {/* Persistent hamburger - mirrors the admin's "Toggle Sidebar"
+                  button (components/site-header.tsx). Always visible. */}
+              <SidebarTrigger className="-ml-1" />
+              <Separator
+                orientation="vertical"
+                className="data-[orientation=vertical]:h-4"
+              />
+              {/* Back button - leaves the portal for wherever the user came from
+                  (the admin dashboard for admin-organizers, /home otherwise). */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground gap-1.5"
+                onClick={() => router.back()}
+              >
+                <IconArrowLeft className="size-4" />
+                <span className="hidden sm:inline">Back</span>
+              </Button>
+              <Link href={"/home"} className="flex items-center space-x-2">
+                <Logo size="small" />
+                <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
+                  African Freefire Community
+                </span>
+              </Link>
+            </div>
+            <div className="flex items-center gap-3">
+              {user && (
+                <span className="text-sm text-muted-foreground hidden sm:block">
+                  {user.in_game_name}
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground gap-1.5"
+                onClick={logout}
+              >
+                <IconLogout className="size-4" />
+                <span className="hidden sm:inline">Log out</span>
+              </Button>
+            </div>
           </div>
-        ) : (
-          <div className="flex flex-col gap-5">
-            {/* Org switcher + sub-nav row. */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              {/* Sub-nav: shadcn pill/segment tabs that navigate on click. */}
-              <Tabs value={activeNav}>
-                <TabsList>
-                  {NAV_ITEMS.map((item) => (
-                    <TabsTrigger
-                      key={item.href}
-                      value={item.href}
-                      onClick={() => router.push(item.href)}
-                    >
-                      {item.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
+        </header>
 
-              {/* Org switcher: only render chrome when the user has >1 org. */}
+        {/* Content */}
+        <main className="flex-1 container py-8">
+          {loading ? (
+            <FullLoader text="Loading your organizations..." />
+          ) : memberships.length === 0 ? (
+            // No org membership at all - nothing to show, point the user back home.
+            <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+              <IconBuilding className="size-10 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                You aren&apos;t a member of any organization yet.
+              </p>
+              <Button variant="outline" onClick={() => router.push("/home")}>
+                Back to home
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-5">
+              {/* Org switcher row (the sub-nav now lives in the sidebar). */}
               {memberships.length > 1 && (
-                <Select value={selectedSlug} onValueChange={onSwitchOrg}>
-                  <SelectTrigger className="w-full sm:w-56">
-                    <SelectValue placeholder="Select organization" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {memberships.map((m) => (
-                      <SelectItem
-                        key={m.organization.slug}
-                        value={m.organization.slug}
-                      >
-                        {m.organization.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex justify-end">
+                  {/* Org switcher: only render chrome when the user has >1 org. */}
+                  <Select value={selectedSlug} onValueChange={onSwitchOrg}>
+                    <SelectTrigger className="w-full sm:w-56">
+                      <SelectValue placeholder="Select organization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {memberships.map((m) => (
+                        <SelectItem
+                          key={m.organization.slug}
+                          value={m.organization.slug}
+                        >
+                          {m.organization.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Hand the selected org + permissions to the child pages via context. */}
+              {selectedMembership && (
+                <OrganizerProvider
+                  // Re-mount the subtree on org switch so each page re-fetches its
+                  // own detail for the newly-selected slug.
+                  key={selectedMembership.organization.slug}
+                  value={{
+                    slug: selectedMembership.organization.slug,
+                    membership: selectedMembership,
+                    isOwner: selectedMembership.role === "owner",
+                  }}
+                >
+                  {children}
+                </OrganizerProvider>
               )}
             </div>
-
-            {/* Hand the selected org + permissions to the child pages via context. */}
-            {selectedMembership && (
-              <OrganizerProvider
-                // Re-mount the subtree on org switch so each page re-fetches its
-                // own detail for the newly-selected slug.
-                key={selectedMembership.organization.slug}
-                value={{
-                  slug: selectedMembership.organization.slug,
-                  membership: selectedMembership,
-                  isOwner: selectedMembership.role === "owner",
-                }}
-              >
-                {children}
-              </OrganizerProvider>
-            )}
-          </div>
-        )}
-      </main>
-    </div>
+          )}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
 

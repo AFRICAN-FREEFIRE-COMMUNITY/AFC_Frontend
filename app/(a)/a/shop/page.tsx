@@ -1,6 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Shop Dashboard  (route: /a/shop)
+//
+// Purpose: landing surface for shop admins. Shows real, live data:
+//   • Current Stock Status   ← GET /shop/view-current-stock-status/  (per-variant qty)
+//   • Recent Orders table    ← GET /shop/orders-today | orders-this-week | orders-this-month/
+//     wired to the Day / Week / Month toggle.
+//
+// Auth: every fetch sends `Authorization: Bearer <token>` from useAuth(). These are
+// admin-only DRF endpoints (require_admin / role=="admin" on the backend).
+//
+// Connects to:
+//   • backend afc_shop/views.py: view_current_stock_status, orders_today,
+//     orders_this_week, orders_this_month  (response shapes mirrored in the
+//     StockItem / SummaryOrder interfaces below).
+//   • /a/shop/orders   (full order tracker: "View Orders" link + per-order drill-in)
+//   • /a/shop/inventory (stock management: "Manage Inventory" link)
+//
+// NOTE on "Total Revenue" / "Subscriptions" cards: those stay as static 0 placeholders.
+// The only revenue endpoint (get_total_revenue_generated) is COUPON-scoped (needs a
+// coupon_id and returns one coupon's revenue), so it cannot back a global revenue
+// figure. Wiring it here would show a wrong number. Left untouched, out of scope.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -24,19 +48,18 @@ import { InfoTip } from "@/components/ui/info-tip";
 import {
   IconCurrencyDollar,
   IconPackage,
-  IconBell,
   IconUsers,
 } from "@tabler/icons-react";
-import { TrendingUp, Eye } from "lucide-react";
+import { TrendingUp, Eye, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import { ComingSoon } from "@/components/ComingSoon";
+import { cn, formatDate, formatMoneyInput } from "@/lib/utils";
 import { NairaIcon } from "@/components/NairaIcon";
 
+// Shape of a row from /shop/view-current-stock-status/ (one per ProductVariant).
 interface StockItem {
   product_id: number;
   product_name: string;
@@ -49,110 +72,43 @@ interface StockItem {
   active: boolean;
 }
 
-// Mock data for orders
-const mockOrders = [
-  {
-    id: 1,
-    customer: "Liam Johnson",
-    email: "liam@example.com",
-    type: "Sale",
-    status: "Fulfilled",
-    date: "2023-07-23",
-    amount: 250.0,
-  },
-  {
-    id: 2,
-    customer: "Olivia Smith",
-    email: "olivia@example.com",
-    type: "Refund",
-    status: "Declined",
-    date: "2023-07-24",
-    amount: 150.0,
-  },
-  {
-    id: 3,
-    customer: "Noah Williams",
-    email: "noah@example.com",
-    type: "Subscription",
-    status: "Fulfilled",
-    date: "2023-07-25",
-    amount: 350.0,
-  },
-  {
-    id: 4,
-    customer: "Emma Brown",
-    email: "emma@example.com",
-    type: "Sale",
-    status: "Fulfilled",
-    date: "2023-07-26",
-    amount: 450.0,
-  },
-  {
-    id: 5,
-    customer: "Liam Johnson",
-    email: "liam@example.com",
-    type: "Sale",
-    status: "Fulfilled",
-    date: "2023-07-23",
-    amount: 250.0,
-  },
-  {
-    id: 6,
-    customer: "Olivia Smith",
-    email: "olivia@example.com",
-    type: "Refund",
-    status: "Declined",
-    date: "2023-07-24",
-    amount: 150.0,
-  },
-  {
-    id: 7,
-    customer: "Emma Brown",
-    email: "emma@example.com",
-    type: "Sale",
-    status: "Fulfilled",
-    date: "2023-07-26",
-    amount: 450.0,
-  },
-];
+// Shape of a row from the orders-today / orders-this-week / orders-this-month
+// endpoints (backend _serialize_order_summary). These are FLAT summaries: unlike
+// view-all-orders, they do NOT carry a nested `items` array.
+interface SummaryOrder {
+  order_id: number;
+  user_id: number | null;
+  username: string | null;
+  status: string;
+  subtotal: string;
+  discount_total: string;
+  total: string;
+  coupon_code: string | null;
+  created_at: string;
+}
 
-// Mock stock data
-const mockStockStatus = [
-  { name: "100 Diamonds", stock: 1200 },
-  { name: "500 Diamonds", stock: 800 },
-  { name: "1000 Diamonds", stock: 500 },
-  { name: "5000 Diamonds", stock: 150 },
-  { name: "10000 Diamonds", stock: 50 },
-];
+// Map the Day/Week/Month toggle value → its backend endpoint + the card title.
+const ORDER_RANGES = {
+  day: { endpoint: "orders-today", title: "Orders Today" },
+  week: { endpoint: "orders-this-week", title: "Orders This Week" },
+  month: { endpoint: "orders-this-month", title: "Orders This Month" },
+} as const;
 
-// Mock notifications
-const mockNotifications = [
-  {
-    id: 1,
-    title: "New Order #12345",
-    message: "A new order has been placed by John Doe.",
-    type: "order",
-  },
-  {
-    id: 2,
-    title: "Low Stock Alert",
-    message: "100 Diamonds product is running low.",
-    type: "warning",
-  },
-  {
-    id: 3,
-    title: "Refund Processed",
-    message: "Refund for Order #12340 has been completed.",
-    type: "refund",
-  },
-];
+type OrderRange = keyof typeof ORDER_RANGES;
 
 export default function AdminShopPage() {
   const { token } = useAuth();
+
+  // ── Stock status state ──
   const [stockStatus, setStockStatus] = useState<StockItem[]>([]);
   const [isStockLoading, setIsStockLoading] = useState(true);
-  const [orderFilter, setOrderFilter] = useState("week");
 
+  // ── Recent-orders state (driven by the Day/Week/Month toggle) ──
+  const [orders, setOrders] = useState<SummaryOrder[]>([]);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(true);
+  const [orderFilter, setOrderFilter] = useState<OrderRange>("week");
+
+  // Fetch the per-variant inventory snapshot for the sidebar card.
   const fetchStockStatus = async () => {
     try {
       setIsStockLoading(true);
@@ -170,9 +126,38 @@ export default function AdminShopPage() {
     }
   };
 
+  // Fetch the order list for the active range. Re-runs whenever the toggle flips.
+  const fetchOrders = useCallback(
+    async (range: OrderRange) => {
+      try {
+        setIsOrdersLoading(true);
+        const response = await axios.get(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/${ORDER_RANGES[range].endpoint}/`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        setOrders(response.data.orders ?? []);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        setOrders([]);
+      } finally {
+        setIsOrdersLoading(false);
+      }
+    },
+    [token],
+  );
+
+  // Initial load: stock snapshot (token-independent in the original, kept as-is).
   useEffect(() => {
     fetchStockStatus();
   }, []);
+
+  // (Re)load orders on mount and every time the Day/Week/Month toggle changes,
+  // but only once we actually have an auth token to send.
+  useEffect(() => {
+    if (token) fetchOrders(orderFilter);
+  }, [token, orderFilter, fetchOrders]);
 
   const getStockBadgeStyles = (item: StockItem) => {
     if (!item.in_stock || item.stock_qty === 0) return "bg-red-500 text-white";
@@ -180,30 +165,22 @@ export default function AdminShopPage() {
     return "bg-green-500 text-white";
   };
 
+  // Status → badge variant, mirroring /a/shop/orders so colours stay consistent.
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
+      case "paid":
       case "fulfilled":
-        return "default";
-      case "declined":
-        return "destructive";
+        return "default"; // green/primary
       case "pending":
         return "secondary";
+      case "declined":
+      case "failed":
+      case "cancelled":
+      case "refunded":
+        return "destructive";
       default:
         return "outline";
     }
-  };
-
-  const getStockBadgeColor = (stock: number) => {
-    if (stock >= 500) return "bg-green-500";
-    if (stock >= 100) return "bg-yellow-500";
-    return "bg-red-500";
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
   };
 
   return (
@@ -237,7 +214,7 @@ export default function AdminShopPage() {
           </CardContent>
         </Card>
 
-        {/* Total Revenue */}
+        {/* Total Revenue (static placeholder, see file header note) */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -254,7 +231,7 @@ export default function AdminShopPage() {
           </CardContent>
         </Card>
 
-        {/* Subscriptions */}
+        {/* Subscriptions (static placeholder) */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
@@ -272,20 +249,24 @@ export default function AdminShopPage() {
 
       {/* Main Content Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
-        {/* Orders Table */}
+        {/* Recent Orders table: REAL data, wired to the Day/Week/Month toggle */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
               <div>
+                {/* Title reflects the active range (Today / This Week / This Month). */}
                 <CardTitle className="font-semibold text-sm">
-                  Orders This Week
+                  {ORDER_RANGES[orderFilter].title}
                 </CardTitle>
                 <CardDescription className="text-xs mt-1">
                   Recent orders from your store
                 </CardDescription>
               </div>
               <div className="flex items-center justify-between lg:justify-end w-full lg:w-auto gap-2">
-                <Tabs value={orderFilter} onValueChange={setOrderFilter}>
+                <Tabs
+                  value={orderFilter}
+                  onValueChange={(v) => setOrderFilter(v as OrderRange)}
+                >
                   <TabsList>
                     <TabsTrigger value="day">Day</TabsTrigger>
                     <TabsTrigger value="week">Week</TabsTrigger>
@@ -304,37 +285,54 @@ export default function AdminShopPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Order</TableHead>
                     <TableHead>Customer</TableHead>
-                    <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody className="relative">
-                  <ComingSoon />
-                  {mockOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{order.customer}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {order.email}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{order.type}</TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(order.status)}>
-                          {order.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{order.date}</TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(order.amount)}
+                <TableBody>
+                  {isOrdersLoading ? (
+                    // Loading state: spinner spanning the table body.
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-10 text-center">
+                        <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : orders.length === 0 ? (
+                    // Empty state for the selected range.
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="py-10 text-center text-sm text-muted-foreground"
+                      >
+                        No orders yet for this period.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    orders.map((order) => (
+                      <TableRow key={order.order_id}>
+                        <TableCell className="font-medium">
+                          #{order.order_id}
+                        </TableCell>
+                        <TableCell className="capitalize text-muted-foreground">
+                          {order.username ?? "Unknown"}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          <Badge variant={getStatusBadgeVariant(order.status)}>
+                            {order.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {formatDate(order.created_at)}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {formatMoneyInput(order.total)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -398,63 +396,6 @@ export default function AdminShopPage() {
                   Manage Inventory
                 </Link>
               </Button>
-            </CardContent>
-          </Card>
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>Current Stock Status</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Overview of your virtual diamond inventory.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {mockStockStatus.map((item) => (
-                  <div
-                    key={item.name}
-                    className="flex items-center justify-between"
-                  >
-                    <span className="text-sm">{item.name}</span>
-                    <Badge
-                      className={`${getStockBadgeColor(item.stock)} text-white`}
-                    >
-                      In Stock: {item.stock}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-              <Button variant="outline" className="w-full mt-4" asChild>
-                <Link href="/a/shop/inventory">
-                  <IconPackage className="mr-2 h-4 w-4" />
-                  Manage Inventory
-                </Link>
-              </Button>
-            </CardContent>
-          </Card> */}
-
-          {/* Notifications */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>Recent activities and alerts.</CardDescription>
-            </CardHeader>
-            <CardContent className="relative">
-              <ComingSoon />
-              <div className="space-y-4">
-                {mockNotifications.map((notification) => (
-                  <div key={notification.id} className="flex gap-3">
-                    <IconBell className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium">
-                        {notification.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {notification.message}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
         </div>

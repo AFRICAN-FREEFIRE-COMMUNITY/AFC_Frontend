@@ -50,6 +50,10 @@ interface LeaderboardProps {
   event: {
     event_id: number;
     event_name: string;
+    // competition_type ("tournament" / "scrims") is returned by
+    // GET /events/get-all-leaderboards/ (backend get_all_leaderboards). It is used below
+    // to split the total into the "Tournament Leaderboards" vs "Scrim Leaderboards" cards.
+    competition_type?: string;
   };
   stage: {
     stage_id: number;
@@ -132,6 +136,18 @@ const page = () => {
     );
   });
 
+  // ── Breakdown of leaderboards by parent event's competition_type ──
+  // Each leaderboard row from GET /events/get-all-leaderboards/ carries its event's
+  // competition_type ("tournament" / "scrims"). We match "scrim" with startsWith so the
+  // count is correct whether the data was saved as "scrim" or "scrims" (the model choice
+  // is "scrims" but other backend filters use "scrim"). Drives the two stat cards below.
+  const tournamentLeaderboardsCount = leaderboards.filter((lb) =>
+    lb.event?.competition_type?.toLowerCase().startsWith("tournament"),
+  ).length;
+  const scrimLeaderboardsCount = leaderboards.filter((lb) =>
+    lb.event?.competition_type?.toLowerCase().startsWith("scrim"),
+  ).length;
+
   const eventsTotalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
   const paginatedEvents = filteredEvents.slice(
     (eventsPage - 1) * ITEMS_PER_PAGE,
@@ -179,7 +195,9 @@ const page = () => {
             <IconTrendingUp className="size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMoneyInput(0)}</div>
+            <div className="text-2xl font-bold">
+              {formatMoneyInput(tournamentLeaderboardsCount)}
+            </div>
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 From tournaments
@@ -195,7 +213,9 @@ const page = () => {
             <IconTrendingUp className="size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatMoneyInput(0)}</div>
+            <div className="text-2xl font-bold">
+              {formatMoneyInput(scrimLeaderboardsCount)}
+            </div>
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 From scrims

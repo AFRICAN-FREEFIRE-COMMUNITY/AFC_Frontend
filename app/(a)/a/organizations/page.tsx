@@ -10,9 +10,12 @@
 // because that endpoint already returns { results, total_count, has_more }.
 // Each row links to /a/organizations/[slug] for the detail/edit view.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import axios from "axios";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -102,6 +105,48 @@ export default function OrganizationsAdminPage() {
   const [createEmail, setCreateEmail] = useState("");
   const [createDescription, setCreateDescription] = useState("");
   const [creating, setCreating] = useState(false);
+
+  // ── Owner username autocomplete ───────────────────────────────────────────
+  // The owner must be an EXISTING user. As the admin types, we search users by
+  // username/email (GET /team/admin-search-players/?q=) and show matches to pick
+  // from, so they select the right account instead of guessing the exact handle.
+  const { token } = useAuth();
+  const [ownerResults, setOwnerResults] = useState<
+    { user_id: number; username: string; email: string }[]
+  >([]);
+  const [ownerOpen, setOwnerOpen] = useState(false);
+  const [ownerSearching, setOwnerSearching] = useState(false);
+  // skip the next debounced search right after a pick (selecting changes createOwner).
+  const ownerJustPicked = useRef(false);
+
+  useEffect(() => {
+    if (ownerJustPicked.current) {
+      ownerJustPicked.current = false;
+      return;
+    }
+    const q = createOwner.trim();
+    if (q.length < 2) {
+      setOwnerResults([]);
+      setOwnerOpen(false);
+      return;
+    }
+    setOwnerSearching(true);
+    const t = setTimeout(async () => {
+      try {
+        const res = await axios.get(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/admin-search-players/`,
+          { params: { q }, headers: { Authorization: `Bearer ${token}` } },
+        );
+        setOwnerResults(res.data.players ?? []);
+        setOwnerOpen(true);
+      } catch {
+        setOwnerResults([]);
+      } finally {
+        setOwnerSearching(false);
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [createOwner, token]);
 
   // org needs a name + an owner username; email/description are optional.
   const createReady =
@@ -377,9 +422,46 @@ export default function OrganizationsAdminPage() {
               <Input
                 id="org-owner"
                 value={createOwner}
+                autoComplete="off"
                 onChange={(e) => setCreateOwner(e.target.value)}
-                placeholder="Existing user to own this org"
+                onFocus={() => {
+                  if (ownerResults.length > 0) setOwnerOpen(true);
+                }}
+                placeholder="Type to search existing users"
               />
+              {/* Autocomplete dropdown: matching users to pick the exact owner account. */}
+              {ownerOpen && (ownerSearching || ownerResults.length > 0) && (
+                <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-popover shadow-md">
+                  {ownerSearching && (
+                    <p className="px-3 py-2 text-xs text-muted-foreground">
+                      Searching...
+                    </p>
+                  )}
+                  {!ownerSearching && ownerResults.length === 0 && (
+                    <p className="px-3 py-2 text-xs text-muted-foreground">
+                      No matching users
+                    </p>
+                  )}
+                  {ownerResults.map((u) => (
+                    <button
+                      key={u.user_id}
+                      type="button"
+                      className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-accent"
+                      onClick={() => {
+                        ownerJustPicked.current = true;
+                        setCreateOwner(u.username);
+                        setOwnerOpen(false);
+                        setOwnerResults([]);
+                      }}
+                    >
+                      <span className="text-sm font-medium">{u.username}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {u.email}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="org-email">

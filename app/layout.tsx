@@ -39,7 +39,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta property="og:image" content="/opengraph.png" />
+        {/*
+          Site-wide default link embed (logo + tagline card) is set via the
+          Metadata API in lib/seo.ts → defaultMetadata (exported as `metadata`
+          below). metadataBase makes its og:image ("/assets/opengraph.png", a
+          1200x630 branded card) absolute automatically, and per-page
+          generateMetadata overrides it where richer data exists. The old manual
+          <meta property="og:image" content="/opengraph.png"> here was a RELATIVE
+          URL (uncrawlable) that also pointed at a non-existent file, so it is
+          removed — the Metadata API handles the default correctly.
+        */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

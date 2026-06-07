@@ -76,6 +76,7 @@ import {
   IconAward,
   IconMedal,
   IconShieldCheck,
+  IconLock,
 } from "@tabler/icons-react";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -154,6 +155,12 @@ interface PublicPlayer {
   per_event: PerEventRow[];
   recent_matches: RecentMatchRow[];
   tier_history: TierHistoryRow[];
+  // PRIVACY (backend afc_player/views.py :: get_public_player_stats):
+  // true only when the viewer is the player, an AFC admin, or a current teammate.
+  // When false the backend ZEROES every sensitive number + empties the breakdown
+  // lists, and we render a "stats are private" state instead of the stat windows.
+  // Identity (name/team/country/roles) + tier_history stay populated either way.
+  stats_visible: boolean;
 }
 
 // The time-range presets that drive the headline cards + the performance curve.
@@ -210,7 +217,14 @@ export function PlayerClient({ username }: { username: string }) {
     !!user?.in_game_name &&
     user.in_game_name.toLowerCase() === ign.toLowerCase();
 
-  // ── Fetch the public profile (no auth needed; this is the public surface) ──
+  // ── Fetch the profile ───────────────────────────────────────────────────────
+  // The endpoint is public, but it now reads an OPTIONAL Bearer token to identify
+  // the viewer for the PRIVACY gate (backend get_public_player_stats). We send the
+  // logged-in viewer's token when present so the backend can tell whether they are
+  // the player / an admin / a teammate and therefore allowed to see the detailed
+  // stats (response.stats_visible). Anonymous viewers send no token and get the
+  // identity-only payload. We re-fetch when the token changes (e.g. login) so the
+  // private window appears immediately once a teammate authenticates.
   useEffect(() => {
     if (!ign) return;
     let active = true;
@@ -222,6 +236,9 @@ export function PlayerClient({ username }: { username: string }) {
       .post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-public-player-stats/`,
         { player_ign: ign },
+        token
+          ? { headers: { Authorization: `Bearer ${token}` } }
+          : undefined,
       )
       .then((res) => {
         if (!active) return;
@@ -247,7 +264,7 @@ export function PlayerClient({ username }: { username: string }) {
     return () => {
       active = false;
     };
-  }, [ign]);
+  }, [ign, token]);
 
   // ── Own-profile only: check Discord connection so we can show Disconnect ──
   useEffect(() => {
@@ -432,6 +449,15 @@ export function PlayerClient({ username }: { username: string }) {
     player.total_matches > 0 ||
     player.per_event.length > 0 ||
     player.recent_matches.length > 0;
+
+  // PRIVACY: when the backend says the viewer may NOT see this player's detailed
+  // stats (not the player, not an admin, not a teammate), every sensitive number
+  // came back zeroed and the breakdown lists empty. We then REPLACE the stat
+  // windows (career snapshot, statistics cards/curve/split, events, recent
+  // matches) with a clear private-state message, while keeping the identity facts,
+  // team, and tier history visible. `stats_visible` defaults to false defensively
+  // if an older backend omitted the flag.
+  const statsVisible = player.stats_visible === true;
 
   return (
     <div>
@@ -620,44 +646,109 @@ export function PlayerClient({ username }: { username: string }) {
               <div className="mt-6 mb-3 text-xs font-medium text-muted-foreground">
                 Career snapshot
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatBox label="Total Matches" value={player.total_matches} />
-                <StatBox
-                  label="Total Kills"
-                  value={player.total_kills}
-                  accent="green"
-                />
-                <StatBox label="Wins" value={player.total_wins} />
-                <StatBox
-                  label="MVP Awards"
-                  value={player.total_mvps}
-                  accent="gold"
-                />
-                <StatBox label="KDR" value={player.kdr.toFixed(2)} />
-                <StatBox
-                  label="Win Rate"
-                  value={`${player.win_rate.toFixed(1)}%`}
-                />
-                <StatBox
-                  label="Avg Damage"
-                  value={Math.round(player.avg_damage)}
-                />
-                <StatBox
-                  label="Current Tier"
-                  value={currentTier?.tier_label ?? "Unranked"}
-                />
-              </div>
+              {statsVisible ? (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatBox
+                      label="Total Matches"
+                      value={player.total_matches}
+                    />
+                    <StatBox
+                      label="Total Kills"
+                      value={player.total_kills}
+                      accent="green"
+                    />
+                    <StatBox label="Wins" value={player.total_wins} />
+                    <StatBox
+                      label="MVP Awards"
+                      value={player.total_mvps}
+                      accent="gold"
+                    />
+                    <StatBox label="KDR" value={player.kdr.toFixed(2)} />
+                    <StatBox
+                      label="Win Rate"
+                      value={`${player.win_rate.toFixed(1)}%`}
+                    />
+                    <StatBox
+                      label="Avg Damage"
+                      value={Math.round(player.avg_damage)}
+                    />
+                    <StatBox
+                      label="Current Tier"
+                      value={currentTier?.tier_label ?? "Unranked"}
+                    />
+                  </div>
 
-              {!hasAnyStats && (
-                <p className="text-xs text-muted-foreground mt-4">
-                  This player has no recorded matches yet. Stats will populate as
-                  they compete in AFC events.
-                </p>
+                  {!hasAnyStats && (
+                    <p className="text-xs text-muted-foreground mt-4">
+                      This player has no recorded matches yet. Stats will populate
+                      as they compete in AFC events.
+                    </p>
+                  )}
+                </>
+              ) : (
+                // Private: the viewer is not the player, an admin, or a teammate.
+                <PrivateStats />
               )}
             </TabsContent>
 
-            {/* ── STATISTICS TAB (range filter + cards + curve + tier history) ── */}
+            {/* ── STATISTICS TAB (range filter + cards + curve + tier history) ──
+                PRIVACY: the performance numbers (cards, curve, solo/team split)
+                are gated. When the viewer may not see them we show the private
+                message but STILL render the Ranking & tier history card below,
+                since tier/rank are public ranking data, not private stats. */}
             <TabsContent value="statistics">
+              {!statsVisible ? (
+                <div className="space-y-6">
+                  <PrivateStats />
+
+                  {/* Tier history stays visible even when stats are private. */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">
+                        Ranking &amp; tier history
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {player.tier_history.length === 0 ? (
+                        <NothingFound text="No tier history published yet." />
+                      ) : (
+                        <div className="space-y-3">
+                          {[...player.tier_history].reverse().map((h) => (
+                            <div
+                              key={h.season_id}
+                              className="flex items-center justify-between gap-2 text-sm"
+                            >
+                              <div>
+                                <p className="font-medium">{h.season_name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Q{h.quarter} {h.year}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {h.tier_label && (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-gold/60 text-gold"
+                                  >
+                                    {h.tier_label}
+                                  </Badge>
+                                )}
+                                {h.rank != null && (
+                                  <span className="font-semibold text-primary">
+                                    #{h.rank}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <>
               {/* date-range filter (presets + custom From/To) */}
               <RangeFilter
                 range={range}
@@ -936,10 +1027,19 @@ export function PlayerClient({ username }: { username: string }) {
                   </CardContent>
                 </Card>
               </div>
+                </>
+              )}
             </TabsContent>
 
-            {/* ── EVENTS PLAYED TAB (per-event list + per-match drilldown) ───── */}
+            {/* ── EVENTS PLAYED TAB (per-event list + per-match drilldown) ─────
+                PRIVACY: the per-event list is sensitive, so it is gated. When the
+                viewer may not see the stats the list comes back empty AND we show
+                the private message. */}
             <TabsContent value="events">
+              {!statsVisible ? (
+                <PrivateStats />
+              ) : (
+                <>
               <div className="mb-3 text-xs font-medium text-muted-foreground">
                 {player.per_event.length} event
                 {player.per_event.length === 1 ? "" : "s"} (tap a row for
@@ -983,10 +1083,18 @@ export function PlayerClient({ username }: { username: string }) {
                   </Table>
                 </div>
               )}
+                </>
+              )}
             </TabsContent>
 
-            {/* ── PERFORMANCE HISTORY TAB (full-width curve + recent matches) ── */}
+            {/* ── PERFORMANCE HISTORY TAB (full-width curve + recent matches) ──
+                PRIVACY: the curve + recent matches are sensitive, so the whole tab
+                body is gated. */}
             <TabsContent value="performance">
+              {!statsVisible ? (
+                <PrivateStats />
+              ) : (
+                <>
               <RangeFilter
                 range={range}
                 setRange={setRange}
@@ -1156,6 +1264,8 @@ export function PlayerClient({ username }: { username: string }) {
                   </Table>
                 </div>
               )}
+                </>
+              )}
             </TabsContent>
 
             {/* ── TEAM HISTORY TAB ──────────────────────────────────────────── */}
@@ -1211,6 +1321,29 @@ export function PlayerClient({ username }: { username: string }) {
           </Tabs>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PrivateStats: the locked-state panel shown when the viewer is NOT allowed to see
+// this player's detailed stats (not the player, not an admin, not a teammate). The
+// backend (get_public_player_stats) zeroes/empties every sensitive value and sets
+// stats_visible=false; we render this in place of the stat windows. Identity, team,
+// and tier history remain visible elsewhere on the page. AFC card idiom + lock icon.
+// ──────────────────────────────────────────────────────────────────────────────
+function PrivateStats() {
+  return (
+    <div className="bg-card rounded-md border py-10 px-6 shadow-sm flex flex-col items-center justify-center text-center">
+      <div className="rounded-full bg-muted p-3 mb-3">
+        <IconLock className="h-6 w-6 text-muted-foreground" />
+      </div>
+      <p className="text-sm font-semibold text-foreground">
+        These stats are private
+      </p>
+      <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+        Only this player and their teammates can view them.
+      </p>
     </div>
   );
 }

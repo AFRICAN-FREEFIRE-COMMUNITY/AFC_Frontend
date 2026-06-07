@@ -100,7 +100,12 @@ export default function IndividualLeaderboardPage({
         setSelectedStageId(data.stages[0].stage_id.toString());
         setSelectedGroupId(data.stages[0].groups[0]?.group_id.toString());
       }
-    } catch (error) {}
+    } catch (error) {
+      // Surface the failure instead of swallowing it silently: a failed
+      // get-all-leaderboard-details-for-event fetch left the page showing stale
+      // data with no signal. Logged so the broken load is visible in the console.
+      console.error("Failed to load leaderboard details for event", id, error);
+    }
   };
 
   // If the leaderboard response doesn't include the slug, look it up from the events list

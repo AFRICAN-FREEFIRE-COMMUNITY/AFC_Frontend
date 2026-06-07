@@ -40,8 +40,11 @@ export function RemoveNomineeModal({
     setLoading(true);
 
     try {
+      // Use the env-configured backend base URL (was hardcoded to the prod API,
+      // which made this button hit production from local/dev). Mirrors every other
+      // fetch in the app; consumes DELETE /awards/category-nominee/remove/.
       const response = await fetch(
-        `https://api.africanfreefirecommunity.com/awards/category-nominee/remove/`,
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/category-nominee/remove/`,
         {
           method: "DELETE",
           headers: {

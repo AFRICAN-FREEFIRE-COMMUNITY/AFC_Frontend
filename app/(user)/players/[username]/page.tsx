@@ -1,101 +1,187 @@
 import React from "react";
-import { Metadata, ResolvingMetadata } from "next";
+import { Metadata } from "next";
 import { PlayerClient } from "./_components/PlayerClient"; // Adjust path as needed
 import { env } from "@/lib/env";
+// Shared link-embed builder + image resolver (lib/seo.ts). buildEntityMetadata
+// emits a LARGE Twitter card and absolute, crawler-safe URLs; resolveOgImage
+// proxies a backend /media/ avatar through /api/og-image so crawlers can fetch it.
+//   generatePlayerSchema     → JSON-LD Person/ProfilePage for this athlete
+//   generateBreadcrumbSchema → Home > Players > <ign> trail
+//   jsonLd                   → render a schema object as a <script ld+json>
+import {
+  buildEntityMetadata,
+  resolveOgImage,
+  generatePlayerSchema,
+  generateBreadcrumbSchema,
+  siteConfig,
+  jsonLd,
+} from "@/lib/seo";
 
 type Params = Promise<{
   username: string;
 }>;
 
-export async function generateMetadata(
-  { params }: { params: Params },
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const { username } = await params;
-
+// Server-side fetch of the public player (no auth, no PII). Same endpoint the
+// client reads + the metadata uses, so Next's fetch cache de-dupes the call.
+// Returns the player object or null on any failure (callers fall back gracefully).
+async function getPlayerData(ign: string) {
   try {
-    // Fetch player data for SEO purposes from the PUBLIC player-stats endpoint
-    // (no auth, no PII). This is the same surface the client component reads, and
-    // unlike the old /team/get-player-details/ it does not crash for teamless
-    // players. Response shape: { player: { username, team: {...}|null, ... } }.
     const response = await fetch(
       `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-public-player-stats/`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_ign: decodeURIComponent(username) }),
+        body: JSON.stringify({ player_ign: ign }),
+        next: { revalidate: 3600 },
+      },
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.player || null;
+  } catch {
+    return null;
+  }
+}
+
+// ── generateMetadata: rich link embed for a single player profile ────────────
+// Data source: POST /player/get-public-player-stats/ (public, no auth, no PII) —
+// the SAME endpoint PlayerClient reads, so the embed matches what the page shows.
+// Response shape: { player: { username, team: {team_name,...}|null,
+//   profile_picture, esports_picture, kdr, total_kills, total_wins, win_rate, ... } }.
+// The embed surfaces the player IGN + team + headline stats (kills / wins / KDR)
+// and uses the profile/esports picture as the image. Falls back to site-default
+// metadata when the player is missing — never throws.
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
+  const { username } = await params;
+  const ign = decodeURIComponent(username);
+
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-public-player-stats/`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ player_ign: ign }),
         next: { revalidate: 3600 }, // Cache for 1 hour
       },
     );
 
     if (!response.ok) {
-      return {
-        title: "Player Not Found | AFC",
-      };
+      // Missing player → still give a sensible branded embed, not a broken one.
+      // omitImage: the sibling opengraph-image.tsx renders the branded card.
+      return buildEntityMetadata({
+        title: ign,
+        description: `View ${ign}'s Free Fire player profile, stats, and tournament history on African Freefire Community.`,
+        path: `/players/${username}`,
+        type: "profile",
+        omitImage: true,
+      });
     }
 
     const data = await response.json();
     const player = data.player;
 
     if (!player) {
-      return { title: "Player Not Found | AFC" };
+      return buildEntityMetadata({
+        title: ign,
+        description: `View ${ign}'s Free Fire player profile, stats, and tournament history on African Freefire Community.`,
+        path: `/players/${username}`,
+        type: "profile",
+        omitImage: true,
+      });
     }
 
     // team is an object ({ team_name, ... }) or null on the public endpoint.
     const teamName = player.team?.team_name;
 
-    const title = `${player.username} - Professional Player | AFC`;
-    const description = `${player.username} ${
-      teamName ? `plays for ${teamName}` : "is an esports athlete"
-    }. View stats, roles, and tournament history on AFC Tournaments.`;
+    // Build a concise, info-rich description from the player's REAL aggregates.
+    // Only stats that are actually present are included (truthful, no fabrication).
+    const statBits: string[] = [];
+    if (player.total_kills != null) statBits.push(`${player.total_kills} kills`);
+    if (player.total_wins != null) statBits.push(`${player.total_wins} wins`);
+    if (player.kdr != null) statBits.push(`${player.kdr} KDR`);
 
-    const playerImage =
-      player.profile_picture || player.esports_picture || "/default-avatar.jpg";
+    const lead = teamName
+      ? `${player.username} plays for ${teamName}.`
+      : `${player.username} is a Free Fire esports athlete.`;
+    const description =
+      statBits.length > 0
+        ? `${lead} ${statBits.join(" · ")}. View full stats and tournament history on AFC.`
+        : `${lead} View stats, roles, and tournament history on African Freefire Community.`;
 
-    return {
-      title: title,
-      description: description,
-      openGraph: {
-        title: title,
-        description: description,
-        images: [
-          {
-            url: playerImage,
-            width: 800,
-            height: 800,
-            alt: player.username,
-          },
-        ],
-        type: "profile",
-        username: player.username,
-      },
-      twitter: {
-        card: "summary",
-        title: title,
-        description: description,
-        images: [playerImage],
-      },
-      keywords: [
+    return buildEntityMetadata({
+      title: player.username,
+      description,
+      path: `/players/${username}`,
+      // omitImage: the sibling opengraph-image.tsx renders a branded 1200x630 card
+      // (avatar + IGN + team + kills/wins/KDR) as THE og:image. A raw avatar is
+      // often small/portrait and embeds poorly; the card always reads well. This
+      // avoids a second, competing og:image tag.
+      omitImage: true,
+      type: "profile",
+      tags: [
         player.username,
         teamName,
         player.in_game_role,
+        "Free Fire player",
         "esports player",
-        "gaming profile",
-      ].filter(Boolean),
-    };
+      ].filter(Boolean) as string[],
+    });
   } catch (error) {
     console.error("Error generating player metadata:", error);
-    return {
-      title: "Player Profile | AFC",
-    };
+    return buildEntityMetadata({
+      title: ign,
+      description: `View ${ign}'s Free Fire player profile on African Freefire Community.`,
+      path: `/players/${username}`,
+      type: "profile",
+      omitImage: true,
+    });
   }
 }
 
 const Page = async ({ params }: { params: Params }) => {
   const { username } = await params;
+  const ign = decodeURIComponent(username);
+
+  // Re-use the cached public-stats fetch to embed JSON-LD in the INITIAL HTML.
+  // The interactive profile still renders via <PlayerClient> below, unaffected.
+  const player = await getPlayerData(ign);
+
+  let playerSchema: object | null = null;
+  let breadcrumbSchema: object | null = null;
+  if (player) {
+    const path = `/players/${username}`;
+    const teamName = player.team?.team_name || null;
+    // Only the stats that actually exist (truthful, no fabricated numbers).
+    const stats: string[] = [];
+    if (player.total_kills != null) stats.push(`${player.total_kills} kills`);
+    if (player.total_wins != null) stats.push(`${player.total_wins} wins`);
+    if (player.kdr != null) stats.push(`${player.kdr} KDR`);
+
+    playerSchema = generatePlayerSchema({
+      name: player.username,
+      url: `${siteConfig.url}${path}`,
+      // Proxy the backend avatar so crawlers can fetch it; null → site default.
+      image: resolveOgImage(player.profile_picture || player.esports_picture),
+      teamName,
+      country: player.country || null,
+      stats,
+    });
+    breadcrumbSchema = generateBreadcrumbSchema([
+      { name: "Home", path: "/" },
+      { name: "Players", path: "/players" },
+      { name: player.username, path },
+    ]);
+  }
 
   return (
     <main className="mx-auto py-6">
+      {playerSchema && <script {...jsonLd(playerSchema)} />}
+      {breadcrumbSchema && <script {...jsonLd(breadcrumbSchema)} />}
       <PlayerClient username={username} />
     </main>
   );

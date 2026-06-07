@@ -107,7 +107,7 @@ export const PasswordForm = () => {
           current_password: values.currentPassword,
           new_password: values.newPassword,
         };
-        const response = await axios.post(
+        await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/change-password/`,
           { ...data },
           {
@@ -116,9 +116,11 @@ export const PasswordForm = () => {
             },
           },
         );
-        // await updateData("/user/password", values);
-        // toast.success("Password changed successfully");
-        // form.reset();
+        // axios rejects on non-2xx, so reaching here means the change succeeded.
+        // Give the user explicit confirmation and clear the form (this feedback
+        // was previously commented out, leaving the success path silent).
+        toast.success("Password changed successfully");
+        form.reset();
       } catch (err: any) {
         const message =
           err?.response?.data?.message ?? "Failed to change password";

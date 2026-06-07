@@ -115,9 +115,32 @@ export const organizersApi = {
   getEventComments: (eventId: number | string) => aGet(`event-comments/${eventId}/`),
 
   // ── METRICS - organizer dashboard (Phase 4) ──────────────────────────────
-  // getOrgMetrics aggregates the org's events: events_count, registered teams/players,
-  // total kills, average rating. Gated on can_view_metrics.
-  getOrgMetrics: (slug: string) => aGet(`metrics/${slug}/`),
+  // getOrgMetrics returns a RICH per-org metrics payload (GET /organizers/metrics/<slug>/,
+  // org_metrics in afc_organizers/views_reviews.py), gated on can_view_metrics.
+  //
+  // OPTIONAL DATE RANGE: pass { start, end } (each "YYYY-MM-DD") to scope every time-bounded
+  // aggregate (registrations, matches/kills, page views, ratings, the monthly trend) to that
+  // INCLUSIVE window. Omit both for all-time (the default). The server echoes the applied
+  // window back as `range: { start, end }` so the caller can confirm what it received.
+  //
+  // Response shape (every count respects the date range when one is supplied):
+  //   - range{}:   { start, end } (ISO or null) - the window the server actually applied
+  //   - flat back-compat keys: events_count, registered_teams, registered_players,
+  //     total_kills, average_rating, ratings_count
+  //   - totals{}:  by-status / by-type / by-mode / by-tier splits, unique teams + players,
+  //     complete/incomplete registrations, total matches / kills / prize money, total_views,
+  //     unique_viewers, avg participants per event, fill-rate, completion rate
+  //   - registrations{}: { complete, incomplete, total } (complete = confirmed entrant:
+  //     team "active" + solo "registered"/"approved"; incomplete = any other status)
+  //   - page_views{}: { total_views, unique_viewers } from EventPageView (in range)
+  //   - rating{}:  { average, count }
+  //   - monthly[]: { month, registrations, matches, views } trend series (in-range timestamps)
+  //   - top_teams[] / top_players[]: org leaderboards by kills (top 10 each, in range)
+  //   - events[]:  capped per-event breakdown rows, each enriched with complete/incomplete
+  //     registrations, views, unique_viewers, matches, kills, prize, rating (newest first)
+  // Consumed by app/(organizer)/organizer/metrics/page.tsx (the detailed Metrics dashboard).
+  getOrgMetrics: (slug: string, params?: { start?: string; end?: string }) =>
+    aGet(`metrics/${slug}/`, params),
 
   // ── REPORTS - a user reports an org; AFC reviews + resolves (Phase 4) ─────
   // reportOrganization goes up as multipart FormData (category, details, event_id?, evidence?).

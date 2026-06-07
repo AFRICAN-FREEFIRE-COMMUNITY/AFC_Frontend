@@ -1,34 +1,61 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Organizer › Events › Create.
 //
-// A FOCUSED, single-page create-event form for organizers - the lean cousin of the
-// admin 9-step wizard (app/(a)/a/events/create/page.tsx). It covers only the fields
-// the backend's create-event endpoint requires, plus an optional banner + rules, and
-// always submits ONE valid stage with ONE group behind the scenes so the payload the
-// backend receives is identical in shape to the admin one (the backend builds stages
-// → groups → matches from that array, so it must be present and valid).
+// FULL feature-parity with the AFC-admin create-event wizard
+// (app/(a)/a/events/create/page.tsx), MINUS every Discord-role input. An organizer
+// now gets the SAME rich capabilities AFC admins have: a multi-step wizard with
+// event details + banner + registration window + restrictions, event mode, a real
+// multi-stage builder (stage formats, scoring modes - Champion-Point / Point-Rush -
+// round-robin base groups, per-stage + per-group prize pools and maps), a top-level
+// prize pool + distribution, type-or-upload event rules, a sponsor requirement, a
+// waitlist, and publish/draft.
 //
-// REUSE: the admin Zod schema (EventFormSchema) drives validation, and two admin step
-// components are reused verbatim - Step5PrizePool (prize pool + distribution) and
-// Step6EventRules (type-or-upload rules). The event-detail fields are rendered inline
-// here (a trimmed version of Step1EventDetails) so the organizer form stays a clean
-// single page rather than pulling in the wizard's registration-restriction/stream UI.
+// REUSE (Approach A - reuse the admin Step components):
+//   The admin Step components are cleanly composable (each takes the shared
+//   `form: UseFormReturn<EventFormType>` plus a few callbacks), so this page REUSES
+//   them verbatim rather than re-implementing the wizard:
+//     • Step1EventDetails  - name, types, dates/times, banner, streams, restrictions
+//     • Step2EventMode / Step3StageCount - event mode + stage count/names
+//     • Step4StageOrdering - reorder/add/edit/delete stages, opens the StageModal
+//     • StageModal         - per-stage config (formats, scoring modes, round-robin,
+//                            groups, maps, prizes); passed hideDiscord
+//     • Step5PrizePool     - top-level prize pool + distribution
+//     • Step6EventRules    - typed or uploaded rules
+//     • StepSponsorRequirement - sponsor gating + sponsor accounts
+//     • StepWaitlist       - waitlist capacity; passed hideDiscord
+//     • Step7PublishSave   - publish-to-tournaments vs save-as-draft
+//   The stage-editing STATE + handlers (stageNames, openStageModal, handleSaveStage,
+//   moveStage, …) are page-level in the admin page too, so they are ported here 1:1;
+//   they drive the reused StageModal exactly as on the admin page.
+//
+// DISCORD OMISSION (the only intentional divergence from the admin wizard):
+//   AFC's Discord-role automation is an admin-only concern for now, so EVERY Discord
+//   input is hidden for organizers:
+//     • Stage Discord Role ID  → StageModal hideDiscord hides it (payload still sends
+//                                an empty stage_discord_role_id, so the shape matches).
+//     • Group Discord Role ID  → StageModal hideDiscord hides it (empty
+//                                group_discord_role_id in the payload).
+//     • Waitlist Discord Role ID → StepWaitlist hideDiscord hides it (empty
+//                                waitlist_discord_role_id in the payload).
+//   No "connect Discord" / Discord-role UI is rendered anywhere in this flow.
 //
 // GATING: rendered only when the caller can create events
-// (membership.permissions.can_create_events OR isOwner). Otherwise a notice + a link
-// back to the events list - same gate the list page uses for its "Create event" CTA.
+//   (membership.permissions.can_create_events OR isOwner) - same gate the events list
+//   page uses for its "Create event" CTA. Otherwise a read-only notice + a link back.
 //
-// SUBMIT: POST multipart FormData to /events/create-event/ with a Bearer token read
-// from AuthContext (mirrors the admin page's `Authorization: Bearer ${token}`), and -
-// the organizer-specific bit - includes organization_id so the event is homed to the
-// selected org. A "Save as draft" vs "Publish" choice sets is_draft + event_status.
-// The field names + the JSON-stringified stages array match the admin submit exactly
-// so the backend accepts the payload unchanged.
+// SUBMIT (org-scoping preserved): POST multipart FormData to /events/create-event/
+//   with a Bearer token from AuthContext (mirrors the admin page). The ONE
+//   organizer-specific bit is `organization_id`, which homes the event to the selected
+//   org - the backend's create_event reads it, checks org_can(user, "can_create_events",
+//   org), and sets event.organization=org (see afc_tournament_and_scrims/views.py).
+//   Every other field name + the JSON-stringified stages array match the admin submit
+//   exactly, so the backend accepts the payload unchanged (no backend change needed -
+//   create_event already supports org-scoped, fully-featured events).
 // ─────────────────────────────────────────────────────────────────────────────
 
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -36,44 +63,62 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/PageHeader";
-import { IconLock, IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
-import Image from "next/image";
+import { IconLock } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../../_components/OrganizerContext";
 
-// Reuse the admin schema + the two admin step components the brief calls out.
-import { EventFormSchema, EventFormType } from "@/app/(a)/a/events/create/_components/types";
+// Reuse the admin schema + every admin step component (Approach A). Importing from the
+// admin _components/ folder keeps a single source of truth - the organizer flow can't
+// drift from the admin flow's validation, field set, or UI.
+import {
+  EventFormSchema,
+  EventFormType,
+  GroupType,
+  StageType,
+} from "@/app/(a)/a/events/create/_components/types";
+import { Step1EventDetails } from "@/app/(a)/a/events/create/_components/Step1EventDetails";
+import {
+  Step2EventMode,
+  Step3StageCount,
+} from "@/app/(a)/a/events/create/_components/Step2And3";
+import { Step4StageOrdering } from "@/app/(a)/a/events/create/_components/Step4StageOrdering";
 import { Step5PrizePool } from "@/app/(a)/a/events/create/_components/Step5PrizePool";
 import { Step6EventRules } from "@/app/(a)/a/events/create/_components/Step6EventRules";
-// Round-Robin parity (sub-project B): the same shared builder panel + default config the
-// admin wizard uses, so an organizer choosing the BR Round-Robin mode gets the SAME base
-// groups + schedule editor and ships the SAME round_robin payload shape to create-event.
+import { Step7PublishSave } from "@/app/(a)/a/events/create/_components/Step7PublishSave";
+import { StepSponsorRequirement } from "@/app/(a)/a/events/create/_components/StepSponsorRequirement";
+import { StepWaitlist } from "@/app/(a)/a/events/create/_components/StepWaitlist";
 import {
-  RoundRobinPanel,
-  DEFAULT_ROUND_ROBIN_CONFIG,
-  type RoundRobinConfig,
-} from "@/app/(a)/a/events/_components/RoundRobinPanel";
+  StageModal,
+  StageModalData,
+} from "@/app/(a)/a/events/create/_components/StageModal";
+import { DEFAULT_ROUND_ROBIN_CONFIG } from "@/app/(a)/a/events/_components/RoundRobinPanel";
 
-// Accepted banner upload types (same set the admin Step1 + team-edit pages allow).
-const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+// Fresh stage-modal seed (mirrors the admin page's DEFAULT_STAGE_MODAL_DATA). Discord
+// role ids start empty and stay empty - the organizer UI never exposes them, but they
+// ride in the payload so the backend stage shape is identical to the admin one.
+const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
+  stage_name: "",
+  start_date: "",
+  end_date: "",
+  stage_format: "",
+  number_of_groups: 2,
+  teams_qualifying_from_stage: 1,
+  stage_discord_role_id: "", // never edited in the organizer flow (Discord omitted)
+  prizepool: "",
+  prizepool_cash_value: "",
+  prize_distribution: {},
+  // ── Scoring-mode defaults (sub-project A): both modes off until toggled. ──
+  champion_point_enabled: false,
+  champion_point_threshold: undefined,
+  point_rush_enabled: false,
+  point_rush_reward: {},
+  point_rush_target_index: undefined,
+  // ── Round-Robin default (sub-project B): two empty base groups, auto-schedule. ──
+  round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
+};
 
 export default function OrganizerCreateEventPage() {
   const router = useRouter();
@@ -85,84 +130,60 @@ export default function OrganizerCreateEventPage() {
   const organizationId = membership.organization.organization_id;
   const canCreateEvents = membership.permissions.can_create_events || isOwner;
 
-  // ── Banner + rules file state (banner optional; rules type-or-upload). ──
+  // ── Step state (same 9-step machine as the admin wizard) ──────────────────────
+  const [currentStep, setCurrentStep] = useState(1);
+
+  // ── File state (banner + rules document) ──────────────────────────────────────
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [selectedRuleFile, setSelectedRuleFile] = useState<File | null>(null);
   const [previewRuleUrl, setPreviewRuleUrl] = useState("");
-  const [rulesInputMethod, setRulesInputMethod] = useState<"type" | "upload">("type");
-  const bannerInputRef = React.useRef<HTMLInputElement>(null);
-
-  // ── Round-Robin config (sub-project B) ──────────────────────────────────────
-  // The organizer form synthesises ONE stage from event_mode, so the round-robin
-  // builder lives at page level (not per-stage like the admin wizard). It's edited
-  // by the RoundRobinPanel below and only sent when event_mode is "br - round robin"
-  // (see buildDefaultStages) - mirroring how the admin page only attaches round_robin
-  // to a stage whose stage_format is the BR Round-Robin bracket.
-  const [roundRobinConfig, setRoundRobinConfig] = useState<RoundRobinConfig>(
-    DEFAULT_ROUND_ROBIN_CONFIG,
+  const [rulesInputMethod, setRulesInputMethod] = useState<"type" | "upload">(
+    "type",
   );
 
-  // ── Form ──────────────────────────────────────────────────────────────────
-  // Same EventFormSchema as the admin wizard; defaults pre-pick the organizer-sensible
-  // values (event_type "internal" per the brief, sane prize distribution seed) so the
-  // form is valid with the minimum number of inputs.
+  // ── Stage state (drives the reused Step4StageOrdering + StageModal) ────────────
+  const [stageNames, setStageNames] = useState<string[]>(["Stage 1"]);
+  const [isStageModalOpen, setIsStageModalOpen] = useState(false);
+  const [stageModalStep, setStageModalStep] = useState(1);
+  const [editingStageIndex, setEditingStageIndex] = useState<number | null>(
+    null,
+  );
+  const [stageModalData, setStageModalData] = useState<StageModalData>(
+    DEFAULT_STAGE_MODAL_DATA,
+  );
+  const [tempGroups, setTempGroups] = useState<GroupType[]>([]);
+
+  // ── Form ────────────────────────────────────────────────────────────────────
+  // Same EventFormSchema as the admin wizard. Defaults seed the organizer-sensible
+  // starting point (internal event, one stage, a 3-position prize distribution).
   const form = useForm<EventFormType>({
-    // @ts-ignore - the admin wizard uses the same cast; the resolver type widens here.
+    // @ts-ignore - the admin wizard uses the same cast; the resolver widens the type here.
     resolver: zodResolver(EventFormSchema),
     defaultValues: {
       event_name: "",
-      competition_type: "tournament",
-      participant_type: "squad",
-      event_type: "internal", // organizer events default to internal (brief)
+      competition_type: "",
+      participant_type: "",
+      event_type: "",
       is_public: "True",
       max_teams_or_players: 1,
       banner: "",
-      stream_channels: [],
+      stream_channels: [""],
       event_mode: "",
       number_of_stages: 1,
-      // The shared admin EventFormSchema requires >=1 fully-valid stage. The organizer
-      // form has no stage editor - it auto-builds the real single stage from the chosen
-      // mode + dates at submit (buildDefaultStages), which is what actually gets sent. This
-      // placeholder stage exists ONLY to satisfy the resolver so submission isn't blocked;
-      // it is never sent to the backend.
-      stages: [
-        {
-          stage_name: "Main Stage",
-          start_date: "2026-01-01",
-          end_date: "2026-01-01",
-          number_of_groups: 1,
-          stage_format: "br_normal",
-          groups: [
-            {
-              group_name: "Group A",
-              playing_date: "2026-01-01",
-              playing_time: "18:00",
-              teams_qualifying: 1,
-              match_count: 1,
-              match_maps: ["Bermuda"],
-            },
-          ],
-        },
-      ],
+      stages: [],
       prizepool: "",
       prizepool_cash_value: undefined,
-      // Empty object passes the schema's record() vacuously - an organizer can submit
-      // with just the prizepool text, or add positions via Step5PrizePool (each added
-      // position must then carry a non-empty value, same as the admin wizard).
-      prize_distribution: {},
+      // Seed three empty positions (string values per the schema's Record<string,string>).
+      // The admin wizard seeds the same three positions; empty strings keep the prize
+      // inputs blank and avoid a number-vs-string default mismatch.
+      prize_distribution: { "1st": "", "2nd": "", "3rd": "" },
       event_rules: "",
       rules_document: "",
       start_date: "",
       end_date: "",
       registration_open_date: "",
       registration_end_date: "",
-      // times (optional) - paired with the dates above so organizers can set when
-      // registration + the event open/close, not just the day.
-      registration_start_time: "",
-      registration_end_time: "",
-      event_start_time: "",
-      event_end_time: "",
       registration_link: "",
       event_status: "upcoming",
       publish_to_tournaments: false,
@@ -171,127 +192,413 @@ export default function OrganizerCreateEventPage() {
       registration_restriction: "none",
       restriction_mode: "allow_only",
       is_sponsored: false,
+      sponsor_name: "",
+      sponsor_usernames: [],
+      sponsor_requirement_description: "",
+      sponsor_field_label: "",
       is_waitlist_enabled: false,
+      waitlist_capacity: undefined,
+      waitlist_discord_role_id: "", // never edited in the organizer flow (Discord omitted)
+      event_start_time: "",
+      event_end_time: "",
+      registration_start_time: "",
+      registration_end_time: "",
     },
   });
 
-  // ── Banner file handling ──────────────────────────────────────────────────
-  const handleBannerFile = (file?: File) => {
-    if (!file) return;
-    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      toast.error("Only PNG, JPG, JPEG, or WEBP files are supported.");
-      return;
+  const stages = form.watch("stages") || [];
+  const saveToDraftsWatch = form.watch("save_to_drafts");
+  const publishToTournamentsWatch = form.watch("publish_to_tournaments");
+  const publishToNewsWatch = form.watch("publish_to_news");
+  const registration_restriction = form.watch("registration_restriction");
+  const hasFinalAction =
+    saveToDraftsWatch || publishToTournamentsWatch || publishToNewsWatch;
+
+  // ── Effects (ported 1:1 from the admin wizard) ────────────────────────────────
+
+  // Enforce draft/publish mutual exclusivity (a draft can't also be published).
+  useEffect(() => {
+    const isDraft = saveToDraftsWatch;
+    const isPublish = publishToTournamentsWatch || publishToNewsWatch;
+
+    if (isDraft && isPublish) {
+      form.setValue("publish_to_tournaments", false);
+      form.setValue("publish_to_news", false);
+      toast.info(
+        "Draft mode selected. Publishing options automatically unchecked.",
+      );
+    } else if (isPublish && isDraft) {
+      form.setValue("save_to_drafts", false);
+      toast.info("Publishing selected. Draft mode automatically unchecked.");
     }
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saveToDraftsWatch, publishToTournamentsWatch, publishToNewsWatch]);
+
+  // Auto-set restriction_mode the first time a restriction type is picked.
+  useEffect(() => {
+    if (
+      registration_restriction !== "none" &&
+      !form.getValues("restriction_mode")
+    ) {
+      form.setValue("restriction_mode", "allow_only");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registration_restriction]);
+
+  // ── Stage handlers (ported 1:1 from the admin wizard) ─────────────────────────
+  // These own the stage-builder state that the reused Step4StageOrdering + StageModal
+  // render against. Group/stage Discord role ids are seeded empty and never edited
+  // (the StageModal's Discord inputs are hidden via hideDiscord).
+
+  const handleStageCountChange = (count: number) => {
+    const newCount = Math.max(0, count);
+    form.setValue("number_of_stages", newCount);
+    setStageNames(
+      Array.from(
+        { length: newCount },
+        (_, i) => stageNames[i] || `Stage ${i + 1}`,
+      ),
+    );
   };
 
-  // ── Build the one-stage / one-group array the backend needs ────────────────
-  // The organizer form doesn't expose the stage wizard, so we synthesise a single
-  // valid stage from the event-level dates + mode. The backend reads each group's
-  // match_count to auto-create matches, so we give it exactly one match on one map.
-  const buildDefaultStages = (data: EventFormType) => {
-    // Every group needs at least one map; Bermuda is the safe default for both
-    // BR and CS modes (the backend just cycles match_maps to create matches).
-    const defaultMap = "Bermuda";
+  const handleStageNameChange = (index: number, name: string) => {
+    const updated = [...stageNames];
+    updated[index] = name;
+    setStageNames(updated);
+  };
 
-    return [
-      {
-        stage_name: "Stage 1",
-        start_date: data.start_date,
-        end_date: data.end_date,
-        number_of_groups: 1,
-        stage_format: data.event_mode, // a STAGE_FORMATS value, e.g. "br - normal"
-        teams_qualifying_from_stage: 0,
-        stage_discord_role_id: "",
-        prizepool: data.prizepool || 0,
-        prizepool_cash_value: data.prizepool_cash_value || 0,
-        prize_distribution: data.prize_distribution || {},
-        // ── Scoring-mode parity with the admin wizard (sub-project A). The organizer
-        // form doesn't expose these toggles, so they default to off - but they ride in
-        // the payload so the backend's create-event reads the same stage shape. ──
-        champion_point_enabled: false,
-        champion_point_threshold: undefined,
-        point_rush_enabled: false,
-        point_rush_reward: {},
-        point_rush_target_index: undefined,
-        // ── Round-Robin parity with the admin wizard (sub-project B). Only the BR
-        // Round-Robin mode carries a round_robin payload (base groups + schedule);
-        // other modes omit it so the backend doesn't see a stray config - exactly
-        // how the admin page conditionally attaches round_robin by stage_format. ──
-        ...(data.event_mode === "br - round robin"
-          ? { round_robin: roundRobinConfig }
-          : {}),
-        groups: [
-          {
-            group_name: "Group 1",
-            // Group plays on the event's start date; midnight default time.
-            playing_date: data.start_date,
+  const openStageModal = (stageIndex: number) => {
+    setEditingStageIndex(stageIndex);
+    setStageModalStep(1);
+    const existing = stages[stageIndex];
+
+    if (existing) {
+      setStageModalData({
+        stage_name: existing.stage_name,
+        stage_discord_role_id: existing.stage_discord_role_id || "",
+        start_date: existing.start_date,
+        end_date: existing.end_date,
+        stage_format: existing.stage_format,
+        number_of_groups: existing.number_of_groups,
+        teams_qualifying_from_stage: existing.teams_qualifying_from_stage || 1,
+        prizepool: existing.prizepool || "",
+        prizepool_cash_value: existing.prizepool_cash_value || "",
+        prize_distribution: existing.prize_distribution || {},
+        // ── Scoring-mode config carried back into the modal for re-editing. ──
+        champion_point_enabled: existing.champion_point_enabled ?? false,
+        champion_point_threshold: existing.champion_point_threshold,
+        point_rush_enabled: existing.point_rush_enabled ?? false,
+        point_rush_reward: existing.point_rush_reward ?? {},
+        point_rush_target_index: existing.point_rush_target_index,
+        // ── Round-Robin config carried back (default if the stage had none). ──
+        round_robin: existing.round_robin ?? DEFAULT_ROUND_ROBIN_CONFIG,
+      });
+      setTempGroups(existing.groups);
+    } else {
+      setStageModalData({
+        ...DEFAULT_STAGE_MODAL_DATA,
+        stage_name: stageNames[stageIndex] || `Stage ${stageIndex + 1}`,
+      });
+      setTempGroups(
+        Array.from({ length: 2 }, (_, i) => ({
+          group_name: `Group ${i + 1}`,
+          playing_date: "",
+          playing_time: "00:00",
+          teams_qualifying: 1,
+          match_count: 1,
+          group_discord_role_id: "", // omitted in UI; empty in payload
+          room_id: "",
+          room_name: "",
+          room_password: "",
+          match_maps: [],
+        })),
+      );
+    }
+    setIsStageModalOpen(true);
+  };
+
+  const handleGroupCountChange = (count: number) => {
+    const newCount = Math.max(0, count);
+    setTempGroups(
+      Array.from(
+        { length: newCount },
+        (_, i) =>
+          tempGroups[i] || {
+            group_name: `Group ${i + 1}`,
+            playing_date: stageModalData.start_date || "",
             playing_time: "00:00",
             teams_qualifying: 1,
             match_count: 1,
-            match_maps: [defaultMap],
-            group_discord_role_id: "",
+            group_discord_role_id: "", // omitted in UI; empty in payload
             room_id: "",
             room_name: "",
             room_password: "",
-            prizepool: 0,
-            prizepool_cash_value: 0,
+            match_maps: [],
+            prizepool: "",
+            prizepool_cash_value: "",
             prize_distribution: {},
           },
-        ],
-      },
+      ),
+    );
+    setStageModalData({ ...stageModalData, number_of_groups: newCount });
+  };
+
+  const updateGroupDetail = (
+    index: number,
+    field: keyof GroupType,
+    value: string | number | string[] | Record<string, string>,
+  ) => {
+    const updated = [...tempGroups];
+    updated[index] = { ...updated[index], [field]: value };
+    setTempGroups(updated);
+  };
+
+  const addMapToGroup = (groupIndex: number, map: string) => {
+    const updated = [...tempGroups];
+    updated[groupIndex].match_maps = [
+      ...(updated[groupIndex].match_maps || []),
+      map,
     ];
+    setTempGroups(updated);
   };
 
-  // ── Chronology validation ─────────────────────────────────────────────────
-  // Combine each date with its paired time into a real timestamp (missing time = 00:00),
-  // then enforce the sensible ordering: registration opens before it closes, the event
-  // can't start before registration closes, and must end after it starts. Returns the
-  // first problem message, or null when the window is valid.
-  const checkDateOrder = (data: EventFormType): string | null => {
-    const ts = (date?: string, time?: string) =>
-      date ? new Date(`${date}T${time && time.length ? time : "00:00"}`) : null;
-    const regOpen = ts(data.registration_open_date, data.registration_start_time);
-    const regClose = ts(data.registration_end_date, data.registration_end_time);
-    const evStart = ts(data.start_date, data.event_start_time);
-    const evEnd = ts(data.end_date, data.event_end_time);
-    if (regOpen && regClose && regClose <= regOpen)
-      return "Registration must close after it opens.";
-    if (regClose && evStart && evStart < regClose)
-      return "The event can't start before registration closes.";
-    if (evStart && evEnd && evEnd <= evStart)
-      return "The event must end after it starts.";
-    return null;
+  const removeOneMapFromGroup = (groupIndex: number, map: string) => {
+    const updated = [...tempGroups];
+    const current: string[] = updated[groupIndex].match_maps || [];
+    const idx = current.lastIndexOf(map);
+    if (idx !== -1) {
+      updated[groupIndex].match_maps = current.filter((_, i) => i !== idx);
+    }
+    setTempGroups(updated);
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────
-  // `asDraft` comes from which button the organizer pressed (Save draft / Publish).
-  // Rules are optional for organizers, so we send whichever branch (typed/uploaded)
-  // is active and leave the other empty - no hard rules requirement to enforce here.
-  const submit = (data: EventFormType, asDraft: boolean) => {
-    // Block submission (with a clear reason) if the date/time window is out of order.
-    const orderError = checkDateOrder(data);
-    if (orderError) {
-      toast.error(orderError);
+  const handleSaveStage = () => {
+    if (
+      !stageModalData.stage_name ||
+      !stageModalData.stage_format ||
+      !stageModalData.start_date ||
+      !stageModalData.end_date ||
+      stageModalData.teams_qualifying_from_stage === undefined
+    ) {
+      toast.error("Please fill all required stage fields");
       return;
     }
+
+    const invalidGroup = tempGroups.find(
+      (g) =>
+        !g.playing_date ||
+        !g.playing_time ||
+        !g.group_name.trim() ||
+        g.teams_qualifying < 1 ||
+        g.match_count < 1 ||
+        !g.match_maps ||
+        g.match_maps.length === 0,
+    );
+    if (invalidGroup) {
+      toast.error(
+        "Please complete all group details correctly, including selecting at least one map per group",
+      );
+      return;
+    }
+
+    if (stageModalData.number_of_groups < 1) {
+      toast.error("A stage must have at least one group.");
+      return;
+    }
+
+    const newStage: StageType = {
+      stage_name: stageModalData.stage_name,
+      stage_discord_role_id: stageModalData.stage_discord_role_id, // empty (omitted)
+      start_date: stageModalData.start_date,
+      end_date: stageModalData.end_date,
+      number_of_groups: stageModalData.number_of_groups,
+      stage_format: stageModalData.stage_format,
+      groups: tempGroups,
+      teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
+      prizepool: stageModalData.prizepool,
+      prizepool_cash_value: stageModalData.prizepool_cash_value,
+      prize_distribution: stageModalData.prize_distribution,
+      // ── Scoring-mode config (sub-project A) - rides into the FormData stages array. ──
+      champion_point_enabled: stageModalData.champion_point_enabled,
+      champion_point_threshold: stageModalData.champion_point_threshold,
+      point_rush_enabled: stageModalData.point_rush_enabled,
+      point_rush_reward: stageModalData.point_rush_reward,
+      point_rush_target_index: stageModalData.point_rush_target_index,
+      // ── Round-Robin config (sub-project B) - only for the BR Round-Robin format. ──
+      ...(stageModalData.stage_format === "br - round robin"
+        ? { round_robin: stageModalData.round_robin }
+        : {}),
+    };
+
+    const currentStages = [...stages];
+    currentStages[editingStageIndex!] = newStage;
+    form.setValue("stages", currentStages);
+
+    const updatedNames = [...stageNames];
+    if (updatedNames[editingStageIndex!] !== newStage.stage_name) {
+      updatedNames[editingStageIndex!] = newStage.stage_name;
+      setStageNames(updatedNames);
+    }
+
+    toast.success("Stage saved successfully");
+    setIsStageModalOpen(false);
+    setStageModalStep(1);
+  };
+
+  const moveStage = (index: number, direction: "up" | "down") => {
+    const currentStages = form.getValues("stages");
+    const currentNames = [...stageNames];
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+
+    if (newIndex >= 0 && newIndex < currentStages.length) {
+      [currentStages[index], currentStages[newIndex]] = [
+        currentStages[newIndex],
+        currentStages[index],
+      ];
+      form.setValue("stages", currentStages, { shouldValidate: true });
+      [currentNames[index], currentNames[newIndex]] = [
+        currentNames[newIndex],
+        currentNames[index],
+      ];
+      setStageNames(currentNames);
+      toast.success(`Moved stage ${stageNames[index] || "Stage"} ${direction}`);
+    }
+  };
+
+  const handleDeleteStage = (index: number) => {
+    const currentStages = form.getValues("stages");
+    const currentNames = [...stageNames];
+
+    if (currentStages.length > 1) {
+      currentStages.splice(index, 1);
+      form.setValue("stages", currentStages, { shouldValidate: true });
+      currentNames.splice(index, 1);
+      setStageNames(currentNames);
+      form.setValue("number_of_stages", currentNames.length);
+      toast.success("Stage deleted successfully");
+    } else {
+      toast.error("An event must have at least one stage.");
+    }
+  };
+
+  // ── Step validation (ported 1:1 from the admin wizard) ────────────────────────
+  // Each "Next" validates only the fields the current step owns, so an organizer gets
+  // the same per-step feedback the admin gets - no silent dead buttons.
+  const handleNextStep = async () => {
+    let isValid = false;
+
+    switch (currentStep) {
+      case 1:
+        isValid = await form.trigger(
+          [
+            "event_name",
+            "competition_type",
+            "participant_type",
+            "event_type",
+            "is_public",
+            "registration_open_date",
+            "registration_end_date",
+            "start_date",
+            "end_date",
+            "max_teams_or_players",
+          ],
+          { shouldFocus: true },
+        );
+        break;
+
+      case 2:
+        isValid = await form.trigger(["event_mode"], { shouldFocus: true });
+        break;
+
+      case 3:
+        isValid = await form.trigger(["number_of_stages"], {
+          shouldFocus: true,
+        });
+        if (isValid && form.getValues("number_of_stages") < 1) {
+          toast.error("Number of stages must be at least 1.");
+          isValid = false;
+        }
+        break;
+
+      case 4: {
+        const numStages = form.getValues("number_of_stages");
+        const configuredStages = form.getValues("stages").length;
+        if (configuredStages < numStages) {
+          toast.error(
+            `Please configure all ${numStages} stages before proceeding. Only ${configuredStages} configured.`,
+          );
+          return;
+        }
+        const allValid = form
+          .getValues("stages")
+          .every((s) => s.groups && s.groups.length > 0);
+        if (!allValid) {
+          toast.error(
+            "One or more stages have not been fully configured with groups.",
+          );
+          return;
+        }
+        isValid = true;
+        break;
+      }
+
+      case 5:
+        isValid = await form.trigger(["prizepool"], { shouldFocus: true });
+        break;
+
+      case 6:
+        if (rulesInputMethod === "type") {
+          if (!form.getValues("event_rules")?.trim()) {
+            toast.error("Please enter the event rules.");
+            return;
+          }
+          form.setValue("rules_document", "");
+        } else {
+          if (!form.getValues("rules_document")) {
+            toast.error("Please upload the rules document.");
+            return;
+          }
+          form.setValue("event_rules", "");
+        }
+        isValid = true;
+        break;
+
+      case 7:
+        isValid = true;
+        break;
+
+      case 8:
+        isValid = true;
+        break;
+
+      default:
+        isValid = true;
+    }
+
+    if (isValid) setCurrentStep((s) => s + 1);
+  };
+
+  // ── Submit (mirrors the admin submit; org-scoping is the only addition) ────────
+  // Builds the SAME multipart FormData the admin page sends, then appends
+  // organization_id so the backend homes the event to this organizer's org.
+  const onSubmit = (data: EventFormType) => {
     startTransition(async () => {
       try {
         const formData = new FormData();
 
-        // ── Files (optional) ──
         if (selectedFile) formData.append("event_banner", selectedFile);
-        if (rulesInputMethod === "upload" && selectedRuleFile)
+        if (selectedRuleFile)
           formData.append("uploaded_rules", selectedRuleFile);
 
-        // ── Core required fields (names match the admin submit exactly) ──
         formData.append("event_name", data.event_name);
         formData.append("competition_type", data.competition_type);
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
         formData.append("is_public", data.is_public);
-        formData.append("max_teams_or_players", data.max_teams_or_players.toString());
+        formData.append(
+          "max_teams_or_players",
+          data.max_teams_or_players.toString(),
+        );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
         formData.append(
@@ -299,37 +606,123 @@ export default function OrganizerCreateEventPage() {
           (data.prizepool_cash_value ?? "").toString(),
         );
 
-        // ── Draft vs publish ──
-        formData.append("is_draft", asDraft ? "True" : "False");
-        formData.append("event_status", asDraft ? "draft" : "upcoming");
-
-        // ── Dates ──
-        formData.append("number_of_stages", "1");
+        const finalEventStatus = data.save_to_drafts
+          ? "draft"
+          : data.event_status;
+        formData.append("is_draft", data.save_to_drafts ? "True" : "False");
+        formData.append("event_status", finalEventStatus);
+        formData.append("number_of_stages", data.number_of_stages.toString());
         formData.append("start_date", data.start_date);
         formData.append("end_date", data.end_date);
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
-        // times (optional) - match the admin submit field names so the backend stores them.
-        formData.append("registration_start_time", data.registration_start_time || "");
-        formData.append("registration_end_time", data.registration_end_time || "");
-        formData.append("event_start_time", data.event_start_time || "");
-        formData.append("event_end_time", data.event_end_time || "");
         formData.append("registration_link", data.registration_link || "");
+        if (data.event_start_time)
+          formData.append("event_start_time", data.event_start_time);
+        if (data.event_end_time)
+          formData.append("event_end_time", data.event_end_time);
+        if (data.registration_start_time)
+          formData.append(
+            "registration_start_time",
+            data.registration_start_time,
+          );
+        if (data.registration_end_time)
+          formData.append("registration_end_time", data.registration_end_time);
+        formData.append(
+          "registration_restriction",
+          data?.registration_restriction ?? "none",
+        );
+        formData.append(
+          "restriction_mode",
+          form.getValues("restriction_mode") ?? "allow_only",
+        );
 
-        // ── No location restriction on the organizer form (keep it simple). ──
-        formData.append("registration_restriction", "none");
+        if (data?.selected_locations?.length) {
+          formData.append(
+            "restricted_countries",
+            JSON.stringify(data.selected_locations),
+          );
+        }
 
-        // ── Rules (typed) - uploaded rules ride as the file above. ──
+        formData.append(
+          "publish_to_tournaments",
+          data.publish_to_tournaments.toString(),
+        );
+        formData.append("publish_to_news", data.publish_to_news.toString());
+        formData.append("save_to_drafts", data.save_to_drafts.toString());
         formData.append(
           "event_rules",
           rulesInputMethod === "type" ? data.event_rules || "" : "",
         );
+        formData.append(
+          "prize_distribution",
+          JSON.stringify(data.prize_distribution),
+        );
+        formData.append(
+          "stream_channels",
+          JSON.stringify(
+            data.stream_channels?.filter((s) => s.trim() !== "") || [],
+          ),
+        );
+        // Normalise optional prize fields to 0 (same as the admin page) so the backend
+        // never sees an empty string where it expects a number. Each stage still carries
+        // its (empty) Discord ids - the UI just never let the organizer set them.
+        const stagesToSend = data.stages.map((stage) => ({
+          ...stage,
+          prizepool: stage.prizepool || 0,
+          prizepool_cash_value: stage.prizepool_cash_value || 0,
+          groups: stage.groups.map((group) => ({
+            ...group,
+            prizepool: group.prizepool || 0,
+            prizepool_cash_value: group.prizepool_cash_value || 0,
+          })),
+        }));
+        formData.append("stages", JSON.stringify(stagesToSend));
 
-        // ── Prize distribution + stages (JSON, like the admin page). ──
-        formData.append("prize_distribution", JSON.stringify(data.prize_distribution));
-        formData.append("stages", JSON.stringify(buildDefaultStages(data)));
+        // ── Sponsor requirement (parity with admin) ──
+        formData.append(
+          "is_sponsored",
+          (data.is_sponsored ?? false).toString(),
+        );
+        if (data.is_sponsored) {
+          formData.append("sponsor_name", data.sponsor_name || "");
+          formData.append(
+            "sponsor_usernames",
+            // @ts-ignore - sponsor_usernames is on the schema but widened by the resolver.
+            JSON.stringify(data.sponsor_usernames ?? []),
+          );
+          formData.append(
+            "sponsor_requirement_description",
+            data.sponsor_requirement_description || "",
+          );
+          formData.append(
+            "sponsor_field_label",
+            data.sponsor_field_label || "Player UUID",
+          );
+        }
+
+        // ── Waitlist (parity with admin, MINUS the Discord role id) ──
+        // We deliberately DON'T send waitlist_discord_role_id - the field is hidden in
+        // the organizer flow and stays empty; the backend treats it as optional.
+        // @ts-ignore
+        formData.append(
+          "is_waitlist_enabled",
+          (data.is_waitlist_enabled ?? false).toString(),
+        );
+        // @ts-ignore
+        if (data.is_waitlist_enabled) {
+          formData.append(
+            "waitlist_capacity",
+            // @ts-ignore
+            (data.waitlist_capacity ?? "").toString(),
+          );
+        }
 
         // ── ORGANIZER-SPECIFIC: home the event to the selected organization. ──
+        // The backend's create_event reads this, verifies org_can(user,
+        // "can_create_events", org), and sets event.organization=org. Without it the
+        // event would be a native AFC event (org=None) - so this line is what preserves
+        // org attribution for organizer-created events.
         formData.append("organization_id", organizationId.toString());
 
         const response = await fetch(
@@ -353,7 +746,9 @@ export default function OrganizerCreateEventPage() {
           router.push("/organizer/events");
         } else {
           toast.error(
-            res.message || res.detail || "Failed to create event. Check your inputs.",
+            res.message ||
+              res.detail ||
+              "Failed to create event. Please check your inputs.",
           );
         }
       } catch {
@@ -362,23 +757,9 @@ export default function OrganizerCreateEventPage() {
     });
   };
 
-  // Wraps form.handleSubmit so each button submits with its own draft flag. The onError
-  // branch surfaces the first validation error as a toast - without it a failed validation
-  // makes the button look dead (no request, no feedback).
-  const onSubmit = (asDraft: boolean) =>
-    form.handleSubmit(
-      // @ts-ignore - same resolver-cast the admin page uses; the zodResolver widens the
-      // form's internal TFieldValues so the typed success handler doesn't line up exactly.
-      (data: EventFormType) => submit(data, asDraft),
-      (errors) => {
-        const first = Object.values(errors)[0] as { message?: string } | undefined;
-        toast.error(first?.message || "Please fix the highlighted fields and try again.");
-      },
-    );
-
-  // ── Permission gate ─────────────────────────────────────────────────────────
-  // No create permission → a read-only notice instead of the form (mirrors the
-  // owner-only notice on the organizer Profile page).
+  // ── Permission gate ───────────────────────────────────────────────────────────
+  // No create permission → a read-only notice instead of the wizard (mirrors the
+  // owner-only notice on the organizer Profile page + the events list CTA gate).
   if (!canCreateEvents) {
     return (
       <div className="flex flex-col gap-5">
@@ -389,7 +770,8 @@ export default function OrganizerCreateEventPage() {
               <IconLock className="size-6" />
             </div>
             <p className="text-sm text-muted-foreground">
-              You don&apos;t have permission to create events for this organization.
+              You don&apos;t have permission to create events for this
+              organization.
             </p>
             <Button asChild variant="outline" size="sm">
               <Link href="/organizer/events">Back to events</Link>
@@ -400,413 +782,131 @@ export default function OrganizerCreateEventPage() {
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────────
+  // ── Render (same 9-step wizard layout as the admin page) ──────────────────────
 
   return (
-    <div className="flex flex-col gap-5">
+    <div>
       <PageHeader
-        title="Create Event"
+        title="Create New Event"
         description="Set up a new event for your organization."
         back
       />
 
       <Form {...form}>
-        {/* No native onSubmit - the two footer buttons submit with their own draft flag. */}
-        <form className="space-y-6">
-          {/* ── Section 1: Event details ── */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Event Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Event name */}
-              <FormField
-                // @ts-ignore
-                control={form.control}
-                name="event_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter event name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {/* @ts-ignore - resolver widens the form's internal TFieldValues generic. */}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {currentStep === 1 && (
+            <Step1EventDetails
+              // @ts-ignore - reused admin step expects the stricter UseFormReturn.
+              form={form}
+              selectedFile={selectedFile}
+              setSelectedFile={setSelectedFile}
+              previewUrl={previewUrl}
+              setPreviewUrl={setPreviewUrl}
+            />
+          )}
+          {/* @ts-ignore */}
+          {currentStep === 2 && <Step2EventMode form={form} />}
+          {currentStep === 3 && (
+            <Step3StageCount
+              // @ts-ignore
+              form={form}
+              stageNames={stageNames}
+              onStageCountChange={handleStageCountChange}
+              onStageNameChange={handleStageNameChange}
+            />
+          )}
+          {currentStep === 4 && (
+            <Step4StageOrdering
+              // @ts-ignore
+              form={form}
+              stageNames={stageNames}
+              onMoveStage={moveStage}
+              onDeleteStage={handleDeleteStage}
+              onOpenStageModal={openStageModal}
+            />
+          )}
+          {/* @ts-ignore */}
+          {currentStep === 5 && <Step5PrizePool form={form} />}
+          {currentStep === 6 && (
+            <Step6EventRules
+              // @ts-ignore
+              form={form}
+              rulesInputMethod={rulesInputMethod}
+              setRulesInputMethod={setRulesInputMethod}
+              selectedRuleFile={selectedRuleFile}
+              setSelectedRuleFile={setSelectedRuleFile}
+              previewRuleUrl={previewRuleUrl}
+              setPreviewRuleUrl={setPreviewRuleUrl}
+            />
+          )}
+          {/* @ts-ignore */}
+          {currentStep === 7 && <StepSponsorRequirement form={form} />}
+          {currentStep === 8 && (
+            // hideDiscord: organizers don't manage AFC's Discord automation, so the
+            // waitlist Discord-role input is omitted (the rest of the waitlist UI stays).
+            // @ts-ignore
+            <StepWaitlist form={form} hideDiscord />
+          )}
+          {/* @ts-ignore */}
+          {currentStep === 9 && <Step7PublishSave form={form} />}
 
-              {/* Type selects - competition / participant / event_type / privacy. */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  {
-                    name: "competition_type" as const,
-                    label: "Competition Type",
-                    options: [
-                      { value: "tournament", label: "Tournament" },
-                      { value: "scrims", label: "Scrims" },
-                    ],
-                  },
-                  {
-                    name: "participant_type" as const,
-                    label: "Participant Type",
-                    options: [
-                      { value: "solo", label: "Solo" },
-                      { value: "duo", label: "Duo" },
-                      { value: "squad", label: "Squad" },
-                    ],
-                  },
-                  {
-                    name: "event_type" as const,
-                    label: "Event Type",
-                    options: [
-                      { value: "internal", label: "Internal event" },
-                      { value: "external", label: "External event" },
-                    ],
-                  },
-                  {
-                    name: "is_public" as const,
-                    label: "Event Privacy",
-                    options: [
-                      { value: "True", label: "Public" },
-                      { value: "False", label: "Private" },
-                    ],
-                  },
-                ].map(({ name, label, options }) => (
-                  <FormField
-                    key={name}
-                    // @ts-ignore
-                    control={form.control}
-                    name={name}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{label}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {options.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-              </div>
+          {/* Navigation (same prev/next + final create button as the admin wizard) */}
+          <div className="flex justify-between items-center">
+            {currentStep > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setCurrentStep((s) => s - 1)}
+                disabled={isPending}
+              >
+                Previous
+              </Button>
+            )}
 
-              {/* Event mode - drives the synthesised stage's stage_format, so it
-                  must be a valid STAGE_FORMATS value the backend recognises. */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
+            <div className="ml-auto flex gap-3">
+              {currentStep < 9 ? (
+                <Button
+                  type="button"
+                  onClick={handleNextStep}
+                  disabled={isPending}
+                >
+                  {currentStep === 6 ? "Review & Finalize" : "Next"}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
                   // @ts-ignore
-                  control={form.control}
-                  name="event_mode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Mode</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select mode" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {/* The common formats - keep the organizer form lean. BR
-                              Round-Robin is included for admin-wizard parity: picking it
-                              reveals the same base-groups + schedule builder below. */}
-                          <SelectItem value="br - normal">
-                            Battle Royale - Normal
-                          </SelectItem>
-                          <SelectItem value="br - round robin">
-                            Battle Royale - Round Robin
-                          </SelectItem>
-                          <SelectItem value="cs - normal">
-                            Clash Squad - Normal
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Max teams / players. */}
-                <FormField
-                  // @ts-ignore
-                  control={form.control}
-                  name="max_teams_or_players"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Max Teams / Players</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          value={
-                            field.value === undefined ||
-                            field.value === null ||
-                            field.value === 0
-                              ? ""
-                              : field.value.toString()
-                          }
-                          onChange={(e) => field.onChange(e.target.value)}
-                          placeholder="e.g., 64"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* ── Round-Robin builder (sub-project B) ─────────────────────────────
-                  Only shown when the BR Round-Robin mode is picked - the same shared
-                  RoundRobinPanel the admin wizard renders, so the organizer edits the
-                  same base groups + schedule and the resulting round_robin config is
-                  threaded into the synthesised stage (buildDefaultStages). No team
-                  picker here (no registrations yet on create), matching the admin flow. */}
-              {form.watch("event_mode") === "br - round robin" && (
-                <RoundRobinPanel
-                  config={roundRobinConfig}
-                  onChange={setRoundRobinConfig}
-                />
+                  onClick={form.handleSubmit(onSubmit)}
+                  disabled={currentStep !== 9 || isPending || !hasFinalAction}
+                >
+                  {isPending ? "Creating..." : "Create Event"}
+                </Button>
               )}
-
-              {/* Registration window - each side takes a date AND a time. */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <FormLabel>Registration Opens</FormLabel>
-                  <div className="grid grid-cols-[1fr_auto] gap-2">
-                    <FormField
-                      // @ts-ignore
-                      control={form.control}
-                      name="registration_open_date"
-                      render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      // @ts-ignore
-                      control={form.control}
-                      name="registration_start_time"
-                      render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <Input type="time" className="w-28" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <FormLabel>Registration Closes</FormLabel>
-                  <div className="grid grid-cols-[1fr_auto] gap-2">
-                    <FormField
-                      // @ts-ignore
-                      control={form.control}
-                      name="registration_end_date"
-                      render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      // @ts-ignore
-                      control={form.control}
-                      name="registration_end_time"
-                      render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <Input type="time" className="w-28" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Event window - each side takes a date AND a time. */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <FormLabel>Event Start</FormLabel>
-                  <div className="grid grid-cols-[1fr_auto] gap-2">
-                    <FormField
-                      // @ts-ignore
-                      control={form.control}
-                      name="start_date"
-                      render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      // @ts-ignore
-                      control={form.control}
-                      name="event_start_time"
-                      render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <Input type="time" className="w-28" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <FormLabel>Event End</FormLabel>
-                  <div className="grid grid-cols-[1fr_auto] gap-2">
-                    <FormField
-                      // @ts-ignore
-                      control={form.control}
-                      name="end_date"
-                      render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      // @ts-ignore
-                      control={form.control}
-                      name="event_end_time"
-                      render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <Input type="time" className="w-28" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Banner upload (optional) - trimmed dropzone from the admin Step1. */}
-              <div className="space-y-2">
-                <FormLabel>Event Banner (optional)</FormLabel>
-                {!previewUrl ? (
-                  <div
-                    onClick={() => bannerInputRef.current?.click()}
-                    className="border-2 border-dashed rounded-md p-10 text-center cursor-pointer bg-muted transition-colors hover:border-primary"
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center">
-                        <IconPhoto size={28} className="text-primary dark:text-white" />
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Click to upload a banner -{" "}
-                        <span className="text-primary font-medium">browse</span>
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Supports: PNG, JPG, JPEG, WEBP
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="relative w-full aspect-video bg-muted border rounded-md overflow-hidden">
-                      <Image
-                        width={1000}
-                        height={1000}
-                        src={previewUrl}
-                        alt="Event banner preview"
-                        className="aspect-video size-full object-cover"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => {
-                          setSelectedFile(null);
-                          setPreviewUrl("");
-                          if (bannerInputRef.current) bannerInputRef.current.value = "";
-                        }}
-                      >
-                        <IconX size={16} className="mr-2" /> Remove
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => bannerInputRef.current?.click()}
-                      >
-                        <IconUpload size={16} className="mr-2" /> Replace
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                <input
-                  ref={bannerInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  className="hidden"
-                  onChange={(e) => handleBannerFile(e.target.files?.[0])}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* ── Section 2: Prize pool (reused admin component) ── */}
-          {/* `form as any`: the zodResolver widens the form's internal TFieldValues
-              generic, so the reused admin step's stricter UseFormReturn<EventFormType>
-              prop type doesn't line up exactly. The admin wizard ts-ignores the same
-              usage; we cast at the prop instead (cleaner than a multi-line ts-ignore). */}
-          <Step5PrizePool form={form as any} />
-
-          {/* ── Section 3: Rules (reused admin component; optional for organizers) ── */}
-          {/* `form as any`: same resolver generic mismatch as Step5PrizePool above. */}
-          <Step6EventRules
-            form={form as any}
-            rulesInputMethod={rulesInputMethod}
-            setRulesInputMethod={setRulesInputMethod}
-            selectedRuleFile={selectedRuleFile}
-            setSelectedRuleFile={setSelectedRuleFile}
-            previewRuleUrl={previewRuleUrl}
-            setPreviewRuleUrl={setPreviewRuleUrl}
-          />
-
-          {/* ── Footer: draft vs publish ── */}
-          <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onSubmit(true)}
-              disabled={isPending}
-            >
-              {isPending ? "Saving..." : "Save as draft"}
-            </Button>
-            <Button type="button" onClick={onSubmit(false)} disabled={isPending}>
-              {isPending ? "Publishing..." : "Publish event"}
-            </Button>
+            </div>
           </div>
         </form>
+
+        {/* Stage Modal - reused admin modal. hideDiscord hides the stage + group
+            Discord Role ID inputs; everything else (formats, scoring modes,
+            round-robin, groups, maps, prizes) is identical to the admin flow. */}
+        <StageModal
+          open={isStageModalOpen}
+          onOpenChange={setIsStageModalOpen}
+          modalStep={stageModalStep}
+          setModalStep={setStageModalStep}
+          stageModalData={stageModalData}
+          setStageModalData={setStageModalData}
+          stageNames={stageNames}
+          editingStageIndex={editingStageIndex}
+          tempGroups={tempGroups}
+          onGroupCountChange={handleGroupCountChange}
+          onUpdateGroupDetail={updateGroupDetail}
+          onAddMap={addMapToGroup}
+          onRemoveMap={removeOneMapFromGroup}
+          onSaveStage={handleSaveStage}
+          hideDiscord
+        />
       </Form>
     </div>
   );

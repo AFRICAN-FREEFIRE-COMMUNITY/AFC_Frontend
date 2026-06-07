@@ -58,7 +58,10 @@ export const homeNavLinksMobile: NavLinks[] = [
     slug: "/rankings",
     label: "Rankings & Tiers",
     icon: IconChartBarPopular,
-    comingSoon: true,
+    // Just unlocked (was "coming soon"): flag NEW for 7 days from this date, then the
+    // badge auto-clears (see isNewLink). Update addedAt if the unlock date changes.
+    newLink: true,
+    addedAt: "2026-06-07",
   },
   {
     slug: "/player-markets",
@@ -78,19 +81,23 @@ export const homeNavLinksMobile: NavLinks[] = [
     slug: "/shop",
     icon: IconShoppingCart,
     submenu: true,
-    // comingSoon: true,
+    // Just unlocked: NEW badge for 7 days from this date, auto-clears afterwards.
+    newLink: true,
+    addedAt: "2026-06-07",
     items: [
       {
         title: "Shop",
         slug: "/shop",
         icon: IconShoppingCart,
-        comingSoon: true,
+        newLink: true,
+        addedAt: "2026-06-07",
       },
       {
         title: "My Orders",
         slug: "/orders",
         icon: IconFolder,
-        comingSoon: true,
+        newLink: true,
+        addedAt: "2026-06-07",
       },
     ],
   },

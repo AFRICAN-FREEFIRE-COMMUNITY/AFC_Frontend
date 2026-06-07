@@ -110,7 +110,14 @@ export default function AdminRankingsPage() {
       setSeasons(r.results);
       const active = r.results.find((s) => s.is_active) ?? r.results[0];
       setSeasonId(active?.season_id);
-    }).catch(() => {});
+      // When there are NO seasons (or none active) seasonId stays undefined, the
+      // per-season effect below early-returns, and `loading` is never cleared, leaving
+      // the page stuck on "Loading rankings admin" forever. Clear it here so the season
+      // picker / empty state renders. Same on a seasons-fetch failure.
+      if (!active) setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
   }, []);
 
   // re-fetch the quarterly team scores for the active season (used after a real evaluation or

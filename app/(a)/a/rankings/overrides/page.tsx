@@ -520,6 +520,9 @@ export default function OverridesAndBansPage() {
         }
         if (!active) return;
         setSeason(s);
+        // No season exists (or none active): the per-season load effect below early-returns,
+        // so clear loading here ourselves, otherwise the page hangs on FullLoader forever.
+        if (!s) setLoading(false);
       } catch (err: any) {
         if (!active) return;
         toast.error(err?.response?.data?.message || "Failed to load season");

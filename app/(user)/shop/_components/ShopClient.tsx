@@ -92,12 +92,13 @@ export default function ShopClient() {
       try {
         setLoading(true);
 
+        // Storefront is PUBLIC: both endpoints are auth-free so anonymous visitors can
+        // browse. (Products previously used the admin-only /view-all-products/, which 403'd
+        // for non-admins and 401'd for anonymous -> "No products found" for everyone but admins.)
         const [productsRes, categoriesRes] = await Promise.all([
           axios.get(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-all-products/`,
-            { headers: { Authorization: `Bearer ${token}` } },
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-active-products/`,
           ),
-          // public endpoint, no auth required, drives the category tabs
           axios.get(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-active-categories/`,
           ),
@@ -135,6 +136,8 @@ export default function ShopClient() {
       }
     };
     fetchShop();
+    // No auth dependency: the storefront endpoints are public, so fetch once on mount
+    // (works for anonymous and logged-in users alike).
   }, []);
 
   // Helper: the active category's metadata (label + whether it ships).

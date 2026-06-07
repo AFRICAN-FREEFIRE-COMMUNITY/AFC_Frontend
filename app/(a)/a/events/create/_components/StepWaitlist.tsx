@@ -23,9 +23,16 @@ import { EventFormType } from "./types";
 
 interface StepWaitlistProps {
   form: UseFormReturn<EventFormType>;
+  // ── Discord omission (organizer parity) ─────────────────────────────────────
+  // When true, the optional "Waitlist Discord Role ID" input is hidden. The
+  // organizer create flow (app/(organizer)/organizer/events/create/page.tsx)
+  // passes hideDiscord so organizers never see/submit a Discord role id - AFC's
+  // Discord role automation is an admin-only concern for now. Defaults to false so
+  // the admin wizard (which DOES manage Discord roles) renders the field unchanged.
+  hideDiscord?: boolean;
 }
 
-export function StepWaitlist({ form }: StepWaitlistProps) {
+export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
   // @ts-ignore
   const waitlistEnabled = form.watch("is_waitlist_enabled");
 
@@ -99,23 +106,27 @@ export function StepWaitlist({ form }: StepWaitlistProps) {
               )}
             />
 
-            <FormField
-              // @ts-ignore
-              control={form.control}
-              name="waitlist_discord_role_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Waitlist Discord Role ID <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 123456789012345678" {...field} />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground">
-                    Discord role assigned to players on the waitlist.
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Discord role for waitlisted players - omitted in the organizer flow
+                (hideDiscord) since organizers don't drive AFC's Discord automation. */}
+            {!hideDiscord && (
+              <FormField
+                // @ts-ignore
+                control={form.control}
+                name="waitlist_discord_role_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Waitlist Discord Role ID <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. 123456789012345678" {...field} />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Discord role assigned to players on the waitlist.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         )}
       </CardContent>

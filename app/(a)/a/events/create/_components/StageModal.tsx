@@ -455,6 +455,14 @@ interface StageModalProps {
   onAddMap: (groupIndex: number, map: string) => void;
   onRemoveMap: (groupIndex: number, map: string) => void;
   onSaveStage: () => void;
+  // ── Discord omission (organizer parity) ─────────────────────────────────────
+  // When true, both the per-stage and per-group "Discord Role ID" inputs are hidden.
+  // The organizer create flow passes hideDiscord so its stage/group configuration
+  // matches the admin wizard EXCEPT for Discord role wiring (an AFC-admin-only concern
+  // for now). The submitted stage payload still carries empty stage_discord_role_id /
+  // group_discord_role_id strings, so the backend shape is identical - the fields are
+  // just never editable in the organizer UI. Defaults to false → admin modal unchanged.
+  hideDiscord?: boolean;
 }
 
 // ── Reusable Prize Pool Section ────────────────────────────────────────────────
@@ -585,6 +593,7 @@ export function StageModal({
   onAddMap,
   onRemoveMap,
   onSaveStage,
+  hideDiscord = false,
 }: StageModalProps) {
   const handleNextStep = () => {
     if (
@@ -975,21 +984,24 @@ export function StageModal({
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Stage Discord Role ID
-              </label>
-              <Input
-                value={stageModalData.stage_discord_role_id}
-                onChange={(e) =>
-                  setStageModalData({
-                    ...stageModalData,
-                    stage_discord_role_id: e.target.value,
-                  })
-                }
-                placeholder="e.g: 1234567890"
-              />
-            </div>
+            {/* Stage Discord Role ID - omitted in the organizer flow (hideDiscord). */}
+            {!hideDiscord && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Stage Discord Role ID
+                </label>
+                <Input
+                  value={stageModalData.stage_discord_role_id}
+                  onChange={(e) =>
+                    setStageModalData({
+                      ...stageModalData,
+                      stage_discord_role_id: e.target.value,
+                    })
+                  }
+                  placeholder="e.g: 1234567890"
+                />
+              </div>
+            )}
 
             <Separator />
 
@@ -1156,22 +1168,25 @@ export function StageModal({
                   />
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Discord Role ID
-                  </label>
-                  <Input
-                    value={group.group_discord_role_id}
-                    onChange={(e) =>
-                      onUpdateGroupDetail(
-                        index,
-                        "group_discord_role_id",
-                        e.target.value,
-                      )
-                    }
-                    placeholder="e.g: 1234567890"
-                  />
-                </div>
+                {/* Group Discord Role ID - omitted in the organizer flow (hideDiscord). */}
+                {!hideDiscord && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Discord Role ID
+                    </label>
+                    <Input
+                      value={group.group_discord_role_id}
+                      onChange={(e) =>
+                        onUpdateGroupDetail(
+                          index,
+                          "group_discord_role_id",
+                          e.target.value,
+                        )
+                      }
+                      placeholder="e.g: 1234567890"
+                    />
+                  </div>
+                )}
 
                 {/* Map Selection */}
                 <div>

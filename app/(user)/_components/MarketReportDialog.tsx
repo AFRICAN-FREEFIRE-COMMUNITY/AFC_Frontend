@@ -9,7 +9,9 @@
 // What it collects (mirrors the backend MarketReport / file_market_report endpoint):
 //   • a reason CATEGORY (radio cards, 1:1 with MarketReport.CATEGORY_CHOICES),
 //   • required free-text DETAILS,
-//   • an optional EVIDENCE image (screenshot / screen-recording frame).
+//   • a REQUIRED EVIDENCE image (feature "J-market-rules", J4). The submit button is
+//     disabled until an image is attached; the backend also rejects evidence-less
+//     reports with 400. A note warns that false reports can get the REPORTER banned (J5).
 // It posts multipart FormData via playerMarketApi.fileReport (which sets the Bearer
 // token + multipart boundary itself), then toasts and closes.
 //
@@ -101,6 +103,13 @@ export function MarketReportDialog({
     // details are required - matches the backend 400 when details are empty.
     if (!details.trim()) {
       toast.error("Please describe what happened.");
+      return;
+    }
+    // J4: evidence is now COMPULSORY. The submit button is already disabled until an
+    // image is attached, but we guard here too so the rule holds even if the button
+    // state is bypassed. Matches the backend 400 "Evidence is required to file a report."
+    if (!evidence) {
+      toast.error("Evidence is required. Attach a screenshot before submitting.");
       return;
     }
     setSubmitting(true);
@@ -197,13 +206,13 @@ export function MarketReportDialog({
             />
           </div>
 
-          {/* Optional evidence image. */}
+          {/* REQUIRED evidence image (feature "J-market-rules", J4). Evidence is now
+              mandatory: the submit button stays disabled until a screenshot is attached,
+              and the backend rejects an evidence-less report with 400. */}
           <div className="space-y-2">
             <Label htmlFor="report-evidence">
-              Evidence{" "}
-              <span className="text-muted-foreground">
-                (optional, screenshot)
-              </span>
+              Evidence <span className="text-red-500">*</span>{" "}
+              <span className="text-muted-foreground">(screenshot required)</span>
             </Label>
             <Input
               id="report-evidence"
@@ -211,6 +220,24 @@ export function MarketReportDialog({
               accept="image/*"
               onChange={(e) => setEvidence(e.target.files?.[0] ?? null)}
             />
+            <p className="text-xs text-muted-foreground">
+              {evidence
+                ? `Attached: ${evidence.name}`
+                : "Attach a screenshot as proof. A report cannot be filed without evidence."}
+            </p>
+          </div>
+
+          {/* J5: warn the reporter that abusing reports is itself punishable. Keep it
+              prominent (amber note) so users see it before submitting. No em dashes. */}
+          <div className="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/5 p-2.5 text-xs text-muted-foreground">
+            <IconFlag className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
+            <p>
+              <span className="font-medium text-yellow-600 dark:text-yellow-400">
+                Report honestly.
+              </span>{" "}
+              Filing a false, joke, or untrue report can get you, the reporter,
+              banned from the market. Only report real issues, and attach proof.
+            </p>
           </div>
         </div>
 
@@ -218,8 +245,13 @@ export function MarketReportDialog({
           <Button variant="outline" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
-          {/* destructive fill to match the mockup's red Submit report button */}
-          <Button variant="destructive" onClick={submit} disabled={submitting}>
+          {/* destructive fill to match the mockup's red Submit report button. J4:
+              disabled until an evidence image is attached (and while submitting). */}
+          <Button
+            variant="destructive"
+            onClick={submit}
+            disabled={submitting || !evidence || !details.trim()}
+          >
             <IconFlag className="h-4 w-4 mr-1" />
             {submitting ? "Submitting..." : "Submit report"}
           </Button>

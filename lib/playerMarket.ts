@@ -62,6 +62,11 @@ export interface MarketReportRow {
   evidence: string | null;
   status: "open" | "reviewing" | "resolved" | "dismissed" | "banned";
   resolution_notes: string | null;
+  // reporter_id (feature "J-market-rules", J5): the reporter's User id, used by the
+  // admin "Ban reporter (false report)" action to ban an abusive/false reporter via
+  // adminBan({ scope: "player", target_id: reporter_id }). null when the reporter row
+  // was deleted (SET_NULL) - the FE hides the ban-reporter action in that case.
+  reporter_id: number | null;
   reporter_username: string | null;
   reviewed_by_username: string | null;
   created_at: string | null;

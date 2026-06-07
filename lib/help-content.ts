@@ -816,8 +816,29 @@ export const HELP = {
     "Pending means we're still awaiting payment confirmation. Paid means payment cleared and your diamond redemption code has been dispatched to your registered email.",
 
   // ── User › Player market ───────────────────────────────────────────────────
+  // Market RULES copy (feature "J-market-rules"). These ⓘ tips surface the server-side
+  // rules to players right where they act: the Create Post flow, the trials/applications
+  // area, and the rules summary card on the landing. Backend enforcement: J1 + J2 in
+  // afc_player_market/views.py (create_recruitment_post, handle_application_action,
+  // respond_to_trial_invite); J4 + J5 in afc_player_market/views_moderation.py
+  // (file_market_report, admin_market_ban).
   "player_market.create_post":
     "Create one of two post types: a team recruitment post (you're a team looking for players) or a player-available post (you're a player looking for a team).",
+  // J1: one active post at a time (enforced in create_recruitment_post).
+  "player_market.one_active_post":
+    "You can have only one active post at a time, counting both team recruitment posts and player available posts. Close your current post, or let it reach its expiry date, before creating a new one. An expired post no longer counts.",
+  // J1: field-level help on the Create Post type chooser + expiry.
+  "player_market.post_expiry":
+    "The date your post stops showing on the market. After this date the post is no longer active, and you are free to create a new one.",
+  // J2: max 2 active tryouts (enforced on team invite and on player accept).
+  "player_market.tryout_limit":
+    "You can be in at most 2 active tryouts at the same time. While you are in 2 ongoing trials, you cannot accept a new trial invite (and teams cannot invite you into one) until one of them is settled.",
+  // J3 + J5: the consolidated rules summary shown on the landing card.
+  "player_market.rules_summary":
+    "Player Market rules: (1) one active post at a time. (2) you can be in at most 2 active tryouts at once. (3) report honestly. filing a false, joke, or untrue report can get you banned from the market. (4) a market ban blocks you from creating posts, applying, and inviting.",
+  // J4 + J5: report dialog help. Evidence is mandatory; false reports are punishable.
+  "player_market.report_rules":
+    "Reports go privately to AFC moderators. Evidence (a screenshot) is required, so attach proof before you submit. Report honestly: filing a false, joke, or untrue report can get you, the reporter, banned from the market.",
   "player_market.recruitment_criteria":
     "Free-text notes describing what you want in a teammate (experience, playstyle, availability). Applicants see this before they apply. It doesn't filter anyone out automatically.",
   "player_market.apply":

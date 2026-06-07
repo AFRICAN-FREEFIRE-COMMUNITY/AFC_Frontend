@@ -25,7 +25,29 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/Loader";
-import { IconLock, IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
+import {
+  IconLock,
+  IconPhoto,
+  IconUpload,
+  IconX,
+  IconPlus,
+} from "@tabler/icons-react";
+
+// Suggested platforms for the social-link editor's datalist. These are SUGGESTIONS
+// only - the platform field is free text, so an organizer can type ANY platform
+// (e.g. TikTok, Twitch, Snapchat, a personal site) and it is saved verbatim.
+const SOCIAL_SUGGESTIONS = [
+  "X",
+  "Instagram",
+  "YouTube",
+  "Discord",
+  "TikTok",
+  "Facebook",
+  "Twitch",
+  "Snapchat",
+  "Telegram",
+  "Website",
+];
 import { organizersApi } from "@/lib/organizers";
 import { useOrganizer } from "../_components/OrganizerContext";
 
@@ -143,12 +165,26 @@ export default function OrganizerProfilePage() {
   // Editable text fields.
   const [email, setEmail] = useState("");
   const [description, setDescription] = useState("");
-  const [socials, setSocials] = useState({
-    x: "",
-    instagram: "",
-    youtube: "",
-    discord: "",
-  });
+  // Socials are an EXTENSIBLE list of {platform, url} rows (not a fixed 4 anymore), so
+  // an organizer can add ANY platform they like (TikTok, Twitch, a website, ...). They
+  // are stored in the org's `socials` JSONField as a { platform: url } dict, so this is
+  // back-compatible with the old x/instagram/youtube/discord keys.
+  const [socialLinks, setSocialLinks] = useState<
+    { platform: string; url: string }[]
+  >([]);
+
+  const addSocialLink = () =>
+    setSocialLinks((prev) => [...prev, { platform: "", url: "" }]);
+  const removeSocialLink = (idx: number) =>
+    setSocialLinks((prev) => prev.filter((_, i) => i !== idx));
+  const updateSocialLink = (
+    idx: number,
+    key: "platform" | "url",
+    value: string,
+  ) =>
+    setSocialLinks((prev) =>
+      prev.map((s, i) => (i === idx ? { ...s, [key]: value } : s)),
+    );
 
   // Image state: the chosen File (if any) + the preview URL to show.
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -164,12 +200,14 @@ export default function OrganizerProfilePage() {
         const org = res?.organization ?? {};
         setEmail(org.email ?? "");
         setDescription(org.description ?? "");
-        setSocials({
-          x: org.socials?.x ?? "",
-          instagram: org.socials?.instagram ?? "",
-          youtube: org.socials?.youtube ?? "",
-          discord: org.socials?.discord ?? "",
-        });
+        // Hydrate the editable list from the stored { platform: url } dict, keeping
+        // every existing platform (the old 4 AND any custom ones already saved).
+        const storedSocials = (org.socials ?? {}) as Record<string, string>;
+        setSocialLinks(
+          Object.entries(storedSocials)
+            .filter(([, url]) => (url ?? "").trim() !== "")
+            .map(([platform, url]) => ({ platform, url })),
+        );
         setLogoPreview(org.logo ?? "");
         setBannerPreview(org.default_banner ?? "");
       } catch (err: any) {
@@ -188,6 +226,16 @@ export default function OrganizerProfilePage() {
   const onSubmit = () => {
     startSubmit(async () => {
       try {
+        // Collapse the editable rows into the { platform: url } dict the backend stores.
+        // Drop blank rows; trim; key by the (lower-cased) platform so x/instagram/etc.
+        // stay back-compatible and a custom "TikTok" becomes "tiktok".
+        const socials: Record<string, string> = {};
+        for (const { platform, url } of socialLinks) {
+          const key = platform.trim().toLowerCase();
+          const val = url.trim();
+          if (key && val) socials[key] = val;
+        }
+
         // When a file is staged we must send multipart FormData; otherwise JSON.
         const hasFiles = !!logoFile || !!bannerFile;
 
@@ -310,37 +358,63 @@ export default function OrganizerProfilePage() {
             />
           </div>
 
-          {/* Socials. */}
+          {/* Socials - an extensible list. Add a row for ANY platform (TikTok, Twitch,
+              a website, ...): the platform field is free text with common suggestions. */}
           <div className="space-y-2.5">
             <Label>Social links (optional)</Label>
-            <Input
-              placeholder="X (Twitter)"
-              value={socials.x}
-              onChange={(e) =>
-                setSocials((prev) => ({ ...prev, x: e.target.value }))
-              }
-            />
-            <Input
-              placeholder="Instagram"
-              value={socials.instagram}
-              onChange={(e) =>
-                setSocials((prev) => ({ ...prev, instagram: e.target.value }))
-              }
-            />
-            <Input
-              placeholder="YouTube"
-              value={socials.youtube}
-              onChange={(e) =>
-                setSocials((prev) => ({ ...prev, youtube: e.target.value }))
-              }
-            />
-            <Input
-              placeholder="Discord"
-              value={socials.discord}
-              onChange={(e) =>
-                setSocials((prev) => ({ ...prev, discord: e.target.value }))
-              }
-            />
+            {/* Shared suggestion list so the platform inputs offer common platforms
+                while still accepting any custom value the organizer types. */}
+            <datalist id="social-platform-suggestions">
+              {SOCIAL_SUGGESTIONS.map((p) => (
+                <option key={p} value={p} />
+              ))}
+            </datalist>
+
+            {socialLinks.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                No social links yet. Add one below.
+              </p>
+            )}
+
+            {socialLinks.map((link, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <Input
+                  className="w-1/3"
+                  list="social-platform-suggestions"
+                  placeholder="Platform (e.g. TikTok)"
+                  value={link.platform}
+                  onChange={(e) =>
+                    updateSocialLink(idx, "platform", e.target.value)
+                  }
+                />
+                <Input
+                  className="flex-1"
+                  placeholder="Link or handle (e.g. https://tiktok.com/@org)"
+                  value={link.url}
+                  onChange={(e) => updateSocialLink(idx, "url", e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => removeSocialLink(idx)}
+                  aria-label="Remove social link"
+                >
+                  <IconX className="size-4" />
+                </Button>
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={addSocialLink}
+            >
+              <IconPlus className="size-4" /> Add social link
+            </Button>
           </div>
 
           {/* Save. */}

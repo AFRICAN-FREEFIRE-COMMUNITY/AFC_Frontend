@@ -101,6 +101,11 @@ import {
 // It is wired to the real get-team-details aggregates + tournament_performance +
 // recent_matches + tier_history that the backend now returns.
 import TeamStatisticsTab from "./_components/TeamStatisticsTab";
+// The Achievements tab body: a display-only, tiered catalog mirroring the player
+// profile's Achievements. It reads the SAME already-fetched team object (no second
+// request) and lights up lifetime ladders from real derived team stats. The
+// points->rankings/tiers boost is an explicit FUTURE feature and is NOT applied here.
+import TeamAchievementsTab from "./_components/TeamAchievementsTab";
 // Subtle clickable player name -> public player profile (roster / applications / requests).
 import { PlayerLink } from "@/components/ui/entity-link";
 
@@ -161,9 +166,14 @@ const Page = ({ params }: { params: Params }) => {
     startTransition(async () => {
       try {
         const decodedId = decodeURIComponent(id);
+        // Send the viewer's token: get-team-details now gates the detailed stats
+        // (tournament_performance / recent_matches / scalars) to team MEMBERS + admins.
+        // Without it the backend treats the caller as anonymous and zeroes those, which
+        // would leave a member's own Statistics + Achievements tabs showing 0s.
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
           { team_name: decodedId },
+          token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
         const requestResponse = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
@@ -424,9 +434,14 @@ const Page = ({ params }: { params: Params }) => {
     startTransition(async () => {
       try {
         const decodedId = decodeURIComponent(id);
+        // Send the viewer's token: get-team-details now gates the detailed stats
+        // (tournament_performance / recent_matches / scalars) to team MEMBERS + admins.
+        // Without it the backend treats the caller as anonymous and zeroes those, which
+        // would leave a member's own Statistics + Achievements tabs showing 0s.
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
           { team_name: decodedId },
+          token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
         const requestResponse = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
@@ -631,6 +646,7 @@ const Page = ({ params }: { params: Params }) => {
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="members">Members</TabsTrigger>
                   <TabsTrigger value="statistics">Statistics</TabsTrigger>
+                  <TabsTrigger value="achievements">Achievements</TabsTrigger>
                   <TabsTrigger value="social">Social Media</TabsTrigger>
                   {hasFullAccess && (
                     <TabsTrigger value="requests">Requests & Applications</TabsTrigger>
@@ -927,6 +943,22 @@ const Page = ({ params }: { params: Params }) => {
                   expandable rows, and degraded-data empty states.
                 */}
                 <TeamStatisticsTab team={teamDetails} />
+              </TabsContent>
+
+              {/*
+                Achievements tab. Display-only, tiered catalog mirroring the player
+                profile's Achievements. It reuses the already-fetched `teamDetails`
+                object (no second request): lifetime ladders are computed from real
+                derived team stats (total_wins, summed tournament kills, tournaments
+                played, 1st-place finishes) plus roster facts (member count), while
+                scrims / monthly / daily render as honest "not tracked yet" goals.
+                The points->rankings/tiers boost is a FUTURE feature, shown as a
+                "coming soon" note and NOT applied. Visible to anyone who can see the
+                team page; no extra gating is added here. The panel is a normal
+                layout (no <tbody>), so there is no hydration error.
+              */}
+              <TabsContent value="achievements">
+                <TeamAchievementsTab team={teamDetails} />
               </TabsContent>
 
               <TabsContent value="social">

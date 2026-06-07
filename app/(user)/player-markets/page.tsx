@@ -764,7 +764,9 @@ function PlayerMarketPage() {
 
   const filteredPlayers = useMemo(() => {
     return playerPosts.filter((player) => {
-      const matchesSearch = player.player
+      // Null-guard: a post can carry a null player name (e.g. a ghost/incomplete
+      // record), and calling .toLowerCase() on null crashed the whole page.
+      const matchesSearch = (player.player ?? "")
         .toLowerCase()
         .includes(playerSearch.toLowerCase());
       const matchesAvailability =
@@ -986,6 +988,51 @@ function PlayerMarketPage() {
               report.
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── Market Rules summary (feature "J-market-rules", J3 + J5) ──────────────
+          The four player-market rules surfaced prominently on the landing, each with
+          its own ⓘ for the full explanation. Mirrors how admin pages cluster InfoTips
+          (lib/help-content.ts keys: player_market.one_active_post / tryout_limit /
+          report_rules / rules_summary). Backend enforcement lives in views.py (J1/J2)
+          and views_moderation.py (J4/J5). No em dashes (AFC hard rule). */}
+      <Card className="bg-card border">
+        <CardContent className="space-y-2">
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-sm font-semibold">Player Market rules</h3>
+            <InfoTip id="player_market.rules_summary" />
+          </div>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+            <li className="flex items-start gap-1.5">
+              <IconCheck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+              <span>
+                One active post at a time.
+                <InfoTip id="player_market.one_active_post" className="ml-1" />
+              </span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <IconCheck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+              <span>
+                At most 2 active tryouts at once.
+                <InfoTip id="player_market.tryout_limit" className="ml-1" />
+              </span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <IconFlag className="h-3.5 w-3.5 text-red-500 mt-0.5 shrink-0" />
+              <span>
+                Report honestly. False reports can get you banned.
+                <InfoTip id="player_market.report_rules" className="ml-1" />
+              </span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <IconShield className="h-3.5 w-3.5 text-yellow-500 mt-0.5 shrink-0" />
+              <span>
+                A market ban blocks posting, applying, and inviting.
+                <InfoTip id="player_market.rules_summary" className="ml-1" />
+              </span>
+            </li>
+          </ul>
         </CardContent>
       </Card>
 
@@ -1306,7 +1353,7 @@ function PlayerMarketPage() {
                           alt={player.player}
                         />
                         <AvatarFallback>
-                          {player.player.charAt(0).toUpperCase()}
+                          {(player.player ?? "?").charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
@@ -1392,6 +1439,15 @@ function PlayerMarketPage() {
         {/* ─── My Trial Invites Tab ────────────────────────────────── */}
         {token && !isTeamLeader && (
           <TabsContent value="my-invites" className="mt-4 space-y-3">
+            {/* J2: tryout-cap rule note on the Trial Invites area. Accepting an invite
+                while already in 2 ongoing trials is rejected server-side. No em dashes. */}
+            <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-2.5 text-xs text-muted-foreground">
+              <IconInfoCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <span className="flex items-center gap-1">
+                You can be in at most 2 active tryouts at a time.
+                <InfoTip id="player_market.tryout_limit" />
+              </span>
+            </div>
             {loadingInvites ? (
               <div className="text-center py-12 text-sm text-muted-foreground">
                 Loading...
@@ -1996,7 +2052,7 @@ function PlayerMarketPage() {
                             <Avatar className="h-12 w-12">
                               <AvatarImage src={DEFAULT_PROFILE_PICTURE} />
                               <AvatarFallback>
-                                {post.player.charAt(0).toUpperCase()}
+                                {(post.player ?? "?").charAt(0).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
@@ -2089,12 +2145,14 @@ function PlayerMarketPage() {
       >
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center gap-1.5">
               {!createPostType
                 ? "Create a Post"
                 : createPostType === "team"
                   ? "Team Recruitment Post"
                   : "Player Available Post"}
+              {/* J1: one-active-post rule, surfaced right on the Create Post title. */}
+              <InfoTip id="player_market.one_active_post" />
             </DialogTitle>
             <DialogDescription>
               {!createPostType
@@ -2107,6 +2165,17 @@ function PlayerMarketPage() {
 
           {/* Step 1: Choose type */}
           {!createPostType && (
+            <>
+              {/* J1: spell out the one-active-post rule before the user picks a type, so
+                  they understand why a create might be blocked (server enforces it). */}
+              <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs text-muted-foreground">
+                <IconInfoCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <p>
+                  You can have only one active post at a time (team or player).
+                  Close your current post, or wait for it to expire, before
+                  creating a new one.
+                </p>
+              </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
               <button
                 onClick={() => setCreatePostType("team")}
@@ -2129,6 +2198,7 @@ function PlayerMarketPage() {
                 </span>
               </button>
             </div>
+            </>
           )}
 
           {/* Team Recruiting Form */}
@@ -2209,7 +2279,11 @@ function PlayerMarketPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Expiry Date *</Label>
+                <Label>
+                  Expiry Date *
+                  {/* J1: expiry drives "active" - an expired post frees you to repost. */}
+                  <InfoTip id="player_market.post_expiry" className="ml-1" />
+                </Label>
                 <Input
                   type="date"
                   value={newTeamExpiry}
@@ -2320,7 +2394,11 @@ function PlayerMarketPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Expiry Date *</Label>
+                <Label>
+                  Expiry Date *
+                  {/* J1: expiry drives "active" - an expired post frees you to repost. */}
+                  <InfoTip id="player_market.post_expiry" className="ml-1" />
+                </Label>
                 <Input
                   type="date"
                   value={newPlayerExpiry}
@@ -2747,7 +2825,7 @@ function PlayerMarketPage() {
                     alt={viewPlayer.player}
                   />
                   <AvatarFallback>
-                    {viewPlayer.player.charAt(0).toUpperCase()}
+                    {(viewPlayer.player ?? "?").charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
@@ -2834,9 +2912,14 @@ function PlayerMarketPage() {
                 </Button>
               </DialogClose>
               {isTeamLeader && (
-                <Button onClick={handleInvitePlayer} disabled={isInviting}>
-                  {isInviting ? "Sending..." : "Invite to Trial"}
-                </Button>
+                <span className="inline-flex items-center gap-1.5">
+                  <Button onClick={handleInvitePlayer} disabled={isInviting}>
+                    {isInviting ? "Sending..." : "Invite to Trial"}
+                  </Button>
+                  {/* J2: a player can be in at most 2 active tryouts; inviting one who is
+                      already in 2 is rejected server-side. */}
+                  <InfoTip id="player_market.tryout_limit" />
+                </span>
               )}
             </DialogFooter>
           </DialogContent>
