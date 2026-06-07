@@ -442,7 +442,12 @@ export default function page() {
               const catRes = await axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/awards/category-nominee/all/`);
               const allCats: { category_id: number; name: string; section_id: number; nominees: { id: number; name: string }[] }[] =
                 catRes.data?.categories ?? catRes.data ?? [];
-              const categories = allCats.filter((c) => c.section_id === section.id);
+              // Normalize each category so `nominees` is ALWAYS an array. The API can
+              // return a category without a `nominees` field, and `category.nominees.map`
+              // on undefined crashed the whole awards page. Guarantee it here at the source.
+              const categories = allCats
+                .filter((c) => c.section_id === section.id)
+                .map((c) => ({ ...c, nominees: c.nominees ?? [] }));
               return { ...section, categories };
             } catch {
               return { ...section, categories: [] };
