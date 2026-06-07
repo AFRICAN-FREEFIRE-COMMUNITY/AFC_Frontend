@@ -47,6 +47,8 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { InfoTip } from "@/components/ui/info-tip";
+// Subtle clickable team name -> public team page.
+import { TeamLink } from "@/components/ui/entity-link";
 
 export const ProfileContent = () => {
   const router = useRouter();
@@ -180,7 +182,10 @@ export const ProfileContent = () => {
             </p>
             <p className="mb-2 text-sm">UID: {user.uid}</p>
             {user.team && (
-              <p className="mb-4 text-sm">Team: {user.team || null}</p>
+              <p className="mb-4 text-sm">
+                {/* Team name links to the public team page. */}
+                Team: <TeamLink name={user.team} />
+              </p>
             )}
             {user.role !== "user" && (
               <Badge className="mb-4" variant="secondary">

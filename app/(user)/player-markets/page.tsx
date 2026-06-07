@@ -80,6 +80,8 @@ import {
 } from "@/app/(user)/_components/ReviewApplicationDialog";
 import { TrialChatSidebar } from "@/app/(user)/_components/TrialChatSidebar";
 import { TransferWindowBanner } from "@/components/rankings/TransferWindowBanner";
+// Subtle clickable names -> public player / team profiles.
+import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
 
@@ -1124,7 +1126,12 @@ function PlayerMarketPage() {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">
-                          {team.team ?? "Unknown Team"}
+                          {/* Recruiting team name links to the public team page. */}
+                          {team.team ? (
+                            <TeamLink name={team.team} />
+                          ) : (
+                            "Unknown Team"
+                          )}
                         </h3>
                         <p className="text-xs text-muted-foreground">
                           Expires {formatDate(team.expiry)}
@@ -1275,7 +1282,8 @@ function PlayerMarketPage() {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">
-                          {player.player}
+                          {/* Player name links to the public player profile. */}
+                          <PlayerLink name={player.player} />
                         </h3>
                         <p className="text-xs text-muted-foreground">
                           Expires {formatDate(player.expiry)}
@@ -1452,7 +1460,8 @@ function PlayerMarketPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-base font-semibold">
-                  {currentTeam?.team_name}
+                  {/* Team name links to the public team page. */}
+                  <TeamLink name={currentTeam?.team_name} />
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Players who applied via your recruitment post
@@ -1490,7 +1499,10 @@ function PlayerMarketPage() {
                     <CardContent className="space-y-3">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
                         <div>
-                          <p className="font-semibold">{app.player}</p>
+                          {/* Applicant name links to the public player profile. */}
+                          <p className="font-semibold">
+                            <PlayerLink name={app.player} />
+                          </p>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             Applied {formatDate(app.applied_at)}
                           </p>
@@ -1666,7 +1678,8 @@ function PlayerMarketPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h2 className="text-lg font-semibold leading-tight truncate">
-                        {currentTeam.team_name}
+                        {/* Team name links to the public team page. */}
+                        <TeamLink name={currentTeam.team_name} />
                       </h2>
                       {currentTeam.team_tag && (
                         <Badge variant="outline" className="text-xs shrink-0">
@@ -1733,7 +1746,8 @@ function PlayerMarketPage() {
                       Owner
                     </p>
                     <p className="text-sm font-medium mt-0.5 truncate">
-                      {currentTeam.team_owner}
+                      {/* Owner IGN links to the owner's public player profile. */}
+                      <PlayerLink name={currentTeam.team_owner} />
                     </p>
                   </div>
                   <div className="rounded-lg border bg-muted/30 p-3">
@@ -1940,7 +1954,8 @@ function PlayerMarketPage() {
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold truncate">
-                                {post.player}
+                                {/* Player name links to the public player profile. */}
+                                <PlayerLink name={post.player} />
                               </h3>
                               <p className="text-xs text-muted-foreground">
                                 Expires {formatDate(post.expiry)}
@@ -2690,7 +2705,8 @@ function PlayerMarketPage() {
                 </Avatar>
                 <div>
                   <DialogTitle className="text-xl">
-                    {viewPlayer.player}
+                    {/* Player name links to the full public player profile. */}
+                    <PlayerLink name={viewPlayer.player} />
                   </DialogTitle>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="default" className="text-xs">

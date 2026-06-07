@@ -38,6 +38,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatWord } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
+// Subtle clickable player name -> public player profile.
+import { PlayerLink } from "@/components/ui/entity-link";
 
 interface MemberUpdate {
   member_id: number;
@@ -281,7 +283,10 @@ export default function page({ params }: { params: Params }) {
 
                   return (
                     <TableRow key={member.id}>
-                      <TableCell>{member.username}</TableCell>
+                      <TableCell>
+                        {/* Member name links to the public player profile. */}
+                        <PlayerLink name={member.username} />
+                      </TableCell>
                       <TableCell>
                         <Select
                           key={`in-game-${member.id}`}

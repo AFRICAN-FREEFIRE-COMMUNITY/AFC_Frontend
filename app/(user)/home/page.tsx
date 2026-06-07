@@ -23,6 +23,8 @@ import { useEffect, useState } from "react";
 import { ComingSoon } from "@/components/ComingSoon";
 import { quarterlyTiers, teamRankings } from "@/constants";
 import { ProtectedRoute } from "../_components/ProtectedRoute";
+// Subtle clickable team name -> public team page.
+import { TeamLink } from "@/components/ui/entity-link";
 import {
   Dialog,
   DialogContent,
@@ -251,7 +253,8 @@ export default function HomePage() {
                           </div>
                         </TableCell>
                         <TableCell className="font-medium">
-                          {team.team}
+                          {/* Team name links to the public team page. */}
+                          <TeamLink name={team.team} />
                         </TableCell>
                         <TableCell>{team.points}</TableCell>
                         <TableCell>{team.tournamentWins}</TableCell>
@@ -297,7 +300,8 @@ export default function HomePage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="font-medium">
-                          {team.team}
+                          {/* Team name links to the public team page. */}
+                          <TeamLink name={team.team} />
                         </TableCell>
                         <TableCell className="font-medium">
                           {team.points}

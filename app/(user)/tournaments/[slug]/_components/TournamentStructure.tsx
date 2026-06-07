@@ -21,6 +21,8 @@ import { Fragment, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, ChevronRight, ArrowUp } from "lucide-react";
 import { FORMAT_LABEL } from "@/lib/eventFormats";
+// Subtle clickable name -> public player/team profile (standings rows).
+import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 
 // Local mirrors of the Stage/StageGroup shapes from EventDetailsWrapper (kept local so
 // this component stays self-contained; `any` rows because leaderboard keys vary solo/squad).
@@ -225,7 +227,13 @@ export function TournamentStructure({ stages, participantType }: Props) {
                                   {placement}
                                 </td>
                                 <td className="px-5 py-2.5 font-semibold border-t border-border/60">
-                                  {rowName(row, idx)}
+                                  {/* Competitor name links to the public profile:
+                                      solo events list players, squad events list teams. */}
+                                  {participantType === "solo" ? (
+                                    <PlayerLink name={rowName(row, idx)} />
+                                  ) : (
+                                    <TeamLink name={rowName(row, idx)} />
+                                  )}
                                 </td>
                                 <td className="px-3 py-2.5 text-center border-t border-border/60">
                                   {rowKills(row)}

@@ -42,6 +42,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { TransferWindowBanner } from "@/components/rankings/TransferWindowBanner";
+// Subtle clickable names -> public team / player profiles.
+import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 
 function page() {
   const [search, setSearch] = useState("");
@@ -198,9 +200,11 @@ function page() {
                             />
                             <AvatarFallback>{team.team_name[0]}</AvatarFallback>
                           </Avatar>
-                          <span className="uppercase text-lg md:text-xl">
-                            {team.team_name}
-                          </span>
+                          {/* Team name links to the public team page. */}
+                          <TeamLink
+                            name={team.team_name}
+                            className="uppercase text-lg md:text-xl"
+                          />
                           {team.is_banned && (
                             <Badge variant="destructive">BANNED</Badge>
                           )}
@@ -399,7 +403,8 @@ function page() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h2 className="text-lg font-semibold leading-tight truncate uppercase">
-                        {myTeam.team_name}
+                        {/* Team name links to the public team page. */}
+                        <TeamLink name={myTeam.team_name} />
                       </h2>
                       {myTeam.team_tag && (
                         <Badge variant="outline" className="text-xs shrink-0">
@@ -458,7 +463,8 @@ function page() {
                       Owner
                     </p>
                     <p className="text-sm font-medium mt-0.5 truncate">
-                      {myTeam.team_owner}
+                      {/* Owner IGN links to the owner's public player profile. */}
+                      <PlayerLink name={myTeam.team_owner} />
                     </p>
                   </div>
                   <div className="rounded-lg border bg-muted/30 p-3">

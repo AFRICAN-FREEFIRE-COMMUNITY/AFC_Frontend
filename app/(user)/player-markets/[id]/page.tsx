@@ -20,6 +20,8 @@ import {
 } from "@tabler/icons-react";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import ApplyButton from "./_components/ApplyButton";
+// Subtle clickable names -> public team / player profiles.
+import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -221,7 +223,17 @@ export default async function PlayerMarketPostPage({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-bold truncate">
-                  {displayName ?? "Unknown"}
+                  {/* Post subject name links to its public profile: a team post
+                      links to the team page, a player post to the player profile. */}
+                  {displayName ? (
+                    isTeam ? (
+                      <TeamLink name={displayName} />
+                    ) : (
+                      <PlayerLink name={displayName} />
+                    )
+                  ) : (
+                    "Unknown"
+                  )}
                 </h1>
                 <Badge variant={isTeam ? "default" : "secondary"}>
                   {isTeam ? (
@@ -250,7 +262,8 @@ export default async function PlayerMarketPostPage({
 
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                 <IconCalendar size={12} />
-                Posted by {post.created_by}
+                {/* Poster IGN links to their public player profile. */}
+                Posted by <PlayerLink name={post.created_by} />
               </p>
             </div>
           </div>

@@ -30,6 +30,8 @@ import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { formatDate } from "@/lib/utils";
 import { env } from "@/lib/env";
 import axios from "axios";
+// Subtle clickable player name -> public player profile.
+import { PlayerLink } from "@/components/ui/entity-link";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -152,7 +154,10 @@ export function ReviewApplicationDialog({
               </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <DialogTitle className="text-lg">{app.player}</DialogTitle>
+                  <DialogTitle className="text-lg">
+                    {/* Applicant name links to their public player profile. */}
+                    <PlayerLink name={app.player} />
+                  </DialogTitle>
                   {getStatusBadge(app.status)}
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">

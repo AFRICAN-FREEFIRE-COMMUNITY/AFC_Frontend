@@ -101,6 +101,8 @@ import {
 // It is wired to the real get-team-details aggregates + tournament_performance +
 // recent_matches + tier_history that the backend now returns.
 import TeamStatisticsTab from "./_components/TeamStatisticsTab";
+// Subtle clickable player name -> public player profile (roster / applications / requests).
+import { PlayerLink } from "@/components/ui/entity-link";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -738,7 +740,10 @@ const Page = ({ params }: { params: Params }) => {
                           )
                           .map((member: any, index: string) => (
                             <TableRow key={index}>
-                              <TableCell>{member.username}</TableCell>
+                              <TableCell>
+                                {/* Member name links to the public player profile. */}
+                                <PlayerLink name={member.username} />
+                              </TableCell>
                               <TableCell>
                                 {formatWord(member.in_game_role) || (
                                   <span className="italic">Not selected</span>
@@ -1023,7 +1028,8 @@ const Page = ({ params }: { params: Params }) => {
                                 {playerMarketApplications.map((app: any) => (
                                   <TableRow key={app.id}>
                                     <TableCell className="font-medium">
-                                      {app.player}
+                                      {/* Applicant name links to the public player profile. */}
+                                      <PlayerLink name={app.player} />
                                     </TableCell>
                                     <TableCell className="text-muted-foreground text-sm">
                                       {formatDate(app.applied_at)}
@@ -1113,7 +1119,10 @@ const Page = ({ params }: { params: Params }) => {
                                 )
                                 .map((request: any) => (
                                   <TableRow key={request.request_id}>
-                                    <TableCell>{request.requester}</TableCell>
+                                    <TableCell>
+                                      {/* Requester name links to the public player profile. */}
+                                      <PlayerLink name={request.requester} />
+                                    </TableCell>
                                     <TableCell>{request.uid}</TableCell>
                                     <TableCell>
                                       <div className="flex items-center gap-2">

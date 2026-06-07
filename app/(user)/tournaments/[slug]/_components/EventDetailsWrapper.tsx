@@ -80,6 +80,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EventReviewCard } from "./EventReviewCard";
 // ⓘ help tips for the non-obvious registration steps (copy in lib/help-content.ts).
 import { InfoTip } from "@/components/ui/info-tip";
+// Subtle clickable name -> public player/team profile (used in standings + lists).
+import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 
 // Set to true when Discord is required for tournament registration
 const DISCORD_REQUIRED = false;
@@ -807,7 +809,12 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
   );
 };
 
-const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
+// participantType decides whether a standings-row name is a team ("squad") or a
+// player ("solo"), so we can link the competitor name to the right public profile.
+const StageResultsTable: React.FC<{
+  stage: Stage;
+  participantType?: string;
+}> = ({ stage, participantType }) => {
   // Initialize with first group's ID
   const [selectedGroupId, setSelectedGroupId] = useState<string>(
     stage?.groups?.[0]?.group_id?.toString() || "",
@@ -944,7 +951,15 @@ const StageResultsTable: React.FC<{ stage: Stage }> = ({ stage }) => {
                       <TableCell className="text-center font-semibold">
                         #{placement}
                       </TableCell>
-                      <TableCell className="font-bold">{username}</TableCell>
+                      <TableCell className="font-bold">
+                        {/* Competitor name links to the public team or player
+                            profile depending on the event's participant type. */}
+                        {participantType === "squad" ? (
+                          <TeamLink name={username} />
+                        ) : (
+                          <PlayerLink name={username} />
+                        )}
+                      </TableCell>
                       <TableCell className="text-center group-hover:text-white font-medium">
                         {kills}
                       </TableCell>
@@ -3149,7 +3164,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   value={stage.stage_name}
                   className="mt-4 animate-in fade-in slide-in-from-bottom-2"
                 >
-                  <StageResultsTable stage={stage} />
+                  <StageResultsTable
+                    stage={stage}
+                    participantType={eventDetails.participant_type}
+                  />
                 </TabsContent>
               ))}
                 </Tabs>

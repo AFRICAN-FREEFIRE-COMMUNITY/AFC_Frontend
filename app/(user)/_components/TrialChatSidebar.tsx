@@ -23,6 +23,8 @@ import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { formatDate } from "@/lib/utils";
+// Subtle clickable names -> public team / player profiles.
+import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -207,15 +209,19 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
             )}
             <div className="flex-1 min-w-0">
               <SheetTitle className="text-base truncate">
-                {view === "list"
-                  ? "Trial Chats"
-                  : selectedChat
-                    ? selectedChat.team
-                    : "Chat"}
+                {view === "list" ? (
+                  "Trial Chats"
+                ) : selectedChat ? (
+                  // Team name links to the public team page.
+                  <TeamLink name={selectedChat.team} />
+                ) : (
+                  "Chat"
+                )}
               </SheetTitle>
               {view === "conversation" && selectedChat && (
                 <p className="text-xs text-muted-foreground truncate">
-                  with {selectedChat.player}
+                  {/* Player name links to their public player profile. */}
+                  with <PlayerLink name={selectedChat.player} />
                 </p>
               )}
             </div>

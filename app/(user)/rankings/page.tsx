@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import {
   TransferWindowBanner,
 } from "@/components/rankings/TransferWindowBanner";
+import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 
 type Subject = "teams" | "players";
 
@@ -244,7 +245,16 @@ function RankingsView() {
                         <TableCell className="font-semibold text-muted-foreground">
                           <span className="inline-flex items-center"><IconHash className="size-3" />{r.rank}</span>
                         </TableCell>
-                        <TableCell className="font-medium">{name}</TableCell>
+                        <TableCell className="font-medium">
+                          {/* Name links to the public team/player profile. The row
+                              itself toggles the breakdown, so stopPropagation keeps a
+                              name click from also expanding/collapsing the row. */}
+                          {subject === "teams" ? (
+                            <TeamLink name={name} stopPropagation />
+                          ) : (
+                            <PlayerLink name={name} stopPropagation />
+                          )}
+                        </TableCell>
                         {subject === "teams" ? (
                           <>
                             <TableCell className="text-right tabular-nums">{r.wins ?? 0}</TableCell>

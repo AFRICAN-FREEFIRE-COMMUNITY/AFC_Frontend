@@ -31,6 +31,8 @@ import {
   type ApplicationRecord,
 } from "@/app/(user)/_components/ReviewApplicationDialog";
 import { Badge } from "@/components/ui/badge";
+// Subtle clickable player name -> public player profile.
+import { PlayerLink } from "@/components/ui/entity-link";
 
 type Params = Promise<{ id: string }>;
 
@@ -151,7 +153,10 @@ export default function ApplicationsPage({ params }: { params: Params }) {
               <TableBody>
                 {filtered.map((app) => (
                   <TableRow key={app.id}>
-                    <TableCell className="font-medium">{app.player}</TableCell>
+                    <TableCell className="font-medium">
+                      {/* Applicant name links to the public player profile. */}
+                      <PlayerLink name={app.player} />
+                    </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {formatDate(app.applied_at)}
                     </TableCell>

@@ -26,6 +26,7 @@ import { env } from "@/lib/env";
 import { FullLoader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 
 const LeaderboardPage = () => {
   const { token } = useAuth();
@@ -292,6 +293,9 @@ const LeaderboardPage = () => {
                           row.username ||
                           `Player ${row.competitor_id}`
                         }
+                        // squad events list teams, solo events list players, so
+                        // link the competitor name to the matching public profile.
+                        isTeam={eventDetails.participant_type === "squad"}
                         kills={row.kills || row.total_kills || 0}
                         points={row.total_pts || row.total_points || 0}
                       />
@@ -316,10 +320,17 @@ const LeaderboardPage = () => {
   );
 };
 
-const RankingRow = ({ rank, name, kills, points }: any) => (
+const RankingRow = ({ rank, name, kills, points, isTeam }: any) => (
   <TableRow>
     <TableCell>#{rank}</TableCell>
-    <TableCell className="font-medium">{name}</TableCell>
+    <TableCell className="font-medium">
+      {/* Competitor name links to the public team or player profile. */}
+      {isTeam ? (
+        <TeamLink name={name} />
+      ) : (
+        <PlayerLink name={name} />
+      )}
+    </TableCell>
     <TableCell>{kills}</TableCell>
     <TableCell className="text-right font-semibold text-primary">
       {parseFloat(points).toFixed(1)}

@@ -42,6 +42,8 @@ import { formatDate } from "@/lib/utils";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
+// Subtle clickable names -> public team / player profiles.
+import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -741,7 +743,11 @@ export default function ApplicationDetailPage({
           <InfoTip id="player_market.trial_chat" />
         </CardTitle>
         {chatData && (
-          <CardDescription>{chatData.team} &amp; {chatData.player}</CardDescription>
+          <CardDescription>
+            {/* Both names link to their public profiles. */}
+            <TeamLink name={chatData.team} /> &amp;{" "}
+            <PlayerLink name={chatData.player} />
+          </CardDescription>
         )}
       </CardHeader>
 
