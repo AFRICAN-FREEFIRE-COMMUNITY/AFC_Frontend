@@ -20,19 +20,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Search, ShoppingCart, Diamond, Loader2 } from "lucide-react";
+import { Search, ShoppingCart, Loader2, Package, Truck } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import axios from "axios";
 import { env } from "@/lib/env";
-import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
+import { ITEMS_PER_PAGE } from "@/constants";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { IconDiamond } from "@tabler/icons-react";
 import { formatMoneyInput } from "@/lib/utils";
 import { ComingSoon } from "@/components/ComingSoon";
+import {
+  ProductMediaGallery,
+  ProductMediaItem,
+} from "./ProductMediaGallery";
 
-// 1. Updated Interfaces based on your API response
+// 1. Interfaces based on the API response (now generalised past diamonds).
 interface Variant {
   id: number;
   sku: string;
@@ -44,58 +47,101 @@ interface Variant {
   in_stock: boolean;
 }
 
+// Structured category attached to a product (or null for legacy diamond rows).
+interface ProductCategory {
+  id: number;
+  name: string;
+  slug: string;
+  is_physical: boolean;
+  is_active: boolean;
+}
+
 interface Product {
   id: number;
   name: string;
-  type: string;
+  type: string; // legacy slug string (back-compat with the category slug)
+  category: ProductCategory | null;
   status: string;
   is_limited_stock: boolean;
-  image: string;
+  image: string | null;
+  media: ProductMediaItem[]; // image + video gallery
   variants: Variant[];
 }
 
-const categories = [
-  { value: "diamonds", label: "Diamonds" },
-  { value: "bundles", label: "Bundles" },
-  { value: "skins", label: "Skins" },
-  { value: "characters", label: "Characters" },
-  { value: "other", label: "Other" },
-];
+// A category tab on the user shop. Sourced from the live backend categories,
+// with an always-present "diamonds" entry so the digital topup tab never
+// disappears even before any physical categories exist.
+interface CategoryTab {
+  value: string; // category slug (matches product.type)
+  label: string;
+  is_physical: boolean;
+}
 
 export default function ShopClient() {
   const { token } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CategoryTab[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("diamonds");
+  const [activeCategory, setActiveCategory] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 2. Fetch real data
+  // 2. Fetch products + live categories in parallel.
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchShop = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-all-products/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        // Filter out archived products for the user shop side
-        const activeProducts = res.data.products.filter(
+
+        const [productsRes, categoriesRes] = await Promise.all([
+          axios.get(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-all-products/`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          ),
+          // public endpoint, no auth required, drives the category tabs
+          axios.get(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-active-categories/`,
+          ),
+        ]);
+
+        // Only active products are shown on the storefront.
+        const activeProducts: Product[] = productsRes.data.products.filter(
           (p: Product) => p.status === "active",
         );
         setProducts(activeProducts);
+
+        // Build the category tab list from the live categories. Fall back to a
+        // single Diamonds tab if the admin has not created any categories yet,
+        // so the shop is never tab-less.
+        const liveCats: CategoryTab[] = (
+          categoriesRes.data.categories || []
+        ).map((c: ProductCategory) => ({
+          value: c.slug,
+          label: c.name,
+          is_physical: c.is_physical,
+        }));
+
+        const tabs: CategoryTab[] =
+          liveCats.length > 0
+            ? liveCats
+            : [{ value: "diamonds", label: "Diamonds", is_physical: false }];
+
+        setCategories(tabs);
+        // Default to the first available tab.
+        setActiveCategory((prev) => prev || tabs[0]?.value || "");
       } catch (error) {
-        console.error("Failed to fetch products", error);
+        console.error("Failed to fetch shop", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchShop();
   }, []);
+
+  // Helper: the active category's metadata (label + whether it ships).
+  const activeCategoryMeta = useMemo(
+    () => categories.find((c) => c.value === activeCategory),
+    [categories, activeCategory],
+  );
 
   const filteredProducts = useMemo(() => {
     let filtered = products.filter(
@@ -180,7 +226,9 @@ export default function ShopClient() {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           type="search"
-          placeholder={`Search ${activeCategory}...`}
+          placeholder={`Search ${
+            activeCategoryMeta?.label.toLowerCase() || "products"
+          }...`}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 bg-background/50 backdrop-blur-sm"
@@ -200,19 +248,34 @@ export default function ShopClient() {
             const totalDiamonds = product.variants[0]?.diamonds_amount;
             const isOutOfStock = product.variants.every((v) => !v.in_stock);
 
+            // Physical vs digital: drives the secondary line + category badge.
+            // Diamonds (digital) show the diamond amount; physical goods show a
+            // "ships to you" hint and an option count instead.
+            const isPhysical =
+              product.category?.is_physical ?? product.type !== "diamonds";
+            const categoryLabel = product.category?.name || product.type;
+            const optionCount = product.variants.length;
+
             return (
               <Card
                 key={product.id}
                 className={`overflow-hidden gap-0 p-0 transition-shadow hover:shadow-lg`}
               >
-                <div className="relative bg-muted">
-                  <Image
-                    src={product.image || DEFAULT_IMAGE}
+                <div className="relative">
+                  {/* generalised media: single cover frame (image OR video) */}
+                  <ProductMediaGallery
+                    media={product.media}
+                    fallbackImage={product.image}
                     alt={product.name}
-                    height={1000}
-                    width={1000}
-                    className="object-cover aspect-video size-full"
+                    variant="card"
                   />
+                  {/* category badge top-left so physical goods read clearly */}
+                  <Badge
+                    variant="outline"
+                    className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-xs capitalize bg-background/70 backdrop-blur-sm"
+                  >
+                    {categoryLabel}
+                  </Badge>
                   {isOutOfStock && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                       <Badge
@@ -226,17 +289,40 @@ export default function ShopClient() {
                 </div>
                 <CardContent className="p-4">
                   <CardTitle className="mb-1">{product.name}</CardTitle>
-                  {product.type === "diamonds" && totalDiamonds > 0 && (
+
+                  {/* secondary line: diamonds for topups, ship hint for goods */}
+                  {!isPhysical && totalDiamonds > 0 ? (
                     <div className="flex items-center gap-1 text-primary mb-2 text-sm">
                       {formatMoneyInput(totalDiamonds)}
                       <IconDiamond className="h-4 w-4" />
                     </div>
+                  ) : (
+                    <div className="flex items-center gap-1 text-muted-foreground mb-2 text-sm">
+                      {isPhysical ? (
+                        <>
+                          <Truck className="h-3.5 w-3.5" />
+                          {optionCount} option{optionCount > 1 ? "s" : ""},
+                          ships to you
+                        </>
+                      ) : (
+                        <>
+                          <Package className="h-3.5 w-3.5" />
+                          {optionCount} option{optionCount > 1 ? "s" : ""}
+                        </>
+                      )}
+                    </div>
                   )}
+
                   <p className="text-xl font-bold mb-4">
+                    <span className="text-xs font-medium text-muted-foreground uppercase mr-1">
+                      from
+                    </span>
                     {formatPrice(startingPrice)}
                   </p>
                   <Button asChild className="w-full">
-                    <Link href={`/shop/${product.id}`}>Buy Now</Link>
+                    <Link href={`/shop/${product.id}`}>
+                      {isOutOfStock ? "View" : "Buy Now"}
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>

@@ -66,6 +66,7 @@ import {
   IconBrandTelegram,
   IconBrandReddit,
   IconBrandLinkedin,
+  IconFlag,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { DEFAULT_PROFILE_PICTURE, countries } from "@/constants";
@@ -79,6 +80,11 @@ import {
   type ApplicationRecord,
 } from "@/app/(user)/_components/ReviewApplicationDialog";
 import { TrialChatSidebar } from "@/app/(user)/_components/TrialChatSidebar";
+// Report (red flag) dialog for the market - feature "J-market-reporting".
+import {
+  MarketReportDialog,
+  type ReportTarget,
+} from "@/app/(user)/_components/MarketReportDialog";
 import { TransferWindowBanner } from "@/components/rankings/TransferWindowBanner";
 // Subtle clickable names -> public player / team profiles.
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
@@ -618,6 +624,11 @@ function PlayerMarketPage() {
   const [viewPlayer, setViewPlayer] = useState<PlayerAvailablePost | null>(
     null,
   );
+
+  // Report dialog target (feature "J-market-reporting"). Null = closed. Set by the
+  // red-flag Report button on a team/player card; always available regardless of the
+  // transfer-season window (reporting is never gated).
+  const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   useEffect(() => {
     if (!token || !user) return;
@@ -1182,10 +1193,28 @@ function PlayerMarketPage() {
 
                     {/* Action */}
                     <div className="flex items-center justify-between">
-                      <ShareButton
-                        url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/team-${team.id}`}
-                        text={`${team.team ?? "A team"} is recruiting on AFC Player Market!`}
-                      />
+                      <div className="flex items-center gap-1">
+                        <ShareButton
+                          url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/team-${team.id}`}
+                          text={`${team.team ?? "A team"} is recruiting on AFC Player Market!`}
+                        />
+                        {/* Report (red flag) - always shown, regardless of the transfer window. */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-red-500 hover:text-red-500"
+                          onClick={() =>
+                            setReportTarget({
+                              postId: team.id,
+                              subjectType: "team",
+                              subjectName: team.team ?? "this team",
+                            })
+                          }
+                        >
+                          <IconFlag className="h-3.5 w-3.5 mr-1" />
+                          Report
+                        </Button>
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1321,10 +1350,28 @@ function PlayerMarketPage() {
 
                     {/* Action */}
                     <div className="flex items-center justify-between">
-                      <ShareButton
-                        url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/player-${player.id}`}
-                        text={`${player.player} is open to joining a team on AFC Player Market!`}
-                      />
+                      <div className="flex items-center gap-1">
+                        <ShareButton
+                          url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/player-${player.id}`}
+                          text={`${player.player} is open to joining a team on AFC Player Market!`}
+                        />
+                        {/* Report (red flag) - always shown, regardless of the transfer window. */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-red-500 hover:text-red-500"
+                          onClick={() =>
+                            setReportTarget({
+                              postId: player.id,
+                              subjectType: "player",
+                              subjectName: player.player,
+                            })
+                          }
+                        >
+                          <IconFlag className="h-3.5 w-3.5 mr-1" />
+                          Report
+                        </Button>
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -2805,6 +2852,14 @@ function PlayerMarketPage() {
       <TrialChatSidebar
         open={chatSidebarOpen}
         onClose={() => setChatSidebarOpen(false)}
+      />
+
+      {/* Report dialog (feature "J-market-reporting"). A single shared instance driven
+          by reportTarget; the red-flag button on each post card sets the target. Always
+          available regardless of the transfer-season window. */}
+      <MarketReportDialog
+        target={reportTarget}
+        onClose={() => setReportTarget(null)}
       />
     </div>
   );

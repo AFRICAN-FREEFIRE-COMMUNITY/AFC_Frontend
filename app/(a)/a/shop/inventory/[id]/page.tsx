@@ -47,6 +47,14 @@ import { InfoTip } from "@/components/ui/info-tip";
 import { shopProductTypes } from "@/constants";
 import { useRouter } from "next/navigation";
 import { DeleteVariantModal } from "../../_components/DeleteVariantModal";
+import {
+  ProductMediaManager,
+  ProductMediaItem,
+} from "../../_components/ProductMediaManager";
+import {
+  ShopCategoryLite,
+  fetchActiveCategories,
+} from "@/lib/shopCategories";
 
 type Params = Promise<{
   id: string;
@@ -65,13 +73,25 @@ interface ProductVariant {
   meta: Record<string, any>;
 }
 
+// Structured category attached to the product (null for legacy diamond rows).
+interface ProductCategory {
+  id: number;
+  name: string;
+  slug: string;
+  is_physical: boolean;
+  is_active: boolean;
+}
+
 interface ProductDetails {
   id: number;
   name: string;
   type: string;
+  category: ProductCategory | null;
   description: string;
   status: string;
   is_limited_stock: boolean;
+  image: string | null;
+  media: ProductMediaItem[];
   created_at: string;
   updated_at: string;
   variants: ProductVariant[];
@@ -87,7 +107,27 @@ const Page = ({ params }: { params: Params }) => {
   );
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
+  // Live categories for the category Select (replaces shopProductTypes).
+  const [categories, setCategories] = useState<ShopCategoryLite[]>([]);
+
   const { token } = useAuth();
+
+  // Load the admin-managed active categories once on mount.
+  useEffect(() => {
+    (async () => {
+      try {
+        setCategories(await fetchActiveCategories());
+      } catch {
+        setCategories([]);
+      }
+    })();
+  }, []);
+
+  // Options shown in the Select: real category slugs, or the legacy fallback.
+  const categoryOptions =
+    categories.length > 0
+      ? categories.map((c) => ({ value: c.slug, label: c.name }))
+      : shopProductTypes.map((t) => ({ value: t, label: t }));
 
   const form = useForm<AddProductSchemaType>({
     resolver: zodResolver(AddProductSchema),
@@ -184,6 +224,9 @@ const Page = ({ params }: { params: Params }) => {
           name: data.name,
           description: data.description,
           product_type: data.product_type,
+          // category_slug re-points the structured Category FK; the backend
+          // keeps product_type in sync with the chosen category's slug.
+          category_slug: data.product_type,
           status: data.status,
           is_limited_stock: data.is_limited_stock,
           // variants: data.variants.map((variant) => ({
@@ -353,13 +396,13 @@ const Page = ({ params }: { params: Params }) => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {shopProductTypes.map((type, index) => (
+                              {categoryOptions.map((opt) => (
                                 <SelectItem
-                                  key={index}
+                                  key={opt.value}
                                   className="capitalize"
-                                  value={type}
+                                  value={opt.value}
                                 >
-                                  {type}
+                                  {opt.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -599,7 +642,28 @@ const Page = ({ params }: { params: Params }) => {
           </Card>
         </div>
 
-        <div className="col-span-1 lg:col-span-2">
+        <div className="col-span-1 lg:col-span-2 space-y-4">
+          {/* Media gallery manager: upload multiple images + videos, remove any.
+              Uploads land immediately (the product already exists here). */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                Images and Videos
+                <InfoTip id="shop.media._section" className="ml-1.5" />
+              </CardTitle>
+              <CardDescription>
+                Build the product gallery shown on the storefront.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductMediaManager
+                productId={productDetails.id}
+                media={productDetails.media || []}
+                onChanged={fetchProduct}
+              />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Product Statistics</CardTitle>

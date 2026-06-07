@@ -1,5 +1,5 @@
 "use client";
-import { FullLoader } from "@/components/Loader";
+import { FullLoader, Loader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -26,9 +26,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, ArrowLeft, BadgeCheck } from "lucide-react";
 import Image from "next/image";
 import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { organizersApi } from "@/lib/organizers";
+import { toast } from "sonner";
 
 // --- Types ---
 interface Event {
@@ -56,6 +59,28 @@ type MonthFilter = "all" | string; // "YYYY-MM"
 // "all" = every organizer, "afc" = AFC-official (no organization_name),
 // otherwise the literal organization_name value to match.
 type OrganizerFilter = "all" | "afc" | string;
+
+// ── Organizer directory types ──
+// Shape returned by organizersApi.getOrganizationsDirectory() (backend
+// GET /organizers/get-organizations-public/). Every field is REAL data the backend
+// derives from the org + its published events - logo/name/description off the
+// Organization row; event_count / verified / tier derived from its events. The
+// AFC-official pseudo-organizer (org-less events) is synthesized client-side and
+// reuses this same shape with slug=null (no public org page to drill into).
+interface OrganizerDirectoryItem {
+  slug: string | null; // null only for the synthetic "AFC Official" card
+  name: string;
+  logo: string | null;
+  description: string | null;
+  event_count: number;
+  verified: boolean;
+  tier: string | null; // "Tier 1" | "Tier 2" | "Tier 3" | null
+}
+
+// How the directory grid is sorted (mirrors the approved mockup's sort select).
+type OrgSort = "events" | "name";
+// Verified/official filter for the directory grid (mirrors the mockup's filter select).
+type OrgVerFilter = "all" | "verified" | "afc";
 
 // --- Event Card ---
 const EventCard: React.FC<{ event: Event }> = ({ event }) => {
@@ -224,6 +249,452 @@ const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
         </div>
       )}
     </>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Organizer directory tab
+// ─────────────────────────────────────────────────────────────────────────────
+// The new third tab on this page. Two states share one component:
+//   A) DIRECTORY  - a grid of organizer cards (logo, name, verified tick, event
+//                   count, tier badge, blurb). Built from the public directory
+//                   endpoint PLUS a synthetic "AFC Official" card aggregating every
+//                   org-less event already in `events`.
+//   B) DETAIL     - click a card to drill into one organizer: a header (logo +
+//                   verified + stats) and that org's OWN Tournaments / Scrims
+//                   sub-tabs, reusing the same EventCard idiom as the rest of the
+//                   page. The detail event lists come straight from the `events`
+//                   prop (already fetched by the parent) filtered by organization,
+//                   so no extra round-trip is needed to drill in.
+//
+// Data sources (all REAL):
+//   - directory cards   → organizersApi.getOrganizationsDirectory()
+//   - AFC Official card → derived from events with no organization_name
+//   - detail event grid → `events` filtered by organization_slug (or org-less for AFC)
+//   - "View full page"  → links to the existing /organizations/<slug> route
+//                          (hidden for the AFC card, which has no org page).
+//
+// The status filter (statusFilter) is threaded in so the directory + detail event
+// counts stay in sync with the status buttons at the top of the page, matching how
+// the Tournaments / Scrims tabs already react to that filter.
+
+// Card for one organizer in the directory grid.
+const OrganizerCard: React.FC<{
+  org: OrganizerDirectoryItem;
+  onOpen: (org: OrganizerDirectoryItem) => void;
+}> = ({ org, onOpen }) => {
+  // Tier badge colour follows the AFC tier-badge idiom: outline rounded-full, with
+  // a tier-specific accent (1 = gold/best, 2 = green, 3 = blue).
+  const tierClass =
+    org.tier === "Tier 1"
+      ? "border-gold/55 text-gold"
+      : org.tier === "Tier 2"
+        ? "border-primary/50 text-primary"
+        : "border-blue-500/50 text-blue-500";
+
+  return (
+    <Card
+      className="bg-card rounded-md border py-6 shadow-sm h-full cursor-pointer transition-colors hover:border-primary/45"
+      onClick={() => onOpen(org)}
+    >
+      <CardContent className="flex flex-col gap-3 h-full">
+        {/* Logo + name + verified tick */}
+        <div className="flex items-center gap-3">
+          <Avatar className="h-12 w-12 rounded-md">
+            <AvatarImage
+              src={org.logo || undefined}
+              alt={org.name}
+              className="object-cover"
+            />
+            <AvatarFallback className="rounded-md">
+              {org.name?.[0] ?? "?"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold truncate">{org.name}</span>
+              {/* Verified tick: shown only when AFC has verified at least one of
+                  this org's event results (real rankings_verified signal). */}
+              {org.verified && (
+                <BadgeCheck
+                  className="h-4 w-4 text-gold shrink-0"
+                  aria-label="Verified organizer"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Blurb (org description). min-h keeps card heights even across the grid. */}
+        <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+          {org.description || "No description provided yet."}
+        </p>
+
+        {/* Footer badges: event count, tier, verified/official status. All outline
+            rounded-full per the AFC badge idiom. */}
+        <div className="mt-auto flex flex-wrap items-center gap-1.5">
+          <Badge
+            variant="outline"
+            className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+          >
+            {org.event_count} events
+          </Badge>
+          {org.tier && (
+            <Badge
+              variant="outline"
+              className={`rounded-full px-2 py-0.5 text-xs ${tierClass}`}
+            >
+              {org.tier}
+            </Badge>
+          )}
+          {org.slug === null ? (
+            <Badge
+              variant="outline"
+              className="rounded-full px-2 py-0.5 text-xs border-gold/55 text-gold"
+            >
+              AFC Official
+            </Badge>
+          ) : org.verified ? (
+            <Badge
+              variant="outline"
+              className="rounded-full px-2 py-0.5 text-xs border-gold/55 text-gold"
+            >
+              Verified
+            </Badge>
+          ) : (
+            <Badge
+              variant="outline"
+              className="rounded-full px-2 py-0.5 text-xs border-orange-500/55 text-orange-500"
+            >
+              Unverified
+            </Badge>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// One stat tile in the organizer detail header.
+const OrgStat: React.FC<{ value: React.ReactNode; label: string; tone?: string }> =
+  ({ value, label, tone }) => (
+    <div className="bg-background border rounded-md px-4 py-2.5 text-center min-w-[88px]">
+      <div className={`text-xl font-bold ${tone ?? ""}`}>{value}</div>
+      <div className="text-[0.65rem] uppercase tracking-wide text-muted-foreground mt-0.5">
+        {label}
+      </div>
+    </div>
+  );
+
+const OrganizerDirectory: React.FC<{
+  // All published events the parent already fetched. Used to build the AFC Official
+  // card and to power the per-organizer detail event grids (no extra fetch).
+  events: Event[];
+  // Status filter from the top of the page, threaded so detail counts match it.
+  statusFilter: StatusFilter;
+}> = ({ events, statusFilter }) => {
+  // Directory cards from the public endpoint (real org branding + derived stats).
+  const [orgs, setOrgs] = useState<OrganizerDirectoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  // The drilled-into organizer (null = directory grid shown). Holds the full item
+  // so the detail header can render without a second lookup.
+  const [activeOrg, setActiveOrg] = useState<OrganizerDirectoryItem | null>(null);
+  // Detail view's own Tournaments / Scrims sub-tab.
+  const [detailSubTab, setDetailSubTab] = useState<"tournaments" | "scrims">(
+    "tournaments",
+  );
+
+  // Directory grid controls (mirror the approved mockup).
+  const [orgSearch, setOrgSearch] = useState("");
+  const [orgVerFilter, setOrgVerFilter] = useState<OrgVerFilter>("all");
+  const [orgSort, setOrgSort] = useState<OrgSort>("events");
+
+  // ── load the directory once ──
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const data = await organizersApi.getOrganizationsDirectory();
+        if (active) setOrgs(data.organizations || []);
+      } catch (err: any) {
+        if (active) {
+          toast.error(
+            err?.response?.data?.message || "Failed to load organizers",
+          );
+        }
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // ── synthetic "AFC Official" card ──
+  // AFC runs events directly (organization is null on those). They aren't an
+  // Organization row, so the endpoint never returns them - we build one card here
+  // from the org-less events already in `events`. Its tier is the best tier among
+  // those events; slug=null marks it as having no drill-to-full-page link.
+  const afcCard = useMemo<OrganizerDirectoryItem | null>(() => {
+    const afcEvents = events.filter((e) => !e.organization_name?.trim());
+    if (afcEvents.length === 0) return null;
+    return {
+      slug: null,
+      name: "AFC Official",
+      logo: null,
+      description:
+        "Events run directly by the African Freefire Community. Flagship leagues, majors, and weekly community scrims.",
+      event_count: afcEvents.length,
+      verified: true,
+      tier: null,
+    };
+  }, [events]);
+
+  // Full directory list = AFC card (first) + endpoint orgs.
+  const allOrgs = useMemo(() => {
+    return afcCard ? [afcCard, ...orgs] : orgs;
+  }, [afcCard, orgs]);
+
+  // ── apply search + filter + sort to the directory grid ──
+  const visibleOrgs = useMemo(() => {
+    const q = orgSearch.trim().toLowerCase();
+    let list = allOrgs.filter((o) => {
+      const matchesQuery = !q || o.name.toLowerCase().includes(q);
+      const matchesFilter =
+        orgVerFilter === "all" ||
+        (orgVerFilter === "verified" && o.verified) ||
+        (orgVerFilter === "afc" && o.slug === null);
+      return matchesQuery && matchesFilter;
+    });
+    list = [...list].sort((a, b) =>
+      orgSort === "name"
+        ? a.name.localeCompare(b.name)
+        : b.event_count - a.event_count,
+    );
+    return list;
+  }, [allOrgs, orgSearch, orgVerFilter, orgSort]);
+
+  // ── detail view: this organizer's events, split by competition type ──
+  // For a real org we match on organization_slug; for the AFC card we take the
+  // org-less events. Status filter is applied so the counts match the page filter.
+  const detailEvents = useMemo(() => {
+    if (!activeOrg) return [] as Event[];
+    const base =
+      activeOrg.slug === null
+        ? events.filter((e) => !e.organization_name?.trim())
+        : events.filter((e) => e.organization_slug === activeOrg.slug);
+    return statusFilter === "all"
+      ? base
+      : base.filter((e) => e.event_status === statusFilter);
+  }, [activeOrg, events, statusFilter]);
+
+  const detailTournaments = useMemo(
+    () => detailEvents.filter((e) => e.competition_type === "tournament"),
+    [detailEvents],
+  );
+  const detailScrims = useMemo(
+    () => detailEvents.filter((e) => e.competition_type === "scrims"),
+    [detailEvents],
+  );
+
+  // Upcoming count for the detail header (ignores the status filter so the header
+  // always reflects the org's true upcoming slate).
+  const headerStats = useMemo(() => {
+    if (!activeOrg) return { total: 0, upcoming: 0 };
+    const orgEvents =
+      activeOrg.slug === null
+        ? events.filter((e) => !e.organization_name?.trim())
+        : events.filter((e) => e.organization_slug === activeOrg.slug);
+    return {
+      total: orgEvents.length,
+      upcoming: orgEvents.filter((e) => e.event_status === "upcoming").length,
+    };
+  }, [activeOrg, events]);
+
+  // Open a card → detail view, reset its sub-tab, scroll up.
+  const openOrg = useCallback((org: OrganizerDirectoryItem) => {
+    setActiveOrg(org);
+    setDetailSubTab("tournaments");
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, []);
+
+  if (isLoading) return <Loader text="Loading organizers..." />;
+
+  // ── STATE B: organizer detail ──
+  if (activeOrg) {
+    const list =
+      detailSubTab === "tournaments" ? detailTournaments : detailScrims;
+    return (
+      <div className="mt-4">
+        {/* Back to directory */}
+        <button
+          type="button"
+          onClick={() => setActiveOrg(null)}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary mb-4"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          All organizers
+        </button>
+
+        {/* Organizer header: logo + name + verified + stats */}
+        <Card className="bg-card rounded-md border py-6 shadow-sm mb-4">
+          <CardContent className="flex flex-col md:flex-row md:items-center gap-4">
+            <Avatar className="h-16 w-16 rounded-md">
+              <AvatarImage
+                src={activeOrg.logo || undefined}
+                alt={activeOrg.name}
+                className="object-cover"
+              />
+              <AvatarFallback className="rounded-md text-xl">
+                {activeOrg.name?.[0] ?? "?"}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl md:text-2xl font-bold">
+                  {activeOrg.name}
+                </h2>
+                {activeOrg.verified && (
+                  <BadgeCheck className="h-5 w-5 text-gold shrink-0" />
+                )}
+              </div>
+              {activeOrg.description && (
+                <p className="text-sm text-muted-foreground mt-1 max-w-xl">
+                  {activeOrg.description}
+                </p>
+              )}
+              {/* Link to the full public org page (real orgs only). */}
+              {activeOrg.slug && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 text-xs"
+                  asChild
+                >
+                  <Link href={`/organizations/${activeOrg.slug}`}>
+                    View full organizer page
+                  </Link>
+                </Button>
+              )}
+            </div>
+
+            {/* Stat tiles, pushed right on desktop. */}
+            <div className="flex flex-wrap gap-2 md:ml-auto">
+              <OrgStat
+                value={headerStats.total}
+                label="Events"
+                tone="text-primary"
+              />
+              <OrgStat value={headerStats.upcoming} label="Upcoming" />
+              {activeOrg.tier && (
+                <OrgStat
+                  value={activeOrg.tier.replace("Tier ", "T")}
+                  label="Tier"
+                  tone="text-gold"
+                />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* The organizer's OWN Tournaments / Scrims sub-tabs (pill style). */}
+        <Tabs
+          value={detailSubTab}
+          onValueChange={(v) => setDetailSubTab(v as "tournaments" | "scrims")}
+        >
+          <TabsList className="w-full">
+            <TabsTrigger value="tournaments">
+              Tournaments ({detailTournaments.length})
+            </TabsTrigger>
+            <TabsTrigger value="scrims">
+              Scrims ({detailScrims.length})
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Event grid for the active sub-tab (reuses the page EventCard). */}
+        <div className="grid grid-cols-1 mt-4 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          {list.length > 0 ? (
+            list.map((event) => <EventCard key={event.event_id} event={event} />)
+          ) : (
+            <p className="text-center text-muted-foreground col-span-full py-8">
+              No {detailSubTab} from this organizer match the current filter.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── STATE A: organizer directory grid ──
+  return (
+    <div className="mt-4">
+      {/* Directory-only controls: search by organizer name, verified filter, sort.
+          Kept distinct from the page-level event toolbar so the two don't fight. */}
+      <div className="flex w-full mb-3 items-center gap-2 flex-col md:flex-row">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search organizers by name..."
+            value={orgSearch}
+            onChange={(e) => setOrgSearch(e.target.value)}
+            className="bg-background/50 backdrop-blur-sm pl-10"
+          />
+        </div>
+        <div className="flex w-full md:w-auto items-center gap-2">
+          <Select
+            value={orgVerFilter}
+            onValueChange={(v) => setOrgVerFilter(v as OrgVerFilter)}
+          >
+            <SelectTrigger className="w-full md:w-44 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All organizers</SelectItem>
+              <SelectItem value="verified">Verified only</SelectItem>
+              <SelectItem value="afc">AFC official</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={orgSort}
+            onValueChange={(v) => setOrgSort(v as OrgSort)}
+          >
+            <SelectTrigger className="w-full md:w-44 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="events">Most events</SelectItem>
+              <SelectItem value="name">Name (A to Z)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Directory grid (same 1/2/3-column layout as the event grids). */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        {visibleOrgs.length > 0 ? (
+          visibleOrgs.map((org) => (
+            <OrganizerCard
+              key={org.slug ?? "afc-official"}
+              org={org}
+              onOpen={openOrg}
+            />
+          ))
+        ) : (
+          <p className="text-center text-muted-foreground col-span-full py-8">
+            {orgSearch
+              ? `No organizers match "${orgSearch}".`
+              : "No organizers to show yet."}
+          </p>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -462,12 +933,26 @@ const EventsPage = () => {
               Tournaments ({tournaments.length})
             </TabsTrigger>
             <TabsTrigger value="scrims">Scrims ({scrims.length})</TabsTrigger>
+            {/* ── NEW: Organizers tab ──
+                Sits alongside the existing pill tabs (does NOT replace them). It
+                renders the organizer directory + drill-down. It is fed the full
+                fetched `events` list (for the AFC-official card + per-org event
+                grids) and the current statusFilter (so detail counts stay in sync
+                with the page's status buttons). No count is shown on the trigger
+                because the directory size is computed inside OrganizerDirectory
+                (from the public organizers endpoint), not on this page. */}
+            <TabsTrigger value="organizers">Organizers</TabsTrigger>
           </TabsList>
           <TabsContent value="tournaments">
             <EventList events={tournaments} searchQuery={searchQuery} />
           </TabsContent>
           <TabsContent value="scrims">
             <EventList events={scrims} searchQuery={searchQuery} />
+          </TabsContent>
+          <TabsContent value="organizers">
+            {/* events is the UNFILTERED-by-type set; OrganizerDirectory does its
+                own organization grouping and applies statusFilter internally. */}
+            <OrganizerDirectory events={events} statusFilter={statusFilter} />
           </TabsContent>
         </Tabs>
       )}

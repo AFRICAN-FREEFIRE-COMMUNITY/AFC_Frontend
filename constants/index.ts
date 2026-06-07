@@ -2171,4 +2171,23 @@ export const teamRankings = [
   { rank: 116, team: "WOLF PROJECT", points: 0, tournamentWins: 0, kills: 0 },
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// shopProductTypes - LEGACY fallback list of product categories.
+//
+// The shop used to be diamond-only, so this was hard-coded to ["diamonds"].
+// The shop is now GENERALISED: categories are real data managed by the admin
+// (the backend `Category` table, served by /shop/view-active-categories/ and
+// /shop/view-all-categories/). The admin Add/Edit Product forms now populate
+// their category <Select> from those live categories.
+//
+// This constant is kept ONLY as a safe fallback for when the category fetch has
+// not resolved yet (or returns empty), so the forms never render an empty list.
+// Do NOT add categories here - add them through the admin "Manage Categories"
+// surface instead.
 export const shopProductTypes = ["diamonds"];
+
+// Reasonable client-side upload caps, mirrored from the backend authoritative
+// limits in afc_shop/views.py (images <= 5 MB, videos <= 50 MB). Used by the
+// product media uploader to reject oversized files before the request is sent.
+export const SHOP_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+export const SHOP_MAX_VIDEO_BYTES = 50 * 1024 * 1024;

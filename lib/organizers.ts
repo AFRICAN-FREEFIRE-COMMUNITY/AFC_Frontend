@@ -130,4 +130,9 @@ export const organizersApi = {
 
   // ── PUBLIC - public org page (NO auth header) ────────────────────────────
   getOrganizationPublic: (slug: string) => pGet(`get-organization-public/${slug}/`),
+  // Public organizer DIRECTORY (NO auth header) - backs the "Organizers" tab on
+  // /tournaments. Returns { organizations: [{ slug, name, logo, description,
+  // event_count, verified, tier }] } for every active org with published events.
+  // Consumed by app/(user)/tournaments/page.tsx → <OrganizerDirectory/>.
+  getOrganizationsDirectory: () => pGet("get-organizations-public/"),
 };

@@ -7,12 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Minus, Plus, Diamond, Loader2, AlertCircle } from "lucide-react";
-import Image from "next/image";
+import { Minus, Plus, Loader2, AlertCircle, Truck, Zap } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
-import { DEFAULT_IMAGE } from "@/constants";
 import { useCart } from "@/contexts/CartContext";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,8 +21,12 @@ import { PageHeader } from "@/components/PageHeader";
 import { formatMoneyInput } from "@/lib/utils";
 import { ComingSoon } from "@/components/ComingSoon";
 import { InfoTip } from "@/components/ui/info-tip";
+import {
+  ProductMediaGallery,
+  ProductMediaItem,
+} from "./ProductMediaGallery";
 
-// Interfaces based on your API
+// Interfaces based on the API (now generalised past diamonds).
 interface Variant {
   id: number;
   sku: string;
@@ -34,14 +36,26 @@ interface Variant {
   stock_qty: number;
   is_active: boolean;
   in_stock: boolean;
+  meta?: Record<string, any>; // free-form attributes (size/color/storage)
+}
+
+interface ProductCategory {
+  id: number;
+  name: string;
+  slug: string;
+  is_physical: boolean;
+  is_active: boolean;
 }
 
 interface ProductData {
   id: number;
   name: string;
   type: string;
+  category: ProductCategory | null;
   description: string;
   status: string;
+  image: string | null;
+  media: ProductMediaItem[]; // image + video gallery
   variants: Variant[];
 }
 
@@ -203,33 +217,74 @@ export default function ProductDetailPage() {
       </div>
     );
 
+  // Physical vs digital: physical goods ship + surface meta attributes
+  // (size/color/storage); digital topups (diamonds) deliver to the game UID.
+  const isPhysical =
+    product.category?.is_physical ?? product.type !== "diamonds";
+
+  // Render a variant's secondary line: diamond amount for topups, or its meta
+  // attribute chips (size: M, color: Black, ...) for physical goods.
+  const variantMetaLine = (variant: Variant) => {
+    if (!isPhysical && variant.diamonds_amount > 0) {
+      return (
+        <div className="flex items-center text-sm text-primary">
+          <IconDiamond className="h-3 w-3 mr-1" />{" "}
+          {formatMoneyInput(variant.diamonds_amount)} Diamonds
+        </div>
+      );
+    }
+    const meta = variant.meta || {};
+    const entries = Object.entries(meta);
+    if (entries.length === 0) return null;
+    return (
+      <div className="text-xs text-muted-foreground">
+        {entries.map(([k, v]) => `${k}: ${v}`).join("  ·  ")}
+      </div>
+    );
+  };
+
   return (
     <div>
       {/* <ComingSoon /> */}
       <PageHeader back title={product.name} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left: Image Section */}
+        {/* Left: Media gallery (images + videos at fixed dimensions). Falls back
+            to the product image, then DEFAULT_IMAGE, for legacy diamond rows. */}
         <Card className="overflow-hidden p-0 border-none bg-transparent">
-          <div className="relative aspect-square rounded-xl overflow-hidden bg-muted">
-            <Image
-              src={DEFAULT_IMAGE}
-              alt={product.name}
-              fill
-              className="object-cover"
-            />
-          </div>
+          <ProductMediaGallery
+            media={product.media}
+            fallbackImage={product.image}
+            alt={product.name}
+            variant="detail"
+          />
         </Card>
 
         {/* Right: Info Section */}
         <div className="space-y-4">
           <div>
-            <Badge className="capitalize mb-1.5" variant="outline">
-              {product.type}
+            <Badge
+              className="capitalize mb-1.5 rounded-full px-2 py-0.5 text-xs"
+              variant="outline"
+            >
+              {product.category?.name || product.type}
             </Badge>
             <h1 className="text-3xl font-bold">{product.name}</h1>
             <p className="text-muted-foreground text-sm mt-2">
               {product.description}
             </p>
+
+            {/* delivery hint: physical goods ship, digital topups go to the UID */}
+            {isPhysical ? (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
+                <Truck className="h-3.5 w-3.5" />
+                Physical item. A delivery address is collected at checkout.
+              </p>
+            ) : (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
+                <Zap className="h-3.5 w-3.5" />
+                Digital topup. Delivered to your game UID, no shipping.
+              </p>
+            )}
           </div>
 
           {/* Variant Selection */}
@@ -249,12 +304,7 @@ export default function ProductDetailPage() {
                 >
                   <div className="text-left">
                     <p className="font-semibold text-sm">{variant.title}</p>
-                    {variant.diamonds_amount > 0 && (
-                      <div className="flex items-center text-sm text-primary">
-                        <IconDiamond className="h-3 w-3 mr-1" />{" "}
-                        {formatMoneyInput(variant.diamonds_amount)} Diamonds
-                      </div>
-                    )}
+                    {variantMetaLine(variant)}
                   </div>
                   <div className="text-right">
                     <p className="font-bold">{formatPrice(variant.price)}</p>

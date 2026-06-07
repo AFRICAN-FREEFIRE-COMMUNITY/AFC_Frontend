@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -53,7 +54,13 @@ import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
-import { ComingSoon } from "@/components/ComingSoon";
+// Player-market moderation API + Ban dialog (feature "J-market-reporting").
+import {
+  playerMarketApi,
+  type MarketReportRow,
+} from "@/lib/playerMarket";
+import { MarketBanDialog } from "./_components/MarketBanDialog";
+import { IconBan } from "@tabler/icons-react";
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -600,6 +607,43 @@ function formatEnum(value: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// ── Market-report label maps + badges (feature "J-market-reporting") ──────────
+// Human labels for the MarketReport categories + statuses (match the backend
+// CATEGORY_CHOICES / STATUS_CHOICES). Falls back to the raw value for anything the
+// backend adds later.
+const REPORT_CATEGORY_LABELS: Record<string, string> = {
+  bad_tryout: "Negative tryout",
+  scam: "Scam / fraud",
+  abusive: "Abusive conduct",
+  fake_post: "Fake / misleading post",
+  other: "Other",
+};
+
+const REPORT_STATUS_LABELS: Record<string, string> = {
+  open: "Open",
+  reviewing: "Reviewing",
+  resolved: "Resolved",
+  dismissed: "Dismissed",
+  banned: "Banned",
+};
+
+// Outline status badge, colour-coded per the mockup: open=yellow (unhandled),
+// reviewing=cyan, resolved=green, dismissed=muted, banned=red.
+function ReportStatusBadge({ status }: { status: string }) {
+  const colour: Record<string, string> = {
+    open: "border-yellow-500/50 text-yellow-500",
+    reviewing: "border-cyan-500/50 text-cyan-400",
+    resolved: "border-green-600/60 text-green-400",
+    dismissed: "text-muted-foreground",
+    banned: "border-red-500/60 text-red-400",
+  };
+  return (
+    <Badge variant="outline" className={`rounded-full ${colour[status] ?? ""}`}>
+      {REPORT_STATUS_LABELS[status] ?? status}
+    </Badge>
+  );
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function AdminPlayerMarketPage() {
@@ -634,9 +678,82 @@ export default function AdminPlayerMarketPage() {
   const [selectedApplication, setSelectedApplication] =
     useState<TrialApplication | null>(null);
 
-  // Reports state
+  // Reports state (legacy mock - kept only for any stray references; the real queue
+  // below replaces the Reports & Flags tab).
   const [viewReport, setViewReport] = useState<MockReport | null>(null);
   const [reportAction, setReportAction] = useState("");
+
+  // ── Real market-report queue (feature "J-market-reporting") ──────────────────
+  const [reports, setReports] = useState<MarketReportRow[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
+  const [reportSearch, setReportSearch] = useState("");
+  const [reportStatusFilter, setReportStatusFilter] = useState("all");
+  const [reportCatFilter, setReportCatFilter] = useState("all");
+  // Resolve dialog: the report whose status/notes the moderator is editing.
+  const [resolveTarget, setResolveTarget] = useState<MarketReportRow | null>(
+    null,
+  );
+  const [resolveStatus, setResolveStatus] = useState("open");
+  const [resolveNotes, setResolveNotes] = useState("");
+  const [resolveSaving, setResolveSaving] = useState(false);
+  // Ban dialog: the report a ban is being actioned from.
+  const [banTarget, setBanTarget] = useState<MarketReportRow | null>(null);
+
+  // Fetch the report queue. Server-side filters (status/category/search). The endpoint
+  // returns { results, total_count, has_more }; this tab shows the first page (the
+  // mockup is a single dense table) and filters server-side on change.
+  const fetchReports = async () => {
+    if (!token) return;
+    setReportsLoading(true);
+    try {
+      const res = await playerMarketApi.adminListReports({
+        status: reportStatusFilter !== "all" ? reportStatusFilter : undefined,
+        category: reportCatFilter !== "all" ? reportCatFilter : undefined,
+        search: reportSearch.trim() || undefined,
+        limit: 100,
+      });
+      setReports(res?.results ?? []);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to load reports.");
+    } finally {
+      setReportsLoading(false);
+    }
+  };
+
+  // Refetch when the moderator changes a filter / search (and on first auth).
+  useEffect(() => {
+    fetchReports();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, reportStatusFilter, reportCatFilter, reportSearch]);
+
+  // Open the Resolve dialog seeded with the row's current status + notes.
+  const openResolve = (row: MarketReportRow) => {
+    setResolveTarget(row);
+    setResolveStatus(row.status);
+    setResolveNotes(row.resolution_notes ?? "");
+  };
+
+  // Save status + resolution_notes for the targeted report (PATCH).
+  const saveResolve = async () => {
+    if (!resolveTarget || resolveSaving) return;
+    setResolveSaving(true);
+    try {
+      await playerMarketApi.adminUpdateReport(resolveTarget.id, {
+        status: resolveStatus,
+        resolution_notes: resolveNotes.trim(),
+      });
+      toast.success("Report updated.");
+      setResolveTarget(null);
+      fetchReports();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to update report.");
+    } finally {
+      setResolveSaving(false);
+    }
+  };
+
+  // Count of open reports for the overview stat + tab feel.
+  const openReportsCount = reports.filter((r) => r.status === "open").length;
 
   const [teamListings, setTeamListings] = useState<TeamRecruitmentPost[]>([]);
   const [playerListings, setPlayerListings] = useState<
@@ -689,9 +806,8 @@ export default function AdminPlayerMarketPage() {
   ).length;
   const activeTrials =
     trialsData?.summary.find((s) => s.status === "TRIAL_ONGOING")?.count ?? 0;
-  const pendingReports = mockReports.filter(
-    (r) => r.status === "Pending",
-  ).length;
+  // Pending = open reports from the real market-report queue (feature "J-market-reporting").
+  const pendingReports = openReportsCount;
 
   // Filtered applications for the Trials & Applications tab
   const filteredApplications = useMemo(() => {
@@ -795,7 +911,7 @@ export default function AdminPlayerMarketPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{pendingReports}</div>
                 <p className="text-xs text-muted-foreground">
-                  {mockReports.length} total reports
+                  {reports.length} total reports
                 </p>
               </CardContent>
             </Card>
@@ -1413,79 +1529,168 @@ export default function AdminPlayerMarketPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ─── Tab 5: Reports & Flags ─────────────────────────────── */}
+        {/* ─── Tab 5: Reports & Flags (real queue, feature "J-market-reporting") ── */}
         <TabsContent value="reports" className="mt-4 space-y-4">
           {/* Section ⓘ inline with the tab's heading. */}
           <h2 className="text-lg font-semibold flex items-center">
             Reports & Flagged Content
             <InfoTip id="player_market.reports._section" className="ml-1.5" />
           </h2>
+
+          {/* Filters: search + status + reason. All refetch server-side on change. */}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="relative flex-1">
+              <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search reports by team or player..."
+                value={reportSearch}
+                onChange={(e) => setReportSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select
+              value={reportStatusFilter}
+              onValueChange={setReportStatusFilter}
+            >
+              <SelectTrigger className="w-full sm:w-44">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="reviewing">Reviewing</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="dismissed">Dismissed</SelectItem>
+                <SelectItem value="banned">Banned</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={reportCatFilter} onValueChange={setReportCatFilter}>
+              <SelectTrigger className="w-full sm:w-52">
+                <SelectValue placeholder="All reasons" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All reasons</SelectItem>
+                <SelectItem value="bad_tryout">
+                  Negative tryout experience
+                </SelectItem>
+                <SelectItem value="scam">Scam / fraud</SelectItem>
+                <SelectItem value="abusive">Abusive conduct</SelectItem>
+                <SelectItem value="fake_post">Fake / misleading post</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <Card>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Report ID</TableHead>
-                    <TableHead>Reported By</TableHead>
-                    <TableHead>Reported Entity</TableHead>
-                    <TableHead>Severity</TableHead>
+                    <TableHead>Reported subject</TableHead>
+                    <TableHead>Reason</TableHead>
+                    <TableHead>Reporter</TableHead>
+                    <TableHead>Submitted</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody className="relative">
-                  <ComingSoon />
-                  {mockReports.map((report) => (
-                    <TableRow key={report.id}>
-                      <TableCell className=" text-sm">{report.id}</TableCell>
-                      <TableCell className="font-medium">
-                        {report.reportedBy}
-                      </TableCell>
-                      <TableCell>{report.reportedEntity}</TableCell>
-                      <TableCell>
-                        <Badge variant={getSeverityVariant(report.severity)}>
-                          {report.severity}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusVariant(report.status)}>
-                          {report.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            title="Review report"
-                            onClick={() => setViewReport(report)}
-                          >
-                            <IconEye className="h-4 w-4" />
-                          </Button>
-                          {report.status !== "Resolved" && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              title="Resolve"
-                              onClick={() =>
-                                toast.success(
-                                  `Report ${report.id} marked as resolved`,
-                                )
-                              }
-                            >
-                              <IconCircleCheck className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                <TableBody>
+                  {reportsLoading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="h-24 text-center text-muted-foreground"
+                      >
+                        Loading...
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : reports.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="h-24 text-center text-muted-foreground"
+                      >
+                        No reports match.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    reports.map((report) => (
+                      <TableRow key={report.id}>
+                        {/* Subject + type (team / player) inline. */}
+                        <TableCell>
+                          <div className="font-medium">
+                            {report.subject_name ?? "Unknown"}
+                          </div>
+                          <div className="text-xs text-muted-foreground capitalize">
+                            {report.subject_type}
+                          </div>
+                        </TableCell>
+                        {/* Reason chip + the reporter's details inline (muted) so the
+                            gist reads at a glance without opening the dialog. */}
+                        <TableCell>
+                          <div className="flex flex-col gap-0.5">
+                            <Badge
+                              variant="outline"
+                              className={`w-fit rounded-full text-xs ${
+                                report.category === "scam" ||
+                                report.category === "abusive"
+                                  ? "border-red-500/50 text-red-400"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              {REPORT_CATEGORY_LABELS[report.category] ??
+                                report.category}
+                            </Badge>
+                            {report.details && (
+                              <span className="text-xs text-muted-foreground line-clamp-2 max-w-xs">
+                                {report.details}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {report.reporter_username || "-"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground whitespace-nowrap">
+                          {report.created_at
+                            ? formatDate(report.created_at)
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <ReportStatusBadge status={report.status} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="inline-flex items-center justify-end gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openResolve(report)}
+                            >
+                              Resolve
+                            </Button>
+                            {report.status !== "banned" && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setBanTarget(report)}
+                              >
+                                <IconBan className="h-3.5 w-3.5 mr-1" />
+                                Ban
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
+          <p className="text-xs text-muted-foreground">
+            {reports.length} report{reports.length === 1 ? "" : "s"} shown.{" "}
+            {openReportsCount} open and awaiting review. Newest first.
+          </p>
         </TabsContent>
       </Tabs>
 
@@ -1751,6 +1956,130 @@ export default function AdminPlayerMarketPage() {
           </DialogContent>
         )}
       </Dialog>
+
+      {/* ─── Resolve Report dialog (real, feature "J-market-reporting") ────────── */}
+      {/* Move a report through its lifecycle (open → reviewing → resolved/dismissed)
+          and attach resolution notes. Banning is a SEPARATE action (the Ban dialog). */}
+      <Dialog
+        open={!!resolveTarget}
+        onOpenChange={(open) => !open && setResolveTarget(null)}
+      >
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Resolve report</DialogTitle>
+            <DialogDescription>
+              {resolveTarget
+                ? `${resolveTarget.subject_name ?? "Unknown"} - ${
+                    REPORT_CATEGORY_LABELS[resolveTarget.category] ??
+                    resolveTarget.category
+                  }`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          {resolveTarget && (
+            <div className="space-y-4">
+              {/* Reporter + subject context (read-only). */}
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                <span className="text-muted-foreground">
+                  Reporter:{" "}
+                  <span className="text-foreground">
+                    {resolveTarget.reporter_username || "-"}
+                  </span>
+                </span>
+                <span className="text-muted-foreground capitalize">
+                  Subject:{" "}
+                  <span className="text-foreground">
+                    {resolveTarget.subject_name} ({resolveTarget.subject_type})
+                  </span>
+                </span>
+              </div>
+
+              {/* The reporter's written details (read-only context). */}
+              {resolveTarget.details && (
+                <div className="space-y-1">
+                  <Label>What the reporter said</Label>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap rounded-md border border-l-2 border-l-primary bg-muted/30 p-3">
+                    {resolveTarget.details}
+                  </p>
+                </div>
+              )}
+
+              {/* Evidence image (read-only) - shown when the reporter attached one. */}
+              {resolveTarget.evidence && (
+                <div className="space-y-2">
+                  <Label>Evidence</Label>
+                  <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+                    {/* Reporter-supplied evidence comes from an upload host - plain <img>. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={resolveTarget.evidence}
+                      alt="Report evidence"
+                      className="size-full object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Status. */}
+              <div className="space-y-2">
+                <Label htmlFor="resolve-status">Status</Label>
+                <Select
+                  value={resolveStatus}
+                  onValueChange={setResolveStatus}
+                >
+                  <SelectTrigger id="resolve-status" className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="reviewing">Reviewing</SelectItem>
+                    <SelectItem value="resolved">Resolved</SelectItem>
+                    <SelectItem value="dismissed">Dismissed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Resolution notes. */}
+              <div className="space-y-2">
+                <Label htmlFor="resolve-notes">
+                  Resolution notes{" "}
+                  <span className="text-muted-foreground">(optional)</span>
+                </Label>
+                <Textarea
+                  id="resolve-notes"
+                  value={resolveNotes}
+                  onChange={(e) => setResolveNotes(e.target.value)}
+                  placeholder="What was found, and what action was taken..."
+                  rows={4}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setResolveTarget(null)}
+              disabled={resolveSaving}
+            >
+              Cancel
+            </Button>
+            <Button disabled={resolveSaving} onClick={saveResolve}>
+              {resolveSaving ? "Saving..." : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Ban dialog (real, feature "J-market-reporting") ──────────────────── */}
+      {/* Ban a player or whole team from the market. onBanned refetches the queue so
+          the actioned report flips to the "banned" badge. */}
+      <MarketBanDialog
+        target={banTarget}
+        onClose={() => setBanTarget(null)}
+        onBanned={fetchReports}
+      />
     </div>
   );
 }

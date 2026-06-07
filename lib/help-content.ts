@@ -490,6 +490,8 @@ export const HELP = {
     "Permanently remove this product and all its variants. This can't be undone - deactivate instead if you only want to hide it.",
   "shop.upload_codes._section":
     "Bulk-replenish a limited-stock product by uploading a CSV of diamond codes, one per line. Each code becomes a unit of sellable stock.",
+  "shop.media._section":
+    "Images and videos shown in the product gallery. Add several so buyers can see it from different angles. Images up to 5 MB, videos up to 50 MB.",
   "shop.coupons._section":
     "Discount codes buyers apply at checkout. Create new ones, or deactivate/delete existing codes. Stats live on each coupon's page.",
   "shop.delete_coupon":

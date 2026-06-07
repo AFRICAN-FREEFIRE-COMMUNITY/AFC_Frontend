@@ -93,7 +93,9 @@ import {
 import { ComingSoon } from "@/components/ComingSoon";
 import { DeleteCouponModal } from "../_components/DeleteCouponModal";
 import { ToggleCouponStatusModal } from "../_components/ToggleCouponStatusModal";
+import { ManageCategoriesModal } from "../_components/ManageCategoriesModal";
 import { InfoTip } from "@/components/ui/info-tip";
+import { IconBox } from "@tabler/icons-react";
 
 interface Variant {
   id: number;
@@ -106,10 +108,20 @@ interface Variant {
   in_stock: boolean;
 }
 
+// Structured category attached to a product (null for legacy diamond rows).
+interface ProductCategory {
+  id: number;
+  name: string;
+  slug: string;
+  is_physical: boolean;
+  is_active: boolean;
+}
+
 interface Product {
   id: number;
   name: string;
   type: string;
+  category: ProductCategory | null;
   status: string;
   is_limited_stock: boolean;
   variants: Variant[];
@@ -301,16 +313,9 @@ export default function InventoryManagementPage() {
               Coupon Metrics
             </Link>
           </Button>
-          {/* <Button variant="outline" asChild>
-            <Link href="/a/shop/coupons">
-              <IconChartBar  />
-              Coupon Metrics
-            </Link>
-          </Button>
-          <Button variant="outline">
-            <IconDownload  />
-            Export
-          </Button> */}
+          {/* Category management: add / edit / remove the categories products
+              are filed under (drives the user shop tabs). */}
+          <ManageCategoriesModal onChanged={() => fetchProducts()} />
           {/* ⓘ sits beside the add-product trigger (sibling - the modal renders its own button). */}
           <AddProductModal onSuccess={() => fetchProducts()} />
           <InfoTip id="shop.add_product" />
@@ -334,11 +339,11 @@ export default function InventoryManagementPage() {
         <CardHeader>
           {/* Section ⓘ inline with the products heading. */}
           <CardTitle className="flex items-center">
-            Virtual Diamond Products
+            Catalog Products
             <InfoTip id="shop.products._section" className="ml-1.5" />
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Manage your virtual diamond products and their stock.
+            Manage diamonds and physical merchandise, their variants, and stock.
           </p>
         </CardHeader>
         <CardContent>
@@ -346,6 +351,7 @@ export default function InventoryManagementPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Stock</TableHead>
                 <TableHead>Price</TableHead>
@@ -358,29 +364,49 @@ export default function InventoryManagementPage() {
               {isLoading ? (
                 // Simple loading skeleton
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={8} className="text-center">
                     Loading products...
                   </TableCell>
                 </TableRow>
               ) : paginatedProducts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={8} className="text-center">
                     No products found.
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedProducts.map((product) => (
+                paginatedProducts.map((product) => {
+                  // physical goods show a box icon; digital topups (diamonds)
+                  // keep the diamond icon. Falls back on the legacy type string.
+                  const isPhysical =
+                    product.category?.is_physical ??
+                    product.type !== "diamonds";
+                  const categoryLabel =
+                    product.category?.name || product.type;
+                  return (
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                          <IconDiamond className="h-4 w-4 text-primary" />
+                          {isPhysical ? (
+                            <IconBox className="h-4 w-4 text-blue-400" />
+                          ) : (
+                            <IconDiamond className="h-4 w-4 text-primary" />
+                          )}
                           <span className="font-medium">{product.name}</span>
                         </div>
                         <span className="capitalize text-xs text-muted-foreground ml-6">
-                          Type: {product.type}
+                          {isPhysical ? "Physical good" : "Digital topup"}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className="rounded-full px-2 py-0.5 text-xs capitalize"
+                      >
+                        {categoryLabel}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -455,7 +481,8 @@ export default function InventoryManagementPage() {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -540,7 +567,8 @@ export default function InventoryManagementPage() {
             <InfoTip id="shop.upload_codes._section" className="ml-1.5" />
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Upload a CSV file containing new diamond codes to replenish stock.
+            Upload a CSV file containing new diamond codes to replenish topup
+            stock. Physical stock is managed per variant on the product page.
           </p>
         </CardHeader>
         <CardContent className="relative">
