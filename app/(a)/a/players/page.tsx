@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -34,6 +36,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -44,6 +47,7 @@ import { formatMoneyInput } from "@/lib/utils";
 import { env } from "@/lib/env";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
+import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import axios from "axios";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -55,6 +59,7 @@ import {
   IconSword,
   IconCrown,
   IconTrophy,
+  IconGhost2,
 } from "@tabler/icons-react";
 import { Ban, ShieldCheck, CheckCircle2, TrendingUp } from "lucide-react";
 
@@ -209,6 +214,195 @@ const PlayerBanModal = ({
   );
 };
 
+// Minimal shape of a ghost team as returned by rankingsAdminApi.ghostList (serialize_ghost).
+// We only need the id + name (+ player count) to populate the picker.
+interface GhostTeamOption {
+  ghost_team_id: string;
+  team_name: string;
+  players: { id: number; ign: string }[];
+}
+
+// Mandatory audit-reason length, mirrored from the rankings admin write API (admin_views.py
+// MIN_REASON_LEN) and the ghost-teams page, so the client blocks before the server 400s.
+const MIN_GHOST_REASON = 10;
+
+/**
+ * "Create ghost player" dialog.
+ *
+ * A ghost player is always a roster slot on a ghost team (the backend GhostPlayer.ghost_team
+ * FK is non-null), so this dialog makes the admin pick which unclaimed ghost team the new slot
+ * belongs to, type the in-game name, and give the mandatory audit reason. It posts ONE player
+ * to POST /rankings/ghost-teams/<uuid>/players/ (append-only, leaves the existing roster
+ * untouched), then toasts + refreshes the players list.
+ *
+ * Mirrors the create-ghost-team dialog idiom (Select + Input + reason Textarea + sonner) and
+ * the PlayerBanModal idiom already in this file (Dialog + useTransition + Bearer via the
+ * rankings admin client).
+ */
+const CreateGhostPlayerModal = ({ onSuccess }: { onSuccess: () => void }) => {
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  // unclaimed ghost teams to attach the new player to (loaded when the dialog opens).
+  const [ghosts, setGhosts] = useState<GhostTeamOption[]>([]);
+  const [loadingGhosts, setLoadingGhosts] = useState(false);
+
+  // form state
+  const [ghostId, setGhostId] = useState("");
+  const [ign, setIgn] = useState("");
+  const [reason, setReason] = useState("");
+
+  // Only unclaimed ghosts are editable server-side, so we request just those for the picker.
+  const loadGhosts = () => {
+    setLoadingGhosts(true);
+    rankingsAdminApi
+      .ghostList({ claim_status: "unclaimed" })
+      .then((r: any) => setGhosts((r.results ?? []) as GhostTeamOption[]))
+      .catch((e: any) =>
+        toast.error(
+          e.response?.data?.message || "Failed to load ghost teams",
+        ),
+      )
+      .finally(() => setLoadingGhosts(false));
+  };
+
+  // reset + (re)load the ghost list every time the dialog opens.
+  const handleOpenChange = (v: boolean) => {
+    setOpen(v);
+    if (v) {
+      setGhostId("");
+      setIgn("");
+      setReason("");
+      loadGhosts();
+    }
+  };
+
+  const valid =
+    !!ghostId && !!ign.trim() && reason.trim().length >= MIN_GHOST_REASON;
+
+  const handleCreate = () => {
+    if (!valid) return;
+    startTransition(async () => {
+      try {
+        await rankingsAdminApi.createGhostPlayer(ghostId, {
+          ign: ign.trim(),
+          reason: reason.trim(),
+        });
+        const teamName =
+          ghosts.find((g) => g.ghost_team_id === ghostId)?.team_name ?? "";
+        toast.success(
+          `Ghost player "${ign.trim()}" added${teamName ? ` to ${teamName}` : ""}.`,
+        );
+        setOpen(false);
+        onSuccess();
+      } catch (e: any) {
+        toast.error(
+          e.response?.data?.message || "Failed to create ghost player",
+        );
+      }
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <IconGhost2 className="h-4 w-4 mr-1.5" /> Create ghost player
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create ghost player</DialogTitle>
+          <DialogDescription>
+            A ghost player is a provisional in-game name attached to an unclaimed
+            ghost team. Results attribute to this slot until a real team claims the
+            ghost.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* ghost team picker (unclaimed only) */}
+          <div className="space-y-2">
+            <Label htmlFor="gp-team">
+              Ghost team <span className="text-orange-400">(required)</span>
+            </Label>
+            <Select
+              value={ghostId || undefined}
+              onValueChange={setGhostId}
+              disabled={loadingGhosts}
+            >
+              <SelectTrigger id="gp-team" className="w-full">
+                <SelectValue
+                  placeholder={
+                    loadingGhosts
+                      ? "Loading ghost teams..."
+                      : ghosts.length === 0
+                        ? "No unclaimed ghost teams"
+                        : "Select a ghost team"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {ghosts.map((g) => (
+                  <SelectItem key={g.ghost_team_id} value={g.ghost_team_id}>
+                    {g.team_name} ({g.players?.length ?? 0} players)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!loadingGhosts && ghosts.length === 0 && (
+              <p className="text-[11px] text-muted-foreground">
+                Create an unclaimed ghost team first on the Rankings, Ghost Teams
+                page.
+              </p>
+            )}
+          </div>
+
+          {/* in-game name */}
+          <div className="space-y-2">
+            <Label htmlFor="gp-ign">
+              In-game name <span className="text-orange-400">(required)</span>
+            </Label>
+            <Input
+              id="gp-ign"
+              value={ign}
+              onChange={(e) => setIgn(e.target.value)}
+              placeholder="e.g. ProPlayer123"
+            />
+          </div>
+
+          {/* mandatory audit reason (>= 10 chars), same gate as the rest of the rankings admin */}
+          <div className="space-y-2">
+            <Label htmlFor="gp-reason">
+              Reason <span className="text-orange-400">(required, logged)</span>
+            </Label>
+            <Textarea
+              id="gp-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Explain why, at least 10 characters. This is written to the audit log."
+              className="min-h-20"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              {reason.trim().length}/{MIN_GHOST_REASON} characters minimum
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleCreate} disabled={!valid || pending}>
+            {pending ? <Loader text="Creating..." /> : "Create ghost player"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const page = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -302,6 +496,8 @@ const page = () => {
             <InfoTip id="players._page" className="ml-1.5" />
           </span>
         }
+        // Admins can spin up a provisional ghost player (off-platform IGN) from here.
+        action={<CreateGhostPlayerModal onSuccess={fetchPlayers} />}
       />
 
       {/* Stats */}

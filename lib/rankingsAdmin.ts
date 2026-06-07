@@ -72,6 +72,8 @@ export const rankingsAdminApi = {
   ghostList: (params?: Record<string, any>) => aGet("ghost-teams/", params),
   ghostDetail: (ghostId: string) => aGet(`ghost-teams/${ghostId}/`),
   createGhost: (body: any) => aPost("ghost-teams/", body),
+  // append a single ghost player (one IGN slot) to an existing unclaimed ghost team.
+  createGhostPlayer: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/players/`, body),
   updateGhost: (ghostId: string, body: any) => aPatch(`ghost-teams/${ghostId}/`, body),
   deleteGhost: (ghostId: string, body: any) => aDelete(`ghost-teams/${ghostId}/`, body),
   approveClaim: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/approve-claim/`, body),
