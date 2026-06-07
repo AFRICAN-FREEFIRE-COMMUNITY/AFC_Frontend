@@ -1912,13 +1912,14 @@ export default function EditLeaderboardPage({
             </Card>
           ) : (
             <>
-              {/* Bulk: upload screenshots for several maps at once (whole group). */}
+              {/* Bulk: upload screenshots for several maps at once (this group). */}
               <GroupBulkUploadPanel
                 matches={groupMatches.map((m) => ({
                   match_id: m.match_id,
                   match_number: m.match_number,
                   match_map: m.match_map,
                 }))}
+                groupName={currentGroup?.group_name}
                 apiBase={env.NEXT_PUBLIC_BACKEND_API_URL}
                 token={token}
                 onComplete={fetchData}

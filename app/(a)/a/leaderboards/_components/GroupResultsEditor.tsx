@@ -24,8 +24,9 @@
 //   onSaved         - called after a save so the parent refetches the leaderboard.
 //   onClose         - optional: render a "Back" button that calls this.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { GroupBulkUploadPanel } from "./GroupBulkUploadPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -173,6 +174,26 @@ export function GroupResultsEditor({
   const [expandedTeams, setExpandedTeams] = useState<Record<string, boolean>>({});
   const [savingMatch, setSavingMatch] = useState(false);
   const [savingAll, setSavingAll] = useState(false);
+
+  // Re-seed the editable tables from the group's CURRENT stats. Used after a bulk
+  // upload (below) replaces a map's results server-side, so the manual tables show the
+  // freshly-uploaded data. We DON'T reseed on every parent refetch (that would clobber
+  // in-progress manual edits to other maps) - only when pendingReseed is set, which the
+  // bulk-upload onComplete turns on right before triggering the parent refetch.
+  const [pendingReseed, setPendingReseed] = useState(false);
+  useEffect(() => {
+    if (!pendingReseed) return;
+    const r: Record<number, EditRow[]> = {};
+    const pg: Record<number, TeamPlayerGroup[]> = {};
+    for (const m of group.matches ?? []) {
+      r[m.match_id] = (m.stats ?? []).map(statToEditRow);
+      pg[m.match_id] = (m.stats ?? []).map(statToTeamPlayerGroup);
+    }
+    setEditRows(r);
+    setPlayerGroups(pg);
+    setPendingReseed(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [group]);
 
   const currentRows = activeMatchId !== null ? editRows[activeMatchId] ?? [] : [];
   const currentPlayerGroups =
@@ -340,6 +361,35 @@ export function GroupResultsEditor({
           </p>
         ) : (
           <>
+            {/* Upload results (whole group) - drop screenshots, assign each to a map,
+                upload + OCR all at once. Lives INSIDE the whole-group editor so this
+                surface does both: upload AND manual edit, all scoped to this group.
+                On completion we mark a reseed so the manual tables below refresh with
+                the uploaded data. */}
+            <GroupBulkUploadPanel
+              matches={matches.map((m) => ({
+                match_id: m.match_id,
+                match_number: m.match_number,
+                match_map: m.match_map,
+              }))}
+              groupName={group.group_name}
+              apiBase={apiBase}
+              token={token}
+              onComplete={() => {
+                setPendingReseed(true);
+                onSaved();
+              }}
+            />
+
+            {/* Divider into the manual editor. */}
+            <div className="flex items-center gap-3 pt-1">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs font-medium text-muted-foreground uppercase">
+                Or edit maps manually
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
             {/* Map tabs */}
             <div className="flex gap-2 flex-wrap">
               {matches.map((m) => (

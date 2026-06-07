@@ -59,11 +59,16 @@ export function GroupBulkUploadPanel({
   apiBase,
   token,
   onComplete,
+  groupName,
 }: {
   matches: MapOption[];
   apiBase: string;
   token: string | null | undefined;
   onComplete: () => void;
+  // The group these uploads belong to. Shown in the header so it is unmistakably
+  // GROUP-scoped (not stage-scoped) - the maps in the assign dropdown are only this
+  // group's maps.
+  groupName?: string;
 }) {
   const [pending, setPending] = useState<PendingFile[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -166,10 +171,13 @@ export function GroupBulkUploadPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Bulk upload (whole group)</CardTitle>
+        <CardTitle className="text-base">
+          Upload results{groupName ? ` for group: ${groupName}` : " (this group)"}
+        </CardTitle>
         <CardDescription>
-          Drop result screenshots for several maps, assign each to its map, then upload
-          them all at once. Each map is read by OCR and scored automatically.
+          Drop result screenshots for this group&apos;s maps, assign each to its map,
+          then upload them all at once. Each map is read by OCR and scored
+          automatically. This only affects {groupName ? `group ${groupName}` : "this group"}.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

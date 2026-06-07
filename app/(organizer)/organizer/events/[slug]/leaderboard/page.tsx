@@ -98,7 +98,6 @@ import {
   IconTrophy,
   IconUpload,
   IconUsers,
-  IconArrowLeft,
 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -118,9 +117,9 @@ import { BasicInfoStep } from "@/app/(a)/a/leaderboards/_components/BasicInfoSte
 import { ConfigurePointSystem } from "@/app/(a)/a/leaderboards/_components/ConfigurePointSystem";
 import { MatchOverviewStep } from "@/app/(a)/a/leaderboards/_components/MatchOverviewStep";
 import { EditLeaderboardStep } from "@/app/(a)/a/leaderboards/_components/EditLeaderboardStep";
-// Whole-group edit + multi-map bulk upload (shared with the AFC admin editor).
+// Whole-group editor (manual edit + bulk upload, all per group) - shared with the
+// AFC admin editor. The bulk-upload panel is embedded INSIDE this editor.
 import { GroupResultsEditor } from "@/app/(a)/a/leaderboards/_components/GroupResultsEditor";
-import { GroupBulkUploadPanel } from "@/app/(a)/a/leaderboards/_components/GroupBulkUploadPanel";
 
 type Params = { slug: string };
 // The match-edit sub-views, mirroring the admin [id] page's MatchView union.
@@ -212,10 +211,9 @@ export default function OrganizerEventLeaderboardPage({
   const [matchPickerOpen, setMatchPickerOpen] = useState(false);
   const [pickerGroupId, setPickerGroupId] = useState<string>("");
   const [pickerMatchId, setPickerMatchId] = useState<string>("");
-  // Whole-group edit + multi-map bulk upload sub-views (replace the main view card,
-  // same inline-replace pattern as editingMatch). Both act on the selected group.
+  // Whole-group editor sub-view (replaces the main view card, same inline-replace
+  // pattern as editingMatch). Acts on the selected group; uploading is inside it.
   const [groupEditOpen, setGroupEditOpen] = useState(false);
-  const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
 
   // ── Create-leaderboard wizard state ──
   // mode "view" = the leaderboard view/edit surface; mode "create" = the wizard.
@@ -778,7 +776,7 @@ export default function OrganizerEventLeaderboardPage({
       )}
 
       {/* ── Normal leaderboard view ── */}
-      {!editingMatch && !groupEditOpen && !bulkUploadOpen && hasAnyLeaderboard && (
+      {!editingMatch && !groupEditOpen && hasAnyLeaderboard && (
         <Card>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -1000,24 +998,18 @@ export default function OrganizerEventLeaderboardPage({
               </Tabs>
             )}
 
-            {/* Action buttons: per-map edit, whole-group edit, or bulk upload. */}
+            {/* Action buttons:
+                • Edit Match Results - per-map flow (manual / image / room file) for ONE map.
+                • Edit Whole Group   - this group's hub: UPLOAD results (bulk, all maps) AND
+                  edit every map manually, then Save all. Upload now lives in here, so there
+                  is no separate stage-looking "Bulk Upload" button. */}
             <div className="flex gap-2 flex-wrap">
               <Button onClick={handleStartEditMatch}>
                 <IconEdit size={18} /> Edit Match Results
               </Button>
-              {/* Edit every map of THIS group at once (tabs + Save all maps). */}
               {currentGroup?.matches?.length > 0 && (
                 <Button variant="outline" onClick={() => setGroupEditOpen(true)}>
-                  <IconEdit size={18} /> Edit Whole Group
-                </Button>
-              )}
-              {/* Upload result screenshots for several maps at once. */}
-              {currentGroup?.matches?.length > 0 && (
-                <Button
-                  variant="outline"
-                  onClick={() => setBulkUploadOpen(true)}
-                >
-                  <IconUpload size={18} /> Bulk Upload
+                  <IconUpload size={18} /> Upload / Edit Whole Group
                 </Button>
               )}
             </div>
@@ -1071,7 +1063,7 @@ export default function OrganizerEventLeaderboardPage({
         />
       )}
 
-      {/* ── Whole-group editor (tabs + Save this map / Save all maps) ── */}
+      {/* ── Whole-group editor: upload (bulk) + manual edit + Save all, per group ── */}
       {groupEditOpen && currentGroup && (
         <GroupResultsEditor
           // Remount on group switch so it always seeds from the current group.
@@ -1083,32 +1075,6 @@ export default function OrganizerEventLeaderboardPage({
           onSaved={fetchLeaderboard}
           onClose={() => setGroupEditOpen(false)}
         />
-      )}
-
-      {/* ── Bulk upload (one dropzone, assign each screenshot to a map) ── */}
-      {bulkUploadOpen && currentGroup && (
-        <div className="space-y-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setBulkUploadOpen(false)}
-          >
-            <IconArrowLeft size={16} className="mr-1" /> Back
-          </Button>
-          <GroupBulkUploadPanel
-            matches={(currentGroup.matches ?? []).map((m: any) => ({
-              match_id: m.match_id,
-              match_number: m.match_number,
-              match_map: m.match_map,
-            }))}
-            apiBase={env.NEXT_PUBLIC_BACKEND_API_URL}
-            token={token}
-            onComplete={() => {
-              fetchLeaderboard();
-              setBulkUploadOpen(false);
-            }}
-          />
-        </div>
       )}
 
       {/* Match picker modal (ported 1:1 from the admin [id] page). */}
