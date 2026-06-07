@@ -335,7 +335,7 @@ export function MobileNavbar() {
               </>
             )}
 
-            {/* Organizer Section — shown to org members (the `organizer` role),
+            {/* Organizer Section - shown to org members (the `organizer` role),
                 independent of admin access, so a pure organizer can reach their
                 portal. Mirrors the gated Organizer Dashboard link in the admin sidebar. */}
             {isOrganizer && (

@@ -5,7 +5,7 @@ import { env } from "@/lib/env";
  * Typed client for the PUBLIC (read-only, unauthenticated) rankings API (prefix /rankings/).
  *
  * Returns the canonical {results, pagination, month?/season?} envelope straight from the
- * backend — no Bearer token, since these endpoints are open to everyone. This is the
+ * backend - no Bearer token, since these endpoints are open to everyone. This is the
  * public counterpart to lib/rankingsAdmin.ts, which hits the same /rankings/ prefix but
  * carries the auth_token Bearer header for the head_admin / metrics_admin write surface.
  */

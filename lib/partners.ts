@@ -8,19 +8,19 @@ import { env } from "@/lib/env";
  * Mirrors lib/organizers.ts (axios + the BASE url + Bearer-from-cookie auth): every
  * call carries the Bearer token read from the same `auth_token` cookie that AuthContext
  * sets (js-cookie), so callers don't have to thread it through props/hooks. These are the
- * AFC-staff (head_admin / partner_admin) provisioning endpoints — the human session
+ * AFC-staff (head_admin / partner_admin) provisioning endpoints - the human session
  * surface, NOT the partner-facing X-API-Key read API (that one lives under
  * /api/v1/partner/ and never touches this client).
  *
  * What a Partner is (so the types below read in context): an AFC-approved external
  * consumer of completed/published tournament data. ALL of its access is described by
- * config on the Partner row — its scope (which events it may read) and its 14 toggles
+ * config on the Partner row - its scope (which events it may read) and its 14 toggles
  * (6 resource toggles = which endpoints respond, 8 field toggles = which fields appear),
  * every one defaulting OFF for least privilege. PartnerApiKey rows are rotatable
  * credentials that inherit that config; only a key's sha256 hash is stored, so the
  * plaintext is returned by issueKey EXACTLY ONCE and can never be re-fetched.
  *
- * Errors surface as axios errors with `err.response.data.message` — handle them with a
+ * Errors surface as axios errors with `err.response.data.message` - handle them with a
  * toast at the call site, like the rest of the app.
  */
 
@@ -47,11 +47,11 @@ async function aPatch<T = any>(path: string, body?: any): Promise<T> {
 // ── Toggle whitelist (must stay in lock-step with the backend PARTNER_TOGGLE_FIELDS) ──
 // The single source of truth for the FE: the Scope+Toggles tab renders one Switch per
 // id below, and editPartner only ever sends these keys. If the backend adds a toggle,
-// add it here (and to the labels map in the detail page) — exactly the same rule the
+// add it here (and to the labels map in the detail page) - exactly the same rule the
 // backend documents ("a new toggle must be added to PARTNER_TOGGLE_FIELDS AND the FE
 // switches").
 //
-// 6 RESOURCE toggles — which endpoints (resources) respond at all.
+// 6 RESOURCE toggles - which endpoints (resources) respond at all.
 export const RESOURCE_TOGGLES = [
   "can_read_events",
   "can_read_stages",
@@ -61,7 +61,7 @@ export const RESOURCE_TOGGLES = [
   "can_read_players",
 ] as const;
 
-// 8 FIELD toggles — which fields appear inside a resource the partner can already read.
+// 8 FIELD toggles - which fields appear inside a resource the partner can already read.
 export const FIELD_TOGGLES = [
   "include_placements",
   "include_kills",
@@ -96,7 +96,7 @@ export interface PartnerSummary {
 
 // Full config from get_partner / edit_partner (_serialize_partner_detail). It is the
 // summary PLUS every toggle (as a boolean keyed by its toggle id), the scope id-lists,
-// the native-AFC switch, and the INTERNAL contact_email (admin-only — the partner
+// the native-AFC switch, and the INTERNAL contact_email (admin-only - the partner
 // firewall never emits it). `[key in PartnerToggle]: boolean` keeps the toggles typed.
 export type PartnerDetail = PartnerSummary & {
   [key in PartnerToggle]: boolean;
@@ -107,7 +107,7 @@ export type PartnerDetail = PartnerSummary & {
   contact_email: string;
 };
 
-// Metadata-only view of a key (_serialize_key). NEVER the plaintext or the hash — the
+// Metadata-only view of a key (_serialize_key). NEVER the plaintext or the hash - the
 // admin sees the prefix (to identify the key), its label, status and audit stamps.
 export interface PartnerKey {
   key_id: number;
@@ -129,14 +129,14 @@ export interface PartnerDetailResponse {
 // issue_key returns the plaintext key ONCE (`api_key`) alongside the new key's metadata.
 export interface IssueKeyResponse {
   message: string;
-  api_key: string;       // the full plaintext — present in this response ONLY
+  api_key: string;       // the full plaintext - present in this response ONLY
   key: PartnerKey;
 }
 
 // The whitelisted edit body: any subset of the 14 toggles + the scope grants + the
-// native switch. True PATCH — only keys present are touched; unknown keys 400 server-side.
+// native switch. True PATCH - only keys present are touched; unknown keys 400 server-side.
 export interface EditPartnerBody {
-  // toggles (optional, partial) — Partial<Record<PartnerToggle, boolean>>
+  // toggles (optional, partial) - Partial<Record<PartnerToggle, boolean>>
   can_read_events?: boolean;
   can_read_stages?: boolean;
   can_read_matches?: boolean;
@@ -170,14 +170,14 @@ export const partnersApi = {
       "admin/list/",
       params,
     ),
-  // getPartner — full config (toggles + scope + internal email) + keys metadata.
+  // getPartner - full config (toggles + scope + internal email) + keys metadata.
   getPartner: (slug: string) =>
     aGet<PartnerDetailResponse>(`admin/${slug}/`),
-  // editPartner — whitelist-validated PATCH of scope + toggles (see EditPartnerBody).
+  // editPartner - whitelist-validated PATCH of scope + toggles (see EditPartnerBody).
   // Sending only the keys you change keeps the rest untouched (true PATCH semantics).
   editPartner: (slug: string, body: EditPartnerBody) =>
     aPatch<{ message: string; partner: PartnerDetail }>(`admin/${slug}/`, body),
-  // suspendPartner — reversible freeze; { suspend: true } blocks every key, false restores.
+  // suspendPartner - reversible freeze; { suspend: true } blocks every key, false restores.
   suspendPartner: (slug: string, body: { suspend: boolean }) =>
     aPost<{ message: string; status: string }>(`admin/${slug}/suspend/`, body),
 
@@ -186,13 +186,13 @@ export const partnersApi = {
   // Optional label + per-key rate-limit override (defaults to 60/min server-side).
   issueKey: (slug: string, body?: { label?: string; rate_limit_per_min?: number }) =>
     aPost<IssueKeyResponse>(`admin/${slug}/keys/`, body),
-  // revokeKey permanently disables one key (addressed by id — a key is the thing acted on).
+  // revokeKey permanently disables one key (addressed by id - a key is the thing acted on).
   // Idempotent server-side: re-revoking is a harmless no-op success.
   revokeKey: (keyId: number | string) =>
     aPost<{ message: string }>(`admin/keys/${keyId}/revoke/`),
 
   // ── Per-event publish gate ───────────────────────────────────────────────
-  // publishEvent flips Event.partner_published — the gate the read API applies FIRST,
+  // publishEvent flips Event.partner_published - the gate the read API applies FIRST,
   // so no partner (however broadly scoped) can read an event until it is published here.
   publishEvent: (eventSlug: string, body: { published: boolean }) =>
     aPost<{ message: string; partner_published: boolean }>(

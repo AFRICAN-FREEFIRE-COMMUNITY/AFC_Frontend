@@ -5,7 +5,7 @@
 // The public, unauthenticated face of an organizer. Fetches a single org by slug
 // from organizersApi.getOrganizationPublic() (the ONLY org call with no auth
 // header) and renders: a banner with the logo + name, the description, the
-// present social links, and an "Events" section listing the org's events — each
+// present social links, and an "Events" section listing the org's events - each
 // event reusing the same tournament-card idiom from /tournaments and linking to
 // /tournaments/<event.slug>.
 //
@@ -58,7 +58,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
 import { toast } from "sonner";
 
-// ── Types — the public-endpoint payload (lib/organizers.ts getOrganizationPublic) ──
+// ── Types - the public-endpoint payload (lib/organizers.ts getOrganizationPublic) ──
 // Only the org's own events[] entries are listed here; rating is null until
 // Phase 4 wires up the aggregate, so we keep it optional/nullable.
 interface PublicOrgEvent {
@@ -136,7 +136,7 @@ const EventCard: React.FC<{ event: PublicOrgEvent }> = ({ event }) => {
 };
 
 // ── Social links ──
-// Renders only the platforms actually present on the org. Tabler brand icons —
+// Renders only the platforms actually present on the org. Tabler brand icons -
 // the same family used everywhere else in the app for socials.
 const SOCIAL_LINKS = [
   { key: "x", label: "X", Icon: IconBrandX },
@@ -145,7 +145,7 @@ const SOCIAL_LINKS = [
   { key: "discord", label: "Discord", Icon: IconBrandDiscord },
 ] as const;
 
-// Returns the platforms that carry a non-empty url — empty when none are present,
+// Returns the platforms that carry a non-empty url - empty when none are present,
 // which the page uses to decide whether to render the "Connect" card at all.
 const presentSocials = (socials: PublicOrganization["socials"]) => {
   if (!socials) return [];
@@ -182,7 +182,7 @@ const SocialLinks: React.FC<{ socials: PublicOrganization["socials"] }> = ({
 
 // ── Report organization dialog ──
 // A logged-in user reports an org for review by AFC. Posts via
-// organizersApi.reportOrganization(slug, FormData) — multipart so the optional
+// organizersApi.reportOrganization(slug, FormData) - multipart so the optional
 // evidence image rides along (same FormData idiom the rest of the app uses for
 // uploads). Anonymous visitors are prompted to log in (useAuthModal) instead of
 // opening the dialog. Category mirrors the backend's allowed values.
@@ -233,7 +233,7 @@ const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
     }
     setIsSubmitting(true);
     try {
-      // Multipart body — evidence image is optional, only appended when present.
+      // Multipart body - evidence image is optional, only appended when present.
       const formData = new FormData();
       formData.append("category", category);
       formData.append("details", details.trim());
@@ -261,7 +261,7 @@ const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
       }}
     >
       {/* The trigger handles auth itself, so it's a plain button (not asChild on
-          DialogTrigger) — that lets us intercept the click for logged-out users. */}
+          DialogTrigger) - that lets us intercept the click for logged-out users. */}
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -411,7 +411,7 @@ const Page = ({ params }: { params: Params }) => {
     <div className="space-y-6">
       {/* ── Banner + logo + name ── */}
       <Card className="overflow-hidden p-0">
-        {/* Banner image — falls back to the shared placeholder when absent. */}
+        {/* Banner image - falls back to the shared placeholder when absent. */}
         <div className="relative aspect-[3/1] w-full bg-muted">
           <Image
             src={org.default_banner || DEFAULT_IMAGE}
@@ -439,13 +439,13 @@ const Page = ({ params }: { params: Params }) => {
             <h1 className="text-3xl md:text-4xl font-bold text-primary">
               {org.name}
             </h1>
-            {/* Rating is null until Phase 4 adds the aggregate — subtle placeholder. */}
+            {/* Rating is null until Phase 4 adds the aggregate - subtle placeholder. */}
             <p className="mt-1 text-sm text-muted-foreground">
               Rating coming soon
             </p>
           </div>
 
-          {/* Report organization — pushed to the right on desktop. The dialog
+          {/* Report organization - pushed to the right on desktop. The dialog
               gates itself on auth (logged-out users get the login modal). */}
           <div className="md:ml-auto md:pb-1">
             <ReportOrganizationDialog slug={org.slug} orgName={org.name} />

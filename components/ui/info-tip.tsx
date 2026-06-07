@@ -29,7 +29,7 @@ export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
           onClick={(e) => {
             // When the ⓘ is nested inside a <label>/<FormLabel>, a bare click would
             // bubble to the label and focus/toggle its associated field. Stop it so
-            // tapping the icon only opens the tip — never touches the input.
+            // tapping the icon only opens the tip - never touches the input.
             e.stopPropagation();
             e.preventDefault();
             setOpen((o) => !o);
@@ -45,7 +45,7 @@ export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
       <PopoverContent
         side={side}
         onOpenAutoFocus={(e) => e.preventDefault()}
-        // popover.tsx hardcodes a fixed w-72 — override with w-auto so short tips
+        // popover.tsx hardcodes a fixed w-72 - override with w-auto so short tips
         // shrink to fit while max-w-xs still caps the wide ones.
         className="w-auto max-w-xs text-xs leading-relaxed"
       >

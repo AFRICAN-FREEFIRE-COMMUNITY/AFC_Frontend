@@ -6,13 +6,13 @@ import { env } from "@/lib/env";
  * Typed client for the Phase-2 rankings ADMIN write API (prefix /rankings/).
  *
  * Mirrors lib/rankings.ts (axios + the BASE url + the {results, pagination} envelope),
- * but every call carries the Bearer token — the backend admin endpoints are gated on
+ * but every call carries the Bearer token - the backend admin endpoints are gated on
  * head_admin / metrics_admin. The token is read from the same `auth_token` cookie that
  * AuthContext sets (js-cookie), so callers don't have to thread it through props/hooks.
  *
  * Every write endpoint is reason-gated server-side: pass `reason` (>= 10 chars) in the
  * body or the backend returns 400. Errors surface as axios errors with
- * `err.response.data.message` — handle them with a toast at the call site, like the rest
+ * `err.response.data.message` - handle them with a toast at the call site, like the rest
  * of the app (see app/(a)/a/teams/page.tsx).
  */
 
@@ -97,7 +97,7 @@ export const rankingsAdminApi = {
   updatePrize: (payoutId: number, body: any) => aPatch(`prize/${payoutId}/`, body),
   deletePrize: (payoutId: number, body: any) => aDelete(`prize/${payoutId}/`, body),
 
-  // ── Result Markers — counting controls (Phase 2b) ─────────────────────────
+  // ── Result Markers - counting controls (Phase 2b) ─────────────────────────
   resultMarkers: (seasonId?: number) => aGet("admin/results/markers/", seasonId ? { season_id: seasonId } : undefined),
   eventCounting: (eventId: number) => aGet(`event-counting/${eventId}/`),
   setEventCounting: (eventId: number, body: any) => aPatch(`event-counting/${eventId}/`, body),
@@ -105,7 +105,7 @@ export const rankingsAdminApi = {
   createExclusion: (body: any) => aPost("result-exclusions/", body),
   deleteExclusion: (exclusionId: number, body: any) => aDelete(`result-exclusions/${exclusionId}/`, body),
 
-  // ── Social — self-connect + verify (Phase 2b) ─────────────────────────────
+  // ── Social - self-connect + verify (Phase 2b) ─────────────────────────────
   socialList: (seasonId: number) => aGet(`admin/seasons/${seasonId}/social/`),
   socialEdit: (seasonId: number, teamId: number, body: any) => aPatch(`admin/seasons/${seasonId}/social/${teamId}/`, body),
   socialVerify: (seasonId: number, teamId: number, body: any) => aPost(`admin/seasons/${seasonId}/social/${teamId}/verify/`, body),
@@ -120,7 +120,7 @@ export const rankingsAdminApi = {
   // ── Publish controls + admin draft preview (Phase 2c) ─────────────────────
   // publishState toggles rankings_published and/or tiers_published independently.
   publishState: (seasonId: number, body: any) => aPatch(`seasons/${seasonId}/publish/`, body),
-  // ungated draft reads — admin surfaces MUST use these (the public teams/players quarterly
+  // ungated draft reads - admin surfaces MUST use these (the public teams/players quarterly
   // endpoints return nothing until published).
   adminTeamsQuarterly: (seasonId?: number) => aGet("admin/teams/quarterly/", seasonId ? { season_id: seasonId } : undefined),
   adminPlayersQuarterly: (seasonId?: number) => aGet("admin/players/quarterly/", seasonId ? { season_id: seasonId } : undefined),

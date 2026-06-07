@@ -204,7 +204,7 @@ const EmptyState = ({ label }: { label: string }) => (
   </p>
 );
 
-// Mock performance history months — replace with real data when endpoint available
+// Mock performance history months - replace with real data when endpoint available
 const buildPerformanceData = (player: PlayerDetails) => [
   {
     month: "Overall",
@@ -319,43 +319,43 @@ const Page = ({ params }: Props) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
               <div>
                 <p className="text-xs text-muted-foreground">Email Address</p>
-                <p className="text-sm mt-0.5">{player.email ?? "—"}</p>
+                <p className="text-sm mt-0.5">{player.email ?? "-"}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Phone Number</p>
-                <p className="text-sm mt-0.5">{player.phone ?? "—"}</p>
+                <p className="text-sm mt-0.5">{player.phone ?? "-"}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">
                   Discord Username
                 </p>
                 <p className="text-sm mt-0.5">
-                  {player.discord_username ?? "—"}
+                  {player.discord_username ?? "-"}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">
                   Current Location
                 </p>
-                <p className="text-sm mt-0.5">{player.location ?? "—"}</p>
+                <p className="text-sm mt-0.5">{player.location ?? "-"}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">UID</p>
-                <p className="text-sm mt-0.5">{player.uid ?? "—"}</p>
+                <p className="text-sm mt-0.5">{player.uid ?? "-"}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Team</p>
-                <p className="text-sm mt-0.5">{player.team ?? "—"}</p>
+                <p className="text-sm mt-0.5">{player.team ?? "-"}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Role</p>
                 <p className="text-sm mt-0.5 capitalize">
-                  {player.in_game_role ?? "—"}
+                  {player.in_game_role ?? "-"}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Country</p>
-                <p className="text-sm mt-0.5">{player.country ?? "—"}</p>
+                <p className="text-sm mt-0.5">{player.country ?? "-"}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Kills</p>
@@ -389,7 +389,7 @@ const Page = ({ params }: Props) => {
                 <p className="text-2xl font-bold mt-0.5">
                   {player.total_money_made
                     ? `$${formatMoneyInput(player.total_money_made)}`
-                    : "—"}
+                    : "-"}
                 </p>
               </div>
               <div>
@@ -440,7 +440,7 @@ const Page = ({ params }: Props) => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Headshot %</p>
-                <p className="text-2xl font-bold mt-0.5">—</p>
+                <p className="text-2xl font-bold mt-0.5">-</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Win Rate</p>
@@ -555,8 +555,8 @@ const Page = ({ params }: Props) => {
                 {player.team ? (
                   <TableRow>
                     <TableCell className="font-medium">{player.team}</TableCell>
-                    <TableCell className="text-muted-foreground">—</TableCell>
-                    <TableCell className="text-muted-foreground">—</TableCell>
+                    <TableCell className="text-muted-foreground">-</TableCell>
+                    <TableCell className="text-muted-foreground">-</TableCell>
                     <TableCell>Present</TableCell>
                   </TableRow>
                 ) : (
@@ -679,10 +679,10 @@ const Page = ({ params }: Props) => {
                   loginHistory.map((entry, i) => (
                     <TableRow key={i}>
                       <TableCell>{entry.ip_address}</TableCell>
-                      <TableCell>{entry.country ?? "—"}</TableCell>
-                      <TableCell>{entry.city ?? "—"}</TableCell>
+                      <TableCell>{entry.country ?? "-"}</TableCell>
+                      <TableCell>{entry.city ?? "-"}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "—"}
+                        {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "-"}
                       </TableCell>
                     </TableRow>
                   ))

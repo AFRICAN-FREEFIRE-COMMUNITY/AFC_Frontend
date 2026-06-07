@@ -291,7 +291,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
   // ── helpers ────────────────────────────────────────────────────────────────
 
   const fmtDate = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+    d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-";
 
   const statusBadgeVariant = (s: string): "default" | "destructive" | "secondary" | "outline" => {
     if (s === "active") return "default";
@@ -362,7 +362,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
             <Separator />
             <div className="flex justify-between">
               <span className="text-muted-foreground">Country</span>
-              <span>{teamDetails.country || "—"}</span>
+              <span>{teamDetails.country || "-"}</span>
             </div>
             <Separator />
             <div className="flex justify-between">
@@ -741,7 +741,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
           <CardContent className="space-y-6">
             {/* Change Tier */}
             <div className="space-y-2">
-              {/* Field ⓘ nested in the Label — the InfoTip's stopPropagation guard keeps the click off the field. */}
+              {/* Field ⓘ nested in the Label - the InfoTip's stopPropagation guard keeps the click off the field. */}
               <Label className="text-sm font-medium">
                 Change Team Tier
                 <InfoTip id="teams.detail.change_tier" className="ml-1" />

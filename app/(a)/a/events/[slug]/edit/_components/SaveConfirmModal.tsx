@@ -52,11 +52,11 @@ export function SaveConfirmModal({
                   <div key={i} className="px-3 py-2 text-sm">
                     <span className="font-medium">{c.label}:</span>{" "}
                     <span className="line-through text-muted-foreground">
-                      {c.from || "—"}
+                      {c.from || "-"}
                     </span>
                     {" → "}
                     <span className="text-foreground font-medium">
-                      {c.to || "—"}
+                      {c.to || "-"}
                     </span>
                   </div>
                 ))}

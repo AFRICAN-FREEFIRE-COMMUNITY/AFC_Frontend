@@ -1658,7 +1658,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                           <TableCell className="text-muted-foreground text-sm">
                             {comp.registered_at
                               ? formatDate(comp.registered_at)
-                              : "—"}
+                              : "-"}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1674,7 +1674,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                           <TableCell className="text-muted-foreground text-sm">
                             {team.registered_at
                               ? formatDate(team.registered_at)
-                              : "—"}
+                              : "-"}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -2072,7 +2072,7 @@ function RemoveNonNigeriaButton({ eventId, token }: { eventId: number; token: st
               </p>
               {preview.slice(0, 5).map((p, i) => (
                 <p key={i} className="text-xs text-muted-foreground">
-                  {p.user__username} — {p.last_country}
+                  {p.user__username} - {p.last_country}
                 </p>
               ))}
               {preview.length > 5 && (

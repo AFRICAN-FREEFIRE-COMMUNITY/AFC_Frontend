@@ -740,7 +740,7 @@ export default function StagesGroupsTab({
                           Seed to Next Stage
                         </Button>
                         {/*
-                          Edit-only live-event action — explain what seeding does.
+                          Edit-only live-event action - explain what seeding does.
                           The ⓘ (a real <button>) sits OUTSIDE the Seed button as a
                           sibling, not nested inside it: a <button> inside a <button>
                           is invalid HTML and triggers a hydration/DOM-nesting error.

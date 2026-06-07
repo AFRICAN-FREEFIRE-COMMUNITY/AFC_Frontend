@@ -100,7 +100,7 @@ export const GroupResultModal = ({
     if (viewMatchId === "overall") {
       // IMPORTANT: keep the server order. The backend already pins the
       // Champion-Point winner to index 0 and the positional qualified/eliminated
-      // logic depends on this order — so we map by index, never re-sort here.
+      // logic depends on this order - so we map by index, never re-sort here.
       return (groupDetails.overall_leaderboard || []).map(
         (entry: any, index: number) => ({
           rank: index + 1,
@@ -109,7 +109,7 @@ export const GroupResultModal = ({
           username: entry.competitor__user__username ?? entry.team_name,
           kills: entry.total_kills,
           // Show effective_total (placement+kills+bonus-penalty + any Point-Rush
-          // carry-over) — this is what the backend ranks by, so the Points number
+          // carry-over) - this is what the backend ranks by, so the Points number
           // matches the row order. Falls back to total_points for older payloads.
           points: entry.effective_total ?? entry.total_points,
           isQualified: index < groupDetails.teams_qualifying,
@@ -197,7 +197,7 @@ export const GroupResultModal = ({
             {viewMatchId === "overall" && groupDetails?.is_decided && (
               <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300">
                 <IconCrown size={16} className="text-amber-400" />
-                Champion crowned — this group is decided.
+                Champion crowned - this group is decided.
               </div>
             )}
 

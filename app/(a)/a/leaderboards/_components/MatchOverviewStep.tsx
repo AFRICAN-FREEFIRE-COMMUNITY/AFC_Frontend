@@ -114,7 +114,7 @@ export function MatchOverviewStep({
                   </div>
                   <p className="text-xs text-primary">
                     {completed
-                      ? "Results inputted — click to edit"
+                      ? "Results inputted - click to edit"
                       : "Click to select upload method and input results"}
                   </p>
                 </button>

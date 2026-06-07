@@ -367,7 +367,7 @@ function PlayerMarketPage() {
     "team" | "player" | null
   >(null);
 
-  // Create Post form state — Team
+  // Create Post form state - Team
   const [newTeamRoles, setNewTeamRoles] = useState<string[]>([]);
   const [newTeamMinTier, setNewTeamMinTier] = useState("");
   const [newTeamCommitment, setNewTeamCommitment] = useState("");
@@ -375,7 +375,7 @@ function PlayerMarketPage() {
   const [newTeamCriteria, setNewTeamCriteria] = useState("");
   const [newTeamExpiry, setNewTeamExpiry] = useState("");
 
-  // Create Post form state — Player
+  // Create Post form state - Player
   const [newPlayerPrimary, setNewPlayerPrimary] = useState("");
   const [newPlayerSecondary, setNewPlayerSecondary] = useState("");
   const [newPlayerAvailability, setNewPlayerAvailability] = useState("");
@@ -398,7 +398,7 @@ function PlayerMarketPage() {
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
   const [isLoadingEditPost, setIsLoadingEditPost] = useState(false);
 
-  // Edit form state — Team
+  // Edit form state - Team
   const [editTeamRoles, setEditTeamRoles] = useState<string[]>([]);
   const [editTeamMinTier, setEditTeamMinTier] = useState("");
   const [editTeamCommitment, setEditTeamCommitment] = useState("");
@@ -406,7 +406,7 @@ function PlayerMarketPage() {
   const [editTeamCriteria, setEditTeamCriteria] = useState("");
   const [editTeamExpiry, setEditTeamExpiry] = useState("");
 
-  // Edit form state — Player
+  // Edit form state - Player
   const [editPlayerPrimary, setEditPlayerPrimary] = useState("");
   const [editPlayerSecondary, setEditPlayerSecondary] = useState("");
   const [editPlayerAvailability, setEditPlayerAvailability] = useState("");
@@ -679,7 +679,7 @@ function PlayerMarketPage() {
         }
       })
       .catch(() => {
-        // No team or failed — still fetch my applications and invites
+        // No team or failed - still fetch my applications and invites
         setLoadingMyApps(true);
         axios
           .get(
@@ -956,7 +956,7 @@ function PlayerMarketPage() {
         </div>
       </div>
 
-      {/* Transfer-window OPEN/CLOSED status — self-fetching, mirrors /rankings */}
+      {/* Transfer-window OPEN/CLOSED status - self-fetching, mirrors /rankings */}
       <TransferWindowBanner />
 
       {/* Info Banner */}
@@ -1758,7 +1758,7 @@ function PlayerMarketPage() {
                       Joining
                     </p>
                     <p className="text-sm font-medium mt-0.5 capitalize">
-                      {currentTeam.join_settings?.replace(/_/g, " ") ?? "—"}
+                      {currentTeam.join_settings?.replace(/_/g, " ") ?? "-"}
                     </p>
                   </div>
                 </div>
@@ -2733,7 +2733,7 @@ function PlayerMarketPage() {
                 </div>
               </div>
 
-              {/* Invite message — only for team leaders */}
+              {/* Invite message - only for team leaders */}
               {isTeamLeader && (
                 <>
                   <Separator />

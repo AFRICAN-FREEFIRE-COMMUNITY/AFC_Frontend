@@ -6,7 +6,7 @@
 // across all organizations (afc_organizers admin API), with a status filter +
 // server-side pagination, and a per-row dialog to move a report through its
 // lifecycle (open → reviewing → resolved/dismissed), attach resolution notes, and
-// — the integrity action — optionally exclude the reported event from rankings.
+// - the integrity action - optionally exclude the reported event from rankings.
 //
 // Mirrors the sibling Design Requests queue idiom
 // (app/(a)/a/organizations/design-requests/page.tsx): PageHeader, a status Select
@@ -14,7 +14,7 @@
 // sonner toasts. Paginates SERVER-side because adminListReports hands back
 // { results, total_count, has_more }, exactly like adminListDesignRequests.
 //
-// Static segment under /a/organizations/ — Next.js matches this before the sibling
+// Static segment under /a/organizations/ - Next.js matches this before the sibling
 // [slug] dynamic route, so /a/organizations/reports lands here.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -68,7 +68,7 @@ import { InfoTip } from "@/components/ui/info-tip";
 // ── Row shape (mirrors the admin OrganizationReport serializer) ──────────────
 // organization_name / reporter_username / event_name are joined fields the admin
 // list endpoint denormalises onto each row so this page never re-fetches the FKs.
-// event_id is what drives the "exclude_event" toggle — null when the report isn't
+// event_id is what drives the "exclude_event" toggle - null when the report isn't
 // tied to a specific event (then exclusion isn't offered).
 interface ReportRow {
   id: number;
@@ -109,7 +109,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 // Outline badge per AFC constants, colour-coded per the brief: open=red/gold (it's
-// an unhandled integrity report — make it loud), reviewing=blue, resolved=green,
+// an unhandled integrity report - make it loud), reviewing=blue, resolved=green,
 // dismissed=muted.
 function StatusBadge({ status }: { status: string }) {
   const colour: Record<string, string> = {
@@ -176,7 +176,7 @@ export default function OrgReportsAdminPage() {
   const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
   // Open the resolve dialog seeded with the row's current status + notes. The
-  // exclude-event checkbox always starts unchecked — it's an explicit per-resolution
+  // exclude-event checkbox always starts unchecked - it's an explicit per-resolution
   // action, never a remembered state.
   const openEdit = (row: ReportRow) => {
     setEditTarget(row);
@@ -187,7 +187,7 @@ export default function OrgReportsAdminPage() {
 
   // ── Save the status + resolution_notes (+ optional event exclusion). ──
   // Only send exclude_event:true when the box is checked AND the report actually has
-  // an event — guards against sending the integrity flag for an eventless report.
+  // an event - guards against sending the integrity flag for an eventless report.
   const handleSave = async () => {
     if (!editTarget || saving) return;
     setSaving(true);
@@ -223,7 +223,7 @@ export default function OrgReportsAdminPage() {
     [totalPages, page],
   );
 
-  // first load only — keep the table on-screen during filter/page refetches.
+  // first load only - keep the table on-screen during filter/page refetches.
   if (loading && rows.length === 0) return <FullLoader />;
 
   return (
@@ -239,7 +239,7 @@ export default function OrgReportsAdminPage() {
         description={`${totalCount} report${totalCount !== 1 ? "s" : ""}`}
       />
 
-      {/* Status filter — server refetch on change (matches the design-requests UX). */}
+      {/* Status filter - server refetch on change (matches the design-requests UX). */}
       <div className="flex items-center gap-2">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-56">
@@ -299,17 +299,17 @@ export default function OrgReportsAdminPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {row.reporter_username || "—"}
+                        {row.reporter_username || "-"}
                       </TableCell>
-                      {/* Event — "—" when the report isn't tied to a specific event. */}
+                      {/* Event - "-" when the report isn't tied to a specific event. */}
                       <TableCell className="text-muted-foreground">
-                        {row.event_name || "—"}
+                        {row.event_name || "-"}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={row.status} />
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {row.created_at ? formatDate(row.created_at) : "—"}
+                        {row.created_at ? formatDate(row.created_at) : "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="inline-flex items-center justify-end gap-1">
@@ -333,7 +333,7 @@ export default function OrgReportsAdminPage() {
             {totalPages > 1 && (
               <div className="flex flex-col items-center justify-between gap-3 border-t px-4 py-3 sm:flex-row">
                 <p className="text-xs text-muted-foreground">
-                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}–
+                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
                   {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
                 </p>
                 <Pagination>
@@ -387,7 +387,7 @@ export default function OrgReportsAdminPage() {
         </Card>
       )}
 
-      {/* ── Resolve dialog — update status + resolution notes + event exclusion ── */}
+      {/* ── Resolve dialog - update status + resolution notes + event exclusion ── */}
       <Dialog
         open={!!editTarget}
         onOpenChange={(open) => {
@@ -399,7 +399,7 @@ export default function OrgReportsAdminPage() {
             <DialogTitle>Resolve report</DialogTitle>
             <DialogDescription>
               {editTarget
-                ? `${editTarget.organization_name} — ${
+                ? `${editTarget.organization_name} - ${
                     CATEGORY_LABELS[editTarget.category] ?? editTarget.category
                   }`
                 : ""}
@@ -412,13 +412,13 @@ export default function OrgReportsAdminPage() {
               <span className="text-muted-foreground">
                 Reporter:{" "}
                 <span className="text-foreground">
-                  {editTarget?.reporter_username || "—"}
+                  {editTarget?.reporter_username || "-"}
                 </span>
               </span>
               <span className="text-muted-foreground">
                 Event:{" "}
                 <span className="text-foreground">
-                  {editTarget?.event_name || "—"}
+                  {editTarget?.event_name || "-"}
                 </span>
               </span>
             </div>
@@ -433,12 +433,12 @@ export default function OrgReportsAdminPage() {
               </div>
             )}
 
-            {/* Evidence image (read-only) — shown when the reporter attached one. */}
+            {/* Evidence image (read-only) - shown when the reporter attached one. */}
             {editTarget?.evidence && (
               <div className="space-y-2">
                 <Label>Evidence</Label>
                 <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
-                  {/* Reporter-supplied evidence comes from arbitrary upload hosts — plain <img>. */}
+                  {/* Reporter-supplied evidence comes from arbitrary upload hosts - plain <img>. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={editTarget.evidence}
@@ -472,7 +472,7 @@ export default function OrgReportsAdminPage() {
               </Select>
             </div>
 
-            {/* Resolution notes — the internal record of how the report was handled. */}
+            {/* Resolution notes - the internal record of how the report was handled. */}
             <div className="space-y-2">
               <Label htmlFor="report-resolution">
                 Resolution notes{" "}
@@ -487,7 +487,7 @@ export default function OrgReportsAdminPage() {
               />
             </div>
 
-            {/* Integrity action — exclude the reported event from rankings. Only enabled
+            {/* Integrity action - exclude the reported event from rankings. Only enabled
                 when the report is tied to an event; otherwise it's nothing to act on. */}
             <div className="flex items-start gap-2">
               <Checkbox

@@ -35,7 +35,7 @@ import { env } from "@/lib/env";
 import { InfoTip } from "@/components/ui/info-tip";
 
 /**
- * Result Markers — counting-control surface wired to the LIVE backend
+ * Result Markers - counting-control surface wired to the LIVE backend
  * (afc_rankings/admin_results.py, prefix /rankings/).
  *
  * Scalable counting-control surface: enable/disable whether a tournament's results
@@ -198,7 +198,7 @@ export default function ResultMarkersPage() {
   const [addReason, setAddReason] = useState("");
   const [adding, setAdding] = useState(false);
 
-  // entity lists for the name picker — fetched once when the drill-down opens.
+  // entity lists for the name picker - fetched once when the drill-down opens.
   const [teamOptions, setTeamOptions] = useState<EntityOption[]>([]);
   const [playerOptions, setPlayerOptions] = useState<EntityOption[]>([]);
 
@@ -345,7 +345,7 @@ export default function ResultMarkersPage() {
       .slice(0, 8);
   }, [addType, addQuery, teamOptions, playerOptions]);
 
-  // switch entity type — clears any resolved selection (a team id is invalid for players).
+  // switch entity type - clears any resolved selection (a team id is invalid for players).
   const changeAddType = (v: "team" | "player") => {
     setAddType(v);
     setAddQuery("");
@@ -407,7 +407,7 @@ export default function ResultMarkersPage() {
   };
 
   // add a new exclusion (create) inside the drill-down. Uses the RESOLVED id from the
-  // name picker (addEntityId), not raw text — the add button is gated on it.
+  // name picker (addEntityId), not raw text - the add button is gated on it.
   const addExclusion = async () => {
     if (!drill || addEntityId == null || !addReasonValid || adding) return;
     setAdding(true);
@@ -449,7 +449,7 @@ export default function ResultMarkersPage() {
     });
   const clearSelection = () => setSelected(new Set());
 
-  // bulk enable (immediate — re-enable all three flags per selected event)
+  // bulk enable (immediate - re-enable all three flags per selected event)
   const bulkEnable = () => {
     const ids = Array.from(selected);
     if (!ids.length) return;
@@ -645,7 +645,7 @@ export default function ResultMarkersPage() {
               >
                 <IconCircleMinus className="mr-1 size-3.5" /> Disable counting
               </Button>
-              {/* ⓘ beside the bulk action (sibling) — explains the multi-event disable. */}
+              {/* ⓘ beside the bulk action (sibling) - explains the multi-event disable. */}
               <InfoTip id="rankings.results.bulk_disable" />
               <Button size="sm" variant="ghost" onClick={clearSelection}>
                 <IconX className="mr-1 size-3.5" /> Clear selection
@@ -722,7 +722,7 @@ export default function ResultMarkersPage() {
                       <div className="flex flex-col">
                         <span>{t.name}</span>
                         <span className="text-[10px] text-muted-foreground tabular-nums">
-                          {t.date ? new Date(t.date).toLocaleDateString() : "—"}
+                          {t.date ? new Date(t.date).toLocaleDateString() : "-"}
                         </span>
                       </div>
                     </TableCell>
@@ -881,7 +881,7 @@ export default function ResultMarkersPage() {
                       <SelectItem value="player">Player</SelectItem>
                     </SelectContent>
                   </Select>
-                  {/* name-search picker — type a name, click a match to resolve the id */}
+                  {/* name-search picker - type a name, click a match to resolve the id */}
                   <div className="relative flex-1">
                     <Input
                       value={addQuery}

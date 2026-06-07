@@ -10,10 +10,10 @@ import { rankingsApi, Season } from "@/lib/rankings";
  * Prominent, self-contained OPEN / CLOSED transfer-window banner.
  *
  * Drop it near the top of any user-facing page (Rankings, Teams, Player Market). It
- * fetches the active ranking season and shows — impossible to miss — whether roster
+ * fetches the active ranking season and shows - impossible to miss - whether roster
  * moves are currently allowed. The window is the active season's
  * transfer_window_open..transfer_window_close range, toggled by admins; when it's CLOSED
- * the backend also freezes rosters — blocking leave (afc_team.exit_team), kick
+ * the backend also freezes rosters - blocking leave (afc_team.exit_team), kick
  * (kick_team_member), and disband (disband_team). Joining a team stays allowed.
  */
 
@@ -59,8 +59,8 @@ export function TransferWindowBanner({ className }: { className?: string }) {
         </p>
         <p className="text-sm text-muted-foreground">
           {open
-            ? `Roster moves are allowed${season.transfer_window_close ? ` — closes ${fmtDate(season.transfer_window_close)}` : ""}.`
-            : "Roster moves are locked — players cannot leave, be removed from, or disband teams until the window reopens."}
+            ? `Roster moves are allowed${season.transfer_window_close ? ` - closes ${fmtDate(season.transfer_window_close)}` : ""}.`
+            : "Roster moves are locked - players cannot leave, be removed from, or disband teams until the window reopens."}
         </p>
       </div>
       <Badge

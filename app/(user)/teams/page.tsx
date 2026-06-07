@@ -150,7 +150,7 @@ function page() {
         </Button>
       </div>
 
-      {/* Transfer-window OPEN/CLOSED status — self-fetching the active ranking
+      {/* Transfer-window OPEN/CLOSED status - self-fetching the active ranking
           season; when CLOSED the backend freezes leave/kick/disband (afc_team),
           so this banner explains why those actions are blocked here. */}
       <TransferWindowBanner className="mb-4" />
@@ -315,7 +315,7 @@ function page() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="hidden md:block text-sm text-muted-foreground">
-                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
                     {Math.min(
                       currentPage * ITEMS_PER_PAGE,
                       filteredTeams.length,
@@ -471,7 +471,7 @@ function page() {
                             "en-GB",
                             { day: "numeric", month: "short", year: "numeric" },
                           )
-                        : "—"}
+                        : "-"}
                     </p>
                   </div>
                   <div className="rounded-lg border bg-muted/30 p-3">
@@ -479,7 +479,7 @@ function page() {
                       Join Policy
                     </p>
                     <p className="text-sm font-medium mt-0.5 capitalize">
-                      {myTeam.join_settings?.replace(/_/g, " ") ?? "—"}
+                      {myTeam.join_settings?.replace(/_/g, " ") ?? "-"}
                     </p>
                   </div>
                   {myTeam.in_game_role && (

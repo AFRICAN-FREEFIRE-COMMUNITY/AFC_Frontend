@@ -717,7 +717,7 @@ export const AFC_RULES_DATA = [
       {
         title: "Team Ranking Criteria",
         content:
-          "Tournament Wins: 20 points per win. Tournament Kills (Cumulative): 0–5,000 kills scale (1 pt for 0-100 kills, 3 pts for 101-300, 5 pts for 301-500, 8 pts for 501-1,000, 12 pts for 1,001-1,500, 15 pts for 1,501-2,000, 18 pts for 2,001-2,500, 20 pts for 2,501-3,000, 23 pts for 3,001-3,500, 25 pts for 3,501-4,000, 28 pts for 4,001-4,500, 30 pts for 4,501-5,000). Tournament Placements: 0–1,000+ placement scale. Scrim Wins: 0.5 points per win. Scrim Kills and Placements: Same scales as tournament metrics.",
+          "Tournament Wins: 20 points per win. Tournament Kills (Cumulative): 0-5,000 kills scale (1 pt for 0-100 kills, 3 pts for 101-300, 5 pts for 301-500, 8 pts for 501-1,000, 12 pts for 1,001-1,500, 15 pts for 1,501-2,000, 18 pts for 2,001-2,500, 20 pts for 2,501-3,000, 23 pts for 3,001-3,500, 25 pts for 3,501-4,000, 28 pts for 4,001-4,500, 30 pts for 4,501-5,000). Tournament Placements: 0-1,000+ placement scale. Scrim Wins: 0.5 points per win. Scrim Kills and Placements: Same scales as tournament metrics.",
         citations: "[AFC Metrics 3.3]",
       },
       {
@@ -750,7 +750,7 @@ export const AFC_RULES_DATA = [
       {
         title: "Tiering Duration and Seasons",
         content:
-          "Tiers are assigned every three (3) months. There are four competitive seasons per year: Season 1 (January–March), Season 2 (April–June), Season 3 (July–September), Season 4 (October–December). Tiers reset at the beginning of each new season. All tier points accumulate across the entire year for the annual leaderboard and awards.",
+          "Tiers are assigned every three (3) months. There are four competitive seasons per year: Season 1 (January-March), Season 2 (April-June), Season 3 (July-September), Season 4 (October-December). Tiers reset at the beginning of each new season. All tier points accumulate across the entire year for the annual leaderboard and awards.",
         citations: "[AFC Metrics 4.2]",
       },
       {
@@ -767,19 +767,19 @@ export const AFC_RULES_DATA = [
       {
         title: "Tiering Criteria - Prize Money",
         content:
-          "Prize money earned contributes to tier points on a sliding scale: ₦0–100,000 (5 pts), ₦101,000–300,000 (10 pts), ₦301,000–500,000 (15 pts), ₦501,000–750,000 (20 pts), ₦751,000–1,000,000 (25 pts), ₦1,000,001–1,500,000 (30 pts), ₦1,500,001–2,000,000 (35 pts), ₦2,000,001–2,500,000 (40 pts), ₦2,500,001–3,000,000 (45 pts), ₦3,000,001–3,500,000 (50 pts), ₦3,500,001–4,000,000 (55 pts), ₦4,000,001–4,500,000 (60 pts), ₦4,500,001–5,000,000 (65 pts).",
+          "Prize money earned contributes to tier points on a sliding scale: ₦0-100,000 (5 pts), ₦101,000-300,000 (10 pts), ₦301,000-500,000 (15 pts), ₦501,000-750,000 (20 pts), ₦751,000-1,000,000 (25 pts), ₦1,000,001-1,500,000 (30 pts), ₦1,500,001-2,000,000 (35 pts), ₦2,000,001-2,500,000 (40 pts), ₦2,500,001-3,000,000 (45 pts), ₦3,000,001-3,500,000 (50 pts), ₦3,500,001-4,000,000 (55 pts), ₦4,000,001-4,500,000 (60 pts), ₦4,500,001-5,000,000 (65 pts).",
         citations: "[AFC Metrics 5.2]",
       },
       {
         title: "Tiering Criteria - Tournament Kills",
         content:
-          "Cumulative tournament kills contribute on a scale: 0–100 (1 pt), 101–300 (3 pts), 301–500 (5 pts), 501–1,000 (8 pts), 1,001–1,500 (12 pts), 1,501–2,000 (15 pts), 2,001–2,500 (18 pts), 2,501–3,000 (20 pts), 3,001–3,500 (23 pts), 3,501–4,000 (25 pts), 4,001–4,500 (28 pts), 4,501–5,000 (30 pts).",
+          "Cumulative tournament kills contribute on a scale: 0-100 (1 pt), 101-300 (3 pts), 301-500 (5 pts), 501-1,000 (8 pts), 1,001-1,500 (12 pts), 1,501-2,000 (15 pts), 2,001-2,500 (18 pts), 2,501-3,000 (20 pts), 3,001-3,500 (23 pts), 3,501-4,000 (25 pts), 4,001-4,500 (28 pts), 4,501-5,000 (30 pts).",
         citations: "[AFC Metrics 5.3]",
       },
       {
         title: "Tiering Criteria - Tournament Placements",
         content:
-          "Placement points scored: 0–100 (0.02 per placement), 101–300 (0.05), 301–500 (0.10), 501–1,000 (0.15), 1,001+ (0.20).",
+          "Placement points scored: 0-100 (0.02 per placement), 101-300 (0.05), 301-500 (0.10), 501-1,000 (0.15), 1,001+ (0.20).",
         citations: "[AFC Metrics 5.4]",
       },
       {
@@ -790,13 +790,13 @@ export const AFC_RULES_DATA = [
       {
         title: "Tiering Criteria - Social Media Metrics",
         content:
-          "Measured across Instagram and TikTok for followers, posts, and likes: 0–500 (1 pt), 501–1,000 (2 pts), 1,001–2,500 (5 pts), 2,501–5,000 (8 pts), 5,001–10,000 (12 pts), 10,001–20,000 (15 pts), 20,001–50,000 (20 pts), 50,001–75,000 (30 pts), 75,001–100,000 (35 pts), 100,000+ (40 pts).",
+          "Measured across Instagram and TikTok for followers, posts, and likes: 0-500 (1 pt), 501-1,000 (2 pts), 1,001-2,500 (5 pts), 2,501-5,000 (8 pts), 5,001-10,000 (12 pts), 10,001-20,000 (15 pts), 20,001-50,000 (20 pts), 50,001-75,000 (30 pts), 75,001-100,000 (35 pts), 100,000+ (40 pts).",
         citations: "[AFC Metrics 5.6]",
       },
       {
         title: "Tiering Criteria - Scrim Metrics",
         content:
-          "Scrim metrics (maximum 30% overall weight): Scrim Wins (0.5 per win), Scrim Kills Cumulative (0.5–11 pts scale), Scrim Placements (0–0.2 scale, same as tournaments).",
+          "Scrim metrics (maximum 30% overall weight): Scrim Wins (0.5 per win), Scrim Kills Cumulative (0.5-11 pts scale), Scrim Placements (0-0.2 scale, same as tournaments).",
         citations: "[AFC Metrics 5.7]",
       },
     ],
@@ -823,7 +823,7 @@ export const AFC_RULES_DATA = [
       {
         title: "Tournament Classification",
         content:
-          "Tournaments are tiered based on prize pool and structure: Tier 1 (₦ equivalent of $1,000+ or official FreeFire event), Tier 2 (₦ equivalent of $300–$999 or LAN event), Tier 3 (Below $300). Tiering affects prestige and visibility on the AFC platform. Tournament points remain consistent across all tiers, but higher-tier events receive badge recognition on the AFC website.",
+          "Tournaments are tiered based on prize pool and structure: Tier 1 (₦ equivalent of $1,000+ or official FreeFire event), Tier 2 (₦ equivalent of $300-$999 or LAN event), Tier 3 (Below $300). Tiering affects prestige and visibility on the AFC platform. Tournament points remain consistent across all tiers, but higher-tier events receive badge recognition on the AFC website.",
         citations: "[AFC Metrics 7]",
       },
     ],

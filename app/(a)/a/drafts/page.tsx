@@ -81,7 +81,7 @@ const DraftedEventsTable = ({
             <TableHead>Participant Type</TableHead>
             <TableHead>Created At</TableHead>
             {/* Action-column header carries the per-row action ⓘs once (instead of
-                repeating them on every row) — Continue editing + Delete. */}
+                repeating them on every row) - Continue editing + Delete. */}
             <TableHead>
               <span className="flex items-center justify-end gap-1">
                 Actions
@@ -139,7 +139,7 @@ const DraftedEventsTable = ({
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <p className="hidden md:block text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
             {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of{" "}
             {filtered.length}
           </p>

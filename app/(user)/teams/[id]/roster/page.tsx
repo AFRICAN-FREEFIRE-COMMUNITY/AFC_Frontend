@@ -301,7 +301,7 @@ export default function page({ params }: { params: Params }) {
                             <SelectValue placeholder="No role" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">— No role —</SelectItem>
+                            <SelectItem value="none">- No role -</SelectItem>
                             <SelectItem value="rusher">Rusher</SelectItem>
                             <SelectItem value="support">Support</SelectItem>
                             <SelectItem value="grenader">Grenader</SelectItem>

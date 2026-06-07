@@ -3,10 +3,10 @@
 //
 // A table of the organization's members (username, full name, role badge, status)
 // plus the member-management surfaces:
-//   • "Add sub-organizer" dialog — username input + a Switch per permission.
-//   • Per-row permission toggles — only for sub_organizers; the owner row is
+//   • "Add sub-organizer" dialog - username input + a Switch per permission.
+//   • Per-row permission toggles - only for sub_organizers; the owner row is
 //     read-only (the owner implicitly has everything).
-//   • Per-row remove — guarded by an AlertDialog destructive confirm.
+//   • Per-row remove - guarded by an AlertDialog destructive confirm.
 //
 // ALL of the add / edit / remove UI is gated on the caller being able to manage
 // members: either role "owner", or my_permissions.can_manage_members. A viewer
@@ -77,7 +77,7 @@ const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string }[] = [
   { key: "can_manage_members", label: "Manage members" },
 ];
 
-// Every permission off — the starting state for a new sub-organizer.
+// Every permission off - the starting state for a new sub-organizer.
 const EMPTY_PERMISSIONS: OrgPermissions = {
   can_create_events: false,
   can_edit_events: false,
@@ -127,7 +127,7 @@ function StatusBadge({ status }: { status: string }) {
       : "border-yellow-500 text-yellow-600";
   return (
     <Badge variant="outline" className={`capitalize ${colour}`}>
-      {status || "—"}
+      {status || "-"}
     </Badge>
   );
 }
@@ -381,7 +381,7 @@ export default function OrganizerMembersPage() {
                         <TableCell className="font-medium">
                           {m.username}
                         </TableCell>
-                        <TableCell>{m.full_name || "—"}</TableCell>
+                        <TableCell>{m.full_name || "-"}</TableCell>
                         <TableCell>
                           <RoleBadge role={m.role} />
                         </TableCell>
@@ -389,7 +389,7 @@ export default function OrganizerMembersPage() {
                           <StatusBadge status={m.status} />
                         </TableCell>
 
-                        {/* Per-row permission toggles — sub_organizers only;
+                        {/* Per-row permission toggles - sub_organizers only;
                             the owner row is read-only. */}
                         {canManageMembers && (
                           <TableCell>
@@ -425,12 +425,12 @@ export default function OrganizerMembersPage() {
                           </TableCell>
                         )}
 
-                        {/* Remove — destructive AlertDialog confirm; not the owner. */}
+                        {/* Remove - destructive AlertDialog confirm; not the owner. */}
                         {canManageMembers && (
                           <TableCell className="text-right">
                             {isOwnerRow ? (
                               <span className="text-xs text-muted-foreground">
-                                —
+                                -
                               </span>
                             ) : (
                               <AlertDialog>

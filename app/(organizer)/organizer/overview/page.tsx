@@ -2,11 +2,11 @@
 // Organizer › Overview.
 //
 // The portal landing page for the selected organization: a summary card (logo,
-// name, status badge) plus the headline counts — members and events. Detail comes
+// name, status badge) plus the headline counts - members and events. Detail comes
 // from organizersApi.getOrganization(slug); the member/event counts are derived
 // from the related lists the same endpoint returns (so no extra round-trips).
 //
-// The selected slug is read from the OrganizerContext the portal layout provides —
+// The selected slug is read from the OrganizerContext the portal layout provides -
 // switching orgs in the layout re-mounts this subtree (keyed on slug), which
 // re-runs the fetch below for the newly-selected org.
 // ─────────────────────────────────────────────────────────────────────────────

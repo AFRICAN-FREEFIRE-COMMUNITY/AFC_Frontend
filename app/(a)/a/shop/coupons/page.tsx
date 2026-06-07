@@ -53,7 +53,7 @@ interface Coupon {
   is_valid_now: boolean;
 }
 
-// Mock data — replace with real endpoints later
+// Mock data - replace with real endpoints later
 const mockMonthlyTrends = [
   { month: "Jan 2024", redemptions: 45, savings: 1250.0 },
   { month: "Feb 2024", redemptions: 52, savings: 1480.0 },
@@ -254,7 +254,7 @@ export default function CouponMetricsPage() {
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
 
-            {/* Performance — Real data */}
+            {/* Performance - Real data */}
             <TabsContent value="performance" className="mt-6">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold">All Coupons</h3>
@@ -339,7 +339,7 @@ export default function CouponMetricsPage() {
               {couponsTotalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="hidden md:block text-sm text-muted-foreground">
-                    Showing {(couponsPage - 1) * ITEMS_PER_PAGE + 1}–
+                    Showing {(couponsPage - 1) * ITEMS_PER_PAGE + 1}-
                     {Math.min(
                       couponsPage * ITEMS_PER_PAGE,
                       sortedCoupons.length,
@@ -408,7 +408,7 @@ export default function CouponMetricsPage() {
               )}
             </TabsContent>
 
-            {/* Trends — Mock */}
+            {/* Trends - Mock */}
             <TabsContent value="trends" className="mt-6">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold">Monthly Trends</h3>
@@ -445,7 +445,7 @@ export default function CouponMetricsPage() {
               </div>
             </TabsContent>
 
-            {/* Activity — Mock */}
+            {/* Activity - Mock */}
             <TabsContent value="activity" className="mt-6">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold">

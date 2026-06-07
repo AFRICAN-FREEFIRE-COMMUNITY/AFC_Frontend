@@ -311,7 +311,7 @@ export default function InventoryManagementPage() {
             <IconDownload  />
             Export
           </Button> */}
-          {/* ⓘ sits beside the add-product trigger (sibling — the modal renders its own button). */}
+          {/* ⓘ sits beside the add-product trigger (sibling - the modal renders its own button). */}
           <AddProductModal onSuccess={() => fetchProducts()} />
           <InfoTip id="shop.add_product" />
         </div>
@@ -465,7 +465,7 @@ export default function InventoryManagementPage() {
               {filteredProducts.length === 0
                 ? 0
                 : (productsPage - 1) * PRODUCTS_PER_PAGE + 1}
-              –
+              -
               {Math.min(
                 productsPage * PRODUCTS_PER_PAGE,
                 filteredProducts.length,
@@ -709,7 +709,7 @@ export default function InventoryManagementPage() {
               {couponsTotalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="hidden md:block text-sm text-muted-foreground">
-                    Showing {(couponsPage - 1) * COUPONS_PER_PAGE + 1}–
+                    Showing {(couponsPage - 1) * COUPONS_PER_PAGE + 1}-
                     {Math.min(couponsPage * COUPONS_PER_PAGE, coupons.length)}{" "}
                     of {coupons.length}
                   </p>

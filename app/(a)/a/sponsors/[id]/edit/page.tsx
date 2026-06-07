@@ -50,7 +50,7 @@ const schema = z
     confirmPassword: z.string().optional(),
   })
   .superRefine(({ password, confirmPassword }, ctx) => {
-    if (!password) return; // no password change — skip all checks
+    if (!password) return; // no password change - skip all checks
     if (password.length < 8) {
       ctx.addIssue({ code: "custom", path: ["password"], message: "Password must be at least 8 characters." });
     }

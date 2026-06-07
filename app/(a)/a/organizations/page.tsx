@@ -4,8 +4,8 @@
 // Head-admin view of EVERY organization (afc_organizers admin API). Mirrors the
 // admin sponsors/teams table idiom: search box + shadcn Table + the shared
 // Pagination component, plus a "Create organization" dialog (mirrors the teams
-// page's create-ghost dialog). Unlike the sponsors page — which paginates a
-// fully-loaded array client-side — this list paginates SERVER-side via the
+// page's create-ghost dialog). Unlike the sponsors page - which paginates a
+// fully-loaded array client-side - this list paginates SERVER-side via the
 // organizersApi.adminListOrganizations({ search, limit, offset }) endpoint,
 // because that endpoint already returns { results, total_count, has_more }.
 // Each row links to /a/organizations/[slug] for the detail/edit view.
@@ -64,7 +64,7 @@ interface OrgRow {
   created_at: string;
 }
 
-// Shared status pill — outline badge whose border/text colour tracks the org
+// Shared status pill - outline badge whose border/text colour tracks the org
 // status (active = green, suspended = orange, anything else = neutral). Mirrors
 // the tier-badge idiom on the teams page (variant="outline" + colour classes).
 function StatusBadge({ status }: { status: string }) {
@@ -82,7 +82,7 @@ function StatusBadge({ status }: { status: string }) {
     );
   return (
     <Badge variant="outline" className="capitalize">
-      {status || "—"}
+      {status || "-"}
     </Badge>
   );
 }
@@ -183,7 +183,7 @@ export default function OrganizationsAdminPage() {
     [totalPages, page],
   );
 
-  // first load only — keep the table on-screen during search/page refetches
+  // first load only - keep the table on-screen during search/page refetches
   if (loading && orgs.length === 0) return <FullLoader />;
 
   return (
@@ -209,7 +209,7 @@ export default function OrganizationsAdminPage() {
         </div>
       </div>
 
-      {/* Search — debounce-free; each keystroke triggers a server refetch via
+      {/* Search - debounce-free; each keystroke triggers a server refetch via
           the fetchOrgs dependency on `search` (matches the sponsors search UX). */}
       <div className="relative">
         <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -274,12 +274,12 @@ export default function OrganizationsAdminPage() {
                         <StatusBadge status={org.status} />
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {org.email || "—"}
+                        {org.email || "-"}
                       </TableCell>
                       <TableCell>{org.member_count ?? 0}</TableCell>
                       <TableCell>{org.event_count ?? 0}</TableCell>
                       <TableCell className="text-muted-foreground">
-                        {org.created_at ? org.created_at.slice(0, 10) : "—"}
+                        {org.created_at ? org.created_at.slice(0, 10) : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -290,7 +290,7 @@ export default function OrganizationsAdminPage() {
             {totalPages > 1 && (
               <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">
-                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}–
+                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
                   {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
                 </p>
                 <Pagination>

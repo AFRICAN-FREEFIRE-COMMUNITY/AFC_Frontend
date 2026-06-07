@@ -12,16 +12,16 @@
 // GATING: mirrors the rest of the portal (events → can_create_events, design →
 // can_submit_designs, members → can_manage_members). Here the gate is
 // membership.permissions.can_view_metrics OR isOwner. A member without that
-// permission gets a read-only lock notice (mirrors the Design page's lock notice) —
+// permission gets a read-only lock notice (mirrors the Design page's lock notice) -
 // the stats are never fetched or shown.
 //
-// The selected slug is read from the OrganizerContext the portal layout provides —
+// The selected slug is read from the OrganizerContext the portal layout provides -
 // switching orgs in the layout re-mounts this subtree (keyed on slug), which re-runs
 // the fetch below for the newly-selected org.
 //
 // Design mirrors the sibling organizer pages (overview / events) and the AFC StatCard
 // idiom: PageHeader, a responsive grid of stat tiles (icon chip + big number + muted
-// label) inside `Card`s — rounded-md, AFC dark surface — per AFC design constants.
+// label) inside `Card`s - rounded-md, AFC dark surface - per AFC design constants.
 // ─────────────────────────────────────────────────────────────────────────────
 
 "use client";
@@ -55,7 +55,7 @@ interface OrgMetrics {
 
 // ── Stat tile ─────────────────────────────────────────────────────────────────
 // The AFC StatCard idiom (see organizer Overview): an icon chip + a big number + a
-// muted label, inside a `Card`. `sub` is an optional muted line under the value —
+// muted label, inside a `Card`. `sub` is an optional muted line under the value -
 // used to hang the ratings count beneath the average rating.
 function StatCard({
   icon,
@@ -77,7 +77,7 @@ function StatCard({
         <div>
           <p className="text-2xl font-bold">{value}</p>
           <p className="text-xs text-muted-foreground">{label}</p>
-          {/* Optional sub-line — e.g. "from N ratings" under the average rating. */}
+          {/* Optional sub-line - e.g. "from N ratings" under the average rating. */}
           {sub && <p className="text-[11px] text-muted-foreground/80">{sub}</p>}
         </div>
       </CardContent>
@@ -100,7 +100,7 @@ export default function OrganizerMetricsPage() {
   // to see them (so a gated member never triggers the request). Re-runs on org
   // switch (the layout re-mounts this subtree keyed on slug, so `slug` is current). ──
   useEffect(() => {
-    // Gated members see the lock notice, not the stats — skip the fetch entirely.
+    // Gated members see the lock notice, not the stats - skip the fetch entirely.
     if (!canViewMetrics) {
       setLoading(false);
       return;
@@ -163,7 +163,7 @@ export default function OrganizerMetricsPage() {
   const averageRating =
     ratingsCount > 0 && metrics?.average_rating != null
       ? metrics.average_rating.toFixed(1)
-      : "—";
+      : "-";
 
   return (
     <div className="flex flex-col gap-5">
@@ -172,7 +172,7 @@ export default function OrganizerMetricsPage() {
         description="A scorecard for your organization, across all of its events."
       />
 
-      {/* Responsive stat grid — 1 col on mobile, 2 on small, 3 on large. */}
+      {/* Responsive stat grid - 1 col on mobile, 2 on small, 3 on large. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <StatCard
           icon={<IconCalendarEvent className="size-5" />}

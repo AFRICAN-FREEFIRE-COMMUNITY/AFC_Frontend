@@ -155,8 +155,8 @@ export default function ApplicationsPage({ params }: { params: Params }) {
                     <TableCell className="text-muted-foreground text-sm">
                       {formatDate(app.applied_at)}
                     </TableCell>
-                    <TableCell className="text-sm">{app.primary_role || "—"}</TableCell>
-                    <TableCell className="text-sm">{app.country || "—"}</TableCell>
+                    <TableCell className="text-sm">{app.primary_role || "-"}</TableCell>
+                    <TableCell className="text-sm">{app.country || "-"}</TableCell>
                     <TableCell>{getStatusBadge(app.status)}</TableCell>
                     <TableCell>
                       {app.contact_unlocked ? (

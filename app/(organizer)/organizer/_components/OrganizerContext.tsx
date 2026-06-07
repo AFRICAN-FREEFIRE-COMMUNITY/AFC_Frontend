@@ -1,12 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// OrganizerContext — shares the selected org + the caller's permissions across
+// OrganizerContext - shares the selected org + the caller's permissions across
 // the organizer portal pages (overview / profile / members).
 //
 // Why a context (and not a ?org=slug query param on every page): the org switcher
 // lives in the portal layout, so the *layout* owns "which org is selected". A tiny
 // context lets the layout fetch getMyOrganizations() once, own the selected slug
-// (persisted to localStorage), and hand it — plus that membership's role +
-// permissions — down to the pages without each page re-fetching or threading a
+// (persisted to localStorage), and hand it - plus that membership's role +
+// permissions - down to the pages without each page re-fetching or threading a
 // query param through every <Link>. This is the cleaner of the two options the
 // brief offered, and it keeps the data shape consistent for all three pages.
 //
@@ -44,7 +44,7 @@ export interface OrgMembership {
 }
 
 interface OrganizerContextValue {
-  // The currently-selected org's slug — pages fetch their own detail with this.
+  // The currently-selected org's slug - pages fetch their own detail with this.
   slug: string;
   // The selected membership (role + permissions), so pages can gate UI without re-fetching.
   membership: OrgMembership;

@@ -155,7 +155,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     point_rush_enabled: boolean;
     point_rush_reward: Record<string, number>;
     point_rush_target_index?: number;
-    // ── Round-Robin config (sub-project B) — only for "br - round robin" stages. ──
+    // ── Round-Robin config (sub-project B) - only for "br - round robin" stages. ──
     round_robin: RoundRobinConfig;
   }>({
     stage_name: "",
@@ -344,7 +344,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             : undefined,
         // ── Round-Robin config (sub-project B): rebuild the form shape from the
         //    echoed structure. The backend uses base-group IDS for lobby merges; the
-        //    form uses 0-based INDICES — translate via a group_id → index lookup so
+        //    form uses 0-based INDICES - translate via a group_id → index lookup so
         //    the schedule survives a round-trip. Defaults when the stage has none. ──
         round_robin: rehydrateRoundRobin(stage.round_robin),
         groups: stage.groups.map((group) => ({
@@ -906,13 +906,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       prizepool: stageModalData.prizepool,
       prizepool_cash_value: stageModalData.prizepool_cash_value,
       prize_distribution: stageModalData.prize_distribution,
-      // ── Scoring-mode config (sub-project A) — rides into the FormData stages array. ──
+      // ── Scoring-mode config (sub-project A) - rides into the FormData stages array. ──
       champion_point_enabled: stageModalData.champion_point_enabled,
       champion_point_threshold: stageModalData.champion_point_threshold,
       point_rush_enabled: stageModalData.point_rush_enabled,
       point_rush_reward: stageModalData.point_rush_reward,
       point_rush_target_index: stageModalData.point_rush_target_index,
-      // ── Round-Robin config (sub-project B) — sent only for the BR Round-Robin
+      // ── Round-Robin config (sub-project B) - sent only for the BR Round-Robin
       //    format so other bracket types don't carry a stray round_robin payload. ──
       ...(stageModalData.stage_format === "br - round robin"
         ? { round_robin: stageModalData.round_robin }
@@ -1558,7 +1558,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               {/*
                 Each tab carries a section-level ⓘ explaining what that area does.
                 The ⓘ (a real <button>) is rendered as a SIBLING of the
-                TabsTrigger — NOT inside it — because a <button> nested in a
+                TabsTrigger - NOT inside it - because a <button> nested in a
                 <button> is invalid HTML (validateDOMNesting / hydration error).
                 Each trigger+ⓘ pair lives in a `relative inline-flex flex-1`
                 wrapper: the wrapper owns the flex sizing + the error-dot anchor,

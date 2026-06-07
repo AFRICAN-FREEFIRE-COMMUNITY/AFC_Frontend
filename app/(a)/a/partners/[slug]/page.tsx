@@ -8,18 +8,18 @@
 // Organizations detail page (app/(a)/a/organizations/[slug]/page.tsx): a PageHeader
 // with `back`, then shadcn pill Tabs.
 //
-//   Profile        — name / contact email (read-only summary + status) plus the
+//   Profile        - name / contact email (read-only summary + status) plus the
 //                    reversible Suspend / Unsuspend kill-switch (suspendPartner).
-//   Scope+Toggles  — the native-AFC switch + two multiselects (allowed events /
+//   Scope+Toggles  - the native-AFC switch + two multiselects (allowed events /
 //                    organizations) + a Switch per resource toggle (6) and field
 //                    toggle (8). One "Save scope & toggles" → editPartner.
-//   Keys           — the partner's keys (metadata only — prefix + last-used, NEVER
+//   Keys           - the partner's keys (metadata only - prefix + last-used, NEVER
 //                    the secret), an issue-key dialog that shows the plaintext ONCE
 //                    with a copy button, and a per-key revoke.
 //
 // TAB-BOUNCE FIX (the bug Organizations had): the active tab is CONTROLLED state and
 // every in-tab action refetches with fetchDetail(silent=true), which skips the
-// full-page loader — so a background refresh after Save/Issue/Revoke never unmounts
+// full-page loader - so a background refresh after Save/Issue/Revoke never unmounts
 // the page and bounces the admin back to the first tab.
 //
 // Next 16 route params arrive as a Promise → unwrapped with React.use(params),
@@ -96,14 +96,14 @@ import {
 // Keyed by the SAME ids as the backend PARTNER_TOGGLE_FIELDS so there is exactly one
 // source of truth: add a toggle to lib/partners.ts and give it a label here.
 const TOGGLE_LABELS: Record<PartnerToggle, string> = {
-  // resource toggles — which endpoints respond
+  // resource toggles - which endpoints respond
   can_read_events: "Events",
   can_read_stages: "Stages & groups",
   can_read_matches: "Matches",
   can_read_standings: "Standings",
   can_read_teams: "Teams & rosters",
   can_read_players: "Players",
-  // field toggles — which fields appear
+  // field toggles - which fields appear
   include_placements: "Placements",
   include_kills: "Kills",
   include_damage: "Damage",
@@ -126,7 +126,7 @@ interface OrgOption {
   slug: string;
 }
 
-// Status pill — same green/orange idiom as the list page + Organizations detail.
+// Status pill - same green/orange idiom as the list page + Organizations detail.
 function StatusBadge({ status }: { status: string }) {
   if (status === "active")
     return (
@@ -142,7 +142,7 @@ function StatusBadge({ status }: { status: string }) {
     );
   return (
     <Badge variant="outline" className="capitalize">
-      {status || "—"}
+      {status || "-"}
     </Badge>
   );
 }
@@ -159,7 +159,7 @@ export default function PartnerDetailPage({
   const [keys, setKeys] = useState<PartnerKey[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Controlled active tab — so a background refetch never bounces the admin back to
+  // Controlled active tab - so a background refetch never bounces the admin back to
   // the first (Profile) tab after an in-tab action (Save toggles / Issue / Revoke).
   const [tab, setTab] = useState("profile");
 
@@ -192,7 +192,7 @@ export default function PartnerDetailPage({
   const [keyLabel, setKeyLabel] = useState("");
   const [keyRateLimit, setKeyRateLimit] = useState("60");
   const [issuing, setIssuing] = useState(false);
-  // The plaintext key — present ONLY in the issue response and shown exactly once.
+  // The plaintext key - present ONLY in the issue response and shown exactly once.
   const [issuedKey, setIssuedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -202,7 +202,7 @@ export default function PartnerDetailPage({
 
   // ── Fetch + seed the scope/toggle working state ───────────────────────────
   // silent=true does a background refetch (after Save / Issue / Revoke) WITHOUT
-  // flipping the full-page loader — so the page doesn't unmount + bounce back to the
+  // flipping the full-page loader - so the page doesn't unmount + bounce back to the
   // first tab. The initial mount load passes silent=false to show the loader.
   const fetchDetail = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -246,7 +246,7 @@ export default function PartnerDetailPage({
       })
       .then((res) => setEventOptions(res.data?.events ?? []))
       .catch(() => toast.error("Failed to load events for scope picker."));
-    // organizations — pull a large first page; the picker is searchable client-side.
+    // organizations - pull a large first page; the picker is searchable client-side.
     organizersApi
       .adminListOrganizations({ limit: 100, offset: 0 })
       .then((res: any) => setOrgOptions(res?.results ?? []))
@@ -310,7 +310,7 @@ export default function PartnerDetailPage({
     }
   };
 
-  // ── Issue a key — the plaintext comes back ONCE and is held in issuedKey ───
+  // ── Issue a key - the plaintext comes back ONCE and is held in issuedKey ───
   const handleIssueKey = async () => {
     if (issuing) return;
     setIssuing(true);
@@ -323,7 +323,7 @@ export default function PartnerDetailPage({
       // swap the form for the show-once plaintext panel (same dialog stays open)
       setIssuedKey(res.api_key);
       setCopied(false);
-      toast.success("API key issued. Copy it now — it won't be shown again.");
+      toast.success("API key issued. Copy it now - it won't be shown again.");
       fetchDetail(true);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to issue key.");
@@ -340,7 +340,7 @@ export default function PartnerDetailPage({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Couldn't copy — select and copy the key manually.");
+      toast.error("Couldn't copy - select and copy the key manually.");
     }
   };
 
@@ -427,7 +427,7 @@ export default function PartnerDetailPage({
           </span>
         </TabsList>
 
-        {/* ── Profile tab — read-only identity + suspend kill-switch ── */}
+        {/* ── Profile tab - read-only identity + suspend kill-switch ── */}
         <TabsContent value="profile" className="mt-4 space-y-4">
           <Card>
             <CardHeader className="border-b">
@@ -436,7 +436,7 @@ export default function PartnerDetailPage({
             <CardContent className="flex flex-col gap-4 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="profile-name">Name</Label>
-                {/* Name/slug are set at creation and used as identifiers — shown
+                {/* Name/slug are set at creation and used as identifiers - shown
                     read-only here (editing them would break the partner's keys' scope). */}
                 <Input id="profile-name" value={detail.name} disabled />
               </div>
@@ -447,7 +447,7 @@ export default function PartnerDetailPage({
                 </Label>
                 <Input
                   id="profile-email"
-                  value={detail.contact_email || "—"}
+                  value={detail.contact_email || "-"}
                   disabled
                 />
               </div>
@@ -460,7 +460,7 @@ export default function PartnerDetailPage({
             </CardContent>
           </Card>
 
-          {/* ── Danger zone — suspend / unsuspend (freezes every key at once) ── */}
+          {/* ── Danger zone - suspend / unsuspend (freezes every key at once) ── */}
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Danger zone</CardTitle>
@@ -472,7 +472,7 @@ export default function PartnerDetailPage({
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {isSuspended
-                    ? "Restore the partner — its keys authenticate again."
+                    ? "Restore the partner - its keys authenticate again."
                     : "Block every key at once without revoking them individually."}
                 </p>
               </div>
@@ -495,7 +495,7 @@ export default function PartnerDetailPage({
           </Card>
         </TabsContent>
 
-        {/* ── Scope + Toggles tab — the grant config ── */}
+        {/* ── Scope + Toggles tab - the grant config ── */}
         <TabsContent value="scope" className="mt-4 space-y-4">
           {/* ── Scope: which events the partner may read ── */}
           <Card>
@@ -506,7 +506,7 @@ export default function PartnerDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 pt-4">
-              {/* allow_all_native_afc — every organization-less AFC event at once */}
+              {/* allow_all_native_afc - every organization-less AFC event at once */}
               <label className="flex items-center justify-between gap-2 rounded-md border px-3 py-2.5">
                 <span className="flex flex-col">
                   <span className="inline-flex items-center text-sm font-medium">
@@ -523,7 +523,7 @@ export default function PartnerDetailPage({
                 />
               </label>
 
-              {/* allowed_events multiselect — checkbox list inside a scroll area
+              {/* allowed_events multiselect - checkbox list inside a scroll area
                   (same idiom as the sponsors create-wizard event picker). */}
               <div className="space-y-2">
                 <Label className="inline-flex items-center">
@@ -579,7 +579,7 @@ export default function PartnerDetailPage({
                 </ScrollArea>
               </div>
 
-              {/* allowed_organizations multiselect — grants ALL of an org's events */}
+              {/* allowed_organizations multiselect - grants ALL of an org's events */}
               <div className="space-y-2">
                 <Label className="inline-flex items-center">
                   Allowed organizations
@@ -636,7 +636,7 @@ export default function PartnerDetailPage({
             </CardContent>
           </Card>
 
-          {/* ── Resource toggles — which endpoints respond ── */}
+          {/* ── Resource toggles - which endpoints respond ── */}
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="inline-flex items-center">
@@ -662,7 +662,7 @@ export default function PartnerDetailPage({
             </CardContent>
           </Card>
 
-          {/* ── Field toggles — which fields appear inside a readable resource ── */}
+          {/* ── Field toggles - which fields appear inside a readable resource ── */}
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="inline-flex items-center">
@@ -695,7 +695,7 @@ export default function PartnerDetailPage({
           </div>
         </TabsContent>
 
-        {/* ── Keys tab — issue (show-once) + revoke; never display stored secrets ── */}
+        {/* ── Keys tab - issue (show-once) + revoke; never display stored secrets ── */}
         <TabsContent value="keys" className="mt-4 space-y-4">
           <Card className="gap-0">
             <CardHeader>
@@ -722,7 +722,7 @@ export default function PartnerDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {/* Prefix is the only safe handle for a key — the secret is
+                    {/* Prefix is the only safe handle for a key - the secret is
                         never stored, so it can never be shown after issue. */}
                     <TableHead>Prefix</TableHead>
                     <TableHead>Label</TableHead>
@@ -740,7 +740,7 @@ export default function PartnerDetailPage({
                           {k.key_prefix}…
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {k.label || "—"}
+                          {k.label || "-"}
                         </TableCell>
                         <TableCell>
                           {k.status === "active" ? (
@@ -778,7 +778,7 @@ export default function PartnerDetailPage({
                               <InfoTip id="partners.revoke_key" />
                             </div>
                           ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
+                            <span className="text-xs text-muted-foreground">-</span>
                           )}
                         </TableCell>
                       </TableRow>
@@ -800,7 +800,7 @@ export default function PartnerDetailPage({
         </TabsContent>
       </Tabs>
 
-      {/* ── Issue-key dialog — form, then the show-once plaintext panel ── */}
+      {/* ── Issue-key dialog - form, then the show-once plaintext panel ── */}
       <Dialog
         open={issueOpen}
         onOpenChange={(v) => {
@@ -818,7 +818,7 @@ export default function PartnerDetailPage({
                 </DialogTitle>
                 <DialogDescription>
                   Copy this key now and store it securely. For your security it is
-                  shown only once — you won&apos;t be able to see it again.
+                  shown only once - you won&apos;t be able to see it again.
                 </DialogDescription>
               </DialogHeader>
 

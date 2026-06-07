@@ -181,7 +181,7 @@ export default function SponsorsAdminPage() {
             {totalPages > 1 && (
               <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">
-                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}–
+                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
                   {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of{" "}
                   {filtered.length}
                 </p>

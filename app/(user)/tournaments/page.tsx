@@ -166,7 +166,7 @@ const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <p className="hidden md:block text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
             {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of{" "}
             {filtered.length}
           </p>
@@ -285,7 +285,7 @@ const EventsPage = () => {
   }, [events]);
 
   // Derive sorted distinct organizer names present in the fetched events. Used
-  // to build the "Organizer" dropdown — only organizers that actually appear are
+  // to build the "Organizer" dropdown - only organizers that actually appear are
   // listed (plus the static "All organizers" and "AFC (official)" options that
   // the dropdown adds itself). Events with no organization_name are AFC-official
   // and are reachable via the "afc" option, not listed here.

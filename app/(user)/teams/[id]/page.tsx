@@ -209,7 +209,7 @@ const Page = ({ params }: { params: Params }) => {
   );
 
   // Roster management is open to the team owner (hasFullAccess) AND to a coach on this
-  // team — mirrors the backend _can_manage_roster gate. Edit Team stays owner-only.
+  // team - mirrors the backend _can_manage_roster gate. Edit Team stays owner-only.
   const isCoachOnTeam = teamDetails?.members?.some(
     (member: any) =>
       member.username === user?.in_game_name &&
@@ -782,7 +782,7 @@ const Page = ({ params }: { params: Params }) => {
                     ) > 1 && (
                       <div className="flex items-center justify-between mt-4">
                         <p className="hidden md:block text-sm text-muted-foreground">
-                          Showing {(membersPage - 1) * ITEMS_PER_PAGE + 1}–
+                          Showing {(membersPage - 1) * ITEMS_PER_PAGE + 1}-
                           {Math.min(
                             membersPage * ITEMS_PER_PAGE,
                             teamDetails?.members?.length ?? 0,
@@ -1318,7 +1318,7 @@ const Page = ({ params }: { params: Params }) => {
                             <div className="flex items-center justify-between mt-4">
                               <p className="hidden md:block text-sm text-muted-foreground">
                                 Showing{" "}
-                                {(joinRequestsPage - 1) * ITEMS_PER_PAGE + 1}–
+                                {(joinRequestsPage - 1) * ITEMS_PER_PAGE + 1}-
                                 {Math.min(
                                   joinRequestsPage * ITEMS_PER_PAGE,
                                   joinRequests?.length ?? 0,

@@ -110,7 +110,7 @@
 //   const booyah = row.total_booyah ?? 0;
 //   const total = row.total_points || row.total_pts || 0;
 //   const placePts =
-//     killPoint > 0 ? Math.max(0, total - kills * killPoint).toFixed(1) : "—";
+//     killPoint > 0 ? Math.max(0, total - kills * killPoint).toFixed(1) : "-";
 //   const isTop3 = globalRank <= 3;
 
 //   ctx.textBaseline = "middle";
@@ -139,7 +139,7 @@
 //   // Kills
 //   ctx.fillText(String(kills), killsCx, cy);
 
-//   // Total — right-aligned, highlighted for top 3
+//   // Total - right-aligned, highlighted for top 3
 //   ctx.fillStyle = isTop3 ? "#fde047" : "#d4f764";
 //   ctx.font = `bold ${isTop3 ? 20 : 18}px 'Arial', sans-serif`;
 //   ctx.textAlign = "right";
@@ -168,7 +168,7 @@
 //   const { rankCx, nameX, nameMaxW, teamCx, killsCx, dmgCx, assistsRx } = cols;
 
 //   const username = row.username || row.competitor__user__username || "Unknown";
-//   const teamName = row.team_name || "—";
+//   const teamName = row.team_name || "-";
 //   const kills = row.total_kills ?? 0;
 //   const damage = row.total_damage ?? 0;
 //   const assists = row.total_assists ?? 0;
@@ -202,7 +202,7 @@
 //   // Damage
 //   ctx.fillText(String(damage), dmgCx, cy);
 
-//   // Assists — right-aligned
+//   // Assists - right-aligned
 //   ctx.fillStyle = isTop3 ? "#fde047" : "#d4f764";
 //   ctx.font = `bold ${isTop3 ? 20 : 18}px 'Arial', sans-serif`;
 //   ctx.textAlign = "right";
@@ -237,7 +237,7 @@
 //     ctx.fillRect(0, 0, W, H);
 //   }
 
-//   // Row layout — 15 rows, header ends ~y=197, footer ~y=952
+//   // Row layout - 15 rows, header ends ~y=197, footer ~y=952
 //   const ROW_START_Y = 197;
 //   const ROW_H = 50.3; // (952 - 197) / 15
 
@@ -322,7 +322,7 @@
 // }
 
 // // ── YouTube canvas (1920×1080, AFC YT template) ────────────────────────────
-// // Two columns side by side. Left col: rows 1–12. Right col: rows 13–24.
+// // Two columns side by side. Left col: rows 1-12. Right col: rows 13-24.
 // // Column positions tuned to "AFC YT LEADERBOARD TEMPLATE.png"
 
 // // Left column absolute x positions
@@ -336,7 +336,7 @@
 //   totalRx: 895,
 // };
 
-// // Right column — offset tuned so right "#" lands at ~x=998 (52% of 1920px canvas)
+// // Right column - offset tuned so right "#" lands at ~x=998 (52% of 1920px canvas)
 // const YT_R_OFFSET = 943;
 // const YT_R = {
 //   rankCx: YT_R_OFFSET + 55,
@@ -372,7 +372,7 @@
 //     ctx.fillRect(0, 0, W, H);
 //   }
 
-//   // Row layout — 12 rows per column.
+//   // Row layout - 12 rows per column.
 //   // ROW_START_Y tuned so row 1 lands inside the first data row box (below the
 //   // template's column header). ROW_H keeps all 12 rows clear of the footer.
 //   const ROW_START_Y = 273;
@@ -485,7 +485,7 @@
 //     return fetched;
 //   };
 
-//   // ── Team image — social ───────────────────────────────────────────────────
+//   // ── Team image - social ───────────────────────────────────────────────────
 //   const handleTeamSocial = async () => {
 //     setBusy(true);
 //     try {
@@ -523,7 +523,7 @@
 //     }
 //   };
 
-//   // ── Team image — YouTube ──────────────────────────────────────────────────
+//   // ── Team image - YouTube ──────────────────────────────────────────────────
 //   const handleTeamYouTube = async () => {
 //     setBusy(true);
 //     try {
@@ -561,7 +561,7 @@
 //     }
 //   };
 
-//   // ── Player image — social ─────────────────────────────────────────────────
+//   // ── Player image - social ─────────────────────────────────────────────────
 //   const handlePlayerSocial = async () => {
 //     setBusy(true);
 //     try {
@@ -598,7 +598,7 @@
 //     }
 //   };
 
-//   // ── Player image — YouTube ────────────────────────────────────────────────
+//   // ── Player image - YouTube ────────────────────────────────────────────────
 //   const handlePlayerYouTube = async () => {
 //     setBusy(true);
 //     try {
@@ -691,7 +691,7 @@
 //         const playerData = playerRows.map((p, idx) => [
 //           idx + 1,
 //           p.username || "Unknown",
-//           p.team_name || "—",
+//           p.team_name || "-",
 //           p.total_kills ?? 0,
 //           p.total_damage ?? 0,
 //           p.total_assists ?? 0,
@@ -767,7 +767,7 @@
 //         <DropdownMenuSeparator />
 //         <DropdownMenuItem onClick={handleExcel}>
 //           <IconTable size={14} className="mr-2" />
-//           Excel (.xlsx) — All Data
+//           Excel (.xlsx) - All Data
 //         </DropdownMenuItem>
 //       </DropdownMenuContent>
 //     </DropdownMenu>
@@ -885,7 +885,7 @@ function drawTeamRow(
   const booyah = row.total_booyah ?? 0;
   const total = row.total_points || row.total_pts || 0;
   const placePts =
-    killPoint > 0 ? Math.max(0, total - kills * killPoint).toFixed(1) : "—";
+    killPoint > 0 ? Math.max(0, total - kills * killPoint).toFixed(1) : "-";
   const isTop3 = globalRank <= 3;
 
   ctx.textBaseline = "middle";
@@ -914,7 +914,7 @@ function drawTeamRow(
   // Kills
   ctx.fillText(String(kills), killsCx, cy);
 
-  // Total — right-aligned, highlighted for top 3
+  // Total - right-aligned, highlighted for top 3
   ctx.fillStyle = isTop3 ? "#fde047" : "#d4f764";
   ctx.font = `bold ${isTop3 ? 20 : 18}px 'Arial', sans-serif`;
   ctx.textAlign = "right";
@@ -943,7 +943,7 @@ function drawPlayerRow(
   const { rankCx, nameX, nameMaxW, teamCx, killsCx, dmgCx, assistsRx } = cols;
 
   const username = row.username || row.competitor__user__username || "Unknown";
-  const teamName = row.team_name || "—";
+  const teamName = row.team_name || "-";
   const kills = row.total_kills ?? 0;
   const damage = row.total_damage ?? 0;
   const assists = row.total_assists ?? 0;
@@ -977,7 +977,7 @@ function drawPlayerRow(
   // Damage
   ctx.fillText(String(damage), dmgCx, cy);
 
-  // Assists — right-aligned
+  // Assists - right-aligned
   ctx.fillStyle = isTop3 ? "#fde047" : "#d4f764";
   ctx.font = `bold ${isTop3 ? 20 : 18}px 'Arial', sans-serif`;
   ctx.textAlign = "right";
@@ -1270,7 +1270,7 @@ export function DownloadLeaderboardButton({
     return fetched;
   };
 
-  // ── Team image — social ───────────────────────────────────────────────────
+  // ── Team image - social ───────────────────────────────────────────────────
   const handleTeamSocial = async () => {
     setBusy(true);
     try {
@@ -1308,7 +1308,7 @@ export function DownloadLeaderboardButton({
     }
   };
 
-  // ── Team image — YouTube ──────────────────────────────────────────────────
+  // ── Team image - YouTube ──────────────────────────────────────────────────
   const handleTeamYouTube = async () => {
     setBusy(true);
     try {
@@ -1346,7 +1346,7 @@ export function DownloadLeaderboardButton({
     }
   };
 
-  // ── Player image — social ─────────────────────────────────────────────────
+  // ── Player image - social ─────────────────────────────────────────────────
   const handlePlayerSocial = async () => {
     setBusy(true);
     try {
@@ -1383,7 +1383,7 @@ export function DownloadLeaderboardButton({
     }
   };
 
-  // ── Player image — YouTube ────────────────────────────────────────────────
+  // ── Player image - YouTube ────────────────────────────────────────────────
   const handlePlayerYouTube = async () => {
     setBusy(true);
     try {
@@ -1476,7 +1476,7 @@ export function DownloadLeaderboardButton({
         const playerData = playerRows.map((p, idx) => [
           idx + 1,
           p.username || "Unknown",
-          p.team_name || "—",
+          p.team_name || "-",
           p.total_kills ?? 0,
           p.total_damage ?? 0,
           p.total_assists ?? 0,
@@ -1552,7 +1552,7 @@ export function DownloadLeaderboardButton({
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleExcel}>
           <IconTable size={14} className="mr-2" />
-          Excel (.xlsx) — All Data
+          Excel (.xlsx) - All Data
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -236,7 +236,7 @@ const Page = ({ params }: { params: Params }) => {
             </span>
           }
         />
-        {/* ⓘ sits beside the delete trigger (sibling — the modal renders its own button). */}
+        {/* ⓘ sits beside the delete trigger (sibling - the modal renders its own button). */}
         <div className="flex items-center gap-1">
           <DeleteCouponModal
             couponId={String(couponDetails?.id)}

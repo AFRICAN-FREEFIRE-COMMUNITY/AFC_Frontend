@@ -53,7 +53,7 @@ function NotPublished({ seasonName, what }: { seasonName?: string; what: string 
       <p className="font-semibold">Not published yet</p>
       <p className="max-w-sm text-sm text-muted-foreground">
         {what} for {seasonName ? <span className="text-foreground">{seasonName}</span> : "this season"} haven&apos;t
-        been published yet — check back soon.
+        been published yet - check back soon.
       </p>
     </div>
   );
@@ -156,7 +156,7 @@ function RankingsView() {
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [players, setPlayers] = useState<PlayerRow[]>([]);
   const [month, setMonth] = useState("");
-  // Season returned on the envelope — carries the rankings_published flag (Phase 2c gating).
+  // Season returned on the envelope - carries the rankings_published flag (Phase 2c gating).
   const [season, setSeason] = useState<SeasonFlags | null>(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
@@ -374,7 +374,7 @@ function TiersView() {
   const [seasonId, setSeasonId] = useState<number | undefined>(undefined);
   const [q, setQ] = useState("");
   const [teams, setTeams] = useState<TeamRow[]>([]);
-  // Season returned on the quarterly envelope — carries rankings_published + tiers_published.
+  // Season returned on the quarterly envelope - carries rankings_published + tiers_published.
   const [season, setSeason] = useState<SeasonFlags | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -430,11 +430,11 @@ function TiersView() {
       </div>
 
       {tiersHidden && (
-        // Rankings are published but tiers aren't graded/published yet — say so instead of
+        // Rankings are published but tiers aren't graded/published yet - say so instead of
         // dropping every (null-tier) team and showing a misleading empty state.
         <div className="mb-4 flex items-center gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
           <IconClock className="size-4 shrink-0" />
-          Tiers coming soon — team grades for{" "}
+          Tiers coming soon - team grades for{" "}
           <span className="font-medium text-foreground">{season?.name ?? "this season"}</span> haven&apos;t been
           published yet.
         </div>

@@ -359,7 +359,7 @@ const page = () => {
                                         playerMap.set(player.player_id, {
                                           player_id: player.player_id,
                                           username: player.username,
-                                          team_name: teamStat.team_name ?? "—",
+                                          team_name: teamStat.team_name ?? "-",
                                           total_kills: player.kills,
                                           total_damage: player.damage,
                                           total_assists: player.assists,
@@ -397,7 +397,7 @@ const page = () => {
           {eventsTotalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="hidden md:block text-sm text-muted-foreground">
-                Showing {(eventsPage - 1) * ITEMS_PER_PAGE + 1}–
+                Showing {(eventsPage - 1) * ITEMS_PER_PAGE + 1}-
                 {Math.min(eventsPage * ITEMS_PER_PAGE, filteredEvents.length)}{" "}
                 of {filteredEvents.length}
               </p>

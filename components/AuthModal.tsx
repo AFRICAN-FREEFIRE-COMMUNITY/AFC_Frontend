@@ -71,7 +71,7 @@ export function useAuthModal() {
 }
 
 // ---------------------------------------------------------------------------
-// Provider – wrap your app (or just the section that needs it) with this
+// Provider - wrap your app (or just the section that needs it) with this
 // ---------------------------------------------------------------------------
 export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -369,7 +369,7 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
             await login(response.data.session_token);
             onSuccess?.();
           } else {
-            // Otherwise just close – they'll need to confirm email first
+            // Otherwise just close - they'll need to confirm email first
             onSuccess?.();
           }
         } else {

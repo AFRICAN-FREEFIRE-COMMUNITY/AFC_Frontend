@@ -12,7 +12,7 @@
 // component, and sonner toasts. Paginates SERVER-side because the endpoint hands
 // back { results, total_count, has_more }, exactly like adminListOrganizations.
 //
-// Static segment under /a/organizations/ — Next.js matches this before the
+// Static segment under /a/organizations/ - Next.js matches this before the
 // sibling [slug] dynamic route, so /a/organizations/design-requests lands here.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -93,7 +93,7 @@ const STATUS_LABELS: Record<Status, string> = {
 // ── Status badge ──────────────────────────────────────────────────────────────
 // Outline badge per AFC constants, colour-coded per the brief: open=muted,
 // in_progress=gold, applied=green, rejected=red. (Same mapping as the organizer
-// Design page's DesignStatusBadge — kept local here so the admin page has no
+// Design page's DesignStatusBadge - kept local here so the admin page has no
 // cross-route import into the (organizer) group.)
 function StatusBadge({ status }: { status: string }) {
   const colour: Record<string, string> = {
@@ -198,7 +198,7 @@ export default function DesignRequestsAdminPage() {
     [totalPages, page],
   );
 
-  // first load only — keep the table on-screen during filter/page refetches.
+  // first load only - keep the table on-screen during filter/page refetches.
   if (loading && rows.length === 0) return <FullLoader />;
 
   return (
@@ -214,7 +214,7 @@ export default function DesignRequestsAdminPage() {
         description={`${totalCount} request${totalCount !== 1 ? "s" : ""}`}
       />
 
-      {/* Status filter — server refetch on change (matches the orgs search UX). */}
+      {/* Status filter - server refetch on change (matches the orgs search UX). */}
       <div className="flex items-center gap-2">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-56">
@@ -273,13 +273,13 @@ export default function DesignRequestsAdminPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {row.submitted_by_username || "—"}
+                        {row.submitted_by_username || "-"}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={row.status} />
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {row.created_at ? formatDate(row.created_at) : "—"}
+                        {row.created_at ? formatDate(row.created_at) : "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="inline-flex items-center justify-end gap-1">
@@ -303,7 +303,7 @@ export default function DesignRequestsAdminPage() {
             {totalPages > 1 && (
               <div className="flex flex-col items-center justify-between gap-3 border-t px-4 py-3 sm:flex-row">
                 <p className="text-xs text-muted-foreground">
-                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}–
+                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
                   {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
                 </p>
                 <Pagination>
@@ -357,7 +357,7 @@ export default function DesignRequestsAdminPage() {
         </Card>
       )}
 
-      {/* ── Manage dialog — update status + resolution notes ── */}
+      {/* ── Manage dialog - update status + resolution notes ── */}
       <Dialog
         open={!!editTarget}
         onOpenChange={(open) => {
@@ -369,18 +369,18 @@ export default function DesignRequestsAdminPage() {
             <DialogTitle>Manage design request</DialogTitle>
             <DialogDescription>
               {editTarget
-                ? `${editTarget.organization_name} — ${editTarget.title}`
+                ? `${editTarget.organization_name} - ${editTarget.title}`
                 : ""}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Reference image (read-only) — shown when the organizer attached one. */}
+            {/* Reference image (read-only) - shown when the organizer attached one. */}
             {editTarget?.reference_image && (
               <div className="space-y-2">
                 <Label>Reference image</Label>
                 <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
-                  {/* Org-supplied refs come from arbitrary upload hosts — plain <img>. */}
+                  {/* Org-supplied refs come from arbitrary upload hosts - plain <img>. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={editTarget.reference_image}
@@ -424,7 +424,7 @@ export default function DesignRequestsAdminPage() {
               </Select>
             </div>
 
-            {/* Resolution notes — the message the organizer sees on their Design page. */}
+            {/* Resolution notes - the message the organizer sees on their Design page. */}
             <div className="space-y-2">
               <Label htmlFor="design-resolution">
                 Resolution notes{" "}

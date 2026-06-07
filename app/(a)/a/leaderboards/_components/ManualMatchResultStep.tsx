@@ -364,7 +364,7 @@ export function ManualMatchResultStep({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <IconMap size={20} className="text-muted-foreground" />
-          {match.match_name} — Manual Input
+          {match.match_name} - Manual Input
           <InfoTip id="leaderboards.manual_result._section" />
         </CardTitle>
         <CardDescription>
@@ -382,7 +382,7 @@ export function ManualMatchResultStep({
             alert div (matches the repo's inline-alert idiom). */}
         {championPointEnabled && (
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-            Champion-Point stage: enter matches in the order they were played —
+            Champion-Point stage: enter matches in the order they were played -
             the entry order decides the champion.
           </div>
         )}

@@ -187,7 +187,7 @@ export const StageSchema = z.object({
   // ── Round-Robin config (sub-project B). Present only for "br - round robin" stages. ──
   // Threaded verbatim into the FormData stages array; the backend reads
   // round_robin_groups (team_ids = TEAM PKs) + generate_schedule (+ games_per_day) OR
-  // a manual game_days list. Validated loosely (passthrough) — the round-robin panel
+  // a manual game_days list. Validated loosely (passthrough) - the round-robin panel
   // owns the editing UX; the backend is the source of truth for structural rules.
   round_robin: RoundRobinConfigSchema.optional(),
 });
@@ -267,7 +267,7 @@ export type StageType = z.infer<typeof StageSchema>;
 export type GroupType = z.infer<typeof GroupSchema>;
 
 // Re-exported from the shared module so existing importers (StageModal, etc.) keep the
-// same names. The point-rush / champion-rush pseudo-formats were dropped here — they are
+// same names. The point-rush / champion-rush pseudo-formats were dropped here - they are
 // now per-stage toggles, not bracket types (see lib/eventFormats.ts).
 export const STAGE_FORMATS = SHARED_STAGE_FORMATS;
 export const FORMATTED_WORD = FORMAT_LABEL;

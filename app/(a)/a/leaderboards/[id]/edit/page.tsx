@@ -162,7 +162,7 @@ interface TeamPlayerGroup {
 function statToEditRow(stat: RawStat): EditRow {
   return {
     id: stat.competitor_id ?? stat.tournament_team_id ?? 0,
-    name: stat.username ?? stat.team_name ?? "—",
+    name: stat.username ?? stat.team_name ?? "-",
     placement: stat.placement,
     kills: stat.kills,
     bonus_points: stat.bonus_points ?? 0,
@@ -174,7 +174,7 @@ function statToEditRow(stat: RawStat): EditRow {
 function statToTeamPlayerGroup(stat: RawStat): TeamPlayerGroup {
   return {
     teamId: stat.tournament_team_id ?? 0,
-    teamName: stat.team_name ?? "—",
+    teamName: stat.team_name ?? "-",
     players: (stat.players ?? []).map((p) => ({
       player_id: p.player_id,
       username: p.username,
@@ -191,7 +191,7 @@ function getEntityId(e: OverallEntry) {
 }
 
 function getEntityName(e: OverallEntry) {
-  return e.competitor__user__username ?? e.team_name ?? "—";
+  return e.competitor__user__username ?? e.team_name ?? "-";
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -739,7 +739,7 @@ export default function EditLeaderboardPage({
         );
       } else {
         toast.success(
-          `Scoring applied to ${matchIds.length} match${matchIds.length !== 1 ? "es" : ""} — ${label}!`,
+          `Scoring applied to ${matchIds.length} match${matchIds.length !== 1 ? "es" : ""} - ${label}!`,
         );
       }
     } catch {
@@ -1345,7 +1345,7 @@ export default function EditLeaderboardPage({
                                       #{idx + 1}
                                     </TableCell>
                                     <TableCell className="font-medium">
-                                      {stat.username ?? stat.team_name ?? "—"}
+                                      {stat.username ?? stat.team_name ?? "-"}
                                     </TableCell>
                                     <TableCell className="text-right">
                                       {stat.placement}
@@ -1559,7 +1559,7 @@ export default function EditLeaderboardPage({
                               (m) => m.match_id === selectedMatchId,
                             )?.match_map
                           }{" "}
-                          — Match{" "}
+                          - Match{" "}
                           {
                             groupMatches.find(
                               (m) => m.match_id === selectedMatchId,
@@ -1706,7 +1706,7 @@ export default function EditLeaderboardPage({
                               </DropdownMenuLabel>
                               <DropdownMenuSeparator />
 
-                              {/* Current group — quick access */}
+                              {/* Current group - quick access */}
                               <DropdownMenuItem
                                 onClick={() =>
                                   handleApplyScoringToMatches(

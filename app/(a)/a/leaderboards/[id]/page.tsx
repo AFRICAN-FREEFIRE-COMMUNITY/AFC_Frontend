@@ -184,7 +184,7 @@ export default function IndividualLeaderboardPage({
               playerMap.set(player.player_id, {
                 player_id: player.player_id,
                 username: player.username,
-                team_name: teamStat.team_name ?? "—",
+                team_name: teamStat.team_name ?? "-",
                 total_kills: player.kills,
                 total_damage: player.damage,
                 total_assists: player.assists,
@@ -203,7 +203,7 @@ export default function IndividualLeaderboardPage({
           players.push({
             player_id: player.player_id,
             username: player.username,
-            team_name: teamStat.team_name ?? "—",
+            team_name: teamStat.team_name ?? "-",
             total_kills: player.kills,
             total_damage: player.damage,
             total_assists: player.assists,
@@ -319,7 +319,7 @@ export default function IndividualLeaderboardPage({
         )}
       </div>
 
-      {/* Stage tabs — hidden while editing a match */}
+      {/* Stage tabs - hidden while editing a match */}
       {!editingMatch && (
         <Tabs value={selectedStageId} onValueChange={setSelectedStageId}>
           <ScrollArea>
@@ -672,7 +672,7 @@ export default function IndividualLeaderboardPage({
                             key={m.match_id}
                             value={m.match_id.toString()}
                           >
-                            Match {m.match_number} — {m.match_map}
+                            Match {m.match_number} - {m.match_map}
                           </SelectItem>
                         ))}
                       </SelectContent>

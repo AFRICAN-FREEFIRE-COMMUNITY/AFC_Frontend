@@ -125,7 +125,7 @@ export default function PrizeMoneyPage() {
   const [addReason, setAddReason] = useState<string>("");
   const [addSaving, setAddSaving] = useState(false);
 
-  // Name-search source lists — fetched once when the dialog first opens.
+  // Name-search source lists - fetched once when the dialog first opens.
   const [eventOptions, setEventOptions] = useState<EventOption[]>([]);
   const [teamOptions, setTeamOptions] = useState<TeamOption[]>([]);
   const [optionsLoaded, setOptionsLoaded] = useState(false);
@@ -343,15 +343,15 @@ export default function PrizeMoneyPage() {
               ) : (
                 rows.map((r) => (
                   <TableRow key={r.payout_id}>
-                    <TableCell className="font-medium">{r.event_name ?? "—"}</TableCell>
-                    <TableCell>{r.team_name ?? "—"}</TableCell>
+                    <TableCell className="font-medium">{r.event_name ?? "-"}</TableCell>
+                    <TableCell>{r.team_name ?? "-"}</TableCell>
                     <TableCell className="text-right font-semibold tabular-nums text-primary">
                       {ngn(amountNumber(r.amount))}
                     </TableCell>
                     <TableCell className="text-muted-foreground tabular-nums">
                       <span className="inline-flex items-center gap-1">
                         <IconCalendar className="size-3" />
-                        {r.awarded_at ? new Date(r.awarded_at).toLocaleDateString() : "—"}
+                        {r.awarded_at ? new Date(r.awarded_at).toLocaleDateString() : "-"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -538,7 +538,7 @@ export default function PrizeMoneyPage() {
           <DialogHeader>
             <DialogTitle>Edit prize money</DialogTitle>
             <DialogDescription>
-              {editRow ? `${editRow.event_name ?? "—"} · ${editRow.team_name ?? "—"}` : ""}
+              {editRow ? `${editRow.event_name ?? "-"} · ${editRow.team_name ?? "-"}` : ""}
             </DialogDescription>
           </DialogHeader>
 
@@ -604,7 +604,7 @@ export default function PrizeMoneyPage() {
             <AlertDialogTitle>Delete prize entry?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteRow
-                ? `This removes the ${ngn(amountNumber(deleteRow.amount))} payout for ${deleteRow.team_name ?? "team"} (${deleteRow.event_name ?? "—"}). This cannot be undone.`
+                ? `This removes the ${ngn(amountNumber(deleteRow.amount))} payout for ${deleteRow.team_name ?? "team"} (${deleteRow.event_name ?? "-"}). This cannot be undone.`
                 : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>

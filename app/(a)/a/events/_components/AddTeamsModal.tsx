@@ -36,7 +36,7 @@ interface AddTeamsModalProps {
   targetId: number;
   targetName: string;
   onSuccess?: () => void;
-  /** ids of teams already in the event/stage/group — they'll be greyed out */
+  /** ids of teams already in the event/stage/group - they'll be greyed out */
   existingTeamIds?: number[];
 }
 

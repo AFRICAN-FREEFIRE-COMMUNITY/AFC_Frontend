@@ -43,20 +43,20 @@ import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { InfoTip } from "@/components/ui/info-tip";
 
 /**
- * Tournament Tiers — wired to the Phase-2 admin API (afc_rankings/admin_tournament_tiers.py).
+ * Tournament Tiers - wired to the Phase-2 admin API (afc_rankings/admin_tournament_tiers.py).
  * Admins build a prioritised, drag-to-reorder list of classification rules.
  * A tournament is evaluated top-down; the FIRST rule it matches sets its tier.
  * Tier drives the scoring multiplier (Tier 1 = 2.0×, Tier 2 = 1.5×, Tier 3 = 1.0×).
  *
  * Data layer:
- *   • Load     — rankingsAdminApi.tierRules() → { results: [serialize_tier_rule], pagination, default_tier }
- *   • Classify — rankingsAdminApi.classifyTournament({prize,teams,players,format}) → { tier, matched_rule_id }
- *   • Save     — diffs local rules vs the loaded server snapshot, then dispatches the real
+ *   • Load     - rankingsAdminApi.tierRules() → { results: [serialize_tier_rule], pagination, default_tier }
+ *   • Classify - rankingsAdminApi.classifyTournament({prize,teams,players,format}) → { tier, matched_rule_id }
+ *   • Save     - diffs local rules vs the loaded server snapshot, then dispatches the real
  *                create / update / delete / reorder / default-tier writes (each reason-gated),
  *                and re-fetches. The dialog reason (>= 10 chars) is the audit reason for the batch.
  *
  * Server rule.id is an integer; we keep a local string id for DnD/React keys and carry the
- * server id alongside (serverId). Conditions come back as {field, op, value} with no id — we
+ * server id alongside (serverId). Conditions come back as {field, op, value} with no id - we
  * mint a local numeric id per condition for stable React keys / edit targeting.
  */
 
@@ -136,7 +136,7 @@ function toWritePayload(rule: Rule) {
   };
 }
 
-/** Stable signature of a rule's editable content — used to detect which rules actually changed. */
+/** Stable signature of a rule's editable content - used to detect which rules actually changed. */
 function ruleSignature(rule: Rule) {
   return JSON.stringify(toWritePayload(rule));
 }
@@ -336,7 +336,7 @@ export default function TournamentTiersPage() {
   const [saveOpen, setSaveOpen] = useState(false);
   const [reason, setReason] = useState("");
 
-  // The last server snapshot — used to diff on save (what to create/update/delete/reorder)
+  // The last server snapshot - used to diff on save (what to create/update/delete/reorder)
   // and to revert on Reset. Holds the priority-ordered server rules + the server default tier.
   const snapshotRef = useRef<{ rules: Rule[]; defaultTier: Tier }>({ rules: [], defaultTier: 3 });
 
@@ -429,7 +429,7 @@ export default function TournamentTiersPage() {
       const snapById = new Map(snap.rules.filter((r) => r.serverId != null).map((r) => [r.serverId as number, r]));
       const liveServerIds = new Set(rules.filter((r) => r.serverId != null).map((r) => r.serverId as number));
 
-      // 1) DELETE — rules that existed on the server but were removed locally
+      // 1) DELETE - rules that existed on the server but were removed locally
       for (const old of snap.rules) {
         if (old.serverId != null && !liveServerIds.has(old.serverId)) {
           await rankingsAdminApi.deleteTierRule(old.serverId, { reason: auditReason });
@@ -448,12 +448,12 @@ export default function TournamentTiersPage() {
         }
       }
 
-      // 3) DEFAULT TIER — only if changed.
+      // 3) DEFAULT TIER - only if changed.
       if (defaultTier !== snap.defaultTier) {
         await rankingsAdminApi.updateTierConfig({ default_tier: defaultTier, reason: auditReason });
       }
 
-      // 4) REORDER — re-fetch first to learn the ids of any rules we just created, then send
+      // 4) REORDER - re-fetch first to learn the ids of any rules we just created, then send
       //    the full priority order matching the current on-screen sequence.
       const fresh = await rankingsAdminApi.tierRules();
       const freshRules: Rule[] = (fresh?.results ?? []).map(fromServerRule);
@@ -476,7 +476,7 @@ export default function TournamentTiersPage() {
             desiredOrder.push(fr.serverId);
           }
         }
-        // Append any server rules we couldn't map (defensive — keeps the id set complete).
+        // Append any server rules we couldn't map (defensive - keeps the id set complete).
         for (const f of freshRules) {
           if (f.serverId != null && !usedFreshIds.has(f.serverId)) {
             usedFreshIds.add(f.serverId);
@@ -517,9 +517,9 @@ export default function TournamentTiersPage() {
             <InfoTip id="rankings.tiers._page" className="ml-1.5" />
           </span>
         }
-        description="Decide how events are classified into Tier 1–3. Rules run top-down — the first rule a tournament matches sets its tier, which drives the scoring multiplier."
+        description="Decide how events are classified into Tier 1-3. Rules run top-down - the first rule a tournament matches sets its tier, which drives the scoring multiplier."
         action={
-          // Each action ⓘ is a SIBLING of its button (not nested) — Reset reverts, Save commits the rule set.
+          // Each action ⓘ is a SIBLING of its button (not nested) - Reset reverts, Save commits the rule set.
           <div className="flex w-full gap-2 md:w-auto">
             <div className="flex flex-1 items-center gap-1 md:flex-none">
               <Button variant="outline" className="flex-1 md:flex-none" onClick={reset} disabled={saving}>
@@ -542,7 +542,7 @@ export default function TournamentTiersPage() {
         <StatCard icon={<IconStack2 className="size-4" />} title="Active rules"
           value={rules.filter((r) => r.enabled).length} sub={`${rules.length} total · evaluated top-down`} />
         <StatCard icon={<span className="text-xs font-bold">2.0×</span>} title="Tier 1 rules"
-          value={perTier(1)} sub="Highest — 2.0× multiplier" tone="text-amber-400" />
+          value={perTier(1)} sub="Highest - 2.0× multiplier" tone="text-amber-400" />
         <StatCard icon={<span className="text-xs font-bold">1.5×</span>} title="Tier 2 rules"
           value={perTier(2)} sub="1.5× multiplier" tone="text-green-400" />
         <StatCard icon={<span className="text-xs font-bold">1.0×</span>} title="Default tier"
@@ -564,7 +564,7 @@ export default function TournamentTiersPage() {
         <div className="space-y-3 lg:col-span-2">
           {rules.length === 0 ? (
             <div className="rounded-md border border-dashed bg-muted/20 px-3 py-10 text-center text-sm text-muted-foreground">
-              No classification rules yet. Add a rule to start tiering events — until then everything
+              No classification rules yet. Add a rule to start tiering events - until then everything
               falls through to the default tier.
             </div>
           ) : (
@@ -676,7 +676,7 @@ export default function TournamentTiersPage() {
                 <p className="mt-2 text-[11px] text-muted-foreground">
                   {result.ruleId
                     ? `Matched Rule ${rules.findIndex((r) => r.id === result.ruleId) + 1}: ${rules.find((r) => r.id === result.ruleId)!.conditions.map(condText).join(rules.find((r) => r.id === result.ruleId)!.match === "all" ? " AND " : " OR ")}`
-                    : "No rule matched — fell through to the default tier."}
+                    : "No rule matched - fell through to the default tier."}
                 </p>
               </div>
             </CardContent>

@@ -93,7 +93,7 @@ export default function OcrPage({ params }: { params: Promise<Params> }) {
         form,
         { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } },
       );
-      toast.success("Image uploaded — OCR processing started.");
+      toast.success("Image uploaded - OCR processing started.");
       setSelectedFile(null);
       setMatchNumber("");
       fetchSessions();
@@ -236,7 +236,7 @@ export default function OcrPage({ params }: { params: Promise<Params> }) {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {session.created_at ? formatDate(session.created_at) : "—"}
+                      {session.created_at ? formatDate(session.created_at) : "-"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

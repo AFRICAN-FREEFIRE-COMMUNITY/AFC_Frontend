@@ -6,8 +6,8 @@
 // POST /events/get-round-robin-standings/ { event_id, stage_id } which returns:
 //   { groups, game_days:[{day, lobbies}], per_day:{ "<day>": [rows] }, cumulative:[rows] }
 // Each standings row: { team_name, effective_total, total_kills, total_booyah, games_played }.
-// The backend keeps the sort authoritative (effective_total + tiebreakers), so — like
-// GroupResultModal — we render rows in server order and never re-sort here.
+// The backend keeps the sort authoritative (effective_total + tiebreakers), so - like
+// GroupResultModal - we render rows in server order and never re-sort here.
 //
 // A Cumulative ↔ Day segmented toggle (shadcn pill Tabs) switches between the
 // across-the-stage table (default) and a single game-day's table. Reuses the same
@@ -47,7 +47,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
 
-// A single standings row as returned by the endpoint (raw points table — no crown).
+// A single standings row as returned by the endpoint (raw points table - no crown).
 interface StandingRow {
   team_name: string;
   effective_total: number;
@@ -109,7 +109,7 @@ export const RoundRobinResultsModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stageId]);
 
-  // Rows for the active view — kept in server order (authoritative sort).
+  // Rows for the active view - kept in server order (authoritative sort).
   const rows: StandingRow[] =
     view === "cumulative"
       ? data?.cumulative || []
@@ -163,7 +163,7 @@ export const RoundRobinResultsModal = ({
                 </TabsList>
               </Tabs>
 
-              {/* Day picker — only relevant in the Day view. */}
+              {/* Day picker - only relevant in the Day view. */}
               {view === "day" && dayKeys.length > 0 && (
                 <Select value={activeDay} onValueChange={setActiveDay}>
                   <SelectTrigger className="w-40">
@@ -233,7 +233,7 @@ export const RoundRobinResultsModal = ({
               </Table>
             </div>
 
-            {/* Footnote: cumulative is a raw points table (no Champion-Point crown —
+            {/* Footnote: cumulative is a raw points table (no Champion-Point crown -
                 that still applies per-lobby, see the per-group results). */}
             <p className="text-[10px] text-muted-foreground italic">
               Cumulative is a raw points table across every game-day lobby this team

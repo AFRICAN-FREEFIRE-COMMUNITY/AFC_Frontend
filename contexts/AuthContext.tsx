@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Only a 401 from the canonical token-VALIDATION endpoint (get-user-profile) is
         // treated as a real session expiry that logs the user out. A 401 from any other
         // data endpoint is left for the caller to handle (toast etc.) and does NOT clear the
-        // session — this stops a single stray/transient 401 (e.g. a request that raced the
+        // session - this stops a single stray/transient 401 (e.g. a request that raced the
         // token, or an endpoint returning 401 for an unrelated reason) from logging the user
         // out mid-work. A genuinely-expired token is still caught on the next profile fetch.
         const isTokenValidation = requestUrl.includes("/auth/get-user-profile");
@@ -252,7 +252,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     : false;
 
   // An organizer is a non-admin role that owns/runs an organization. It is NOT a
-  // platform admin (deliberately kept out of the isAdmin arrays above) — pages use
+  // platform admin (deliberately kept out of the isAdmin arrays above) - pages use
   // this flag to gate organizer-only surfaces.
   const isOrganizer = hasAnyRole(["organizer"]);
 

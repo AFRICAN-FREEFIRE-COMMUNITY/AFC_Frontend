@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { InfoTip } from "@/components/ui/info-tip";
 
 /**
- * Social Verification — LIVE (wired to /rankings/admin/seasons/<id>/social/).
+ * Social Verification - LIVE (wired to /rankings/admin/seasons/<id>/social/).
  * Self-connect model: teams connect their OWN Instagram + TikTok handles from their
  * team dashboard (out of scope here). The admin only sees who has connected, then
  * verifies, unverifies, or corrects the combined follower counts. §7.3 bracket scale,
@@ -43,7 +43,7 @@ import { InfoTip } from "@/components/ui/info-tip";
  *    reason-gated (>= 10 chars). Re-fetch after each write so badges/points stay live.
  */
 
-// §7.3 points scale (read-only, computed live as admin edits inputs — matches the
+// §7.3 points scale (read-only, computed live as admin edits inputs - matches the
 // backend engine.social_media_points brackets so the preview equals the saved value).
 const BRACKETS = [
   { max: 1000, pts: 1 },
@@ -60,7 +60,7 @@ function pointsFor(combined: number): number {
 const MIN_REASON = 10;
 const fmt = (n: number) => n.toLocaleString();
 
-// Live row shape — mirrors backend serialize_social_row, plus a client-only `dirty`
+// Live row shape - mirrors backend serialize_social_row, plus a client-only `dirty`
 // flag (follower counts edited since the last save/verify). Handles/followers are
 // rendered straight off the server payload; `points` is the server-derived value, but
 // while a row is dirty we preview pointsFor(combined) locally before the save lands.
@@ -166,7 +166,7 @@ export default function SocialVerificationPage() {
     );
   };
 
-  // Persist a single row's edited follower counts (reason auto-filled — this is a count
+  // Persist a single row's edited follower counts (reason auto-filled - this is a count
   // correction, not a destructive op; the destructive paths use the reason dialog).
   const saveCounts = async (row: Row): Promise<boolean> => {
     if (!season) return false;
@@ -315,7 +315,7 @@ export default function SocialVerificationPage() {
         <StatCard icon={<IconPlugConnected className="size-4" />} title="Connected"
           value={`${totals.connectedCount} / ${rows.length}`} sub="Teams that linked their socials" />
         <StatCard icon={<IconCircleCheck className="size-4" />} title="Verified this quarter"
-          value={totals.verifiedCount} sub="Verified — counts toward score" tone="text-green-500" />
+          value={totals.verifiedCount} sub="Verified - counts toward score" tone="text-green-500" />
         <StatCard icon={<IconClock className="size-4" />} title="Pending verification"
           value={totals.pendingCount} sub="Connected but unverified or edited" tone="text-orange-500" />
         <StatCard icon={<IconSparkles className="size-4" />} title="Social points awarded"
@@ -398,7 +398,7 @@ export default function SocialVerificationPage() {
                 // server points when clean, live-preview while the admin is editing
                 const pts = r.dirty ? pointsFor(combined) : r.points;
                 const verified = r.is_verified && !r.dirty;
-                // an admin can edit + verify any row that has a snapshot (connected) — and
+                // an admin can edit + verify any row that has a snapshot (connected) - and
                 // the backend get_or_creates a snapshot on edit, so not-connected rows are
                 // still editable, but we keep the disabled hint until the team connects.
                 const editable = r.connected;
@@ -428,7 +428,7 @@ export default function SocialVerificationPage() {
                             <IconPlugConnected className="size-3" /> Connected
                           </Badge>
                           <span className="text-[10px] text-muted-foreground tabular-nums">
-                            {r.instagram_handle || "—"} · {r.tiktok_handle || "—"}
+                            {r.instagram_handle || "-"} · {r.tiktok_handle || "-"}
                           </span>
                         </div>
                       ) : (
@@ -445,7 +445,7 @@ export default function SocialVerificationPage() {
                         value={editable ? r.instagram_followers : ""}
                         disabled={!editable}
                         onChange={(e) => setField(r.team_id, "instagram_followers", parseInt(e.target.value || "0", 10))}
-                        placeholder="—"
+                        placeholder="-"
                         className="h-8 text-xs tabular-nums"
                       />
                     </TableCell>
@@ -457,14 +457,14 @@ export default function SocialVerificationPage() {
                         value={editable ? r.tiktok_followers : ""}
                         disabled={!editable}
                         onChange={(e) => setField(r.team_id, "tiktok_followers", parseInt(e.target.value || "0", 10))}
-                        placeholder="—"
+                        placeholder="-"
                         className="h-8 text-xs tabular-nums"
                       />
                     </TableCell>
 
                     {/* Combined */}
                     <TableCell className="text-right text-xs font-medium tabular-nums">
-                      {r.connected ? fmt(combined) : <span className="text-muted-foreground">—</span>}
+                      {r.connected ? fmt(combined) : <span className="text-muted-foreground">-</span>}
                     </TableCell>
 
                     {/* Points */}
@@ -479,14 +479,14 @@ export default function SocialVerificationPage() {
                           {pts} / 10
                         </Badge>
                       ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
+                        <span className="text-xs text-muted-foreground">-</span>
                       )}
                     </TableCell>
 
                     {/* Verification */}
                     <TableCell className="text-xs">
                       {!r.connected ? (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-muted-foreground">-</span>
                       ) : verified ? (
                         <div className="flex flex-col">
                           <Badge variant="outline" className="w-fit rounded-full border-green-600/60 text-green-400">

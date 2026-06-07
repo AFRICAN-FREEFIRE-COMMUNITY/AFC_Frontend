@@ -103,7 +103,7 @@ const page = () => {
           axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-published-news/`),
         ]);
 
-        // Fetch additional stats in parallel (non-blocking — failures don't crash the dashboard)
+        // Fetch additional stats in parallel (non-blocking - failures don't crash the dashboard)
         Promise.all([
           axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-most-popular-event-format/`).catch(() => null),
           axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-kills/`).catch(() => null),
@@ -363,7 +363,7 @@ const page = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold capitalize">
-                {popularFormat ? popularFormat.replace(/_/g, " ") : "—"}
+                {popularFormat ? popularFormat.replace(/_/g, " ") : "-"}
               </div>
               <div className="text-xs text-muted-foreground mt-1">Based on all events</div>
             </CardContent>

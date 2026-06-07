@@ -94,7 +94,7 @@ function mapTransferLog(row: any): TransferLogRow {
     action: row.action,
     prev_close: row.previous_close_date ?? null,
     new_close: row.new_close_date ?? null,
-    by: row.changed_by != null ? String(row.changed_by) : "—",
+    by: row.changed_by != null ? String(row.changed_by) : "-",
     at: row.changed_at ?? null,
     reason: row.reason ?? "",
   };
@@ -830,15 +830,15 @@ function RunEvaluationDialog({
 
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded-md border bg-card p-3 text-center">
-              <p className="text-lg font-bold tabular-nums">{preview ? preview.teams : "—"}</p>
+              <p className="text-lg font-bold tabular-nums">{preview ? preview.teams : "-"}</p>
               <p className="text-[11px] text-muted-foreground">Teams</p>
             </div>
             <div className="rounded-md border bg-card p-3 text-center">
-              <p className="text-lg font-bold tabular-nums">{preview ? preview.players : "—"}</p>
+              <p className="text-lg font-bold tabular-nums">{preview ? preview.players : "-"}</p>
               <p className="text-[11px] text-muted-foreground">Players</p>
             </div>
             <div className="rounded-md border bg-card p-3 text-center">
-              <p className="text-lg font-bold tabular-nums text-orange-500">{preview ? preview.below : "—"}</p>
+              <p className="text-lg font-bold tabular-nums text-orange-500">{preview ? preview.below : "-"}</p>
               <p className="text-[11px] text-muted-foreground">Below floor → Entry</p>
             </div>
           </div>

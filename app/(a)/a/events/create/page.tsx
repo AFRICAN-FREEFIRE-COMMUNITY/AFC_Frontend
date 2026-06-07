@@ -288,7 +288,7 @@ export default function CreateEventPage() {
           setPreviewRuleUrl(d.uploaded_rules_url);
         }
 
-        toast.success(`Duplicating "${d.event_name}" — edit the details then create.`);
+        toast.success(`Duplicating "${d.event_name}" - edit the details then create.`);
       } catch {
         toast.error("Failed to load event for duplication.");
       }
@@ -467,13 +467,13 @@ export default function CreateEventPage() {
       prizepool: stageModalData.prizepool,
       prizepool_cash_value: stageModalData.prizepool_cash_value,
       prize_distribution: stageModalData.prize_distribution,
-      // ── Scoring-mode config (sub-project A) — rides into the FormData stages array. ──
+      // ── Scoring-mode config (sub-project A) - rides into the FormData stages array. ──
       champion_point_enabled: stageModalData.champion_point_enabled,
       champion_point_threshold: stageModalData.champion_point_threshold,
       point_rush_enabled: stageModalData.point_rush_enabled,
       point_rush_reward: stageModalData.point_rush_reward,
       point_rush_target_index: stageModalData.point_rush_target_index,
-      // ── Round-Robin config (sub-project B) — only meaningful for the BR
+      // ── Round-Robin config (sub-project B) - only meaningful for the BR
       //    Round-Robin format; sent only when that format is selected so other
       //    bracket types don't carry a stray round_robin payload. ──
       ...(stageModalData.stage_format === "br - round robin"
@@ -796,7 +796,7 @@ export default function CreateEventPage() {
       />
       {duplicateSlug && (
         <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          You&apos;re duplicating an existing event. All details have been pre-filled — update what you need, then create.
+          You&apos;re duplicating an existing event. All details have been pre-filled - update what you need, then create.
         </div>
       )}
 

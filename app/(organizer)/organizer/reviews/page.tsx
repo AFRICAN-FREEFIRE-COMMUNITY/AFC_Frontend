@@ -3,8 +3,8 @@
 //
 // The org's per-event feedback surface. For every event the organization has run we
 // show its average rating (+ the number of ratings behind it) and an EXPANDABLE list
-// of the comments left on it. Comments are ANONYMOUS — the backend exposes only the
-// text + the date, never who wrote them — and the UI says so plainly (a notice at the
+// of the comments left on it. Comments are ANONYMOUS - the backend exposes only the
+// text + the date, never who wrote them - and the UI says so plainly (a notice at the
 // top of the page and a reminder on each comment list) so an organizer never expects
 // to see (or chase) the author.
 //
@@ -20,10 +20,10 @@
 //
 // GATING: mirrors the rest of the portal. The gate here is
 // membership.permissions.can_view_reviews OR isOwner. A member without that
-// permission gets a read-only lock notice (mirrors the Design / Metrics pages) — no
+// permission gets a read-only lock notice (mirrors the Design / Metrics pages) - no
 // events, ratings, or comments are ever fetched.
 //
-// The selected org is read from the OrganizerContext the portal layout provides —
+// The selected org is read from the OrganizerContext the portal layout provides -
 // switching orgs re-mounts this subtree (keyed on slug), which re-runs the fetch
 // below for the newly-selected org.
 //
@@ -64,7 +64,7 @@ interface OrgEvent {
 
 // ── Rating shape ──────────────────────────────────────────────────────────────
 // getEventRating(eventId) -> { average, count, my_score }. average/count are the
-// aggregate we surface; my_score is the caller's own score (unused here — the
+// aggregate we surface; my_score is the caller's own score (unused here - the
 // organizer view shows only the anonymous aggregate).
 interface EventRating {
   average: number | null;
@@ -73,7 +73,7 @@ interface EventRating {
 
 // ── Comment shape ─────────────────────────────────────────────────────────────
 // getEventComments(eventId) -> { results: [{ text, created_at }] }. ANONYMOUS by
-// design — the payload carries no author, only the text + when it was posted.
+// design - the payload carries no author, only the text + when it was posted.
 interface EventComment {
   text: string;
   created_at: string;
@@ -110,7 +110,7 @@ function AnonymityNotice({ inline = false }: { inline?: boolean }) {
           : "text-xs text-muted-foreground"
       }
     >
-      Ratings and comments are anonymous — only the feedback text and date are
+      Ratings and comments are anonymous - only the feedback text and date are
       shown, never who left it.
     </p>
   );
@@ -197,7 +197,7 @@ export default function OrganizerReviewsPage() {
         });
         setStates(seeded);
 
-        // Fan out the rating fetches — one aggregate per event. A failure on one
+        // Fan out the rating fetches - one aggregate per event. A failure on one
         // event's rating shouldn't blank the whole page, so each is caught locally.
         list.forEach(async (ev) => {
           try {
@@ -207,7 +207,7 @@ export default function OrganizerReviewsPage() {
               ratingLoading: false,
             });
           } catch {
-            // Couldn't load this event's rating — show "No ratings yet" rather than
+            // Couldn't load this event's rating - show "No ratings yet" rather than
             // a spinner that never resolves.
             patchState(ev.event_id, { rating: null, ratingLoading: false });
           }
@@ -285,7 +285,7 @@ export default function OrganizerReviewsPage() {
         description="Ratings and anonymous feedback on each of your events."
       />
 
-      {/* Page-level anonymity notice — set the expectation before any feedback. */}
+      {/* Page-level anonymity notice - set the expectation before any feedback. */}
       <AnonymityNotice />
 
       {/* No events at all → nothing to review yet. */}
@@ -350,7 +350,7 @@ export default function OrganizerReviewsPage() {
                           Loading comments...
                         </p>
                       ) : !st.comments || st.comments.length === 0 ? (
-                        // Empty state — no comments on this event yet.
+                        // Empty state - no comments on this event yet.
                         <div className="flex flex-col items-center gap-2 py-6 text-center">
                           <IconMessageOff className="size-6 text-muted-foreground" />
                           <p className="text-sm text-muted-foreground">
@@ -370,7 +370,7 @@ export default function OrganizerReviewsPage() {
                                 {c.text}
                               </p>
                               <p className="mt-1 text-[11px] text-muted-foreground">
-                                {c.created_at ? formatDate(c.created_at) : "—"}
+                                {c.created_at ? formatDate(c.created_at) : "-"}
                               </p>
                             </li>
                           ))}

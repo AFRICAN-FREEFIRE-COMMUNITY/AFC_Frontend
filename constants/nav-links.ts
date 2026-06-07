@@ -184,7 +184,7 @@ export const adminNavLinks: AdminNavLink[] = [
   {
     // Data-API partner management (afc_partner_api admin surface). Gated on
     // head_admin / partner_admin to match the backend's _is_partner_admin check
-    // (role__role_name__in=["head_admin","partner_admin"]) — same team that runs
+    // (role__role_name__in=["head_admin","partner_admin"]) - same team that runs
     // the partner program. IconPlugConnected reads as an external integration/API.
     label: "Partners",
     slug: "/a/partners",

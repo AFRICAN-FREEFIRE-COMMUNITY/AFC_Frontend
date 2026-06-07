@@ -3,17 +3,17 @@
 //
 // The org-side surface for asking AFC to build/apply a custom leaderboard design.
 // AFC's design team works the request; the organizer never edits the design itself
-// — they submit a brief (title + notes + an optional reference image) and watch its
+// - they submit a brief (title + notes + an optional reference image) and watch its
 // status move through the queue.
 //
 // GATING: the page is gated on the SAME permission set the rest of the portal uses
 // (events page → can_create_events, profile page → owner). Here the gate is
 // membership.permissions.can_submit_designs OR isOwner. A member without that
 // permission gets a read-only lock notice (mirrors the non-owner notice on the
-// Profile page) — no request form, but they still see the existing requests list.
+// Profile page) - no request form, but they still see the existing requests list.
 //
 // SUBMIT goes up as multipart FormData via organizersApi.submitDesignRequest(slug, fd)
-// — mirroring the Profile page's image-upload path so the optional reference_image
+// - mirroring the Profile page's image-upload path so the optional reference_image
 // rides along. On success we toast + refresh the list (so the new row appears).
 //
 // Design mirrors the sibling organizer pages (events / profile) and the admin
@@ -174,14 +174,14 @@ export default function OrganizerDesignPage() {
     setImagePreview("");
   };
 
-  // ── Submit handler — multipart FormData so the optional image rides along. ──
+  // ── Submit handler - multipart FormData so the optional image rides along. ──
   const onSubmit = () => {
     if (!submitReady) return;
     startSubmit(async () => {
       try {
         const fd = new FormData();
         fd.append("title", title.trim());
-        // notes is optional — only send it when the organizer typed something.
+        // notes is optional - only send it when the organizer typed something.
         if (notes.trim()) fd.append("notes", notes.trim());
         if (imageFile) fd.append("reference_image", imageFile);
 
@@ -286,9 +286,9 @@ export default function OrganizerDesignPage() {
                         <DesignStatusBadge status={req.status} />
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {req.created_at ? formatDate(req.created_at) : "—"}
+                        {req.created_at ? formatDate(req.created_at) : "-"}
                       </TableCell>
-                      {/* AFC's resolution notes — only present once the team has
+                      {/* AFC's resolution notes - only present once the team has
                           handled the request; otherwise a muted dash. */}
                       <TableCell className="text-muted-foreground">
                         {req.resolution_notes ? (
@@ -296,7 +296,7 @@ export default function OrganizerDesignPage() {
                             {req.resolution_notes}
                           </span>
                         ) : (
-                          "—"
+                          "-"
                         )}
                       </TableCell>
                     </TableRow>
@@ -352,7 +352,7 @@ export default function OrganizerDesignPage() {
               />
             </div>
 
-            {/* Reference image (optional) — dropzone/preview pair mirroring the
+            {/* Reference image (optional) - dropzone/preview pair mirroring the
                 Profile page's ImageField, trimmed to a single field. */}
             <div className="space-y-2">
               <Label>
@@ -382,7 +382,7 @@ export default function OrganizerDesignPage() {
               ) : (
                 <div className="space-y-2">
                   <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
-                    {/* Uploaded refs come from an object URL — use a plain <img>. */}
+                    {/* Uploaded refs come from an object URL - use a plain <img>. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imagePreview}

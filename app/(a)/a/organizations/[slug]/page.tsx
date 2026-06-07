@@ -6,14 +6,14 @@
 // tabbed admin-detail idiom from app/(a)/a/events/[slug]/page.tsx: a PageHeader
 // with `back`, then shadcn pill Tabs.
 //
-//   Profile  — editable form (name / email / description / socials / status) →
+//   Profile  - editable form (name / email / description / socials / status) →
 //              adminEditOrganization. Suspend/Unsuspend → adminSuspendOrganization.
 //              Delete (AlertDialog confirm) → adminDeleteOrganization → back to list.
-//   Members  — table (username / role / status / permission summary) plus
+//   Members  - table (username / role / status / permission summary) plus
 //              add-member (username + role + 8 permission switches), remove, and
 //              set_owner, all via adminManageMember({ action, ... }).
-//   Events   — read-only list of the org's events (event_name + status + draft).
-//   Reports  — Phase-4 placeholder; reports[] is currently always empty.
+//   Events   - read-only list of the org's events (event_name + status + draft).
+//   Reports  - Phase-4 placeholder; reports[] is currently always empty.
 //
 // Next 16 route params arrive as a Promise → unwrapped with React.use(params),
 // matching the events detail page.
@@ -152,7 +152,7 @@ interface OrgDetail {
   reports: any[];
 }
 
-// a fresh all-false permission map — seeds the add-member form.
+// a fresh all-false permission map - seeds the add-member form.
 const emptyPermissions = (): Permissions =>
   PERMISSION_KEYS.reduce(
     (acc, k) => ({ ...acc, [k]: false }),
@@ -208,13 +208,13 @@ export default function OrganizationDetailPage({
   // only that row's button is disabled while the request runs.
   const [verifyBusy, setVerifyBusy] = useState<number | null>(null);
 
-  // Controlled active tab — so a background refetch never bounces the admin back to
+  // Controlled active tab - so a background refetch never bounces the admin back to
   // the first (Profile) tab after an in-tab action like Verify.
   const [tab, setTab] = useState("profile");
 
   // ── Fetch + seed the profile form ─────────────────────────────────────────
   // silent=true does a background refetch (after an in-tab action like Verify) WITHOUT
-  // flipping the full-page loader — so the page doesn't unmount + bounce back to the
+  // flipping the full-page loader - so the page doesn't unmount + bounce back to the
   // first tab. The initial mount load passes silent=false to show the loader.
   const fetchDetail = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -457,7 +457,7 @@ export default function OrganizationDetailPage({
           </span>
         </TabsList>
 
-        {/* ── Profile tab — editable form + suspend / delete ── */}
+        {/* ── Profile tab - editable form + suspend / delete ── */}
         <TabsContent value="profile" className="mt-4 space-y-4">
           <Card>
             <CardHeader className="border-b">
@@ -555,7 +555,7 @@ export default function OrganizationDetailPage({
             </CardContent>
           </Card>
 
-          {/* ── Danger zone — suspend / delete ── */}
+          {/* ── Danger zone - suspend / delete ── */}
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Danger zone</CardTitle>
@@ -597,7 +597,7 @@ export default function OrganizationDetailPage({
           </Card>
         </TabsContent>
 
-        {/* ── Members tab — table + add / remove / set_owner ── */}
+        {/* ── Members tab - table + add / remove / set_owner ── */}
         <TabsContent value="members" className="mt-4 space-y-4">
           <Card className="gap-0">
             <CardHeader>
@@ -655,7 +655,7 @@ export default function OrganizationDetailPage({
                           </Badge>
                         </TableCell>
                         <TableCell className="text-muted-foreground capitalize">
-                          {m.status || "—"}
+                          {m.status || "-"}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {/* owners implicitly hold everything; members show a
@@ -710,7 +710,7 @@ export default function OrganizationDetailPage({
           </Card>
         </TabsContent>
 
-        {/* ── Events tab — read-only list of the org's events ── */}
+        {/* ── Events tab - read-only list of the org's events ── */}
         <TabsContent value="events" className="mt-4 space-y-4">
           <Card className="gap-0">
             <CardHeader>
@@ -736,7 +736,7 @@ export default function OrganizationDetailPage({
                           {ev.event_name}
                         </TableCell>
                         <TableCell className="text-muted-foreground capitalize">
-                          {ev.status || "—"}
+                          {ev.status || "-"}
                         </TableCell>
                         <TableCell>
                           {ev.is_draft ? (
@@ -802,7 +802,7 @@ export default function OrganizationDetailPage({
           </Card>
         </TabsContent>
 
-        {/* ── Reports tab — Phase-4 placeholder (reports[] always empty) ── */}
+        {/* ── Reports tab - Phase-4 placeholder (reports[] always empty) ── */}
         <TabsContent value="reports" className="mt-4 space-y-4">
           <Card className="gap-0">
             <CardHeader>
@@ -853,7 +853,7 @@ export default function OrganizationDetailPage({
               </Select>
             </div>
 
-            {/* permission switch grid — one switch per can_* key */}
+            {/* permission switch grid - one switch per can_* key */}
             <div className="space-y-2">
               <Label>
                 Permissions
@@ -925,7 +925,7 @@ export default function OrganizationDetailPage({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── Delete org confirm — soft-delete; events re-home to AFC ── */}
+      {/* ── Delete org confirm - soft-delete; events re-home to AFC ── */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

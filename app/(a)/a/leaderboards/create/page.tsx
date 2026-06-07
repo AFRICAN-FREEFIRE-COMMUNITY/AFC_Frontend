@@ -113,7 +113,7 @@ export default function CreateLeaderboardPage() {
       />
 
       <div className="mt-4">
-        {/* Step 1: Basic Information — receives preselectedEventId to auto-fill */}
+        {/* Step 1: Basic Information - receives preselectedEventId to auto-fill */}
         {currentStep === 1 && (
           <BasicInfoStep
             onNext={nextStep}

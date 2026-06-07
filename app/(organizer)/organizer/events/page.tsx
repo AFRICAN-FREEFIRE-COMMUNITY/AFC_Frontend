@@ -8,9 +8,9 @@
 //   GET /events/get-all-events/?organization_id=<id>
 //
 // Each row shows the event name + the three badges the brief asks for:
-//   • status      — upcoming / ongoing / completed (event.event_status)
-//   • draft       — only rendered when the event is still a draft (event.is_draft)
-//   • rankings    — Verified / Unverified (event.rankings_verified) — this is the
+//   • status      - upcoming / ongoing / completed (event.event_status)
+//   • draft       - only rendered when the event is still a draft (event.is_draft)
+//   • rankings    - Verified / Unverified (event.rankings_verified) - this is the
 //                   AFC-side review state an organizer event must clear before its
 //                   results feed the public rankings.
 //
@@ -64,7 +64,7 @@ interface OrgEvent {
 }
 
 // ── Status badge ──────────────────────────────────────────────────────────────
-// Outline badge (rounded-full, text-xs) per AFC constants; colour by event status —
+// Outline badge (rounded-full, text-xs) per AFC constants; colour by event status -
 // same colour mapping the organizer Overview uses for org status, kept consistent.
 function StatusBadge({ status }: { status: string }) {
   const normalized = (status || "").toLowerCase();
@@ -85,7 +85,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 // ── Rankings badge ──────────────────────────────────────────────────────────────
-// Verified (green) vs Unverified (orange) — the AFC review gate an organizer event
+// Verified (green) vs Unverified (orange) - the AFC review gate an organizer event
 // clears before its results count toward the public rankings.
 function RankingsBadge({ verified }: { verified: boolean }) {
   return (
@@ -168,7 +168,7 @@ export default function OrganizerEventsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            // Inline loading row — matches the organizer Overview's loading copy.
+            // Inline loading row - matches the organizer Overview's loading copy.
             <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
               Loading events...
             </div>
@@ -222,7 +222,7 @@ export default function OrganizerEventsPage() {
                       {event.competition_type}
                     </TableCell>
                     <TableCell>
-                      {event.event_date ? formatDate(event.event_date) : "—"}
+                      {event.event_date ? formatDate(event.event_date) : "-"}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={event.event_status} />

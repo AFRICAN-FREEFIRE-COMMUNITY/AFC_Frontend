@@ -404,7 +404,7 @@ import {
   GroupType,
   STAGE_FORMATS,
 } from "./types";
-// Shared Round-Robin builder (sub-project B) — same panel used by the edit flow.
+// Shared Round-Robin builder (sub-project B) - same panel used by the edit flow.
 import {
   RoundRobinPanel,
   type RoundRobinConfig,
@@ -441,7 +441,7 @@ interface StageModalProps {
   setModalStep: (step: number) => void;
   stageModalData: StageModalData;
   setStageModalData: (data: StageModalData) => void;
-  // Stage names + which stage is being edited — used to list the *later* stages a
+  // Stage names + which stage is being edited - used to list the *later* stages a
   // Point-Rush target can point at (a stage can only bank into a stage after it).
   stageNames: string[];
   editingStageIndex: number | null;
@@ -697,7 +697,7 @@ export function StageModal({
 
             {/* ── Round-Robin builder (sub-project B): only for the BR Round-Robin
                 bracket. The classic per-group config in Step 2 is ignored by the
-                backend for this format — game-day lobbies come from the base groups
+                backend for this format - game-day lobbies come from the base groups
                 + schedule below. No team picker on create (no registrations yet). */}
             {stageModalData.stage_format === "br - round robin" && (
               <RoundRobinPanel

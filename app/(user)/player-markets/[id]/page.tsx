@@ -150,7 +150,7 @@ export async function generateMetadata({
     const role = label(ROLE_LABELS, post.primary_role);
     const avail = label(AVAILABILITY_LABELS, post.availability_type);
     title = `${post.player ?? "A player"} is Looking for a Team`;
-    description = `${post.player}${role ? ` (${role})` : ""} is available${post.country ? ` from ${post.country}` : ""}${avail ? ` — ${avail} basis` : ""}. Connect on AFC Player Market.`;
+    description = `${post.player}${role ? ` (${role})` : ""} is available${post.country ? ` from ${post.country}` : ""}${avail ? ` - ${avail} basis` : ""}. Connect on AFC Player Market.`;
     image = toAbsoluteUrl(post.player_avatar);
   }
 

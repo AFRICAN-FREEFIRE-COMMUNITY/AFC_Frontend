@@ -119,25 +119,25 @@ export default function EditNewsForm({ params }: { params: Params }) {
       if (data.title !== (newsDetails.news_title || ""))
         changes.push({
           label: "Title",
-          from: newsDetails.news_title || "—",
+          from: newsDetails.news_title || "-",
           to: data.title,
         });
       if (data.category !== (newsDetails.category || ""))
         changes.push({
           label: "Category",
-          from: newsDetails.category || "—",
+          from: newsDetails.category || "-",
           to: data.category,
         });
       if (data.event !== (newsDetails.related_events || ""))
         changes.push({
           label: "Related Event",
-          from: newsDetails.related_events || "—",
-          to: data.event || "—",
+          from: newsDetails.related_events || "-",
+          to: data.event || "-",
         });
       if (data.author !== (newsDetails.author || ""))
         changes.push({
           label: "Author",
-          from: newsDetails.author || "—",
+          from: newsDetails.author || "-",
           to: data.author,
         });
       if (data.content !== (newsDetails.content || ""))

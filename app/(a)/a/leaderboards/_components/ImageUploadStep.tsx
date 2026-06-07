@@ -315,7 +315,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                       </div>
                     )}
 
-                    {/* Action buttons — visible on hover */}
+                    {/* Action buttons - visible on hover */}
                     {extractingId !== img.image_id && (
                       <>
                         {/* Extract button */}
@@ -465,7 +465,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Extraction Result — {extractResult?.draft_rows?.length ?? 0} rows
+              Extraction Result - {extractResult?.draft_rows?.length ?? 0} rows
             </DialogTitle>
           </DialogHeader>
 
@@ -525,7 +525,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          {row.kills ?? "—"}
+                          {row.kills ?? "-"}
                         </TableCell>
                         <TableCell>
                           {row.confidence != null ? (
@@ -541,7 +541,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                               {Math.round(row.confidence * 100)}%
                             </Badge>
                           ) : (
-                            "—"
+                            "-"
                           )}
                         </TableCell>
                       </TableRow>

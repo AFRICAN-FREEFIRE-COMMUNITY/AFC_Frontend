@@ -249,7 +249,7 @@ export default function OrdersClient() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="hidden md:block text-sm text-muted-foreground">
-                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
                     {Math.min(currentPage * ITEMS_PER_PAGE, orders.length)} of{" "}
                     {orders.length}
                   </p>

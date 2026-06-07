@@ -71,12 +71,12 @@ type GhostTeam = {
   external_id: string | null;
   claim_status: GhostClaimStatus;
   created_at: string;
-  // provisional roster — match results attribute to these slots until a real
+  // provisional roster - match results attribute to these slots until a real
   // team claims the ghost, then the slots map onto the claiming team's players.
   players: GhostPlayer[];
 };
 
-// blank roster the create dialog seeds — a standard 4-player Free Fire squad
+// blank roster the create dialog seeds - a standard 4-player Free Fire squad
 const emptyRoster = (): GhostPlayer[] =>
   Array.from({ length: 4 }, (_, i) => ({ id: i + 1, ign: "" }));
 
@@ -89,7 +89,7 @@ const page = () => {
   const [teams, setTeams] = useState<any>();
   const [rankingTeams, setRankingTeams] = useState(false);
 
-  // ── Ghost Teams (LIVE — afc_rankings ghost-teams admin API) ──────────────
+  // ── Ghost Teams (LIVE - afc_rankings ghost-teams admin API) ──────────────
   const MIN_REASON = 10;
   const [ghostTeams, setGhostTeams] = useState<GhostTeam[]>([]);
   const [ghostLoading, setGhostLoading] = useState(true);
@@ -396,7 +396,7 @@ const page = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="hidden md:block text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
                 {Math.min(currentPage * ITEMS_PER_PAGE, filteredTeams.length)}{" "}
                 of {filteredTeams.length}
               </p>
@@ -456,7 +456,7 @@ const page = () => {
         </CardContent>
       </Card>
 
-      {/* ── Ghost Teams — live afc_rankings ghost-teams admin (create / delete, reason-gated) ── */}
+      {/* ── Ghost Teams - live afc_rankings ghost-teams admin (create / delete, reason-gated) ── */}
       <Card className="gap-0 mt-4">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
@@ -512,7 +512,7 @@ const page = () => {
                   <TableRow key={ghost.ghost_team_id}>
                     <TableCell>{ghost.team_name}</TableCell>
                     <TableCell>{ghost.country}</TableCell>
-                    <TableCell>{ghost.external_id ?? "—"}</TableCell>
+                    <TableCell>{ghost.external_id ?? "-"}</TableCell>
                     <TableCell>
                       <Badge
                         variant="secondary"
@@ -524,7 +524,7 @@ const page = () => {
                     <TableCell>
                       {ghost.created_at
                         ? ghost.created_at.slice(0, 10)
-                        : "—"}
+                        : "-"}
                     </TableCell>
                     <TableCell>
                       {ghost.claim_status === "claimed" ? (

@@ -5,12 +5,12 @@
 // Drops into the public event detail (EventDetailsWrapper) as a small card. Two
 // surfaces, wired to organizersApi (lib/organizers.ts):
 //
-//   1. RATING — 5 clickable stars bound to getEventRating(event_id).my_score.
+//   1. RATING - 5 clickable stars bound to getEventRating(event_id).my_score.
 //      It is always editable: clicking a star re-submits via rateEvent() (an
-//      upsert — one rating per event+user), then we refresh the aggregate.
+//      upsert - one rating per event+user), then we refresh the aggregate.
 //      Anonymous visitors see the aggregate read-only ("X.X ★ (N ratings)").
 //
-//   2. COMMENT — a textarea + submit that posts via commentEvent(). The comment
+//   2. COMMENT - a textarea + submit that posts via commentEvent(). The comment
 //      is private to the event's organizer (+ AFC); on success we toast
 //      "Sent to the organizer" and clear the box.
 //
@@ -48,7 +48,7 @@ const MAX_STARS = 5;
 interface EventReviewCardProps {
   // The numeric event id already loaded by the page (eventDetails.event_id).
   eventId: number;
-  // The event name — used only for friendlier copy in the comment box.
+  // The event name - used only for friendlier copy in the comment box.
   eventName: string;
 }
 
@@ -75,7 +75,7 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
       const data = await organizersApi.getEventRating(eventId);
       setRating(data);
     } catch {
-      // Non-fatal — the widget just renders its empty/zero state.
+      // Non-fatal - the widget just renders its empty/zero state.
     }
   }, [eventId]);
 
@@ -176,7 +176,7 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
               })}
             </div>
 
-            {/* Aggregate, e.g. "4.3 ★ (12 ratings)" — read-only for everyone. */}
+            {/* Aggregate, e.g. "4.3 ★ (12 ratings)" - read-only for everyone. */}
             <div className="text-sm text-muted-foreground">
               {count > 0 ? (
                 <span>
@@ -196,13 +196,13 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
           <p className="text-xs text-muted-foreground">
             {isLoggedIn
               ? rating?.my_score
-                ? "You rated this event — click a star to change it."
+                ? "You rated this event - click a star to change it."
                 : "Click a star to rate this event."
               : "Log in to rate this event and leave feedback."}
           </p>
         </div>
 
-        {/* ── Comment box — logged-in only. Private to the organizer. ── */}
+        {/* ── Comment box - logged-in only. Private to the organizer. ── */}
         {isLoggedIn && (
           <div className="space-y-2">
             <label

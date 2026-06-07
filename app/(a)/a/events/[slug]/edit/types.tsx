@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { toast } from "sonner";
 // Shared bracket-types + labels (see lib/eventFormats.ts). Re-exported below under the
-// historic formattedWord / STAGE_FORMATS names so existing importers keep working — the
+// historic formattedWord / STAGE_FORMATS names so existing importers keep working - the
 // point-rush / champion-rush pseudo-formats were dropped (now per-stage toggles).
 import { STAGE_FORMATS as SHARED_STAGE_FORMATS, FORMAT_LABEL } from "@/lib/eventFormats";
 
@@ -40,7 +40,7 @@ export const GroupSchema = z.object({
   match_maps: z.array(z.string()).min(1, "At least one map must be selected"),
 });
 
-// ── Round-Robin config schema (sub-project B) — mirrors the create-flow schema. ──
+// ── Round-Robin config schema (sub-project B) - mirrors the create-flow schema. ──
 // Permissive on purpose: the shared RoundRobinPanel owns the editing UX and the
 // backend enforces the structural rules. team_ids hold TEAM PKs.
 export const RoundRobinConfigSchema = z.object({
@@ -232,7 +232,7 @@ export interface EventDetails {
     stage_status: string;
     // ── Scoring-mode config echoed by get-event-details (sub-project A). ──
     // point_rush_target_stage_id is a STAGE id; the form needs it mapped to a 0-based
-    // index (point_rush_target_index) on rehydration — done in edit/page.tsx.
+    // index (point_rush_target_index) on rehydration - done in edit/page.tsx.
     champion_point_enabled?: boolean;
     champion_point_threshold?: number | null;
     point_rush_enabled?: boolean;

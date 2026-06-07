@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Organizer › Events › Create.
 //
-// A FOCUSED, single-page create-event form for organizers — the lean cousin of the
+// A FOCUSED, single-page create-event form for organizers - the lean cousin of the
 // admin 9-step wizard (app/(a)/a/events/create/page.tsx). It covers only the fields
 // the backend's create-event endpoint requires, plus an optional banner + rules, and
 // always submits ONE valid stage with ONE group behind the scenes so the payload the
@@ -9,18 +9,18 @@
 // → groups → matches from that array, so it must be present and valid).
 //
 // REUSE: the admin Zod schema (EventFormSchema) drives validation, and two admin step
-// components are reused verbatim — Step5PrizePool (prize pool + distribution) and
+// components are reused verbatim - Step5PrizePool (prize pool + distribution) and
 // Step6EventRules (type-or-upload rules). The event-detail fields are rendered inline
 // here (a trimmed version of Step1EventDetails) so the organizer form stays a clean
 // single page rather than pulling in the wizard's registration-restriction/stream UI.
 //
 // GATING: rendered only when the caller can create events
 // (membership.permissions.can_create_events OR isOwner). Otherwise a notice + a link
-// back to the events list — same gate the list page uses for its "Create event" CTA.
+// back to the events list - same gate the list page uses for its "Create event" CTA.
 //
 // SUBMIT: POST multipart FormData to /events/create-event/ with a Bearer token read
-// from AuthContext (mirrors the admin page's `Authorization: Bearer ${token}`), and —
-// the organizer-specific bit — includes organization_id so the event is homed to the
+// from AuthContext (mirrors the admin page's `Authorization: Bearer ${token}`), and -
+// the organizer-specific bit - includes organization_id so the event is homed to the
 // selected org. A "Save as draft" vs "Publish" choice sets is_draft + event_status.
 // The field names + the JSON-stringified stages array match the admin submit exactly
 // so the backend accepts the payload unchanged.
@@ -97,7 +97,7 @@ export default function OrganizerCreateEventPage() {
   // The organizer form synthesises ONE stage from event_mode, so the round-robin
   // builder lives at page level (not per-stage like the admin wizard). It's edited
   // by the RoundRobinPanel below and only sent when event_mode is "br - round robin"
-  // (see buildDefaultStages) — mirroring how the admin page only attaches round_robin
+  // (see buildDefaultStages) - mirroring how the admin page only attaches round_robin
   // to a stage whose stage_format is the BR Round-Robin bracket.
   const [roundRobinConfig, setRoundRobinConfig] = useState<RoundRobinConfig>(
     DEFAULT_ROUND_ROBIN_CONFIG,
@@ -108,7 +108,7 @@ export default function OrganizerCreateEventPage() {
   // values (event_type "internal" per the brief, sane prize distribution seed) so the
   // form is valid with the minimum number of inputs.
   const form = useForm<EventFormType>({
-    // @ts-ignore — the admin wizard uses the same cast; the resolver type widens here.
+    // @ts-ignore - the admin wizard uses the same cast; the resolver type widens here.
     resolver: zodResolver(EventFormSchema),
     defaultValues: {
       event_name: "",
@@ -122,7 +122,7 @@ export default function OrganizerCreateEventPage() {
       event_mode: "",
       number_of_stages: 1,
       // The shared admin EventFormSchema requires >=1 fully-valid stage. The organizer
-      // form has no stage editor — it auto-builds the real single stage from the chosen
+      // form has no stage editor - it auto-builds the real single stage from the chosen
       // mode + dates at submit (buildDefaultStages), which is what actually gets sent. This
       // placeholder stage exists ONLY to satisfy the resolver so submission isn't blocked;
       // it is never sent to the backend.
@@ -147,7 +147,7 @@ export default function OrganizerCreateEventPage() {
       ],
       prizepool: "",
       prizepool_cash_value: undefined,
-      // Empty object passes the schema's record() vacuously — an organizer can submit
+      // Empty object passes the schema's record() vacuously - an organizer can submit
       // with just the prizepool text, or add positions via Step5PrizePool (each added
       // position must then carry a non-empty value, same as the admin wizard).
       prize_distribution: {},
@@ -157,7 +157,7 @@ export default function OrganizerCreateEventPage() {
       end_date: "",
       registration_open_date: "",
       registration_end_date: "",
-      // times (optional) — paired with the dates above so organizers can set when
+      // times (optional) - paired with the dates above so organizers can set when
       // registration + the event open/close, not just the day.
       registration_start_time: "",
       registration_end_time: "",
@@ -208,7 +208,7 @@ export default function OrganizerCreateEventPage() {
         prizepool_cash_value: data.prizepool_cash_value || 0,
         prize_distribution: data.prize_distribution || {},
         // ── Scoring-mode parity with the admin wizard (sub-project A). The organizer
-        // form doesn't expose these toggles, so they default to off — but they ride in
+        // form doesn't expose these toggles, so they default to off - but they ride in
         // the payload so the backend's create-event reads the same stage shape. ──
         champion_point_enabled: false,
         champion_point_threshold: undefined,
@@ -217,7 +217,7 @@ export default function OrganizerCreateEventPage() {
         point_rush_target_index: undefined,
         // ── Round-Robin parity with the admin wizard (sub-project B). Only the BR
         // Round-Robin mode carries a round_robin payload (base groups + schedule);
-        // other modes omit it so the backend doesn't see a stray config — exactly
+        // other modes omit it so the backend doesn't see a stray config - exactly
         // how the admin page conditionally attaches round_robin by stage_format. ──
         ...(data.event_mode === "br - round robin"
           ? { round_robin: roundRobinConfig }
@@ -268,7 +268,7 @@ export default function OrganizerCreateEventPage() {
   // ── Submit ────────────────────────────────────────────────────────────────
   // `asDraft` comes from which button the organizer pressed (Save draft / Publish).
   // Rules are optional for organizers, so we send whichever branch (typed/uploaded)
-  // is active and leave the other empty — no hard rules requirement to enforce here.
+  // is active and leave the other empty - no hard rules requirement to enforce here.
   const submit = (data: EventFormType, asDraft: boolean) => {
     // Block submission (with a clear reason) if the date/time window is out of order.
     const orderError = checkDateOrder(data);
@@ -309,7 +309,7 @@ export default function OrganizerCreateEventPage() {
         formData.append("end_date", data.end_date);
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
-        // times (optional) — match the admin submit field names so the backend stores them.
+        // times (optional) - match the admin submit field names so the backend stores them.
         formData.append("registration_start_time", data.registration_start_time || "");
         formData.append("registration_end_time", data.registration_end_time || "");
         formData.append("event_start_time", data.event_start_time || "");
@@ -319,7 +319,7 @@ export default function OrganizerCreateEventPage() {
         // ── No location restriction on the organizer form (keep it simple). ──
         formData.append("registration_restriction", "none");
 
-        // ── Rules (typed) — uploaded rules ride as the file above. ──
+        // ── Rules (typed) - uploaded rules ride as the file above. ──
         formData.append(
           "event_rules",
           rulesInputMethod === "type" ? data.event_rules || "" : "",
@@ -363,11 +363,11 @@ export default function OrganizerCreateEventPage() {
   };
 
   // Wraps form.handleSubmit so each button submits with its own draft flag. The onError
-  // branch surfaces the first validation error as a toast — without it a failed validation
+  // branch surfaces the first validation error as a toast - without it a failed validation
   // makes the button look dead (no request, no feedback).
   const onSubmit = (asDraft: boolean) =>
     form.handleSubmit(
-      // @ts-ignore — same resolver-cast the admin page uses; the zodResolver widens the
+      // @ts-ignore - same resolver-cast the admin page uses; the zodResolver widens the
       // form's internal TFieldValues so the typed success handler doesn't line up exactly.
       (data: EventFormType) => submit(data, asDraft),
       (errors) => {
@@ -411,7 +411,7 @@ export default function OrganizerCreateEventPage() {
       />
 
       <Form {...form}>
-        {/* No native onSubmit — the two footer buttons submit with their own draft flag. */}
+        {/* No native onSubmit - the two footer buttons submit with their own draft flag. */}
         <form className="space-y-6">
           {/* ── Section 1: Event details ── */}
           <Card>
@@ -435,7 +435,7 @@ export default function OrganizerCreateEventPage() {
                 )}
               />
 
-              {/* Type selects — competition / participant / event_type / privacy. */}
+              {/* Type selects - competition / participant / event_type / privacy. */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
                   {
@@ -501,7 +501,7 @@ export default function OrganizerCreateEventPage() {
                 ))}
               </div>
 
-              {/* Event mode — drives the synthesised stage's stage_format, so it
+              {/* Event mode - drives the synthesised stage's stage_format, so it
                   must be a valid STAGE_FORMATS value the backend recognises. */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -518,7 +518,7 @@ export default function OrganizerCreateEventPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {/* The common formats — keep the organizer form lean. BR
+                          {/* The common formats - keep the organizer form lean. BR
                               Round-Robin is included for admin-wizard parity: picking it
                               reveals the same base-groups + schedule builder below. */}
                           <SelectItem value="br - normal">
@@ -566,7 +566,7 @@ export default function OrganizerCreateEventPage() {
               </div>
 
               {/* ── Round-Robin builder (sub-project B) ─────────────────────────────
-                  Only shown when the BR Round-Robin mode is picked — the same shared
+                  Only shown when the BR Round-Robin mode is picked - the same shared
                   RoundRobinPanel the admin wizard renders, so the organizer edits the
                   same base groups + schedule and the resulting round_robin config is
                   threaded into the synthesised stage (buildDefaultStages). No team
@@ -578,7 +578,7 @@ export default function OrganizerCreateEventPage() {
                 />
               )}
 
-              {/* Registration window — each side takes a date AND a time. */}
+              {/* Registration window - each side takes a date AND a time. */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <FormLabel>Registration Opens</FormLabel>
@@ -642,7 +642,7 @@ export default function OrganizerCreateEventPage() {
                 </div>
               </div>
 
-              {/* Event window — each side takes a date AND a time. */}
+              {/* Event window - each side takes a date AND a time. */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <FormLabel>Event Start</FormLabel>
@@ -706,7 +706,7 @@ export default function OrganizerCreateEventPage() {
                 </div>
               </div>
 
-              {/* Banner upload (optional) — trimmed dropzone from the admin Step1. */}
+              {/* Banner upload (optional) - trimmed dropzone from the admin Step1. */}
               <div className="space-y-2">
                 <FormLabel>Event Banner (optional)</FormLabel>
                 {!previewUrl ? (
@@ -719,7 +719,7 @@ export default function OrganizerCreateEventPage() {
                         <IconPhoto size={28} className="text-primary dark:text-white" />
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Click to upload a banner —{" "}
+                        Click to upload a banner -{" "}
                         <span className="text-primary font-medium">browse</span>
                       </p>
                       <p className="text-xs text-muted-foreground">

@@ -29,7 +29,7 @@ import { InfoTip } from "@/components/ui/info-tip";
 import type { HelpId } from "@/lib/help-content";
 
 /**
- * Scoring Configuration — wired to the Phase-2 rankings admin write API.
+ * Scoring Configuration - wired to the Phase-2 rankings admin write API.
  *
  * These knobs are the single source of truth for every ranking + tier
  * calculation. The active config (or the constants.py defaults snapshot) loads
@@ -433,7 +433,7 @@ export default function ScoringConfigPage() {
   // baseline = last-saved (or loaded) config; dirty-tracking + orange highlights
   // measure the editor against THIS, not the spec defaults.
   const [baseline, setBaseline] = useState<ScoringConfig>(() => seedDefaults());
-  // last-loaded raw backend snapshot — re-emitted on save so the saved version is lossless.
+  // last-loaded raw backend snapshot - re-emitted on save so the saved version is lossless.
   const [rawConfig, setRawConfig] = useState<BackendConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -441,9 +441,9 @@ export default function ScoringConfigPage() {
   const [reason, setReason] = useState("");
 
   // versioned config metadata (read from the active config row, or "defaults").
-  const [activeVersion, setActiveVersion] = useState<string>("—");
-  const [lastEdited, setLastEdited] = useState<string>("—");
-  const [lastEditedBy, setLastEditedBy] = useState<string>("—");
+  const [activeVersion, setActiveVersion] = useState<string>("-");
+  const [lastEdited, setLastEdited] = useState<string>("-");
+  const [lastEditedBy, setLastEditedBy] = useState<string>("-");
 
   const dirtyCount = useMemo(() => countDirty(cfg, baseline), [cfg, baseline]);
   const reasonValid = reason.trim().length >= MIN_REASON;
@@ -461,8 +461,8 @@ export default function ScoringConfigPage() {
       setActiveVersion(
         res?.is_default || res?.version == null ? "defaults" : `v${res.version}`,
       );
-      setLastEdited(res?.created_at ? String(res.created_at).slice(0, 10) : "—");
-      setLastEditedBy(res?.created_by ?? (res?.is_default ? "spec defaults" : "—"));
+      setLastEdited(res?.created_at ? String(res.created_at).slice(0, 10) : "-");
+      setLastEditedBy(res?.created_by ?? (res?.is_default ? "spec defaults" : "-"));
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to load scoring config");
     } finally {
@@ -497,7 +497,7 @@ export default function ScoringConfigPage() {
     patch((c) => ({ ...c, player: { ...c.player, [k]: v } }));
 
   // "Reset to spec defaults" pulls the constants.py snapshot and loads it into
-  // the editor (staged — not persisted until the user Saves).
+  // the editor (staged - not persisted until the user Saves).
   const resetDefaults = async () => {
     try {
       const res = await rankingsAdminApi.scoringDefaults();
@@ -554,7 +554,7 @@ export default function ScoringConfigPage() {
         }
         description="The weights, brackets and thresholds that drive every ranking and tier calculation. Changes are versioned and recalculate scores across the season."
         action={
-          // Each action ⓘ is a SIBLING of its button (not nested) — Reset stages defaults, Save drafts a version.
+          // Each action ⓘ is a SIBLING of its button (not nested) - Reset stages defaults, Save drafts a version.
           <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
             <div className="flex items-center gap-1">
               <Button variant="outline" className="w-full sm:w-auto" onClick={resetDefaults}>
@@ -622,7 +622,7 @@ export default function ScoringConfigPage() {
             <GroupHead
               icon={<IconTargetArrow className="size-4" />}
               title="Tier multipliers" spec="§4" helpId="rankings.scoring.tier_multipliers._section"
-              helper="Applied to placement, kill and finals points only — never to win bonus, scrim, prize or social."
+              helper="Applied to placement, kill and finals points only - never to win bonus, scrim, prize or social."
             />
           </CardHeader>
           <CardContent>
@@ -754,7 +754,7 @@ export default function ScoringConfigPage() {
                         onChange={(v) => setThreshold("competitive", v)} />
                     </TableCell>
                     <TableCell className="text-right text-xs tabular-nums text-muted-foreground">
-                      {cfg.thresholds.competitive}–{cfg.thresholds.elite - 1}
+                      {cfg.thresholds.competitive}-{cfg.thresholds.elite - 1}
                     </TableCell>
                   </TableRow>
                   <TableRow className={cn(cfg.thresholds.rising !== baseline.thresholds.rising && "bg-orange-500/5")}>
@@ -764,7 +764,7 @@ export default function ScoringConfigPage() {
                         onChange={(v) => setThreshold("rising", v)} />
                     </TableCell>
                     <TableCell className="text-right text-xs tabular-nums text-muted-foreground">
-                      {cfg.thresholds.rising}–{cfg.thresholds.competitive - 1}
+                      {cfg.thresholds.rising}-{cfg.thresholds.competitive - 1}
                     </TableCell>
                   </TableRow>
                   <TableRow>

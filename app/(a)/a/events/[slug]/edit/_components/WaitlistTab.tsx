@@ -172,7 +172,7 @@ export default function WaitlistTab({
                       <TableCell className="text-muted-foreground text-sm">
                         {comp.registered_at
                           ? formatDate(comp.registered_at)
-                          : "—"}
+                          : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -186,7 +186,7 @@ export default function WaitlistTab({
                       <TableCell className="text-muted-foreground text-sm">
                         {team.registered_at
                           ? formatDate(team.registered_at)
-                          : "—"}
+                          : "-"}
                       </TableCell>
                     </TableRow>
                   ))}

@@ -51,7 +51,7 @@ import { IconPlus, IconSearch, IconX } from "@tabler/icons-react";
 import { partnersApi, type PartnerSummary } from "@/lib/partners";
 import { InfoTip } from "@/components/ui/info-tip";
 
-// Shared status pill — outline badge whose border/text colour tracks the partner
+// Shared status pill - outline badge whose border/text colour tracks the partner
 // status (active = green, suspended = orange, anything else = neutral). Same idiom
 // as the Organizations list's StatusBadge so the two admin surfaces read identically.
 function StatusBadge({ status }: { status: string }) {
@@ -69,7 +69,7 @@ function StatusBadge({ status }: { status: string }) {
     );
   return (
     <Badge variant="outline" className="capitalize">
-      {status || "—"}
+      {status || "-"}
     </Badge>
   );
 }
@@ -159,7 +159,7 @@ export default function PartnersAdminPage() {
     [totalPages, page],
   );
 
-  // first load only — keep the table on-screen during search/page refetches
+  // first load only - keep the table on-screen during search/page refetches
   if (loading && partners.length === 0) return <FullLoader />;
 
   return (
@@ -185,7 +185,7 @@ export default function PartnersAdminPage() {
         </div>
       </div>
 
-      {/* Search — debounce-free; each keystroke triggers a server refetch via the
+      {/* Search - debounce-free; each keystroke triggers a server refetch via the
           fetchPartners dependency on `search` (matches the organizations search UX). */}
       <div className="relative">
         <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -251,7 +251,7 @@ export default function PartnersAdminPage() {
                       </TableCell>
                       <TableCell>{p.active_key_count ?? 0}</TableCell>
                       <TableCell className="text-muted-foreground">
-                        {p.created_at ? p.created_at.slice(0, 10) : "—"}
+                        {p.created_at ? p.created_at.slice(0, 10) : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -262,7 +262,7 @@ export default function PartnersAdminPage() {
             {totalPages > 1 && (
               <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">
-                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}–
+                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
                   {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
                 </p>
                 <Pagination>
@@ -323,7 +323,7 @@ export default function PartnersAdminPage() {
             <DialogTitle>Create partner</DialogTitle>
             <DialogDescription>
               Provision a new data-API partner. It starts with every toggle off and
-              no scope — grant access from its detail page after creating it.
+              no scope - grant access from its detail page after creating it.
             </DialogDescription>
           </DialogHeader>
 

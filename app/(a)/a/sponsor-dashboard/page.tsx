@@ -377,7 +377,7 @@ export default function SponsorDashboardPage() {
                     return (
                       <TableRow key={`${p.event_id}-${p.id}`}>
                         <TableCell>{p.username}</TableCell>
-                        <TableCell>{p.team_name ?? "—"}</TableCell>
+                        <TableCell>{p.team_name ?? "-"}</TableCell>
                         <TableCell>
                           {p.user_id_from_sponsor ?? (
                             <span className="text-muted-foreground italic text-xs">
@@ -432,7 +432,7 @@ export default function SponsorDashboardPage() {
             <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
               <p className="hidden md:block text-sm text-muted-foreground">
                 Showing{" "}
-                {filtered.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1}–
+                {filtered.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1}-
                 {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of{" "}
                 {filtered.length}
               </p>

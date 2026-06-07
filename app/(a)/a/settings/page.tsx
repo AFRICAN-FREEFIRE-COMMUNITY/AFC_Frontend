@@ -780,7 +780,7 @@ const page = () => {
                     <TableHead>Roles</TableHead>
                     <TableHead>Status</TableHead>
                     {/* Action-column header carries the per-row action ⓘs once
-                        (instead of repeating them on every row) — edit roles,
+                        (instead of repeating them on every row) - edit roles,
                         suspend, and the destructive delete. */}
                     <TableHead>
                       <span className="flex items-center gap-1">
@@ -1030,7 +1030,7 @@ const page = () => {
               {adminsTotalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="hidden md:block text-sm text-muted-foreground">
-                    Showing {(adminsPage - 1) * ITEMS_PER_PAGE + 1}–
+                    Showing {(adminsPage - 1) * ITEMS_PER_PAGE + 1}-
                     {Math.min(
                       adminsPage * ITEMS_PER_PAGE,
                       adminOnlyUsers.length,
@@ -1610,7 +1610,7 @@ const page = () => {
               {allUsersTotalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="hidden md:block text-sm text-muted-foreground">
-                    Showing {(allUsersPage - 1) * ITEMS_PER_PAGE + 1}–
+                    Showing {(allUsersPage - 1) * ITEMS_PER_PAGE + 1}-
                     {Math.min(
                       allUsersPage * ITEMS_PER_PAGE,
                       filteredUsers.length,
@@ -1973,10 +1973,10 @@ const page = () => {
                       <TableRow key={i}>
                         <TableCell className="font-medium">{entry.user}</TableCell>
                         <TableCell>{entry.ip_address}</TableCell>
-                        <TableCell>{entry.country ?? "—"}</TableCell>
-                        <TableCell>{entry.city ?? "—"}</TableCell>
+                        <TableCell>{entry.country ?? "-"}</TableCell>
+                        <TableCell>{entry.city ?? "-"}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">
-                          {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "—"}
+                          {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "-"}
                         </TableCell>
                       </TableRow>
                     ))
@@ -2029,7 +2029,7 @@ const page = () => {
                           {activity.description}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
-                          {activity.timestamp ? new Date(activity.timestamp).toLocaleString() : "—"}
+                          {activity.timestamp ? new Date(activity.timestamp).toLocaleString() : "-"}
                         </TableCell>
                       </TableRow>
                     ))
@@ -2058,7 +2058,7 @@ function AdminInfoCard({ token }: { token: string | null }) {
       );
       setInfo(res.data?.data ?? null);
     } catch {
-      // silently fail — non-admin users won't have access
+      // silently fail - non-admin users won't have access
     } finally {
       setLoading(false);
     }

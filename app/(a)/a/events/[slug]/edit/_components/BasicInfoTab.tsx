@@ -147,7 +147,7 @@ export default function BasicInfoTab({
               <FormItem>
                 <FormLabel>
                   Max Teams/Players
-                  {/* Reuse the create-wizard copy — identical field. */}
+                  {/* Reuse the create-wizard copy - identical field. */}
                   <InfoTip
                     id="events.create.max_teams_or_players"
                     className="ml-1"

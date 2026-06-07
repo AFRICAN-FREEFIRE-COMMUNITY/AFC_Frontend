@@ -45,7 +45,7 @@ interface GhostTeam {
   claimed_by: number | null;          // afc_team.Team id (or null)
   created_by: number | null;          // User id (or null)
   created_at: string;
-  // provisional roster — results attribute to these slots until a real team claims the ghost
+  // provisional roster - results attribute to these slots until a real team claims the ghost
   players: GhostPlayer[];
 }
 
@@ -68,7 +68,7 @@ function toRow(g: any): GhostTeam {
   };
 }
 
-// blank roster the create dialog seeds — a standard 4-player Free Fire squad
+// blank roster the create dialog seeds - a standard 4-player Free Fire squad
 const emptyRoster = (): GhostPlayer[] =>
   Array.from({ length: 4 }, (_, i) => ({ id: i + 1, ign: "" }));
 

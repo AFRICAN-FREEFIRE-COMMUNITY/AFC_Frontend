@@ -4,9 +4,9 @@
 // Mirrors app/(sponsor)/sponsor/layout.tsx: an OrganizerGuard (modelled on the
 // sponsor's SponsorGuard) wrapping a header + content shell. On top of the sponsor
 // shell this layout adds two organizer-specific pieces:
-//   1. A left/top sub-nav (Overview · Profile · Members) — shadcn pill/segment Tabs
+//   1. A left/top sub-nav (Overview · Profile · Members) - shadcn pill/segment Tabs
 //      driven by the active route (NOT underline tabs, per AFC design constants).
-//   2. An ORG SWITCHER — fetches getMyOrganizations() once, remembers the chosen
+//   2. An ORG SWITCHER - fetches getMyOrganizations() once, remembers the chosen
 //      org slug in state + localStorage. One org → no switcher chrome, just use it.
 //      Many orgs → a shadcn <Select> to switch between them.
 //
@@ -44,20 +44,20 @@ import {
 const SELECTED_ORG_KEY = "organizer:selected-slug";
 
 // The portal sub-routes the top sub-nav links to.
-// "Events" sits between Overview and Profile — it's the org's events surface
+// "Events" sits between Overview and Profile - it's the org's events surface
 // (list + create), gated per-page on the membership's can_create_events permission.
 const NAV_ITEMS = [
   { label: "Overview", href: "/organizer/overview" },
   { label: "Events", href: "/organizer/events" },
-  // "Design" — the org's leaderboard-design request surface (submit + history),
+  // "Design" - the org's leaderboard-design request surface (submit + history),
   // gated per-page on the membership's can_submit_designs permission (or owner).
   { label: "Design", href: "/organizer/design" },
   { label: "Profile", href: "/organizer/profile" },
   { label: "Members", href: "/organizer/members" },
-  // "Metrics" — the org's aggregate stats (events / teams / players / kills / rating),
+  // "Metrics" - the org's aggregate stats (events / teams / players / kills / rating),
   // gated per-page on can_view_metrics (or owner).
   { label: "Metrics", href: "/organizer/metrics" },
-  // "Reviews" — the org's per-event ratings + ANONYMOUS comments,
+  // "Reviews" - the org's per-event ratings + ANONYMOUS comments,
   // gated per-page on can_view_reviews (or owner).
   { label: "Reviews", href: "/organizer/reviews" },
 ];
@@ -160,11 +160,11 @@ function OrganizerShell({ children }: { children: ReactNode }) {
 
   return (
     <div>
-      {/* Header — same shell as the sponsor portal, with logout. */}
+      {/* Header - same shell as the sponsor portal, with logout. */}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
         <div className="container mx-auto h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* Back button — leaves the portal for wherever the user came from
+            {/* Back button - leaves the portal for wherever the user came from
                 (the admin dashboard for admin-organizers, /home otherwise). */}
             <Button
               variant="ghost"
@@ -206,7 +206,7 @@ function OrganizerShell({ children }: { children: ReactNode }) {
         {loading ? (
           <FullLoader text="Loading your organizations..." />
         ) : memberships.length === 0 ? (
-          // No org membership at all — nothing to show, point the user back home.
+          // No org membership at all - nothing to show, point the user back home.
           <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
             <IconBuilding className="size-10 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">

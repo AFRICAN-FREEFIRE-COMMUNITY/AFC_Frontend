@@ -510,7 +510,7 @@ export default function ActionsTab({
                   {eventDetails.stages.flatMap((s) =>
                     s.groups.map((g) => (
                       <SelectItem key={g.group_id} value={String(g.group_id)}>
-                        {s.stage_name} — {g.group_name}
+                        {s.stage_name} - {g.group_name}
                       </SelectItem>
                     )),
                   )}

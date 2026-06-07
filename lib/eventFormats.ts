@@ -6,7 +6,7 @@
 // never disagree between the create flow, the edit flow, and the organizer flow.
 //
 // IMPORTANT: scoring is no longer a "format". The old "br - point rush" and
-// "br - champion rush" pseudo-formats have been dropped — Champion-Point and Point-Rush
+// "br - champion rush" pseudo-formats have been dropped - Champion-Point and Point-Rush
 // are now independent, combinable per-stage toggles (see WEBSITE/tasks/scoring-modes-design.md).
 // A stage picks a bracket type here AND, optionally, enables either/both scoring modes.
 
@@ -21,7 +21,7 @@ export const STAGE_FORMATS = [
   "br - roundrobin",
   // The live BR Round-Robin bracket (sub-project B). The backend uses the SPACED
   // "br - round robin" value, and only THIS value triggers the base-groups +
-  // game-day-lobbies builder — which is why it is a separate key from the legacy
+  // game-day-lobbies builder - which is why it is a separate key from the legacy
   // unspaced "br - roundrobin"/Knockout entry above.
   "br - round robin",
   "cs - normal",
@@ -36,7 +36,7 @@ export const FORMAT_LABEL: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
   // Mirror the backend label for the legacy unspaced key (it is "Knockout" there,
   // not "Round Robin") so the dropdown no longer shows two identical "Round Robin"
-  // options — only the spaced "br - round robin" below is the real round-robin.
+  // options - only the spaced "br - round robin" below is the real round-robin.
   "br - roundrobin": "Battle Royale - Knockout",
   "br - round robin": "Battle Royale - Round Robin",
   "cs - normal": "Clash Squad - Normal",

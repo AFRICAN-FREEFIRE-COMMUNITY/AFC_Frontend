@@ -64,10 +64,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (data.event_status) parts.push(`Status: ${data.event_status}`);
   const description =
     parts.length > 0
-      ? `${title} — ${parts.join(" • ")}`
+      ? `${title} - ${parts.join(" • ")}`
       : `${title} is a competitive tournament on African Freefire Community. Register now!`;
 
-  // Safely resolve the banner URL — proxy through our domain so crawlers can reach it
+  // Safely resolve the banner URL - proxy through our domain so crawlers can reach it
   const rawImage = data.event_banner_url || data.team_logo;
   const resolvedImage =
     rawImage && typeof rawImage === "string"

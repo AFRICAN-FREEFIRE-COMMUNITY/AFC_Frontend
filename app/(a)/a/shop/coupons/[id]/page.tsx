@@ -45,7 +45,7 @@ interface CouponDetails {
   description: string;
 }
 
-// Mock data — replace with real endpoints later
+// Mock data - replace with real endpoints later
 const mockUsageOverTime = [
   { week: "2024-01-01", uses: 5, savings: 95.0 },
   { week: "2024-01-07", uses: 12, savings: 225.0 },
@@ -187,7 +187,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
 
       {/* Stats Cards */}
       <div className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
-        {/* Total Uses — Real data */}
+        {/* Total Uses - Real data */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Uses</CardTitle>
@@ -202,7 +202,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
           </CardContent>
         </Card>
 
-        {/* Total Savings — Mock */}
+        {/* Total Savings - Mock */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Savings</CardTitle>
@@ -218,7 +218,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
           </CardContent>
         </Card>
 
-        {/* Conversion Rate — Mock */}
+        {/* Conversion Rate - Mock */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -236,7 +236,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
           </CardContent>
         </Card>
 
-        {/* Revenue Generated — Mock */}
+        {/* Revenue Generated - Mock */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -303,7 +303,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Created</span>
-                  <span className="font-medium">—</span>
+                  <span className="font-medium">-</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -328,7 +328,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
           </Card>
         </div>
         <div>
-          {/* Usage Over Time — Mock */}
+          {/* Usage Over Time - Mock */}
           <Card>
             <CardHeader>
               <CardTitle>Usage Over Time</CardTitle>
@@ -367,7 +367,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
         </div>
       </div>
 
-      {/* Recent Redemptions — Mock */}
+      {/* Recent Redemptions - Mock */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Redemptions</CardTitle>

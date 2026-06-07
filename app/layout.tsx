@@ -69,7 +69,7 @@ export default function RootLayout({
         {/*
           Mixpanel install stub. NOTE: it lives inside a template-literal child ({`...`}),
           so every backslash must be DOUBLED. The vendor snippet's protocol check uses the
-          regex /^\/\// — written here as /^\\/\\//. Without the doubling, the template
+          regex /^\/\// - written here as /^\\/\\//. Without the doubling, the template
           literal evaluates `\/` -> `/`, the regex collapses to /^/// (where // starts a
           comment that eats the closing `)`), and the injected script throws
           "SyntaxError: missing ) after argument list" on every page. Keep the backslashes

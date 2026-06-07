@@ -343,7 +343,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
       });
       setAllRegisteredSponsorIds(map);
     } catch {
-      // Non-fatal — duplicate-across-event check just won't run
+      // Non-fatal - duplicate-across-event check just won't run
     } finally {
       setIsFetchingAllSponsors(false);
     }
@@ -584,7 +584,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
 
               <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md">
                 <h3 className="font-semibold mb-3">
-                  Select Players ({minPlayers}–{maxPlayers}):
+                  Select Players ({minPlayers}-{maxPlayers}):
                 </h3>
                 <div className="space-y-2">
                   {userTeam?.members.map((member) => {
@@ -747,7 +747,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                             });
                           }}
                         />
-                        {/* Error messages — ordered by specificity */}
+                        {/* Error messages - ordered by specificity */}
                         {rejectedUntouched && !hasAnyError && (
                           <p className="text-xs text-destructive">
                             {rosterEntry?.reason
@@ -1244,7 +1244,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
       });
       setAllRegisteredSponsorIds(map);
     } catch {
-      // Non-fatal — duplicate-across-event check just won't run
+      // Non-fatal - duplicate-across-event check just won't run
     } finally {
       setIsFetchingAllSponsors(false);
     }
@@ -1270,7 +1270,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalStep]);
 
-  // Poll Discord status for team members — only restarts when modal step changes
+  // Poll Discord status for team members - only restarts when modal step changes
   useEffect(() => {
     if (modalStep !== "DISCORD_STATUS" || !onCheckDiscordStatusRef.current)
       return;
@@ -1665,7 +1665,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
           if (!soloSponsorUuid.trim() || allRegisteredSponsorIds.size === 0)
             return null;
           const owner = allRegisteredSponsorIds.get(soloSponsorUuid.trim());
-          return owner || null; // for solo we never exclude — they don't have a prior entry
+          return owner || null; // for solo we never exclude - they don't have a prior entry
         };
 
         const getTeamMemberExternalConflict = (
@@ -2647,7 +2647,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       );
       setPageRoster(res.data.roster || []);
     } catch {
-      // silently fail — this is supplementary UI
+      // silently fail - this is supplementary UI
     }
   }, [token, eventDetails?.event_id]);
 
@@ -2770,7 +2770,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         );
 
         if (nonCurrentUserMissing.length > 0) {
-          // One or more non-current-user members are missing UIDs — blocking
+          // One or more non-current-user members are missing UIDs - blocking
           setUidMissingMembers(membersWithoutUid.map((m) => m.username));
           setModalStep("UID_MISSING_MEMBERS");
           return;
@@ -3120,7 +3120,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         </CardContent>
       </Card>
 
-      {/* Personal rejection notice — visible to any registered team member */}
+      {/* Personal rejection notice - visible to any registered team member */}
       {(() => {
         if (
           !eventDetails.is_registered ||

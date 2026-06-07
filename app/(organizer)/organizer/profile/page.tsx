@@ -2,13 +2,13 @@
 // Organizer › Profile (branding editor).
 //
 // OWNER-ONLY. A sub_organizer (or anyone whose membership role !== "owner") gets a
-// read-only notice instead of the form — branding is the owner's to change.
+// read-only notice instead of the form - branding is the owner's to change.
 //
 // The form edits: logo + default_banner (image uploads), email, description, and
 // the four social handles (x / instagram / youtube / discord). Submit goes through
 // organizersApi.editOrganizationProfile(slug, body):
 //   • If a logo or banner file is selected we send multipart FormData (so the files
-//     ride along), mirroring app/(user)/teams/[id]/edit/page.tsx — axios sets the
+//     ride along), mirroring app/(user)/teams/[id]/edit/page.tsx - axios sets the
 //     multipart boundary itself.
 //   • Otherwise we send a plain JSON body ({ email, description, socials }).
 // toast on success / error, like the rest of the app.
@@ -38,7 +38,7 @@ const ACCEPTED_IMAGE_TYPES = [
 ];
 
 // ── Image upload field ────────────────────────────────────────────────────────
-// A compact dropzone/preview pair reused for both the logo and the banner — mirrors
+// A compact dropzone/preview pair reused for both the logo and the banner - mirrors
 // the upload UI in app/(user)/teams/[id]/edit/page.tsx, trimmed to what's needed here.
 
 function ImageField({
@@ -90,7 +90,7 @@ function ImageField({
       ) : (
         <div className="space-y-2">
           <div className="relative w-full aspect-video bg-muted border rounded-md overflow-hidden">
-            {/* Org images come from arbitrary upload hosts — use a plain <img>. */}
+            {/* Org images come from arbitrary upload hosts - use a plain <img>. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={previewUrl}

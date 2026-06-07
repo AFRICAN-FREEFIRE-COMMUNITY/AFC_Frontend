@@ -27,8 +27,8 @@ import { cn } from "@/lib/utils";
 import { InfoTip } from "@/components/ui/info-tip";
 
 // One entry per object_type the backend audit logger emits (admin_audit; spec §16, every
-// write is logged). Every reason-gated action across the sibling rankings admin pages —
-// results / overrides / ghost-teams / social / prize / seasons — lands here as one of these.
+// write is logged). Every reason-gated action across the sibling rankings admin pages -
+// results / overrides / ghost-teams / social / prize / seasons - lands here as one of these.
 const OBJECT_TYPES = [
   { value: "tournament_result", label: "Tournament result" },
   { value: "scrim_result", label: "Scrim result" },
@@ -357,14 +357,14 @@ export default function AuditLogPage() {
                       {TYPE_LABEL[r.object_type] ?? r.object_type}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{r.object_ref ?? "—"}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">{r.object_ref ?? "-"}</TableCell>
                   <TableCell className="text-xs font-medium capitalize">{r.action}</TableCell>
                   <TableCell className="text-xs">
                     <span className="inline-flex items-center gap-1">
-                      <IconUser className="size-3 text-muted-foreground" />{r.changed_by ?? "—"}
+                      <IconUser className="size-3 text-muted-foreground" />{r.changed_by ?? "-"}
                     </span>
                   </TableCell>
-                  <TableCell className="max-w-md text-xs text-muted-foreground">{r.reason ?? "—"}</TableCell>
+                  <TableCell className="max-w-md text-xs text-muted-foreground">{r.reason ?? "-"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -391,7 +391,7 @@ export default function AuditLogPage() {
             Admins-only raw data. These uncompressed values are never exposed publicly (spec §17).
           </div>
 
-          {/* subject picker — drives teamRaw(id) / playerRaw(id) */}
+          {/* subject picker - drives teamRaw(id) / playerRaw(id) */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[140px_1fr_auto]">
             <Select value={rawKind} onValueChange={(v) => { setRawKind(v as "team" | "player"); setRaw(null); }}>
               <SelectTrigger className="h-9 w-full">

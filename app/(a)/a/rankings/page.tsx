@@ -234,7 +234,7 @@ export default function AdminRankingsPage() {
             <p className="text-sm text-muted-foreground">
               Locks each team&apos;s tier for the next quarter from the current scores. Head Admin or Metrics Admin only.
             </p>
-            {/* ⓘ sits beside each action button (sibling, not nested) — explains what the run/recalc actually does. */}
+            {/* ⓘ sits beside each action button (sibling, not nested) - explains what the run/recalc actually does. */}
             <div className="flex items-center gap-1">
               <Button className="w-full" disabled={!seasonId} onClick={() => setEvalOpen(true)}>
                 <IconPlayerPlay className="mr-1.5 size-4" /> Run Quarterly Evaluation
@@ -274,7 +274,7 @@ export default function AdminRankingsPage() {
         </Card>
       </div>
 
-      {/* publish to public — rankings + tiers are toggled INDEPENDENTLY */}
+      {/* publish to public - rankings + tiers are toggled INDEPENDENTLY */}
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-2">
           <div>
@@ -284,7 +284,7 @@ export default function AdminRankingsPage() {
             </CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
               The public rankings and tier badges stay hidden until you publish them. Each surface is
-              controlled separately — publish one without the other.
+              controlled separately - publish one without the other.
             </p>
           </div>
         </CardHeader>
@@ -415,7 +415,7 @@ export default function AdminRankingsPage() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Publish row — status badge + publish/unpublish button (per surface) */
+/* Publish row - status badge + publish/unpublish button (per surface) */
 /* ------------------------------------------------------------------ */
 function PublishRow({
   label,
@@ -451,9 +451,9 @@ function PublishRow({
           )}
         >
           {published ? (
-            <><IconWorld className="mr-1 size-3" /> Live — public</>
+            <><IconWorld className="mr-1 size-3" /> Live - public</>
           ) : (
-            <><IconLock className="mr-1 size-3" /> Draft — not visible to public</>
+            <><IconLock className="mr-1 size-3" /> Draft - not visible to public</>
           )}
         </Badge>
       </div>
@@ -475,7 +475,7 @@ function PublishRow({
 }
 
 /* ------------------------------------------------------------------ */
-/* Publish / unpublish a single public surface — mandatory reason      */
+/* Publish / unpublish a single public surface - mandatory reason      */
 /* ------------------------------------------------------------------ */
 function PublishStateDialog({
   target,
@@ -510,7 +510,7 @@ function PublishStateDialog({
     if (!target || !seasonId || !reasonOk || saving) return;
     setSaving(true);
     try {
-      // Only the surface being toggled goes in the body — rankings & tiers stay independent.
+      // Only the surface being toggled goes in the body - rankings & tiers stay independent.
       const body: Record<string, any> =
         target.kind === "rankings"
           ? { rankings_published: target.next, reason: reason.trim() }
@@ -541,7 +541,7 @@ function PublishStateDialog({
           <DialogDescription>
             {publishing
               ? `Makes the ${surface} visible to the public for this season. This does not change the other surface.`
-              : `Hides the ${surface} from the public again — the data is kept, just not shown. The other surface is unaffected.`}
+              : `Hides the ${surface} from the public again - the data is kept, just not shown. The other surface is unaffected.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -577,7 +577,7 @@ function PublishStateDialog({
 }
 
 /* ------------------------------------------------------------------ */
-/* Run quarterly evaluation — preview (dry run) + confirm (force)      */
+/* Run quarterly evaluation - preview (dry run) + confirm (force)      */
 /* ------------------------------------------------------------------ */
 function RunEvaluationDialog({
   open,
@@ -644,7 +644,7 @@ function RunEvaluationDialog({
       const msg = err?.response?.data?.message || "Failed to run evaluation";
       const conflict = err?.response?.status === 409;
       if (conflict && !force) {
-        // already evaluated — offer the force re-run.
+        // already evaluated - offer the force re-run.
         setNeedsForce(true);
         toast.error(msg);
       } else {
@@ -755,7 +755,7 @@ function RecalcEntityDialog({
   seasonId: number | undefined;
 }) {
   const [entityType, setEntityType] = useState<"team" | "player">("team");
-  // name picker — the text the admin types and the RESOLVED id (gate submit on this id).
+  // name picker - the text the admin types and the RESOLVED id (gate submit on this id).
   const [query, setQuery] = useState("");
   const [resolvedId, setResolvedId] = useState<number | null>(null);
   const [resolvedName, setResolvedName] = useState("");
@@ -763,7 +763,7 @@ function RecalcEntityDialog({
   const [reason, setReason] = useState("");
   const [queuing, setQueuing] = useState(false);
 
-  // entity lists — fetched once when the dialog opens (same axios idiom as the admin pages).
+  // entity lists - fetched once when the dialog opens (same axios idiom as the admin pages).
   const [teamOptions, setTeamOptions] = useState<{ id: number; name: string }[]>([]);
   const [playerOptions, setPlayerOptions] = useState<{ id: number; name: string }[]>([]);
 
@@ -821,7 +821,7 @@ function RecalcEntityDialog({
     return source.filter((o) => o.name.toLowerCase().includes(term)).slice(0, 8);
   }, [source, query]);
 
-  // the input is "dirty" once it diverges from the resolved name — show the dropdown then.
+  // the input is "dirty" once it diverges from the resolved name - show the dropdown then.
   const dropdownOpen = showOptions && query.trim() !== "" && query !== resolvedName;
 
   const idOk = resolvedId != null;
@@ -901,7 +901,7 @@ function RecalcEntityDialog({
                 autoComplete="off"
                 onChange={(e) => {
                   setQuery(e.target.value);
-                  // typing invalidates a prior selection — force a fresh pick.
+                  // typing invalidates a prior selection - force a fresh pick.
                   setResolvedId(null);
                   setResolvedName("");
                   setShowOptions(true);

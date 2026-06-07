@@ -381,7 +381,7 @@ const page = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {topMvp?.total_mvps ? topMvp.name : "—"}
+              {topMvp?.total_mvps ? topMvp.name : "-"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {topMvp?.total_mvps
@@ -400,7 +400,7 @@ const page = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {topWins?.total_wins ? topWins.name : "—"}
+              {topWins?.total_wins ? topWins.name : "-"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {topWins?.total_wins
@@ -485,7 +485,7 @@ const page = () => {
                   <TableRow key={player.user_id}>
                     <TableCell className="font-medium">{player.name}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {player.team_name ?? "—"}
+                      {player.team_name ?? "-"}
                     </TableCell>
                     <TableCell>{formatMoneyInput(player.total_kills)}</TableCell>
                     <TableCell>{formatMoneyInput(player.total_wins)}</TableCell>

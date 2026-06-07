@@ -181,7 +181,7 @@ export function ReviewApplicationDialog({
                   </p>
                   <p className="font-medium text-xs">
                     {app.contact_unlocked ? (
-                      app.discord_username || "—"
+                      app.discord_username || "-"
                     ) : (
                       <span className="italic text-muted-foreground">
                         Unlocks after trial invite
@@ -191,17 +191,17 @@ export function ReviewApplicationDialog({
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Country</p>
-                  <p className="font-medium">{app.country || "—"}</p>
+                  <p className="font-medium">{app.country || "-"}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Primary Role</p>
-                  <p className="font-medium">{app.primary_role || "—"}</p>
+                  <p className="font-medium">{app.primary_role || "-"}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">
                     Secondary Role
                   </p>
-                  <p className="font-medium">{app.secondary_role || "—"}</p>
+                  <p className="font-medium">{app.secondary_role || "-"}</p>
                 </div>
               </div>
             </div>

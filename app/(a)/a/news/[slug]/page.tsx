@@ -113,7 +113,7 @@ const page = ({ params }: { params: Params }) => {
                 <Edit className="mr-2 h-4 w-4" /> Edit
               </Link>
             </Button>
-            {/* ⓘ sits beside the delete trigger (sibling — the modal renders its own button). */}
+            {/* ⓘ sits beside the delete trigger (sibling - the modal renders its own button). */}
             <DeleteNewsModal
               newsId={newsDetails.news_id}
               newsTitle={newsDetails.news_title}

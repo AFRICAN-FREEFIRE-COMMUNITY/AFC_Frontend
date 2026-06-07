@@ -68,25 +68,25 @@ const page = () => {
             </h2>
             <p>For clarity throughout this document:</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>“User” / “Player” – any individual who uses AFC services.</li>
+              <li>“User” / “Player” - any individual who uses AFC services.</li>
               <li>
-                “Account” – an AFC user profile linked to a Discord identity.
+                “Account” - an AFC user profile linked to a Discord identity.
               </li>
               <li>
-                “Virtual Items” – digital items, tournament passes, boosts,
+                “Virtual Items” - digital items, tournament passes, boosts,
                 cosmetics, or other non-physical assets sold by AFC.
               </li>
               <li>
-                “Services” – all AFC websites, software, tournaments,
+                “Services” - all AFC websites, software, tournaments,
                 leaderboards, metrics systems, Discord features.
               </li>
               <li>
-                “Fraudulent Activity” – cheating, impersonation, chargebacks,
+                “Fraudulent Activity” - cheating, impersonation, chargebacks,
                 device manipulation, ban evasion, false information, or any
                 activity intended to bypass AFC rules.
               </li>
               <li>
-                “Banned/Blacklisted” – restricted from participating in AFC
+                “Banned/Blacklisted” - restricted from participating in AFC
                 events based on AFC rules or investigations.
               </li>
             </ul>

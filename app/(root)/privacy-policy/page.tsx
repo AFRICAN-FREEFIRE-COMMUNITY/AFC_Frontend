@@ -214,8 +214,8 @@ const page = () => {
             </p>
             <p>These include:</p>
             <ul className="list-disc list-inside space-y-1 ml-4">
-              <li>AWS – hosting and infrastructure</li>
-              <li>Discord – identity verification and communication</li>
+              <li>AWS - hosting and infrastructure</li>
+              <li>Discord - identity verification and communication</li>
               <li>
                 Analytics providers (Google Analytics, Mixpanel, or equivalent)
               </li>
@@ -251,7 +251,7 @@ const page = () => {
                 indefinitely.
               </li>
               <li>Ban / Blacklist Records: retained indefinitely.</li>
-              <li>Device & Location Logs: retained for 5–7 years.</li>
+              <li>Device & Location Logs: retained for 5-7 years.</li>
               <li>
                 Payment & Financial Data: retained for up to 7 years (standard
                 financial compliance).

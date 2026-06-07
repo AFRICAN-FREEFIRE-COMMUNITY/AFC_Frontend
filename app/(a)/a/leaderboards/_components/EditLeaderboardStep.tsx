@@ -86,7 +86,7 @@ interface Props {
 function statToEditRow(stat: RawStat): EditRow {
   return {
     id: stat.competitor_id ?? stat.tournament_team_id ?? 0,
-    name: stat.username ?? stat.team_name ?? "—",
+    name: stat.username ?? stat.team_name ?? "-",
     placement: stat.placement,
     kills: stat.kills,
     bonus_points: stat.bonus_points ?? 0,
@@ -252,7 +252,7 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
   const getEntityId = (e: OverallEntry) =>
     e.competitor_id ?? e.tournament_team_id ?? 0;
   const getEntityName = (e: OverallEntry) =>
-    e.competitor__user__username ?? e.team_name ?? "—";
+    e.competitor__user__username ?? e.team_name ?? "-";
 
   // ── Loading / Error ─────────────────────────────────────────────────────────
 

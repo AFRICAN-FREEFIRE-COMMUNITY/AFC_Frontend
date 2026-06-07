@@ -221,7 +221,7 @@ function DeductPointsDialog({
               max={current}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder={`1 – ${current}`}
+              placeholder={`1 - ${current}`}
               className="tabular-nums"
             />
             {amount !== "" && !validAmount && (
@@ -470,7 +470,7 @@ function BanZeroPlayerDialog({
 }
 
 /* ---------------------------------------------------------------- Stat card (shared summary tile) */
-// Same signature as results/page.tsx — keep the rankings admin summary tiles identical.
+// Same signature as results/page.tsx - keep the rankings admin summary tiles identical.
 function StatCard({ icon, title, value, sub, tone }: {
   icon: React.ReactNode; title: string; value: React.ReactNode; sub?: string; tone?: string;
 }) {
@@ -532,7 +532,7 @@ export default function OverridesAndBansPage() {
   // Admin surface: MUST read the ungated draft endpoints (adminTeamsQuarterly /
   // adminPlayersQuarterly) so unpublished seasons still list teams/players to override.
   // The public teams/players/quarterly reads return nothing until the season is published
-  // from the overview Publish card — the draft endpoints return the same {results, season,
+  // from the overview Publish card - the draft endpoints return the same {results, season,
   // pagination} shape with the per-row override state (tier_overridden / is_zeroed /
   // points_deducted / effective_score) intact.
   const loadTeams = async (seasonId: number) => {
@@ -809,7 +809,7 @@ export default function OverridesAndBansPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex flex-wrap items-center justify-end gap-2">
-                            {/* Each action ⓘ is a SIBLING of its button — explains what the manual correction does. */}
+                            {/* Each action ⓘ is a SIBLING of its button - explains what the manual correction does. */}
                             <Button size="sm" variant="outline" onClick={() => setOverrideTeam(t)}>
                               <IconGavel className="mr-1 size-3.5" /> Override tier
                             </Button>
@@ -929,7 +929,7 @@ export default function OverridesAndBansPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">—</TableCell>
+                      <TableCell className="text-muted-foreground">-</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <TierBadge tier={(p.tier ?? 3) as 0 | 1 | 2 | 3} />

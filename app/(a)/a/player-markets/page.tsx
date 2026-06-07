@@ -593,7 +593,7 @@ function getTrialStatusColor(status: string): string {
 
 /** Format enum-style strings to title case: "TIER_1" → "Tier 1" */
 function formatEnum(value: string): string {
-  if (!value) return "—";
+  if (!value) return "-";
   return value
     .toLowerCase()
     .replace(/_/g, " ")
@@ -622,7 +622,7 @@ export default function AdminPlayerMarketPage() {
   }>({ open: false, listingId: null, listingType: "team" });
   const [suspendReason, setSuspendReason] = useState("");
 
-  // Trials state (mock — kept for any legacy usage)
+  // Trials state (mock - kept for any legacy usage)
   const [viewTrial, setViewTrial] = useState<MockTrial | null>(null);
 
   // Trials & Applications (real API)
@@ -680,7 +680,7 @@ export default function AdminPlayerMarketPage() {
     }
   }, [token]);
 
-  // Overview stats — team/player from real data, trials from real API
+  // Overview stats - team/player from real data, trials from real API
   const activeTeamListings = teamListings.filter(
     (t) => getListingStatus(t.expiry) === "Active",
   ).length;
@@ -918,11 +918,11 @@ export default function AdminPlayerMarketPage() {
                                   {formatEnum(listing.minimum_tier_required)}
                                 </Badge>
                               ) : (
-                                "—"
+                                "-"
                               )}
                             </TableCell>
                             <TableCell>
-                              {formatEnum(listing.commitment_type) || "—"}
+                              {formatEnum(listing.commitment_type) || "-"}
                             </TableCell>
                             <TableCell>
                               {listing.roles_needed?.length ? (
@@ -938,7 +938,7 @@ export default function AdminPlayerMarketPage() {
                                   ))}
                                 </div>
                               ) : (
-                                "—"
+                                "-"
                               )}
                             </TableCell>
                             <TableCell>
@@ -1063,7 +1063,7 @@ export default function AdminPlayerMarketPage() {
                             </TableCell>
                             <TableCell className="text-sm">
                               {listing.country ?? (
-                                <span className="text-muted-foreground">—</span>
+                                <span className="text-muted-foreground">-</span>
                               )}
                             </TableCell>
                             <TableCell>
@@ -1075,7 +1075,7 @@ export default function AdminPlayerMarketPage() {
                                   {formatEnum(listing.primary_role)}
                                 </Badge>
                               ) : (
-                                "—"
+                                "-"
                               )}
                             </TableCell>
                             <TableCell>
@@ -1088,7 +1088,7 @@ export default function AdminPlayerMarketPage() {
                                 </Badge>
                               ) : (
                                 <span className="text-muted-foreground text-sm">
-                                  —
+                                  -
                                 </span>
                               )}
                             </TableCell>
@@ -1098,7 +1098,7 @@ export default function AdminPlayerMarketPage() {
                                   {formatEnum(listing.availability_type)}
                                 </Badge>
                               ) : (
-                                "—"
+                                "-"
                               )}
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
@@ -1355,7 +1355,7 @@ export default function AdminPlayerMarketPage() {
                 {/* Post */}
                 <div className="space-y-1">
                   <p className="font-medium">Post</p>
-                  <p>#{selectedApplication.post.id} — {formatEnum(selectedApplication.post.post_type)}</p>
+                  <p>#{selectedApplication.post.id} - {formatEnum(selectedApplication.post.post_type)}</p>
                   {selectedApplication.post.commitment_type && (
                     <p className="text-muted-foreground">{formatEnum(selectedApplication.post.commitment_type)}</p>
                   )}

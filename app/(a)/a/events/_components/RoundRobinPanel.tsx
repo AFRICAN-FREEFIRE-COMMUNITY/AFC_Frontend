@@ -3,7 +3,7 @@
 // ── Round-Robin stage builder panel (sub-project B) ─────────────────────────────
 //
 // Shared between the CREATE wizard (StageModal) and the EDIT flow (StageConfigModal)
-// so the two never drift — mirrors how lib/eventFormats.ts centralises the stage
+// so the two never drift - mirrors how lib/eventFormats.ts centralises the stage
 // formats. Rendered ONLY when a stage's format is "br - round robin"; hidden for
 // every other bracket type (the caller guards the render).
 //
@@ -11,7 +11,7 @@
 // threads into the stage object → JSON-stringified into the create/edit FormData,
 // exactly the way the Champion-Point / Point-Rush scoring-mode fields ride along.
 //
-// Backend contract (see backend/MINTROUTE… no — see the round-robin plan / views):
+// Backend contract (see backend/MINTROUTE… no - see the round-robin plan / views):
 //   • round_robin_groups: [{ label, order, team_ids }]   team_ids are TEAM PKs.
 //   • generate_schedule: true   → backend auto-pairs every base-group pair, one
 //                                  pairing per game-day (round_robin.round_robin_schedule).
@@ -44,10 +44,10 @@ export interface RoundRobinGroupInput {
 }
 
 // One MANUAL game-day lobby: merges the chosen base groups (by their 0-based index
-// in the groups array — resolved to real group ids server-side on save) for a day.
+// in the groups array - resolved to real group ids server-side on save) for a day.
 export interface RoundRobinGameDayInput {
   game_day: number;
-  // 0-based indices into `groups` — index-based so it survives before the groups
+  // 0-based indices into `groups` - index-based so it survives before the groups
   // have server ids (on create). The backend maps these to source_group_ids.
   source_group_indices: number[];
   match_count: number;
@@ -92,7 +92,7 @@ function nextGroupLabel(count: number): string {
 interface RoundRobinPanelProps {
   config: RoundRobinConfig;
   onChange: (config: RoundRobinConfig) => void;
-  // Registered teams to assign into base groups. Omitted on CREATE (no teams yet) —
+  // Registered teams to assign into base groups. Omitted on CREATE (no teams yet) -
   // the team picker is hidden and only labels + schedule are editable.
   availableTeams?: RoundRobinTeamOption[];
 }
@@ -260,7 +260,7 @@ export function RoundRobinPanel({
               </Button>
             </div>
 
-            {/* Team picker — only when the caller supplies registered teams (edit). */}
+            {/* Team picker - only when the caller supplies registered teams (edit). */}
             {availableTeams && availableTeams.length > 0 ? (
               <div className="space-y-1.5">
                 <Label className="block text-[11px] text-muted-foreground">

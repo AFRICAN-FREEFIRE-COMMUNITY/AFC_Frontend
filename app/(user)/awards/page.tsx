@@ -417,7 +417,7 @@ interface VoteCategory {
   nominees: { id: number; name: string }[];
 }
 
-// Awards voting is currently CLOSED — show only the Winners view. The Vote tab stays
+// Awards voting is currently CLOSED - show only the Winners view. The Vote tab stays
 // hidden until voting reopens (flip VOTING_OPEN to true). We gate on this flag rather than
 // just "categories exist", so a closed/past awards' categories never re-show the Vote tab.
 const VOTING_OPEN = false;
@@ -509,7 +509,7 @@ export default function page() {
           <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />
         </div>
         <p className="text-muted-foreground text-base max-w-2xl mx-auto">
-          Nigerian Free Fire Community Awards — celebrate the best creators and players in the community.
+          Nigerian Free Fire Community Awards - celebrate the best creators and players in the community.
         </p>
       </div>
 

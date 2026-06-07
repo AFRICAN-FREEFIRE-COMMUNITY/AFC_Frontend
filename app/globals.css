@@ -359,7 +359,7 @@
 /* ── Rendered rich content (news articles, previews, etc.) ────────────────── */
 
 /*
- * Colour hierarchy — headings pop, body breathes, muted recedes.
+ * Colour hierarchy - headings pop, body breathes, muted recedes.
  * Light:  headings near-black, body warm dark-grey, muted mid-grey.
  * Dark:   headings near-white, body comfortable mid-grey, muted dim-grey.
  * Matches the WordPress / high-end editorial reading experience.
@@ -386,7 +386,7 @@
   color: var(--rc-body);
 }
 
-/* H1 — article title / main section break */
+/* H1 - article title / main section break */
 .rich-content h1 {
   font-size: 2rem;
   font-weight: 800;
@@ -396,7 +396,7 @@
   margin-bottom: 0.75rem;
   color: var(--rc-heading);
 }
-/* H2 — section headers */
+/* H2 - section headers */
 .rich-content h2 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -406,7 +406,7 @@
   margin-bottom: 0.625rem;
   color: var(--rc-heading);
 }
-/* H3 — sub-sections */
+/* H3 - sub-sections */
 .rich-content h3 {
   font-size: 1.2rem;
   font-weight: 700;
@@ -457,7 +457,7 @@
   margin-bottom: 0.375rem;
 }
 
-/* Inline — strong pops, em stays body tone */
+/* Inline - strong pops, em stays body tone */
 .rich-content strong {
   font-weight: 700;
   color: var(--rc-strong);
@@ -478,7 +478,7 @@
 }
 .rich-content a:hover { opacity: 0.75; }
 
-/* Blockquote — editorial pull-quote */
+/* Blockquote - editorial pull-quote */
 .rich-content blockquote {
   border-left: 3px solid var(--primary);
   padding: 0.75rem 1rem;

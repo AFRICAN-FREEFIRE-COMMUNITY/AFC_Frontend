@@ -31,7 +31,7 @@ import {
   formattedWord,
   type EventFormType,
 } from "../types";
-// Shared Round-Robin builder (sub-project B) — same panel used by the create flow.
+// Shared Round-Robin builder (sub-project B) - same panel used by the create flow.
 import {
   RoundRobinPanel,
   type RoundRobinConfig,
@@ -181,7 +181,7 @@ interface StageConfigModalProps {
     point_rush_enabled: boolean;
     point_rush_reward: Record<string, number>; // {"1":10,"2":7,...} placement→bonus
     point_rush_target_index?: number; // 0-based index of the LATER stage that banks the bonus
-    // ── Round-Robin config (sub-project B) — only for "br - round robin" stages. ──
+    // ── Round-Robin config (sub-project B) - only for "br - round robin" stages. ──
     round_robin: RoundRobinConfig;
   };
   setStageModalData: (data: any) => void;
@@ -288,7 +288,7 @@ export function StageConfigModal({
             <div>
               <Label className="mb-2.5">
                 Stage Format
-                {/* Reuse the create-wizard copy — identical scoring control. */}
+                {/* Reuse the create-wizard copy - identical scoring control. */}
                 <InfoTip id="events.create.stage_format" className="ml-1" />
               </Label>
               <Select

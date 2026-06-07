@@ -35,7 +35,7 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
   const [loadingType, setLoadingType] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  // Resolve participant type — use override if provided, otherwise fetch from event details
+  // Resolve participant type - use override if provided, otherwise fetch from event details
   useEffect(() => {
     if (participantTypeOverride) {
       setParticipantType(participantTypeOverride);
@@ -105,7 +105,7 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          // Do NOT set Content-Type — browser sets it with the boundary
+          // Do NOT set Content-Type - browser sets it with the boundary
         },
         body: formPayload,
       });
@@ -138,7 +138,7 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
   return (
     <Card className="gap-0">
       <CardHeader>
-        <CardTitle>{match.match_name} — 3D Room File Upload</CardTitle>
+        <CardTitle>{match.match_name} - 3D Room File Upload</CardTitle>
         <CardDescription>
           Choose the data source type and upload the file for leaderboard
           extraction.

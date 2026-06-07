@@ -36,7 +36,7 @@ export const formatMoneyInput = (inputValue: string | number | any) => {
 
   let value = String(inputValue);
 
-  // Allow spaces in text — don't format unless it's a pure number
+  // Allow spaces in text - don't format unless it's a pure number
   const numericOnly = value.replace(/,/g, ""); // remove commas to check
 
   if (!/^\d+(\.\d+)?$/.test(numericOnly)) {

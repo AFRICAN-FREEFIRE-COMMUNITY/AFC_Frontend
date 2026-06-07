@@ -133,7 +133,7 @@ function drawMatchCanvas(
     ctx.fillStyle = i === 0 ? "#ffffff" : "#e5e7eb";
     ctx.font = `${i === 0 ? "bold " : ""}${22 * s}px sans-serif`;
     ctx.fillText(
-      truncateText(ctx, stat.username ?? stat.team_name ?? "—", colPlace - colName - 16 * s),
+      truncateText(ctx, stat.username ?? stat.team_name ?? "-", colPlace - colName - 16 * s),
       colName,
       ry,
     );
@@ -201,7 +201,7 @@ function MatchDownloadButton({
       const sorted = [...match.stats].sort((a, b) => b.effective_total - a.effective_total);
       const rows = sorted.map((s, idx) => [
         idx + 1,
-        s.username ?? s.team_name ?? "—",
+        s.username ?? s.team_name ?? "-",
         s.placement,
         s.kills,
         s.placement_points,
@@ -382,7 +382,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
               playerMap.set(player.player_id, {
                 player_id: player.player_id,
                 username: player.username,
-                team_name: teamStat.team_name ?? "—",
+                team_name: teamStat.team_name ?? "-",
                 total_kills: player.kills,
                 total_damage: player.damage,
                 total_assists: player.assists,
@@ -404,7 +404,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
   };
 
   const getEntityName = (entry: OverallEntry) =>
-    entry.competitor__user__username ?? entry.team_name ?? "—";
+    entry.competitor__user__username ?? entry.team_name ?? "-";
   const getEntityId = (entry: OverallEntry) =>
     entry.competitor_id ?? entry.tournament_team_id ?? 0;
 
@@ -472,7 +472,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
               <>
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground font-medium">
-                    {selectedMatch.match_map} — Match {selectedMatch.match_number}
+                    {selectedMatch.match_map} - Match {selectedMatch.match_number}
                   </p>
                   <MatchDownloadButton
                     match={selectedMatch}
@@ -509,7 +509,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
                             {idx + 1}
                           </TableCell>
                           <TableCell className="font-medium">
-                            {stat.username ?? stat.team_name ?? "—"}
+                            {stat.username ?? stat.team_name ?? "-"}
                           </TableCell>
                           <TableCell className="text-right">
                             {stat.placement}
@@ -633,7 +633,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
                         <TableCell className="font-medium">
                           {entry.team_name ??
                             entry.competitor__user__username ??
-                            "—"}
+                            "-"}
                         </TableCell>
                         <TableCell className="text-right">
                           {entry.total_booyah}

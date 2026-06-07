@@ -342,7 +342,7 @@ export default function SponsorsPage({
                     return (
                       <TableRow key={c.competitor_id}>
                         <TableCell>{c.username}</TableCell>
-                        <TableCell>{c.team_name ?? "—"}</TableCell>
+                        <TableCell>{c.team_name ?? "-"}</TableCell>
                         <TableCell>{c.sponsor_id}</TableCell>
                         <TableCell>{statusBadge(c.status)}</TableCell>
                         <TableCell className="text-right">
@@ -387,7 +387,7 @@ export default function SponsorsPage({
                             </div>
                           ) : (
                             <span className="text-xs text-muted-foreground">
-                              —
+                              -
                             </span>
                           )}
                         </TableCell>
@@ -403,7 +403,7 @@ export default function SponsorsPage({
                 {filteredCompetitors.length === 0
                   ? 0
                   : (page - 1) * ITEMS_PER_PAGE + 1}
-                –{Math.min(page * ITEMS_PER_PAGE, filteredCompetitors.length)}{" "}
+                -{Math.min(page * ITEMS_PER_PAGE, filteredCompetitors.length)}{" "}
                 of {filteredCompetitors.length}
               </p>
               {totalPages > 1 && (

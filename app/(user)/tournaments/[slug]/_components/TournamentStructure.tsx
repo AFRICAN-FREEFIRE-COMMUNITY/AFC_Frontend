@@ -9,7 +9,7 @@
 // (get-event-details-not-logged-in): one node per `stage`, the stage's real
 // `stage_format` label, its `teams_qualifying_from_stage` ("top N advance"), and each
 // group's `overall_leaderboard` standings with a green qualify line after
-// `group.teams_qualifying`. No hardcoded stage count/format — add/remove a stage or
+// `group.teams_qualifying`. No hardcoded stage count/format - add/remove a stage or
 // change a format in admin and this re-renders correctly.
 //
 // Honest scope (matches the data model): we show stage ORDER + how many advance, not a
@@ -150,7 +150,7 @@ export function TournamentStructure({ stages, participantType }: Props) {
       {/* ── 2. Standings & qualification for the selected stage ── */}
       <section>
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-          Standings &amp; Qualification — {stage.stage_name}
+          Standings &amp; Qualification - {stage.stage_name}
         </p>
         <div className="flex gap-5 flex-wrap text-sm text-muted-foreground mb-5">
           <span className="inline-flex items-center gap-2">
@@ -259,7 +259,7 @@ export function TournamentStructure({ stages, participantType }: Props) {
 
         {/* honest note: this is built from stored data, no invented brackets */}
         <p className="mt-8 text-xs text-muted-foreground bg-card border border-dashed border-border rounded-md px-4 py-3.5 leading-relaxed">
-          Built from the data this tournament already records — stages, groups, standings
+          Built from the data this tournament already records - stages, groups, standings
           and “top-N advance”. Stage formats (including “Knockout”) show their accurate
           standings, since that is how results are entered.
         </p>
