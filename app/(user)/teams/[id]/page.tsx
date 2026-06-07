@@ -645,7 +645,13 @@ const Page = ({ params }: { params: Params }) => {
                 <TabsList className="w-full">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="members">Members</TabsTrigger>
-                  <TabsTrigger value="statistics">Statistics</TabsTrigger>
+                  {/* Statistics tab is hidden entirely from outsiders: it only renders
+                      when the backend says this viewer may see the detailed stats
+                      (team member, owner, or AFC admin). stats_visible comes from
+                      get-team-details, which the page fetches WITH the viewer's token. */}
+                  {teamDetails?.stats_visible && (
+                    <TabsTrigger value="statistics">Statistics</TabsTrigger>
+                  )}
                   <TabsTrigger value="achievements">Achievements</TabsTrigger>
                   <TabsTrigger value="social">Social Media</TabsTrigger>
                   {hasFullAccess && (
@@ -934,16 +940,20 @@ const Page = ({ params }: { params: Params }) => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="statistics">
-                {/*
-                  Detailed Team Statistics. Wired to the real get-team-details
-                  payload (aggregate scalars + tournament_performance with the new
-                  event_date/prize_earned fields + recent_matches + tier_history).
-                  The component handles its own range filter, metric switcher,
-                  expandable rows, and degraded-data empty states.
-                */}
-                <TeamStatisticsTab team={teamDetails} />
-              </TabsContent>
+              {/* Statistics tab content only mounts for viewers allowed to see the
+                  detailed stats (members / owner / admin); outsiders never get the tab. */}
+              {teamDetails?.stats_visible && (
+                <TabsContent value="statistics">
+                  {/*
+                    Detailed Team Statistics. Wired to the real get-team-details
+                    payload (aggregate scalars + tournament_performance with the new
+                    event_date/prize_earned fields + recent_matches + tier_history).
+                    The component handles its own range filter, metric switcher,
+                    expandable rows, and degraded-data empty states.
+                  */}
+                  <TeamStatisticsTab team={teamDetails} />
+                </TabsContent>
+              )}
 
               {/*
                 Achievements tab. Display-only, tiered catalog mirroring the player
