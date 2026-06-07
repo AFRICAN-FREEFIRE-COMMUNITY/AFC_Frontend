@@ -9,6 +9,7 @@ import {
   useState,
   ReactNode,
   useCallback,
+  useRef,
 } from "react";
 import { toast } from "sonner";
 
@@ -84,6 +85,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // Guards against firing more than one canonical token re-validation at a time
+  // when several data requests 401 together (see the response interceptor below).
+  const revalidatingRef = useRef(false);
 
   // Load token from cookies and fetch user
   useEffect(() => {
@@ -117,11 +121,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // out mid-work. A genuinely-expired token is still caught on the next profile fetch.
         const isTokenValidation = requestUrl.includes("/auth/get-user-profile");
 
-        if (error.response?.status === 401 && !isAuthEndpoint && isTokenValidation && token) {
-          Cookies.remove(COOKIE_NAME, { path: "/" });
-          setUser(null);
-          setToken(null);
-          window.dispatchEvent(new CustomEvent("auth:session-expired"));
+        if (error.response?.status === 401 && !isAuthEndpoint && token) {
+          if (isTokenValidation) {
+            // The canonical validation endpoint said 401 -> the session really is
+            // dead. Clear it, tell the user, and raise the event the AuthModal
+            // listens for so a login modal pops in place (no navigation, so the
+            // user keeps their spot and resumes right where they were).
+            Cookies.remove(COOKIE_NAME, { path: "/" });
+            setUser(null);
+            setToken(null);
+            toast.error("Your session expired. Please log in to continue.");
+            window.dispatchEvent(new CustomEvent("auth:session-expired"));
+          } else if (!revalidatingRef.current) {
+            // A normal data endpoint 401'd. Previously this was swallowed silently,
+            // so an expired token mid-session just left the page half-loaded with no
+            // notice. We also don't want to log out on a single stray/racing 401.
+            // Resolve both: confirm against the canonical endpoint exactly once. If
+            // the token is truly dead that call 401s and re-enters the branch above
+            // (showing the modal); if it succeeds, the 401 was a fluke and we ignore it.
+            revalidatingRef.current = true;
+            axios
+              .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-user-profile/`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              .catch(() => {})
+              .finally(() => {
+                revalidatingRef.current = false;
+              });
+          }
         }
         return Promise.reject(error);
       },

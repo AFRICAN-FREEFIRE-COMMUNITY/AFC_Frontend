@@ -41,6 +41,7 @@ import { Ban, ShieldCheck, CheckCircle2, ArrowLeft } from "lucide-react";
 import { formatMoneyInput } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
+import { SendMessageModal } from "../../_components/SendMessageModal";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface PlayerDetails {
@@ -269,7 +270,14 @@ const Page = ({ params }: Props) => {
             </span>
           }
         />
-        <BanPlayerModal player={player} onSuccess={fetchPlayer} />
+        <div className="flex items-center gap-2">
+          <SendMessageModal
+            targetType="player"
+            targetId={player.player_id}
+            targetName={player.name}
+          />
+          <BanPlayerModal player={player} onSuccess={fetchPlayer} />
+        </div>
       </div>
 
       {/* Profile card */}

@@ -76,11 +76,15 @@ export function useAuthModal() {
 export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [defaultTab, setDefaultTab] = useState<"login" | "register">("login");
+  // True when the modal was opened because the session expired (vs. a normal
+  // "please log in" prompt) - drives the explanatory notice inside the modal.
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [onSuccessCallback, setOnSuccessCallback] = useState<
     { fn?: () => void } | undefined
   >();
 
   const openAuthModal: AuthModalContextValue["openAuthModal"] = (opts = {}) => {
+    setSessionExpired(false);
     setDefaultTab(opts.defaultTab ?? "login");
     // Store callback carefully to avoid React treating it as a state updater fn
     setOnSuccessCallback({ fn: opts.onSuccess });
@@ -89,9 +93,15 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
 
   const closeAuthModal = () => setOpen(false);
 
-  // Open the auth modal whenever a session-expired event is dispatched
+  // Pop the login modal whenever a session-expired event is dispatched. The modal
+  // logs the user back in IN PLACE (no route change), so they resume exactly where
+  // they were instead of being bounced to the home page.
   useEffect(() => {
-    const handler = () => openAuthModal({ defaultTab: "login" });
+    const handler = () => {
+      setSessionExpired(true);
+      setDefaultTab("login");
+      setOpen(true);
+    };
     window.addEventListener("auth:session-expired", handler);
     return () => window.removeEventListener("auth:session-expired", handler);
   }, []);
@@ -103,6 +113,7 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
         open={open}
         onOpenChange={setOpen}
         defaultTab={defaultTab}
+        sessionExpired={sessionExpired}
         onSuccess={() => {
           closeAuthModal();
           //   onSuccessCallback?.fn?.();
@@ -119,6 +130,7 @@ interface AuthModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultTab?: "login" | "register";
+  sessionExpired?: boolean;
   onSuccess?: () => void;
 }
 
@@ -126,6 +138,7 @@ export function AuthModal({
   open,
   onOpenChange,
   defaultTab = "login",
+  sessionExpired = false,
   onSuccess,
 }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -140,10 +153,12 @@ export function AuthModal({
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center">
-            Join the AFC
+            {sessionExpired ? "Session expired" : "Join the AFC"}
           </DialogTitle>
           <DialogDescription className="text-center text-sm text-muted-foreground">
-            Login or create an account to continue.
+            {sessionExpired
+              ? "Log back in to pick up right where you left off."
+              : "Login or create an account to continue."}
           </DialogDescription>
         </DialogHeader>
 

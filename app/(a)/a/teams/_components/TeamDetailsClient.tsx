@@ -43,6 +43,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
 import { BanModal } from "../../_components/BanModal";
+import { SendMessageModal } from "../../_components/SendMessageModal";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { NothingFound } from "@/components/NothingFound";
@@ -339,12 +340,19 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
           }
           back
         />
-        <BanModal
-          is_banned={teamDetails.is_banned}
-          teamName={teamDetails.team_name}
-          team_id={teamDetails.team_id}
-          onSuccess={fetchTeamDetails}
-        />
+        <div className="flex items-center gap-2">
+          <SendMessageModal
+            targetType="team"
+            targetId={teamDetails.team_id}
+            targetName={teamDetails.team_name}
+          />
+          <BanModal
+            is_banned={teamDetails.is_banned}
+            teamName={teamDetails.team_name}
+            team_id={teamDetails.team_id}
+            onSuccess={fetchTeamDetails}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

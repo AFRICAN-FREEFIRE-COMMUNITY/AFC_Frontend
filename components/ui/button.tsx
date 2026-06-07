@@ -47,6 +47,7 @@ function Button({
   variant,
   size,
   asChild = false,
+  type,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
@@ -58,6 +59,13 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      // A native <button> with no `type` defaults to "submit". Any Button placed
+      // inside a <form> (e.g. every tab of the admin event-edit form) therefore
+      // submitted the form and reloaded the page on click — the reported Broadcast
+      // bug. Default to type="button"; real submit buttons already pass
+      // type="submit" explicitly. Skip the default when `asChild` is set, because
+      // the rendered child (often an <a>) owns its own element semantics.
+      type={asChild ? type : (type ?? "button")}
       {...props}
     />
   );

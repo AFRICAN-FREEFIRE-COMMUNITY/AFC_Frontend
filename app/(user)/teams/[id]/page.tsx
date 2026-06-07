@@ -868,32 +868,61 @@ const Page = ({ params }: { params: Params }) => {
                         </Pagination>
                       </div>
                     )}
-                    {hasFullAccess && teamDetails?.members?.length < 6 && (
-                      <div className="mt-4">
-                        <h4 className="text-lg font-semibold mb-2">
-                          Add New Member
-                        </h4>
-                        <div className="flex space-x-2">
-                          <Input
-                            placeholder="Invite by email"
-                            value={newMemberSearch}
-                            onChange={(e) => setNewMemberSearch(e.target.value)}
-                          />
-                          <Button
-                            onClick={() => requireAuth(handleAddNewMember)}
-                          >
-                            {pendingInvite ? (
-                              <Loader text=" " />
-                            ) : (
-                              <>
-                                <IconSearch />
-                                Invite
-                              </>
-                            )}
-                          </Button>
+                    {/*
+                      Roster rule: a team fields at most 6 PLAYERS but can hold up to
+                      8 MEMBERS total — the extra slots are for staff (coach / manager
+                      / analyst), who never take a player slot. The invite form used to
+                      vanish silently at 6 members, which both hid the staff path and
+                      gave no explanation. Now it stays open until 8 with the rule spelt
+                      out, and shows a clear "team full" note once 8 is reached.
+                    */}
+                    {hasFullAccess &&
+                      (teamDetails?.members?.length ?? 0) < 8 && (
+                        <div className="mt-4">
+                          <h4 className="text-lg font-semibold mb-2">
+                            Add New Member
+                          </h4>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            A roster can field at most{" "}
+                            <span className="font-medium text-foreground">
+                              6 players
+                            </span>
+                            . You can have up to 8 members in total. Anyone beyond
+                            the 6 players must be set as staff (coach, manager or
+                            analyst) on the Manage Roster page. Staff don&apos;t take
+                            a player slot.
+                          </p>
+                          <div className="flex space-x-2">
+                            <Input
+                              placeholder="Invite by email"
+                              value={newMemberSearch}
+                              onChange={(e) =>
+                                setNewMemberSearch(e.target.value)
+                              }
+                            />
+                            <Button
+                              onClick={() => requireAuth(handleAddNewMember)}
+                            >
+                              {pendingInvite ? (
+                                <Loader text=" " />
+                              ) : (
+                                <>
+                                  <IconSearch />
+                                  Invite
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    {hasFullAccess &&
+                      (teamDetails?.members?.length ?? 0) >= 8 && (
+                        <div className="mt-4 rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+                          Your team is full (8 members maximum). A roster fields at
+                          most 6 players; the rest are staff (coach, manager,
+                          analyst). Remove a member before adding someone new.
+                        </div>
+                      )}
                   </CardContent>
                 </Card>
               </TabsContent>

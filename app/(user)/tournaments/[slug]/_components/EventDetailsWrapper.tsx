@@ -157,6 +157,13 @@ interface EventDetails {
   sponsor_name?: string;
   sponsor_field_label?: string;
   sponsor_requirement_description?: string | null;
+  // M (waitlist) + capacity snapshot from the event-details endpoints.
+  // is_full = active (non-waitlisted) registrations have hit max_teams_or_players;
+  // when is_waitlist_enabled is also true the Register CTA flips to "Join Waitlist".
+  is_waitlist_enabled?: boolean;
+  waitlist_capacity?: number | null;
+  registered_count?: number;
+  is_full?: boolean;
 }
 
 interface ApiResponse {
@@ -1172,6 +1179,8 @@ interface ModalProps {
   handleSaveUid: () => void;
   uidMissingMembers: string[];
   pendingJoined: boolean;
+  // M: drives the success-step copy (waitlist vs confirmed registration).
+  wasWaitlisted?: boolean;
   isDiscordConnected: boolean;
   regType: RegistrationType | null;
   onCheckDiscordStatus?: () => void;
@@ -1204,6 +1213,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
   handleSaveUid,
   uidMissingMembers,
   pendingJoined,
+  wasWaitlisted = false,
   isDiscordConnected,
   regType,
   onCheckDiscordStatus,
@@ -2209,7 +2219,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 <CheckCircle className="w-12 h-12 text-primary mx-auto mb-2" />
               </DialogHeader>
               <p className="text-sm font-semibold">
-                Welcome to the tournament! Check Discord for match details.
+                {wasWaitlisted
+                  ? "You're on the waitlist. We'll let you know if a spot opens up."
+                  : "Welcome to the tournament! Check Discord for match details."}
               </p>
             </div>
             <DialogFooter>
@@ -2258,6 +2270,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // Results ⇄ Structure view toggle for the main stage area (default Results = existing behavior).
   const [mainView, setMainView] = useState<"results" | "structure">("results");
   const [modalStep, setModalStep] = useState<ModalStep>("CLOSED");
+  // M: remember whether the last registration was routed to the waitlist so the
+  // success step shows accurate copy instead of "Welcome to the tournament!".
+  const [wasWaitlisted, setWasWaitlisted] = useState(false);
   const [regType, setRegType] = useState<RegistrationType | null>(null);
   const [rulesAccepted, setRulesAccepted] = useState(false);
   const [discordConnected, setDiscordConnected] = useState(false);
@@ -2900,6 +2915,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           { headers: { Authorization: `Bearer ${token}` } },
         );
         toast.success(res.data.message);
+        // M: backend returns waitlisted:true when the active cap was full and the
+        // entry was routed to the waitlist instead of a confirmed slot.
+        setWasWaitlisted(!!res.data.waitlisted);
         setModalStep("SUCCESS");
 
         // Refresh event details to update registration status
@@ -2965,6 +2983,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const isEventEnded = now > eventEndDateTime;
   const isEventStarted = now >= eventStartDateTime;
 
+  // M: full when active (non-waitlisted) registrations have hit the cap (backend computed).
+  const isFull = !!eventDetails.is_full;
   const registrationDisabledReason = !canRegister
     ? "Private event - invite required"
     : eventDetails.event_status !== "upcoming"
@@ -2975,7 +2995,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           ? "Registration Not Open Yet"
           : now > registrationCloseDateTime
             ? "Registration Closed"
-            : null;
+            : isFull && !eventDetails.is_waitlist_enabled
+              ? "Registration Full"
+              : null;
+
+  // M: when the event is full but a waitlist is open, registration stays ENABLED and
+  // the CTA flips to "Join Waitlist". The backend register endpoint auto-routes the
+  // entry onto the waitlist once the active cap is reached.
+  const waitlistMode =
+    isFull && !!eventDetails.is_waitlist_enabled && !registrationDisabledReason;
 
   const statusVariant: Record<
     string,
@@ -3276,7 +3304,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   ? "Validating invite..."
                   : inviteStatus?.is_used && !eventDetails.is_public
                     ? "Invite Already Used"
-                    : registrationDisabledReason || "Register for Tournament"}
+                    : registrationDisabledReason ||
+                      (waitlistMode ? "Join Waitlist" : "Register for Tournament")}
             </Button>
           )}
         </div>
@@ -3534,6 +3563,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         uidMissingMembers={uidMissingMembers}
         handleJoinedServer={handleJoinedServer}
         pendingJoined={pendingJoined}
+        wasWaitlisted={wasWaitlisted}
         isDiscordConnected={discordConnected}
         regType={regType}
         onCheckDiscordStatus={checkTeamDiscordStatus}
