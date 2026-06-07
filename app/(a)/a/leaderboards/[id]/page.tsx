@@ -25,6 +25,7 @@ import {
   IconMap,
   IconPencil,
   IconEdit,
+  IconUpload,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { env } from "@/lib/env";
@@ -46,6 +47,10 @@ import { ManualMatchResultStep } from "../_components/ManualMatchResultStep";
 import { FileUploadStep } from "../_components/FileUploadStep";
 import { ImageUploadStep } from "../_components/ImageUploadStep";
 import { DownloadLeaderboardButton } from "../_components/DownloadLeaderboardButton";
+// Whole-group editor (manual edit + bulk upload, all per group) - the SAME component
+// the organizer leaderboard page uses, so AFC official events get identical
+// "Upload / Edit Whole Group" behaviour.
+import { GroupResultsEditor } from "../_components/GroupResultsEditor";
 
 type Params = { id: string };
 type MatchView = "method" | "manual" | "image_upload" | "room_file_upload";
@@ -73,6 +78,8 @@ export default function IndividualLeaderboardPage({
   const [matchPickerOpen, setMatchPickerOpen] = useState(false);
   const [pickerGroupId, setPickerGroupId] = useState<string>("");
   const [pickerMatchId, setPickerMatchId] = useState<string>("");
+  // Whole-group editor sub-view (upload + manual edit + Save all, per group).
+  const [groupEditOpen, setGroupEditOpen] = useState(false);
 
   const fetchLeaderboard = async () => {
     try {
@@ -341,7 +348,7 @@ export default function IndividualLeaderboardPage({
       )}
 
       {/* ── Normal leaderboard view ── */}
-      {!editingMatch && (
+      {!editingMatch && !groupEditOpen && (
         <Card>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -565,14 +572,37 @@ export default function IndividualLeaderboardPage({
               </Tabs>
             )}
 
-            {/* Action buttons */}
+            {/* Action buttons:
+                • Edit Match Results - per-map flow (manual / image / room file) for ONE map.
+                • Upload / Edit Whole Group - this group's hub: UPLOAD results (bulk, all
+                  maps) AND edit every map manually, then Save all. Identical to the
+                  organizer leaderboard surface. */}
             <div className="flex gap-2 flex-wrap">
               <Button onClick={handleStartEditMatch}>
                 <IconEdit size={18} /> Edit Match Results
               </Button>
+              {currentGroup?.matches?.length > 0 && (
+                <Button variant="outline" onClick={() => setGroupEditOpen(true)}>
+                  <IconUpload size={18} /> Upload / Edit Whole Group
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* ── Whole-group editor: upload (bulk) + manual edit + Save all, per group ── */}
+      {groupEditOpen && currentGroup && (
+        <GroupResultsEditor
+          // Remount on group switch so it always seeds from the current group.
+          key={currentGroup.group_id}
+          participantType={detailsParticipantType}
+          group={currentGroup}
+          apiBase={env.NEXT_PUBLIC_BACKEND_API_URL}
+          token={token}
+          onSaved={fetchLeaderboard}
+          onClose={() => setGroupEditOpen(false)}
+        />
       )}
 
       {/* ── Edit sub-views (inline, replacing the card) ── */}
