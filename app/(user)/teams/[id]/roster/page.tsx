@@ -76,7 +76,10 @@ export default function page({ params }: { params: Params }) {
         );
         setTeamDetails(res.data.team);
       } catch (error: any) {
-        toast.error(error.response.data.message);
+        // Optional-chain the error body: a bodyless/network/500 failure has no
+        // response.data, so the old `error.response.data.message` threw a
+        // TypeError and white-screened the page instead of showing a toast.
+        toast.error(error?.response?.data?.message || "Failed to load team");
       }
     });
   }, [id]);
@@ -276,16 +279,23 @@ export default function page({ params }: { params: Params }) {
                       <TableCell>
                         <Select
                           key={`in-game-${member.id}`}
-                          value={currentInGameRole}
+                          // Radix <SelectItem> forbids an empty-string value (it crashes the
+                          // page). "No role" therefore uses a "none" sentinel in the UI and is
+                          // translated back to "" (the backend's "no role") on change.
+                          value={currentInGameRole || "none"}
                           onValueChange={(value) =>
-                            handleRoleChange(member.id, "inGameRole", value)
+                            handleRoleChange(
+                              member.id,
+                              "inGameRole",
+                              value === "none" ? "" : value
+                            )
                           }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="No role" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">— No role —</SelectItem>
+                            <SelectItem value="none">— No role —</SelectItem>
                             <SelectItem value="rusher">Rusher</SelectItem>
                             <SelectItem value="support">Support</SelectItem>
                             <SelectItem value="grenader">Grenader</SelectItem>
