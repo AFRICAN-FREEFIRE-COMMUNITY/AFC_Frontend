@@ -37,6 +37,12 @@ interface WaitlistTabProps {
     }>;
     tournament_teams: any[];
   };
+  // ── Discord omission (organizer reuse) ──────────────────────────────────────
+  // When true, the "Waitlist Discord Role ID" input is hidden. The organizer edit
+  // page passes this so organizers never touch AFC's Discord automation; the admin
+  // edit page leaves it undefined (defaults false), so its behaviour is unchanged.
+  // The empty waitlist_discord_role_id still rides in the save payload.
+  hideDiscord?: boolean;
 }
 
 export default function WaitlistTab({
@@ -45,6 +51,7 @@ export default function WaitlistTab({
   onSave,
   saving,
   eventDetails,
+  hideDiscord = false,
 }: WaitlistTabProps) {
   const waitlistedSolo =
     eventDetails?.participant_type === "solo"
@@ -108,25 +115,30 @@ export default function WaitlistTab({
                 </p>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="waitlist-discord-role">
-                  Waitlist Discord Role ID
-                </Label>
-                <Input
-                  id="waitlist-discord-role"
-                  placeholder="e.g. 123456789012345678"
-                  value={waitlistForm.waitlist_discord_role_id}
-                  onChange={(e) =>
-                    setWaitlistForm((p) => ({
-                      ...p,
-                      waitlist_discord_role_id: e.target.value,
-                    }))
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  Discord role assigned to players on the waitlist.
-                </p>
-              </div>
+              {/* Waitlist Discord Role ID — hidden in the organizer flow
+                  (hideDiscord). The empty waitlist_discord_role_id still rides in
+                  the save payload, keeping the request shape identical. */}
+              {!hideDiscord && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="waitlist-discord-role">
+                    Waitlist Discord Role ID
+                  </Label>
+                  <Input
+                    id="waitlist-discord-role"
+                    placeholder="e.g. 123456789012345678"
+                    value={waitlistForm.waitlist_discord_role_id}
+                    onChange={(e) =>
+                      setWaitlistForm((p) => ({
+                        ...p,
+                        waitlist_discord_role_id: e.target.value,
+                      }))
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Discord role assigned to players on the waitlist.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

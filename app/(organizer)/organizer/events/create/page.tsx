@@ -164,7 +164,9 @@ export default function OrganizerCreateEventPage() {
       event_name: "",
       competition_type: "",
       participant_type: "",
-      event_type: "",
+      // Organizer events are external to AFC. The internal/external Event Type field is
+      // AFC-only and hidden in this flow (Step1EventDetails hideEventType), so default it.
+      event_type: "external",
       is_public: "True",
       max_teams_or_players: 1,
       banner: "",
@@ -803,6 +805,8 @@ export default function OrganizerCreateEventPage() {
               setSelectedFile={setSelectedFile}
               previewUrl={previewUrl}
               setPreviewUrl={setPreviewUrl}
+              // AFC-only internal/external Event Type is hidden for organizers.
+              hideEventType
             />
           )}
           {/* @ts-ignore */}

@@ -41,7 +41,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconCalendarEvent, IconPlus } from "@tabler/icons-react";
+import {
+  IconCalendarEvent,
+  IconPlus,
+  IconPencil,
+  IconTrophy,
+} from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -112,6 +117,14 @@ export default function OrganizerEventsPage() {
   const organizationId = membership.organization.organization_id;
   // Same gate the admin surface uses, but on the organizer permission set.
   const canCreateEvents = membership.permissions.can_create_events || isOwner;
+  // Row-action gates (mirror the backend edit_event / upload-results permissions):
+  //   • Edit                → isOwner || can_edit_events   (links to .../[slug]/edit)
+  //   • Results & Leaderboard → isOwner || can_upload_results
+  //     ("results + leaderboards" is exactly what can_upload_results covers). The
+  //     leaderboard route itself is owned/built by a sibling agent; here we only link.
+  const canEditEvents = membership.permissions.can_edit_events || isOwner;
+  const canUploadResults =
+    membership.permissions.can_upload_results || isOwner;
 
   const [events, setEvents] = useState<OrgEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -231,12 +244,34 @@ export default function OrganizerEventsPage() {
                       <RankingsBadge verified={!!event.rankings_verified} />
                     </TableCell>
                     <TableCell>
-                      {/* View links to the public event page by slug (same target
-                          the rest of the app uses for a read-only event view). */}
-                      <div className="flex items-center justify-end">
+                      {/* Row actions, right-aligned:
+                          • View      → the public event page (read-only), always shown.
+                          • Edit      → the organizer event-EDIT page, gated on
+                            can_edit_events / owner (matches the backend edit_event gate).
+                          • Results & Leaderboard → the org results route (built by a
+                            sibling agent), gated on can_upload_results / owner. */}
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/tournaments/${event.slug}`}>View</Link>
                         </Button>
+                        {canEditEvents && (
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/organizer/events/${event.slug}/edit`}>
+                              <IconPencil className="size-4" />
+                              Edit
+                            </Link>
+                          </Button>
+                        )}
+                        {canUploadResults && (
+                          <Button asChild variant="outline" size="sm">
+                            <Link
+                              href={`/organizer/events/${event.slug}/leaderboard`}
+                            >
+                              <IconTrophy className="size-4" />
+                              Results & Leaderboard
+                            </Link>
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

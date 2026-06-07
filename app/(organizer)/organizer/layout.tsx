@@ -78,6 +78,20 @@ const SELECTED_ORG_KEY = "organizer:selected-slug";
 const NAV_ITEMS = [
   { label: "Overview", href: "/organizer/overview" },
   { label: "Events", href: "/organizer/events" },
+  // "Drafts" - the org's UNPUBLISHED (is_draft=True) events, saved from the
+  // create/edit wizard but not yet live. Sits right under Events (it's an Events
+  // sub-surface). Gated PER-PAGE on can_create_events / can_edit_events (or owner) -
+  // the same set the backend get-drafted-events endpoint requires. See
+  // app/(organizer)/organizer/events/drafts/page.tsx.
+  { label: "Drafts", href: "/organizer/events/drafts" },
+  // "Leaderboards" - the org's results-upload + leaderboard-management surface
+  // (list the org's events, then manage each event's leaderboard: create/generate,
+  // upload results manually or via OCR image upload, configure points, view/edit).
+  // Sits between Events and Design. Gated PER-PAGE on the membership's
+  // can_upload_results permission (or owner) - same pattern Events/Design use
+  // (the nav item always shows; the page itself shows a lock notice when the
+  // caller lacks the permission). See app/(organizer)/organizer/leaderboards/page.tsx.
+  { label: "Leaderboards", href: "/organizer/leaderboards" },
   // "Design" - the org's leaderboard-design request surface (submit + history),
   // gated per-page on the membership's can_submit_designs permission (or owner).
   { label: "Design", href: "/organizer/design" },
@@ -138,10 +152,17 @@ function OrganizerSidebar() {
           <SidebarGroupContent className="flex flex-col gap-2">
             <SidebarMenu>
               {NAV_ITEMS.map((item) => {
-                // Active = current path is, or sits under, this nav href.
-                const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`);
+                // Active = current path is, or sits under, this nav href - but the
+                // MOST-SPECIFIC nav href wins. "Drafts" (/organizer/events/drafts)
+                // sits under "Events" (/organizer/events), so without this only the
+                // longest matching prefix highlights (otherwise both would). We pick
+                // the longest NAV_ITEMS href that prefixes the current path.
+                const matches = (href: string) =>
+                  pathname === href || pathname.startsWith(`${href}/`);
+                const bestMatch = NAV_ITEMS.filter((i) => matches(i.href)).sort(
+                  (a, b) => b.href.length - a.href.length,
+                )[0];
+                const isActive = bestMatch?.href === item.href;
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton

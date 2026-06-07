@@ -197,6 +197,15 @@ interface StageConfigModalProps {
   // Registered teams (TEAM PK + name) the admin can drop into round-robin base
   // groups. Comes from the event's tournament_teams.
   availableTeams: RoundRobinTeamOption[];
+  // ── Discord omission (organizer reuse) ──────────────────────────────────────
+  // When true, every Discord Role ID input (stage-level + per-group) is hidden and
+  // the "Stage Discord Role ID" requirement is dropped from the Step 1 "Next" gate.
+  // The organizer edit page passes this so organizers never touch AFC's Discord
+  // automation; the admin edit page leaves it undefined (defaults false) so its
+  // behaviour is completely unchanged. The empty stage_discord_role_id / group
+  // group_discord_role_id values still ride in the payload, keeping the stage shape
+  // identical to the admin one (matches the create flow's StageModal hideDiscord).
+  hideDiscord?: boolean;
 }
 
 // ── Main Modal ─────────────────────────────────────────────────────────────────
@@ -220,6 +229,7 @@ export function StageConfigModal({
   passwordVisibility,
   toggleVisibility,
   availableTeams,
+  hideDiscord = false,
 }: StageConfigModalProps) {
   const form = useFormContext<EventFormType>();
 
@@ -588,19 +598,24 @@ export function StageConfigModal({
               />
             </div>
 
-            <div>
-              <Label className="mb-2.5">Stage Discord Role ID</Label>
-              <Input
-                value={stageModalData.stage_discord_role_id}
-                onChange={(e) =>
-                  setStageModalData({
-                    ...stageModalData,
-                    stage_discord_role_id: e.target.value,
-                  })
-                }
-                placeholder="e.g: 1234567890"
-              />
-            </div>
+            {/* Stage Discord Role ID — hidden in the organizer flow (hideDiscord).
+                The empty stage_discord_role_id still rides in the payload so the
+                stage shape stays identical to the admin one. */}
+            {!hideDiscord && (
+              <div>
+                <Label className="mb-2.5">Stage Discord Role ID</Label>
+                <Input
+                  value={stageModalData.stage_discord_role_id}
+                  onChange={(e) =>
+                    setStageModalData({
+                      ...stageModalData,
+                      stage_discord_role_id: e.target.value,
+                    })
+                  }
+                  placeholder="e.g: 1234567890"
+                />
+              </div>
+            )}
 
             <Separator />
 
@@ -772,21 +787,24 @@ export function StageConfigModal({
                   />
                 </div>
 
-                {/* Discord Role */}
-                <div>
-                  <Label className="mb-2.5">Discord Role ID</Label>
-                  <Input
-                    value={group.group_discord_role_id}
-                    onChange={(e) =>
-                      updateGroupDetailLogic(
-                        index,
-                        "group_discord_role_id",
-                        e.target.value,
-                      )
-                    }
-                    placeholder="e.g: 1234567890"
-                  />
-                </div>
+                {/* Discord Role — hidden in the organizer flow (hideDiscord).
+                    The empty group_discord_role_id still rides in the payload. */}
+                {!hideDiscord && (
+                  <div>
+                    <Label className="mb-2.5">Discord Role ID</Label>
+                    <Input
+                      value={group.group_discord_role_id}
+                      onChange={(e) =>
+                        updateGroupDetailLogic(
+                          index,
+                          "group_discord_role_id",
+                          e.target.value,
+                        )
+                      }
+                      placeholder="e.g: 1234567890"
+                    />
+                  </div>
+                )}
 
                 {/* Maps */}
                 <div>
@@ -961,7 +979,10 @@ export function StageConfigModal({
                     !stageModalData.stage_format ||
                     !stageModalData.start_date ||
                     !stageModalData.end_date ||
-                    !stageModalData.stage_discord_role_id ||
+                    // Stage Discord Role ID is only required when the Discord inputs
+                    // are shown (admin flow). The organizer flow hides them, so it is
+                    // not part of the gate there.
+                    (!hideDiscord && !stageModalData.stage_discord_role_id) ||
                     stageModalData.teams_qualifying_from_stage === undefined
                   ) {
                     toast.error(

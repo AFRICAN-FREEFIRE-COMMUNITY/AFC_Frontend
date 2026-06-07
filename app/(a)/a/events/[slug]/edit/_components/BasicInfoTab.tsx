@@ -61,6 +61,10 @@ interface BasicInfoTabProps {
   onSaveChanges: () => void;
   loadingEvent: boolean;
   pendingSubmit: boolean;
+  // When true, the internal/external Event Type selector is hidden. The organizer
+  // edit flow passes this (organizer events are always external to AFC, so the field
+  // is AFC-admin-only). Defaults to false so the admin flow is unchanged.
+  hideEventType?: boolean;
 }
 
 export default function BasicInfoTab({
@@ -80,6 +84,7 @@ export default function BasicInfoTab({
   onSaveChanges,
   loadingEvent,
   pendingSubmit,
+  hideEventType = false,
 }: BasicInfoTabProps) {
   const form = useFormContext<EventFormType>();
 
@@ -277,6 +282,9 @@ export default function BasicInfoTab({
               </FormItem>
             )}
           />
+          {/* Internal/External is AFC-only; the organizer flow hides it (hideEventType)
+              and the page defaults event_type to "external". */}
+          {!hideEventType && (
           <FormField
             control={form.control}
             name="event_type"
@@ -305,6 +313,7 @@ export default function BasicInfoTab({
               </FormItem>
             )}
           />
+          )}
           <FormField
             control={form.control}
             name="is_public"

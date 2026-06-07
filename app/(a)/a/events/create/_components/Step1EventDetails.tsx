@@ -45,6 +45,9 @@ interface Step1Props {
   setSelectedFile: (file: File | null) => void;
   previewUrl: string;
   setPreviewUrl: (url: string) => void;
+  // When true, the internal/external Event Type select is dropped. AFC-only field;
+  // the organizer create flow passes this and defaults event_type to "external".
+  hideEventType?: boolean;
 }
 
 export function Step1EventDetails({
@@ -53,6 +56,7 @@ export function Step1EventDetails({
   setSelectedFile,
   previewUrl,
   setPreviewUrl,
+  hideEventType = false,
 }: Step1Props) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -151,7 +155,10 @@ export function Step1EventDetails({
                 { value: "False", label: "Private" },
               ],
             },
-          ].map(({ name, label, tip, options }) => (
+          ]
+            // Organizer flow: drop the AFC-only Event Type select.
+            .filter((f) => !(hideEventType && f.name === "event_type"))
+            .map(({ name, label, tip, options }) => (
             <FormField
               key={name}
               // @ts-ignore

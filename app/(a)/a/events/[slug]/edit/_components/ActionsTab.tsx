@@ -69,12 +69,19 @@ interface ActionsTabProps {
   };
   onStartTournament: () => void;
   onRefresh?: () => void;
+  // ── Discord omission (organizer reuse) ──────────────────────────────────────
+  // When true, the "Sync Discord Roles" control is hidden (organizers don't manage
+  // AFC's Discord automation). Every other action - start/cancel/complete/seed/
+  // advance/broadcast/visibility/export - stays available. The admin edit page
+  // leaves this undefined (defaults false), so its Actions tab is unchanged.
+  hideDiscord?: boolean;
 }
 
 export default function ActionsTab({
   eventDetails,
   onStartTournament,
   onRefresh,
+  hideDiscord = false,
 }: ActionsTabProps) {
   const { token } = useAuth();
   const API = env.NEXT_PUBLIC_BACKEND_API_URL;
@@ -491,47 +498,57 @@ export default function ActionsTab({
             </Button>
           </div>
 
-          <Separator />
+          {/* Sync Discord Roles — hidden in the organizer flow (hideDiscord), since
+              organizers don't manage AFC's Discord automation. The leading Separator
+              is hidden with it so the card doesn't end on a dangling divider. */}
+          {!hideDiscord && (
+            <>
+              <Separator />
 
-          <div className="space-y-2">
-            <p className="text-sm font-medium inline-flex items-center">
-              Sync Discord Roles
-              <InfoTip id="events.edit.sync_discord" className="ml-1" />
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Re-assign missing Discord group roles for a specific group.
-            </p>
-            <div className="flex gap-2">
-              <Select value={syncGroupId} onValueChange={setSyncGroupId}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select group" />
-                </SelectTrigger>
-                <SelectContent>
-                  {eventDetails.stages.flatMap((s) =>
-                    s.groups.map((g) => (
-                      <SelectItem key={g.group_id} value={String(g.group_id)}>
-                        {s.stage_name} - {g.group_name}
-                      </SelectItem>
-                    )),
-                  )}
-                </SelectContent>
-              </Select>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleSyncDiscord}
-                disabled={loadingSync || !syncGroupId}
-              >
-                {loadingSync ? (
-                  <Loader text="Syncing..." />
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-1" /> Sync
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium inline-flex items-center">
+                  Sync Discord Roles
+                  <InfoTip id="events.edit.sync_discord" className="ml-1" />
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Re-assign missing Discord group roles for a specific group.
+                </p>
+                <div className="flex gap-2">
+                  <Select value={syncGroupId} onValueChange={setSyncGroupId}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eventDetails.stages.flatMap((s) =>
+                        s.groups.map((g) => (
+                          <SelectItem
+                            key={g.group_id}
+                            value={String(g.group_id)}
+                          >
+                            {s.stage_name} - {g.group_name}
+                          </SelectItem>
+                        )),
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleSyncDiscord}
+                    disabled={loadingSync || !syncGroupId}
+                  >
+                    {loadingSync ? (
+                      <Loader text="Syncing..." />
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-1" /> Sync
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

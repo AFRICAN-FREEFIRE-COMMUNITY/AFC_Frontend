@@ -36,6 +36,12 @@ interface SponsorTabProps {
   setSponsorForm: React.Dispatch<React.SetStateAction<SponsorForm>>;
   onSave: () => void;
   saving: boolean;
+  // ── Organizer reuse ─────────────────────────────────────────────────────────
+  // When true, the "Review Sponsors" shortcut is hidden because it deep-links into
+  // the ADMIN route (/a/events/<slug>/sponsors), which an organizer can't reach. The
+  // sponsor toggle + accounts editing all still work. The admin edit page leaves this
+  // undefined (defaults false), so its "Review Sponsors" button is unchanged.
+  hideAdminReviewLink?: boolean;
 }
 
 export default function SponsorTab({
@@ -44,6 +50,7 @@ export default function SponsorTab({
   setSponsorForm,
   onSave,
   saving,
+  hideAdminReviewLink = false,
 }: SponsorTabProps) {
   const { token } = useAuth();
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -84,12 +91,16 @@ export default function SponsorTab({
           {sponsorForm.is_sponsored && (
             <div className="flex items-center gap-2">
               <Badge variant="default">Active</Badge>
-              <Button size="sm" variant="secondary" asChild>
-                <Link href={`/a/events/${slug}/sponsors`}>
-                  <IconUserCheck className="size-3.5 mr-1" />
-                  Review Sponsors
-                </Link>
-              </Button>
+              {/* "Review Sponsors" deep-links into the admin route, so it's hidden
+                  on the organizer surface (hideAdminReviewLink). */}
+              {!hideAdminReviewLink && (
+                <Button size="sm" variant="secondary" asChild>
+                  <Link href={`/a/events/${slug}/sponsors`}>
+                    <IconUserCheck className="size-3.5 mr-1" />
+                    Review Sponsors
+                  </Link>
+                </Button>
+              )}
             </div>
           )}
         </CardHeader>
