@@ -8,7 +8,6 @@ import {
   IconInfoCircle,
   IconMessage,
   IconNews,
-  IconPhoto,
   IconPlugConnected,
   IconSettings,
   IconShield,
@@ -158,27 +157,13 @@ export const adminNavLinks: AdminNavLink[] = [
     allowedRoles: ["head_admin", "event_admin"],
   },
   {
+    // Design Requests + Org Reports used to be separate sidebar entries here. They
+    // now live UNDER this page as a segmented sub-nav (OrgSubNav) on the three
+    // organizations index routes, so the sidebar stays lean. Routes are unchanged:
+    //   /a/organizations/design-requests  and  /a/organizations/reports
     label: "Organizations",
     slug: "/a/organizations",
     icon: IconUsersGroup,
-    allowedRoles: ["head_admin", "organizer_admin"],
-  },
-  {
-    // AFC review queue for organizer leaderboard-design requests. Gated the same
-    // way as Organizations (head_admin + organizer_admin) since it's the same team.
-    label: "Design Requests",
-    slug: "/a/organizations/design-requests",
-    icon: IconPhoto,
-    allowedRoles: ["head_admin", "organizer_admin"],
-  },
-  {
-    // AFC review queue for user-submitted reports against organizations (rankings
-    // manipulation, fake results, …). Same gating as Organizations / Design Requests
-    // (head_admin + organizer_admin) since the same team triages org integrity.
-    // Reuses IconShield (already imported) to read as an integrity/moderation tool.
-    label: "Org Reports",
-    slug: "/a/organizations/reports",
-    icon: IconShield,
     allowedRoles: ["head_admin", "organizer_admin"],
   },
   {

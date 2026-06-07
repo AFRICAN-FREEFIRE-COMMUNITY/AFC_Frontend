@@ -64,6 +64,7 @@ import { ITEMS_PER_PAGE } from "@/constants";
 import { formatDate } from "@/lib/utils";
 import { organizersApi } from "@/lib/organizers";
 import { InfoTip } from "@/components/ui/info-tip";
+import { OrgSubNav } from "../_components/OrgSubNav";
 
 // ── Row shape (mirrors the admin OrganizationReport serializer) ──────────────
 // organization_name / reporter_username / event_name are joined fields the admin
@@ -238,6 +239,9 @@ export default function OrgReportsAdminPage() {
         }
         description={`${totalCount} report${totalCount !== 1 ? "s" : ""}`}
       />
+
+      {/* Organizations sub-nav: Organizations / Design Requests / Org Reports. */}
+      <OrgSubNav />
 
       {/* Status filter - server refetch on change (matches the design-requests UX). */}
       <div className="flex items-center gap-2">

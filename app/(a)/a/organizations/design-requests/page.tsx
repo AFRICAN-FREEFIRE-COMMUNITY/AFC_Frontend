@@ -61,6 +61,7 @@ import { ITEMS_PER_PAGE } from "@/constants";
 import { formatDate } from "@/lib/utils";
 import { organizersApi } from "@/lib/organizers";
 import { InfoTip } from "@/components/ui/info-tip";
+import { OrgSubNav } from "../_components/OrgSubNav";
 
 // ── Row shape (mirrors the admin design-request serializer) ───────────────────
 interface DesignRequestRow {
@@ -213,6 +214,9 @@ export default function DesignRequestsAdminPage() {
         }
         description={`${totalCount} request${totalCount !== 1 ? "s" : ""}`}
       />
+
+      {/* Organizations sub-nav: Organizations / Design Requests / Org Reports. */}
+      <OrgSubNav />
 
       {/* Status filter - server refetch on change (matches the orgs search UX). */}
       <div className="flex items-center gap-2">

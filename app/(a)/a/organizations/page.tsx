@@ -51,6 +51,7 @@ import { ITEMS_PER_PAGE } from "@/constants";
 import { IconPlus, IconSearch, IconX } from "@tabler/icons-react";
 import { organizersApi } from "@/lib/organizers";
 import { InfoTip } from "@/components/ui/info-tip";
+import { OrgSubNav } from "./_components/OrgSubNav";
 
 // Row shape returned by adminListOrganizations (afc_organizers admin serializer).
 interface OrgRow {
@@ -208,6 +209,9 @@ export default function OrganizationsAdminPage() {
           <InfoTip id="organizations.create" />
         </div>
       </div>
+
+      {/* Organizations sub-nav: Organizations / Design Requests / Org Reports. */}
+      <OrgSubNav />
 
       {/* Search - debounce-free; each keystroke triggers a server refetch via
           the fetchOrgs dependency on `search` (matches the sponsors search UX). */}
