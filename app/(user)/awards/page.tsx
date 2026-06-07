@@ -417,6 +417,11 @@ interface VoteCategory {
   nominees: { id: number; name: string }[];
 }
 
+// Awards voting is currently CLOSED — show only the Winners view. The Vote tab stays
+// hidden until voting reopens (flip VOTING_OPEN to true). We gate on this flag rather than
+// just "categories exist", so a closed/past awards' categories never re-show the Vote tab.
+const VOTING_OPEN = false;
+
 export default function page() {
   const { token } = useAuth();
   const [winnersData] = useState<SectionWinners[]>(MANUAL_WINNERS);
@@ -508,9 +513,9 @@ export default function page() {
         </p>
       </div>
 
-      <Tabs defaultValue={voteSections.length > 0 ? "vote" : "winners"} className="w-full">
-        <TabsList className={`w-full max-w-xs mx-auto mb-8 ${voteSections.length > 0 ? "" : "hidden"}`}>
-          {voteSections.length > 0 && (
+      <Tabs defaultValue={VOTING_OPEN && voteSections.length > 0 ? "vote" : "winners"} className="w-full">
+        <TabsList className={`w-full max-w-xs mx-auto mb-8 ${VOTING_OPEN && voteSections.length > 0 ? "" : "hidden"}`}>
+          {VOTING_OPEN && voteSections.length > 0 && (
             <TabsTrigger value="vote" className="flex-1">
               <Vote className="h-4 w-4 mr-1.5" />
               Vote
@@ -522,8 +527,8 @@ export default function page() {
           </TabsTrigger>
         </TabsList>
 
-        {/* ── Vote Tab ── */}
-        {voteSections.length > 0 && (
+        {/* ── Vote Tab (hidden while VOTING_OPEN is false) ── */}
+        {VOTING_OPEN && voteSections.length > 0 && (
           <TabsContent value="vote">
             {loadingVote ? (
               <div className="text-center py-16 text-muted-foreground text-sm">Loading...</div>
