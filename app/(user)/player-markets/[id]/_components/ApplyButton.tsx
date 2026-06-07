@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { InfoTip } from "@/components/ui/info-tip";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,8 +57,11 @@ export default function ApplyButton({ postId, teamName }: ApplyButtonProps) {
   }
 
   return (
-    <Button onClick={handleApply} disabled={isPending} className="flex-1">
-      {isPending ? "Applying..." : "Apply to This Team"}
-    </Button>
+    <span className="flex flex-1 items-center gap-1.5">
+      <Button onClick={handleApply} disabled={isPending} className="flex-1">
+        {isPending ? "Applying..." : "Apply to This Team"}
+      </Button>
+      <InfoTip id="player_market.apply" />
+    </span>
   );
 }

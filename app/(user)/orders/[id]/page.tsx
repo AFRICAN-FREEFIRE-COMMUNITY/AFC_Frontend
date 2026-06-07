@@ -27,6 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { formatDate, formatMoneyInput } from "@/lib/utils";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export default function OrderDetailsPage() {
   const { id } = useParams();
@@ -187,8 +188,9 @@ export default function OrderDetailsPage() {
               <div className="flex items-center gap-3">
                 <IconCreditCard className="h-4 w-4 text-muted-foreground" />
                 <div className="text-sm">
-                  <p className="text-muted-foreground leading-none text-xs">
+                  <p className="text-muted-foreground leading-none text-xs flex items-center gap-1">
                     Status
+                    <InfoTip id="shop.diamonds.order_detail_status" />
                   </p>
                   <Badge
                     className="mt-1"

@@ -43,6 +43,7 @@ import {
   ShopCustomerDetailsSchema,
   ShopCustomerDetailsSchemaType,
 } from "@/lib/zodSchemas";
+import { InfoTip } from "@/components/ui/info-tip";
 
 const steps = [
   { id: 1, name: "Cart", label: "Cart" },
@@ -324,7 +325,10 @@ export default function CartDetails() {
   const renderDetailsStep = () => (
     <Card>
       <CardHeader>
-        <CardTitle>Customer Details</CardTitle>
+        <CardTitle className="flex items-center gap-1">
+          Customer Details
+          <InfoTip id="shop.diamonds.customer_details._section" />
+        </CardTitle>
         <p className="text-sm text-muted-foreground">
           Enter your contact and delivery information
         </p>
@@ -595,12 +599,18 @@ export default function CartDetails() {
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Tax (7.5%):</span>
+              <span className="text-muted-foreground">
+                Tax (7.5%)
+                <InfoTip id="shop.checkout.tax" className="ml-1" />:
+              </span>
               <span>₦{formatMoneyInput(getTax())}</span>
             </div>
             <Separator className="my-2" />
             <div className="flex justify-between font-bold text-base">
-              <span>Total:</span>
+              <span>
+                Total
+                <InfoTip id="shop.checkout.total" className="ml-1" />:
+              </span>
               <span>₦{formatMoneyInput(getTotal())}</span>
             </div>
           </div>
@@ -612,12 +622,15 @@ export default function CartDetails() {
           <Button variant="outline" onClick={handlePreviousStep}>
             Back to Details
           </Button>
-          <Button
-            onClick={handleCompleteOrder}
-            disabled={isProcessing || !customerDetails}
-          >
-            {isProcessing ? "Processing..." : "Pay Now"}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              onClick={handleCompleteOrder}
+              disabled={isProcessing || !customerDetails}
+            >
+              {isProcessing ? "Processing..." : "Pay Now"}
+            </Button>
+            <InfoTip id="shop.checkout.pay_now" />
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -710,7 +723,10 @@ export default function CartDetails() {
 
           <Card>
             <CardHeader>
-              <CardTitle>How to Claim Your Diamonds</CardTitle>
+              <CardTitle className="flex items-center gap-1">
+                How to Claim Your Diamonds
+                <InfoTip id="shop.diamonds.claim._section" />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">

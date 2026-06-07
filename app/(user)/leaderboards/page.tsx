@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { IconTrophy, IconUsers, IconMap } from "@tabler/icons-react";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Label } from "@/components/ui/label";
 import { env } from "@/lib/env";
 import { FullLoader } from "@/components/Loader";
@@ -143,7 +144,7 @@ const LeaderboardPage = () => {
   return (
     <div className="min-h-screen space-y-8 pb-10">
       <PageHeader
-        title="Leaderboards"
+        title={<>Leaderboards <InfoTip id="leaderboards.public._page" /></>}
         description="Select an event to view rankings"
       />
 
@@ -237,7 +238,7 @@ const LeaderboardPage = () => {
 
             <div className="space-y-2">
               <Label>
-                <IconMap size={16} /> View Filter
+                <IconMap size={16} /> View Filter <InfoTip id="leaderboards.public.view_filter" />
               </Label>
               <Select
                 value={selectedMatchId}
@@ -276,7 +277,7 @@ const LeaderboardPage = () => {
                     <TableHead className="w-20">Rank</TableHead>
                     <TableHead>Competitor</TableHead>
                     <TableHead>Kills</TableHead>
-                    <TableHead className="text-right">Points</TableHead>
+                    <TableHead className="text-right">Points <InfoTip id="leaderboards.public.points_column" /></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

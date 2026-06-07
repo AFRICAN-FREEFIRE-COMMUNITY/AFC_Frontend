@@ -78,6 +78,8 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 // Rate-this-event + organizer-feedback widget (stars + comment box).
 import { EventReviewCard } from "./EventReviewCard";
+// ⓘ help tips for the non-obvious registration steps (copy in lib/help-content.ts).
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Set to true when Discord is required for tournament registration
 const DISCORD_REQUIRED = false;
@@ -1032,7 +1034,10 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
         {teamModalStep === "SELECT_MEMBERS" && (
           <>
             <DialogHeader>
-              <DialogTitle>Select Team Members</DialogTitle>
+              <DialogTitle className="flex items-center gap-1">
+                Select Team Members
+                <InfoTip id="tournaments.register.select_members._section" />
+              </DialogTitle>
               <DialogDescription>
                 Select {minPlayers}-{maxPlayers} players from your team roster
               </DialogDescription>
@@ -1352,7 +1357,10 @@ const RegistrationModals: React.FC<ModalProps> = ({
         return (
           <>
             <DialogHeader>
-              <DialogTitle className="text-xl">AFC UID Required</DialogTitle>
+              <DialogTitle className="text-xl">
+                AFC UID Required
+                <InfoTip id="tournaments.register.afc_uid" />
+              </DialogTitle>
               <DialogDescription>
                 Your AFC UID is required to participate in this tournament.
               </DialogDescription>
@@ -1436,6 +1444,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <DialogHeader>
               <DialogTitle className="text-xl">
                 Tournament Registration
+                <InfoTip id="tournaments.register.type._section" />
               </DialogTitle>
               <DialogDescription>Select registration type</DialogDescription>
             </DialogHeader>
@@ -1556,6 +1565,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <DialogHeader>
               <DialogTitle className="text-xl">
                 Tournament Rules & Policies
+                <InfoTip id="tournaments.register.rules._section" />
               </DialogTitle>
             </DialogHeader>
             <div className="max-h-80 p-4 bg-primary/10 rounded-md overflow-y-auto pr-4 space-y-4 text-sm text-gray-300">
@@ -1587,6 +1597,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               >
                 I agree to all tournament rules and policies.
               </label>
+              <InfoTip id="tournaments.register.rules_accept" />
             </div>
             <DialogFooter className="mt-2 flex sm:justify-between">
               <Button variant="secondary" onClick={() => setModalStep("INFO")}>
@@ -1703,6 +1714,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <DialogHeader>
               <DialogTitle className="text-xl">
                 {eventDetails.sponsor_name} Requirement
+                <InfoTip id="tournaments.register.sponsor._section" />
               </DialogTitle>
               <DialogDescription>
                 Complete this step to finish registration
@@ -1820,6 +1832,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <DialogHeader>
               <DialogTitle className="text-xl">
                 Connect Discord Account
+                <InfoTip id="tournaments.register.discord_link._section" />
               </DialogTitle>
               <DialogDescription>
                 Required for tournament participation
@@ -1921,6 +1934,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <DialogHeader>
               <DialogTitle className="text-xl">
                 Join AFC Discord Server
+                <InfoTip id="tournaments.register.discord_join._section" />
               </DialogTitle>
               <DialogDescription>Final step for registration</DialogDescription>
             </DialogHeader>
@@ -2015,6 +2029,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <DialogHeader>
               <DialogTitle className="text-xl">
                 Connect Discord - All Members
+                <InfoTip id="tournaments.register.discord_status._section" />
               </DialogTitle>
               <DialogDescription>
                 All team members must have Discord linked and join AFC server

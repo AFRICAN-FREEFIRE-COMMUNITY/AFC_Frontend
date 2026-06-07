@@ -80,6 +80,7 @@ import {
 } from "@/app/(user)/_components/ReviewApplicationDialog";
 import { TrialChatSidebar } from "@/app/(user)/_components/TrialChatSidebar";
 import { TransferWindowBanner } from "@/components/rankings/TransferWindowBanner";
+import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -2155,7 +2156,10 @@ function PlayerMarketPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Recruitment Criteria</Label>
+                <Label>
+                  Recruitment Criteria
+                  <InfoTip id="player_market.recruitment_criteria" className="ml-1" />
+                </Label>
                 <Textarea
                   placeholder="Describe what you're looking for in a teammate..."
                   rows={4}
@@ -2646,12 +2650,15 @@ function PlayerMarketPage() {
                 </Button>
               </DialogClose>
               {!isTeamLeader && (
-                <Button
-                  onClick={() => handleApplyToTeam(viewTeam.id, viewTeam.team)}
-                  disabled={isApplying}
-                >
-                  {isApplying ? "Applying..." : "Apply to Join"}
-                </Button>
+                <span className="inline-flex items-center gap-1.5">
+                  <Button
+                    onClick={() => handleApplyToTeam(viewTeam.id, viewTeam.team)}
+                    disabled={isApplying}
+                  >
+                    {isApplying ? "Applying..." : "Apply to Join"}
+                  </Button>
+                  <InfoTip id="player_market.apply" />
+                </span>
               )}
             </DialogFooter>
           </DialogContent>
@@ -2738,7 +2745,10 @@ function PlayerMarketPage() {
                 <>
                   <Separator />
                   <div className="space-y-2">
-                    <Label>Message to Player</Label>
+                    <Label>
+                      Message to Player
+                      <InfoTip id="player_market.invite_message" className="ml-1" />
+                    </Label>
                     <Textarea
                       placeholder="Introduce your team and why you'd like them to trial..."
                       rows={3}

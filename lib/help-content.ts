@@ -764,6 +764,96 @@ export const HELP = {
     "The competitive position a player holds (Rusher, Sniper, Support, Grenader). Only PLAYERS - Captain, Vice Captain or Member - can have an in-game role, and a team can field at most 6.",
   "teams.roster.management_role":
     "A member's role on the team. PLAYERS (Captain, Vice Captain, Member) compete and can hold an in-game role. STAFF (Coach, Manager, Analyst) are support-only, are never fielded as players, and a team can have at most one of each. Moving a member between player and staff is only allowed while the transfer window is open.",
+
+  // ── User › Tournament registration (multi-step) ────────────────────────────
+  "tournaments.register.type._section":
+    "Choose how you'll enter: Solo as one player, or Team to register your roster. Whichever option this event doesn't allow is greyed out.",
+  "tournaments.register.afc_uid":
+    "Your AFC UID is the in-game ID tied to your profile. It's required to compete and is saved to your profile, so you only enter it once.",
+  "tournaments.register.select_members._section":
+    "Pick which of your team's players will compete in this event. You must select between the event's minimum and maximum squad size.",
+  "tournaments.register.rules._section":
+    "Read the tournament rules and any conduct or device policies. If a full rules document is attached, download and review it before continuing.",
+  "tournaments.register.rules_accept":
+    "You must tick this to confirm you've read and agree to the rules. Registration can't continue until it's checked.",
+  "tournaments.register.sponsor._section":
+    "This event's sponsor requires a task (e.g. install an app) and an ID per player. Each ID must be unique. It's checked against everyone already registered, so a value someone else used is rejected.",
+  "tournaments.register.discord_link._section":
+    "Link your Discord account to AFC. This only connects the account. You'll join the AFC server in the next step. Match details are shared on Discord.",
+  "tournaments.register.discord_join._section":
+    "Join the AFC Discord server, then confirm. This is separate from linking your account. Both are required to finish registering.",
+  "tournaments.register.discord_status._section":
+    "For team registration, every selected member must individually link Discord and join the AFC server. Share the server link with anyone still showing red, then refresh.",
+
+  // ── User › Teams › Create ──────────────────────────────────────────────────
+  "teams.create.team_tag":
+    "A short prefix or abbreviation for your team (e.g. \"AFC\"), shown alongside the full name. Optional, leave blank if you don't want one.",
+  "teams.create.join_settings":
+    "Open lets any player join your team instantly. By request means players ask to join and you approve or decline each one.",
+  "teams.create.invite_members":
+    "Invite players now by their AFC email or username. Each person gets an invite they must accept before they're added to the team.",
+
+  // ── User › Shop › Checkout ─────────────────────────────────────────────────
+  "shop.checkout.coupon":
+    "Enter a promo code and tap Apply to discount this item. Percentage codes take a share off; fixed codes take a set amount off. Each code applies only to the item it's added to.",
+  "shop.checkout.tax":
+    "A 7.5% tax added on top of your subtotal (after any coupon discount).",
+  "shop.checkout.total":
+    "What you'll pay: your discounted subtotal plus 7.5% tax. Charged in Naira (₦).",
+  "shop.checkout.pay_now":
+    "Places your order and opens Paystack in a new tab to pay securely. Your redemption code is emailed once payment is confirmed.",
+
+  // ── User › Shop › Diamonds delivery + orders ───────────────────────────────
+  "shop.diamonds.customer_details._section":
+    "We use these contact details, your email above all, to send your diamond redemption code. Free Fire diamonds are delivered by email, so you don't need to enter a game ID or in-game player ID here.",
+  "shop.diamonds.claim._section":
+    "After payment, a redemption code is emailed to you (usually within 5-10 minutes). Redeem it on the official Free Fire site to add the diamonds to your account. The code is not applied to your game ID automatically.",
+  "shop.diamonds.order_status":
+    "After you pay on Paystack, we confirm the payment automatically and re-check every 30 seconds. 'Pending Verification' just means we haven't received confirmation yet. If you've been debited, you can press Retry Now or contact support.",
+  "shop.diamonds.order_detail_status":
+    "Pending means we're still awaiting payment confirmation. Paid means payment cleared and your diamond redemption code has been dispatched to your registered email.",
+
+  // ── User › Player market ───────────────────────────────────────────────────
+  "player_market.create_post":
+    "Create one of two post types: a team recruitment post (you're a team looking for players) or a player-available post (you're a player looking for a team).",
+  "player_market.recruitment_criteria":
+    "Free-text notes describing what you want in a teammate (experience, playstyle, availability). Applicants see this before they apply. It doesn't filter anyone out automatically.",
+  "player_market.apply":
+    "Send your application to this team. Your Discord and UID stay hidden. They only unlock to the team if it invites you to a trial.",
+  "player_market.invite_message":
+    "Invite this player straight to a trial, skipping the application step. Your message introduces your team; once they accept, a private trial chat opens between you.",
+  "player_market.trial_invites":
+    "Teams that invited you directly to a trial. Accept to start the trial and open a private chat with the team, or decline to dismiss the invite.",
+  "player_market.unlock_contact":
+    "Reveal this player's Discord and UID so you can reach them off-platform. Only available once the application has progressed past an invite, not while it's still pending.",
+  "player_market.accept_player":
+    "End the trial and recruit this player onto your team. This finalizes the application: the chat closes and no further action is possible.",
+  "player_market.extend_trial":
+    "Give the trial more time instead of deciding now, useful when you need a few more days before accepting or rejecting the player.",
+  "player_market.trial_chat":
+    "A private chat between the team and the player for the duration of the trial. It only becomes available once a trial has started, and closes when the application is settled.",
+
+  // ── User › Profile ─────────────────────────────────────────────────────────
+  "profile.edit.uid":
+    "Your Free Fire player UID, the numeric in-game ID found in your Free Fire profile, not your AFC username. It's used to identify you in tournaments and match results.",
+  "profile.edit.in_game_name":
+    "Your public Free Fire handle, shown across AFC as @yourname. Type it exactly as it appears in-game; pasting is blocked to keep out fancy unicode characters that break matching.",
+  "profile.discord_connect":
+    "Link your Discord account so the AFC bot can assign you the right server and event roles, and unlock Discord-only features. A pop-up opens to authorize on Discord; once linked, this button switches to Disconnect.",
+
+  // ── User › Leaderboards + Rankings/Tiers ───────────────────────────────────
+  "leaderboards.public._page":
+    "Per-event standings. Pick an event, then a stage, group and match to see how teams or players placed. Points come from the scoring system the organizer set for that event.",
+  "leaderboards.public.view_filter":
+    "\"Overall Leaderboard\" sums every match in this group into one cumulative table. Pick a single match instead to see just that match's standings.",
+  "leaderboards.public.points_column":
+    "Total points = placement points for where you finished plus points per kill, using the scoring system the organizer set for this event.",
+  "rankings.public.monthly_standings":
+    "A live cross-event ladder ordered by total score. It rebuilds from results as they land and resets on the 1st of each month, separate from the seasonal Tiers.",
+  "rankings.public.score_column":
+    "One combined score from tournament and scrim results: kills and placements (compressed so they can't run away), bigger tournaments worth more, plus bonuses for wins and finals. Tap a row for the breakdown.",
+  "rankings.public.tiers_intro":
+    "A team's grade for the whole season, regraded each quarter; only teams are tiered. The \"X/2 tournaments\" badge means a team must play at least 2 tournaments that quarter to rank above Entry.",
 } as const;
 
 export type HelpId = keyof typeof HELP;

@@ -46,6 +46,7 @@ import { ComingSoon } from "@/components/ComingSoon";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export const ProfileContent = () => {
   const router = useRouter();
@@ -187,6 +188,9 @@ export const ProfileContent = () => {
               </Badge>
             )}
             <div className="grid w-full gap-2">
+              <div className="flex items-center justify-end">
+                <InfoTip id="profile.discord_connect" />
+              </div>
               <Button className="w-full" asChild>
                 <Link href="/profile/edit">Edit Profile</Link>
               </Button>

@@ -22,6 +22,7 @@ import { Loader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { formatMoneyInput } from "@/lib/utils";
 import { ComingSoon } from "@/components/ComingSoon";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Interfaces based on your API
 interface Variant {
@@ -314,6 +315,7 @@ export default function ProductDetailPage() {
                     className="text-xs uppercase text-muted-foreground"
                   >
                     Have a promo code?
+                    <InfoTip id="shop.checkout.coupon" className="ml-1" />
                   </Label>
                   <div className="flex gap-1">
                     <Input

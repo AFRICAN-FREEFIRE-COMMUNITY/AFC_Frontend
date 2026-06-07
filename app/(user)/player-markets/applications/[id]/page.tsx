@@ -41,6 +41,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatDate } from "@/lib/utils";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -574,6 +575,7 @@ export default function ApplicationDetailPage({
                 <CardTitle className="flex items-center gap-2">
                   <IconBrandDiscord className="h-4 w-4" />
                   Contact
+                  <InfoTip id="player_market.unlock_contact" />
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-xs space-y-1.5">
@@ -736,6 +738,7 @@ export default function ApplicationDetailPage({
         <CardTitle className="flex items-center gap-2">
           <IconMessage className="h-4 w-4 text-muted-foreground" />
           Trial Chat
+          <InfoTip id="player_market.trial_chat" />
         </CardTitle>
         {chatData && (
           <CardDescription>{chatData.team} &amp; {chatData.player}</CardDescription>

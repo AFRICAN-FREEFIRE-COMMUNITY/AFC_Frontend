@@ -52,6 +52,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { ProtectedRoute } from "../../_components/ProtectedRoute";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -212,7 +213,10 @@ export default function CreateTeamForm() {
                 name="team_tag"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team tag (Optional)</FormLabel>
+                    <FormLabel>
+                      Team tag (Optional)
+                      <InfoTip id="teams.create.team_tag" className="ml-1" />
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Enter your team tag"
@@ -414,7 +418,10 @@ export default function CreateTeamForm() {
                 name="join_settings"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Join settings</FormLabel>
+                    <FormLabel>
+                      Join settings
+                      <InfoTip id="teams.create.join_settings" className="ml-1" />
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -434,7 +441,10 @@ export default function CreateTeamForm() {
                 )}
               />
               <div className="space-y-2">
-                <FormLabel>Invite Members (Email or Username)</FormLabel>
+                <FormLabel>
+                  Invite Members (Email or Username)
+                  <InfoTip id="teams.create.invite_members" className="ml-1" />
+                </FormLabel>
                 {fields.map((field, index) => (
                   <FormField
                     key={field.id}

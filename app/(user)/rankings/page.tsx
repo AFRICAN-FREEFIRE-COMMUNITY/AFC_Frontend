@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -188,7 +189,7 @@ function RankingsView() {
     <div>
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p className="text-sm text-muted-foreground">
-          Live monthly standings, ordered by score · <span className="text-foreground">{monthLabel}</span>
+          Live monthly standings, ordered by score <InfoTip id="rankings.public.monthly_standings" /> · <span className="text-foreground">{monthLabel}</span>
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <SearchBar value={q} onChange={setQ} placeholder={subject === "teams" ? "Search teams" : "Search players"} />
@@ -228,7 +229,7 @@ function RankingsView() {
                       <TableHead className="text-right">MVPs</TableHead>
                     </>
                   )}
-                  <TableHead className="text-right">Score</TableHead>
+                  <TableHead className="text-right">Score <InfoTip id="rankings.public.score_column" /></TableHead>
                   <TableHead className="w-8" />
                 </TableRow>
               </TableHeader>
@@ -411,7 +412,7 @@ function TiersView() {
     <div>
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p className="max-w-xl text-sm text-muted-foreground">
-          Team grade for the season. Only teams are tiered. Reach the top to become{" "}
+          Team grade for the season. Only teams are tiered. <InfoTip id="rankings.public.tiers_intro" /> Reach the top to become{" "}
           <span className="font-semibold text-amber-400">Elite</span>. Tap a team for its full breakdown.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

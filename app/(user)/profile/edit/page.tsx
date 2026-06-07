@@ -36,6 +36,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -217,7 +218,9 @@ const Page = () => {
                 name="uid"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>UID</FormLabel>
+                    <FormLabel>
+                      UID <InfoTip id="profile.edit.uid" />
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -234,7 +237,9 @@ const Page = () => {
                 name="ingameName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>In-game Name</FormLabel>
+                    <FormLabel>
+                      In-game Name <InfoTip id="profile.edit.in_game_name" />
+                    </FormLabel>
                     <FormControl>
                       <Input
                         className="bg-input border-border"

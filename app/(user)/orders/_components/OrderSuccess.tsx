@@ -22,6 +22,7 @@ import {
   IconRefresh,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { InfoTip } from "@/components/ui/info-tip";
 
 export default function OrderSuccess() {
   const searchParams = useSearchParams();
@@ -124,10 +125,11 @@ export default function OrderSuccess() {
               <IconX className="h-16 w-16 text-destructive" />
             )}
           </div>
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle className="text-2xl font-bold flex items-center justify-center gap-1">
             {status === "success"
               ? "Payment Successful!"
               : "Pending Verification"}
+            <InfoTip id="shop.diamonds.order_status" />
           </CardTitle>
         </CardHeader>
 
