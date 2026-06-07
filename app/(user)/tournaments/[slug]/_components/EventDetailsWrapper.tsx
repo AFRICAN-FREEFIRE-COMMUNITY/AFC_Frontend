@@ -30,6 +30,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
+import { TournamentStructure } from "./TournamentStructure";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Dialog,
@@ -2239,6 +2240,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeStageTab, setActiveStageTab] = useState<string>("");
+  // Results ⇄ Structure view toggle for the main stage area (default Results = existing behavior).
+  const [mainView, setMainView] = useState<"results" | "structure">("results");
   const [modalStep, setModalStep] = useState<ModalStep>("CLOSED");
   const [regType, setRegType] = useState<RegistrationType | null>(null);
   const [rulesAccepted, setRulesAccepted] = useState(false);
@@ -3053,13 +3056,35 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         </div>
         <p className="text-sm">Participants: {participantText}</p>
 
-        <CardContent style={{ padding: 0 }}>
+        <CardContent style={{ padding: 0 }} className="space-y-4">
           {eventDetails.stages?.length > 0 ? (
-            <Tabs
-              value={activeStageTab}
-              onValueChange={setActiveStageTab}
-              className="w-full"
-            >
+            <>
+              {/* Results ⇄ Structure toggle. "Structure" renders the new graphical
+                  TournamentStructure view (stage flow + group standings); "Results"
+                  keeps the existing per-stage results tables. */}
+              <Tabs
+                value={mainView}
+                onValueChange={(v) =>
+                  setMainView(v as "results" | "structure")
+                }
+              >
+                <TabsList>
+                  <TabsTrigger value="results">Results</TabsTrigger>
+                  <TabsTrigger value="structure">Structure</TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              {mainView === "structure" ? (
+                <TournamentStructure
+                  stages={eventDetails.stages as any}
+                  participantType={eventDetails.participant_type}
+                />
+              ) : (
+                <Tabs
+                  value={activeStageTab}
+                  onValueChange={setActiveStageTab}
+                  className="w-full"
+                >
               <ScrollArea>
                 <TabsList className="w-full">
                   {eventDetails.stages.map((stage) => (
@@ -3084,7 +3109,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   <StageResultsTable stage={stage} />
                 </TabsContent>
               ))}
-            </Tabs>
+                </Tabs>
+              )}
+            </>
           ) : (
             <div className="p-10 text-center border-2 border-dashed border-zinc-900 rounded-2xl text-zinc-500">
               Tournament hasn't started yet. Results will appear here.
