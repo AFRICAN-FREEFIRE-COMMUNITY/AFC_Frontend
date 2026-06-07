@@ -14,9 +14,12 @@ export async function generateMetadata(
   const { username } = await params;
 
   try {
-    // Fetch player data for SEO purposes
+    // Fetch player data for SEO purposes from the PUBLIC player-stats endpoint
+    // (no auth, no PII). This is the same surface the client component reads, and
+    // unlike the old /team/get-player-details/ it does not crash for teamless
+    // players. Response shape: { player: { username, team: {...}|null, ... } }.
     const response = await fetch(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-player-details/`,
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-public-player-stats/`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,11 +41,12 @@ export async function generateMetadata(
       return { title: "Player Not Found | AFC" };
     }
 
+    // team is an object ({ team_name, ... }) or null on the public endpoint.
+    const teamName = player.team?.team_name;
+
     const title = `${player.username} - Professional Player | AFC`;
     const description = `${player.username} ${
-      player.team_name
-        ? `plays for ${player.team_name}`
-        : "is an esports athlete"
+      teamName ? `plays for ${teamName}` : "is an esports athlete"
     }. View stats, roles, and tournament history on AFC Tournaments.`;
 
     const playerImage =
@@ -73,7 +77,7 @@ export async function generateMetadata(
       },
       keywords: [
         player.username,
-        player.team_name,
+        teamName,
         player.in_game_role,
         "esports player",
         "gaming profile",

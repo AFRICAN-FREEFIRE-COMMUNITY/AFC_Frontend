@@ -48,17 +48,6 @@ import {
   Search,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { addDays } from "date-fns";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -108,6 +97,10 @@ import {
   getStatusBadge,
   type ApplicationRecord,
 } from "@/app/(user)/_components/ReviewApplicationDialog";
+// The detailed Statistics tab body lives in its own component for readability.
+// It is wired to the real get-team-details aggregates + tournament_performance +
+// recent_matches + tier_history that the backend now returns.
+import TeamStatisticsTab from "./_components/TeamStatisticsTab";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -122,13 +115,6 @@ const Page = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { openAuthModal } = useAuthModal();
   const [inviteLink, setInviteLink] = useState("");
-  const [dateRange, setDateRange] = useState({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
-
-  const [eventFilter, setEventFilter] = useState("all");
-  const [selectedEvent, setSelectedEvent] = useState("");
   const [isTeamCreator, setIsTeamCreator] = useState(false);
   const [hasFullAccess, setHasFullAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -928,157 +914,14 @@ const Page = ({ params }: { params: Params }) => {
               </TabsContent>
 
               <TabsContent value="statistics">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Team Statistics</CardTitle>
-                  </CardHeader>
-                  <CardContent className="relative overflow-hidden">
-                    {/* Blur Overlay */}
-                    <div className="absolute inset-0 backdrop-blur-sm bg-background/50 z-10 flex items-center justify-center">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Coming Soon
-                      </span>
-                    </div>
-                    <div className="space-y-4">
-                      <div>
-                        <Label>Date Range</Label>
-                      </div>
-                      <div>
-                        <Label>Event Type</Label>
-                        <Select
-                          value={eventFilter}
-                          onValueChange={setEventFilter}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select event type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Events</SelectItem>
-                            <SelectItem value="scrims">Scrims</SelectItem>
-                            <SelectItem value="tournaments">
-                              Tournaments
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {eventFilter !== "all" && (
-                        <div>
-                          <Label>
-                            {eventFilter === "scrims" ? "Scrim" : "Tournament"}{" "}
-                            Name
-                          </Label>
-                          <Select
-                            value={selectedEvent}
-                            onValueChange={setSelectedEvent}
-                          >
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={`Select ${
-                                  eventFilter === "scrims"
-                                    ? "scrim"
-                                    : "tournament"
-                                }`}
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {/* Populate this with actual event names */}
-                              <SelectItem value="event1">Event 1</SelectItem>
-                              <SelectItem value="event2">Event 2</SelectItem>
-                              <SelectItem value="event3">Event 3</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Scrim Wins
-                          </p>
-                          <p className="text-lg md:text-xl font-semibold">
-                            {teamDetails?.stats?.scrim_wins
-                              ? teamDetails?.stats?.scrim_wins
-                              : 0}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Tournament Wins
-                          </p>
-                          <p className="text-lg md:text-xl font-semibold">
-                            {teamDetails?.stats?.tournament_wins
-                              ? teamDetails?.stats?.tournament_wins
-                              : 0}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Tier 1 Tournaments
-                          </p>
-                          <p className="text-lg md:text-xl font-semibold">
-                            {teamDetails?.stats?.tier1_tournaments_played
-                              ? teamDetails?.stats?.tier1_tournaments_played
-                              : 0}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Tier 2 Tournaments
-                          </p>
-                          <p className="text-lg md:text-xl font-semibold">
-                            {teamDetails?.stats?.tier2_tournaments_played
-                              ? teamDetails?.stats?.tier2_tournaments_played
-                              : 0}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Tier 3 Tournaments
-                          </p>
-                          <p className="text-lg md:text-xl font-semibold">
-                            {teamDetails?.stats?.tier3_tournaments_played
-                              ? teamDetails?.stats?.tier3_tournaments_played
-                              : 0}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Total Earnings
-                          </p>
-                          <p className="text-lg md:text-xl font-semibold">
-                            $
-                            {teamDetails?.stats?.total_earnings
-                              ? teamDetails?.stats?.total_earnings
-                              : 0}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={teamDetails?.performance_history}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis yAxisId="left" />
-                            <YAxis yAxisId="right" orientation="right" />
-                            <Tooltip />
-                            <Legend />
-                            <Line
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="kills"
-                              stroke="#8884d8"
-                            />
-                            <Line
-                              yAxisId="right"
-                              type="monotone"
-                              dataKey="wins"
-                              stroke="#82ca9d"
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/*
+                  Detailed Team Statistics. Wired to the real get-team-details
+                  payload (aggregate scalars + tournament_performance with the new
+                  event_date/prize_earned fields + recent_matches + tier_history).
+                  The component handles its own range filter, metric switcher,
+                  expandable rows, and degraded-data empty states.
+                */}
+                <TeamStatisticsTab team={teamDetails} />
               </TabsContent>
 
               <TabsContent value="social">
