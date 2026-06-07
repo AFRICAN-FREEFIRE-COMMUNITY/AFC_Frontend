@@ -37,6 +37,7 @@ import { UserX, AlertTriangle, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatWord } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { InfoTip } from "@/components/ui/info-tip";
 
 interface MemberUpdate {
   member_id: number;
@@ -258,8 +259,13 @@ export default function page({ params }: { params: Params }) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>In-game Role</TableHead>
-                  <TableHead>Management Role</TableHead>
+                  <TableHead>
+                    In-game Role <InfoTip id="teams.roster.in_game_role" />
+                  </TableHead>
+                  <TableHead>
+                    Management Role{" "}
+                    <InfoTip id="teams.roster.management_role" />
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>

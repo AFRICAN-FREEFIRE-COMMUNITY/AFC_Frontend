@@ -756,6 +756,14 @@ export const HELP = {
     "The maximum requests per minute this key may make. Requests beyond it are rejected with a 429 until the next minute. Defaults to 60.",
   "partners.revoke_key":
     "Permanently disable this key. Any integration using it stops authenticating immediately. This can't be undone — issue a new key to restore access.",
+
+  // ── User › Teams › Manage Roster ───────────────────────────────────────────
+  "teams.roster._page":
+    "Manage your team's roster: set each member's in-game and management role, or remove them. Only the team owner and coaches can manage the roster — captains cannot.",
+  "teams.roster.in_game_role":
+    "The competitive position a player holds (Rusher, Sniper, Support, Grenader). Only PLAYERS — Captain, Vice Captain or Member — can have an in-game role, and a team can field at most 6.",
+  "teams.roster.management_role":
+    "A member's role on the team. PLAYERS (Captain, Vice Captain, Member) compete and can hold an in-game role. STAFF (Coach, Manager, Analyst) are support-only, are never fielded as players, and a team can have at most one of each. Moving a member between player and staff is only allowed while the transfer window is open.",
 } as const;
 
 export type HelpId = keyof typeof HELP;
