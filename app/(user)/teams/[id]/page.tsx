@@ -208,6 +208,15 @@ const Page = ({ params }: { params: Params }) => {
     (member: any) => member.username === user?.in_game_name,
   );
 
+  // Roster management is open to the team owner (hasFullAccess) AND to a coach on this
+  // team — mirrors the backend _can_manage_roster gate. Edit Team stays owner-only.
+  const isCoachOnTeam = teamDetails?.members?.some(
+    (member: any) =>
+      member.username === user?.in_game_name &&
+      member.management_role === "coach",
+  );
+  const canManageRoster = hasFullAccess || isCoachOnTeam;
+
   const handleJoinTeam = () => {
     startRequestTransition(async () => {
       try {
@@ -553,21 +562,23 @@ const Page = ({ params }: { params: Params }) => {
                       )}
                     </Button>
                   )}
+                {/* Edit Team: owner-only */}
                 {hasFullAccess && !teamDetails?.is_banned && (
-                  <>
-                    <Button variant={"secondary"} asChild>
-                      <Link href={`/teams/${teamDetails?.team_name}/edit`}>
-                        <Edit />
-                        Edit Team
-                      </Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href={`/teams/${teamDetails?.team_name}/roster`}>
-                        <Users />
-                        Manage Roster
-                      </Link>
-                    </Button>
-                  </>
+                  <Button variant={"secondary"} asChild>
+                    <Link href={`/teams/${teamDetails?.team_name}/edit`}>
+                      <Edit />
+                      Edit Team
+                    </Link>
+                  </Button>
+                )}
+                {/* Manage Roster: owner or coach */}
+                {canManageRoster && !teamDetails?.is_banned && (
+                  <Button asChild>
+                    <Link href={`/teams/${teamDetails?.team_name}/roster`}>
+                      <Users />
+                      Manage Roster
+                    </Link>
+                  </Button>
                 )}
                 {!hasFullAccess && isMember && !teamDetails?.is_banned && (
                   <Dialog>
