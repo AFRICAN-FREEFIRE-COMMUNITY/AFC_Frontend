@@ -2323,6 +2323,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     is_used: boolean;
     used_by: string | null;
     used_at: string | null;
+    // is_shared marks the reusable first-come-first-serve link: it stays valid even when
+    // is_used is true. is_expired mirrors the backend expiry gate so we block expired links.
+    is_shared?: boolean;
+    is_expired?: boolean;
   } | null>(null);
 
   // Ban state
@@ -2418,9 +2422,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           is_used: response.data.is_used,
           used_by: response.data.used_by,
           used_at: response.data.used_at,
+          is_shared: response.data.is_shared,
+          is_expired: response.data.is_expired,
         });
 
-        if (response.data.is_used) {
+        // An expired link can never register anyone (matches the backend gate).
+        if (response.data.is_expired) {
+          toast.error("This invite link has expired.");
+          setHasValidInvite(false);
+          return false;
+        }
+
+        // A shared link is the reusable first-come-first-serve link, so is_used being
+        // true does NOT block it; only a consumed single-use link is rejected here.
+        if (response.data.is_used && !response.data.is_shared) {
           toast.error("This invite link has already been used.");
           setHasValidInvite(false);
           return false;
@@ -2969,6 +2984,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     eventDetails.participant_type.slice(1)
   }s`;
 
+  // "Consumed" = a single-use invite that has already been used. A SHARED link is the
+  // reusable first-come-first-serve link, so it is NOT consumed even when is_used is true.
+  // Use this anywhere we previously keyed off inviteStatus.is_used to show the
+  // "already used" warning or block registration, so a shared link is never treated as used.
+  const isInviteConsumed = Boolean(
+    inviteStatus?.is_used && !inviteStatus?.is_shared,
+  );
+
   // Determine if user can register
   const canRegister = eventDetails.is_public || hasValidInvite;
 
@@ -3048,20 +3071,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           {!eventDetails.is_public && (
             <div
               className={`flex items-center gap-2 p-3 rounded-md border ${
-                inviteStatus?.is_used
+                isInviteConsumed
                   ? "bg-red-500/10 border-red-500/30"
                   : "bg-yellow-500/10 border-yellow-500/30"
               }`}
             >
               <AlertTriangle
                 className={`size-4 flex-shrink-0 ${
-                  inviteStatus?.is_used ? "text-red-400" : "text-yellow-400"
+                  isInviteConsumed ? "text-red-400" : "text-yellow-400"
                 }`}
               />
               <div className="flex-1">
                 <p
                   className={`text-sm font-semibold ${
-                    inviteStatus?.is_used ? "text-red-400" : "text-yellow-400"
+                    isInviteConsumed ? "text-red-400" : "text-yellow-400"
                   }`}
                 >
                   Private Event
@@ -3071,13 +3094,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                     Validating invite link...
                   </p>
                 )}
-                {!isCheckingInvite && inviteStatus?.is_used && (
+                {!isCheckingInvite && isInviteConsumed && (
                   <div className="text-xs text-red-300 space-y-1">
                     <p>❌ This invite link has already been used.</p>
-                    {inviteStatus.used_by && (
+                    {inviteStatus?.used_by && (
                       <p>Used by: {inviteStatus.used_by}</p>
                     )}
-                    {inviteStatus.used_at && (
+                    {inviteStatus?.used_at && (
                       <p>
                         Used at:{" "}
                         {new Date(inviteStatus.used_at).toLocaleString()}
@@ -3085,6 +3108,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                     )}
                   </div>
                 )}
+                {/* Shared first-come-first-serve link: confirm it is reusable so the
+                    group is not scared off by the "already used" copy. */}
+                {!isCheckingInvite &&
+                  hasValidInvite &&
+                  inviteStatus?.is_shared && (
+                    <p className="text-xs text-green-300">
+                      ✓ Shared invite link. Slots are first come, first serve.
+                    </p>
+                  )}
                 {!isCheckingInvite && !inviteToken && (
                   <p className="text-xs text-yellow-300">
                     You need an invite link to register for this event.
@@ -3092,7 +3124,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 )}
                 {!isCheckingInvite &&
                   hasValidInvite &&
-                  !inviteStatus?.is_used && (
+                  !inviteStatus?.is_shared &&
+                  !isInviteConsumed && (
                     <p className="text-xs text-green-300">
                       ✓ Valid invite detected - you can register!
                     </p>
@@ -3312,7 +3345,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 !!token &&
                 (!!registrationDisabledReason ||
                   isCheckingInvite ||
-                  (inviteStatus?.is_used && !eventDetails.is_public))
+                  (isInviteConsumed && !eventDetails.is_public))
               }
               className="w-full"
             >
@@ -3320,7 +3353,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 ? "Login to Register"
                 : isCheckingInvite
                   ? "Validating invite..."
-                  : inviteStatus?.is_used && !eventDetails.is_public
+                  : isInviteConsumed && !eventDetails.is_public
                     ? "Invite Already Used"
                     : registrationDisabledReason ||
                       (waitlistMode ? "Join Waitlist" : "Register for Tournament")}

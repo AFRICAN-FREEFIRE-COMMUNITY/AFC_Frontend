@@ -229,6 +229,11 @@ interface InviteLink {
   is_used: boolean;
   used_by: string | null;
   used_at: string | null;
+  // is_shared marks the ONE reusable first-come-first-serve link (never consumed);
+  // expires_at is when the link stops registering anyone (null = never expires).
+  // Both are returned by the backend get-all-invite-links-for-private-event endpoint.
+  is_shared?: boolean;
+  expires_at?: string | null;
 }
 
 // --- Component ---
@@ -400,6 +405,47 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     }
   };
 
+  // Mint ONE shared first-come-first-serve link. Hits the same generate endpoint as a
+  // single-use link but with is_shared:true, so the backend creates a reusable token
+  // that is never consumed. The first max_teams_or_players registrations through it take
+  // the slots, then the event's capacity cap closes it (see backend register_for_event).
+  const generateSharedInvite = async () => {
+    if (!eventDetails || !token) return;
+
+    setGeneratingInvite(true);
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/generate-single-use-invite-link-for-private-event/`,
+        { event_id: eventDetails.event_id.toString(), is_shared: true },
+        config,
+      );
+
+      toast.success("Shared invite link generated. Share it with your group.");
+
+      // Copy the new shared link to the clipboard right away for convenience.
+      if (res.data?.invite_link) {
+        copyToClipboard(res.data.invite_link);
+      }
+
+      // Refresh invite links
+      await fetchInviteLinks(eventDetails.event_id);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to generate shared invite link",
+      );
+    } finally {
+      setGeneratingInvite(false);
+    }
+  };
+
   const generateBulkInvites = async () => {
     if (!eventDetails || !token) return;
 
@@ -510,9 +556,11 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
     const rows = inviteLinks.map((invite) => ({
       "Invite Link": invite.invite_link,
+      // Distinguish the reusable FCFS link from single-use links in the export.
+      Type: invite.is_shared ? "Shared (FCFS)" : "Single-use",
       "Created By": invite.created_by,
       "Created At": new Date(invite.created_at).toLocaleString(),
-      Status: invite.is_used ? "Used" : "Active",
+      Status: invite.is_shared ? "Reusable" : invite.is_used ? "Used" : "Active",
       "Used By": invite.used_by || "N/A",
       "Used At": invite.used_at
         ? new Date(invite.used_at).toLocaleString()
@@ -1377,6 +1425,16 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    {/* ONE reusable first-come-first-serve link for the whole group.
+                        Backend creates it with is_shared:true so it is never consumed;
+                        the event's capacity cap closes it once the slots fill. */}
+                    <Button
+                      size="sm"
+                      onClick={generateSharedInvite}
+                      disabled={generatingInvite}
+                    >
+                      Generate shared invite link (first come, first serve)
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -1435,6 +1493,25 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="max-h-96 overflow-y-auto space-y-2">
+                {/* Explainer: how the shared FCFS link behaves vs single-use links. */}
+                <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
+                  <p>
+                    <span className="font-medium text-foreground">
+                      Shared link (first come, first serve):
+                    </span>{" "}
+                    one link you share with the whole group. The first{" "}
+                    {eventDetails.max_teams_or_players ?? "max"} to register
+                    through it take the slots, in registration order, then the
+                    event is full and the link stops working. The same link can
+                    be used by many people.
+                  </p>
+                  <p className="mt-1">
+                    <span className="font-medium text-foreground">
+                      Single-use link:
+                    </span>{" "}
+                    works for one registration only, then it is closed.
+                  </p>
+                </div>
                 {loadingInvites ? (
                   <div className="text-center py-8 text-muted-foreground">
                     Loading invite links...
@@ -1449,7 +1526,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                     <Card
                       key={index}
                       className={`${
-                        invite.is_used
+                        // A shared link is always live (never consumed), so it keeps the
+                        // active highlight. A single-use link greys out once used.
+                        !invite.is_shared && invite.is_used
                           ? "bg-muted/50 opacity-60"
                           : "bg-primary/10"
                       }`}
@@ -1465,7 +1544,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                               onClick={() =>
                                 copyToClipboard(invite.invite_link)
                               }
-                              disabled={invite.is_used}
+                              // Copy stays enabled for a shared link even after it has
+                              // been used: it is meant to be shared with many people.
+                              disabled={!invite.is_shared && invite.is_used}
                             >
                               {copiedLinks.has(invite.invite_link) ? (
                                 <IconCheck />
@@ -1478,7 +1559,26 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                             <span>Created by: {invite.created_by}</span>
                             <span className="hidden sm:inline">•</span>
                             <span>{formatDate(invite.created_at)}</span>
-                            {invite.is_used ? (
+                            {invite.is_shared ? (
+                              <>
+                                {/* The reusable FCFS link. Outline badge per AFC design. */}
+                                <span className="hidden sm:inline">•</span>
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs rounded-full border-primary text-primary"
+                                >
+                                  Shared (first come, first serve)
+                                </Badge>
+                                {invite.expires_at && (
+                                  <>
+                                    <span className="hidden sm:inline">•</span>
+                                    <span>
+                                      Expires {formatDate(invite.expires_at)}
+                                    </span>
+                                  </>
+                                )}
+                              </>
+                            ) : invite.is_used ? (
                               <>
                                 <span className="hidden sm:inline">•</span>
                                 <Badge
