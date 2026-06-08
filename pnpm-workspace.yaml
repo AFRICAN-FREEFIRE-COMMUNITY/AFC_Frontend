@@ -1,0 +1,25 @@
+# pnpm config. `overrides` forces patched versions of vulnerable (mostly transitive)
+# dependencies to clear `pnpm audit` advisories without waiting on each parent to bump.
+# ONE entry per package+major: overlapping selectors for the SAME major make pnpm skip the
+# override (that is why happy-dom / minimatch / lodash were not applying). Ranges stay within
+# a major so consumers needing an older API are not force-upgraded across a major.
+overrides:
+  ajv@<6.14.0: '>=6.14.0'
+  brace-expansion@<1.1.13: '>=1.1.13'
+  brace-expansion@>=2.0.0 <2.0.3: '>=2.0.3'
+  flatted@<=3.4.1: '>=3.4.2'
+  js-cookie@<=3.0.5: '>=3.0.7'
+  lodash@<4.18.0: '>=4.18.1'
+  markdown-it@<14.1.1: '>=14.1.1'
+  minimatch@<3.1.4: '>=3.1.4'
+  postcss@<8.5.10: '>=8.5.10'
+  # eslint + typescript-eslint (dev-only) pull a vulnerable minimatch 9.0.5; the
+  # range-selector form did not apply, so scope to each parent and pin within 9.x
+  # (9.0.9 is patched, no major jump - a blanket override would drag a separate 10.x
+  # consumer down to 9.x).
+  eslint>minimatch: '9.0.9'
+  '@typescript-eslint/typescript-estree>minimatch': '9.0.9'
+  # Plain (un-selectored) overrides for deps where the range-selector form would not
+  # apply and only ONE major is present in the tree, so forcing all instances is safe:
+  happy-dom: '>=20.8.9'
+  picomatch: '>=4.0.4'
