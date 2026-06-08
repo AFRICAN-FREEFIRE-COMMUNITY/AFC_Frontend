@@ -37,6 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InfoTip } from "@/components/ui/info-tip";
 import {
   IconUsers,
@@ -49,6 +50,8 @@ import {
   IconShield,
   IconCircleCheck,
   IconClipboardList,
+  IconMessage,
+  IconLoader2,
 } from "@tabler/icons-react";
 import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -186,6 +189,29 @@ interface TrialsAndApplicationsResponse {
   summary: { status: string; count: number }[];
   total: number;
   applications: TrialApplication[];
+}
+
+// ─── Admin Trial-Chat Read Types (feature "K-admin-chat-read") ───────────────
+// Shapes returned by GET /player-market/trial-chat/messages/?chat_id=<id>. AFC staff
+// (admin/moderator) may READ any trial chat for oversight; the backend keeps posting
+// participant-only, so this admin surface is strictly read-only (no send box). The
+// same endpoint powers the user-side TrialChatSidebar, so these mirror its types.
+interface TrialChatMessage {
+  id: number;
+  sender: string; // sender's full username (never truncated in the UI)
+  sender_id: number;
+  message: string;
+  sent_at: string;
+}
+
+interface TrialChatConversation {
+  chat_id: number;
+  application_id: number;
+  status: string;
+  team: string;
+  team_logo: string | null;
+  player: string;
+  messages: TrialChatMessage[];
 }
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
@@ -677,6 +703,55 @@ export default function AdminPlayerMarketPage() {
   const [trialsStatusFilter, setTrialsStatusFilter] = useState("all");
   const [selectedApplication, setSelectedApplication] =
     useState<TrialApplication | null>(null);
+
+  // ── Admin trial-chat reader (feature "K-admin-chat-read") ────────────────────
+  // READ-ONLY view of any trial conversation. Triggered by the "Read Chat" button on
+  // a Trials & Applications row that has a chat_id. `chatContext` holds the row's
+  // team/player labels so the dialog header reads correctly even before the messages
+  // land; `chatConversation` holds the fetched conversation. There is deliberately no
+  // message-input state here: staff observe, they do not post (the backend send
+  // endpoint stays participant-only).
+  const [chatContext, setChatContext] = useState<{
+    chatId: number;
+    team: string;
+    player: string;
+  } | null>(null);
+  const [chatConversation, setChatConversation] =
+    useState<TrialChatConversation | null>(null);
+  const [chatLoading, setChatLoading] = useState(false);
+
+  // Open the read-only chat dialog for a given application row and fetch its messages
+  // from GET /player-market/trial-chat/messages/?chat_id=<id> with the admin's Bearer
+  // token (same auth the rest of this page uses via useAuth()).
+  const openChat = (app: TrialApplication) => {
+    if (!app.chat_id) return; // guarded; the button is hidden when chat_id is null
+    setChatContext({
+      chatId: app.chat_id,
+      team: app.team.name,
+      player: app.player.username,
+    });
+    setChatConversation(null);
+    setChatLoading(true);
+    axios
+      .get<TrialChatConversation>(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/trial-chat/messages/?chat_id=${app.chat_id}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      .then((res) => setChatConversation(res.data))
+      .catch((err) =>
+        toast.error(
+          err?.response?.data?.message || "Failed to load trial chat.",
+        ),
+      )
+      .finally(() => setChatLoading(false));
+  };
+
+  // Close + reset the chat reader.
+  const closeChat = () => {
+    setChatContext(null);
+    setChatConversation(null);
+    setChatLoading(false);
+  };
 
   // Reports state (legacy mock - kept only for any stray references; the real queue
   // below replaces the Reports & Flags tab).
@@ -1458,15 +1533,41 @@ export default function AdminPlayerMarketPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            title="View details"
-                            onClick={() => setSelectedApplication(app)}
-                          >
-                            <IconEye className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              title="View details"
+                              onClick={() => setSelectedApplication(app)}
+                            >
+                              <IconEye className="h-4 w-4" />
+                            </Button>
+                            {/* Read Chat: opens the read-only trial-chat reader
+                                (feature "K-admin-chat-read"). Only rendered when the
+                                application has a chat (chat_id != null). Rows with no
+                                trial chat yet show a muted "No chat" hint instead, so
+                                the admin understands why there is nothing to open. */}
+                            {app.chat_id ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8"
+                                title="Read this trial chat (read-only)"
+                                onClick={() => openChat(app)}
+                              >
+                                <IconMessage className="h-3.5 w-3.5 mr-1" />
+                                Read Chat
+                              </Button>
+                            ) : (
+                              <span
+                                className="text-xs text-muted-foreground"
+                                title="No trial chat has been started for this application yet"
+                              >
+                                No chat
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -1581,6 +1682,102 @@ export default function AdminPlayerMarketPage() {
                 )}
               </div>
             )}
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ─── Read-Only Trial Chat Dialog (feature "K-admin-chat-read") ──────────
+            Opened by the "Read Chat" button on a Trials & Applications row. Fetches
+            the conversation from GET /player-market/trial-chat/messages/?chat_id=<id>
+            (admin Bearer token) and renders every message with the SENDER'S full
+            username, the message text, and the timestamp. This is intentionally
+            READ-ONLY for staff: there is no message input / send box, mirroring the
+            backend gate (send_trial_chat_message stays participant-only). The message
+            bubble idiom mirrors the user-side TrialChatSidebar so both read the same. */}
+        <Dialog
+          open={!!chatContext}
+          onOpenChange={(open) => !open && closeChat()}
+        >
+          <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <IconMessage className="h-5 w-5 text-primary" />
+                Trial Chat
+                {chatContext && (
+                  <Badge variant="outline" className="rounded-full text-xs">
+                    #{chatContext.chatId}
+                  </Badge>
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                {chatContext ? (
+                  <>
+                    Read-only view of the conversation between{" "}
+                    <span className="text-foreground font-medium">
+                      {chatContext.team}
+                    </span>{" "}
+                    and{" "}
+                    <span className="text-foreground font-medium">
+                      {chatContext.player}
+                    </span>
+                    . Staff may read trial chats but cannot post.
+                  </>
+                ) : (
+                  "Read-only view of a trial conversation."
+                )}
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* Message list: loading, empty, then the conversation. */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-2 min-h-[8rem]">
+              {chatLoading ? (
+                <div className="flex items-center justify-center h-36 gap-2 text-sm text-muted-foreground">
+                  <IconLoader2 className="h-4 w-4 animate-spin" />
+                  Loading messages...
+                </div>
+              ) : !chatConversation ||
+                chatConversation.messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-36 gap-2 text-muted-foreground">
+                  <IconMessage className="h-10 w-10 opacity-30" />
+                  <p className="text-sm font-medium">No messages yet</p>
+                  <p className="text-xs">
+                    This trial chat has no messages to show.
+                  </p>
+                </div>
+              ) : (
+                // Admin reads BOTH sides, so every message is left-aligned with the
+                // sender's FULL username shown above the bubble (never truncated).
+                chatConversation.messages.map((msg) => (
+                  <div key={msg.id} className="flex gap-2">
+                    <Avatar className="h-7 w-7 shrink-0 mt-0.5">
+                      <AvatarFallback className="text-xs">
+                        {msg.sender.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start space-y-0.5 min-w-0">
+                      {/* Full sender username + timestamp. break-words so a long
+                          username wraps rather than being clipped. */}
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <span className="text-xs font-medium break-words">
+                          {msg.sender}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {formatDate(msg.sent_at, true)}
+                        </span>
+                      </div>
+                      <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2 text-sm leading-relaxed break-words">
+                        {msg.message}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="outline">Close</Button>

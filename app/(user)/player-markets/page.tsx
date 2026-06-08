@@ -124,6 +124,11 @@ interface TeamRecruitmentPost {
   id: number;
   team: string | null;
   country: string | null;
+  // Target-country restriction returned by the list endpoints
+  // (view-team-recruitment-posts/, get-recruitment-posts/). Empty array = open to
+  // everyone. Rendered as an "Open to:" block on the card + the View Team dialog,
+  // mirroring the standalone [id]/page.tsx "Open To" block.
+  countries?: { name: string; code: string }[];
   roles_needed: string[] | null;
   minimum_tier_required: string;
   commitment_type: string;
@@ -134,6 +139,11 @@ interface PlayerAvailablePost {
   id: number;
   player: string;
   country: string | null;
+  // Target-country restriction returned by the list endpoints
+  // (view-player-availability-posts/, get-recruitment-posts/). Empty array = open to
+  // everyone. Rendered as an "Open to play for:" block on the card + the View Player
+  // dialog, mirroring the standalone [id]/page.tsx "Open To Play For" block.
+  countries?: { name: string; code: string }[];
   primary_role: string;
   secondary_role: string;
   availability_type: string;
@@ -680,20 +690,12 @@ function PlayerMarketPage() {
             .catch(() => toast.error("Failed to load your applications."))
             .finally(() => setLoadingMyApps(false));
 
-          // Fetch trial invites
-          setLoadingInvites(true);
-          axios
-            .get(
-              `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/my-trial-invites/`,
-              { headers: { Authorization: `Bearer ${token}` } },
-            )
-            .then((r) => setMyTrialInvites(r.data))
-            .catch(() => toast.error("Failed to load trial invites."))
-            .finally(() => setLoadingInvites(false));
+          // NOTE: trial invites are fetched in their own effect below (gated on
+          // token only), so they load for team leaders AND non-leaders alike.
         }
       })
       .catch(() => {
-        // No team or failed - still fetch my applications and invites
+        // No team or failed - still fetch my applications
         setLoadingMyApps(true);
         axios
           .get(
@@ -703,18 +705,28 @@ function PlayerMarketPage() {
           .then((r) => setMyApplications(r.data))
           .catch(() => toast.error("Failed to load your applications."))
           .finally(() => setLoadingMyApps(false));
-
-        setLoadingInvites(true);
-        axios
-          .get(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/my-trial-invites/`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          )
-          .then((r) => setMyTrialInvites(r.data))
-          .catch(() => toast.error("Failed to load trial invites."))
-          .finally(() => setLoadingInvites(false));
       });
   }, [token, user]);
+
+  // ── Trial invites (received) ──────────────────────────────────────────────
+  // A user can be BOTH a team leader and a player who receives trial invites, so
+  // this fetch is gated on `token` only (NOT on !isTeamLeader). It populates the
+  // "Trial Invites" tab, which is visible to anyone logged in. Endpoint:
+  // /player-market/my-trial-invites/. Consumed by the my-invites TabsContent and
+  // its badge count on the tab trigger.
+  useEffect(() => {
+    if (!token) return;
+
+    setLoadingInvites(true);
+    axios
+      .get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/my-trial-invites/`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      .then((r) => setMyTrialInvites(r.data))
+      .catch(() => toast.error("Failed to load trial invites."))
+      .finally(() => setLoadingInvites(false));
+  }, [token]);
 
   useEffect(() => {
     axios
@@ -926,10 +938,13 @@ function PlayerMarketPage() {
       toast.success(
         action === "ACCEPT" ? "Trial invite accepted!" : "Invite declined.",
       );
+      // Optimistic status: the backend records a declined invite as "REJECTED"
+      // (not "DECLINED"), so the optimistic value must match what the refetch
+      // returns, otherwise the badge flickers/mismatches after reload.
       setMyTrialInvites((prev) =>
         prev.map((inv) =>
           inv.invite_id === inviteId
-            ? { ...inv, status: action === "ACCEPT" ? "ACCEPTED" : "DECLINED" }
+            ? { ...inv, status: action === "ACCEPT" ? "ACCEPTED" : "REJECTED" }
             : inv,
         ),
       );
@@ -1071,7 +1086,9 @@ function PlayerMarketPage() {
                 My Applications
               </TabsTrigger>
             )}
-            {token && !isTeamLeader && (
+            {/* Trial Invites is gated on token ONLY (not !isTeamLeader): a player who
+                also leads a team must still see invites they receive. */}
+            {token && (
               <TabsTrigger value="my-invites" className="flex-1">
                 <IconCalendar className="h-4 w-4 mr-1.5" />
                 Trial Invites
@@ -1236,6 +1253,17 @@ function PlayerMarketPage() {
                       )}
                     </div>
 
+                    {/* Country restriction: which countries this recruitment post is
+                        open to. Only shown when the backend returns a non-empty
+                        countries array; empty = open to everyone (nothing rendered).
+                        Mirrors the "Open To" block on the standalone [id]/page.tsx. */}
+                    {team.countries && team.countries.length > 0 && (
+                      <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-1">
+                        <span className="font-medium">Open to:</span>
+                        {team.countries.map((c) => c.name).join(", ")}
+                      </p>
+                    )}
+
                     <Separator />
 
                     {/* Action */}
@@ -1393,6 +1421,17 @@ function PlayerMarketPage() {
                       )}
                     </div>
 
+                    {/* Country restriction: which countries this player is open to play
+                        for. Only shown when the backend returns a non-empty countries
+                        array; empty = open to everyone (nothing rendered). Mirrors the
+                        "Open To Play For" block on the standalone [id]/page.tsx. */}
+                    {player.countries && player.countries.length > 0 && (
+                      <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-1">
+                        <span className="font-medium">Open to play for:</span>
+                        {player.countries.map((c) => c.name).join(", ")}
+                      </p>
+                    )}
+
                     <Separator />
 
                     {/* Action */}
@@ -1437,7 +1476,9 @@ function PlayerMarketPage() {
         </TabsContent>
 
         {/* ─── My Trial Invites Tab ────────────────────────────────── */}
-        {token && !isTeamLeader && (
+        {/* Trial Invites content is gated on token ONLY (not !isTeamLeader) so a
+            team leader who is also a player still sees invites they received. */}
+        {token && (
           <TabsContent value="my-invites" className="mt-4 space-y-3">
             {/* J2: tryout-cap rule note on the Trial Invites area. Accepting an invite
                 while already in 2 ongoing trials is rejected server-side. No em dashes. */}
@@ -1468,6 +1509,9 @@ function PlayerMarketPage() {
                 const statusColors: Record<string, string> = {
                   PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
                   ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  // Backend uses "REJECTED" for declined invites; "DECLINED" kept as
+                  // a fallback in case any older record still carries that value.
+                  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
                   DECLINED: "bg-red-900/20 text-red-400 border-red-800",
                   EXPIRED: "bg-muted text-muted-foreground border-border",
                 };
@@ -1883,7 +1927,10 @@ function PlayerMarketPage() {
 
                 {/* CTA */}
                 <div className="flex justify-end pt-1">
-                  <Link href={`/team/${currentTeam.team_id}`}>
+                  {/* Team detail route is /teams/<team_name> (plural, name-keyed): teams/[id]/page.tsx
+                      reads the [id] segment and POSTs it as team_name to get-team-details. The old
+                      /team/<team_id> href 404'd (no singular /team route, and it used id not name). */}
+                  <Link href={`/teams/${currentTeam.team_name}`}>
                     <Button size="sm">
                       View Full Team
                       <IconChevronRight className="h-4 w-4 ml-1" />
@@ -2777,6 +2824,26 @@ function PlayerMarketPage() {
                   </Badge>
                 </div>
               </div>
+
+              {/* Country restriction: countries this recruitment post is open to.
+                  Only rendered when the backend returns a non-empty countries array
+                  (empty = open to everyone). Mirrors the "Open To" block + secondary
+                  badge style used on the standalone [id]/page.tsx. */}
+              {viewTeam.countries && viewTeam.countries.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
+                    <IconMapPin className="h-3 w-3" />
+                    Open to
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {viewTeam.countries.map((c) => (
+                      <Badge key={c.code} variant="secondary" className="text-xs">
+                        {c.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <DialogFooter className="gap-2">
@@ -2880,6 +2947,26 @@ function PlayerMarketPage() {
                   </Badge>
                 </div>
               </div>
+
+              {/* Country restriction: countries this player is open to play for.
+                  Only rendered when the backend returns a non-empty countries array
+                  (empty = open to everyone). Mirrors the "Open To Play For" block +
+                  secondary badge style used on the standalone [id]/page.tsx. */}
+              {viewPlayer.countries && viewPlayer.countries.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
+                    <IconMapPin className="h-3 w-3" />
+                    Open to play for
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {viewPlayer.countries.map((c) => (
+                      <Badge key={c.code} variant="secondary" className="text-xs">
+                        {c.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Invite message - only for team leaders */}
               {isTeamLeader && (

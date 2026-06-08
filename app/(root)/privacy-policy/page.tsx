@@ -128,6 +128,25 @@ const page = () => {
                 prevention
               </li>
             </ul>
+
+            {/* 2.6 Trial Chat & Communications Data: discloses that trial-chat
+                messages are stored and may be read by AFC staff for moderation.
+                Added to satisfy the platform's admin trial-chat oversight feature. */}
+            <h3 className="font-medium mt-4 text-black dark:text-white">
+              2.6 Trial Chat & Communications Data
+            </h3>
+            <p>
+              When a player is on trial with a team, AFC stores the messages
+              exchanged in the private trial chat between that player and the
+              team. These messages, including their content, timestamps, and
+              sender details, are retained on AFC systems.
+            </p>
+            <p>
+              AFC administrators and authorized staff may access and read trial
+              chat conversations for moderation, safety, dispute resolution, and
+              enforcement of community rules. The trial chat is therefore not
+              private from AFC moderation.
+            </p>
           </div>
 
           {/* 3. How We Use Your Information */}

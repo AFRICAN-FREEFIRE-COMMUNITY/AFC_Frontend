@@ -173,6 +173,24 @@ const page = () => {
               <li>Use AFC for unauthorized commercial activities</li>
             </ul>
             <p>AFC may take disciplinary actions against violations.</p>
+
+            {/* 5.1 Trial Chat Monitoring: ToS acknowledgement that AFC staff may
+                read the private team-and-player trial chat. Pairs with Privacy
+                Policy section 2.6, which covers storage of these messages. */}
+            <h3 className="font-medium mt-4 text-black dark:text-white">
+              5.1 Trial Chat Monitoring
+            </h3>
+            <p>
+              When a player is on trial with a team, the private trial chat
+              between the player and the team is stored by AFC. You acknowledge
+              and agree that AFC administrators and authorized staff may monitor
+              and read trial chat conversations for moderation, safety, dispute
+              resolution, and enforcement of community rules.
+            </p>
+            <p>
+              The trial chat is not a private channel from AFC moderation. By
+              using the trial chat, you consent to this monitoring and access.
+            </p>
           </div>
 
           {/* 6. Tournament Participation & Competitive Integrity */}

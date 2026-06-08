@@ -208,7 +208,7 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
               </Button>
             )}
             <div className="flex-1 min-w-0">
-              <SheetTitle className="text-base truncate">
+              <SheetTitle className="text-base break-words">
                 {view === "list" ? (
                   "Trial Chats"
                 ) : selectedChat ? (
@@ -219,7 +219,7 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
                 )}
               </SheetTitle>
               {view === "conversation" && selectedChat && (
-                <p className="text-xs text-muted-foreground truncate">
+                <p className="text-xs text-muted-foreground break-words">
                   {/* Player name links to their public player profile. */}
                   with <PlayerLink name={selectedChat.player} />
                 </p>
@@ -258,8 +258,8 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{chat.team}</p>
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="font-medium text-sm break-words">{chat.team}</p>
+                      <p className="text-xs text-muted-foreground break-words">
                         with {chat.player}
                       </p>
                     </div>

@@ -130,37 +130,30 @@ const page = () => {
   useEffect(() => {
     startTransition(async () => {
       try {
+        // get-all-news now folds reaction data into each item (likes, dislikes,
+        // is_liked_by_user, is_disliked_by_user). Pass the viewer's auth token so
+        // the backend can compute the liked/disliked state for the logged-in user.
+        // Token comes from useAuth() (same source handleVote uses below); when
+        // logged out it's undefined, so we send no Authorization header and the
+        // backend returns counts with liked-state = false.
         const res = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`,
+          token
+            ? { headers: { Authorization: `Bearer ${token}` } }
+            : undefined,
         );
         const newsData = res.data.news;
 
-        // Fetch counts for all news items in parallel
-        const newsWithCounts = await Promise.all(
-          newsData.map(async (item: any) => {
-            try {
-              const countRes = await axios.post(
-                `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-likes-dislikes-count/`,
-                { news_id: item.id || item.news_id, session_token: token },
-              );
-              return {
-                ...item,
-                likes_count: countRes.data.likes,
-                dislikes_count: countRes.data.dislikes,
-                is_liked_by_user: countRes.data.is_liked_by_user,
-                is_disliked_by_user: countRes.data.is_disliked_by_user,
-              };
-            } catch {
-              return {
-                ...item,
-                likes_count: 0,
-                dislikes_count: 0,
-                is_liked_by_user: false,
-                is_disliked_by_user: false,
-              };
-            }
-          }),
-        );
+        // Map the folded reaction fields onto the keys the cards already read
+        // (likes_count / dislikes_count). No per-article request anymore: this
+        // removes the old 1+N waterfall to get-news-likes-dislikes-count/.
+        const newsWithCounts = newsData.map((item: any) => ({
+          ...item,
+          likes_count: item.likes ?? 0,
+          dislikes_count: item.dislikes ?? 0,
+          is_liked_by_user: item.is_liked_by_user ?? false,
+          is_disliked_by_user: item.is_disliked_by_user ?? false,
+        }));
 
         setNews(newsWithCounts);
       } catch (error: any) {
