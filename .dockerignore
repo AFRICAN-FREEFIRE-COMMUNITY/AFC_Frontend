@@ -1,0 +1,15 @@
+# Docker build context excludes. Keeps the context lean AND correct.
+#
+# CRITICAL: node_modules must be excluded. The Dockerfile installs Linux deps in an early layer,
+# then `COPY . /usr/src/app` copies the source tree over it. If the host's node_modules rides along
+# it clobbers the image's freshly installed deps and `next build` fails with
+# "Cannot find module .../node_modules/next/dist/bin/next". node_modules + .next are gitignored, so a
+# clean CI checkout never carried them; excluding them here makes a local `docker build` reproduce CI.
+#
+# NOTE: .env is intentionally NOT ignored. It is committed to the repo and `next build` reads the
+# NEXT_PUBLIC_* values from it at build time, so it must stay in the build context.
+node_modules
+.next
+.git
+.gitignore
+*.log
