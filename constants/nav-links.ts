@@ -9,6 +9,7 @@ import {
   IconMessage,
   IconNews,
   IconPlugConnected,
+  IconScan,
   IconSettings,
   IconShield,
   IconShoppingCart,
@@ -197,6 +198,17 @@ export const adminNavLinks: AdminNavLink[] = [
     slug: "/a/rankings",
     icon: IconArticle,
     allowedRoles: ["head_admin", "metrics_admin"],
+  },
+  // OCR Model ops dashboard (app/(a)/a/ocr-model/page.tsx). Shows the self-hosted OCR
+  // model's weekly local share / zero-touch flywheel and exposes the dataset + model
+  // controls (download dataset, promote, rollback). Gated to head_admin to match the
+  // backend admin gate on the /events/ocr/ endpoints it consumes. IconScan reads as the
+  // "read a screenshot" OCR action.
+  {
+    label: "OCR Model",
+    slug: "/a/ocr-model",
+    icon: IconScan,
+    allowedRoles: ["head_admin"],
   },
   {
     label: "Admin Shop",
