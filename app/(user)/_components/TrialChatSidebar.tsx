@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   IconArrowLeft,
+  IconShieldLock,
   IconSend,
   IconMessage,
   IconLoader2,
@@ -89,6 +90,10 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
+  // First-open disclaimer: shown ONCE per chat (tracked in localStorage) to tell the trial
+  // participants their conversation may be reviewed by AFC moderators. This is the in-product
+  // notice that pairs with the Privacy Policy + Terms disclosure of admin trial-chat access.
+  const [disclaimerChatId, setDisclaimerChatId] = useState<number | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -141,6 +146,10 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
   const openConversation = (chatId: number) => {
     setView("conversation");
     setLoadingMessages(true);
+    // First time this user opens THIS chat -> show the moderation disclaimer overlay.
+    if (typeof window !== "undefined" && !localStorage.getItem(`afc_trialchat_ack_${chatId}`)) {
+      setDisclaimerChatId(chatId);
+    }
     axios
       .get<ChatConversation>(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/trial-chat/messages/?chat_id=${chatId}`,
@@ -174,6 +183,14 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
     }
   };
 
+  // Record that this user has seen the moderation disclaimer for this chat, so it shows once.
+  const acknowledgeDisclaimer = () => {
+    if (disclaimerChatId !== null && typeof window !== "undefined") {
+      localStorage.setItem(`afc_trialchat_ack_${disclaimerChatId}`, "1");
+    }
+    setDisclaimerChatId(null);
+  };
+
   const handleClose = () => {
     setView("list");
     setSelectedChat(null);
@@ -192,8 +209,27 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
     <Sheet open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
       <SheetContent
         side="right"
-        className="w-full sm:w-[400px] p-0 flex flex-col gap-0"
+        className="relative w-full sm:w-[400px] p-0 flex flex-col gap-0"
       >
+        {/* First-open moderation disclaimer overlay, shown once per chat (see disclaimerChatId).
+            Tells the trial participants their conversation may be reviewed by AFC staff. */}
+        {disclaimerChatId !== null && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm p-6">
+            <div className="bg-card border rounded-md p-6 max-w-[320px] text-center shadow-lg">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <IconShieldLock className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground">Before you chat</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                Trial chats may be reviewed by AFC moderators for safety, fairness, and dispute
+                resolution. Please keep it respectful. By continuing, you acknowledge this.
+              </p>
+              <Button className="mt-4 w-full" onClick={acknowledgeDisclaimer}>
+                I understand
+              </Button>
+            </div>
+          </div>
+        )}
         {/* ── Header ──────────────────────────────────────────────────── */}
         <SheetHeader className="px-4 py-3 border-b shrink-0">
           <div className="flex items-center gap-2 min-w-0">
