@@ -8,22 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   IconUpload,
   IconPhoto,
@@ -32,12 +17,16 @@ import {
   IconTrash,
   IconRefresh,
   IconScan,
-  IconAlertTriangle,
 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+// Centralized OCR contract (lib/api/ocr.ts). The extract handler below hits ocrApi.ocrFromStoredImage
+// (POST /events/ocr-from-image/) instead of a hand-rolled fetch, and the returned session is handed
+// to OCRReviewTable for in-place edit + commit (replacing the old read-only preview dialog).
+import { ocrApi, type DraftRow } from "@/lib/api/ocr";
+import { OCRReviewTable } from "./OCRReviewTable";
 
 interface MatchImage {
   image_id: number;
@@ -51,10 +40,12 @@ interface PendingFile {
   preview: string;
 }
 
-interface ExtractResult {
-  session_id: string;
-  event_type: string;
-  draft_rows: any[];
+// The OCR session this step handed off to the inline review table. Holds everything
+// OCRReviewTable needs (session_id + draft_rows + the engine that answered, if surfaced).
+interface ReviewSession {
+  sessionId: string;
+  draftRows: DraftRow[];
+  engine?: string | null;
 }
 
 interface Props {
@@ -73,7 +64,9 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
   const [loadingImages, setLoadingImages] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [extractingId, setExtractingId] = useState<number | null>(null);
-  const [extractResult, setExtractResult] = useState<ExtractResult | null>(null);
+  // The session under review (null = still on the upload list). When set, the inline
+  // OCRReviewTable takes over so the admin can edit + commit without leaving this step.
+  const [reviewSession, setReviewSession] = useState<ReviewSession | null>(null);
   const [uploading, startUpload] = useTransition();
 
   const matchId = match?.match_id;
@@ -205,39 +198,52 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
     }
   };
 
+  // Re-run OCR on an already-uploaded image. Goes through the centralized OCR client
+  // (ocrApi.ocrFromStoredImage -> POST /events/ocr-from-image/) and hands the resulting session to
+  // the inline OCRReviewTable for edit + commit, instead of the old read-only preview dialog.
   const handleExtract = async (img: MatchImage, mapIndex: number) => {
+    if (!matchId) return;
     setExtractingId(img.image_id);
     try {
-      const res = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/ocr-from-image/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            image_id: img.image_id,
-            match_id: matchId,
-            map_index: mapIndex,
-          }),
-        },
+      const session = await ocrApi.ocrFromStoredImage({
+        image_id: img.image_id,
+        match_id: matchId,
+        map_index: mapIndex,
+      });
+      toast.success(
+        `Read ${session.draft_rows?.length ?? 0} row${
+          (session.draft_rows?.length ?? 0) !== 1 ? "s" : ""
+        } from the image`,
       );
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(
-          `Extracted ${data.draft_rows?.length ?? 0} rows from the image`,
-        );
-        setExtractResult(data);
-      } else {
-        toast.error(data.message || "Extraction failed");
-      }
-    } catch {
-      toast.error("Extraction failed");
+      setReviewSession({
+        sessionId: session.session_id,
+        draftRows: session.draft_rows ?? [],
+        engine: session.engine ?? session.teacher_model ?? null,
+      });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Extraction failed");
     } finally {
       setExtractingId(null);
     }
   };
+
+  // ── Inline review ────────────────────────────────────────────────────────────
+  // Once an image is extracted, the OCRReviewTable takes over this step so the admin edits +
+  // commits in place (the old version told them to commit elsewhere with the session id). On
+  // commit we bubble up via onNext (the parent closes the drawer + refreshes); on back we drop the
+  // session and return to the image list.
+  if (reviewSession) {
+    return (
+      <OCRReviewTable
+        sessionId={reviewSession.sessionId}
+        draftRows={reviewSession.draftRows}
+        matchId={match.match_id}
+        engine={reviewSession.engine}
+        onCommitted={onNext}
+        onBack={() => setReviewSession(null)}
+      />
+    );
+  }
 
   return (
     <>
@@ -456,108 +462,6 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
           </div>
         </CardContent>
       </Card>
-
-      {/* ── Extraction result dialog ── */}
-      <Dialog
-        open={!!extractResult}
-        onOpenChange={(open) => !open && setExtractResult(null)}
-      >
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              Extraction Result - {extractResult?.draft_rows?.length ?? 0} rows
-            </DialogTitle>
-          </DialogHeader>
-
-          {extractResult && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>Session ID: {extractResult.session_id}</span>
-                <span>·</span>
-                <span className="capitalize">{extractResult.event_type}</span>
-              </div>
-
-              {extractResult.draft_rows.length === 0 ? (
-                <div className="flex items-center gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
-                  <IconAlertTriangle className="size-4 shrink-0" />
-                  <span>
-                    No rows were extracted. Check that the screenshot is clear
-                    and shows match results.
-                  </span>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">#</TableHead>
-                      <TableHead>Raw Name (OCR)</TableHead>
-                      <TableHead>Matched Player</TableHead>
-                      <TableHead className="w-20 text-right">Kills</TableHead>
-                      <TableHead className="w-24">Confidence</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {extractResult.draft_rows.map((row: any, i: number) => (
-                      <TableRow key={row.row_id ?? i}>
-                        <TableCell className="text-muted-foreground">
-                          {row.placement ?? i + 1}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {row.raw_name}
-                        </TableCell>
-                        <TableCell>
-                          {row.matched_username ? (
-                            <span className="flex items-center gap-1.5">
-                              {row.matched_username}
-                              {row.team_mismatch && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-yellow-600 border-yellow-500/50 text-[10px]"
-                                >
-                                  Team mismatch
-                                </Badge>
-                              )}
-                            </span>
-                          ) : (
-                            <span className="text-destructive text-sm">
-                              Unmatched
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {row.kills ?? "-"}
-                        </TableCell>
-                        <TableCell>
-                          {row.confidence != null ? (
-                            <Badge
-                              variant={
-                                row.confidence >= 0.8
-                                  ? "default"
-                                  : row.confidence >= 0.5
-                                    ? "secondary"
-                                    : "destructive"
-                              }
-                            >
-                              {Math.round(row.confidence * 100)}%
-                            </Badge>
-                          ) : (
-                            "-"
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-
-              <p className="text-xs text-muted-foreground">
-                Review and commit this session from the leaderboard edit page
-                using the session ID above.
-              </p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

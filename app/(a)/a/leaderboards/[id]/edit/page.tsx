@@ -68,9 +68,14 @@ import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import { ManualMatchResultStep } from "../../_components/ManualMatchResultStep";
 import { MatchMethodSelectionStep } from "../../_components/MatchMethodSelectionStep";
-import { ImageUploadStep } from "../../_components/ImageUploadStep";
 import { FileUploadStep } from "../../_components/FileUploadStep";
 import { GroupBulkUploadPanel } from "../../_components/GroupBulkUploadPanel";
+// OCR review flow (Phase 1): pick a map + drop a screenshot (MapSelectionStep), then review +
+// correct the auto-extracted rows (OCRReviewTable) and commit. Mounted in the Upload drawer below,
+// in place of the old read-only ImageUploadStep preview. DraftRow types come from lib/api/ocr.ts.
+import { MapSelectionStep } from "../../_components/MapSelectionStep";
+import { OCRReviewTable } from "../../_components/OCRReviewTable";
+import type { DraftRow } from "@/lib/api/ocr";
 
 type Params = { id: string };
 
@@ -233,6 +238,16 @@ export default function EditLeaderboardPage({
   const [uploadView, setUploadView] = useState<
     "method" | "manual" | "image_upload" | "room_file_upload"
   >("method");
+  // ── OCR review sub-flow state (lives inside the "image_upload" view) ─────────
+  // The Image Upload method runs a 2-step mini-stepper: MapSelectionStep (pick map + upload
+  // screenshot) -> OCRReviewTable (edit + commit). Once MapSelectionStep returns a session we
+  // stash it here so OCRReviewTable can take over the same drawer panel. Reset whenever the drawer
+  // opens / the view changes so a new upload starts clean.
+  const [ocrSession, setOcrSession] = useState<{
+    sessionId: string;
+    draftRows: DraftRow[];
+    engine?: string | null;
+  } | null>(null);
 
   // Match editing
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
@@ -873,12 +888,14 @@ export default function EditLeaderboardPage({
       result_inputted: (m as any).result_inputted ?? false,
     });
     setUploadView("method");
+    setOcrSession(null); // start the OCR mini-stepper from the map picker
     setUploadDrawerOpen(true);
   };
 
   const handleUploadComplete = () => {
     setUploadDrawerOpen(false);
     setUploadingMatch(null);
+    setOcrSession(null); // clear any in-flight OCR draft when the drawer closes
     fetchData();
     setActiveTab("matches");
   };
@@ -2009,11 +2026,40 @@ export default function EditLeaderboardPage({
               />
             )}
 
-            {uploadView === "image_upload" && uploadingMatch && (
-              <ImageUploadStep
-                match={uploadingMatch}
-                onNext={handleUploadComplete}
+            {/* ── Image Upload = the OCR review mini-stepper ──────────────────
+                Step 1 (no session yet): MapSelectionStep - pick which map this
+                screenshot is for and upload it (POST /events/ocr-match-result/ via
+                ocrApi.uploadOcrScreenshot). Step 2 (session ready): OCRReviewTable -
+                edit + commit the auto-extracted rows (PATCH/commit on the session).
+                On commit we run handleUploadComplete (close drawer + refresh, same as
+                every other upload path). `maps` is this group's matches; the picked
+                position is the 1-indexed map_index the backend expects.
+                NOTE: the standalone ImageUploadStep (re-extract from an already-stored
+                image) is still imported and available, but the primary screenshot ->
+                review path is this stepper, so it is no longer mounted here. */}
+            {uploadView === "image_upload" && uploadingMatch && !ocrSession && (
+              <MapSelectionStep
+                matchId={uploadingMatch.match_id}
+                maps={(currentGroup?.matches ?? []).map((m: any) => ({
+                  match_id: m.match_id,
+                  match_number: m.match_number,
+                  match_map: m.match_map,
+                }))}
+                onSessionReady={(sessionId, draftRows, engine) =>
+                  setOcrSession({ sessionId, draftRows, engine })
+                }
                 onBack={() => setUploadView("method")}
+              />
+            )}
+
+            {uploadView === "image_upload" && uploadingMatch && ocrSession && (
+              <OCRReviewTable
+                sessionId={ocrSession.sessionId}
+                draftRows={ocrSession.draftRows}
+                matchId={uploadingMatch.match_id}
+                engine={ocrSession.engine}
+                onCommitted={handleUploadComplete}
+                onBack={() => setOcrSession(null)}
               />
             )}
 

@@ -201,6 +201,18 @@ export const HELP = {
   "leaderboards.detail.upload_edit_group":
     "Manage the whole group in one place. Drop result screenshots for several of its maps at once (each is read and scored automatically), or edit every map's table by hand, then save all maps together.",
 
+  // ── OCR screenshot review (the admin reads a result screenshot, then checks it) ──
+  // Surfaced in app/(a)/a/leaderboards/_components/OCRReviewTable.tsx (the review table) and
+  // MapSelectionStep.tsx. Explains the few non-obvious controls in that flow.
+  "ocr.confidence":
+    "How sure the reader is that this on-screen name matches the player shown. Green is a strong match, amber is unsure, red is a weak guess. Always check the low ones.",
+  "ocr.team_mismatch":
+    "This player was read onto a different team than the one they registered with, usually a stand-in. Tick Acknowledge to confirm the sub before committing, or pick the correct player instead.",
+  "ocr.corrected_text":
+    "The exact text as it appears on the screenshot, even if it is misspelled in-game. Fix it to match the pixels, not the player's real name. This trains the reader to get it right next time.",
+  "ocr.engine":
+    "Which reader produced this result (the in-house model or the external one). Shown only when available, so you can see what read the screenshot.",
+
   // ══════════════════════════════════════════════════════════════════════════
   // Rankings & Tiering - the system that scores every team and player each
   // quarter and locks them into tiers (Elite / Competitive / Rising / Entry).
