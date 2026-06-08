@@ -222,6 +222,18 @@ export const EventFormSchema = z
       .min(1, "Registration open date required"),
     registration_end_date: z.string().min(1, "Registration end date required"),
     registration_link: z.string().optional().or(z.literal("")),
+    // ── Paid vs free registration (non-payment phase). ──────────────────────────
+    // Consumed by Step1EventDetails' "Registration" sub-block (Free/Paid toggle + the
+    // fee/currency inputs). FREE is the default so the existing create/edit flows are
+    // unchanged when an organizer/admin doesn't opt into a paid event. The three keys
+    // map 1:1 onto the backend create-event / edit-event contract:
+    //   • registration_type   → "free" | "paid"
+    //   • registration_fee    → the entry fee, required > 0 when paid (null/omitted free)
+    //   • registration_fee_currency → 3-letter ISO code the fee is charged in
+    // The actual charge is a later phase; here we only collect + validate the values.
+    registration_type: z.enum(["free", "paid"]).default("free"),
+    registration_fee: z.coerce.number().positive().optional().nullable(),
+    registration_fee_currency: z.string().default("USD"),
     event_status: z.string().default("upcoming"),
     publish_to_tournaments: z.boolean().default(false),
     publish_to_news: z.boolean().default(false),
@@ -260,6 +272,17 @@ export const EventFormSchema = z
         "An event cannot be saved as a draft and published simultaneously.",
       path: ["save_to_drafts"],
     },
+  )
+  // Paid events must carry a positive entry fee. Surfaced on the registration_fee
+  // field so the message lands right under the fee input in Step1EventDetails.
+  .refine(
+    (data) =>
+      data.registration_type !== "paid" ||
+      (data.registration_fee != null && data.registration_fee > 0),
+    {
+      message: "Enter an entry fee greater than 0 for a paid event.",
+      path: ["registration_fee"],
+    },
   );
 
 export type EventFormType = z.infer<typeof EventFormSchema>;
@@ -279,4 +302,18 @@ export const AVAILABLE_MAPS = [
   "Nexterra",
   "Alpine",
   "Solara",
+];
+
+// Currencies an organizer/admin can charge a paid registration fee in. Drives the
+// registration_fee_currency Select in Step1EventDetails (create) + BasicInfoTab
+// (edit). USD is the default; the value is the 3-letter ISO code sent to the backend
+// (registration_fee_currency). Edit here to add/remove a supported currency.
+export const REGISTRATION_FEE_CURRENCIES = [
+  "USD",
+  "NGN",
+  "GHS",
+  "KES",
+  "ZAR",
+  "GBP",
+  "EUR",
 ];

@@ -108,6 +108,28 @@ import {
   type RoundRobinConfig,
 } from "@/app/(a)/a/events/_components/RoundRobinPanel";
 
+// ── Paid-vs-free registration payload helper (non-payment phase) ─────────────────
+// Appends registration_type (+ fee/currency when paid) onto the edit-event FormData.
+// Shared by all three FormData builders on this page (main Save, Sponsor save, Waitlist
+// save) so they can't drift. Editing never re-triggers the first-time paid terms gate
+// (that's create-only), so no paid_terms_accepted is sent here. FREE sends no fee.
+function appendRegistrationFeeFields(
+  formData: FormData,
+  data: Pick<
+    EventFormType,
+    "registration_type" | "registration_fee" | "registration_fee_currency"
+  >,
+) {
+  formData.append("registration_type", data.registration_type || "free");
+  if (data.registration_type === "paid" && data.registration_fee != null) {
+    formData.append("registration_fee", data.registration_fee.toString());
+    formData.append(
+      "registration_fee_currency",
+      data.registration_fee_currency || "USD",
+    );
+  }
+}
+
 // ── Round-Robin rehydration (sub-project B) ─────────────────────────────────────
 // Identical to the admin edit page's helper: translate the backend's get-event-details
 // echo into the form's RoundRobinConfig. The echo carries base groups (with server
@@ -449,6 +471,11 @@ export default function OrganizerEditEventPage({
           registration_open_date: eventDetails.registration_open_date,
           registration_end_date: eventDetails.registration_end_date,
           registration_link: eventDetails.registration_link || "",
+          // Pre-fill the Free/Paid toggle + fee/currency from the fetched event.
+          registration_type: eventDetails.registration_type || "free",
+          registration_fee: eventDetails.registration_fee ?? null,
+          registration_fee_currency:
+            eventDetails.registration_fee_currency || "USD",
           event_status: eventDetails.event_status,
           event_start_time: eventDetails.event_start_time || "",
           event_end_time: eventDetails.event_end_time || "",
@@ -1077,6 +1104,8 @@ export default function OrganizerEditEventPage({
       formData.append("registration_open_date", data.registration_open_date);
       formData.append("registration_end_date", data.registration_end_date);
       formData.append("registration_link", data.registration_link || "");
+      // Paid-vs-free registration (re-sent on every full-event save so it isn't lost).
+      appendRegistrationFeeFields(formData, data);
       formData.append(
         "publish_to_tournaments",
         data.publish_to_tournaments.toString(),
@@ -1201,6 +1230,8 @@ export default function OrganizerEditEventPage({
       formData.append("registration_open_date", data.registration_open_date);
       formData.append("registration_end_date", data.registration_end_date);
       formData.append("registration_link", data.registration_link || "");
+      // Paid-vs-free registration (re-sent on every full-event save so it isn't lost).
+      appendRegistrationFeeFields(formData, data);
       formData.append(
         "publish_to_tournaments",
         data.publish_to_tournaments.toString(),
@@ -1496,6 +1527,8 @@ export default function OrganizerEditEventPage({
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
         formData.append("registration_link", data.registration_link || "");
+        // Paid-vs-free registration (re-sent on save so the values persist).
+        appendRegistrationFeeFields(formData, data);
         formData.append(
           "publish_to_tournaments",
           data.publish_to_tournaments.toString(),

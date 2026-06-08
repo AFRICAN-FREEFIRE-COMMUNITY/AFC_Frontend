@@ -95,6 +95,9 @@ import {
   StageModalData,
 } from "@/app/(a)/a/events/create/_components/StageModal";
 import { DEFAULT_ROUND_ROBIN_CONFIG } from "@/app/(a)/a/events/_components/RoundRobinPanel";
+// One-time paid-event terms gate. Organizer-only: shown before submitting a PAID org
+// event, and re-opened if the backend returns 400 {code:"paid_terms_required"}.
+import { PaidEventTermsModal } from "@/app/(a)/a/events/_components/PaidEventTermsModal";
 
 // Fresh stage-modal seed (mirrors the admin page's DEFAULT_STAGE_MODAL_DATA). Discord
 // role ids start empty and stay empty - the organizer UI never exposes them, but they
@@ -154,6 +157,14 @@ export default function OrganizerCreateEventPage() {
   );
   const [tempGroups, setTempGroups] = useState<GroupType[]>([]);
 
+  // ── Paid-event terms gate (organizer-only) ───────────────────────────────────
+  // showPaidTermsModal controls PaidEventTermsModal. termsAcceptedRef tracks whether
+  // the organizer accepted in THIS session so a re-submit (e.g. after the 400
+  // paid_terms_required) carries paid_terms_accepted: true. A ref (not state) avoids a
+  // re-render race between "accept" and the immediate resubmit.
+  const [showPaidTermsModal, setShowPaidTermsModal] = useState(false);
+  const termsAcceptedRef = React.useRef(false);
+
   // ── Form ────────────────────────────────────────────────────────────────────
   // Same EventFormSchema as the admin wizard. Defaults seed the organizer-sensible
   // starting point (internal event, one stage, a 3-position prize distribution).
@@ -187,6 +198,11 @@ export default function OrganizerCreateEventPage() {
       registration_open_date: "",
       registration_end_date: "",
       registration_link: "",
+      // Paid-vs-free registration defaults to FREE. When an organizer flips this to
+      // "paid", the create flow gates submit behind PaidEventTermsModal (below).
+      registration_type: "free",
+      registration_fee: null,
+      registration_fee_currency: "USD",
       event_status: "upcoming",
       publish_to_tournaments: false,
       publish_to_news: false,
@@ -619,6 +635,26 @@ export default function OrganizerCreateEventPage() {
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
         formData.append("registration_link", data.registration_link || "");
+        // ── Paid-vs-free registration (non-payment phase). ──
+        // Always send registration_type. For a PAID event, also send the fee + currency
+        // and (when the organizer has accepted the terms this session) the one-time
+        // paid_terms_accepted flag the backend requires the first time for an org.
+        formData.append("registration_type", data.registration_type || "free");
+        if (data.registration_type === "paid") {
+          if (data.registration_fee != null) {
+            formData.append(
+              "registration_fee",
+              data.registration_fee.toString(),
+            );
+          }
+          formData.append(
+            "registration_fee_currency",
+            data.registration_fee_currency || "USD",
+          );
+          if (termsAcceptedRef.current) {
+            formData.append("paid_terms_accepted", "true");
+          }
+        }
         if (data.event_start_time)
           formData.append("event_start_time", data.event_start_time);
         if (data.event_end_time)
@@ -746,10 +782,16 @@ export default function OrganizerCreateEventPage() {
         if (response.ok) {
           toast.success(res.message || "Event created successfully!");
           router.push("/organizer/events");
+        } else if (response.status === 400 && res.code === "paid_terms_required") {
+          // Backend says this org must accept the paid-event terms first. Open the
+          // modal; on accept we set termsAcceptedRef + resubmit (this same onSubmit),
+          // which then carries paid_terms_accepted: true.
+          setShowPaidTermsModal(true);
         } else {
           toast.error(
             res.message ||
               res.detail ||
+              res.error ||
               "Failed to create event. Please check your inputs.",
           );
         }
@@ -757,6 +799,31 @@ export default function OrganizerCreateEventPage() {
         toast.error("An unexpected error occurred during submission.");
       }
     });
+  };
+
+  // ── Paid-event submit gate ─────────────────────────────────────────────────────
+  // Wraps the create action. For a PAID org event that hasn't been accepted yet this
+  // session, show the terms modal BEFORE submitting (the spec's "show on submit of a
+  // paid org event and let the backend dedupe"). Free events submit straight through.
+  // AFC-admin events never reach this page, so the gate is organizer-only by location.
+  const handleCreateClick = () => {
+    const isPaid = form.getValues("registration_type") === "paid";
+    if (isPaid && !termsAcceptedRef.current) {
+      setShowPaidTermsModal(true);
+      return;
+    }
+    // @ts-ignore - resolver widens the form's internal TFieldValues generic (same
+    // cast the original "Create Event" button used on form.handleSubmit(onSubmit)).
+    form.handleSubmit(onSubmit)();
+  };
+
+  // Organizer accepted the paid-event terms: remember it for this session, close the
+  // modal, then submit (or resubmit) with paid_terms_accepted: true now flowing in.
+  const handleAcceptPaidTerms = () => {
+    termsAcceptedRef.current = true;
+    setShowPaidTermsModal(false);
+    // @ts-ignore - resolver widens the form's internal TFieldValues generic.
+    form.handleSubmit(onSubmit)();
   };
 
   // ── Permission gate ───────────────────────────────────────────────────────────
@@ -882,8 +949,9 @@ export default function OrganizerCreateEventPage() {
               ) : (
                 <Button
                   type="button"
-                  // @ts-ignore
-                  onClick={form.handleSubmit(onSubmit)}
+                  // handleCreateClick gates a PAID org event behind the terms modal
+                  // before submitting; free events submit straight through.
+                  onClick={handleCreateClick}
                   disabled={currentStep !== 9 || isPending || !hasFinalAction}
                 >
                   {isPending ? "Creating..." : "Create Event"}
@@ -912,6 +980,18 @@ export default function OrganizerCreateEventPage() {
           onRemoveMap={removeOneMapFromGroup}
           onSaveStage={handleSaveStage}
           hideDiscord
+        />
+
+        {/* Paid-event terms gate (organizer-only). Opened by handleCreateClick before
+            submitting a paid event, or reactively when the backend returns 400
+            {code:"paid_terms_required"}. On accept it submits with
+            paid_terms_accepted: true; on cancel it just closes (no submit). */}
+        <PaidEventTermsModal
+          open={showPaidTermsModal}
+          onOpenChange={setShowPaidTermsModal}
+          onAccept={handleAcceptPaidTerms}
+          onCancel={() => setShowPaidTermsModal(false)}
+          pending={isPending}
         />
       </Form>
     </div>

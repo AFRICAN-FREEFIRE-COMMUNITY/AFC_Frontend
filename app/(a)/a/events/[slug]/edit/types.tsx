@@ -118,6 +118,14 @@ export const EventFormSchema = z
       .min(1, "Registration open date required"),
     registration_end_date: z.string().min(1, "Registration end date required"),
     registration_link: z.string().optional().or(z.literal("")),
+    // ── Paid vs free registration (non-payment phase) - mirrors the create schema. ──
+    // BasicInfoTab pre-fills these from the fetched event detail and re-sends them on
+    // save. FREE is the default so editing an existing free event is unchanged. The
+    // keys map 1:1 onto the backend edit-event contract (registration_type / fee /
+    // currency). The actual charge is a later phase; here we only collect + validate.
+    registration_type: z.enum(["free", "paid"]).default("free"),
+    registration_fee: z.coerce.number().positive().optional().nullable(),
+    registration_fee_currency: z.string().default("USD"),
     event_status: z.string().default("upcoming"),
     publish_to_tournaments: z.boolean().default(false),
     publish_to_news: z.boolean().default(false),
@@ -156,6 +164,17 @@ export const EventFormSchema = z
         "An event cannot be saved as a draft and published simultaneously.",
       path: ["save_to_drafts"],
     },
+  )
+  // Paid events must carry a positive entry fee. Surfaced on the registration_fee
+  // field so the message lands right under the fee input in BasicInfoTab.
+  .refine(
+    (data) =>
+      data.registration_type !== "paid" ||
+      (data.registration_fee != null && data.registration_fee > 0),
+    {
+      message: "Enter an entry fee greater than 0 for a paid event.",
+      path: ["registration_fee"],
+    },
   );
 
 // ============================================================================
@@ -185,6 +204,12 @@ export interface EventDetails {
   event_rules: string;
   event_status: string;
   registration_link: string | null;
+  // ── Paid vs free registration echo (non-payment phase). ──
+  // Returned by the event-detail endpoints; BasicInfoTab pre-fills the Free/Paid
+  // toggle + fee/currency inputs from these. Optional so older payloads still type.
+  registration_type?: "free" | "paid";
+  registration_fee?: number | null;
+  registration_fee_currency?: string | null;
   tournament_tier: string;
   event_banner_url: string | null;
   uploaded_rules_url: string | null;

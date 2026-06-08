@@ -37,7 +37,7 @@ import Image from "next/image";
 import { countries, REGIONS_MAP } from "@/constants";
 import { InfoTip } from "@/components/ui/info-tip";
 import { type HelpId } from "@/lib/help-content";
-import { EventFormType } from "./types";
+import { EventFormType, REGISTRATION_FEE_CURRENCIES } from "./types";
 
 interface Step1Props {
   form: UseFormReturn<EventFormType>;
@@ -74,6 +74,8 @@ export function Step1EventDetails({
 
   const selectedCountries = form.watch("selected_locations") || [];
   const eventType = form.watch("event_type") === "external";
+  // Drives the Registration sub-block: when "paid", reveal the fee + currency inputs.
+  const isPaidRegistration = form.watch("registration_type") === "paid";
 
   const toggleCountry = (country: string) => {
     const current = new Set(selectedCountries);
@@ -303,6 +305,116 @@ export function Step1EventDetails({
               </FormItem>
             )}
           />
+        </div>
+
+        {/* ── Registration: Free vs Paid ────────────────────────────────────────
+            Sits with the registration-window fields above. A Free/Paid RadioGroup
+            writes registration_type; when "paid" we reveal the fee amount +
+            currency. FREE is the default, so a free event sends no fee and the
+            existing flow is unchanged. These three fields (registration_type /
+            registration_fee / registration_fee_currency) map 1:1 onto the backend
+            create-event + edit-event contract. The actual charge is a later phase. */}
+        <div className="space-y-4">
+          <FormField
+            // @ts-ignore
+            control={form.control}
+            name="registration_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Registration
+                  {/* Inline copy (no centralized HelpId needed): explains paid +
+                      the escrow / post-event payout. No em/en dashes. */}
+                  <InfoTip
+                    text="Choose whether players pay to register. Paid entry fees are held in escrow by the payment processor and released to the organizer after the event runs."
+                    className="ml-1"
+                  />
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    value={field.value ?? "free"}
+                    onValueChange={field.onChange}
+                    className="flex gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="free" id="registration_type_free" />
+                      <Label htmlFor="registration_type_free">Free</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="paid" id="registration_type_paid" />
+                      <Label htmlFor="registration_type_paid">Paid</Label>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Fee + currency only when Paid. Hidden (and not collected) for Free. */}
+          {isPaidRegistration && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                // @ts-ignore
+                control={form.control}
+                name="registration_fee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Entry Fee</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="e.g., 5"
+                        value={
+                          field.value === undefined || field.value === null
+                            ? ""
+                            : field.value.toString()
+                        }
+                        onChange={(e) =>
+                          // Empty string clears the fee; otherwise hand the raw
+                          // string to the schema (z.coerce.number handles parsing).
+                          field.onChange(
+                            e.target.value === "" ? null : e.target.value,
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                // @ts-ignore
+                control={form.control}
+                name="registration_fee_currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Currency</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value ?? "USD"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {REGISTRATION_FEE_CURRENCIES.map((code) => (
+                          <SelectItem key={code} value={code}>
+                            {code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
         </div>
 
         {/* Event Dates & Times */}

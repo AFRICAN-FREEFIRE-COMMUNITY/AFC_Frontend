@@ -107,6 +107,11 @@ export default function CreateEventPage() {
       registration_open_date: "",
       registration_end_date: "",
       registration_link: "",
+      // Paid-vs-free registration defaults to FREE (no fee collected). See
+      // Step1EventDetails' Registration block + the EventFormSchema refine.
+      registration_type: "free",
+      registration_fee: null,
+      registration_fee_currency: "USD",
       event_status: "upcoming",
       publish_to_tournaments: false,
       publish_to_news: false,
@@ -252,6 +257,10 @@ export default function CreateEventPage() {
           registration_open_date: d.registration_open_date,
           registration_end_date: d.registration_end_date,
           registration_link: d.registration_link || "",
+          // Carry the paid-vs-free config over when duplicating an event.
+          registration_type: d.registration_type || "free",
+          registration_fee: d.registration_fee ?? null,
+          registration_fee_currency: d.registration_fee_currency || "USD",
           event_status: "upcoming",
           publish_to_tournaments: false,
           publish_to_news: false,
@@ -666,6 +675,21 @@ export default function CreateEventPage() {
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
         formData.append("registration_link", data.registration_link || "");
+        // ── Paid-vs-free registration (non-payment phase). ──
+        // AFC-admin events never need the paid-event terms gate (that's organizer
+        // only), so we just send the three fields. The backend defaults
+        // registration_type to "free"; fee/currency only matter when "paid".
+        formData.append("registration_type", data.registration_type || "free");
+        if (data.registration_type === "paid" && data.registration_fee != null) {
+          formData.append(
+            "registration_fee",
+            data.registration_fee.toString(),
+          );
+          formData.append(
+            "registration_fee_currency",
+            data.registration_fee_currency || "USD",
+          );
+        }
         if (data.event_start_time) formData.append("event_start_time", data.event_start_time);
         if (data.event_end_time) formData.append("event_end_time", data.event_end_time);
         if (data.registration_start_time) formData.append("registration_start_time", data.registration_start_time);
