@@ -120,6 +120,7 @@ import { EditLeaderboardStep } from "@/app/(a)/a/leaderboards/_components/EditLe
 // Whole-group editor (manual edit + bulk upload, all per group) - shared with the
 // AFC admin editor. The bulk-upload panel is embedded INSIDE this editor.
 import { GroupResultsEditor } from "@/app/(a)/a/leaderboards/_components/GroupResultsEditor";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type Params = { slug: string };
 // The match-edit sub-views, mirroring the admin [id] page's MatchView union.
@@ -709,23 +710,25 @@ export default function OrganizerEventLeaderboardPage({
       <div className="flex flex-col md:flex-row justify-between gap-2 mb-4">
         <PageHeader
           back={!editingMatch}
-          title={eventData.event_name || eventNameFromList}
+          // ⓘ next to the title explains the whole flow: leaderboard auto-created at
+          // event setup, then seed + start, then enter/upload results.
+          title={
+            <span className="inline-flex items-center gap-2">
+              {eventData.event_name || eventNameFromList}
+              <InfoTip id="leaderboards.detail._page" />
+            </span>
+          }
           description={`${
             detailsParticipantType === "solo" ? "Solo" : "Team"
           } Tournament • ${eventData.stages?.length ?? 0} Stages`}
         />
         {!editingMatch && (
           <div className="flex gap-2 w-full md:w-auto">
-            {/* Create a new leaderboard for this event (organizer parity with the
-                admin create flow, scoped to this event). */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={startCreate}
-            >
-              <IconPlus size={16} /> Create Leaderboard
-            </Button>
+            {/* "Create Leaderboard" removed: leaderboards are now created
+                AUTOMATICALLY when the event's groups + maps are set up (backend
+                create_event / edit_event), so manual creation is redundant. The AFC
+                admin leaderboards list already hides its Create button for the same
+                reason. The create wizard code is kept but no longer reachable. */}
             <DownloadLeaderboardButton
               leaderboardName={
                 selectedMatchId === "overall"
@@ -741,7 +744,9 @@ export default function OrganizerEventLeaderboardPage({
         )}
       </div>
 
-      {/* ── Empty state: no leaderboard exists yet for this event ── */}
+      {/* ── Empty state: no leaderboard yet ──
+          Leaderboards auto-create when the event's groups + maps are set up, so the
+          fix for an empty state is to finish that setup (not a manual create). */}
       {!editingMatch && !hasAnyLeaderboard && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -749,11 +754,15 @@ export default function OrganizerEventLeaderboardPage({
               <IconTrophy className="size-6" />
             </div>
             <p className="max-w-sm text-sm text-muted-foreground">
-              No leaderboard has been created for this event yet. Create one to
-              start uploading results.
+              No leaderboard yet for this event. Leaderboards are created
+              automatically once each group has its maps set up. Add maps to this
+              event&apos;s groups in the event editor, then come back here to seed
+              competitors and enter results.
             </p>
-            <Button onClick={startCreate}>
-              <IconPlus size={16} /> Create Leaderboard
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/organizer/events/${routeSlug}/edit`}>
+                Open event editor
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -1003,14 +1012,22 @@ export default function OrganizerEventLeaderboardPage({
                 • Edit Whole Group   - this group's hub: UPLOAD results (bulk, all maps) AND
                   edit every map manually, then Save all. Upload now lives in here, so there
                   is no separate stage-looking "Bulk Upload" button. */}
-            <div className="flex gap-2 flex-wrap">
+            {/* ⓘ sit as siblings (not nested) - InfoTip is itself a button. */}
+            <div className="flex gap-2 flex-wrap items-center">
               <Button onClick={handleStartEditMatch}>
                 <IconEdit size={18} /> Edit Match Results
               </Button>
+              <InfoTip id="leaderboards.detail.edit_match_results" />
               {currentGroup?.matches?.length > 0 && (
-                <Button variant="outline" onClick={() => setGroupEditOpen(true)}>
-                  <IconUpload size={18} /> Upload / Edit Whole Group
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setGroupEditOpen(true)}
+                  >
+                    <IconUpload size={18} /> Upload / Edit Whole Group
+                  </Button>
+                  <InfoTip id="leaderboards.detail.upload_edit_group" />
+                </>
               )}
             </div>
           </CardContent>

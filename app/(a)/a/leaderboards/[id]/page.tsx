@@ -51,6 +51,7 @@ import { DownloadLeaderboardButton } from "../_components/DownloadLeaderboardBut
 // the organizer leaderboard page uses, so AFC official events get identical
 // "Upload / Edit Whole Group" behaviour.
 import { GroupResultsEditor } from "../_components/GroupResultsEditor";
+import { InfoTip } from "@/components/ui/info-tip";
 
 type Params = { id: string };
 type MatchView = "method" | "manual" | "image_upload" | "room_file_upload";
@@ -306,7 +307,14 @@ export default function IndividualLeaderboardPage({
       <div className="flex flex-col md:flex-row justify-between gap-2 mb-4">
         <PageHeader
           back={!editingMatch}
-          title={eventData.event_name}
+          // ⓘ next to the title explains the whole leaderboard flow: auto-created on
+          // event setup, then seed + start the tournament, then enter/upload results.
+          title={
+            <span className="inline-flex items-center gap-2">
+              {eventData.event_name}
+              <InfoTip id="leaderboards.detail._page" />
+            </span>
+          }
           description={`${detailsParticipantType === "solo" ? "Solo" : "Team"} Tournament • ${eventData.stages.length} Stages`}
         />
         {!editingMatch && (
@@ -577,14 +585,22 @@ export default function IndividualLeaderboardPage({
                 • Upload / Edit Whole Group - this group's hub: UPLOAD results (bulk, all
                   maps) AND edit every map manually, then Save all. Identical to the
                   organizer leaderboard surface. */}
-            <div className="flex gap-2 flex-wrap">
+            {/* ⓘ sit as siblings (not nested) - InfoTip is itself a button. */}
+            <div className="flex gap-2 flex-wrap items-center">
               <Button onClick={handleStartEditMatch}>
                 <IconEdit size={18} /> Edit Match Results
               </Button>
+              <InfoTip id="leaderboards.detail.edit_match_results" />
               {currentGroup?.matches?.length > 0 && (
-                <Button variant="outline" onClick={() => setGroupEditOpen(true)}>
-                  <IconUpload size={18} /> Upload / Edit Whole Group
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setGroupEditOpen(true)}
+                  >
+                    <IconUpload size={18} /> Upload / Edit Whole Group
+                  </Button>
+                  <InfoTip id="leaderboards.detail.upload_edit_group" />
+                </>
               )}
             </div>
           </CardContent>

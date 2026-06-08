@@ -189,6 +189,18 @@ export const HELP = {
   "leaderboards.result_penalty_points":
     "Points to subtract from the calculated score - e.g. a rules penalty.",
 
+  // ── Leaderboard management flow (the per-event view/edit page, AFC + organizer) ──
+  // Explains the end-to-end flow the user asked to surface: leaderboards are created
+  // automatically at event setup, then results are entered after seeding + start.
+  "leaderboards.detail._page":
+    "A leaderboard is created automatically for every group when the event's stages, groups and maps are set up, so you don't normally create one here. Once teams or players are seeded into a group and the tournament starts, enter each map's results below. For any map you can type results in (Manual), read them from a screenshot (Image Upload), or import a room file. Each map's results add up into the group's overall standings.",
+  "leaderboards.detail.auto_created":
+    "Leaderboards are created automatically when an event's groups and maps are set up, so there is usually nothing to create here. If a group has no leaderboard, add its maps in the event editor and it will appear.",
+  "leaderboards.detail.edit_match_results":
+    "Enter or upload results for a single map. Pick the map, then choose Manual to type placements and kills, Image Upload to read a results screenshot automatically, or 3D Room File to import from a room file.",
+  "leaderboards.detail.upload_edit_group":
+    "Manage the whole group in one place. Drop result screenshots for several of its maps at once (each is read and scored automatically), or edit every map's table by hand, then save all maps together.",
+
   // ══════════════════════════════════════════════════════════════════════════
   // Rankings & Tiering - the system that scores every team and player each
   // quarter and locks them into tiers (Elite / Competitive / Rising / Entry).
