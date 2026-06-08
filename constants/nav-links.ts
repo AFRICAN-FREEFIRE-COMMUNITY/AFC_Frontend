@@ -2,7 +2,6 @@ import {
   IconArticle,
   IconBuilding,
   IconCalendar,
-  IconCash,
   IconChartBarPopular,
   IconFolder,
   IconHome,
@@ -129,16 +128,23 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconHome,
     allowedRoles: ["head_admin"],
   },
-  {
-    label: "Admin Leaderboards",
-    slug: "/a/leaderboards",
-    icon: IconTrophy,
-    allowedRoles: ["head_admin"],
-  },
+  // Players + Teams grouped together right under the dashboard (owner request 2026-06-08).
   {
     label: "Admin Players",
     slug: "/a/players",
     icon: IconUsers,
+    allowedRoles: ["head_admin"],
+  },
+  {
+    label: "Admin Teams",
+    slug: "/a/teams",
+    icon: IconUsersGroup,
+    allowedRoles: ["teams_admin", "head_admin"],
+  },
+  {
+    label: "Admin Leaderboards",
+    slug: "/a/leaderboards",
+    icon: IconTrophy,
     allowedRoles: ["head_admin"],
   },
   {
@@ -148,25 +154,12 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconUsers,
   },
   {
-    label: "Admin Teams",
-    slug: "/a/teams",
-    icon: IconUsersGroup,
-    allowedRoles: ["teams_admin", "head_admin"],
-  },
-  {
+    // Event Payments (the paid-event escrow dashboard) is NOT a separate sidebar entry: it
+    // lives INSIDE Admin Events, reached via the "Event Payments" button on the events page
+    // header (owner request 2026-06-08). Route unchanged: /a/events/payments.
     label: "Admin Events",
     slug: "/a/events",
     icon: IconCalendar,
-    allowedRoles: ["head_admin", "event_admin"],
-  },
-  {
-    // Escrow dashboard for paid-event registration fees (Stripe). Lists held payments and
-    // lets staff release funds to the organizer or refund the player. Gated to the same
-    // roles as Admin Events (the backend admin/event-payments endpoints are staff-only).
-    // Surface: app/(a)/a/events/payments/page.tsx.
-    label: "Event Payments",
-    slug: "/a/events/payments",
-    icon: IconCash,
     allowedRoles: ["head_admin", "event_admin"],
   },
   {
