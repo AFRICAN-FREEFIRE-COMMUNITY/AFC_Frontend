@@ -155,9 +155,16 @@ const page = () => {
     <div>
       <div className="flex items-start md:items-center justify-between flex-col md:flex-row gap-2">
         <PageHeader back title={"Events Management"} />
-        <Button className="w-full md:w-auto" asChild>
-          <Link href={"/a/events/create"}>Create new event</Link>
-        </Button>
+        <div className="flex w-full md:w-auto items-center gap-2">
+          {/* Escrow dashboard for paid-event registration fees (Stripe). Lists held
+              payments and lets staff release/refund them. See app/(a)/a/events/payments. */}
+          <Button className="w-full md:w-auto" variant="outline" asChild>
+            <Link href={"/a/events/payments"}>Event Payments</Link>
+          </Button>
+          <Button className="w-full md:w-auto" asChild>
+            <Link href={"/a/events/create"}>Create new event</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">

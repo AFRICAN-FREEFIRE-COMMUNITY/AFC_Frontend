@@ -82,6 +82,12 @@ import { EventReviewCard } from "./EventReviewCard";
 import { InfoTip } from "@/components/ui/info-tip";
 // Subtle clickable name -> public player/team profile (used in standings + lists).
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
+// Paid-event registration client (Stripe). startPaidRegistration() below calls
+// initRegistrationPayment, then the success page verifies + completes registration.
+import { eventPaymentsApi } from "@/lib/api/eventPayments";
+// localStorage key for the saved register-for-event payload, so it survives the Stripe
+// redirect. Keyed by payment_id; the success page reads `${PAID_REG_KEY_PREFIX}${payment_id}`.
+const PAID_REG_KEY_PREFIX = "afc_evt_reg_";
 
 // Set to true when Discord is required for tournament registration
 const DISCORD_REQUIRED = false;
@@ -97,6 +103,11 @@ type ModalStep =
   | "DISCORD_LINK"
   | "DISCORD_JOIN"
   | "DISCORD_STATUS"
+  // PAYMENT: the final step for a PAID event (registration_type === "paid"). It replaces
+  // the direct register-for-event call - the user reviews the fee, then on "Pay" we save
+  // the full registration payload to localStorage and redirect to Stripe Checkout. The
+  // success page completes registration after payment. Free events never hit this step.
+  | "PAYMENT"
   | "SUCCESS";
 type RegistrationType = "solo" | "team";
 type TeamModalStep = "CLOSED" | "SELECT_MEMBERS" | "TEAM_INFO";
@@ -166,6 +177,15 @@ interface EventDetails {
   waitlist_capacity?: number | null;
   registered_count?: number;
   is_full?: boolean;
+  // ── Paid registration (Phase 1, Stripe) ──
+  // registration_type flips the whole register flow: "free" keeps the existing direct
+  // register-for-event path; "paid" routes the final step through Stripe Checkout (see the
+  // PAYMENT ModalStep and startPaidRegistration below). registration_fee is the entry fee
+  // charged in registration_fee_currency (a 3-letter ISO code, e.g. "USD"). These come
+  // straight off the event-details endpoints and mirror the admin create/edit contract.
+  registration_type?: "free" | "paid";
+  registration_fee?: number | null;
+  registration_fee_currency?: string;
 }
 
 interface ApiResponse {
@@ -1188,6 +1208,9 @@ interface ModalProps {
   handleRulesContinue: () => void;
   handleDiscordConnect: () => void;
   handleJoinedServer: () => void;
+  // Paid-event only: invoked from the PAYMENT step to start Stripe Checkout. For free
+  // events this step is never reached, so the prop is harmless there.
+  startPaidRegistration: () => void;
   uidInput: string;
   setUidInput: (v: string) => void;
   savingUid: boolean;
@@ -1222,6 +1245,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
   handleRulesContinue,
   handleDiscordConnect,
   handleJoinedServer,
+  startPaidRegistration,
   uidInput,
   setUidInput,
   savingUid,
@@ -2235,6 +2259,65 @@ const RegistrationModals: React.FC<ModalProps> = ({
           </>
         );
 
+      case "PAYMENT": {
+        // Final step for a PAID event. Everything else (roster, sponsor, invite) is already
+        // collected; here the user reviews the entry fee and pays via Stripe. The "Pay" button
+        // saves the register payload to localStorage and redirects to checkout_url; the success
+        // page verifies the payment and completes the actual registration.
+        const fee = eventDetails.registration_fee;
+        const currency = eventDetails.registration_fee_currency || "USD";
+        const feeLabel =
+          typeof fee === "number"
+            ? `${currency} ${fee.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`
+            : `${currency} 0.00`;
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-xl">Complete Payment</DialogTitle>
+              <DialogDescription>
+                This is a paid tournament. Pay the entry fee to finish your
+                registration.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="flex items-center justify-between rounded-md bg-primary/10 p-4">
+                <span className="text-sm text-muted-foreground">Entry Fee</span>
+                <span className="text-lg font-bold text-primary">
+                  {feeLabel}
+                </span>
+              </div>
+              <div className="flex items-start gap-2 text-sm">
+                <AlertTriangle className="size-4 flex-shrink-0 mt-0.5 text-yellow-400" />
+                <p className="text-xs text-muted-foreground">
+                  You'll be redirected to our secure checkout. After payment,
+                  you'll come back here and your registration is completed
+                  automatically. Do not close the checkout tab until it is done.
+                </p>
+              </div>
+            </div>
+            <DialogFooter className="flex sm:justify-between">
+              <Button
+                variant="secondary"
+                onClick={() => setModalStep("RULES")}
+                disabled={pendingJoined}
+              >
+                Back
+              </Button>
+              <Button onClick={startPaidRegistration} disabled={pendingJoined}>
+                {pendingJoined ? (
+                  <Loader text="Starting checkout..." />
+                ) : (
+                  `Pay ${feeLabel} to register`
+                )}
+              </Button>
+            </DialogFooter>
+          </>
+        );
+      }
+
       case "SUCCESS":
         return (
           <>
@@ -2922,31 +3005,138 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     window.open(url, "_blank", "noopener,noreferrer");
   }, [slug, token, inviteToken]);
 
-  const handleJoinedServer = useCallback(async () => {
+  // Build the EXACT payload register-for-event/ expects, from the collected modal state.
+  // Extracted so BOTH the free direct-register path AND the paid path (which saves this
+  // payload to localStorage to survive the Stripe redirect) send byte-for-byte the same
+  // thing. The success page replays this saved payload to complete a paid registration.
+  const buildRegistrationPayload = useCallback((): Record<string, any> => {
+    const payload: any = { slug: slug, event_id: eventDetails?.event_id };
+
+    // If team registration, include team and member info
+    if (regType === "team" && userTeam) {
+      payload.team_id = userTeam.team_id;
+      payload.roster_member_ids = selectedMembers;
+      payload.event_id = eventDetails?.event_id;
+    }
+
+    // Add invite token if present
+    if (inviteToken) {
+      payload.invite_token = inviteToken;
+    }
+
+    // Add sponsor IDs if required
+    if (eventDetails?.is_sponsored) {
+      if (regType === "team") {
+        payload.sponsor_ids = teamSponsorUuids;
+      } else {
+        payload.sponsor_id = soloSponsorUuid;
+      }
+    }
+
+    return payload;
+  }, [
+    slug,
+    regType,
+    userTeam,
+    selectedMembers,
+    inviteToken,
+    teamSponsorUuids,
+    soloSponsorUuid,
+    eventDetails,
+  ]);
+
+  // ── PAID PATH ──────────────────────────────────────────────────────────────
+  // Kicks off a Stripe Checkout for a paid event. Called from the PAYMENT step's
+  // "Pay ..." button. Steps: (a) init the payment, (b) save the full register payload to
+  // localStorage under afc_evt_reg_<payment_id> so it survives the redirect, (c) send the
+  // browser to checkout_url. If the user already paid, skip straight to completing the
+  // registration in-place (no redirect). The success page handles verify + register-for-event.
+  const startPaidRegistration = useCallback(async () => {
     startJoinedTransition(async () => {
       try {
-        const payload: any = { slug: slug, event_id: eventDetails?.event_id };
+        const eventId = eventDetails?.event_id;
+        if (!eventId) return;
 
-        // If team registration, include team and member info
-        if (regType === "team" && userTeam) {
-          payload.team_id = userTeam.team_id;
-          payload.roster_member_ids = selectedMembers;
-          payload.event_id = eventDetails?.event_id;
+        const init = await eventPaymentsApi.initRegistrationPayment({
+          event_id: eventId,
+          // team_id only matters for squad events; omitted for solo.
+          ...(regType === "team" && userTeam
+            ? { team_id: userTeam.team_id }
+            : {}),
+        });
+
+        // Persist the register payload keyed by payment_id BEFORE leaving the page, so the
+        // success page can finish registration after the Stripe round-trip.
+        const payload = buildRegistrationPayload();
+        try {
+          localStorage.setItem(
+            `${PAID_REG_KEY_PREFIX}${init.payment_id}`,
+            JSON.stringify(payload),
+          );
+        } catch {
+          // localStorage can throw in private-mode / quota edge cases; not fatal - the
+          // success page has a fallback "Complete registration" path if the payload is missing.
         }
 
-        // Add invite token if present
-        if (inviteToken) {
-          payload.invite_token = inviteToken;
-        }
-
-        // Add sponsor IDs if required
-        if (eventDetails?.is_sponsored) {
-          if (regType === "team") {
-            payload.sponsor_ids = teamSponsorUuids;
-          } else {
-            payload.sponsor_id = soloSponsorUuid;
+        // Already paid (e.g. a retry after a prior successful charge): no checkout needed  - 
+        // complete the registration right here using the existing endpoint.
+        if (init.already_paid) {
+          const res = await axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/register-for-event/`,
+            payload,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          toast.success(res.data.message || "You're registered!");
+          setWasWaitlisted(!!res.data.waitlisted);
+          // Clean up the saved payload - registration is done.
+          try {
+            localStorage.removeItem(`${PAID_REG_KEY_PREFIX}${init.payment_id}`);
+          } catch {
+            /* non-fatal */
           }
+          setModalStep("SUCCESS");
+          await fetchEventDetails();
+          return;
         }
+
+        if (!init.checkout_url) {
+          toast.error("Could not start checkout. Please try again.");
+          return;
+        }
+
+        // Redirect to Stripe-hosted checkout. The return URL (configured server-side) lands
+        // on /tournaments/<slug>/register/success with ?session_id & ?payment_id.
+        window.location.href = init.checkout_url;
+      } catch (error: any) {
+        // 409 = already registered; other 4xx carry a human message from the backend.
+        toast.error(
+          error.response?.data?.message ||
+            "Could not start the payment. Please try again.",
+        );
+      }
+    });
+  }, [
+    eventDetails,
+    regType,
+    userTeam,
+    buildRegistrationPayload,
+    token,
+    fetchEventDetails,
+    startJoinedTransition,
+  ]);
+
+  const handleJoinedServer = useCallback(async () => {
+    // PAID events do NOT register directly - route to the PAYMENT step instead. Everything
+    // up to here (INFO/RULES/SPONSOR/DISCORD) has already collected the roster + sponsor +
+    // invite info, which buildRegistrationPayload() snapshots when the user pays.
+    if (eventDetails?.registration_type === "paid") {
+      setModalStep("PAYMENT");
+      return;
+    }
+
+    startJoinedTransition(async () => {
+      try {
+        const payload = buildRegistrationPayload();
 
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/register-for-event/`,
@@ -2966,17 +3156,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       }
     });
   }, [
-    slug,
-    regType,
-    userTeam,
-    selectedMembers,
+    eventDetails,
+    buildRegistrationPayload,
     token,
     fetchEventDetails,
     startJoinedTransition,
-    inviteToken,
-    teamSponsorUuids,
-    soloSponsorUuid,
-    eventDetails,
   ]);
 
   // Keep ref in sync so handleRulesContinue can call it without a circular dep
@@ -3051,6 +3235,22 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // entry onto the waitlist once the active cap is reached.
   const waitlistMode =
     isFull && !!eventDetails.is_waitlist_enabled && !registrationDisabledReason;
+
+  // ── Paid event helpers (Stripe registration) ──
+  // isPaidEvent flips the badge + register-button label. paidFeeLabel is the formatted
+  // "<currency> <fee>" string shown on the badge and on the register CTA. Used below in
+  // the meta badges and the Register button copy.
+  const isPaidEvent =
+    eventDetails.registration_type === "paid" &&
+    typeof eventDetails.registration_fee === "number" &&
+    eventDetails.registration_fee > 0;
+  const paidFeeCurrency = eventDetails.registration_fee_currency || "USD";
+  const paidFeeLabel = isPaidEvent
+    ? `${paidFeeCurrency} ${Number(eventDetails.registration_fee).toLocaleString(
+        undefined,
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+      )}`
+    : "";
 
   const statusVariant: Record<
     string,
@@ -3155,6 +3355,22 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           <p>Format: {formatText}</p>
         </div>
         <p className="text-sm">Participants: {participantText}</p>
+
+        {/* ── Paid-event badge ──
+            Only rendered for a paid event (registration_type === "paid" with a positive
+            fee). Outline Badge in the AFC tier-badge idiom (rounded-full, green accent),
+            mirroring the organizer badge on the event cards. Shows the entry fee up front
+            so users know before they open the register flow. */}
+        {isPaidEvent && (
+          <div>
+            <Badge
+              variant="outline"
+              className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+            >
+              Paid: {paidFeeLabel}
+            </Badge>
+          </div>
+        )}
 
         <CardContent style={{ padding: 0 }} className="space-y-4">
           {eventDetails.stages?.length > 0 ? (
@@ -3365,7 +3581,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   : isInviteConsumed && !eventDetails.is_public
                     ? "Invite Already Used"
                     : registrationDisabledReason ||
-                      (waitlistMode ? "Join Waitlist" : "Register for Tournament")}
+                      (waitlistMode
+                        ? "Join Waitlist"
+                        : // Paid events surface the fee on the CTA so it's clear before the
+                          // user opens the register flow (which ends on the PAYMENT step).
+                          isPaidEvent
+                          ? `Register (${paidFeeLabel})`
+                          : "Register for Tournament")}
             </Button>
           )}
         </div>
@@ -3622,6 +3844,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         handleSaveUid={handleSaveUid}
         uidMissingMembers={uidMissingMembers}
         handleJoinedServer={handleJoinedServer}
+        startPaidRegistration={startPaidRegistration}
         pendingJoined={pendingJoined}
         wasWaitlisted={wasWaitlisted}
         isDiscordConnected={discordConnected}

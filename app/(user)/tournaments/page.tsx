@@ -51,6 +51,13 @@ interface Event {
   organization_id?: number | null;
   organization_name?: string | null;
   organization_slug?: string | null;
+  // ── Paid registration (Phase 1, Stripe) ──
+  // Present when the list endpoint includes the paid-event fields. "paid" + a positive
+  // registration_fee shows the "Paid: <currency> <fee>" badge on the card. Optional so the
+  // card renders fine if get-all-events doesn't return them (it just omits the badge).
+  registration_type?: "free" | "paid";
+  registration_fee?: number | null;
+  registration_fee_currency?: string;
 }
 
 type StatusFilter = "all" | "upcoming" | "ongoing" | "completed";
@@ -93,6 +100,22 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
     completed: "text-muted-foreground",
   };
 
+  // Paid-event badge: only when the list endpoint flags this event "paid" with a
+  // positive fee. Formats "<currency> <fee>"; the detail page (EventDetailsWrapper)
+  // shows the same badge + drives the actual Stripe checkout.
+  const isPaid =
+    event.registration_type === "paid" &&
+    typeof event.registration_fee === "number" &&
+    event.registration_fee > 0;
+  const paidFeeLabel = isPaid
+    ? `${event.registration_fee_currency || "USD"} ${Number(
+        event.registration_fee,
+      ).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`
+    : "";
+
   return (
     <Card
       className="overflow-hidden h-full bg-transparent gap-0 p-0"
@@ -124,16 +147,26 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
             Only shown when the event is run by an external organization. Outline
             Badge in the AFC tier-badge idiom; links to that org's public page
             when a slug is present (asChild keeps the badge styling on the <Link>). */}
-        {event.organization_name && (
-          <div>
-            {event.organization_slug ? (
-              <Badge variant="outline" asChild>
-                <Link href={`/organizations/${event.organization_slug}`}>
-                  {event.organization_name}
-                </Link>
+        {(event.organization_name || isPaid) && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {event.organization_name &&
+              (event.organization_slug ? (
+                <Badge variant="outline" asChild>
+                  <Link href={`/organizations/${event.organization_slug}`}>
+                    {event.organization_name}
+                  </Link>
+                </Badge>
+              ) : (
+                <Badge variant="outline">{event.organization_name}</Badge>
+              ))}
+            {/* Paid-event badge in the AFC tier-badge idiom (rounded-full, green accent). */}
+            {isPaid && (
+              <Badge
+                variant="outline"
+                className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+              >
+                Paid: {paidFeeLabel}
               </Badge>
-            ) : (
-              <Badge variant="outline">{event.organization_name}</Badge>
             )}
           </div>
         )}

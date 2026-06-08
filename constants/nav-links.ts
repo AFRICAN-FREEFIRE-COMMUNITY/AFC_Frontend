@@ -2,6 +2,7 @@ import {
   IconArticle,
   IconBuilding,
   IconCalendar,
+  IconCash,
   IconChartBarPopular,
   IconFolder,
   IconHome,
@@ -156,6 +157,16 @@ export const adminNavLinks: AdminNavLink[] = [
     label: "Admin Events",
     slug: "/a/events",
     icon: IconCalendar,
+    allowedRoles: ["head_admin", "event_admin"],
+  },
+  {
+    // Escrow dashboard for paid-event registration fees (Stripe). Lists held payments and
+    // lets staff release funds to the organizer or refund the player. Gated to the same
+    // roles as Admin Events (the backend admin/event-payments endpoints are staff-only).
+    // Surface: app/(a)/a/events/payments/page.tsx.
+    label: "Event Payments",
+    slug: "/a/events/payments",
+    icon: IconCash,
     allowedRoles: ["head_admin", "event_admin"],
   },
   {
