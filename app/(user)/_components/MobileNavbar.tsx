@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSignout } from "@/hooks/use-signout";
 import {
   IconBuilding,
+  IconBuildingStore,
   IconChevronDown,
   IconLogout,
   IconMenu2,
@@ -353,6 +354,29 @@ export function MobileNavbar() {
                 >
                   <Link href="/organizer/overview">
                     <IconBuilding size={18} className="mr-2" /> Organizer Dashboard
+                  </Link>
+                </Button>
+              </>
+            )}
+
+            {/* Vendor Section - shown to marketplace vendors (user.is_vendor), independent
+                of admin/organizer, so a vendor can reach their /vendor portal from the nav
+                instead of typing the URL. Mirrors the gated Vendor Dashboard link in the
+                admin sidebar (components/app-sidebar.tsx). */}
+            {user?.is_vendor && (
+              <>
+                <Separator className="my-2" />
+                <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
+                  Vendor
+                </p>
+                <Button
+                  className="justify-start"
+                  asChild
+                  variant={isActive("/vendor") ? "default" : "ghost"}
+                  onClick={handleLinkClick}
+                >
+                  <Link href="/vendor">
+                    <IconBuildingStore size={18} className="mr-2" /> Vendor Dashboard
                   </Link>
                 </Button>
               </>

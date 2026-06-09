@@ -51,6 +51,10 @@ export interface User {
   profile_pic?: string;
   discord_username?: string;
   is_banned: boolean;
+  // True if this user is an active marketplace vendor. Drives the "Vendor Dashboard"
+  // sidebar entry (the /vendor portal is otherwise only reachable by URL). Set by the
+  // backend get-user-profile payload.
+  is_vendor?: boolean;
 
   stats: UserStats;
 }
@@ -189,6 +193,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         profile_pic: dbUser.profile_pic,
         discord_username: dbUser.discord_username,
         is_banned: dbUser.is_banned,
+        is_vendor: dbUser.is_vendor ?? false,
         stats: dbUser.stats,
       };
 
