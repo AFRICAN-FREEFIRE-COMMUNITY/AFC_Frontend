@@ -38,8 +38,9 @@ export default function EventsAndLeaderboardsPage() {
   return (
     <div className="flex flex-col gap-4">
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        {/* shadcn pill/segment tabs (matches the rest of the admin area). */}
-        <TabsList>
+        {/* shadcn pill/segment tabs (matches the rest of the admin area).
+            data-tour anchor: first content step of the events tour. */}
+        <TabsList data-tour="events-tabs">
           <TabsTrigger value="events">
             <IconCalendar className="h-4 w-4" /> Events
           </TabsTrigger>

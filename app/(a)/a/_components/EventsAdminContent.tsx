@@ -176,10 +176,16 @@ export const EventsAdminContent = () => {
         <div className="flex w-full md:w-auto items-center gap-2">
           {/* Escrow dashboard for paid-event registration fees (Stripe). Lists held
               payments and lets staff release/refund them. See app/(a)/a/events/payments. */}
-          <Button className="w-full md:w-auto" variant="outline" asChild>
+          {/* data-tour anchors: events tour "Event payments" + "Create event" steps. */}
+          <Button
+            data-tour="events-payments"
+            className="w-full md:w-auto"
+            variant="outline"
+            asChild
+          >
             <Link href={"/a/events/payments"}>Event Payments</Link>
           </Button>
-          <Button className="w-full md:w-auto" asChild>
+          <Button data-tour="events-create" className="w-full md:w-auto" asChild>
             <Link href={"/a/events/create"}>Create new event</Link>
           </Button>
         </div>
@@ -332,7 +338,8 @@ export const EventsAdminContent = () => {
           </CardContent>
         </Card>
       </div>
-      <div className="mt-4">
+      {/* data-tour anchor: events tour "find an event fast" step. */}
+      <div data-tour="events-search" className="mt-4">
         <Input
           type="search"
           placeholder="Search events by name, type, or status..."
@@ -343,7 +350,8 @@ export const EventsAdminContent = () => {
           className="bg-background/50 backdrop-blur-sm block"
         />
       </div>
-      <Card className="mt-4">
+      {/* data-tour anchor: events tour "your events and scrims" step. */}
+      <Card data-tour="events-list" className="mt-4">
         <CardHeader className="border-b">
           <CardTitle>Events & Scrims List</CardTitle>
         </CardHeader>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -22,6 +22,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Trash2, ExternalLink, Check } from "lucide-react";
 import * as RPNInput from "react-phone-number-input";
 import {
@@ -74,6 +76,10 @@ const faqs = [
 
 export default function CartDetails() {
   const router = useRouter();
+  // Stripe redirects the buyer back to /shop/cart?stripe=success&session_id=...&order_id=...
+  // (see backend afc_shop/stripe_checkout.py success_url). We read those params on mount below
+  // to confirm the payment via /shop/stripe-verify/.
+  const searchParams = useSearchParams();
   const {
     items,
     removeItem,
@@ -85,6 +91,12 @@ export default function CartDetails() {
   } = useCart();
   const { token } = useAuth();
   const { openAuthModal } = useAuthModal();
+
+  // Which gateway the buyer pays with at checkout. Paystack stays the default so the existing
+  // flow is unchanged; "stripe" routes to the new /shop/stripe-buy-now/ endpoint.
+  const [paymentProvider, setPaymentProvider] = useState<"paystack" | "stripe">(
+    "paystack",
+  );
 
   const requireAuth = (action: () => void) => {
     if (!token) {
@@ -100,6 +112,20 @@ export default function CartDetails() {
   // Store customer details when form is submitted
   const [customerDetails, setCustomerDetails] =
     useState<ShopCustomerDetailsSchemaType | null>(null);
+
+  // ── Stripe cancelled return ────────────────────────────────────────────────────────────────
+  // If the buyer abandons Stripe Checkout, Stripe redirects back to /shop/cart?stripe=cancelled
+  // (see backend cancel_url). We just toast so they know nothing was charged and the cart is intact.
+  // A SUCCESSFUL Stripe return goes to /orders/success instead, where OrderSuccess.tsx verifies it
+  // (the same page that already verifies Paystack), so there is nothing to do here for success.
+  const stripeNotifiedRef = useRef(false);
+  useEffect(() => {
+    if (stripeNotifiedRef.current) return;
+    if (searchParams.get("stripe") === "cancelled") {
+      stripeNotifiedRef.current = true;
+      toast.error("Payment was cancelled. Your cart is still here, you can try again.");
+    }
+  }, [searchParams]);
 
   const form = useForm<ShopCustomerDetailsSchemaType>({
     resolver: zodResolver(ShopCustomerDetailsSchema),
@@ -165,18 +191,35 @@ export default function CartDetails() {
         postcode: customerDetails.postalCode,
       };
 
-      // Make API call
-      const response = await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/buy-now/`,
-        orderData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
+      // Route to the chosen provider's checkout endpoint. Both accept the same body shape; the
+      // Stripe path returns checkout_url (redirect), the Paystack path returns authorization_url
+      // (opened in a new tab, the original behaviour, kept unchanged).
+      const endpoint =
+        paymentProvider === "stripe"
+          ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/stripe-buy-now/`
+          : `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/buy-now/`;
 
+      const response = await axios.post(endpoint, orderData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (paymentProvider === "stripe") {
+        // Stripe: redirect the buyer to the hosted Checkout page. The cart is cleared only after
+        // a confirmed payment (the success-return effect above), so a cancelled payment keeps the
+        // cart intact.
+        const { checkout_url } = response.data;
+        if (!checkout_url) {
+          toast.error("Could not start Stripe checkout. Please try again.");
+          return;
+        }
+        window.location.href = checkout_url;
+        return;
+      }
+
+      // Paystack (unchanged): open the hosted page in a new tab, clear the cart, toast success.
       const { authorization_url } = response.data;
 
       window.open(authorization_url);
@@ -618,6 +661,64 @@ export default function CartDetails() {
 
         <Separator />
 
+        {/* Payment method picker. Paystack is the default (NGN card, bank, USSD, mobile money).
+            Stripe is the second option (international cards, charged in your local currency).
+            Selecting Stripe routes checkout to /shop/stripe-buy-now/ on submit. */}
+        <div>
+          <h3 className="font-medium text-sm mb-3">Payment Method</h3>
+          <RadioGroup
+            value={paymentProvider}
+            onValueChange={(value) =>
+              setPaymentProvider(value as "paystack" | "stripe")
+            }
+            className="grid gap-3"
+          >
+            <Label
+              htmlFor="provider_paystack"
+              className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors ${
+                paymentProvider === "paystack"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:bg-muted/50"
+              }`}
+            >
+              <RadioGroupItem
+                value="paystack"
+                id="provider_paystack"
+                className="mt-0.5"
+              />
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">Paystack</p>
+                <p className="text-xs text-muted-foreground">
+                  Pay in Naira with card, bank transfer, USSD, or mobile money.
+                </p>
+              </div>
+            </Label>
+            <Label
+              htmlFor="provider_stripe"
+              className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors ${
+                paymentProvider === "stripe"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:bg-muted/50"
+              }`}
+            >
+              <RadioGroupItem
+                value="stripe"
+                id="provider_stripe"
+                className="mt-0.5"
+              />
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">Stripe</p>
+                <p className="text-xs text-muted-foreground">
+                  Pay by international card. Shown and charged in your local
+                  currency.
+                </p>
+              </div>
+            </Label>
+          </RadioGroup>
+        </div>
+
+        <Separator />
+
         <div className="flex justify-between">
           <Button variant="outline" onClick={handlePreviousStep}>
             Back to Details
@@ -627,7 +728,11 @@ export default function CartDetails() {
               onClick={handleCompleteOrder}
               disabled={isProcessing || !customerDetails}
             >
-              {isProcessing ? "Processing..." : "Pay Now"}
+              {isProcessing
+                ? "Processing..."
+                : paymentProvider === "stripe"
+                  ? "Pay with Stripe"
+                  : "Pay Now"}
             </Button>
             <InfoTip id="shop.checkout.pay_now" />
           </div>

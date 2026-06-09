@@ -965,7 +965,8 @@ export default function AdminPlayerMarketPage() {
       <PageHeader
         // Title is a ReactNode so the page-level ⓘ can sit right after it.
         title={
-          <span className="inline-flex items-center">
+          // data-tour anchor: player-markets tour title step.
+          <span data-tour="market-title" className="inline-flex items-center">
             Player Market Administration
             <InfoTip id="player_market._page" className="ml-1.5" />
           </span>
@@ -976,7 +977,8 @@ export default function AdminPlayerMarketPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <ScrollArea>
-          <TabsList className="w-full">
+          {/* data-tour anchor: player-markets tour "move between sections" step. */}
+          <TabsList data-tour="market-tabs" className="w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="team-listings">Team Listings</TabsTrigger>
             <TabsTrigger value="player-listings">Player Listings</TabsTrigger>
@@ -993,8 +995,11 @@ export default function AdminPlayerMarketPage() {
             Market overview
             <InfoTip id="player_market.overview._section" />
           </div>
-          {/* Stat Cards */}
-          <div className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
+          {/* Stat Cards (data-tour anchor: player-markets "market at a glance" step). */}
+          <div
+            data-tour="market-overview"
+            className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4"
+          >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">

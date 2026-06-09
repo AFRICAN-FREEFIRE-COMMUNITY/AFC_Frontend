@@ -146,14 +146,19 @@ const page = () => {
         {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
         <PageHeader
           title={
-            <span className="inline-flex items-center">
+            // data-tour anchor: first dashboard tour step (the AdminTour guide,
+            // see app/(a)/a/_components/admin-tour-steps.ts → "dashboard").
+            <span data-tour="dashboard-title" className="inline-flex items-center">
               Admin dashboard
               <InfoTip id="dashboard._page" className="ml-1.5" />
             </span>
           }
         />
-        {/* Main Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2 mb-4">
+        {/* Main Metrics Grid (data-tour anchor: dashboard "live metrics" step). */}
+        <div
+          data-tour="dashboard-metrics"
+          className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2 mb-4"
+        >
           {/* Members Metrics */}
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -421,8 +426,11 @@ const page = () => {
           </Card>
         )}
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+        {/* Quick Actions (data-tour anchor: dashboard "quick actions" step). */}
+        <div
+          data-tour="dashboard-quick-actions"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4"
+        >
           <Button
             disabled
             className="h-auto p-4 flex flex-col items-center gap-2"
@@ -475,8 +483,8 @@ const page = () => {
           </Button>
         </div>
 
-        {/* Recent Activities */}
-        <Card>
+        {/* Recent Activities (data-tour anchor: dashboard "recent activity" step). */}
+        <Card data-tour="dashboard-recent-activity">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IconActivity className="h-5 w-5" />

@@ -3,6 +3,10 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
+// Guided "Take a tour" launcher for the admin area. It is pathname-aware: it shows
+// the tour button (and handles first-visit auto-show) only on pages that have a tour
+// defined in app/(a)/a/_components/admin-tour-steps.ts, and renders nothing elsewhere.
+import { AdminTourLauncher } from "@/app/(a)/a/_components/AdminTourLauncher";
 
 export function SiteHeader() {
   return (
@@ -18,6 +22,9 @@ export function SiteHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          {/* "Take a tour" guide for the current admin page (self-hides where no
+              tour exists). Sits left of the theme toggle. */}
+          <AdminTourLauncher />
           <ThemeToggle hide={false} />
         </div>
       </div>

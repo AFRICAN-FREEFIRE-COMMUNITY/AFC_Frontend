@@ -34,12 +34,49 @@ export default function OrderSuccess() {
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const [isRetrying, setIsRetrying] = useState(false);
 
+  // Paystack returns ?reference=...  Stripe returns ?stripe=success&session_id=...&order_id=...
+  // This one page verifies whichever provider sent the buyer here.
   const reference = searchParams.get("reference");
+  const isStripe = searchParams.get("stripe") === "success";
+  const stripeSessionId = searchParams.get("session_id");
+  const stripeOrderId = searchParams.get("order_id");
+  // Either provider gives us "something" to verify; used to gate the loading state + polling.
+  const hasPaymentRef = Boolean(reference) || (isStripe && Boolean(stripeSessionId || stripeOrderId));
 
   // Ref to track polling to prevent memory leaks
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
 
   const verifyPayment = useCallback(async () => {
+    // Stripe path: hit /shop/stripe-verify/ with the session/order id (no reference, no token
+    // required, mirroring the unauthenticated verify endpoint). Otherwise fall through to Paystack.
+    if (isStripe) {
+      if (!stripeSessionId && !stripeOrderId) return;
+      setIsRetrying(true);
+      try {
+        const response = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/stripe-verify/`,
+          { session_id: stripeSessionId, order_id: stripeOrderId },
+          { headers: { "Content-Type": "application/json" } },
+        );
+        if (response.data?.status === "paid") {
+          // Shape the details like the Paystack response so the success card renders the same.
+          setOrderDetails({ order_id: stripeOrderId });
+          setStatus("success");
+          if (pollingInterval.current) clearInterval(pollingInterval.current);
+          toast.success("Payment verified!");
+        }
+      } catch (error: any) {
+        console.error("Stripe verification attempt failed", error);
+        if (status !== "success") setStatus("error");
+        toast.error(
+          error.response?.data?.message || "Verification failed. Try again.",
+        );
+      } finally {
+        setIsRetrying(false);
+      }
+      return;
+    }
+
     if (!reference || !token) return;
 
     setIsRetrying(true);
@@ -78,11 +115,12 @@ export default function OrderSuccess() {
     } finally {
       setIsRetrying(false);
     }
-  }, [reference, token, status]);
+  }, [reference, token, status, isStripe, stripeSessionId, stripeOrderId]);
 
   // Handle Polling and Initial Load
   useEffect(() => {
-    if (token && reference) {
+    // Stripe verify does not need a token (the session id is the proof); Paystack still does.
+    if (hasPaymentRef && (isStripe || token)) {
       // Initial check
       verifyPayment();
 
@@ -97,7 +135,7 @@ export default function OrderSuccess() {
     return () => {
       if (pollingInterval.current) clearInterval(pollingInterval.current);
     };
-  }, [token, reference, verifyPayment, status]);
+  }, [token, hasPaymentRef, isStripe, verifyPayment, status]);
 
   // Loading state (First attempt)
   if (status === "loading") {
@@ -141,10 +179,17 @@ export default function OrderSuccess() {
                 delivered!
               </CardDescription>
               <div className="bg-muted p-4 rounded-md text-left w-full space-y-2 border">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Reference:</span>
-                  <span className="font-mono text-xs">{reference}</span>
-                </div>
+                {/* Paystack carries a reference; Stripe carries a session id. Show whichever exists. */}
+                {(reference || stripeSessionId) && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {reference ? "Reference:" : "Session:"}
+                    </span>
+                    <span className="font-mono text-xs">
+                      {reference || stripeSessionId}
+                    </span>
+                  </div>
+                )}
                 {orderDetails?.order_id && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Order ID:</span>
@@ -162,9 +207,10 @@ export default function OrderSuccess() {
           ) : (
             <>
               <CardDescription>
-                We haven't received confirmation for reference: <br />
+                We haven't received confirmation for{" "}
+                {reference ? "reference" : "session"}: <br />
                 <span className="font-mono text-foreground font-bold">
-                  {reference}
+                  {reference || stripeSessionId || stripeOrderId}
                 </span>
               </CardDescription>
               <div className="text-sm bg-muted p-3 rounded-md border">

@@ -302,8 +302,9 @@ export const TeamsAdminContent = () => {
             </span>
           }
         />
-        {/* ⓘ sits beside the rank-teams action (sibling, not nested in the button). */}
-        <div className="flex items-center gap-1">
+        {/* ⓘ sits beside the rank-teams action (sibling, not nested in the button).
+            data-tour anchor: teams tour "rank teams into tiers" step. */}
+        <div data-tour="teams-rank" className="flex items-center gap-1">
           <Button onClick={handleRankTeams} disabled={rankingTeams} variant="outline" size="sm">
             {rankingTeams ? "Ranking..." : "Rank Teams into Tiers"}
           </Button>
@@ -311,7 +312,8 @@ export const TeamsAdminContent = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center mb-2">
+      {/* data-tour anchor: teams tour "search and filter teams" step. */}
+      <div data-tour="teams-search" className="flex justify-between items-center mb-2">
         <div className="flex flex-col md:flex-row w-full items-start md:items-center gap-2">
           <Input
             placeholder="Search teams..."
@@ -333,7 +335,8 @@ export const TeamsAdminContent = () => {
         </div>
       </div>
 
-      <Card className="gap-0">
+      {/* data-tour anchor: teams tour "the team roster" step. */}
+      <Card data-tour="teams-list" className="gap-0">
         <CardHeader>
           {/* Section ⓘ sits inline with the card title (sibling of the text). */}
           <CardTitle className="flex items-center">
