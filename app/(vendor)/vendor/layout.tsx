@@ -63,13 +63,13 @@ import Link from "next/link";
 import { vendorApi, VendorOrder } from "@/lib/vendor";
 import { VendorProvider } from "./_components/VendorContext";
 
-// The portal sub-routes the left nav links to. "Orders" is the only live section in
-// Phase A. A "Products" section will be added by another agent (a vendor's own
-// product catalogue), so the nav is deliberately a list with room to grow — drop the
-// new entry in here and it slots straight into the sidebar.
+// The portal sub-routes the left nav links to. "Orders" is the fulfilment queue;
+// "Products" is the vendor's self-serve catalogue (Phase B2). The active-link rule
+// below uses longest-prefix-wins, so each section highlights correctly even though
+// /vendor/orders and /vendor/products share the /vendor prefix.
 const NAV_ITEMS = [
   { label: "Orders", href: "/vendor/orders", icon: IconPackage },
-  // { label: "Products", href: "/vendor/products", icon: IconShoppingBag }, // (another agent)
+  { label: "Products", href: "/vendor/products", icon: IconShoppingBag },
 ];
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────

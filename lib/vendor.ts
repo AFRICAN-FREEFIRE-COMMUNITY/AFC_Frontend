@@ -153,3 +153,181 @@ export const vendorApi = {
       )
     ).data,
 };
+
+// ═════════════════════════════════════════════════════════════════════════════
+// VENDOR PRODUCT CRUD  (backend prefix /shop/vendor/, afc_shop/vendors.py cluster C)
+//
+// The data layer behind the AFC Vendor Portal › PRODUCTS section
+// (app/(vendor)/vendor/products/*) — the vendor's self-serve catalogue. A vendor
+// manages ONLY their own products and can NEVER approve their own; the lifecycle is:
+//
+//   draft ──submit──▶ submitted ──(AFC admin)──▶ approved | rejected
+//     ▲                                              │
+//     └──────────── edit (draft/rejected only) ◀─────┘ (rejected re-submits)
+//
+// Only an APPROVED (+ active) product reaches the storefront (gate in
+// views.view_active_products). A vendor can edit only draft/rejected products, and
+// submit only draft/rejected → submitted. All four endpoints are gated to the
+// CALLER's own ACTIVE Vendor (vendors._require_active_vendor) using the SAME Bearer
+// auth as the fulfilment client above.
+//
+// CONSUMED BY:
+//   - app/(vendor)/vendor/products/page.tsx                       → the product list.
+//   - app/(vendor)/vendor/products/_components/ProductFormDialog.tsx → create/edit.
+//
+// BACKEND MODELS this rides on (afc_shop/models.py): Product (+ the Phase B1
+// approval fields approval_status / submitted_at / approved_by / rejection_reason),
+// ProductVariant (a product carries variants, each {sku, price, ...}), ProductMedia
+// (the optional image gallery — the create form sends a single primary `image`,
+// matching views.add_product). Vendor is the ownership edge (product.vendor == caller).
+// ═════════════════════════════════════════════════════════════════════════════
+
+// The four approval states a vendor product moves through (mirrors the backend
+// Product.approval_status field set in afc_shop/vendors.py).
+export type ApprovalStatus = "draft" | "submitted" | "approved" | "rejected";
+
+// One variant of a vendor product, as returned by _serialize_vendor_product
+// (afc_shop/vendors.py). price comes back as a string (DecimalField), so we keep it
+// a string on read and coerce on write.
+export interface VendorProductVariant {
+  id: number;
+  sku: string;
+  title: string;
+  price: string;
+  diamonds_amount: number;
+  stock_qty: number;
+  is_active: boolean;
+  in_stock: boolean;
+}
+
+// One product owned by the caller-vendor (the _serialize_vendor_product shape).
+// Only the fields the vendor dashboard needs are typed here.
+export interface VendorProduct {
+  id: number;
+  name: string;
+  type: string; // product_type (category slug)
+  description: string;
+  status: string; // "active" | ... (live status; independent of approval)
+  is_limited_stock: boolean;
+  image: string | null; // absolute primary image url
+  // ── Phase B1 approval fields ──
+  approval_status: ApprovalStatus;
+  submitted_at: string | null;
+  rejection_reason: string; // "" unless rejected
+  vendor_id: number | null;
+  vendor_name: string | null;
+  created_at: string;
+  updated_at: string;
+  variants: VendorProductVariant[];
+}
+
+// The vendor_my_products envelope: { count, products }.
+export interface VendorProductsResponse {
+  count: number;
+  products: VendorProduct[];
+}
+
+// The variant fields the create/edit form submits (a subset of the read shape).
+// price is sent as a string/number; the backend stores it on a DecimalField.
+export interface VendorVariantInput {
+  id?: number; // present on EDIT (in-place update keyed by id); absent on CREATE
+  sku: string;
+  title?: string;
+  price: string | number;
+  diamonds_amount?: number;
+  stock_qty?: number;
+  is_active?: boolean;
+}
+
+// The product fields the create form submits.
+export interface VendorProductCreateInput {
+  name: string;
+  product_type: string; // category slug (required by vendor_create_product)
+  description?: string;
+  is_limited_stock?: boolean;
+  variants: VendorVariantInput[]; // non-empty (backend rejects an empty list)
+  image?: File | null; // optional primary image (multipart)
+}
+
+// The product fields the update form submits (product_id + any editable field).
+export interface VendorProductUpdateInput {
+  product_id: number;
+  name?: string;
+  product_type?: string;
+  description?: string;
+  is_limited_stock?: boolean;
+  variants?: VendorVariantInput[]; // in-place variant edits keyed by id
+  image?: File | null; // optional replacement primary image (multipart)
+}
+
+// vendor product endpoints live under /shop/vendor/ (NOT /shop/fulfilment/), so
+// they get their own url() builder rather than reusing the fulfilment one above.
+const productUrl = (path: string) => `${BASE}/shop/vendor/${path}`;
+
+export const vendorProductApi = {
+  // ── LIST ──────────────────────────────────────────────────────────────────
+  // GET /shop/vendor/products/ → the caller-vendor's OWN products (every approval
+  // state), each with its approval_status + rejection_reason + variants.
+  getMyProducts: async (): Promise<VendorProductsResponse> =>
+    (await axios.get(productUrl("products/"), { headers: authHeaders() })).data,
+
+  // ── CREATE (MULTIPART) ──────────────────────────────────────────────────────
+  // POST /shop/vendor/products/create/ → create a product owned by the caller's
+  // vendor, starting approval_status="draft". variants[] rides along as a JSON
+  // string (the backend _parse_variants accepts a JSON string in multipart) and the
+  // optional primary `image` is a real file. We set NO explicit Content-Type so
+  // axios fills the multipart boundary, matching the mark-shipped / admin upload idiom.
+  // Returns { message, product_id, variant_ids }.
+  createProduct: async (input: VendorProductCreateInput) => {
+    const form = new FormData();
+    form.append("name", input.name);
+    form.append("product_type", input.product_type);
+    form.append("description", input.description ?? "");
+    form.append("is_limited_stock", String(input.is_limited_stock ?? false));
+    form.append("variants", JSON.stringify(input.variants));
+    if (input.image) form.append("image", input.image);
+    return (
+      await axios.post(productUrl("products/create/"), form, {
+        headers: authHeaders(),
+      })
+    ).data;
+  },
+
+  // ── UPDATE (MULTIPART) ──────────────────────────────────────────────────────
+  // POST /shop/vendor/products/update/ → edit ONE of the caller-vendor's OWN
+  // draft/rejected products (the backend enforces ownership + state). Only the
+  // fields present are changed; variants[] (keyed by id) are edited in place. An
+  // optional `image` replaces the primary image. Returns { message }.
+  updateProduct: async (input: VendorProductUpdateInput) => {
+    const form = new FormData();
+    form.append("product_id", String(input.product_id));
+    if (input.name !== undefined) form.append("name", input.name);
+    if (input.product_type !== undefined)
+      form.append("product_type", input.product_type);
+    if (input.description !== undefined)
+      form.append("description", input.description);
+    if (input.is_limited_stock !== undefined)
+      form.append("is_limited_stock", String(input.is_limited_stock));
+    if (input.variants !== undefined)
+      form.append("variants", JSON.stringify(input.variants));
+    if (input.image) form.append("image", input.image);
+    return (
+      await axios.post(productUrl("products/update/"), form, {
+        headers: authHeaders(),
+      })
+    ).data;
+  },
+
+  // ── SUBMIT FOR APPROVAL ─────────────────────────────────────────────────────
+  // POST /shop/vendor/products/submit/ → move a draft|rejected product to
+  // "submitted" (into the AFC admin approval queue). A vendor can NEVER move it to
+  // "approved". Returns { message, product_id, approval_status }.
+  submitProduct: async (productId: number) =>
+    (
+      await axios.post(
+        productUrl("products/submit/"),
+        { product_id: productId },
+        { headers: authHeaders() },
+      )
+    ).data,
+};
