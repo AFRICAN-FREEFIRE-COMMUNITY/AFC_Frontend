@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useTransition } from "react";
+import React, { useEffect, useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -39,6 +39,60 @@ const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
   e.preventDefault();
 };
 
+// ── Draft persistence (sessionStorage) ──
+// We persist the NON-SECRET fields of the create-account form so that navigating
+// back/forward, or an accidental reload, does not wipe what the user typed. This is the
+// other half of the abandoned-signup fix: the backend now lets a user retry with the same
+// in-game name, and the frontend keeps their data so the retry is one click, not a re-type.
+//
+// SECURITY: the password / confirmPassword are intentionally NOT persisted (they are
+// sensitive and must never sit in sessionStorage). Only ingameName / fullName / email are
+// saved. We clear the draft on a successful registration.
+const DRAFT_KEY = "afc_create_account_draft";
+type AccountDraft = {
+  ingameName: string;
+  fullName: string;
+  email: string;
+};
+
+// Read a saved draft (returns null when none / on the server / on parse failure).
+function readDraft(): AccountDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return {
+      ingameName: typeof parsed.ingameName === "string" ? parsed.ingameName : "",
+      fullName: typeof parsed.fullName === "string" ? parsed.fullName : "",
+      email: typeof parsed.email === "string" ? parsed.email : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Persist only the non-secret fields.
+function writeDraft(draft: AccountDraft) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // Storage can be unavailable (private mode / quota). Failing to cache the draft must
+    // never break the form, so we swallow the error.
+  }
+}
+
+// Drop the saved draft (called after a successful registration).
+function clearDraft() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export function CreateAccountForm() {
   const router = useRouter();
 
@@ -58,6 +112,32 @@ export function CreateAccountForm() {
       acceptTerms: false as any,
     },
   });
+
+  // ── Restore the saved draft on mount (back/forward nav or accidental reload) ──
+  // Only the non-secret fields are restored; the password fields stay empty so the user
+  // re-enters them, which is the intended behaviour for a sensitive field.
+  useEffect(() => {
+    const draft = readDraft();
+    if (!draft) return;
+    if (draft.ingameName) form.setValue("ingameName", draft.ingameName);
+    if (draft.fullName) form.setValue("fullName", draft.fullName);
+    if (draft.email) form.setValue("email", draft.email);
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Persist non-secret fields to sessionStorage on every change ──
+  // form.watch returns a subscription we clean up on unmount. We never write the password.
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      writeDraft({
+        ingameName: values.ingameName ?? "",
+        fullName: values.fullName ?? "",
+        email: values.email ?? "",
+      });
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const password = form.watch("password");
   const acceptTerms = form.watch("acceptTerms"); // Watch the new field
@@ -118,10 +198,32 @@ export function CreateAccountForm() {
           { ...authData },
         );
 
+        // Success: the typed draft is no longer needed, so we drop it before leaving.
+        clearDraft();
         toast.success(response.data.message);
         router.push(`/email-confirmation?email=${data.email}`);
       } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Internal server error");
+        // The backend now returns friendly copy. New conflict responses use `message`
+        // ("That in-game name is already taken.", "That email is already registered."),
+        // while older validation responses use `error`. Read whichever is present.
+        const backendMessage: string =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          "Something went wrong. Please try again.";
+
+        // Surface the message INLINE next to the field it concerns, so the user fixes just
+        // the one thing. We keep the form fully intact (no reset) so nothing they typed is
+        // lost. setError does not clear other fields.
+        const lower = backendMessage.toLowerCase();
+        if (lower.includes("in-game name")) {
+          form.setError("ingameName", { type: "server", message: backendMessage });
+        } else if (lower.includes("email")) {
+          form.setError("email", { type: "server", message: backendMessage });
+        }
+
+        // Always also show the toast so the message is visible even if the field is
+        // scrolled out of view.
+        toast.error(backendMessage);
         return;
       }
     });
