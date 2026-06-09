@@ -49,8 +49,10 @@ import {
   IconCurrencyDollar,
   IconPackage,
   IconUsers,
+  IconBuildingStore,
+  IconClipboardCheck,
 } from "@tabler/icons-react";
-import { TrendingUp, Eye, Loader2 } from "lucide-react";
+import { TrendingUp, Eye, Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
@@ -243,6 +245,58 @@ export default function AdminShopPage() {
               <TrendingUp className="h-3 w-3" />
               +0% from last month
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Marketplace section ──
+          Entry points to the two vendor-marketplace admin surfaces (Phase B1):
+          Manage Vendors (/a/shop/vendors) and Product Approvals (/a/shop/approvals).
+          Mirrors the existing dashboard card idiom (Card + CardHeader/Content +
+          outline Button asChild Link) used by the "Your Orders" / "Manage Inventory"
+          cards above and below, so these read as the same surface. */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {/* Manage Vendors → /a/shop/vendors (lib/marketplaceAdmin.ts cluster A) */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <IconBuildingStore className="h-4 w-4 text-muted-foreground" />
+              Manage Vendors
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground mb-3">
+              Grant selling access to existing users, suspend or reactivate
+              vendors, and assign products to a vendor.
+            </p>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/a/shop/vendors">
+                Open
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Product Approvals → /a/shop/approvals (lib/marketplaceAdmin.ts cluster B) */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <IconClipboardCheck className="h-4 w-4 text-muted-foreground" />
+              Product Approvals
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground mb-3">
+              Review products vendors have submitted. Approve to let them go
+              live, or reject with a reason.
+            </p>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/a/shop/approvals">
+                Open
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
