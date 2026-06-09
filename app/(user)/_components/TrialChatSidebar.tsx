@@ -207,9 +207,16 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
+      {/* NO `relative` here: SheetContent's base class is `fixed`, and Tailwind defines
+          `.relative` AFTER `.fixed`, so a `relative` in this consumer className silently
+          overrides the base `fixed` (string order does not matter, stylesheet order does).
+          That dropped the panel out of fixed positioning and rendered it far down the page
+          in normal flow (the "dims but nothing shows" bug). The disclaimer overlay below
+          uses `absolute inset-0`, which the `fixed` SheetContent already contains as a
+          positioning context, so no `relative` is needed for it. */}
       <SheetContent
         side="right"
-        className="relative w-full sm:w-[400px] p-0 flex flex-col gap-0"
+        className="w-full sm:w-[400px] p-0 flex flex-col gap-0"
       >
         {/* First-open moderation disclaimer overlay, shown once per chat (see disclaimerChatId).
             Tells the trial participants their conversation may be reviewed by AFC staff. */}
