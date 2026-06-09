@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { UserSearchSelect } from "@/components/ui/user-search-select";
 import { Label } from "@/components/ui/label";
 import {
   Facebook,
@@ -905,14 +906,17 @@ const Page = ({ params }: { params: Params }) => {
                             analyst) on the Manage Roster page. Staff don&apos;t take
                             a player slot.
                           </p>
-                          <div className="flex space-x-2">
-                            <Input
-                              placeholder="Invite by email"
-                              value={newMemberSearch}
-                              onChange={(e) =>
-                                setNewMemberSearch(e.target.value)
-                              }
-                            />
+                          <div className="flex items-start space-x-2">
+                            {/* Search-as-you-type user picker (replaces the raw email input).
+                                Yields the selected player's username into newMemberSearch, which
+                                handleAddNewMember posts as invitee_email_or_ign. */}
+                            <div className="flex-1">
+                              <UserSearchSelect
+                                value={newMemberSearch || null}
+                                onChange={(u) => setNewMemberSearch(u ?? "")}
+                                placeholder="Search a player to invite..."
+                              />
+                            </div>
                             <Button
                               onClick={() => requireAuth(handleAddNewMember)}
                             >

@@ -53,6 +53,7 @@ import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { ProtectedRoute } from "../../_components/ProtectedRoute";
 import { InfoTip } from "@/components/ui/info-tip";
+import { UserSearchSelect } from "@/components/ui/user-search-select";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -453,29 +454,28 @@ export default function CreateTeamForm() {
                     render={({ field: formField }) => (
                       <FormItem>
                         <FormControl>
-                          <div className="relative group">
-                            <Input
-                              {...formField}
-                              placeholder={`Enter email or username`}
-                            />
-                            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                              {formField.value && (
-                                <Button type="button" variant="ghost">
-                                  <Check className="w-4 h-4 text-green-500" />
-                                </Button>
-                              )}
-                              {fields.length > 1 && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removeInvite(index)}
-                                  className="text-muted-foreground hover:text-red-500"
-                                >
-                                  <X className="w-3 h-3" />
-                                </Button>
-                              )}
+                          {/* Search-as-you-type user picker per invite row (was a raw email/username
+                              input). Yields the selected player's username into this row's
+                              `player` field; the form serializes the rows on submit. */}
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1">
+                              <UserSearchSelect
+                                value={formField.value || null}
+                                onChange={(u) => formField.onChange(u ?? "")}
+                                placeholder="Search a player to invite..."
+                              />
                             </div>
+                            {fields.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeInvite(index)}
+                                className="mt-1 text-muted-foreground hover:text-red-500"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            )}
                           </div>
                         </FormControl>
                         <FormMessage />
