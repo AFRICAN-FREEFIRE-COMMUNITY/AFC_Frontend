@@ -1,5 +1,20 @@
 "use client";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PlayersAdminContent
+// ----------------------------------------------------------------------------
+// The Players admin surface, extracted VERBATIM from the old standalone
+// app/(a)/a/players/page.tsx so it can be rendered as the "Players" tab of the
+// combined Teams & Players page (owner request 2026-06-09: merge the two admin
+// pages into one tabbed page). Nothing about the behaviour changed — same data
+// source (GET /player/get-all-players/), same ban/unban + create-ghost-player
+// modals, same stats/filters/table/pagination.
+//
+// RENDERED BY: app/(a)/a/teams/page.tsx (the combined page, Players tab). The old
+// /a/players route now just redirects to /a/teams?tab=players. The player detail
+// route /a/players/[id] is a separate page and is unaffected.
+// ─────────────────────────────────────────────────────────────────────────────
+
 import React, { useState, useEffect, useTransition, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -229,11 +244,17 @@ const MIN_GHOST_REASON = 10;
 /**
  * "Create ghost player" dialog.
  *
- * A ghost player is always a roster slot on a ghost team (the backend GhostPlayer.ghost_team
- * FK is non-null), so this dialog makes the admin pick which unclaimed ghost team the new slot
- * belongs to, type the in-game name, and give the mandatory audit reason. It posts ONE player
- * to POST /rankings/ghost-teams/<uuid>/players/ (append-only, leaves the existing roster
- * untouched), then toasts + refreshes the players list.
+ * A ghost player can now exist WITHOUT a ghost team: it is a provisional in-game name (a
+ * "parked" IGN) that can be attached to a ghost team and claimed later. The ghost team picker
+ * is therefore OPTIONAL here. The admin types the in-game name, optionally picks an unclaimed
+ * ghost team to attach it to, and gives the mandatory audit reason. It posts ONE player to
+ * POST /rankings/ghost-players/ (rankingsAdminApi.createGhostPlayerFlat), the flat create that
+ * does not require a team, then toasts + refreshes the players list.
+ *
+ * Body sent: { ign, reason, ghost_team_id? }. ghost_team_id is omitted for a standalone player
+ * and included (the picked uuid) to attach the player to that unclaimed ghost team (append-only,
+ * leaves the existing roster untouched). A standalone ghost player is inert for scoring on the
+ * backend (parked IGN data only) until it is attached/claimed.
  *
  * Mirrors the create-ghost-team dialog idiom (Select + Input + reason Textarea + sonner) and
  * the PlayerBanModal idiom already in this file (Dialog + useTransition + Bearer via the
@@ -277,21 +298,28 @@ const CreateGhostPlayerModal = ({ onSuccess }: { onSuccess: () => void }) => {
     }
   };
 
-  const valid =
-    !!ghostId && !!ign.trim() && reason.trim().length >= MIN_GHOST_REASON;
+  // ghostId is now OPTIONAL: only the ign + reason are required. An empty ghostId means a
+  // standalone (team-less) ghost player.
+  const valid = !!ign.trim() && reason.trim().length >= MIN_GHOST_REASON;
 
   const handleCreate = () => {
     if (!valid) return;
     startTransition(async () => {
       try {
-        await rankingsAdminApi.createGhostPlayer(ghostId, {
+        // flat create: include ghost_team_id only when a team was picked (attached); omit it
+        // for a standalone parked player. Hits POST /rankings/ghost-players/.
+        await rankingsAdminApi.createGhostPlayerFlat({
           ign: ign.trim(),
           reason: reason.trim(),
+          ...(ghostId ? { ghost_team_id: ghostId } : {}),
         });
         const teamName =
           ghosts.find((g) => g.ghost_team_id === ghostId)?.team_name ?? "";
+        // success copy depends on whether the player was attached to a team or parked.
         toast.success(
-          `Ghost player "${ign.trim()}" added${teamName ? ` to ${teamName}` : ""}.`,
+          ghostId
+            ? `Ghost player "${ign.trim()}" added to ${teamName}.`
+            : `Ghost player "${ign.trim()}" created.`,
         );
         setOpen(false);
         onSuccess();
@@ -315,35 +343,37 @@ const CreateGhostPlayerModal = ({ onSuccess }: { onSuccess: () => void }) => {
         <DialogHeader>
           <DialogTitle>Create ghost player</DialogTitle>
           <DialogDescription>
-            A ghost player is a provisional in-game name attached to an unclaimed
-            ghost team. Results attribute to this slot until a real team claims the
-            ghost.
+            A ghost player is a provisional in-game name (a parked IGN). It can exist
+            on its own, or you can attach it to an unclaimed ghost team. You can attach
+            and claim it later.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* ghost team picker (unclaimed only) */}
+          {/* ghost team picker (unclaimed only), OPTIONAL: leave it on "No team" to park
+              a standalone ghost player. The Select cannot hold an empty-string value, so the
+              "no team" choice uses a sentinel ("__none__") that maps back to an empty ghostId. */}
           <div className="space-y-2">
             <Label htmlFor="gp-team">
-              Ghost team <span className="text-orange-400">(required)</span>
+              Ghost team{" "}
+              <span className="text-muted-foreground">(optional)</span>
             </Label>
             <Select
-              value={ghostId || undefined}
-              onValueChange={setGhostId}
+              // show "__none__" when no team is picked so the standalone option reads as selected.
+              value={ghostId || "__none__"}
+              onValueChange={(v) => setGhostId(v === "__none__" ? "" : v)}
               disabled={loadingGhosts}
             >
               <SelectTrigger id="gp-team" className="w-full">
                 <SelectValue
                   placeholder={
-                    loadingGhosts
-                      ? "Loading ghost teams..."
-                      : ghosts.length === 0
-                        ? "No unclaimed ghost teams"
-                        : "Select a ghost team"
+                    loadingGhosts ? "Loading ghost teams..." : "No team (standalone)"
                   }
                 />
               </SelectTrigger>
               <SelectContent>
+                {/* leading sentinel: park the player without a team */}
+                <SelectItem value="__none__">No team (standalone)</SelectItem>
                 {ghosts.map((g) => (
                   <SelectItem key={g.ghost_team_id} value={g.ghost_team_id}>
                     {g.team_name} ({g.players?.length ?? 0} players)
@@ -353,8 +383,8 @@ const CreateGhostPlayerModal = ({ onSuccess }: { onSuccess: () => void }) => {
             </Select>
             {!loadingGhosts && ghosts.length === 0 && (
               <p className="text-[11px] text-muted-foreground">
-                Create an unclaimed ghost team first on the Rankings, Ghost Teams
-                page.
+                No unclaimed ghost teams yet. You can still create a standalone ghost
+                player without a team.
               </p>
             )}
           </div>
@@ -403,7 +433,7 @@ const CreateGhostPlayerModal = ({ onSuccess }: { onSuccess: () => void }) => {
   );
 };
 
-const page = () => {
+export const PlayersAdminContent = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -488,7 +518,6 @@ const page = () => {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        back
         // Title is a ReactNode so the page-level ⓘ can sit right after it.
         title={
           <span className="inline-flex items-center">
@@ -782,5 +811,3 @@ const page = () => {
     </div>
   );
 };
-
-export default page;

@@ -106,7 +106,7 @@ export default function PartnersAdminPage() {
       setPartners(res?.results ?? []);
       setTotalCount(res?.total_count ?? 0);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load partners.");
+      toast.error(err?.response?.data?.message || "Failed to load API keys.");
     } finally {
       setLoading(false);
     }
@@ -132,7 +132,7 @@ export default function PartnersAdminPage() {
         name: createName.trim(),
         contact_email: createEmail.trim() || undefined,
       });
-      toast.success("Partner created.");
+      toast.success("API key created.");
       // reset the form, close, and refresh the list from page 1
       setCreateName("");
       setCreateEmail("");
@@ -140,7 +140,7 @@ export default function PartnersAdminPage() {
       setPage(1);
       fetchPartners();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to create partner.");
+      toast.error(err?.response?.data?.message || "Failed to create API key.");
     } finally {
       setCreating(false);
     }
@@ -167,19 +167,22 @@ export default function PartnersAdminPage() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-1">
         <PageHeader
           // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+          // Heading reads "API Keys" (owner request 2026-06-09) to match the renamed
+          // sidebar entry. The underlying entity is still a Partner (an AFC-approved
+          // external API consumer that holds an API key); only the user-facing label changed.
           title={
             <span className="inline-flex items-center">
-              Partners
+              API Keys
               <InfoTip id="partners._page" className="ml-1.5" />
             </span>
           }
-          description={`${totalCount} partner${totalCount !== 1 ? "s" : ""}`}
+          description={`${totalCount} API key${totalCount !== 1 ? "s" : ""}`}
         />
         {/* ⓘ sits beside the create button (sibling, not nested). */}
         <div className="flex w-full items-center gap-1 md:w-auto">
           <Button className="w-full md:w-auto" onClick={() => setCreateOpen(true)}>
             <IconPlus />
-            Create partner
+            Create API key
           </Button>
           <InfoTip id="partners.create" />
         </div>
@@ -209,8 +212,8 @@ export default function PartnersAdminPage() {
         <Card>
           <CardContent className="py-16 text-center text-muted-foreground">
             {search
-              ? "No partners match your search."
-              : "No partners yet. Create one to get started."}
+              ? "No API keys match your search."
+              : "No API keys yet. Create one to get started."}
           </CardContent>
         </Card>
       ) : (
@@ -320,16 +323,17 @@ export default function PartnersAdminPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create partner</DialogTitle>
+            <DialogTitle>Create API key</DialogTitle>
             <DialogDescription>
-              Provision a new data-API partner. It starts with every toggle off and
-              no scope - grant access from its detail page after creating it.
+              Provision a new API key (a data-API partner). It starts with every
+              toggle off and no scope, grant access from its detail page after
+              creating it.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="partner-name">Partner name</Label>
+              <Label htmlFor="partner-name">Name</Label>
               <Input
                 id="partner-name"
                 value={createName}
@@ -358,7 +362,7 @@ export default function PartnersAdminPage() {
               Cancel
             </Button>
             <Button disabled={!createReady || creating} onClick={handleCreate}>
-              {creating ? "Creating..." : "Create partner"}
+              {creating ? "Creating..." : "Create API key"}
             </Button>
           </DialogFooter>
         </DialogContent>

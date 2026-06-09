@@ -151,6 +151,12 @@ export const HELP = {
   "events.edit.export_participants":
     "Download the full list of registered players or teams as a CSV or Excel file.",
 
+  // ── Group Rosters tab (event detail, admin + organizer) ────────────────────
+  // Drives the InfoTip on the "Group Rosters" tab heading. Same copy used on the
+  // organizer Groups page. Read-only seeding check for a LIVE event.
+  "events.detail.group_rosters._section":
+    "See which teams and players are in each group, broken down by stage. Use this during a live event to confirm who is playing where.",
+
   // ══════════════════════════════════════════════════════════════════════════
   // Leaderboards › point-system config + manual result entry
   // ══════════════════════════════════════════════════════════════════════════

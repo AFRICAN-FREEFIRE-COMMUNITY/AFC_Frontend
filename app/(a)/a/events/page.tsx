@@ -1,478 +1,61 @@
 "use client";
-import { FullLoader } from "@/components/Loader";
-import { PageHeader } from "@/components/PageHeader";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { env } from "@/lib/env";
-import { formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
-import {
-  IconCalendar,
-  IconClock,
-  IconLockFilled,
-  IconSwords,
-  IconTrendingUp,
-  IconTrophy,
-  IconUsers,
-} from "@tabler/icons-react";
-import axios from "axios";
-import { CheckCircle2Icon } from "lucide-react"; // Removed unused 'TrendingUp'
-import Link from "next/link";
-import React, { useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
-import { DeleteEventModal } from "./_components/DeleteEventModal";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { ITEMS_PER_PAGE } from "@/constants";
 
-export interface EventProp {
-  event_id: string;
-  number_of_participants: number;
-  registered_competitors: number;
-  event_name: string;
-  event_date: string;
-  event_status: string;
-  slug: string;
-  competition_type: string;
-  is_public: boolean;
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Combined Events & Leaderboards admin page
+// ----------------------------------------------------------------------------
+// Owner request 2026-06-09: the two separate admin pages (Events + Leaderboards)
+// were merged into ONE page with two pill tabs. This route (/a/events) is the
+// single home, reached from the lone "Events & Leaderboards" sidebar entry. The
+// old /a/leaderboards route redirects here with ?tab=leaderboards (next.config
+// redirects()), and this page reads that param to open on the right tab.
+//
+// The per-tab bodies are the old pages extracted verbatim into:
+//   ../_components/EventsAdminContent.tsx        (the "Events" tab)
+//   ../_components/LeaderboardsAdminContent.tsx  (the "Leaderboards" tab)
+// so nothing about either surface's behaviour changed. All deeper event routes
+// (/a/events/create, /a/events/payments, /a/events/[slug], /a/events/[slug]/edit)
+// and leaderboard routes (/a/leaderboards/[id], /a/leaderboards/[id]/edit,
+// /a/leaderboards/create) are separate pages and are unaffected.
+//
+// useSearchParams in a client page mirrors the existing repo convention
+// (app/(a)/a/events/create/page.tsx) — no Suspense wrapper needed here.
+// ─────────────────────────────────────────────────────────────────────────────
 
-const page = () => {
-  const [totalEvents, setTotalEvents] = useState<number>(0);
-  const [totalTournaments, setTotalTournaments] = useState<number>(0);
-  const [totalScrims, setTotalScrims] = useState<number>(0);
-  const [totalUpcomingEvents, setTotalUpcomingEvents] = useState<number>(0);
-  const [totalOngoingEvents, setTotalOngoingEvents] = useState<number>(0);
-  const [totalCompletedEvents, setTotalCompletedEvents] = useState<number>(0);
-  const [totalAvgParticipants, setTotalAvgParticipants] = useState<number>(0);
-  // Note: Assuming totalPopularEventFormat is set elsewhere, kept for context
-  const [totalPopularEventFormat, setTotalPopularEventFormat] =
-    useState<string>("");
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { IconCalendar, IconTrophy } from "@tabler/icons-react";
+import { EventsAdminContent } from "../_components/EventsAdminContent";
+import { LeaderboardsAdminContent } from "../_components/LeaderboardsAdminContent";
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const [pending, startTransition] = useTransition();
-  const [events, setEvents] = useState<EventProp[]>([]);
-
-  const fetchEvents = () => {
-    startTransition(async () => {
-      try {
-        const eventsResponse = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
-        );
-        const tournaments = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`,
-        );
-        const scrims = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`,
-        );
-        const upcomingEvents = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-upcoming-events-count/`,
-        );
-        const ongoingEvents = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-ongoing-events-count/`,
-        );
-        const completedEvents = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-completed-events-count/`,
-        );
-        const avgParticipants = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-average-participants-per-event/`,
-        );
-
-        if (eventsResponse.statusText === "OK") {
-          setEvents(eventsResponse.data.events);
-          setTotalEvents(eventsResponse.data.events.length);
-          setTotalTournaments(tournaments.data.total_tournaments);
-          setTotalScrims(scrims.data.total_scrims);
-          setTotalUpcomingEvents(upcomingEvents.data.upcoming_events);
-          setTotalOngoingEvents(ongoingEvents.data.ongoing_events);
-          setTotalCompletedEvents(completedEvents.data.completed_events);
-          setTotalAvgParticipants(avgParticipants.data.average_participants);
-          // Note: Logic for setting totalPopularEventFormat is missing, but state is kept.
-        } else {
-          toast.error("Oops! An error occurred");
-        }
-      } catch (error: any) {
-        // More robust error handling for API calls
-        toast.error(
-          error?.response?.data?.message || "Failed to fetch event data.",
-        );
-      }
-    });
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  // --- Search Filtering Logic ---
-  const filteredEvents = events.filter((event) => {
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    return (
-      event.event_name.toLowerCase().includes(lowerCaseQuery) ||
-      event.competition_type.toLowerCase().includes(lowerCaseQuery) ||
-      event.event_status.toLowerCase().includes(lowerCaseQuery)
-    );
-  });
-
-  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
-  const paginatedEvents = filteredEvents.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
-
-  // Reset to page 1 when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
-  // ------------------------------
-
-  if (pending) return <FullLoader />;
+export default function EventsAndLeaderboardsPage() {
+  const searchParams = useSearchParams();
+  // /a/leaderboards redirects here as ?tab=leaderboards; everything else opens on Events.
+  const initialTab =
+    searchParams.get("tab") === "leaderboards" ? "leaderboards" : "events";
+  const [tab, setTab] = useState<string>(initialTab);
 
   return (
-    <div>
-      <div className="flex items-start md:items-center justify-between flex-col md:flex-row gap-2">
-        <PageHeader back title={"Events Management"} />
-        <div className="flex w-full md:w-auto items-center gap-2">
-          {/* Escrow dashboard for paid-event registration fees (Stripe). Lists held
-              payments and lets staff release/refund them. See app/(a)/a/events/payments. */}
-          <Button className="w-full md:w-auto" variant="outline" asChild>
-            <Link href={"/a/events/payments"}>Event Payments</Link>
-          </Button>
-          <Button className="w-full md:w-auto" asChild>
-            <Link href={"/a/events/create"}>Create new event</Link>
-          </Button>
-        </div>
-      </div>
+    <div className="flex flex-col gap-4">
+      <Tabs value={tab} onValueChange={setTab} className="gap-4">
+        {/* shadcn pill/segment tabs (matches the rest of the admin area). */}
+        <TabsList>
+          <TabsTrigger value="events">
+            <IconCalendar className="h-4 w-4" /> Events
+          </TabsTrigger>
+          <TabsTrigger value="leaderboards">
+            <IconTrophy className="h-4 w-4" /> Leaderboards
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="mt-4 grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
-        {/* ... (Your Card components remain here) ... */}
-        <Card className="hover:shadow-lg transition-shadow gap-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-            <IconCalendar className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatMoneyInput(totalEvents)}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                Tournaments & Scrims
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow gap-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Tournaments
-            </CardTitle>
-            <IconTrophy className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatMoneyInput(totalTournaments)}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                Registered tournaments
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow gap-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Scrims</CardTitle>
-            <IconSwords className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatMoneyInput(totalScrims)}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                Registered scrims
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow gap-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Upcoming Events
-            </CardTitle>
-            <IconClock className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatMoneyInput(totalUpcomingEvents)}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                Events in planning or open for registration
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow gap-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Ongoing Events
-            </CardTitle>
-            <IconTrendingUp className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatMoneyInput(totalOngoingEvents)}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                Currently active events
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow gap-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Completed Events
-            </CardTitle>
-            <CheckCircle2Icon className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatMoneyInput(totalCompletedEvents)}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                Events that have concluded
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow gap-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Avg. Participants
-            </CardTitle>
-            <IconUsers className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {/* Round the raw float (e.g. 441.857...) to a whole number, then
-                  format with thousands separators for display. */}
-              {formatMoneyInput(Math.round(totalAvgParticipants))}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                Per event
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="hover:shadow-lg transition-shadow gap-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Most Popular Format
-            </CardTitle>
-            <IconTrophy className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {/* Fallback text if formattedWord is not defined for the value */}
-              {formattedWord[totalPopularEventFormat] ||
-                (totalPopularEventFormat ? totalPopularEventFormat : "N/A")}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                Based on event count
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="mt-4">
-        <Input
-          type="search"
-          placeholder="Search events by name, type, or status..."
-          value={searchQuery}
-          // The onChange handler already updates the searchQuery state, triggering a re-render
-          // where the filtering logic is executed. This is correct.
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-background/50 backdrop-blur-sm block"
-        />
-      </div>
-      <Card className="mt-4">
-        <CardHeader className="border-b">
-          <CardTitle>Events & Scrims List</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Participants</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedEvents?.length > 0 ? (
-                paginatedEvents.map((event) => (
-                  <TableRow key={event.event_id}>
-                    <TableCell className="h-full py-0">
-                      <div className="flex h-full items-center gap-1">
-                        {event.event_name}
-                        {event.is_public === false && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <IconLockFilled className="size-4" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                This is a private event
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {event.competition_type}
-                    </TableCell>
-                    <TableCell>{formatDate(event.event_date)}</TableCell>
-                    <TableCell className="capitalize">
-                      {event.event_status}
-                    </TableCell>
-                    <TableCell>
-                      {/* {formatMoneyInput(event.registered_competitors)}/ */}
-                      {formatMoneyInput(event.number_of_participants)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 justify-center">
-                        <Button asChild variant={"outline"} size="sm">
-                          <Link href={`/a/events/${event.slug}`}>View</Link>
-                        </Button>
-                        <Button asChild variant={"outline"} size="sm">
-                          <Link href={`/a/events/${event.slug}/edit`}>
-                            Edit
-                          </Link>
-                        </Button>
-                        <DeleteEventModal
-                          eventId={event.event_id}
-                          onSuccess={fetchEvents} // re-fetches the list
-                          eventName={event.event_name}
-                          redirectTo="/a/events"
-                          isIcon
-                          size="sm"
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    {searchQuery.length > 0
-                      ? "No events match your search query."
-                      : "No events available."}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="hidden md:block text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                {Math.min(currentPage * ITEMS_PER_PAGE, filteredEvents.length)}{" "}
-                of {filteredEvents.length}
-              </p>
-              <Pagination className="w-full md:w-auto mx-0">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className={
-                        currentPage === 1
-                          ? "pointer-events-none opacity-50"
-                          : "cursor-pointer"
-                      }
-                    />
-                  </PaginationItem>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(
-                      (page) =>
-                        page === 1 ||
-                        page === totalPages ||
-                        Math.abs(page - currentPage) <= 1,
-                    )
-                    .map((page, idx, arr) => (
-                      <React.Fragment key={page}>
-                        {idx > 0 && arr[idx - 1] !== page - 1 && (
-                          <PaginationItem>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        )}
-                        <PaginationItem>
-                          <PaginationLink
-                            isActive={currentPage === page}
-                            onClick={() => setCurrentPage(page)}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      </React.Fragment>
-                    ))}
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() =>
-                        setCurrentPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      className={
-                        currentPage === totalPages
-                          ? "pointer-events-none opacity-50"
-                          : "cursor-pointer"
-                      }
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {/* Each tab keeps its own PageHeader + actions (Event Payments / Create event). */}
+        <TabsContent value="events">
+          <EventsAdminContent />
+        </TabsContent>
+        <TabsContent value="leaderboards">
+          <LeaderboardsAdminContent />
+        </TabsContent>
+      </Tabs>
     </div>
   );
-};
-
-export default page;
+}

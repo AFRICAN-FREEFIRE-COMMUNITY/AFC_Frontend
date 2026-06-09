@@ -1,4 +1,21 @@
 "use client";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LeaderboardsAdminContent
+// ----------------------------------------------------------------------------
+// The Leaderboards admin surface, extracted VERBATIM from the old standalone
+// app/(a)/a/leaderboards/page.tsx so it can render as the "Leaderboards" tab of
+// the combined Events & Leaderboards page (owner request 2026-06-09: merge the
+// two admin pages into one tabbed page). Behaviour is unchanged: same stat cards
+// + event-search table (GET /events/get-all-events/ and /events/get-all-leaderboards/)
+// with the per-event View/Edit leaderboard actions.
+//
+// RENDERED BY: app/(a)/a/events/page.tsx (the combined page, Leaderboards tab).
+// The leaderboard detail/create/edit routes under /a/leaderboards/* are separate
+// pages and are unaffected. EventProp is imported from EventsAdminContent (the
+// Events tab body that now owns that shared type).
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +44,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { EventProp } from "../events/page";
+import { EventProp } from "./EventsAdminContent";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
@@ -41,7 +58,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ITEMS_PER_PAGE } from "@/constants";
-import { DownloadLeaderboardButton } from "./_components/DownloadLeaderboardButton";
+import { DownloadLeaderboardButton } from "../leaderboards/_components/DownloadLeaderboardButton";
 import { InfoTip } from "@/components/ui/info-tip";
 
 interface LeaderboardProps {
@@ -74,7 +91,7 @@ interface LeaderboardProps {
   created_at: Date;
 }
 
-const page = () => {
+export const LeaderboardsAdminContent = () => {
   const { token } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLeaderboardQuery, setSearchLeaderboardQuery] = useState("");
@@ -479,5 +496,3 @@ const page = () => {
     </div>
   );
 };
-
-export default page;

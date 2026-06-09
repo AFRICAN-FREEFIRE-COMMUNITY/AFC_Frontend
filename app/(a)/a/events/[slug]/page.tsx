@@ -27,6 +27,8 @@ import {
   IconLockFilled,
   IconChevronDown,
   IconUserCheck,
+  IconUsersGroup,
+  IconSearch,
 } from "@tabler/icons-react";
 import axios from "axios";
 import Image from "next/image";
@@ -72,6 +74,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { InfoTip } from "@/components/ui/info-tip";
 
 // --- Type Definitions ---
 
@@ -236,6 +239,51 @@ interface InviteLink {
   expires_at?: string | null;
 }
 
+// ── Group Rosters response shape ────────────────────────────────────────────
+// Mirrors the backend get_event_group_rosters response
+// (afc_tournament_and_scrims.views). is_solo decides whether a group carries
+// `teams` (duo/squad) or `players` (solo). username is the in-game name (IGN).
+interface RosterPlayer {
+  user_id: number;
+  username: string; // the IGN
+  uid: string | null; // nullable game UID
+  full_name: string;
+  status: string; // member status (team events) / registration status (solo)
+  competitor_status?: string; // solo only: StageGroupCompetitor.status
+}
+interface RosterTeam {
+  tournament_team_id: number;
+  team_id: number;
+  team_name: string;
+  team_tag: string | null;
+  competitor_status: string;
+  players: RosterPlayer[];
+}
+interface RosterGroup {
+  group_id: number;
+  group_name: string;
+  teams_qualifying?: number | null;
+  team_count: number;
+  player_count: number;
+  total_in_group: number;
+  teams?: RosterTeam[]; // team events
+  players?: RosterPlayer[]; // solo events
+}
+interface RosterStage {
+  stage_id: number;
+  stage_name: string;
+  stage_format: string;
+  stage_status: string;
+  groups: RosterGroup[];
+}
+interface EventGroupRosters {
+  event_id: number;
+  event_name: string;
+  participant_type: string;
+  is_solo: boolean;
+  stages: RosterStage[];
+}
+
 // --- Component ---
 
 const Page = ({ params }: { params: Promise<Params> }) => {
@@ -270,6 +318,40 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const [loadingSponsors, setLoadingSponsors] = useState(false);
   const [savingSponsor, setSavingSponsor] = useState(false);
   const [showSponsorDialog, setShowSponsorDialog] = useState(false);
+
+  // ── Group Rosters tab state ─────────────────────────────────────────────────
+  // Live-event seeding check: stage → group → teams → players (or → players for
+  // solo). Data comes from the backend get-event-group-rosters endpoint
+  // (afc_tournament_and_scrims.views.get_event_group_rosters), posted with the page's
+  // existing admin Bearer token and { event_id }. Fetched LAZILY the first time the
+  // tab is opened (the endpoint walks every stage/group, so we don't pay for it on
+  // every event page load). `rosterSearch` filters teams + players by IGN for fast
+  // who-is-where lookup during a running event.
+  const [rosterData, setRosterData] = useState<EventGroupRosters | null>(null);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterSearch, setRosterSearch] = useState("");
+
+  // One-shot loader: fires from the Group Rosters tab's onMount (see the
+  // GroupRostersPanel below). Guards on token + event_id; re-uses the already-loaded
+  // result on subsequent tab opens. Never throws to the UI - on failure we leave the
+  // panel in its empty "no data" state rather than error the whole page.
+  const fetchGroupRosters = async () => {
+    if (!token || !eventDetails?.event_id || rosterData || rosterLoading) return;
+    setRosterLoading(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-group-rosters/`,
+        { event_id: eventDetails.event_id },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setRosterData(res.data);
+    } catch (err) {
+      // Log (don't toast) - the tab simply shows its empty state if this fails.
+      console.error("Failed to load group rosters", err);
+    } finally {
+      setRosterLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!showSponsorDialog || !token) return;
@@ -760,6 +842,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             <TabsTrigger value="registrations">Registrations</TabsTrigger>
             <TabsTrigger value="waitlist">Waitlist</TabsTrigger>
             <TabsTrigger value="stages">Stages</TabsTrigger>
+            {/* Group Rosters: live-event seeding check (stage → group → teams/players). */}
+            <TabsTrigger value="group-rosters">Group Rosters</TabsTrigger>
             <TabsTrigger value="prizes">Prizes</TabsTrigger>
             <TabsTrigger value="engagement">Engagement</TabsTrigger>
             <TabsTrigger value="discord-tools">Discord Tools</TabsTrigger>
@@ -1886,6 +1970,28 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           )}
         </TabsContent>
 
+        {/* --- Group Rosters Tab ---
+            Live-event seeding check: which teams/players sit in which group, per
+            stage. Data loads lazily on first open (GroupRostersPanel calls
+            fetchGroupRosters on mount) from get-event-group-rosters. The panel renders
+            the SAME stage → group → team/player layout the organizer Groups page uses,
+            branching on is_solo for the solo (players-only) shape. The ⓘ sits as a
+            SIBLING of the heading text (never inside a button) to avoid the
+            button-in-button hydration error. */}
+        <TabsContent value="group-rosters" className="mt-2 space-y-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-primary">Group Rosters</h2>
+            <InfoTip id="events.detail.group_rosters._section" />
+          </div>
+          <GroupRostersPanel
+            data={rosterData}
+            loading={rosterLoading}
+            search={rosterSearch}
+            onSearchChange={setRosterSearch}
+            onMount={fetchGroupRosters}
+          />
+        </TabsContent>
+
         <TabsContent value="prizes" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
@@ -2286,6 +2392,237 @@ function DiscordToolButton({
       <Button size="sm" variant="outline" onClick={run} disabled={loading} className="shrink-0">
         {loading ? <IconLoader2 className="h-4 w-4 animate-spin" /> : "Run"}
       </Button>
+    </div>
+  );
+}
+
+// ── GroupRostersPanel ─────────────────────────────────────────────────────────
+// Renders the event group-roster tree returned by get-event-group-rosters: per
+// stage a Card, inside it a md:grid-cols-2 grid of per-group cards (bg-primary/10,
+// matching the Stages-tab group cards), each group listing its teams (with a text-xs
+// player Table per team) or, for solo events, a single players Table.
+//
+// Lives inside the admin event-detail page's "Group Rosters" tab. `onMount` lets the
+// parent fetch lazily the first time the tab is opened (this component only mounts
+// when the tab is active, since Radix unmounts inactive TabsContent). The IGN
+// `search` filter is owned by the parent so it survives re-renders; here we just
+// apply it to teams + players for fast who-is-where lookup during a live event.
+//
+// AFC tokens: tables are text-xs with p-2 cells + h-10 headers, headers use
+// text-foreground (not muted). Status shown as an outline rounded-full Badge.
+function GroupRostersPanel({
+  data,
+  loading,
+  search,
+  onSearchChange,
+  onMount,
+}: {
+  data: EventGroupRosters | null;
+  loading: boolean;
+  search: string;
+  onSearchChange: (v: string) => void;
+  onMount: () => void;
+}) {
+  // Lazy-load trigger: fire the parent's fetch once when this panel first mounts
+  // (i.e. the tab is opened). Empty dep array -> runs a single time.
+  useEffect(() => {
+    onMount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const query = search.trim().toLowerCase();
+
+  // Does a single player row match the IGN filter? (username = IGN; we also match
+  // full_name + uid so a search is forgiving.)
+  const playerMatches = (p: RosterPlayer) =>
+    !query ||
+    (p.username ?? "").toLowerCase().includes(query) ||
+    (p.full_name ?? "").toLowerCase().includes(query) ||
+    (p.uid ?? "").toLowerCase().includes(query);
+
+  // A team is kept if its name/tag matches OR any of its players match.
+  const teamMatches = (t: RosterTeam) =>
+    !query ||
+    (t.team_name ?? "").toLowerCase().includes(query) ||
+    (t.team_tag ?? "").toLowerCase().includes(query) ||
+    (t.players ?? []).some(playerMatches);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
+        <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+        Loading group rosters...
+      </div>
+    );
+  }
+
+  if (!data || data.stages.length === 0) {
+    return (
+      <p className="text-muted-foreground italic">
+        No stages defined for this event yet.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* IGN search: filters teams + players live for the "who is in which group"
+          lookup an organizer/admin does during a running event. */}
+      <div className="relative max-w-sm">
+        <IconSearch className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Search by IGN, team, or UID"
+          className="pl-8"
+        />
+      </div>
+
+      {data.stages.map((stage) => (
+        <Card key={stage.stage_id}>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
+              <span>{stage.stage_name}</span>
+              <Badge variant="outline" className="capitalize rounded-full px-2 py-0.5 text-xs">
+                {stage.stage_status}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-2">
+            {stage.groups.length === 0 ? (
+              <p className="text-muted-foreground italic text-sm md:col-span-2">
+                No groups yet, seed this stage first.
+              </p>
+            ) : (
+              stage.groups.map((group) => {
+                // Apply the IGN filter per group, depending on solo vs team shape.
+                const teams = (group.teams ?? []).filter(teamMatches);
+                const players = (group.players ?? []).filter(playerMatches);
+                return (
+                  <Card key={group.group_id} className="bg-primary/10 gap-0">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
+                        <span>{group.group_name}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {data.is_solo
+                            ? `${group.player_count} players`
+                            : `${group.team_count} teams`}
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-2 space-y-2">
+                      {data.is_solo ? (
+                        // ── SOLO group: one players table ──
+                        players.length === 0 ? (
+                          <p className="text-muted-foreground italic text-xs">
+                            No players yet.
+                          </p>
+                        ) : (
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="h-10">
+                                <TableHead className="text-foreground text-xs p-2">
+                                  IGN
+                                </TableHead>
+                                <TableHead className="text-foreground text-xs p-2">
+                                  UID
+                                </TableHead>
+                                <TableHead className="text-foreground text-xs p-2">
+                                  Status
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {players.map((p) => (
+                                <TableRow key={p.user_id}>
+                                  <TableCell className="text-xs p-2 font-medium">
+                                    {p.username}
+                                  </TableCell>
+                                  <TableCell className="text-xs p-2 text-muted-foreground">
+                                    {p.uid || "-"}
+                                  </TableCell>
+                                  <TableCell className="text-xs p-2 capitalize">
+                                    {p.status}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        )
+                      ) : // ── TEAM group: a sub-card per team, each with a players table ──
+                      teams.length === 0 ? (
+                        <p className="text-muted-foreground italic text-xs">
+                          No teams yet.
+                        </p>
+                      ) : (
+                        teams.map((team) => (
+                          <Card
+                            key={team.tournament_team_id}
+                            className="bg-card gap-0"
+                          >
+                            <CardHeader className="pb-2">
+                              <CardTitle className="flex items-center justify-between gap-2 flex-wrap text-sm">
+                                <span>
+                                  {team.team_name}
+                                  {team.team_tag ? ` (${team.team_tag})` : ""}
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="capitalize rounded-full px-2 py-0.5 text-xs"
+                                >
+                                  {team.competitor_status}
+                                </Badge>
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              {team.players.length === 0 ? (
+                                <p className="text-muted-foreground italic text-xs">
+                                  No players yet.
+                                </p>
+                              ) : (
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow className="h-10">
+                                      <TableHead className="text-foreground text-xs p-2">
+                                        IGN
+                                      </TableHead>
+                                      <TableHead className="text-foreground text-xs p-2">
+                                        UID
+                                      </TableHead>
+                                      <TableHead className="text-foreground text-xs p-2">
+                                        Status
+                                      </TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {team.players.map((p) => (
+                                      <TableRow key={p.user_id}>
+                                        <TableCell className="text-xs p-2 font-medium">
+                                          {p.username}
+                                        </TableCell>
+                                        <TableCell className="text-xs p-2 text-muted-foreground">
+                                          {p.uid || "-"}
+                                        </TableCell>
+                                        <TableCell className="text-xs p-2 capitalize">
+                                          {p.status}
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

@@ -46,6 +46,7 @@ import {
   IconPlus,
   IconPencil,
   IconTrophy,
+  IconUsersGroup,
 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
@@ -125,6 +126,13 @@ export default function OrganizerEventsPage() {
   const canEditEvents = membership.permissions.can_edit_events || isOwner;
   const canUploadResults =
     membership.permissions.can_upload_results || isOwner;
+  //   • Groups & Rosters → isOwner || can_manage_registrations
+  //     (links to .../[slug]/groups, the LIVE-event seeding check that shows which
+  //     teams/players sit in which group). Same permission the groups page itself and
+  //     the backend get-event-group-rosters endpoint enforce, so the button only
+  //     appears for callers the backend will actually authorise.
+  const canManageRegistrations =
+    membership.permissions.can_manage_registrations || isOwner;
 
   const [events, setEvents] = useState<OrgEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -269,6 +277,19 @@ export default function OrganizerEventsPage() {
                             >
                               <IconTrophy className="size-4" />
                               Results & Leaderboard
+                            </Link>
+                          </Button>
+                        )}
+                        {/* Groups & Rosters: live-event seeding check (stage → group →
+                            teams → players). Links to the new groups page; gated on the
+                            registrations permission to match that page + the backend. */}
+                        {canManageRegistrations && (
+                          <Button asChild variant="outline" size="sm">
+                            <Link
+                              href={`/organizer/events/${event.slug}/groups`}
+                            >
+                              <IconUsersGroup className="size-4" />
+                              Groups & Rosters
                             </Link>
                           </Button>
                         )}

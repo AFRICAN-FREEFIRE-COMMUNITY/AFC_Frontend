@@ -14,7 +14,6 @@ import {
   IconShield,
   IconShoppingCart,
   IconStar,
-  IconTrophy,
   IconUsers,
   IconUsersGroup,
 } from "@tabler/icons-react";
@@ -128,24 +127,17 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconHome,
     allowedRoles: ["head_admin"],
   },
-  // Players + Teams grouped together right under the dashboard (owner request 2026-06-08).
+  // Teams + Players are now ONE combined page (owner request 2026-06-09): the two
+  // standalone admin pages were merged into a single two-tab page at /a/teams
+  // (Teams | Players). /a/players redirects there with ?tab=players. This single
+  // sidebar entry replaces the old separate "Admin Players" + "Admin Teams" links.
+  // allowedRoles is the union of the old two (head_admin saw players; teams_admin +
+  // head_admin saw teams) so neither audience loses access to the merged page.
   {
-    label: "Admin Players",
-    slug: "/a/players",
-    icon: IconUsers,
-    allowedRoles: ["head_admin"],
-  },
-  {
-    label: "Admin Teams",
+    label: "Teams & Players",
     slug: "/a/teams",
     icon: IconUsersGroup,
-    allowedRoles: ["teams_admin", "head_admin"],
-  },
-  {
-    label: "Admin Leaderboards",
-    slug: "/a/leaderboards",
-    icon: IconTrophy,
-    allowedRoles: ["head_admin"],
+    allowedRoles: ["head_admin", "teams_admin"],
   },
   {
     slug: "/a/player-markets",
@@ -154,10 +146,15 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconUsers,
   },
   {
-    // Event Payments (the paid-event escrow dashboard) is NOT a separate sidebar entry: it
-    // lives INSIDE Admin Events, reached via the "Event Payments" button on the events page
-    // header (owner request 2026-06-08). Route unchanged: /a/events/payments.
-    label: "Admin Events",
+    // Events + Leaderboards are now ONE combined page (owner request 2026-06-09): the two
+    // standalone admin pages were merged into a single two-tab page at /a/events
+    // (Events | Leaderboards). /a/leaderboards redirects there with ?tab=leaderboards.
+    // This single entry replaces the old separate "Admin Events" + "Admin Leaderboards"
+    // links; allowedRoles is the union (event_admin saw events; leaderboards was head_admin).
+    // Event Payments (the paid-event escrow dashboard) is still NOT a sidebar entry: it
+    // lives inside the Events tab, reached via the "Event Payments" header button. Route
+    // unchanged: /a/events/payments.
+    label: "Events & Leaderboards",
     slug: "/a/events",
     icon: IconCalendar,
     allowedRoles: ["head_admin", "event_admin"],
@@ -183,7 +180,9 @@ export const adminNavLinks: AdminNavLink[] = [
     // head_admin / partner_admin to match the backend's _is_partner_admin check
     // (role__role_name__in=["head_admin","partner_admin"]) - same team that runs
     // the partner program. IconPlugConnected reads as an external integration/API.
-    label: "Partners",
+    // Sidebar label is "API Keys" (owner request 2026-06-09); the route stays /a/partners
+    // (the afc_partner_api admin surface for issuing/managing partner API keys).
+    label: "API Keys",
     slug: "/a/partners",
     icon: IconPlugConnected,
     allowedRoles: ["head_admin", "partner_admin"],

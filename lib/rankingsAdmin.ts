@@ -74,6 +74,12 @@ export const rankingsAdminApi = {
   createGhost: (body: any) => aPost("ghost-teams/", body),
   // append a single ghost player (one IGN slot) to an existing unclaimed ghost team.
   createGhostPlayer: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/players/`, body),
+  // flat create: the ghost team is NOT required. body = { ign, reason, ghost_team_id? }.
+  // Omit ghost_team_id to park a standalone (team-less) ghost player; include it to attach the
+  // new player to that unclaimed ghost team. Hits POST /rankings/ghost-players/
+  // (admin_ghost.ghost_player_create_flat). Consumed by the CreateGhostPlayerModal on the
+  // admin Players tab.
+  createGhostPlayerFlat: (body: any) => aPost("ghost-players/", body),
   updateGhost: (ghostId: string, body: any) => aPatch(`ghost-teams/${ghostId}/`, body),
   deleteGhost: (ghostId: string, body: any) => aDelete(`ghost-teams/${ghostId}/`, body),
   approveClaim: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/approve-claim/`, body),
