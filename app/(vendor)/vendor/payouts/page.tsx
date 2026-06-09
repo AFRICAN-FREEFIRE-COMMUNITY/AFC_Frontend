@@ -172,9 +172,12 @@ export default function VendorPayoutsPage() {
         has_recipient: Boolean(saved.recipient_code),
       });
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || "Could not save your bank. Please try again.",
-      );
+      // Surface the backend `detail` (the real Paystack reason, e.g. "transfers not
+      // enabled on this integration") instead of swallowing it behind the generic
+      // message. Without this the vendor + support can't tell WHY the save failed.
+      const data = err?.response?.data;
+      const base = data?.message || "Could not save your bank. Please try again.";
+      toast.error(data?.detail ? `${base} (${data.detail})` : base);
     } finally {
       setSaving(false);
     }

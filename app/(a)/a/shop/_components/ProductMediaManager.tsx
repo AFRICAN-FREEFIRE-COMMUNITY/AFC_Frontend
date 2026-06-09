@@ -48,12 +48,21 @@ interface ProductMediaManagerProps {
   media: ProductMediaItem[];
   // called after a successful upload or delete so the parent re-fetches media
   onChanged: () => void;
+  // Endpoints to hit. Default to the ADMIN media routes (back-compat for the admin
+  // edit-product page). The VENDOR product form passes the vendor-gated routes
+  // (/shop/vendor/products/media/{add,delete}/) so a vendor can build the SAME gallery
+  // on their own draft/rejected product. Both contracts are identical (multipart
+  // product_id + files[] to upload; JSON { media_id } to delete).
+  uploadUrl?: string;
+  deleteUrl?: string;
 }
 
 export function ProductMediaManager({
   productId,
   media,
   onChanged,
+  uploadUrl = "/shop/add-product-media/",
+  deleteUrl = "/shop/delete-product-media/",
 }: ProductMediaManagerProps) {
   const { token } = useAuth();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -97,7 +106,7 @@ export function ProductMediaManager({
       files.forEach((f) => fd.append("files", f));
 
       await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/add-product-media/`,
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}${uploadUrl}`,
         fd,
         // No explicit Content-Type: axios sets the multipart boundary itself.
         { headers: { Authorization: `Bearer ${token}` } },
@@ -117,7 +126,7 @@ export function ProductMediaManager({
     try {
       setDeletingId(mediaId);
       await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/delete-product-media/`,
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}${deleteUrl}`,
         { media_id: mediaId },
         { headers: { Authorization: `Bearer ${token}` } },
       );

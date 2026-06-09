@@ -3,7 +3,8 @@
 // section. One dialog drives both flows (mode="create" | "edit") so a vendor adds
 // and edits a product through an identical UI, mirroring the admin AddProductModal
 // field idiom (name, category Select, description, limited-stock switch, an optional
-// primary image, and a repeatable variants block of {title, sku, price, stock}).
+// primary image, a "Photos and videos" gallery, and a repeatable variants block of
+// {title, sku, price, stock}).
 //
 // HOW IT CONNECTS
 //   - Parent: app/(vendor)/vendor/products/page.tsx renders this. On a successful
@@ -18,6 +19,24 @@
 //     AddProductModal, with shopProductTypes as the empty-fetch fallback.
 //   - Editing is only ever opened for a draft/rejected product (the page hides Edit
 //     otherwise) because the backend rejects an edit on a submitted/approved product.
+//
+// MULTI-MEDIA GALLERY (images + videos)
+//   - Below the single primary `image` (the card thumbnail) we reuse the admin
+//     ProductMediaManager (app/(a)/a/shop/_components/ProductMediaManager) for the
+//     multi-image + video gallery, pointed at the VENDOR-gated media routes
+//     (POST /shop/vendor/products/media/{add,delete}/, which the backend only allows
+//     on the caller's OWN draft/rejected product).
+//   - The manager NEEDS a saved product id (media attaches to a real product). So:
+//       • EDIT mode: the product already exists, so the manager renders immediately
+//         against product.id with product.media.
+//       • CREATE mode: there is no id until createProduct succeeds. We therefore do
+//         NOT close the dialog after creating; we keep it open and flip to a local
+//         "just-created" view that shows the manager for the new id (a fresh product
+//         is a draft, which is editable), with a hint to add media then submit.
+//   - onChanged (fired by the manager after each upload/delete) refetches the
+//     caller-vendor's products (vendorProductApi.getMyProducts), finds THIS product
+//     by id, and updates the gallery's local media so the grid refreshes. The parent
+//     list is also refreshed (onSaved) so its row stays in sync.
 //
 // AFC design: shadcn Dialog + Form, rounded-md cards via the variants block, text-xs
 // helper copy, sonner toasts on save/fail. NO em/en dashes anywhere in copy.
@@ -49,6 +68,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { IconPlus, IconTrash, IconPhotoPlus } from "@tabler/icons-react";
+
+// The SAME multi-media gallery manager the admin edit-product page uses
+// (app/(a)/a/shop/inventory/[id]/page.tsx). We reuse it as-is and only point its
+// upload/delete at the VENDOR-gated media routes via its uploadUrl/deleteUrl props.
+import {
+  ProductMediaManager,
+  ProductMediaItem,
+} from "@/app/(a)/a/shop/_components/ProductMediaManager";
 
 import {
   vendorProductApi,
@@ -113,6 +140,19 @@ export function ProductFormDialog({
   const [image, setImage] = useState<File | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
+  // ── Multi-media gallery state (images + videos) ──
+  // galleryProductId is the SAVED product the ProductMediaManager edits. It is the
+  // edited product's id in EDIT mode, or — in CREATE mode — gets set to the new id
+  // once createProduct succeeds (the "just-created" view). While null, the gallery
+  // cannot render (media needs a real product to attach to). galleryMedia is the
+  // current media list; onChanged refetches it so the grid refreshes after each
+  // upload/delete.
+  const [galleryProductId, setGalleryProductId] = useState<number | null>(null);
+  const [galleryMedia, setGalleryMedia] = useState<ProductMediaItem[]>([]);
+  // True once we have created a product inside THIS create session (so we can show
+  // the gallery + a "just created, now add media" hint without closing the dialog).
+  const [justCreated, setJustCreated] = useState(false);
+
   // Live categories drive the product_type Select (same source as the admin form).
   const [categories, setCategories] = useState<ShopCategoryLite[]>([]);
   const categoryOptions =
@@ -154,6 +194,12 @@ export function ProductFormDialog({
             }))
           : [emptyVariant()],
       );
+      // EDIT: the product already exists, so the gallery can render straight away
+      // against its id + media. (The page only opens Edit on draft/rejected, which
+      // is the editable state the vendor media endpoints require.)
+      setGalleryProductId(product.id);
+      setGalleryMedia((product.media ?? []) as ProductMediaItem[]);
+      setJustCreated(false);
     } else {
       // create (or edit with no product, which should not happen)
       setName("");
@@ -162,6 +208,11 @@ export function ProductFormDialog({
       setIsLimitedStock(false);
       setImage(null);
       setVariants([emptyVariant()]);
+      // CREATE: no product yet, so the gallery stays hidden until createProduct
+      // returns an id (see handleSave → the "just-created" view).
+      setGalleryProductId(null);
+      setGalleryMedia([]);
+      setJustCreated(false);
     }
   }, [open, mode, product]);
 
@@ -177,6 +228,26 @@ export function ProductFormDialog({
     setVariants((prev) =>
       prev.map((v, i) => (i === index ? { ...v, [field]: value } : v)),
     );
+
+  // ── Gallery refetch (the ProductMediaManager's onChanged) ──
+  // Fired after each gallery upload/delete. There is no single-product GET in
+  // lib/vendor.ts, so we re-call the list (getMyProducts) and pull THIS product out
+  // by id to read its fresh media. That refreshes the gallery grid, and we also ask
+  // the parent to refresh its own list (onSaved) so the row stays in sync. Mirrors
+  // the admin page's onChanged={fetchProduct} idiom, adapted to the list endpoint.
+  const refreshGalleryMedia = async () => {
+    if (galleryProductId == null) return;
+    try {
+      const res = await vendorProductApi.getMyProducts();
+      const fresh = (res.products ?? []).find((p) => p.id === galleryProductId);
+      setGalleryMedia((fresh?.media ?? []) as ProductMediaItem[]);
+    } catch {
+      // A failed refetch leaves the last-known media in place; the manager already
+      // toasts upload/delete failures, so we stay quiet here rather than double-toast.
+    }
+    // Keep the parent product list current too (the freshly saved/edited product).
+    onSaved(galleryProductId);
+  };
 
   // ── Image pick (validate the 5 MB cap, mirroring the admin form) ──
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -241,6 +312,10 @@ export function ProductFormDialog({
         });
         toast.success("Product updated.");
         onSaved(product.id);
+        // EDIT: the base fields are saved. Close the dialog. The vendor manages the
+        // gallery inline (it was already visible while editing), and the parent row
+        // reflects any change after onSaved refetches.
+        onOpenChange(false);
       } else {
         const res = await vendorProductApi.createProduct({
           name: name.trim(),
@@ -251,9 +326,24 @@ export function ProductFormDialog({
           image: image,
         });
         toast.success("Product created as a draft.");
+        // Refresh the parent list so the new draft shows up there...
         onSaved(res?.product_id);
+        // ...but DO NOT close the dialog. The gallery manager needs a real product
+        // id, which we only just got. Flip into the "just-created" view so the
+        // vendor can attach photos and videos to the new draft before submitting.
+        // A freshly created product is a draft, which is the editable state the
+        // vendor media endpoints require, so the gallery can render now.
+        const newId = res?.product_id;
+        if (typeof newId === "number") {
+          setGalleryProductId(newId);
+          setGalleryMedia([]); // brand-new product has no media yet
+          setJustCreated(true);
+        } else {
+          // No id came back (unexpected) — fall back to the old behaviour and close,
+          // so the vendor is not stranded in a dialog with no working gallery.
+          onOpenChange(false);
+        }
       }
-      onOpenChange(false);
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message || "Could not save the product.",
@@ -263,17 +353,36 @@ export function ProductFormDialog({
     }
   };
 
+  // ── Gallery visibility ──
+  // Show the multi-media manager only when there is a SAVED product to attach media
+  // to AND that product is in an editable (draft/rejected) state — the vendor media
+  // endpoints reject anything else. In EDIT we can read approval_status off the
+  // product; the just-created case is always a draft, so it qualifies. (galleryProductId
+  // is non-null exactly in those two cases.)
+  const productIsEditable =
+    justCreated ||
+    (mode === "edit" &&
+      (product?.approval_status === "draft" ||
+        product?.approval_status === "rejected"));
+  const showGallery = galleryProductId != null && productIsEditable;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === "edit" ? "Edit product" : "Create product"}
+            {justCreated
+              ? "Add photos and videos"
+              : mode === "edit"
+                ? "Edit product"
+                : "Create product"}
           </DialogTitle>
           <DialogDescription>
-            {mode === "edit"
-              ? "Update this product, then submit it for AFC approval when it is ready."
-              : "Add a product to your catalogue. It starts as a draft. Submit it for AFC approval before it can go live."}
+            {justCreated
+              ? "Your product was saved as a draft. Add photos and videos below, then submit it for AFC approval when it is ready."
+              : mode === "edit"
+                ? "Update this product, then submit it for AFC approval when it is ready."
+                : "Add a product to your catalogue. It starts as a draft. Submit it for AFC approval before it can go live."}
           </DialogDescription>
         </DialogHeader>
 
@@ -365,6 +474,40 @@ export function ProductFormDialog({
               </p>
             )}
           </div>
+
+          {/* ── Photos and videos (the multi-media GALLERY) ── */}
+          {/* Separate from the single primary image above: that one is the card
+              thumbnail, this is the full gallery. Reuses the admin ProductMediaManager,
+              pointed at the vendor-gated media routes. It only renders once a saved
+              (draft/rejected) product exists, because media attaches to a real product
+              id (see showGallery). In CREATE mode it appears after the product is
+              created (the "just-created" view). */}
+          {showGallery ? (
+            <div className="space-y-2">
+              <Label>Photos and videos</Label>
+              <p className="text-xs text-muted-foreground">
+                Add several images and short videos for the product gallery. This is
+                separate from the primary image above.
+              </p>
+              <ProductMediaManager
+                productId={galleryProductId as number}
+                media={galleryMedia}
+                onChanged={refreshGalleryMedia}
+                uploadUrl="/shop/vendor/products/media/add/"
+                deleteUrl="/shop/vendor/products/media/delete/"
+              />
+            </div>
+          ) : mode === "create" && !justCreated ? (
+            // CREATE, not yet saved: the gallery cannot exist without a product id.
+            // Tell the vendor it unlocks after the first save.
+            <div className="space-y-2">
+              <Label>Photos and videos</Label>
+              <p className="text-xs text-muted-foreground">
+                Create the product first, then you can add a gallery of photos and
+                videos here before submitting it for approval.
+              </p>
+            </div>
+          ) : null}
 
           {/* ── Variants ── */}
           <div className="space-y-3">
@@ -460,21 +603,33 @@ export function ProductFormDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={submitting}
-          >
-            Cancel
-          </Button>
-          <Button type="button" onClick={handleSave} disabled={submitting}>
-            {submitting
-              ? "Saving..."
-              : mode === "edit"
-                ? "Save changes"
-                : "Create product"}
-          </Button>
+          {justCreated ? (
+            // The product is already saved (we are in the post-create gallery view).
+            // Re-running handleSave here would create a DUPLICATE, so the footer
+            // collapses to a single "Done" that just closes the dialog. The vendor
+            // submits the product for approval from the products list row.
+            <Button type="button" onClick={() => onOpenChange(false)}>
+              Done
+            </Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={submitting}
+              >
+                Cancel
+              </Button>
+              <Button type="button" onClick={handleSave} disabled={submitting}>
+                {submitting
+                  ? "Saving..."
+                  : mode === "edit"
+                    ? "Save changes"
+                    : "Create product"}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

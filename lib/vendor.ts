@@ -210,6 +210,18 @@ export interface VendorProduct {
   status: string; // "active" | ... (live status; independent of approval)
   is_limited_stock: boolean;
   image: string | null; // absolute primary image url
+  // The multi-media GALLERY (images + short videos) attached to the product,
+  // returned by _serialize_vendor_product (afc_shop/vendors.py). Separate from the
+  // single primary `image` above: `image` is the card thumbnail, `media` is the
+  // gallery the vendor builds via the vendor media endpoints
+  // (/shop/vendor/products/media/{add,delete}/, edited through ProductMediaManager
+  // in ProductFormDialog). Optional because older serialiser responses may omit it.
+  media?: {
+    id: number;
+    url: string | null;
+    media_type: "image" | "video";
+    ordering: number;
+  }[];
   // ── Phase B1 approval fields ──
   approval_status: ApprovalStatus;
   submitted_at: string | null;

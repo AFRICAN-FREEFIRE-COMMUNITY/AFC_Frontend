@@ -56,18 +56,19 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { Loader } from "@/components/Loader";
 import { Loader2 } from "lucide-react";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { IconCheck, IconEye, IconX } from "@tabler/icons-react";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate, formatMoneyInput } from "@/lib/utils";
 import {
   PendingProduct,
+  PendingProductMedia,
   marketplaceAdminApi,
 } from "@/lib/marketplaceAdmin";
 
 // Build a human price label from a product's variants. The backend serialises each
 // variant price as a decimal STRING; we parse, drop empties, and show a single price
-// or a min–max style range (rendered with " to " so there's no en dash in copy).
+// or a min to max style range (rendered with " to " so there's no en dash in copy).
 function priceLabel(product: PendingProduct): string {
   const prices = (product.variants || [])
     .map((v) => parseFloat(v.price))
@@ -77,6 +78,26 @@ function priceLabel(product: PendingProduct): string {
   const max = Math.max(...prices);
   if (min === max) return formatMoneyInput(min);
   return `${formatMoneyInput(min)} to ${formatMoneyInput(max)}`;
+}
+
+// Resolve the media gallery the detail modal renders, ordered for display.
+//
+// The backend already orders `media` by `ordering` then id, but we sort defensively
+// here (the modal is the only place a wrong order would show). When a product has no
+// `media` rows yet (older products predate the gallery), we fall back to the single
+// primary `image` so there is still something to show. Returns [] only when both the
+// gallery and the primary image are empty, which the modal renders as a "No media"
+// placeholder. Consumed solely by the detail Dialog below.
+function galleryFor(product: PendingProduct): PendingProductMedia[] {
+  const media = [...(product.media || [])]
+    .filter((m) => !!m.url)
+    .sort((a, b) => a.ordering - b.ordering);
+  if (media.length > 0) return media;
+  // Fallback: synthesise a single image entry from the primary `image`.
+  if (product.image) {
+    return [{ id: -1, url: product.image, media_type: "image", ordering: 0 }];
+  }
+  return [];
 }
 
 export default function ProductApprovalsPage() {
@@ -93,6 +114,15 @@ export default function ProductApprovalsPage() {
   const [rejectTarget, setRejectTarget] = useState<PendingProduct | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [rejecting, setRejecting] = useState(false);
+
+  // ── Detail modal state ──
+  // The product whose full detail (gallery + description + variants) is open, or null
+  // when the modal is closed. `detailMediaIndex` tracks which gallery item is in the
+  // large frame so the thumbnail strip can drive it. Opened from the per-row "View"
+  // button; the Approve/Reject buttons in its footer reuse the same handlers as the
+  // table row (handleApprove / the reject-reason dialog).
+  const [detailTarget, setDetailTarget] = useState<PendingProduct | null>(null);
+  const [detailMediaIndex, setDetailMediaIndex] = useState(0);
 
   // Fetch the approval queue (submitted vendor products). The client reads the Bearer
   // token from the cookie itself; we only gate on having a token at all.
@@ -113,6 +143,13 @@ export default function ProductApprovalsPage() {
     if (token) fetchPending();
   }, [token, fetchPending]);
 
+  // Open the detail modal for a product, resetting the gallery to its first item.
+  // Shared by the per-row "View" button and the row-click affordance.
+  const openDetail = (product: PendingProduct) => {
+    setDetailTarget(product);
+    setDetailMediaIndex(0);
+  };
+
   // ── Approve ──
   const handleApprove = async (product: PendingProduct) => {
     try {
@@ -121,6 +158,8 @@ export default function ProductApprovalsPage() {
       toast.success(`"${product.name}" approved.`);
       // Drop it from the queue locally (it leaves the "submitted" set on the backend).
       setProducts((prev) => prev.filter((p) => p.id !== product.id));
+      // If the detail modal was showing this product, close it (it is no longer pending).
+      setDetailTarget((cur) => (cur?.id === product.id ? null : cur));
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to approve product.");
     } finally {
@@ -141,6 +180,9 @@ export default function ProductApprovalsPage() {
       await marketplaceAdminApi.rejectProduct(rejectTarget.id, reason);
       toast.success(`"${rejectTarget.name}" rejected.`);
       setProducts((prev) => prev.filter((p) => p.id !== rejectTarget.id));
+      // Close the detail modal too if it was open on the same product (the Reject in
+      // the modal footer hands off to this dialog, so both can reference one product).
+      setDetailTarget((cur) => (cur?.id === rejectTarget.id ? null : cur));
       setRejectTarget(null);
       setRejectReason("");
     } catch (err: any) {
@@ -224,6 +266,16 @@ export default function ProductApprovalsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {/* View: opens the full detail modal (gallery + description +
+                            variants) so the admin can review before deciding. */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openDetail(product)}
+                          data-tour="shop-approvals-view-button"
+                        >
+                          <IconEye className="mr-1 h-4 w-4" /> View
+                        </Button>
                         <Button
                           size="sm"
                           disabled={approveBusyId === product.id}
@@ -259,6 +311,263 @@ export default function ProductApprovalsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* ── Detail modal ──────────────────────────────────────────────────────
+          Opened by a row's "View" button (openDetail). Shows EVERYTHING the
+          serialiser returns for a pending product: the media gallery (a large frame
+          driven by a thumbnail strip), the name/type/vendor/category/description, and
+          a full variants table. The footer's Approve/Reject reuse the table's flow:
+          Approve calls handleApprove (which closes this modal on success); Reject
+          closes this modal and opens the existing reject-reason dialog so a reason is
+          still mandatory. All data is already in `detailTarget`, so opening adds no
+          fetch. */}
+      <Dialog
+        open={detailTarget !== null}
+        onOpenChange={(o) => {
+          if (!o) setDetailTarget(null);
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          {detailTarget &&
+            (() => {
+              // Resolve the gallery once per render of the open modal.
+              const gallery = galleryFor(detailTarget);
+              // Clamp the active index in case the gallery is shorter than the stored
+              // index (defensive; index resets to 0 on open).
+              const activeIndex = Math.min(
+                detailMediaIndex,
+                Math.max(gallery.length - 1, 0),
+              );
+              const active = gallery[activeIndex];
+
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="text-primary">
+                      {detailTarget.name}
+                    </DialogTitle>
+                    <DialogDescription>
+                      Review the full product before approving. Submitted{" "}
+                      {detailTarget.submitted_at
+                        ? formatDate(detailTarget.submitted_at)
+                        : "date unknown"}
+                      .
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-4 py-2">
+                    {/* ── Media gallery: large frame + thumbnail strip ── */}
+                    {gallery.length > 0 ? (
+                      <div className="space-y-2">
+                        {/* Main frame: an <img> for images, a <video> for videos. */}
+                        <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border bg-muted">
+                          {active.media_type === "video" ? (
+                            <video
+                              src={active.url ?? undefined}
+                              controls
+                              className="h-full w-full object-contain"
+                            />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={active.url ?? undefined}
+                              alt={detailTarget.name}
+                              className="h-full w-full object-contain"
+                            />
+                          )}
+                        </div>
+
+                        {/* Thumbnail strip: only when there is more than one item.
+                            Each thumb selects which item fills the main frame. */}
+                        {gallery.length > 1 && (
+                          <div className="flex flex-wrap gap-2">
+                            {gallery.map((m, i) => (
+                              <button
+                                key={m.id}
+                                type="button"
+                                onClick={() => setDetailMediaIndex(i)}
+                                className={`relative h-14 w-14 overflow-hidden rounded-md border bg-muted transition ${
+                                  i === activeIndex
+                                    ? "border-primary ring-1 ring-primary"
+                                    : "border-border hover:border-primary/60"
+                                }`}
+                                aria-label={`View media ${i + 1}`}
+                              >
+                                {m.media_type === "video" ? (
+                                  // Video thumb: a muted preview frame stands in for
+                                  // a poster image (the gallery has no separate poster).
+                                  <video
+                                    src={m.url ?? undefined}
+                                    muted
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={m.url ?? undefined}
+                                    alt=""
+                                    className="h-full w-full object-cover"
+                                  />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      // No gallery and no primary image: muted placeholder.
+                      <div className="flex aspect-video w-full items-center justify-center rounded-md border bg-muted text-sm text-muted-foreground">
+                        No media
+                      </div>
+                    )}
+
+                    {/* ── Product meta: type, vendor, category ── */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {detailTarget.type && (
+                        <Badge
+                          variant="outline"
+                          className="rounded-full capitalize"
+                        >
+                          {detailTarget.type}
+                        </Badge>
+                      )}
+                      {detailTarget.vendor_name && (
+                        <Badge
+                          variant="outline"
+                          className="rounded-full border-blue-500 text-blue-600"
+                        >
+                          {detailTarget.vendor_name}
+                        </Badge>
+                      )}
+                      {detailTarget.category?.name && (
+                        <Badge
+                          variant="outline"
+                          className="rounded-full border-green-500 text-green-600"
+                        >
+                          {detailTarget.category.name}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* ── Description ── */}
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-foreground">
+                        Description
+                      </p>
+                      <p className="whitespace-pre-line text-sm text-muted-foreground">
+                        {detailTarget.description?.trim()
+                          ? detailTarget.description
+                          : "No description provided."}
+                      </p>
+                    </div>
+
+                    {/* ── Variants table: every variant, not just the count ── */}
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-foreground">
+                        Variants ({detailTarget.variants?.length ?? 0})
+                      </p>
+                      {detailTarget.variants?.length ? (
+                        <div className="rounded-md border">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="text-foreground">
+                                  SKU
+                                </TableHead>
+                                <TableHead className="text-foreground">
+                                  Title
+                                </TableHead>
+                                <TableHead className="text-foreground">
+                                  Price
+                                </TableHead>
+                                <TableHead className="text-foreground">
+                                  Diamonds
+                                </TableHead>
+                                <TableHead className="text-foreground">
+                                  Stock
+                                </TableHead>
+                                <TableHead className="text-foreground">
+                                  Active
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody className="text-xs">
+                              {detailTarget.variants.map((v) => (
+                                <TableRow key={v.id}>
+                                  <TableCell className="font-mono text-muted-foreground">
+                                    {v.sku || "-"}
+                                  </TableCell>
+                                  <TableCell>{v.title || "-"}</TableCell>
+                                  <TableCell className="font-semibold">
+                                    {Number.isNaN(parseFloat(v.price))
+                                      ? "-"
+                                      : formatMoneyInput(parseFloat(v.price))}
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground">
+                                    {v.diamonds_amount ?? 0}
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground">
+                                    {v.stock_qty ?? 0}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant="outline"
+                                      className={
+                                        v.is_active
+                                          ? "rounded-full border-green-500 text-green-600"
+                                          : "rounded-full border-orange-500 text-orange-600"
+                                      }
+                                    >
+                                      {v.is_active ? "Active" : "Inactive"}
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          This product has no variants.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ── Footer: Approve + Reject, reusing the table's flow ── */}
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                      onClick={() => {
+                        // Hand off to the existing reject-reason dialog. Close the
+                        // detail modal first so only one dialog is open at a time.
+                        const target = detailTarget;
+                        setDetailTarget(null);
+                        setRejectTarget(target);
+                        setRejectReason("");
+                      }}
+                    >
+                      <IconX className="mr-1 h-4 w-4" /> Reject
+                    </Button>
+                    <Button
+                      disabled={approveBusyId === detailTarget.id}
+                      onClick={() => handleApprove(detailTarget)}
+                    >
+                      {approveBusyId === detailTarget.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          <IconCheck className="mr-1 h-4 w-4" /> Approve
+                        </>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </>
+              );
+            })()}
+        </DialogContent>
+      </Dialog>
 
       {/* Reject dialog: a reason is mandatory (the backend rejects an empty reason). */}
       <Dialog

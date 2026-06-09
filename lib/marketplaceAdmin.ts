@@ -88,17 +88,50 @@ export interface PendingProductVariant {
   in_stock: boolean;
 }
 
+// One media item in a pending product's gallery (mirrors _serialize_media in
+// afc_shop/views.py, which both the storefront ProductDetailPage and the admin
+// approval-detail modal consume). `ordering` controls display order (the primary
+// image is ordering 0); `media_type` chooses an <img> vs a <video> at the render
+// site. `url` is the absolute media URL, or null if the file is missing.
+export interface PendingProductMedia {
+  id: number;
+  url: string | null;
+  media_type: "image" | "video";
+  ordering: number;
+}
+
+// The structured category attached to a pending product (mirrors _serialize_category
+// in afc_shop/views.py). It is null for legacy diamond rows that predate categories,
+// in which case the UI falls back to the product `type`. Consumed by the approval
+// detail modal to show the category label.
+export interface PendingProductCategory {
+  id: number;
+  name: string;
+  slug: string;
+  is_physical: boolean;
+  is_active: boolean;
+}
+
 // One row from GET /shop/admin/products/pending/ (_serialize_vendor_product). These
-// are products a vendor SUBMITTED (approval_status == "submitted"). We only type the
-// fields the approval queue actually renders (name, vendor, price via variants,
-// submitted_at) plus the approval metadata; the full serialiser carries more.
+// are products a vendor SUBMITTED (approval_status == "submitted"). The queue table
+// renders a summary (name, vendor, price via variants, submitted_at), while the
+// approval DETAIL MODAL (approvals/page.tsx) renders the rest: the full `media`
+// gallery, `category`, `description`, and every `variant`. All of these come from the
+// SAME serialiser, so no extra fetch is needed to open a product.
 export interface PendingProduct {
   id: number;
   name: string;
   type: string;
+  // Structured category object, or null for legacy rows (fall back to `type`).
+  category: PendingProductCategory | null;
   description: string;
   status: string;
+  // The single primary image (ordering 0). `media` is the full gallery below; this
+  // stays as the fallback when `media` is empty.
   image: string | null;
+  // Full media gallery (images + videos) the detail modal renders, ordered by
+  // `ordering`. May be empty for older products that only have `image`.
+  media: PendingProductMedia[];
   approval_status: string;
   submitted_at: string | null;
   rejection_reason: string;

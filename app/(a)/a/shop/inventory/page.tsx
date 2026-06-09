@@ -126,6 +126,18 @@ interface Product {
   is_limited_stock: boolean;
   variants: Variant[];
   updated_at: Date;
+  created_at?: string;
+  // ── Marketplace ownership + approval (from view_all_products) ──
+  // vendor_id is null for first-party AFC stock (diamonds etc.); set for vendor products.
+  // approval_status is the vendor-approval lifecycle, SEPARATE from `status`
+  // (active/inactive): a vendor product can be status="active" yet still "submitted"
+  // (not approved, so hidden from buyers). We surface both so a pending vendor product
+  // is not mistaken for a live one (owner request 2026-06-09).
+  vendor_id?: number | null;
+  vendor_name?: string | null;
+  approval_status?: "draft" | "submitted" | "approved" | "rejected";
+  approved_at?: string | null;
+  approved_by?: string | null;
 }
 
 interface Coupon {
@@ -292,6 +304,35 @@ export default function InventoryManagementPage() {
       : `$${min.toFixed(2)} - $${max.toFixed(2)}`;
   };
 
+  // Approval badge for VENDOR products only. The plain `status` badge can read "active"
+  // while a vendor product is still awaiting approval (and therefore hidden from buyers),
+  // so this surfaces where the product sits in the approval lifecycle. First-party AFC
+  // products (vendor_id null) return null and just show their status as before.
+  const approvalMeta: Record<string, { label: string; cls: string }> = {
+    submitted: { label: "Pending approval", cls: "border-amber-500 text-amber-500" },
+    approved: { label: "Approved", cls: "border-primary text-primary" },
+    rejected: { label: "Rejected", cls: "border-destructive text-destructive" },
+    draft: { label: "Draft", cls: "border-muted-foreground text-muted-foreground" },
+  };
+  const getApprovalBadge = (product: Product) => {
+    if (!product.vendor_id || !product.approval_status) return null;
+    const m = approvalMeta[product.approval_status];
+    if (!m) return null;
+    return (
+      <Badge
+        variant="outline"
+        className={`rounded-full px-2 py-0.5 text-[10px] w-fit ${m.cls}`}
+        title={
+          product.approval_status === "approved" && product.approved_at
+            ? `Approved ${formatDate(product.approved_at)}${product.approved_by ? ` by ${product.approved_by}` : ""}`
+            : undefined
+        }
+      >
+        {m.label}
+      </Badge>
+    );
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
@@ -362,6 +403,7 @@ export default function InventoryManagementPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Owner</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Stock</TableHead>
                 <TableHead>Price</TableHead>
@@ -374,13 +416,13 @@ export default function InventoryManagementPage() {
               {isLoading ? (
                 // Simple loading skeleton
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
+                  <TableCell colSpan={9} className="text-center">
                     Loading products...
                   </TableCell>
                 </TableRow>
               ) : paginatedProducts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
+                  <TableCell colSpan={9} className="text-center">
                     No products found.
                   </TableCell>
                 </TableRow>
@@ -419,14 +461,38 @@ export default function InventoryManagementPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          product.status === "active" ? "default" : "secondary"
-                        }
-                        className="capitalize"
-                      >
-                        {product.status}
-                      </Badge>
+                      {/* Owner: which vendor owns this product, or AFC for first-party
+                          stock. Pairs with the approval badge in the Status cell so an
+                          admin can see at a glance whose pending submission this is. */}
+                      {product.vendor_id ? (
+                        <div className="flex flex-col">
+                          <span className="text-xs font-medium">
+                            {product.vendor_name}
+                          </span>
+                          {product.created_at && (
+                            <span className="text-[10px] text-muted-foreground">
+                              Added {formatDate(product.created_at)}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">AFC</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col items-start gap-1">
+                        <Badge
+                          variant={
+                            product.status === "active" ? "default" : "secondary"
+                          }
+                          className="capitalize"
+                        >
+                          {product.status}
+                        </Badge>
+                        {/* Vendor-approval lifecycle badge (Pending/Approved/Rejected/
+                            Draft). Only renders for vendor products. */}
+                        {getApprovalBadge(product)}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-start gap-1">
