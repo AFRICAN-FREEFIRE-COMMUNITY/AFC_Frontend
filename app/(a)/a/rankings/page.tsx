@@ -184,8 +184,10 @@ export default function AdminRankingsPage() {
     <div className="space-y-4">
       <PageHeader
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: rankings tour "the Rankings workspace" step (admin-tour-steps.ts
+        // → ADMIN_TOUR_STEPS.rankings). It introduces the sub-nav row of detail pages above.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="rankings-header" className="inline-flex items-center">
             Rankings & Tiering
             <InfoTip id="rankings._page" className="ml-1.5" />
           </span>
@@ -193,7 +195,8 @@ export default function AdminRankingsPage() {
         description="Control the tournament data, evaluation, and seasons that drive the public rankings."
         action={
           // ⓘ sits as a SIBLING of the season Select (not nested) so the tip explains the scope picker.
-          <div className="flex items-center gap-1">
+          // data-tour anchor: rankings tour "pick the season" step.
+          <div data-tour="rankings-season" className="flex items-center gap-1">
           <Select value={seasonId ? String(seasonId) : undefined} onValueChange={(v) => setSeasonId(Number(v))}>
             <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="Season" /></SelectTrigger>
             <SelectContent>
@@ -209,8 +212,12 @@ export default function AdminRankingsPage() {
         }
       />
 
-      {/* status strip */}
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
+      {/* status strip
+          data-tour anchor: rankings tour "season status at a glance" step. */}
+      <div
+        data-tour="rankings-status"
+        className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4"
+      >
         <StatCard icon={<IconCalendarStats className="size-4" />} title="Current Season"
           value={season?.name ?? "None"} sub={season?.is_active ? "Active" : "Closed"} />
         <StatCard icon={<IconArrowsExchange className="size-4" />} title="Transfer Window"
@@ -230,7 +237,8 @@ export default function AdminRankingsPage() {
 
       {/* run evaluation + tier distribution */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
+        {/* data-tour anchor: rankings tour "run the quarterly evaluation" step. */}
+        <Card data-tour="rankings-evaluation" className="lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center text-base">
               Quarterly Evaluation
@@ -257,7 +265,8 @@ export default function AdminRankingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        {/* data-tour anchor: rankings tour "tier distribution" step. */}
+        <Card data-tour="rankings-distribution" className="lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle className="flex items-center text-base">
               Tier Distribution
@@ -281,8 +290,9 @@ export default function AdminRankingsPage() {
         </Card>
       </div>
 
-      {/* publish to public - rankings + tiers are toggled INDEPENDENTLY */}
-      <Card>
+      {/* publish to public - rankings + tiers are toggled INDEPENDENTLY
+          data-tour anchor: rankings tour "publish to the public" step. */}
+      <Card data-tour="rankings-publish">
         <CardHeader className="flex-row items-center justify-between gap-2">
           <div>
             <CardTitle className="flex items-center text-base">
@@ -315,8 +325,9 @@ export default function AdminRankingsPage() {
         </CardContent>
       </Card>
 
-      {/* quick links */}
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      {/* quick links
+          data-tour anchor: rankings tour "jump to the detail pages" step. */}
+      <div data-tour="rankings-quicklinks" className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {[
           { label: "Result Markers", icon: IconClipboardCheck, desc: "Winners, finals, MVP", href: "/a/rankings/results" },
           { label: "Seasons", icon: IconSettings, desc: "Dates, transfer window", href: "/a/rankings/seasons" },
@@ -334,8 +345,9 @@ export default function AdminRankingsPage() {
         ))}
       </div>
 
-      {/* teams table + search */}
-      <Card>
+      {/* teams table + search
+          data-tour anchor: rankings tour "the team score table" step. */}
+      <Card data-tour="rankings-teams">
         <CardHeader className="flex-row items-center justify-between gap-2">
           <CardTitle className="flex items-center text-base">
             Teams · {season?.name ?? ""}

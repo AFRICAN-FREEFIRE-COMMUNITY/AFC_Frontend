@@ -526,11 +526,22 @@ export const PlayersAdminContent = () => {
           </span>
         }
         // Admins can spin up a provisional ghost player (off-platform IGN) from here.
-        action={<CreateGhostPlayerModal onSuccess={fetchPlayers} />}
+        // data-tour anchor: teams page tour, Players tab "create a ghost player" step
+        // (admin-tour-steps.ts → ADMIN_TOUR_STEPS.teams). Wrapped in a span so the
+        // guided tour can highlight the action without changing the button itself.
+        action={
+          <span data-tour="players-create" className="inline-flex">
+            <CreateGhostPlayerModal onSuccess={fetchPlayers} />
+          </span>
+        }
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2">
+      {/* Stats
+          data-tour anchor: teams page tour, Players tab "player stats at a glance" step. */}
+      <div
+        data-tour="players-stats"
+        className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2"
+      >
         <Card className="hover:shadow-lg transition-shadow gap-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Players</CardTitle>
@@ -636,8 +647,9 @@ export const PlayersAdminContent = () => {
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-2">
+      {/* Filters
+          data-tour anchor: teams page tour, Players tab "search and filter players" step. */}
+      <div data-tour="players-search" className="flex flex-col md:flex-row gap-2">
         <Input
           placeholder="Search players..."
           value={searchTerm}
@@ -670,8 +682,9 @@ export const PlayersAdminContent = () => {
         </Select>
       </div>
 
-      {/* Table */}
-      <Card className="gap-0">
+      {/* Table
+          data-tour anchor: teams page tour, Players tab "the players table" step. */}
+      <Card data-tour="players-list" className="gap-0">
         <CardHeader>
           {/* Section ⓘ inline with the Players table heading. */}
           <CardTitle className="flex items-center">

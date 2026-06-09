@@ -185,7 +185,12 @@ export const LeaderboardsAdminContent = () => {
           </span>
         }
       />
-      <div className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
+      {/* data-tour anchor: events page tour, Leaderboards tab "leaderboard totals" step
+          (admin-tour-steps.ts → ADMIN_TOUR_STEPS.events, lazy step after the tab switch). */}
+      <div
+        data-tour="leaderboards-stats"
+        className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4"
+      >
         <Card className="hover:shadow-lg transition-shadow gap-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -294,7 +299,11 @@ export const LeaderboardsAdminContent = () => {
           <CardTitle>Search Events</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-start gap-2">
+          {/* data-tour anchor: events page tour, Leaderboards tab "pick an event to score" step. */}
+          <div
+            data-tour="leaderboards-search"
+            className="flex items-center justify-start gap-2"
+          >
             <Input
               type="search"
               placeholder="Search events by name, type, or status..."
@@ -307,7 +316,8 @@ export const LeaderboardsAdminContent = () => {
               <span className="hidden md:inline-block">Search</span>
             </Button>
           </div>
-          <Table>
+          {/* data-tour anchor: events page tour, Leaderboards tab "view or edit a leaderboard" step. */}
+          <Table data-tour="leaderboards-table">
             <TableHeader>
               <TableRow>
                 <TableHead>Event name</TableHead>

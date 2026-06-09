@@ -91,29 +91,93 @@ function setSeenTour(pageKey: AdminTourPageKey): void {
   }
 }
 
-// Turn our AdminTourStep[] into driver.js DriveStep[], DROPPING any step whose
-// target element is not currently in the DOM. This is the core "never throw on a
-// missing selector" guard: driver.js would otherwise error or highlight nothing.
-function buildSteps(steps: AdminTourStep[]): DriveStep[] {
+// Safe querySelector: returns null instead of throwing on a bad selector. Used by
+// every selector lookup below so a layout change can never blow up the tour.
+function safeQuery(selector: string): HTMLElement | null {
+  try {
+    return document.querySelector<HTMLElement>(selector);
+  } catch {
+    return null;
+  }
+}
+
+// Click the INACTIVE Radix tab trigger inside the given tab-list container so the
+// other tab's content mounts. Drives the both-tab coverage (Players / Leaderboards).
+// Fully guarded: if the container or the inactive trigger is missing, it no-ops, so
+// the tour never throws even if the tab markup changes. Radix renders each trigger
+// as `[role="tab"]` with `data-state="active" | "inactive"`; clicking the inactive
+// one flips the page's local tab state (see teams/page.tsx + events/page.tsx), which
+// mounts the previously-unmounted <TabsContent>.
+function activateInactiveTab(tabListSelector: string): void {
+  const list = safeQuery(tabListSelector);
+  if (!list) return;
+  const inactive = list.querySelector<HTMLElement>(
+    '[role="tab"][data-state="inactive"]',
+  );
+  inactive?.click();
+}
+
+// Turn our AdminTourStep[] into driver.js DriveStep[].
+//
+// Two behaviours layered on top of the basic "title + description" mapping:
+//
+//   1. MISSING-SELECTOR GUARD. A step whose target is not in the DOM is DROPPED so
+//      driver.js never highlights nothing. EXCEPTION: steps flagged `lazy` live in a
+//      tab that has not been activated yet, so their target is legitimately absent at
+//      build time. We keep those and hand driver.js a lazy `() => Element` resolver
+//      (driver.js v1.4 accepts a function for `element`) that resolves at highlight
+//      time, AFTER the tab switch has mounted the content. If a lazy step's target is
+//      still missing when it is reached, the resolver falls back to document.body so
+//      driver.js shows the popover against the page rather than throwing.
+//
+//   2. TAB SWITCHING. A step carrying `activateInactiveTab` gets a custom
+//      `popover.onNextClick`. Because we define onNextClick, driver.js stops
+//      auto-advancing and hands control to us: we click the inactive tab trigger,
+//      give React a tick to mount the new <TabsContent>, then call driver.moveNext().
+//      `getDriver` lets this closure reach the live Driver instance created in start().
+function buildSteps(
+  steps: AdminTourStep[],
+  getDriver: () => Driver | null,
+): DriveStep[] {
   if (typeof document === "undefined") return [];
   return steps
     .filter((s) => {
-      try {
-        return !!document.querySelector(s.element);
-      } catch {
-        // An invalid selector (should not happen) is treated as "not present".
-        return false;
-      }
+      // Lazy steps are always kept (their target mounts later, after a tab switch).
+      if (s.lazy) return true;
+      // Non-lazy steps must currently resolve to a real element, else drop them.
+      return !!safeQuery(s.element);
     })
-    .map((s) => ({
-      element: s.element,
-      popover: {
-        title: s.title,
-        description: s.description,
-        side: s.side,
-        align: s.align,
-      },
-    }));
+    .map((s) => {
+      const driveStep: DriveStep = {
+        // Lazy steps resolve their selector at highlight time (post tab-switch);
+        // eager steps keep the plain selector string.
+        element: s.lazy
+          ? () => safeQuery(s.element) ?? document.body
+          : s.element,
+        popover: {
+          title: s.title,
+          description: s.description,
+          side: s.side,
+          align: s.align,
+        },
+      };
+
+      // Tab-switch step: take over Next so we can mount the other tab first.
+      if (s.activateInactiveTab) {
+        const tabList = s.activateInactiveTab;
+        driveStep.popover!.onNextClick = () => {
+          // Mount the other tab's content...
+          activateInactiveTab(tabList);
+          // ...then advance once React has had a tick to render it, so the next
+          // (lazy) step's target exists when driver tries to highlight it.
+          window.setTimeout(() => {
+            getDriver()?.moveNext();
+          }, 220);
+        };
+      }
+
+      return driveStep;
+    });
 }
 
 // ── useAdminTour: the reusable hook the brief asks for ───────────────────────
@@ -147,7 +211,12 @@ export function useAdminTour(pageKey: AdminTourPageKey) {
   // the CURRENT DOM (tabs, async tables, etc. may have changed). No-ops if nothing
   // on the page can be highlighted.
   const start = React.useCallback(() => {
-    const steps = buildSteps(ADMIN_TOUR_STEPS[pageKey] ?? []);
+    // getDriver lets the tab-switch onNextClick closures reach the live instance
+    // (created just below) so they can call moveNext() after mounting the new tab.
+    const steps = buildSteps(
+      ADMIN_TOUR_STEPS[pageKey] ?? [],
+      () => driverRef.current,
+    );
     if (steps.length === 0) return; // nothing to show — do not open an empty overlay
 
     // Destroy a previous run before starting a new one.

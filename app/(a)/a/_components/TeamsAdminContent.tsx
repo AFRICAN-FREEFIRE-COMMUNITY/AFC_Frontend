@@ -16,7 +16,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useTransition, useMemo } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   Pagination,
   PaginationContent,
@@ -96,13 +95,11 @@ const emptyRoster = (): GhostPlayer[] =>
   Array.from({ length: 4 }, (_, i) => ({ id: i + 1, ign: "" }));
 
 export const TeamsAdminContent = () => {
-  const { token } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTier, setFilterTier] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [pending, startTransition] = useTransition();
   const [teams, setTeams] = useState<any>();
-  const [rankingTeams, setRankingTeams] = useState(false);
 
   // ── Ghost Teams (LIVE - afc_rankings ghost-teams admin API) ──────────────
   const MIN_REASON = 10;
@@ -271,23 +268,6 @@ export const TeamsAdminContent = () => {
     setCurrentPage(1);
   }, [searchTerm, filterTier]);
 
-  const handleRankTeams = async () => {
-    setRankingTeams(true);
-    try {
-      const res = await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/rank-teams-into-tiers/`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      toast.success("Teams ranked into tiers successfully!");
-      fetchTeams();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to rank teams.");
-    } finally {
-      setRankingTeams(false);
-    }
-  };
-
   if (pending) return <FullLoader />;
 
   return (
@@ -305,8 +285,10 @@ export const TeamsAdminContent = () => {
         {/* ⓘ sits beside the rank-teams action (sibling, not nested in the button).
             data-tour anchor: teams tour "rank teams into tiers" step. */}
         <div data-tour="teams-rank" className="flex items-center gap-1">
-          <Button onClick={handleRankTeams} disabled={rankingTeams} variant="outline" size="sm">
-            {rankingTeams ? "Ranking..." : "Rank Teams into Tiers"}
+          {/* Links to the Rankings admin page (where tiers/rankings are managed) instead
+              of running the rank action inline (owner request 2026-06-09). */}
+          <Button asChild variant="outline" size="sm">
+            <Link href="/a/rankings">Rank Teams into Tiers</Link>
           </Button>
           <InfoTip id="teams.rank_into_tiers" />
         </div>
