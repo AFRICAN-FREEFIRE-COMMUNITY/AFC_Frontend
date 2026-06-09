@@ -95,11 +95,11 @@ function LoginFormContent() {
           name="ign_or_uid"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>In-game Name or UID</FormLabel>
+              <FormLabel>In-game Name, UID, or Email</FormLabel>
               <FormControl>
                 <Input
                   className="bg-input border-border"
-                  placeholder="Enter your in-game name or UID"
+                  placeholder="Enter your in-game name, UID, or email"
                   {...field}
                 />
               </FormControl>
