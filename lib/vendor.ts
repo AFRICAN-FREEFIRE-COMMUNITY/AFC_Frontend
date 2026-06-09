@@ -331,3 +331,106 @@ export const vendorProductApi = {
       )
     ).data,
 };
+
+// ═════════════════════════════════════════════════════════════════════════════
+// VENDOR PAYOUTS — Paystack Transfers (the PRIMARY payout rail, afc_shop/paystack_payout.py)
+//
+// The data layer behind the AFC Vendor Portal › PAYOUTS section
+// (app/(vendor)/vendor/payouts/page.tsx) — where a vendor adds the LOCAL BANK ACCOUNT
+// AFC pays their share out to. AFC's vendors are majority African; Stripe Connect can
+// NOT pay out to NGN/most-African banks, but PAYSTACK can (and the shop already charges
+// via Paystack), so Paystack Transfers is the DEFAULT payout rail. The save flow is:
+//
+//   pick bank (listBanks) → enter account no. → Resolve (resolveAccount, confirm the
+//   holder name) → Save (saveBank: creates a Paystack Transfer Recipient + flips
+//   Vendor.payout_provider to "paystack").
+//
+// The transfer itself fires automatically server-side on an order's shipped → completed
+// transition (afc_shop/fulfilment.py order_mark_completed, PROVIDER-AWARE — a Paystack
+// vendor is settled by paystack_payout.settle_order_payout_paystack; a Stripe vendor by
+// connect.settle_order_payout). There is no "pay me now" button here — the vendor just
+// keeps a valid bank on file. All endpoints are Bearer-gated to the caller's own ACTIVE
+// Vendor (paystack_payout._require_active_vendor), the SAME auth as the clients above.
+//
+// CONSUMED BY:
+//   - app/(vendor)/vendor/payouts/page.tsx → the bank-details form + saved-method panel.
+//
+// BACKEND (afc_shop/paystack_payout.py + models.py): Vendor gains payout_provider +
+// bank_code / bank_name / account_number / account_name / paystack_recipient_code; this
+// rides on GET /shop/banks/, POST /shop/resolve-account/, POST /shop/vendor/bank/, GET
+// /shop/vendor/payout-method/.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// One bank option in the picker (from GET /shop/banks/, the Paystack bank list).
+export interface PayoutBank {
+  name: string;
+  code: string;
+}
+
+// The current saved payout method (GET /shop/vendor/payout-method/). `ready` is true
+// once payouts can actually go out (a Paystack vendor needs a recipient; a Stripe vendor
+// needs a connected account).
+export interface PayoutMethod {
+  payout_provider: "paystack" | "stripe";
+  ready: boolean;
+  bank_code: string;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  has_recipient: boolean;
+}
+
+// The result of resolving an account number against a bank (POST /shop/resolve-account/).
+export interface ResolvedAccount {
+  account_name: string;
+  account_number: string;
+  bank_code: string;
+}
+
+// payout endpoints live at the shop ROOT (/shop/banks/, /shop/resolve-account/) and
+// under /shop/vendor/ (bank/, payout-method/), so we build the absolute URL inline per
+// call rather than via a single prefix helper.
+export const vendorPayoutApi = {
+  // ── BANK LIST ───────────────────────────────────────────────────────────────
+  // GET /shop/banks/ → the Paystack bank list for the bank dropdown. Cacheable; the
+  // page fetches it once on open. Returns { banks: [{name, code}] }.
+  listBanks: async (): Promise<{ banks: PayoutBank[] }> =>
+    (await axios.get(`${BASE}/shop/banks/`, { headers: authHeaders() })).data,
+
+  // ── RESOLVE ─────────────────────────────────────────────────────────────────
+  // POST /shop/resolve-account/ → confirm the account holder NAME before saving, so
+  // the vendor catches a typo'd number. Pure lookup; saves nothing.
+  resolveAccount: async (
+    accountNumber: string,
+    bankCode: string,
+  ): Promise<ResolvedAccount> =>
+    (
+      await axios.post(
+        `${BASE}/shop/resolve-account/`,
+        { account_number: accountNumber, bank_code: bankCode },
+        { headers: authHeaders() },
+      )
+    ).data,
+
+  // ── SAVE BANK ───────────────────────────────────────────────────────────────
+  // POST /shop/vendor/bank/ → persist the bank + create the Paystack Transfer
+  // Recipient + set payout_provider="paystack". The backend re-resolves the name
+  // server-side (it does not trust a client-sent name). Returns the saved method.
+  saveBank: async (input: {
+    account_number: string;
+    bank_code: string;
+    bank_name?: string;
+  }) =>
+    (
+      await axios.post(`${BASE}/shop/vendor/bank/`, input, {
+        headers: authHeaders(),
+      })
+    ).data,
+
+  // ── CURRENT METHOD ──────────────────────────────────────────────────────────
+  // GET /shop/vendor/payout-method/ → the saved method + readiness, for the
+  // "Paid out to GTBank ****1234" panel. Returns PayoutMethod.
+  getPayoutMethod: async (): Promise<PayoutMethod> =>
+    (await axios.get(`${BASE}/shop/vendor/payout-method/`, { headers: authHeaders() }))
+      .data,
+};

@@ -52,6 +52,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   IconArrowLeft,
+  IconBuildingBank,
   IconHome,
   IconLayoutDashboard,
   IconLogout,
@@ -64,12 +65,14 @@ import { vendorApi, VendorOrder } from "@/lib/vendor";
 import { VendorProvider } from "./_components/VendorContext";
 
 // The portal sub-routes the left nav links to. "Orders" is the fulfilment queue;
-// "Products" is the vendor's self-serve catalogue (Phase B2). The active-link rule
-// below uses longest-prefix-wins, so each section highlights correctly even though
-// /vendor/orders and /vendor/products share the /vendor prefix.
+// "Products" is the vendor's self-serve catalogue (Phase B2); "Payouts" is the
+// vendor's bank details for getting paid via Paystack Transfers (Phase B3). The
+// active-link rule below uses longest-prefix-wins, so each section highlights correctly
+// even though /vendor/orders, /vendor/products and /vendor/payouts share the /vendor prefix.
 const NAV_ITEMS = [
   { label: "Orders", href: "/vendor/orders", icon: IconPackage },
   { label: "Products", href: "/vendor/products", icon: IconShoppingBag },
+  { label: "Payouts", href: "/vendor/payouts", icon: IconBuildingBank },
 ];
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────
