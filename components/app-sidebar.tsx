@@ -20,18 +20,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Vendors get a "Vendor Dashboard" entry pointing at the /vendor portal. The portal is
   // otherwise only reachable by typing the URL (a vendor is a DB record, not a role, so it
-  // can't be gated by allowedRoles). Appended ONLY when the user is an active vendor
+  // can't be gated by allowedRoles). Shown ONLY when the user is an active vendor
   // (user.is_vendor from the get-user-profile payload), so non-vendor admins never see it.
-  const navItems = user?.is_vendor
-    ? [
-        ...adminNavLinks,
-        {
-          label: "Vendor Dashboard",
-          slug: "/vendor",
-          icon: IconBuildingStore,
-        },
-      ]
-    : adminNavLinks;
+  // Placed directly UNDER the "Organizer Dashboard" entry (owner request 2026-06-09), or at
+  // the end if that entry is absent.
+  const navItems = (() => {
+    if (!user?.is_vendor) return adminNavLinks;
+    const vendorEntry = {
+      label: "Vendor Dashboard",
+      slug: "/vendor",
+      icon: IconBuildingStore,
+    };
+    const items = [...adminNavLinks];
+    const orgIdx = items.findIndex((i) => i.slug === "/organizer/overview");
+    if (orgIdx >= 0) items.splice(orgIdx + 1, 0, vendorEntry);
+    else items.push(vendorEntry);
+    return items;
+  })();
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
