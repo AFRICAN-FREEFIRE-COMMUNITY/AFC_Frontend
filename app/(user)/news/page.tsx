@@ -313,8 +313,10 @@ const page = () => {
                   <Image
                     src={newsDetails.images_url || DEFAULT_IMAGE}
                     alt={newsDetails.news_title}
-                    width={1000}
-                    height={1000}
+                    width={640}
+                    height={360}
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover size-full aspect-video"
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">

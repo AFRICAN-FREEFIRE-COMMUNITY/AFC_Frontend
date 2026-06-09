@@ -153,38 +153,23 @@ const page = () => {
   const fetchNews = () => {
     startTransition(async () => {
       try {
+        // get-all-news already folds the like/dislike COUNTS and the caller's own liked/disliked
+        // state into this ONE response (it reads the viewer from the Bearer token). So we pass the
+        // token and map the folded fields directly. Previously this page fired one
+        // get-news-likes-dislikes-count POST PER article (a 1+N waterfall) that blocked the whole
+        // admin news page on load - that loop is now gone.
         const res = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`,
+          token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
 
-        const newsData = res.data.news;
-
-        // Fetch counts for all news items in parallel
-        const newsWithCounts = await Promise.all(
-          newsData.map(async (item: any) => {
-            try {
-              const countRes = await axios.post(
-                `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-likes-dislikes-count/`,
-                { news_id: item.id || item.news_id, session_token: token },
-              );
-              return {
-                ...item,
-                likes_count: countRes.data.likes,
-                dislikes_count: countRes.data.dislikes,
-                is_liked_by_user: countRes.data.is_liked_by_user,
-                is_disliked_by_user: countRes.data.is_disliked_by_user,
-              };
-            } catch {
-              return {
-                ...item,
-                likes_count: 0,
-                dislikes_count: 0,
-                is_liked_by_user: false,
-                is_disliked_by_user: false,
-              };
-            }
-          }),
-        );
+        const newsWithCounts = (res.data.news ?? []).map((item: any) => ({
+          ...item,
+          likes_count: item.likes ?? 0,
+          dislikes_count: item.dislikes ?? 0,
+          is_liked_by_user: item.is_liked_by_user ?? false,
+          is_disliked_by_user: item.is_disliked_by_user ?? false,
+        }));
 
         setNews(newsWithCounts);
       } catch (error: any) {
@@ -397,8 +382,10 @@ const page = () => {
                   <Image
                     src={newsDetails.images_url || DEFAULT_IMAGE}
                     alt={newsDetails.news_title}
-                    width={1000}
-                    height={1000}
+                    width={640}
+                    height={360}
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover aspect-video size-full"
                   />
                   <div className="absolute top-0 left-0 right-0 flex justify-between items-start p-3">

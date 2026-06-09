@@ -24,6 +24,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Shared audit-log table, also used by the standalone /a/history page. Powers the "Admin
+// Activities" tab; Radix unmounts inactive tab content so it only fetches when opened.
+import { AuditLogPanel } from "@/app/(a)/a/_components/AuditLogPanel";
+// Search-as-you-type user picker (replaces the comma-separated username box on bulk notifications).
+import { UserSearchSelect } from "@/components/ui/user-search-select";
+// Parses a stored user_agent into a readable device label for the Login History tab.
+import { parseUserAgent } from "@/lib/user-agent";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -167,7 +174,16 @@ const availablePermissions = [
 ];
 
 const page = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+
+  // The "Admin Activities" tab (the sitewide audit log) is HEAD-ADMIN ONLY. Show it only to
+  // head_admin / super_admin (mirrors the backend require_head_admin gate on get-audit-log).
+  const canSeeAudit = Boolean(
+    user?.roles?.some((r) => {
+      const n = String(r).toLowerCase().replace(/\s+/g, "_");
+      return n === "head_admin" || n === "super_admin";
+    }),
+  );
 
   const [suspendPending, startSuspendTransition] = useTransition();
   const [editPending, startEditTransition] = useTransition();
@@ -623,43 +639,28 @@ const page = () => {
   };
 
   // ── Admin activities ─────────────────────────────────────────────────────
-  const [adminActivities, setAdminActivities] = useState<any[]>([]);
-  const [loadingActivities, setLoadingActivities] = useState(false);
-
-  const fetchAdminActivities = async () => {
-    setLoadingActivities(true);
-    try {
-      const res = await axios.get(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-admin-activities/`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      setAdminActivities(res.data?.admin_activities ?? []);
-    } catch {
-      toast.error("Failed to load admin activities.");
-    } finally {
-      setLoadingActivities(false);
-    }
-  };
+  // The "Admin Activities" tab now renders the shared <AuditLogPanel/> (GET /auth/get-audit-log/),
+  // which shows ALL admin/staff actions with search + date + pagination. The old
+  // get-admin-activities "latest 100" fetch + adminActivities state were removed as dead code.
 
   // ── Bulk notifications ───────────────────────────────────────────────────
   const [bulkNotifMessage, setBulkNotifMessage] = useState("");
-  const [bulkNotifUsernames, setBulkNotifUsernames] = useState("");
+  // Recipients are now picked via the <UserSearchSelect/> typeahead (usernames), not typed as a
+  // comma-separated string. We still resolve usernames -> recipient_ids against the loaded user list.
+  const [bulkNotifRecipients, setBulkNotifRecipients] = useState<string[]>([]);
   const [sendingBulkNotif, setSendingBulkNotif] = useState(false);
 
   const handleSendBulkNotification = async () => {
-    const usernames = bulkNotifUsernames
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const usernames = bulkNotifRecipients;
     if (!bulkNotifMessage.trim() || usernames.length === 0) {
-      toast.error("Enter a message and at least one username.");
+      toast.error("Pick at least one recipient and enter a message.");
       return;
     }
     const recipientIds = adminUsers
       .filter((u) => usernames.includes(u.username))
       .map((u) => Number(u.id));
     if (recipientIds.length === 0) {
-      toast.error("No matching users found for the entered usernames.");
+      toast.error("No matching users found for the selected recipients.");
       return;
     }
     setSendingBulkNotif(true);
@@ -671,7 +672,7 @@ const page = () => {
       );
       toast.success(`Notification sent to ${recipientIds.length} user(s).`);
       setBulkNotifMessage("");
-      setBulkNotifUsernames("");
+      setBulkNotifRecipients([]);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to send notification.");
     } finally {
@@ -708,7 +709,11 @@ const page = () => {
     }
   };
 
-  if (loading) return <FullLoader />;
+  // NOTE: we intentionally do NOT block the whole page on `loading` here. The user list
+  // (get-all-user-and-user-roles) can be a large payload (thousands of users), and gating the
+  // entire page behind it made Settings feel slow even when the admin only wanted Roles /
+  // Notifications / History. Instead the chrome + tabs render immediately and only the two
+  // user-list tabs (Admin Users / All Users) show a localized spinner while `loading`.
   return (
     <div className="space-y-6">
       {suspendPending && <FullLoader />}
@@ -746,13 +751,21 @@ const page = () => {
             <TabsTrigger value="roles">Roles & Permissions</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="login-history">Login History</TabsTrigger>
-            <TabsTrigger value="activities">Admin Activities</TabsTrigger>
+            {/* Audit log = head-admin only. */}
+            {canSeeAudit && <TabsTrigger value="activities">Admin Activities</TabsTrigger>}
           </TabsList>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
 
         <TabsContent value="admins" className="space-y-4">
           <AdminInfoCard token={token} />
+          {/* Localized loader: the user list (get-all-user-and-user-roles) can be large, so only
+              this tab waits on it - the rest of Settings is usable immediately. */}
+          {loading && (
+            <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading users...
+            </div>
+          )}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -1103,6 +1116,12 @@ const page = () => {
         </TabsContent>
 
         <TabsContent value="all-users" className="space-y-4">
+          {/* Localized loader (see Admin Users tab): only this tab blocks on the user list. */}
+          {loading && (
+            <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading users...
+            </div>
+          )}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -1902,22 +1921,21 @@ const page = () => {
                 <InfoTip id="settings.notifications._section" className="ml-1.5" />
               </CardTitle>
               <CardDescription>
-                Send a notification to multiple users at once. Enter usernames separated by commas.
+                Send a notification to multiple users at once. Search and pick recipients by name.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Recipients (usernames, comma-separated)</Label>
-                <Input
-                  placeholder="e.g. player1, player2, player3"
-                  value={bulkNotifUsernames}
-                  onChange={(e) => setBulkNotifUsernames(e.target.value)}
+                <Label>Recipients</Label>
+                {/* Typeahead picker (search-as-you-type) instead of a comma-separated username box. */}
+                <UserSearchSelect
+                  multiple
+                  value={bulkNotifRecipients}
+                  onChange={(usernames) => setBulkNotifRecipients(usernames)}
+                  placeholder="Search users to notify..."
                 />
                 <p className="text-xs text-muted-foreground">
-                  {bulkNotifUsernames
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter(Boolean).length} recipient(s) entered
+                  {bulkNotifRecipients.length} recipient(s) selected
                 </p>
               </div>
               <div className="space-y-2">
@@ -1959,6 +1977,7 @@ const page = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
+                    <TableHead>Device</TableHead>
                     <TableHead>IP Address</TableHead>
                     <TableHead>Country</TableHead>
                     <TableHead>City</TableHead>
@@ -1968,7 +1987,7 @@ const page = () => {
                 <TableBody>
                   {loginHistory.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground text-sm">
+                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground text-sm">
                         {loadingLoginHistory ? "Loading..." : "Click 'Load History' to fetch login records."}
                       </TableCell>
                     </TableRow>
@@ -1976,6 +1995,8 @@ const page = () => {
                     loginHistory.map((entry, i) => (
                       <TableRow key={i}>
                         <TableCell className="font-medium">{entry.user}</TableCell>
+                        {/* Device parsed from the stored user_agent (lib/user-agent.ts). */}
+                        <TableCell className="text-xs">{parseUserAgent(entry.user_agent)}</TableCell>
                         <TableCell>{entry.ip_address}</TableCell>
                         <TableCell>{entry.country ?? "-"}</TableCell>
                         <TableCell>{entry.city ?? "-"}</TableCell>
@@ -1991,58 +2012,22 @@ const page = () => {
           </Card>
         </TabsContent>
 
-        {/* ── Admin Activities ───────────────────────────────────────────── */}
-        <TabsContent value="activities" className="space-y-4">
-          <div className="flex items-center justify-between">
+        {/* ── Admin Activities = the sitewide automatic audit log ────────────
+            Shows EVERY admin/staff action across the platform (auto-captured by
+            afc_auth.middleware.AuditLogMiddleware into afc_auth.AuditLog), NOT just the latest 100.
+            The shared AuditLogPanel provides the search bar (admin / path / action), method +
+            status filters, date-range filters, and server-side pagination. This replaces the old
+            get-admin-activities "latest 100" AdminHistory table. Lazy: Radix only mounts this
+            content (so only fetches) when the tab is opened. */}
+        {canSeeAudit && (
+          <TabsContent value="activities" className="space-y-4">
             <p className="flex items-center text-sm text-muted-foreground">
-              Latest 100 admin actions across the platform
-              {/* Section ⓘ for the Admin Activities tab (sibling, not in a tab-trigger). */}
+              Every admin and staff action across the platform, searchable and filterable by date.
               <InfoTip id="settings.activities._section" className="ml-1" />
             </p>
-            <Button size="sm" variant="outline" onClick={fetchAdminActivities} disabled={loadingActivities}>
-              {loadingActivities ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {loadingActivities ? "Loading..." : "Load Activities"}
-            </Button>
-          </div>
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Admin</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Timestamp</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {adminActivities.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-10 text-muted-foreground text-sm">
-                        {loadingActivities ? "Loading..." : "Click 'Load Activities' to fetch records."}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    adminActivities.map((activity, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{activity.admin_user}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">{activity.action}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-sm truncate">
-                          {activity.description}
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {activity.timestamp ? new Date(activity.timestamp).toLocaleString() : "-"}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            <AuditLogPanel embedded />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

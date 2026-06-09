@@ -17,6 +17,7 @@ import {
 } from "recharts";
 
 import { env } from "@/lib/env";
+import { parseUserAgent } from "@/lib/user-agent";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Button } from "@/components/ui/button";
@@ -670,6 +671,7 @@ const Page = ({ params }: Props) => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Device</TableHead>
                   <TableHead>IP Address</TableHead>
                   <TableHead>Country</TableHead>
                   <TableHead>City</TableHead>
@@ -679,13 +681,15 @@ const Page = ({ params }: Props) => {
               <TableBody>
                 {loginHistory.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       {loadingHistory ? "Loading..." : "No login history loaded yet."}
                     </TableCell>
                   </TableRow>
                 ) : (
                   loginHistory.map((entry, i) => (
                     <TableRow key={i}>
+                      {/* Device parsed from the stored user_agent (lib/user-agent.ts). */}
+                      <TableCell className="text-xs">{parseUserAgent(entry.user_agent)}</TableCell>
                       <TableCell>{entry.ip_address}</TableCell>
                       <TableCell>{entry.country ?? "-"}</TableCell>
                       <TableCell>{entry.city ?? "-"}</TableCell>
