@@ -200,7 +200,7 @@ export default function page() {
         description="Manage and track all shop orders across the platform"
       />
 
-      <div className="relative">
+      <div className="relative" data-tour="shop-orders-search">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search ID or Product..."
@@ -209,7 +209,12 @@ export default function page() {
           className="pl-9 w-full"
         />
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="mb-6"
+        data-tour="shop-orders-status-tabs"
+      >
         <ScrollArea>
           <TabsList className="w-full">
             <TabsTrigger value="all">All ({orderCounts.all})</TabsTrigger>
@@ -227,7 +232,7 @@ export default function page() {
         Orders
         <InfoTip id="shop.orders.list._section" />
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border" data-tour="shop-orders-table">
         <Table>
           <TableHeader>
             <TableRow>
@@ -275,7 +280,10 @@ export default function page() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/a/shop/orders/${order.order_id}`}>
+                          <Link
+                            href={`/a/shop/orders/${order.order_id}`}
+                            data-tour="shop-orders-view-details"
+                          >
                             <IconEye />
                             View Details
                           </Link>
@@ -296,7 +304,10 @@ export default function page() {
             {Math.min(currentPage * ITEMS_PER_PAGE, filteredOrders.length)} of{" "}
             {filteredOrders.length}
           </p>
-          <Pagination className="w-full md:w-auto mx-0">
+          <Pagination
+            className="w-full md:w-auto mx-0"
+            data-tour="shop-orders-pagination"
+          >
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious

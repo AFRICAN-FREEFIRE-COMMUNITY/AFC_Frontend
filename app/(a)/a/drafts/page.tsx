@@ -106,18 +106,28 @@ const DraftedEventsTable = ({
                 <TableCell>{formatDate(draft.created_at)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2 justify-end">
-                    <Button asChild variant="outline" size="sm">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      data-tour="settings-misc-drafts-continue"
+                    >
                       <Link href={`/a/events/${draft.event_slug}/edit`}>
                         Continue editing
                       </Link>
                     </Button>
-                    <DeleteEventModal
-                      eventId={draft.event_id}
-                      eventName={draft.event_name}
-                      onSuccess={onDeleted}
-                      isIcon
-                      size="sm"
-                    />
+                    {/* DeleteEventModal is a shared component that does not forward a
+                        data-tour prop, so we anchor the tour on a stable wrapper span
+                        that visually contains its destructive delete trigger. */}
+                    <span data-tour="settings-misc-drafts-delete">
+                      <DeleteEventModal
+                        eventId={draft.event_id}
+                        eventName={draft.event_name}
+                        onSuccess={onDeleted}
+                        isIcon
+                        size="sm"
+                      />
+                    </span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -267,7 +277,10 @@ const page = () => {
         }
       />
 
-      <div className="mt-4 grid gap-2 grid-cols-1 sm:grid-cols-2">
+      <div
+        className="mt-4 grid gap-2 grid-cols-1 sm:grid-cols-2"
+        data-tour="settings-misc-drafts-metrics"
+      >
         <Card className="hover:shadow-lg transition-shadow gap-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">All Drafts</CardTitle>
@@ -302,11 +315,12 @@ const page = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 bg-background/50 backdrop-blur-sm"
+          data-tour="settings-misc-drafts-search"
         />
       </div>
 
       <Tabs defaultValue="all" className="mt-4">
-        <TabsList className="w-full">
+        <TabsList className="w-full" data-tour="settings-misc-drafts-tabs">
           <TabsTrigger value="all">
             All Drafts
             {allDrafts.length > 0 && (

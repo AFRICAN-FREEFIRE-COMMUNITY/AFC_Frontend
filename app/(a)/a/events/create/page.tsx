@@ -810,8 +810,9 @@ export default function CreateEventPage() {
     <div>
       <PageHeader
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: admin tour "Create new event" step (events-lb area, create sub-page).
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="event-create-title" className="inline-flex items-center">
             {duplicateSlug ? "Duplicate Event" : "Create New Event"}
             <InfoTip id="events.create._page" className="ml-1.5" />
           </span>
@@ -884,7 +885,11 @@ export default function CreateEventPage() {
               </Button>
             )}
 
-            <div className="ml-auto flex gap-3">
+            {/* data-tour anchor (event-create-next-button): wraps the wizard Next /
+                Create action. The same slot renders "Next" on steps 1-8 and the final
+                "Create Event" button on step 9, so the tour can point at step navigation
+                regardless of which step is open. */}
+            <div data-tour="event-create-next-button" className="ml-auto flex gap-3">
               {currentStep < 9 ? (
                 <Button
                   type="button"
@@ -896,6 +901,8 @@ export default function CreateEventPage() {
               ) : (
                 <Button
                   type="button"
+                  // data-tour anchor (event-create-save): final-step "Create Event" submit.
+                  data-tour="event-create-save"
                   // @ts-ignore
                   onClick={form.handleSubmit(onSubmit)}
                   disabled={currentStep !== 9 || isPending || !hasFinalAction}

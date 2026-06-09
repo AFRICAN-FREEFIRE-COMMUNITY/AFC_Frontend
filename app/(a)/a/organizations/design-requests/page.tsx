@@ -207,7 +207,11 @@ export default function DesignRequestsAdminPage() {
       <PageHeader
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         title={
-          <span className="inline-flex items-center">
+          // data-tour="orgs-misc-design-requests-title": admin-tour anchor (orgs-misc area).
+          <span
+            data-tour="orgs-misc-design-requests-title"
+            className="inline-flex items-center"
+          >
             Design Requests
             <InfoTip id="organizations.design._page" className="ml-1.5" />
           </span>
@@ -219,7 +223,8 @@ export default function DesignRequestsAdminPage() {
       <OrgSubNav />
 
       {/* Status filter - server refetch on change (matches the orgs search UX). */}
-      <div className="flex items-center gap-2">
+      {/* data-tour="orgs-misc-design-status-filter": admin-tour anchor (orgs-misc area). */}
+      <div data-tour="orgs-misc-design-status-filter" className="flex items-center gap-2">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="Filter by status" />
@@ -246,7 +251,8 @@ export default function DesignRequestsAdminPage() {
       ) : (
         <Card className="pt-2">
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* data-tour="orgs-misc-design-requests-table": admin-tour anchor (orgs-misc area). */}
+            <div className="overflow-x-auto" data-tour="orgs-misc-design-requests-table">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -287,7 +293,9 @@ export default function DesignRequestsAdminPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="inline-flex items-center justify-end gap-1">
+                          {/* data-tour="orgs-misc-design-manage-button": admin-tour anchor (orgs-misc area). */}
                           <Button
+                            data-tour="orgs-misc-design-manage-button"
                             variant="outline"
                             size="sm"
                             onClick={() => openEdit(row)}

@@ -305,20 +305,27 @@ export default function IndividualLeaderboardPage({
     <div className="space-y-2 pb-20">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between gap-2 mb-4">
-        <PageHeader
-          back={!editingMatch}
-          // ⓘ next to the title explains the whole leaderboard flow: auto-created on
-          // event setup, then seed + start the tournament, then enter/upload results.
-          title={
-            <span className="inline-flex items-center gap-2">
-              {eventData.event_name}
-              <InfoTip id="leaderboards.detail._page" />
-            </span>
-          }
-          description={`${detailsParticipantType === "solo" ? "Solo" : "Team"} Tournament • ${eventData.stages.length} Stages`}
-        />
+        {/* data-tour anchor (leaderboard-view-title): admin tour "Leaderboard standings" step. */}
+        <span data-tour="leaderboard-view-title" className="inline-flex">
+          <PageHeader
+            back={!editingMatch}
+            // ⓘ next to the title explains the whole leaderboard flow: auto-created on
+            // event setup, then seed + start the tournament, then enter/upload results.
+            title={
+              <span className="inline-flex items-center gap-2">
+                {eventData.event_name}
+                <InfoTip id="leaderboards.detail._page" />
+              </span>
+            }
+            description={`${detailsParticipantType === "solo" ? "Solo" : "Team"} Tournament • ${eventData.stages.length} Stages`}
+          />
+        </span>
         {!editingMatch && (
           <div className="flex gap-2 w-full md:w-auto">
+            {/* data-tour anchor (leaderboard-view-download): admin tour "Download leaderboard"
+                step. DownloadLeaderboardButton doesn't forward arbitrary DOM props, so the
+                anchor sits on a wrapping span around it. */}
+            <span data-tour="leaderboard-view-download" className="inline-flex flex-1">
             <DownloadLeaderboardButton
               leaderboardName={
                 selectedMatchId === "overall"
@@ -330,6 +337,7 @@ export default function IndividualLeaderboardPage({
               participantType={detailsParticipantType}
               killPoint={Number(currentGroup?.leaderboard?.kill_point ?? 1)}
             />
+            </span>
             <Button asChild variant="outline" size="sm" className="flex-1">
               <Link href={`/a/leaderboards/${id}/edit`}>
                 <IconPencil size={16} /> Edit Leaderboard
@@ -360,7 +368,9 @@ export default function IndividualLeaderboardPage({
         <Card>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              <div className="space-y-2">
+              {/* data-tour anchor (leaderboard-view-stage-group): admin tour "Stage and group
+                  picker" step. The stage picker is the tabs above; this is the group dropdown. */}
+              <div data-tour="leaderboard-view-stage-group" className="space-y-2">
                 <Label>
                   <IconUsers size={14} /> Group
                 </Label>
@@ -384,7 +394,9 @@ export default function IndividualLeaderboardPage({
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              {/* data-tour anchor (leaderboard-view-match-picker): admin tour "Match selector"
+                  step. Overall leaderboard vs a single match's standings. */}
+              <div data-tour="leaderboard-view-match-picker" className="space-y-2">
                 <Label>
                   <IconMap size={14} /> View Type
                 </Label>
@@ -419,7 +431,13 @@ export default function IndividualLeaderboardPage({
               </div>
             </div>
 
-            <CardTitle className="text-lg flex items-center gap-2">
+            {/* data-tour anchor (leaderboard-view-table): admin tour "Standings table" step.
+                Anchored on the always-present Rankings heading that sits directly above the
+                solo/team standings table (the table itself is conditional on participant type). */}
+            <CardTitle
+              data-tour="leaderboard-view-table"
+              className="text-lg flex items-center gap-2"
+            >
               <IconTrophy size={18} className="text-yellow-500" />
               Rankings
             </CardTitle>

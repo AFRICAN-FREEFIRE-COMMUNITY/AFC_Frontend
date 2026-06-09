@@ -96,7 +96,8 @@ type AccountFormValues = z.infer<typeof accountSchema>;
 
 function StepIndicator({ step }: { step: 1 | 2 }) {
   return (
-    <div className="flex items-center gap-3 mb-2">
+    // data-tour="orgs-misc-sponsors-create-step-indicator": admin-tour anchor (orgs-misc area).
+    <div data-tour="orgs-misc-sponsors-create-step-indicator" className="flex items-center gap-3 mb-2">
       {[1, 2].map((n) => (
         <div key={n} className="flex items-center gap-2">
           <div
@@ -373,7 +374,9 @@ export default function CreateSponsorPage() {
       {/* ── Step 1: Account Details ── */}
       {step === 1 && (
         <Form {...form}>
+          {/* data-tour="orgs-misc-sponsors-create-account-form": admin-tour anchor (orgs-misc area). */}
           <form
+            data-tour="orgs-misc-sponsors-create-account-form"
             onSubmit={form.handleSubmit(onSubmitAccount)}
             className="flex flex-col gap-6"
           >
@@ -474,7 +477,9 @@ export default function CreateSponsorPage() {
                         </div>
                       </FormControl>
                       <FormMessage />
+                      {/* data-tour="orgs-misc-sponsors-create-password-strength": admin-tour anchor (orgs-misc area). */}
                       <div
+                        data-tour="orgs-misc-sponsors-create-password-strength"
                         className={cn(
                           password.length !== 0
                             ? "block mt-2 space-y-3"
@@ -566,7 +571,8 @@ export default function CreateSponsorPage() {
 
       {/* ── Step 2: Assign Events ── */}
       {step === 2 && (
-        <div className="flex flex-col gap-6">
+        // data-tour="orgs-misc-sponsors-create-events": admin-tour anchor (orgs-misc area).
+        <div data-tour="orgs-misc-sponsors-create-events" className="flex flex-col gap-6">
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="flex gap-2 items-center">
@@ -664,7 +670,8 @@ export default function CreateSponsorPage() {
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        {/* data-tour="orgs-misc-sponsors-create-success": admin-tour anchor (orgs-misc area). */}
+        <DialogContent data-tour="orgs-misc-sponsors-create-success" className="max-w-md">
           <DialogHeader className="border-b">
             <DialogTitle className="flex items-center gap-2">
               <CheckIcon className="size-5 text-emerald-500" />

@@ -268,11 +268,14 @@ export default function SponsorsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        back
-        title="Sponsor Review"
-        description={`${counts.all} registrant${counts.all !== 1 ? "s" : ""} · ${counts.pending} pending · ${counts.confirmed} confirmed · ${counts.rejected} rejected`}
-      />
+      {/* data-tour anchor (sponsors-title): admin tour "Event sponsor management" step. */}
+      <span data-tour="sponsors-title" className="inline-flex">
+        <PageHeader
+          back
+          title="Sponsor Review"
+          description={`${counts.all} registrant${counts.all !== 1 ? "s" : ""} · ${counts.pending} pending · ${counts.confirmed} confirmed · ${counts.rejected} rejected`}
+        />
+      </span>
 
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -293,11 +296,12 @@ export default function SponsorsPage({
             </button>
           )}
         </div>
+        {/* data-tour anchor (sponsors-filter): admin tour "Filter by status" step. */}
         <Select
           value={statusFilter}
           onValueChange={(v) => setStatusFilter(v as StatusFilter)}
         >
-          <SelectTrigger className="w-full sm:w-44">
+          <SelectTrigger data-tour="sponsors-filter" className="w-full sm:w-44">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -314,6 +318,9 @@ export default function SponsorsPage({
       </div>
 
       {/* Table */}
+      {/* data-tour anchor (sponsors-table): admin tour "Competitors table" step. Wraps BOTH
+          the empty-state card and the populated table so the anchor is always present. */}
+      <div data-tour="sponsors-table">
       {filteredCompetitors.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
@@ -333,7 +340,13 @@ export default function SponsorsPage({
                     <TableHead>Team</TableHead>
                     <TableHead>{sponsorFieldLabel}</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    {/* data-tour anchor (sponsors-verify): admin tour "Verify or reject
+                        submission" step. The per-row Confirm / Reject buttons (shown for
+                        pending registrants) live in this Actions column; the header is the
+                        always-present stable anchor for that verify/reject action. */}
+                    <TableHead data-tour="sponsors-verify" className="text-right">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -461,6 +474,7 @@ export default function SponsorsPage({
           </CardContent>
         </Card>
       )}
+      </div>
 
       {/* Reject dialog */}
       <Dialog

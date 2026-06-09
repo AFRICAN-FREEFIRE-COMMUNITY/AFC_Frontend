@@ -177,7 +177,10 @@ export default function CouponMetricsPage() {
       <PageHeader back title="Coupon Metrics" />
 
       {/* Stats Cards */}
-      <div className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
+      <div
+        className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4"
+        data-tour="shop-coupons-stats-cards"
+      >
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Coupons</CardTitle>
@@ -244,7 +247,11 @@ export default function CouponMetricsPage() {
       {/* Tabs Content */}
       <Card>
         <CardContent className="w-full">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            data-tour="shop-coupons-tabs"
+          >
             <ScrollArea>
               <TabsList className="w-full">
                 <TabsTrigger value="performance">Performance</TabsTrigger>
@@ -267,7 +274,7 @@ export default function CouponMetricsPage() {
                   No coupons found
                 </p>
               ) : (
-                <Table>
+                <Table data-tour="shop-coupons-performance-table">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Coupon Code</TableHead>
@@ -291,6 +298,7 @@ export default function CouponMetricsPage() {
                             <Link
                               href={`/a/shop/coupons/${coupon.id}`}
                               className="font-mono font-medium text-primary hover:underline"
+                              data-tour="shop-coupons-coupon-link"
                             >
                               {coupon.code}
                             </Link>
@@ -346,7 +354,10 @@ export default function CouponMetricsPage() {
                     )}{" "}
                     of {sortedCoupons.length}
                   </p>
-                  <Pagination className="w-full md:w-auto mx-0">
+                  <Pagination
+                    className="w-full md:w-auto mx-0"
+                    data-tour="shop-coupons-pagination"
+                  >
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious

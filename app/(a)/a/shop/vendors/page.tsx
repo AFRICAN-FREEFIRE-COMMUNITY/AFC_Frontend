@@ -279,7 +279,11 @@ export default function ManageVendorsPage() {
               }}
             >
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  data-tour="shop-vendors-assign-product"
+                >
                   <IconUsers className="mr-2 h-4 w-4" /> Assign Product
                 </Button>
               </DialogTrigger>
@@ -363,7 +367,7 @@ export default function ManageVendorsPage() {
             {/* Add (invite) vendor */}
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto" data-tour="shop-vendors-add">
                   <IconCirclePlus className="mr-2 h-4 w-4" /> Add Vendor
                 </Button>
               </DialogTrigger>
@@ -451,7 +455,7 @@ export default function ManageVendorsPage() {
         }
       />
 
-      <Card>
+      <Card data-tour="shop-vendors-table">
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
@@ -492,7 +496,10 @@ export default function ManageVendorsPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell
+                      className="text-muted-foreground"
+                      data-tour="shop-vendors-contact-info"
+                    >
                       {vendor.contact_email || "-"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
@@ -522,6 +529,7 @@ export default function ManageVendorsPage() {
                         }
                         disabled={statusBusyId === vendor.id}
                         onClick={() => handleToggleStatus(vendor)}
+                        data-tour="shop-vendors-status-toggle"
                       >
                         {statusBusyId === vendor.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />

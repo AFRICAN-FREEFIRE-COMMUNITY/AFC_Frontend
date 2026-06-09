@@ -307,23 +307,33 @@ export default function InventoryManagementPage() {
           }
         />
         <div className="w-full md:w-auto flex flex-wrap items-center gap-2">
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild data-tour="shop-inventory-coupon-link">
             <Link href="/a/shop/coupons">
               <IconChartBar />
               Coupon Metrics
             </Link>
           </Button>
           {/* Category management: add / edit / remove the categories products
-              are filed under (drives the user shop tabs). */}
-          <ManageCategoriesModal onChanged={() => fetchProducts()} />
-          {/* ⓘ sits beside the add-product trigger (sibling - the modal renders its own button). */}
-          <AddProductModal onSuccess={() => fetchProducts()} />
+              are filed under (drives the user shop tabs). Wrapped in a stable
+              span so the tour can anchor the trigger the modal renders. */}
+          <span data-tour="shop-inventory-manage-categories">
+            <ManageCategoriesModal onChanged={() => fetchProducts()} />
+          </span>
+          {/* ⓘ sits beside the add-product trigger (sibling - the modal renders its own button).
+              Wrapped in a stable span so the tour can anchor the modal's trigger button. */}
+          <span data-tour="shop-inventory-add-product">
+            <AddProductModal onSuccess={() => fetchProducts()} />
+          </span>
           <InfoTip id="shop.add_product" />
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+      <Tabs
+        value={statusFilter}
+        onValueChange={setStatusFilter}
+        data-tour="shop-inventory-status-filter"
+      >
         <ScrollArea>
           <TabsList className="w-full">
             <TabsTrigger value="all">All</TabsTrigger>
@@ -347,7 +357,7 @@ export default function InventoryManagementPage() {
           </p>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table data-tour="shop-inventory-products-table">
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -603,7 +613,7 @@ export default function InventoryManagementPage() {
       </Card>
 
       {/* Coupons and Discounts */}
-      <Card>
+      <Card data-tour="shop-inventory-coupons-section">
         <CardHeader>
           {/* Section ⓘ inline with the coupons heading. */}
           <CardTitle className="flex items-center">

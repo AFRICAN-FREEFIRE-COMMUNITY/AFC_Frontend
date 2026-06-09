@@ -1576,8 +1576,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor (event-edit-title): admin tour "Edit event" step (events-lb area).
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="event-edit-title" className="inline-flex items-center">
             {eventTitle}
             <InfoTip id="events.edit._page" className="ml-1.5" />
           </span>
@@ -1598,7 +1599,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 while the trigger keeps `w-full` so it still fills the cell.
               */}
               <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="basic_info" className="px-6 w-full">
+                {/* data-tour anchor (event-edit-basic): admin tour "Basic info tab" step. */}
+                <TabsTrigger
+                  value="basic_info"
+                  className="px-6 w-full"
+                  data-tour="event-edit-basic"
+                >
                   Basic Info
                 </TabsTrigger>
                 <InfoTip id="events.edit.basic_info._section" className="ml-1" />
@@ -1619,7 +1625,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 )}
               </span>
               <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="stages_groups" className="px-6 w-full">
+                {/* data-tour anchor (event-edit-stages): admin tour "Stages and groups tab" step. */}
+                <TabsTrigger
+                  value="stages_groups"
+                  className="px-6 w-full"
+                  data-tour="event-edit-stages"
+                >
                   Stages & Groups
                 </TabsTrigger>
                 <InfoTip
@@ -1631,7 +1642,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 )}
               </span>
               <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="prize_rules" className="px-6 w-full">
+                {/* data-tour anchor (event-edit-prizes): admin tour "Prize and rules tab" step. */}
+                <TabsTrigger
+                  value="prize_rules"
+                  className="px-6 w-full"
+                  data-tour="event-edit-prizes"
+                >
                   Prize & Rules
                 </TabsTrigger>
                 <InfoTip id="events.edit.prize_rules._section" className="ml-1" />
@@ -1640,7 +1656,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 )}
               </span>
               <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="actions" className="px-6 w-full">
+                {/* data-tour anchor (event-edit-actions): admin tour "Actions tab" step. */}
+                <TabsTrigger
+                  value="actions"
+                  className="px-6 w-full"
+                  data-tour="event-edit-actions"
+                >
                   Event Actions
                 </TabsTrigger>
                 <InfoTip id="events.edit.actions._section" className="ml-1" />

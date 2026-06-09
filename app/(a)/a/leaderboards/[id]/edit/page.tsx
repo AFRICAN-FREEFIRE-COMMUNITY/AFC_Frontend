@@ -948,14 +948,24 @@ export default function EditLeaderboardPage({
 
   return (
     <div className="space-y-4 pb-20">
-      <PageHeader
-        back
-        title={`Edit: ${eventData?.event_name ?? "Leaderboard"}`}
-        description="Edit match results, scoring configuration, and apply adjustments"
-      />
+      {/* data-tour anchor (leaderboard-edit-title): admin tour "Edit leaderboard" step. */}
+      <span data-tour="leaderboard-edit-title" className="inline-flex">
+        <PageHeader
+          back
+          title={`Edit: ${eventData?.event_name ?? "Leaderboard"}`}
+          description="Edit match results, scoring configuration, and apply adjustments"
+        />
+      </span>
 
       {/* Stage tabs */}
-      <Tabs value={selectedStageId} onValueChange={setSelectedStageId}>
+      {/* data-tour anchor (leaderboard-edit-stage-group): admin tour "Stage and group picker"
+          step. Stage is these tabs; the group selector renders just below when a stage has
+          more than one group. */}
+      <Tabs
+        value={selectedStageId}
+        onValueChange={setSelectedStageId}
+        data-tour="leaderboard-edit-stage-group"
+      >
         <ScrollArea>
           <TabsList className="w-full justify-start">
             {eventData?.stages?.map((s: any) => (
@@ -991,8 +1001,10 @@ export default function EditLeaderboardPage({
       )}
 
       {/* Edit sections */}
+      {/* data-tour anchor (leaderboard-edit-match): admin tour "Edit individual match" step.
+          These tabs are where one match's results, totals, scoring and uploads are re-entered. */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList data-tour="leaderboard-edit-match" className="grid w-full grid-cols-4">
           <TabsTrigger value="matches">
             <IconMap size={14} className="mr-1" />
             Match Results
@@ -1022,7 +1034,10 @@ export default function EditLeaderboardPage({
           ) : (
             <>
               {/* Map selector */}
-              <div className="flex gap-2 flex-wrap">
+              {/* data-tour anchor (leaderboard-edit-match-list): admin tour "Match list" step.
+                  Every map in the selected group renders as a button; click one to load its
+                  editable results below. */}
+              <div data-tour="leaderboard-edit-match-list" className="flex gap-2 flex-wrap">
                 {groupMatches.map((m) => (
                   <Button
                     key={m.match_id}
@@ -1481,7 +1496,8 @@ export default function EditLeaderboardPage({
 
                   {/* Save buttons: this map only, or every map in the group at once.
                       "Save all maps" fans out one save per map (handleSaveAllMaps). */}
-                  <div className="flex flex-wrap justify-end gap-2">
+                  {/* data-tour anchor (leaderboard-edit-save): admin tour "Save changes" step. */}
+                  <div data-tour="leaderboard-edit-save" className="flex flex-wrap justify-end gap-2">
                     <Button
                       variant="outline"
                       onClick={handleSaveAllMaps}

@@ -231,8 +231,9 @@ export default function AuditLogPage() {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: audit tour "Audit log" step.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="audit-title" className="inline-flex items-center">
             Audit Log
             <InfoTip id="rankings.audit._page" className="ml-1.5" />
           </span>
@@ -241,7 +242,8 @@ export default function AuditLogPage() {
         action={
           // ⓘ sits beside the raw-data button (sibling, not nested).
           <div className="flex items-center gap-1">
-            <Button variant="outline" onClick={() => setRawOpen(true)}>
+            {/* data-tour anchor: audit tour "Raw data breakdown" step. */}
+            <Button data-tour="audit-raw" variant="outline" onClick={() => setRawOpen(true)}>
               <IconDatabase className="mr-1.5 size-4" /> Raw data viewer
             </Button>
             <InfoTip id="rankings.audit.raw_viewer" />
@@ -255,8 +257,9 @@ export default function AuditLogPage() {
         Audit entries and uncompressed raw data are visible to Head Admin and Metrics Admin only. All values below are read-only.
       </div>
 
-      {/* filter row */}
-      <Card>
+      {/* filter row
+          data-tour anchor: audit tour "Filter by type and date" step. */}
+      <Card data-tour="audit-filters">
         <CardHeader className="flex-row items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <IconFilter className="size-4 text-muted-foreground" /> Filters
@@ -279,7 +282,8 @@ export default function AuditLogPage() {
               </SelectContent>
             </Select>
 
-            <div className="relative">
+            {/* data-tour anchor: audit tour "Search by reason" step. */}
+            <div data-tour="audit-search" className="relative">
               <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={q}
@@ -321,14 +325,18 @@ export default function AuditLogPage() {
         </CardContent>
       </Card>
 
-      {/* audit table */}
-      <Card>
+      {/* audit table
+          data-tour anchor: audit tour "Audit entries" step. */}
+      <Card data-tour="audit-list">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <IconHistory className="size-4 text-muted-foreground" /> Audit Log
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        {/* data-tour anchor: audit tour "Before and after" step. The table body is the stable
+            target where each entry's change detail (before / after snapshots) is read; there is
+            no separate snapshot dialog element to anchor, so the entries region stands in. */}
+        <CardContent data-tour="audit-details" className="p-0">
           <Table>
             <TableHeader>
               <TableRow>

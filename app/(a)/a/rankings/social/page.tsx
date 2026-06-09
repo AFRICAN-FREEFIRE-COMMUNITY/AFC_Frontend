@@ -292,8 +292,9 @@ export default function SocialVerificationPage() {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: social tour "Social media verification" step.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="social-title" className="inline-flex items-center">
             Social Verification
             <InfoTip id="rankings.social._page" className="ml-1.5" />
           </span>
@@ -333,8 +334,9 @@ export default function SocialVerificationPage() {
         </span>
       </p>
 
-      {/* brackets reference */}
-      <Card className="gap-1">
+      {/* brackets reference
+          data-tour anchor: social tour "Points scale preview" step. */}
+      <Card data-tour="social-brackets" className="gap-1">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Points scale</CardTitle>
         </CardHeader>
@@ -357,13 +359,15 @@ export default function SocialVerificationPage() {
         </CardContent>
       </Card>
 
-      {/* table */}
-      <Card>
+      {/* table
+          data-tour anchor: social tour "Connected teams" step. */}
+      <Card data-tour="social-list">
         <CardHeader className="flex-row items-center justify-between gap-2">
           <CardTitle className="text-base">
             Teams{season ? ` · ${season.name}` : ""}
           </CardTitle>
-          <div className="relative w-full sm:w-64">
+          {/* data-tour anchor: social tour "Find a team" step. */}
+          <div data-tour="social-search" className="relative w-full sm:w-64">
             <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search teams" className="h-9 pl-8" />
           </div>
@@ -374,7 +378,10 @@ export default function SocialVerificationPage() {
               <TableRow>
                 <TableHead className="text-foreground">Team</TableHead>
                 <TableHead className="text-foreground">Connection</TableHead>
-                <TableHead className="w-[140px] text-foreground">
+                {/* data-tour anchor: social tour "Correct follower counts" step. The Instagram
+                    column header is the stable target for the editable IG/TikTok follower
+                    count inputs (rendered per row below). */}
+                <TableHead data-tour="social-correction" className="w-[140px] text-foreground">
                   <span className="inline-flex items-center gap-1"><IconBrandInstagram className="size-3.5" /> Instagram</span>
                 </TableHead>
                 <TableHead className="w-[140px] text-foreground">
@@ -383,7 +390,10 @@ export default function SocialVerificationPage() {
                 <TableHead className="text-right text-foreground">Combined</TableHead>
                 <TableHead className="text-center text-foreground">Points</TableHead>
                 <TableHead className="text-foreground">Verification</TableHead>
-                <TableHead className="text-right text-foreground">Actions</TableHead>
+                {/* data-tour anchor: social tour "Verify follower counts" step. The Actions
+                    column header is the stable target for the per-row verify / re-verify /
+                    unverify buttons. */}
+                <TableHead data-tour="social-verify" className="text-right text-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

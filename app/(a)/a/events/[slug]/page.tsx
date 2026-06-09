@@ -767,7 +767,10 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     <div>
       <div className="flex flex-col lg:flex-row items-start md:items-center justify-between gap-2">
         <div className="w-full">
-          <PageHeader back title={event_name} />
+          {/* data-tour anchor (event-detail-title): admin tour "Event detail page" step. */}
+          <span data-tour="event-detail-title" className="inline-flex">
+            <PageHeader back title={event_name} />
+          </span>
           <div className="flex gap-2 overflow-x-auto whitespace-nowrap p-1 custom-scroll">
             <Badge variant={"secondary"} className="capitalize">
               {event_mode}
@@ -837,13 +840,31 @@ const Page = ({ params }: { params: Promise<Params> }) => {
       <Tabs defaultValue="overview" className="mt-4">
         <ScrollArea>
           <TabsList className="w-full">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="registrations">Registrations</TabsTrigger>
+            {/* data-tour anchors below map each detail tab to its admin-tour step
+                (events-lb area, event-detail sub-page). */}
+            <TabsTrigger value="overview" data-tour="event-detail-overview">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="details" data-tour="event-detail-details">
+              Details
+            </TabsTrigger>
+            <TabsTrigger
+              value="registrations"
+              data-tour="event-detail-registrations"
+            >
+              Registrations
+            </TabsTrigger>
             <TabsTrigger value="waitlist">Waitlist</TabsTrigger>
-            <TabsTrigger value="stages">Stages</TabsTrigger>
+            <TabsTrigger value="stages" data-tour="event-detail-stages">
+              Stages
+            </TabsTrigger>
             {/* Group Rosters: live-event seeding check (stage → group → teams/players). */}
-            <TabsTrigger value="group-rosters">Group Rosters</TabsTrigger>
+            <TabsTrigger
+              value="group-rosters"
+              data-tour="event-detail-group-rosters"
+            >
+              Group Rosters
+            </TabsTrigger>
             <TabsTrigger value="prizes">Prizes</TabsTrigger>
             <TabsTrigger value="engagement">Engagement</TabsTrigger>
             <TabsTrigger value="discord-tools">Discord Tools</TabsTrigger>

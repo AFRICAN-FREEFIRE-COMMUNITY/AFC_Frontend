@@ -158,11 +158,15 @@ function condText(c: Condition) {
   return `${f} ${c.op === "gte" ? "≥" : "≤"} ${v}`;
 }
 
-function StatCard({ icon, title, value, sub, tone }: {
+// `anchor` (optional) attaches a data-tour anchor to the card root so the tournament-tiers
+// tour can target the "Active rules" status tile without an extra wrapper that would break
+// the responsive grid.
+function StatCard({ icon, title, value, sub, tone, anchor }: {
   icon: React.ReactNode; title: string; value: React.ReactNode; sub?: string; tone?: string;
+  anchor?: string;
 }) {
   return (
-    <Card className="gap-1 transition-shadow hover:shadow-lg">
+    <Card data-tour={anchor} className="gap-1 transition-shadow hover:shadow-lg">
       <CardHeader className="flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <span className={cn("text-muted-foreground", tone)}>{icon}</span>
@@ -511,8 +515,9 @@ export default function TournamentTiersPage() {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: tournament-tiers tour "Tournament Tiers classification" step.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="tournament-tiers-title" className="inline-flex items-center">
             Tournament Tiers
             <InfoTip id="rankings.tiers._page" className="ml-1.5" />
           </span>
@@ -528,7 +533,8 @@ export default function TournamentTiersPage() {
               <InfoTip id="rankings.tiers.reset" />
             </div>
             <div className="flex flex-1 items-center gap-1 md:flex-none">
-              <Button className="flex-1 md:flex-none" disabled={!dirty || saving} onClick={() => { setReason(""); setSaveOpen(true); }}>
+              {/* data-tour anchor: tournament-tiers tour "Save all changes" step. */}
+              <Button data-tour="tournament-tiers-save" className="flex-1 md:flex-none" disabled={!dirty || saving} onClick={() => { setReason(""); setSaveOpen(true); }}>
                 <IconDeviceFloppy className="mr-1.5 size-4" /> Save rules{dirty ? " *" : ""}
               </Button>
               <InfoTip id="rankings.tiers.save" />
@@ -539,7 +545,8 @@ export default function TournamentTiersPage() {
 
       {/* status strip */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
-        <StatCard icon={<IconStack2 className="size-4" />} title="Active rules"
+        {/* data-tour anchor: tournament-tiers tour "Rule count" step. */}
+        <StatCard anchor="tournament-tiers-stats" icon={<IconStack2 className="size-4" />} title="Active rules"
           value={rules.filter((r) => r.enabled).length} sub={`${rules.length} total · evaluated top-down`} />
         <StatCard icon={<span className="text-xs font-bold">2.0×</span>} title="Tier 1 rules"
           value={perTier(1)} sub="Highest - 2.0× multiplier" tone="text-amber-400" />
@@ -560,8 +567,11 @@ export default function TournamentTiersPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* rules list */}
-        <div className="space-y-3 lg:col-span-2">
+        {/* rules list
+            data-tour anchor: tournament-tiers tour "Tier rules" step. Anchors the stable
+            left column (holds the drag-to-reorder rule cards, the default-tier row, and the
+            add-rule button) so the highlight stays put whether or not any rules exist yet. */}
+        <div data-tour="tournament-tiers-rules" className="space-y-3 lg:col-span-2">
           {rules.length === 0 ? (
             <div className="rounded-md border border-dashed bg-muted/20 px-3 py-10 text-center text-sm text-muted-foreground">
               No classification rules yet. Add a rule to start tiering events - until then everything
@@ -610,13 +620,15 @@ export default function TournamentTiersPage() {
             </Select>
           </div>
 
-          <Button variant="outline" className="w-full border-dashed" onClick={addRule}>
+          {/* data-tour anchor: tournament-tiers tour "Add a new rule" step. */}
+          <Button data-tour="tournament-tiers-add" variant="outline" className="w-full border-dashed" onClick={addRule}>
             <IconPlus className="mr-1.5 size-4" /> Add rule
           </Button>
         </div>
 
-        {/* live classifier test */}
-        <div className="lg:col-span-1">
+        {/* live classifier test
+            data-tour anchor: tournament-tiers tour "Test a tournament" step. */}
+        <div data-tour="tournament-tiers-test" className="lg:col-span-1">
           <Card className="sticky top-4 gap-2">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-1.5 text-base">

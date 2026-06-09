@@ -96,35 +96,43 @@ export default function CreateLeaderboardPage() {
 
   return (
     <div className="space-y-6 min-h-screen">
-      <PageHeader
-        back={
-          currentStep > 1 &&
-          !isSuccess &&
-          !enteringMatch &&
-          currentStep !== 4 &&
-          currentStep !== 5
-        }
-        title="Create Leaderboard"
-        description={
-          !isSuccess
-            ? `Step ${currentStep} of ${TOTAL_DISPLAY_STEPS}: ${getStepTitle()}`
-            : undefined
-        }
-      />
+      {/* data-tour anchor (leaderboard-create-title): admin tour "Create leaderboard" step. */}
+      <span data-tour="leaderboard-create-title" className="inline-flex">
+        <PageHeader
+          back={
+            currentStep > 1 &&
+            !isSuccess &&
+            !enteringMatch &&
+            currentStep !== 4 &&
+            currentStep !== 5
+          }
+          title="Create Leaderboard"
+          description={
+            !isSuccess
+              ? `Step ${currentStep} of ${TOTAL_DISPLAY_STEPS}: ${getStepTitle()}`
+              : undefined
+          }
+        />
+      </span>
 
       <div className="mt-4">
         {/* Step 1: Basic Information - receives preselectedEventId to auto-fill */}
+        {/* data-tour anchor (leaderboard-create-basic): admin tour "Basic information step". */}
         {currentStep === 1 && (
-          <BasicInfoStep
-            onNext={nextStep}
-            onBack={() => router.back()}
-            updateData={updateFormData}
-            preselectedEventId={preselectedEventId}
-          />
+          <div data-tour="leaderboard-create-basic">
+            <BasicInfoStep
+              onNext={nextStep}
+              onBack={() => router.back()}
+              updateData={updateFormData}
+              preselectedEventId={preselectedEventId}
+            />
+          </div>
         )}
 
         {/* Step 2: Configure Point System */}
+        {/* data-tour anchor (leaderboard-create-scoring): admin tour "Point system step". */}
         {currentStep === 2 && (
+          <div data-tour="leaderboard-create-scoring">
           <ConfigurePointSystem
             parentFormData={formData}
             onNext={(data) => {
@@ -141,10 +149,13 @@ export default function CreateLeaderboardPage() {
             }}
             onBack={prevStep}
           />
+          </div>
         )}
 
         {/* Step 3: Match Overview */}
+        {/* data-tour anchor (leaderboard-create-matches): admin tour "Match results step". */}
         {currentStep === 3 && !enteringMatch && (
+          <div data-tour="leaderboard-create-matches">
           <MatchOverviewStep
             formData={formData}
             updateData={updateFormData}
@@ -154,6 +165,7 @@ export default function CreateLeaderboardPage() {
             onComplete={nextStep}
             onBack={prevStep}
           />
+          </div>
         )}
 
         {/* Step 3 sub-view: Select upload method for a match */}
@@ -238,12 +250,15 @@ export default function CreateLeaderboardPage() {
         )}
 
         {/* Step 5: Review & Publish */}
+        {/* data-tour anchor (leaderboard-create-review): admin tour "Review and publish step". */}
         {currentStep === 5 && (
-          <ReviewAndPublishStep
-            formData={formData}
-            onNext={nextStep}
-            onBack={prevStep}
-          />
+          <div data-tour="leaderboard-create-review">
+            <ReviewAndPublishStep
+              formData={formData}
+              onNext={nextStep}
+              onBack={prevStep}
+            />
+          </div>
         )}
 
         {/* Step 6: Success */}

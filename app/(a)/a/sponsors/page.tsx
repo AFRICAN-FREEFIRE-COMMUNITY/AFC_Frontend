@@ -105,8 +105,10 @@ export default function SponsorsAdminPage() {
         />
         {/* ⓘ sits beside the create action (sibling, not nested in the button). */}
         <div className="flex w-full md:w-auto items-center gap-1.5">
+          {/* data-tour="orgs-misc-sponsors-create": admin-tour anchor (orgs-misc area).
+              On the asChild Link so the attribute lands on the rendered anchor element. */}
           <Button asChild className="w-full md:w-auto">
-            <Link href="/a/sponsors/create">
+            <Link href="/a/sponsors/create" data-tour="orgs-misc-sponsors-create">
               <IconPlus />
               Create Sponsor Account
             </Link>
@@ -117,7 +119,9 @@ export default function SponsorsAdminPage() {
 
       <div className="relative">
         <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        {/* data-tour="orgs-misc-sponsors-search": admin-tour anchor (orgs-misc area). */}
         <Input
+          data-tour="orgs-misc-sponsors-search"
           placeholder="Search by name, username or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -144,7 +148,8 @@ export default function SponsorsAdminPage() {
       ) : (
         <Card className="pt-2">
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* data-tour="orgs-misc-sponsors-table": admin-tour anchor (orgs-misc area). */}
+            <div className="overflow-x-auto" data-tour="orgs-misc-sponsors-table">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -185,7 +190,8 @@ export default function SponsorsAdminPage() {
                   {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of{" "}
                   {filtered.length}
                 </p>
-                <Pagination>
+                {/* data-tour="orgs-misc-sponsors-pagination": admin-tour anchor (orgs-misc area). */}
+                <Pagination data-tour="orgs-misc-sponsors-pagination">
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious

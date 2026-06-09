@@ -414,15 +414,36 @@ export default function PartnerDetailPage({
         {/* Each section ⓘ is a SIBLING of its tab trigger (never nested in a button). */}
         <TabsList className="w-full">
           <span className="inline-flex flex-1 items-center justify-center">
-            <TabsTrigger value="profile" className="w-full">Profile</TabsTrigger>
+            {/* data-tour="orgs-misc-partners-profile-tab": admin-tour anchor (orgs-misc area). */}
+            <TabsTrigger
+              data-tour="orgs-misc-partners-profile-tab"
+              value="profile"
+              className="w-full"
+            >
+              Profile
+            </TabsTrigger>
             <InfoTip id="partners.profile._section" className="ml-1" />
           </span>
           <span className="inline-flex flex-1 items-center justify-center">
-            <TabsTrigger value="scope" className="w-full">Scope &amp; Toggles</TabsTrigger>
+            {/* data-tour="orgs-misc-partners-scope-tab": admin-tour anchor (orgs-misc area). */}
+            <TabsTrigger
+              data-tour="orgs-misc-partners-scope-tab"
+              value="scope"
+              className="w-full"
+            >
+              Scope &amp; Toggles
+            </TabsTrigger>
             <InfoTip id="partners.scope._section" className="ml-1" />
           </span>
           <span className="inline-flex flex-1 items-center justify-center">
-            <TabsTrigger value="keys" className="w-full">Keys</TabsTrigger>
+            {/* data-tour="orgs-misc-partners-keys-tab": admin-tour anchor (orgs-misc area). */}
+            <TabsTrigger
+              data-tour="orgs-misc-partners-keys-tab"
+              value="keys"
+              className="w-full"
+            >
+              Keys
+            </TabsTrigger>
             <InfoTip id="partners.keys._section" className="ml-1" />
           </span>
         </TabsList>
@@ -507,7 +528,11 @@ export default function PartnerDetailPage({
             </CardHeader>
             <CardContent className="flex flex-col gap-4 pt-4">
               {/* allow_all_native_afc - every organization-less AFC event at once */}
-              <label className="flex items-center justify-between gap-2 rounded-md border px-3 py-2.5">
+              {/* data-tour="orgs-misc-partners-native-afc": admin-tour anchor (orgs-misc area). */}
+              <label
+                data-tour="orgs-misc-partners-native-afc"
+                className="flex items-center justify-between gap-2 rounded-md border px-3 py-2.5"
+              >
                 <span className="flex flex-col">
                   <span className="inline-flex items-center text-sm font-medium">
                     All native AFC events
@@ -525,7 +550,8 @@ export default function PartnerDetailPage({
 
               {/* allowed_events multiselect - checkbox list inside a scroll area
                   (same idiom as the sponsors create-wizard event picker). */}
-              <div className="space-y-2">
+              {/* data-tour="orgs-misc-partners-allowed-events": admin-tour anchor (orgs-misc area). */}
+              <div data-tour="orgs-misc-partners-allowed-events" className="space-y-2">
                 <Label className="inline-flex items-center">
                   Allowed events
                   <InfoTip id="partners.allowed_events" className="ml-1" />
@@ -706,7 +732,9 @@ export default function PartnerDetailPage({
                 </CardTitle>
                 {/* ⓘ sits beside the issue-key button (sibling, not nested). */}
                 <div className="flex shrink-0 items-center gap-1">
+                  {/* data-tour="orgs-misc-partners-issue-key": admin-tour anchor (orgs-misc area). */}
                   <Button
+                    data-tour="orgs-misc-partners-issue-key"
                     variant="outline"
                     size="sm"
                     onClick={() => setIssueOpen(true)}

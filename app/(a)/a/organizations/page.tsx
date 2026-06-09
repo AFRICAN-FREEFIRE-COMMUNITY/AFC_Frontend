@@ -247,7 +247,12 @@ export default function OrganizationsAdminPage() {
         />
         {/* ⓘ sits beside the create button (sibling, not nested). */}
         <div className="flex w-full items-center gap-1 md:w-auto">
-          <Button className="w-full md:w-auto" onClick={() => setCreateOpen(true)}>
+          {/* data-tour="orgs-misc-create-org-button": admin-tour anchor (orgs-misc area). */}
+          <Button
+            data-tour="orgs-misc-create-org-button"
+            className="w-full md:w-auto"
+            onClick={() => setCreateOpen(true)}
+          >
             <IconPlus />
             Create organization
           </Button>
@@ -262,7 +267,9 @@ export default function OrganizationsAdminPage() {
           the fetchOrgs dependency on `search` (matches the sponsors search UX). */}
       <div className="relative">
         <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        {/* data-tour="orgs-misc-org-search": admin-tour anchor (orgs-misc area). */}
         <Input
+          data-tour="orgs-misc-org-search"
           placeholder="Search by name or slug..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -289,7 +296,8 @@ export default function OrganizationsAdminPage() {
       ) : (
         <Card className="pt-2">
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* data-tour="orgs-misc-org-table": admin-tour anchor (orgs-misc area). */}
+            <div className="overflow-x-auto" data-tour="orgs-misc-org-table">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -342,7 +350,8 @@ export default function OrganizationsAdminPage() {
                   Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
                   {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
                 </p>
-                <Pagination>
+                {/* data-tour="orgs-misc-org-pagination": admin-tour anchor (orgs-misc area). */}
+                <Pagination data-tour="orgs-misc-org-pagination">
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious

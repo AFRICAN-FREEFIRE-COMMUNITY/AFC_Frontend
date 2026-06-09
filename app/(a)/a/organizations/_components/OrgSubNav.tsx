@@ -25,7 +25,12 @@ export function OrgSubNav() {
   return (
     // shadcn pill/segment styling (bg-muted track, active tab gets a bg-background fill)
     // to match the AFC tab idiom used elsewhere on the site.
-    <div className="inline-flex h-9 w-fit items-center gap-1 rounded-md bg-muted p-1 text-muted-foreground">
+    // data-tour="org-subnav": stable wrapper anchored by the admin tour (orgs-misc area)
+    // so the org-list / design-requests / org-reports sub-nav step can highlight it.
+    <div
+      data-tour="org-subnav"
+      className="inline-flex h-9 w-fit items-center gap-1 rounded-md bg-muted p-1 text-muted-foreground"
+    >
       {TABS.map((t) => {
         // "Organizations" is active only on the exact list route, so it does not also
         // light up on the design-requests / reports sub-routes. The sub-routes match by

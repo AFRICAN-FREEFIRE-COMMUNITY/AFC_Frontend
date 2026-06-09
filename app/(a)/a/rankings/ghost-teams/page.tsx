@@ -419,7 +419,9 @@ export default function GhostTeamsAdminPage() {
 
   function renderTable() {
     return (
-      <Card>
+      // data-tour anchor: ghost-teams tour "Ghost teams table" step. Only the active tab's
+      // TabsContent is mounted (Radix unmounts inactive), so this renders one live anchor.
+      <Card data-tour="ghost-teams-list">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -432,7 +434,10 @@ export default function GhostTeamsAdminPage() {
                 <TableHead>Claimed by</TableHead>
                 <TableHead>Created by</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {/* data-tour anchor: ghost-teams tour "Approve or revoke claims" step. The
+                    Actions column header is the stable always-rendered target for the per-row
+                    approve / revoke claim buttons. */}
+                <TableHead data-tour="ghost-teams-claim" className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -534,8 +539,9 @@ export default function GhostTeamsAdminPage() {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: ghost-teams tour "Ghost Teams creation" step.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="ghost-teams-title" className="inline-flex items-center">
             Ghost Teams
             <InfoTip id="rankings.ghost._page" className="ml-1.5" />
           </span>
@@ -544,7 +550,8 @@ export default function GhostTeamsAdminPage() {
         action={
           // ⓘ sits beside the create button (sibling, not nested).
           <div className="flex items-center gap-1">
-            <Button onClick={() => setCreateOpen(true)}>
+            {/* data-tour anchor: ghost-teams tour "Create a new ghost" step. */}
+            <Button data-tour="ghost-teams-create" onClick={() => setCreateOpen(true)}>
               <IconPlus className="mr-1.5 size-4" /> Create ghost team
             </Button>
             <InfoTip id="rankings.ghost.create" />
@@ -552,8 +559,9 @@ export default function GhostTeamsAdminPage() {
         }
       />
 
-      {/* stat strip */}
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
+      {/* stat strip
+          data-tour anchor: ghost-teams tour "Ghost team counts" step. */}
+      <div data-tour="ghost-teams-stats" className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
         <StatCard icon={<IconUsersGroup className="size-4" />} title="Active ghost teams"
           value={counts.active} sub="Holding results off-platform" />
         <StatCard icon={<IconClock className="size-4" />} title="Pending claims"
@@ -567,7 +575,8 @@ export default function GhostTeamsAdminPage() {
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as "all" | "pending")} className="gap-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <TabsList>
+          {/* data-tour anchor: ghost-teams tour "Filter by status" step. */}
+          <TabsList data-tour="ghost-teams-tabs">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="pending">
               Pending claims

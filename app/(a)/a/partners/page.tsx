@@ -180,7 +180,12 @@ export default function PartnersAdminPage() {
         />
         {/* ⓘ sits beside the create button (sibling, not nested). */}
         <div className="flex w-full items-center gap-1 md:w-auto">
-          <Button className="w-full md:w-auto" onClick={() => setCreateOpen(true)}>
+          {/* data-tour="orgs-misc-partners-create": admin-tour anchor (orgs-misc area). */}
+          <Button
+            data-tour="orgs-misc-partners-create"
+            className="w-full md:w-auto"
+            onClick={() => setCreateOpen(true)}
+          >
             <IconPlus />
             Create API key
           </Button>
@@ -192,7 +197,9 @@ export default function PartnersAdminPage() {
           fetchPartners dependency on `search` (matches the organizations search UX). */}
       <div className="relative">
         <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        {/* data-tour="orgs-misc-partners-search": admin-tour anchor (orgs-misc area). */}
         <Input
+          data-tour="orgs-misc-partners-search"
           placeholder="Search by name or slug..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -219,14 +226,16 @@ export default function PartnersAdminPage() {
       ) : (
         <Card className="pt-2">
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* data-tour="orgs-misc-partners-table": admin-tour anchor (orgs-misc area). */}
+            <div className="overflow-x-auto" data-tour="orgs-misc-partners-table">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Slug</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>
+                    {/* data-tour="orgs-misc-partners-active-keys": admin-tour anchor (orgs-misc area). */}
+                    <TableHead data-tour="orgs-misc-partners-active-keys">
                       <span className="inline-flex items-center">
                         Active keys
                         <InfoTip id="partners.active_keys" className="ml-1" />
@@ -268,7 +277,8 @@ export default function PartnersAdminPage() {
                   Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
                   {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
                 </p>
-                <Pagination>
+                {/* data-tour="orgs-misc-partners-pagination": admin-tour anchor (orgs-misc area). */}
+                <Pagination data-tour="orgs-misc-partners-pagination">
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious

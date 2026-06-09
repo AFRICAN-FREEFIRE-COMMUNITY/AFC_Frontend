@@ -730,6 +730,7 @@ const page = () => {
             variant="outline"
             onClick={exportToExcel}
             className="w-full md:w-auto"
+            data-tour="settings-misc-export-excel"
           >
             <IconDownload />
             Export to Excel
@@ -739,7 +740,7 @@ const page = () => {
       </div>
       <Tabs defaultValue="admins" className="space-y-4">
         <ScrollArea>
-          <TabsList className="w-full">
+          <TabsList className="w-full" data-tour="settings-misc-tabs-header">
             <TabsTrigger value="admins">Admin Users</TabsTrigger>
             <TabsTrigger value="all-users">All Users</TabsTrigger>
             <TabsTrigger value="roles">Roles & Permissions</TabsTrigger>
@@ -768,6 +769,7 @@ const page = () => {
                   placeholder="Search admins..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  data-tour="settings-misc-admin-search"
                 />
               </div>
 
@@ -844,6 +846,7 @@ const page = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setSelectedUser(user)}
+                                data-tour="settings-misc-admin-edit"
                               >
                                 <IconPencil className="h-4 w-4" />
                               </Button>
@@ -993,6 +996,7 @@ const page = () => {
                             size="sm"
                             onClick={() => handleSuspendUser(user.id)}
                             disabled={suspendPending}
+                            data-tour="settings-misc-admin-suspend"
                           >
                             {user.status === "active" ? "Suspend" : "Activate"}
                           </Button>

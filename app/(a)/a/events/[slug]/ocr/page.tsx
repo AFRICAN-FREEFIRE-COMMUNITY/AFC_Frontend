@@ -152,7 +152,10 @@ export default function OcrPage({ params }: { params: Promise<Params> }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <PageHeader back title="OCR Match Results" description={`Upload match result screenshots for ${slug}`} />
+        {/* data-tour anchor (ocr-title): admin tour "OCR screenshot extraction" step. */}
+        <span data-tour="ocr-title" className="inline-flex">
+          <PageHeader back title="OCR Match Results" description={`Upload match result screenshots for ${slug}`} />
+        </span>
         <Button size="sm" variant="outline" onClick={fetchSessions} disabled={loadingSessions}>
           <IconRefresh className="h-4 w-4 mr-1.5" />
           Refresh
@@ -160,7 +163,8 @@ export default function OcrPage({ params }: { params: Promise<Params> }) {
       </div>
 
       {/* Upload card */}
-      <Card>
+      {/* data-tour anchor (ocr-upload): admin tour "Upload screenshot" step. */}
+      <Card data-tour="ocr-upload">
         <CardHeader>
           <CardTitle className="text-base">Upload Screenshot</CardTitle>
           <CardDescription>
@@ -197,7 +201,10 @@ export default function OcrPage({ params }: { params: Promise<Params> }) {
       </Card>
 
       {/* Sessions table */}
-      <Card>
+      {/* data-tour anchor (ocr-review): admin tour "Review extracted data" step. The OCR
+          output for each uploaded screenshot lands here as a row; the per-row Review opens
+          the extracted-data dialog. */}
+      <Card data-tour="ocr-review">
         <CardHeader>
           <CardTitle className="text-base">OCR Sessions</CardTitle>
         </CardHeader>
@@ -208,7 +215,10 @@ export default function OcrPage({ params }: { params: Promise<Params> }) {
                 <TableHead>Session ID</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
+                {/* data-tour anchor (ocr-commit): admin tour "Commit OCR data" step. The
+                    per-row Commit button (rendered when a session is "ready") lives in this
+                    Actions column; the header is the always-present stable anchor for it. */}
+                <TableHead data-tour="ocr-commit">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

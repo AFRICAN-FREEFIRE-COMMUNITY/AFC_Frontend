@@ -551,8 +551,9 @@ export default function ResultMarkersPage() {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: result-markers tour "Result Markers control" step.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="result-markers-title" className="inline-flex items-center">
             Result Markers
             <InfoTip id="rankings.results._page" className="ml-1.5" />
           </span>
@@ -560,8 +561,9 @@ export default function ResultMarkersPage() {
         description="Control which tournament results count toward rankings. Disable a whole event, or exclude specific teams or players from counting."
       />
 
-      {/* status strip */}
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
+      {/* status strip
+          data-tour anchor: result-markers tour "Results status" step. */}
+      <div data-tour="result-markers-status" className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
         <StatCard
           icon={<IconClipboardCheck className="size-4" />}
           title="Tournaments this period" value={stats.total}
@@ -587,13 +589,17 @@ export default function ResultMarkersPage() {
         />
       </div>
 
-      {/* table */}
-      <Card>
+      {/* table
+          data-tour anchor: result-markers tour "Tournament list" step. */}
+      <Card data-tour="result-markers-list">
         <CardHeader className="flex-col items-stretch gap-3 lg:flex-row lg:items-center lg:justify-between">
           <CardTitle className="text-base">
             Tournaments{season ? ` · ${season.name}` : ""}
           </CardTitle>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {/* filter row: search + tier + status. data-tour anchor: result-markers tour
+              "Find an event" step (anchors the whole filter cluster so the highlight covers
+              the search box and the tier/status selects together). */}
+          <div data-tour="result-markers-search" className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-64">
               <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -671,7 +677,10 @@ export default function ResultMarkersPage() {
                 <TableHead className="text-foreground">Tournament</TableHead>
                 <TableHead className="text-foreground">Tier</TableHead>
                 <TableHead className="text-center text-foreground">Teams</TableHead>
-                <TableHead className="text-center text-foreground">
+                {/* data-tour anchor: result-markers tour "Counting flags" step. Anchors the
+                    first of the three counting-flag columns (Winner / Placement / Kills) - it
+                    is always rendered, so the highlight has a stable target for the flag set. */}
+                <TableHead data-tour="result-markers-flags" className="text-center text-foreground">
                   <span className="inline-flex items-center gap-1">
                     <IconTrophy className="size-3.5" /> Winner
                     <InfoTip id="rankings.results.count_winner" />
@@ -868,8 +877,11 @@ export default function ResultMarkersPage() {
                 })}
               </div>
 
-              {/* add a new exclusion */}
-              <div className="space-y-3 rounded-md border bg-muted/20 p-3">
+              {/* add a new exclusion
+                  data-tour anchor: result-markers tour "Team and player exclusions" step.
+                  Anchors the add-exclusion block inside the per-event drill-down (a single
+                  stable element when the dialog is open, vs. the per-row Exclusions buttons). */}
+              <div data-tour="result-markers-exclusions" className="space-y-3 rounded-md border bg-muted/20 p-3">
                 <p className="flex items-center text-xs font-semibold text-foreground">
                   Add exclusion
                   <InfoTip id="rankings.results.exclusions" className="ml-1" />

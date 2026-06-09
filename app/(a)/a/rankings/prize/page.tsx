@@ -281,8 +281,9 @@ export default function PrizeMoneyPage() {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: prize tour "Prize money tracking" step.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="prize-title" className="inline-flex items-center">
             Prize Money
             <InfoTip id="rankings.prize._page" className="ml-1.5" />
           </span>
@@ -291,7 +292,8 @@ export default function PrizeMoneyPage() {
         action={
           // ⓘ sits beside the add-prize button (sibling, not nested).
           <div className="flex items-center gap-1">
-            <Button onClick={() => { setAddOpen(true); loadPickerOptions(); }}>
+            {/* data-tour anchor: prize tour "Record a payout" step. */}
+            <Button data-tour="prize-add" onClick={() => { setAddOpen(true); loadPickerOptions(); }}>
               <IconPlus className="mr-1.5 size-4" /> Add prize
             </Button>
             <InfoTip id="rankings.prize.add" />
@@ -299,9 +301,13 @@ export default function PrizeMoneyPage() {
         }
       />
 
-      {/* summary */}
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-        <Card className="gap-1 transition-shadow hover:shadow-lg">
+      {/* summary
+          data-tour anchor (wrapper): prize tour "Prize bracket scale" step. This page has no
+          standalone bracket-scale widget (the brackets live in Scoring Config); the summary
+          grid that surfaces the quarterly total feeding those brackets is the closest stable
+          target. The inner card carries the "Season total" anchor. */}
+      <div data-tour="prize-scale" className="grid grid-cols-1 gap-2 md:grid-cols-3">
+        <Card data-tour="prize-total" className="gap-1 transition-shadow hover:shadow-lg">
           <CardHeader className="flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total prizes this season
@@ -317,9 +323,13 @@ export default function PrizeMoneyPage() {
         </Card>
       </div>
 
-      {/* prize table */}
-      <Card>
-        <CardHeader>
+      {/* prize table
+          data-tour anchor: prize tour "Prize payouts table" step. */}
+      <Card data-tour="prize-list">
+        {/* data-tour anchor: prize tour "Find a payout" step. This page has no dedicated
+            search box; the payouts table header is the closest stable target for the
+            "locate a specific prize" step. */}
+        <CardHeader data-tour="prize-search">
           <CardTitle className="text-base">Prize Payouts</CardTitle>
         </CardHeader>
         <CardContent className="p-0">

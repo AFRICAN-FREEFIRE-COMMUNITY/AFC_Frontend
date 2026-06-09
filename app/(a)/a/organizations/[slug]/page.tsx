@@ -440,15 +440,36 @@ export default function OrganizationDetailPage({
         {/* Each section ⓘ is a SIBLING of its tab trigger (never nested in a button). */}
         <TabsList className="w-full">
           <span className="inline-flex flex-1 items-center justify-center">
-            <TabsTrigger value="profile" className="w-full">Profile</TabsTrigger>
+            {/* data-tour="orgs-misc-org-detail-profile-tab": admin-tour anchor (orgs-misc area). */}
+            <TabsTrigger
+              data-tour="orgs-misc-org-detail-profile-tab"
+              value="profile"
+              className="w-full"
+            >
+              Profile
+            </TabsTrigger>
             <InfoTip id="organizations.profile._section" className="ml-1" />
           </span>
           <span className="inline-flex flex-1 items-center justify-center">
-            <TabsTrigger value="members" className="w-full">Members</TabsTrigger>
+            {/* data-tour="orgs-misc-org-detail-members-tab": admin-tour anchor (orgs-misc area). */}
+            <TabsTrigger
+              data-tour="orgs-misc-org-detail-members-tab"
+              value="members"
+              className="w-full"
+            >
+              Members
+            </TabsTrigger>
             <InfoTip id="organizations.members._section" className="ml-1" />
           </span>
           <span className="inline-flex flex-1 items-center justify-center">
-            <TabsTrigger value="events" className="w-full">Events</TabsTrigger>
+            {/* data-tour="orgs-misc-org-detail-events-tab": admin-tour anchor (orgs-misc area). */}
+            <TabsTrigger
+              data-tour="orgs-misc-org-detail-events-tab"
+              value="events"
+              className="w-full"
+            >
+              Events
+            </TabsTrigger>
             <InfoTip id="organizations.events._section" className="ml-1" />
           </span>
           <span className="inline-flex flex-1 items-center justify-center">
@@ -548,7 +569,12 @@ export default function OrganizationDetailPage({
               </div>
 
               <div className="flex justify-end">
-                <Button onClick={handleSaveProfile} disabled={savingProfile}>
+                {/* data-tour="orgs-misc-org-detail-save-profile": admin-tour anchor (orgs-misc area). */}
+                <Button
+                  data-tour="orgs-misc-org-detail-save-profile"
+                  onClick={handleSaveProfile}
+                  disabled={savingProfile}
+                >
                   {savingProfile ? "Saving..." : "Save changes"}
                 </Button>
               </div>
@@ -573,7 +599,9 @@ export default function OrganizationDetailPage({
               </div>
               {/* Each danger-zone ⓘ is a SIBLING of its button (not nested). */}
               <div className="flex items-center gap-2">
+                {/* data-tour="orgs-misc-org-detail-suspend": admin-tour anchor (orgs-misc area). */}
                 <Button
+                  data-tour="orgs-misc-org-detail-suspend"
                   variant="outline"
                   onClick={handleToggleSuspend}
                   disabled={suspending}

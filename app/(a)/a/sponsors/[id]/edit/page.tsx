@@ -265,7 +265,8 @@ export default function EditSponsorPage({
           className="flex flex-col gap-6"
         >
           {/* Sponsor details */}
-          <Card>
+          {/* data-tour="orgs-misc-sponsors-edit-details": admin-tour anchor (orgs-misc area). */}
+          <Card data-tour="orgs-misc-sponsors-edit-details">
             <CardHeader className="border-b">
               <CardTitle>Sponsor Details</CardTitle>
             </CardHeader>
@@ -326,7 +327,9 @@ export default function EditSponsorPage({
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
+                        {/* data-tour="orgs-misc-sponsors-edit-password": admin-tour anchor (orgs-misc area). */}
                         <Input
+                          data-tour="orgs-misc-sponsors-edit-password"
                           type={isVisible ? "text" : "password"}
                           placeholder="Enter your password"
                           {...field}
@@ -451,7 +454,8 @@ export default function EditSponsorPage({
           </Card>
 
           {/* Event assignment */}
-          <Card>
+          {/* data-tour="orgs-misc-sponsors-edit-events": admin-tour anchor (orgs-misc area). */}
+          <Card data-tour="orgs-misc-sponsors-edit-events">
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2">
                 Assigned Events
@@ -525,7 +529,8 @@ export default function EditSponsorPage({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting}>
+            {/* data-tour="orgs-misc-sponsors-edit-save": admin-tour anchor (orgs-misc area). */}
+            <Button data-tour="orgs-misc-sponsors-edit-save" type="submit" disabled={submitting}>
               {submitting && (
                 <IconLoader2 className="size-4 animate-spin mr-2" />
               )}

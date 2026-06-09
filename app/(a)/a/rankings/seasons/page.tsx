@@ -167,8 +167,9 @@ export default function SeasonsAdminPage() {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: seasons tour "Seasons management" step.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="seasons-title" className="inline-flex items-center">
             Seasons
             <InfoTip id="rankings.seasons._page" className="ml-1.5" />
           </span>
@@ -177,7 +178,8 @@ export default function SeasonsAdminPage() {
         action={
           // ⓘ sits beside the create button (sibling, not nested).
           <div className="flex items-center gap-1">
-            <Button onClick={() => setCreateOpen(true)}>
+            {/* data-tour anchor: seasons tour "Create a new season" step. */}
+            <Button data-tour="seasons-create" onClick={() => setCreateOpen(true)}>
               <IconPlus className="mr-1.5 size-4" /> Create season
             </Button>
             <InfoTip id="rankings.seasons.create" />
@@ -185,8 +187,9 @@ export default function SeasonsAdminPage() {
         }
       />
 
-      {/* seasons table */}
-      <Card>
+      {/* seasons table
+          data-tour anchor: seasons tour "All seasons table" step. */}
+      <Card data-tour="seasons-list">
         <CardHeader>
           <CardTitle className="text-base">All Seasons</CardTitle>
         </CardHeader>
@@ -197,9 +200,14 @@ export default function SeasonsAdminPage() {
                 <TableHead className="text-foreground">Season</TableHead>
                 <TableHead className="text-foreground">Quarter / Year</TableHead>
                 <TableHead className="text-foreground">Dates</TableHead>
-                <TableHead className="text-foreground">Transfer window</TableHead>
+                {/* data-tour anchor: seasons tour "Transfer window" step. Anchors the column
+                    header (always rendered) so the highlight has a stable target for the
+                    per-row transfer-window state + action. */}
+                <TableHead data-tour="seasons-transfer" className="text-foreground">Transfer window</TableHead>
                 <TableHead className="text-foreground">Status</TableHead>
-                <TableHead className="text-foreground">Evaluation</TableHead>
+                {/* data-tour anchor: seasons tour "Tier evaluation" step (column header is the
+                    stable target for each season's evaluation status + run-evaluation action). */}
+                <TableHead data-tour="seasons-evaluation" className="text-foreground">Evaluation</TableHead>
                 <TableHead className="text-right text-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -294,8 +302,9 @@ export default function SeasonsAdminPage() {
         </CardContent>
       </Card>
 
-      {/* transfer window log */}
-      <Card>
+      {/* transfer window log
+          data-tour anchor: seasons tour "Transfer window log" step. */}
+      <Card data-tour="seasons-log">
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <IconHistory className="size-4 text-muted-foreground" /> Transfer window log

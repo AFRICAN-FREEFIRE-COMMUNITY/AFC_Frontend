@@ -232,7 +232,11 @@ export default function OrgReportsAdminPage() {
       <PageHeader
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         title={
-          <span className="inline-flex items-center">
+          // data-tour="orgs-misc-org-reports-title": admin-tour anchor (orgs-misc area).
+          <span
+            data-tour="orgs-misc-org-reports-title"
+            className="inline-flex items-center"
+          >
             Org Reports
             <InfoTip id="organizations.reports._page" className="ml-1.5" />
           </span>
@@ -244,7 +248,8 @@ export default function OrgReportsAdminPage() {
       <OrgSubNav />
 
       {/* Status filter - server refetch on change (matches the design-requests UX). */}
-      <div className="flex items-center gap-2">
+      {/* data-tour="orgs-misc-org-reports-status-filter": admin-tour anchor (orgs-misc area). */}
+      <div data-tour="orgs-misc-org-reports-status-filter" className="flex items-center gap-2">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="Filter by status" />
@@ -271,7 +276,8 @@ export default function OrgReportsAdminPage() {
       ) : (
         <Card className="pt-2">
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* data-tour="orgs-misc-org-reports-table": admin-tour anchor (orgs-misc area). */}
+            <div className="overflow-x-auto" data-tour="orgs-misc-org-reports-table">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -317,7 +323,9 @@ export default function OrgReportsAdminPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="inline-flex items-center justify-end gap-1">
+                          {/* data-tour="orgs-misc-org-reports-resolve": admin-tour anchor (orgs-misc area). */}
                           <Button
+                            data-tour="orgs-misc-org-reports-resolve"
                             variant="outline"
                             size="sm"
                             onClick={() => openEdit(row)}

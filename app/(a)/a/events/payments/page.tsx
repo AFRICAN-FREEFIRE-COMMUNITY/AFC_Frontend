@@ -208,11 +208,14 @@ export default function EventPaymentsAdminPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
-        <PageHeader
-          back
-          title="Event Payments"
-          description="Registration fees held in escrow for paid events. Release to the organizer or refund the player."
-        />
+        {/* data-tour anchor (payments-title): admin tour "Event payments escrow" step. */}
+        <span data-tour="payments-title" className="inline-flex">
+          <PageHeader
+            back
+            title="Event Payments"
+            description="Registration fees held in escrow for paid events. Release to the organizer or refund the player."
+          />
+        </span>
         <Button
           variant="outline"
           className="w-full md:w-auto"
@@ -224,7 +227,8 @@ export default function EventPaymentsAdminPage() {
       </div>
 
       {/* Summary cards: held vs total. Mirrors the admin events list's summary grid. */}
-      <div className="grid gap-2 grid-cols-1 md:grid-cols-3">
+      {/* data-tour anchor (payments-summary): admin tour "Payment summary cards" step. */}
+      <div data-tour="payments-summary" className="grid gap-2 grid-cols-1 md:grid-cols-3">
         <Card className="hover:shadow-lg transition-shadow gap-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -266,7 +270,8 @@ export default function EventPaymentsAdminPage() {
       </div>
 
       {/* Event filter */}
-      <div className="w-full md:max-w-xs">
+      {/* data-tour anchor (payments-filter): admin tour "Filter by event" step. */}
+      <div data-tour="payments-filter" className="w-full md:max-w-xs">
         <Select value={eventFilter} onValueChange={setEventFilter}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="All events" />
@@ -282,6 +287,10 @@ export default function EventPaymentsAdminPage() {
         </Select>
       </div>
 
+      {/* data-tour anchor (payments-table): admin tour "Payments table" step. Wraps BOTH
+          the empty-state card and the populated table so the anchor is always present
+          regardless of whether any payments exist. */}
+      <div data-tour="payments-table">
       {payments.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center text-muted-foreground">
@@ -380,6 +389,7 @@ export default function EventPaymentsAdminPage() {
           </CardContent>
         </Card>
       )}
+      </div>
 
       {/* Confirm dialog - shared by Release + Refund; copy switches on the action type. */}
       <AlertDialog

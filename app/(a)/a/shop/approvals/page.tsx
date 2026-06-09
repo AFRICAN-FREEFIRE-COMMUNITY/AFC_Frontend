@@ -158,14 +158,17 @@ export default function ProductApprovalsPage() {
         description="Review products vendors have submitted. Approve to let them go live, or reject with a reason the vendor can act on."
       />
 
-      <Card>
+      <Card data-tour="shop-approvals-queue-table">
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader text="Loading the approval queue..." />
             </div>
           ) : products.length === 0 ? (
-            <p className="py-16 text-center text-sm text-muted-foreground">
+            <p
+              className="py-16 text-center text-sm text-muted-foreground"
+              data-tour="shop-approvals-empty-state"
+            >
               The approval queue is empty. Submitted vendor products will appear
               here.
             </p>
@@ -225,6 +228,7 @@ export default function ProductApprovalsPage() {
                           size="sm"
                           disabled={approveBusyId === product.id}
                           onClick={() => handleApprove(product)}
+                          data-tour="shop-approvals-approve-button"
                         >
                           {approveBusyId === product.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -242,6 +246,7 @@ export default function ProductApprovalsPage() {
                             setRejectTarget(product);
                             setRejectReason("");
                           }}
+                          data-tour="shop-approvals-reject-button"
                         >
                           <IconX className="mr-1 h-4 w-4" /> Reject
                         </Button>
@@ -283,6 +288,7 @@ export default function ProductApprovalsPage() {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={4}
+              data-tour="shop-approvals-reject-reason"
             />
           </div>
 

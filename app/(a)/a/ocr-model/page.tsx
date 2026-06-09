@@ -339,7 +339,10 @@ export default function OcrModelPage() {
       />
 
       {/* ── Headline scorecards: the numbers an operator checks first. ───────────── */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+      <div
+        className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5"
+        data-tour="settings-misc-ocr-headline"
+      >
         {/* Active model version + when it was promoted (or the Gemini-only fallback). */}
         <StatCard
           icon={<IconCpu className="size-5" />}
@@ -406,7 +409,7 @@ export default function OcrModelPage() {
 
       {/* ── Detail under pill Tabs (keeps the surface scannable as it grows). ──────── */}
       <Tabs defaultValue="performance" className="w-full">
-        <TabsList className="h-9">
+        <TabsList className="h-9" data-tour="settings-misc-ocr-tabs">
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="dataset">Dataset</TabsTrigger>
           <TabsTrigger value="history">Retrain history</TabsTrigger>
@@ -784,6 +787,7 @@ export default function OcrModelPage() {
                 onClick={handleDownload}
                 disabled={downloading}
                 className="w-full sm:w-auto"
+                data-tour="settings-misc-ocr-download"
               >
                 <IconDownload className="mr-2 size-4" />
                 {downloading ? "Preparing ZIP..." : "Download training dataset"}
@@ -881,6 +885,7 @@ export default function OcrModelPage() {
                     onChange={(e) => setPromoteVersion(e.target.value)}
                     placeholder="e.g. local_student_v4"
                     className="h-9 text-sm sm:max-w-xs"
+                    data-tour="settings-misc-ocr-promote"
                   />
                   <Button
                     onClick={handlePromote}
@@ -903,6 +908,7 @@ export default function OcrModelPage() {
                   className="w-full sm:w-auto"
                   disabled={!hasModel || rollingBack}
                   onClick={() => setRollbackOpen(true)}
+                  data-tour="settings-misc-ocr-rollback"
                 >
                   <IconArrowBackUp className="mr-2 size-4" />
                   Roll back

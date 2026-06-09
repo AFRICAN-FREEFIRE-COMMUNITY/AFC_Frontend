@@ -879,7 +879,10 @@ export default function Page() {
         }
       />
       {/* Main Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2 mb-2">
+      <div
+        className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2 mb-2"
+        data-tour="settings-misc-votes-metrics"
+      >
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="line-clamp-1">Total Votes Cast</CardTitle>
@@ -987,12 +990,21 @@ export default function Page() {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <ScrollArea>
-          <TabsList className="w-full">
+          <TabsList className="w-full" data-tour="settings-misc-votes-tabs">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="sections">Sections</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
+            <TabsTrigger value="sections" data-tour="settings-misc-votes-sections">
+              Sections
+            </TabsTrigger>
+            <TabsTrigger
+              value="categories"
+              data-tour="settings-misc-votes-categories"
+            >
+              Categories
+            </TabsTrigger>
             <TabsTrigger value="nominees">Nominees</TabsTrigger>
-            <TabsTrigger value="winners">Winners</TabsTrigger>
+            <TabsTrigger value="winners" data-tour="settings-misc-votes-winners">
+              Winners
+            </TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="top-performers">Top Performers</TabsTrigger>
             {/* <TabsTrigger value="activities">Activities</TabsTrigger> */}

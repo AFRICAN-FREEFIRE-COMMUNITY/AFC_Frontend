@@ -230,8 +230,10 @@ const page = () => {
         />
         {/* ⓘ sits beside the create action (sibling of the button). */}
         <div className="flex w-full items-center gap-1 md:w-auto">
+          {/* data-tour="orgs-misc-news-create": admin-tour anchor (orgs-misc area).
+              On the asChild Link so the attribute lands on the rendered anchor element. */}
           <Button className="w-full md:w-auto" asChild>
-            <Link href="/a/news/create">
+            <Link href="/a/news/create" data-tour="orgs-misc-news-create">
               <IconCirclePlus />
               Create New
             </Link>
@@ -245,7 +247,9 @@ const page = () => {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            {/* data-tour="orgs-misc-news-search": admin-tour anchor (orgs-misc area). */}
             <Input
+              data-tour="orgs-misc-news-search"
               type="search"
               placeholder="Search news by title, content, or author..."
               value={searchQuery}
@@ -256,7 +260,9 @@ const page = () => {
           <div className="flex-shrink-0">
             <div className="relative">
               <IconCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              {/* data-tour="orgs-misc-news-date-filter": admin-tour anchor (orgs-misc area). */}
               <Input
+                data-tour="orgs-misc-news-date-filter"
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
@@ -269,7 +275,11 @@ const page = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
             <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-full md:w-[200px]">
+              {/* data-tour="orgs-misc-news-category-filter": admin-tour anchor (orgs-misc area). */}
+              <SelectTrigger
+                data-tour="orgs-misc-news-category-filter"
+                className="w-full md:w-[200px]"
+              >
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -282,7 +292,11 @@ const page = () => {
             </Select>
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full md:w-[150px]">
+              {/* data-tour="orgs-misc-news-status-filter": admin-tour anchor (orgs-misc area). */}
+              <SelectTrigger
+                data-tour="orgs-misc-news-status-filter"
+                className="w-full md:w-[150px]"
+              >
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -322,7 +336,9 @@ const page = () => {
                     {filterStatus}
                   </Badge>
                 )}
+                {/* data-tour="orgs-misc-news-clear-filters": admin-tour anchor (orgs-misc area). */}
                 <Button
+                  data-tour="orgs-misc-news-clear-filters"
                   variant="ghost"
                   size="sm"
                   onClick={clearFilters}
@@ -367,7 +383,11 @@ const page = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2">
+          {/* data-tour="orgs-misc-news-cards": admin-tour anchor (orgs-misc area). */}
+          <div
+            data-tour="orgs-misc-news-cards"
+            className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2"
+          >
             {paginatedNews.map((newsDetails: any) => (
               <Card
                 key={newsDetails.news_id}

@@ -292,11 +292,15 @@ function countDirty(c: ScoringConfig, base: ScoringConfig): number {
 
 /* ───────────────────────────────────────────────────── small building blocks */
 
-function StatCard({ icon, title, value, sub, tone }: {
+// `anchor` (optional) attaches a data-tour anchor to the card root so the scoring-config
+// tour can target individual status tiles (active version / unsaved changes) without
+// wrapping them in an extra element that would break the responsive grid.
+function StatCard({ icon, title, value, sub, tone, anchor }: {
   icon: React.ReactNode; title: string; value: React.ReactNode; sub?: string; tone?: string;
+  anchor?: string;
 }) {
   return (
-    <Card className="gap-1 transition-shadow hover:shadow-lg">
+    <Card data-tour={anchor} className="gap-1 transition-shadow hover:shadow-lg">
       <CardHeader className="flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <span className={cn("text-muted-foreground", tone)}>{icon}</span>
@@ -546,8 +550,9 @@ export default function ScoringConfigPage() {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: scoring-config tour "Scoring Configuration page" step.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="scoring-config-title" className="inline-flex items-center">
             Scoring Configuration
             <InfoTip id="rankings.scoring._page" className="ml-1.5" />
           </span>
@@ -557,13 +562,15 @@ export default function ScoringConfigPage() {
           // Each action ⓘ is a SIBLING of its button (not nested) - Reset stages defaults, Save drafts a version.
           <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
             <div className="flex items-center gap-1">
-              <Button variant="outline" className="w-full sm:w-auto" onClick={resetDefaults}>
+              {/* data-tour anchor: scoring-config tour "Reset to spec defaults" step. */}
+              <Button data-tour="scoring-config-reset" variant="outline" className="w-full sm:w-auto" onClick={resetDefaults}>
                 <IconRotateClockwise2 className="mr-1.5 size-4" /> Reset to spec defaults
               </Button>
               <InfoTip id="rankings.scoring.reset_defaults" />
             </div>
             <div className="flex items-center gap-1">
-              <Button className="w-full sm:w-auto" onClick={openSave} disabled={dirtyCount === 0}>
+              {/* data-tour anchor: scoring-config tour "Save changes" step. */}
+              <Button data-tour="scoring-config-save" className="w-full sm:w-auto" onClick={openSave} disabled={dirtyCount === 0}>
                 <IconDeviceFloppy className="mr-1.5 size-4" /> Save changes
                 {dirtyCount > 0 && (
                   <Badge variant="outline" className="ml-1 rounded-full border-background/40 bg-background/20 px-1.5 py-0 text-[10px] tabular-nums">
@@ -579,7 +586,9 @@ export default function ScoringConfigPage() {
 
       {/* status strip */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
+        {/* data-tour anchor: scoring-config tour "Active config version" step. */}
         <StatCard
+          anchor="scoring-config-version"
           icon={<IconAdjustmentsBolt className="size-4" />}
           title="Active config version" value={activeVersion}
           sub="Applied to the current season" tone="text-primary"
@@ -589,7 +598,9 @@ export default function ScoringConfigPage() {
           title="Last edited" value={lastEdited}
           sub={`by ${lastEditedBy}`}
         />
+        {/* data-tour anchor: scoring-config tour "Unsaved changes" step. */}
         <StatCard
+          anchor="scoring-config-unsaved"
           icon={<IconAlertTriangle className="size-4" />}
           title="Unsaved changes" value={dirtyCount}
           sub={dirtyCount > 0 ? "fields differ from saved" : "in sync with saved version"}
@@ -613,8 +624,10 @@ export default function ScoringConfigPage() {
         </span>
       </p>
 
-      {/* two-column responsive grid of groups */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      {/* two-column responsive grid of groups
+          data-tour anchor: scoring-config tour "Scoring brackets" step (the editable
+          compression scales for kills / placement / prize money / social media live here). */}
+      <div data-tour="scoring-config-scales" className="grid grid-cols-1 gap-4 xl:grid-cols-2">
 
         {/* §4 Tier multipliers */}
         <Card>

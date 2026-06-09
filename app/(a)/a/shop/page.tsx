@@ -201,7 +201,7 @@ export default function AdminShopPage() {
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
         {/* Your Orders Card */}
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2" data-tour="shop-dashboard-orders-card">
           <CardHeader>
             <CardTitle>Your Orders</CardTitle>
             <p className="text-sm text-muted-foreground">
@@ -257,7 +257,7 @@ export default function AdminShopPage() {
           cards above and below, so these read as the same surface. */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {/* Manage Vendors → /a/shop/vendors (lib/marketplaceAdmin.ts cluster A) */}
-        <Card>
+        <Card data-tour="shop-dashboard-vendors-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <IconBuildingStore className="h-4 w-4 text-muted-foreground" />
@@ -279,7 +279,7 @@ export default function AdminShopPage() {
         </Card>
 
         {/* Product Approvals → /a/shop/approvals (lib/marketplaceAdmin.ts cluster B) */}
-        <Card>
+        <Card data-tour="shop-dashboard-approvals-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <IconClipboardCheck className="h-4 w-4 text-muted-foreground" />
@@ -320,6 +320,7 @@ export default function AdminShopPage() {
                 <Tabs
                   value={orderFilter}
                   onValueChange={(v) => setOrderFilter(v as OrderRange)}
+                  data-tour="shop-dashboard-orders-filter"
                 >
                   <TabsList>
                     <TabsTrigger value="day">Day</TabsTrigger>
@@ -336,7 +337,7 @@ export default function AdminShopPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
+              <Table data-tour="shop-dashboard-orders-table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order</TableHead>
@@ -396,7 +397,7 @@ export default function AdminShopPage() {
         {/* Sidebar Cards */}
         <div className="space-y-2">
           {/* Current Stock Status */}
-          <Card>
+          <Card data-tour="shop-dashboard-stock-status">
             <CardHeader>
               {/* Section ⓘ inline with the stock-status heading. */}
               <CardTitle className="flex items-center">

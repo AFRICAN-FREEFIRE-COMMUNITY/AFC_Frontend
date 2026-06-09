@@ -675,8 +675,9 @@ export default function OverridesAndBansPage() {
       <PageHeader
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // data-tour anchor: overrides tour "Manual tier and score overrides" step.
         title={
-          <span className="inline-flex items-center">
+          <span data-tour="overrides-title" className="inline-flex items-center">
             Overrides & Bans
             <InfoTip id="rankings.overrides._page" className="ml-1.5" />
           </span>
@@ -732,7 +733,8 @@ export default function OverridesAndBansPage() {
             </button>
           ))}
         </div>
-        <div className="relative w-full sm:w-64">
+        {/* data-tour anchor: overrides tour "Find team or player" step. */}
+        <div data-tour="overrides-search" className="relative w-full sm:w-64">
           <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
@@ -746,7 +748,9 @@ export default function OverridesAndBansPage() {
       {/* TEAMS */}
       {tab === "teams" && (
         <>
-          <Card>
+          {/* data-tour anchor: overrides tour "Teams and players table" step. Teams is the
+              default tab, so this Card is the stable target for the entity list step. */}
+          <Card data-tour="overrides-list">
             <CardHeader>
               <CardTitle className="text-base">Teams</CardTitle>
             </CardHeader>
@@ -813,13 +817,19 @@ export default function OverridesAndBansPage() {
                         <TableCell className="text-right">
                           <div className="flex flex-wrap items-center justify-end gap-2">
                             {/* Each action ⓘ is a SIBLING of its button - explains what the manual correction does. */}
-                            <Button size="sm" variant="outline" onClick={() => setOverrideTeam(t)}>
+                            {/* data-tour anchor: overrides tour "Override tier" step. Anchored on
+                                the first row's (always-rendered) override button as the
+                                representative target for the per-row tier override action. */}
+                            <Button data-tour={i === 0 ? "overrides-tier" : undefined} size="sm" variant="outline" onClick={() => setOverrideTeam(t)}>
                               <IconGavel className="mr-1 size-3.5" /> Override tier
                             </Button>
                             <InfoTip id="rankings.overrides.override_tier" />
                             {!t.is_zeroed && (
                               <>
+                                {/* data-tour anchor: overrides tour "Deduct points" step
+                                    (representative first non-zeroed row's deduct button). */}
                                 <Button
+                                  data-tour={i === 0 ? "overrides-deduct" : undefined}
                                   size="sm"
                                   variant="outline"
                                   className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 hover:text-orange-400"
@@ -852,7 +862,10 @@ export default function OverridesAndBansPage() {
                               </>
                             ) : (
                               <>
+                                {/* data-tour anchor: overrides tour "Ban or zero out" step
+                                    (representative first non-zeroed row's ban-zero button). */}
                                 <Button
+                                  data-tour={i === 0 ? "overrides-ban" : undefined}
                                   size="sm"
                                   variant="outline"
                                   className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
