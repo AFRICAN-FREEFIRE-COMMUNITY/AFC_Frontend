@@ -16,6 +16,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { InfoTip } from "@/components/ui/info-tip";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import {
   Pagination,
@@ -74,11 +75,10 @@ export default function SponsorsAdminPage() {
     setPage(1);
     const q = search.toLowerCase().trim();
     if (!q) return sponsors;
-    return sponsors.filter(
-      (s) =>
-        s.full_name.toLowerCase().includes(q) ||
-        s.username.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q),
+    // Use the shared matchesSearch helper so search is punctuation, space, and accent
+    // insensitive across name/username/email (e.g. a sponsor named "V-E" is found by typing "ve").
+    return sponsors.filter((s) =>
+      matchesSearch([s.full_name, s.username, s.email], search),
     );
   }, [sponsors, search]);
 

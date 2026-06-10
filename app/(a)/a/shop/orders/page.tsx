@@ -39,6 +39,7 @@ import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { formatDate, formatMoneyInput } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import {
   Tooltip,
   TooltipContent,
@@ -100,17 +101,25 @@ export default function page() {
 
   const filteredOrders = orders.filter((order) => {
     const firstProduct = order.items[0]?.product || "";
-    const matchesSearch =
-      order.order_id.toString().includes(searchQuery) ||
-      order.username.toString().includes(searchQuery) ||
-      firstProduct.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.user_id.toString().includes(searchQuery);
+    // Shared matchesSearch() so order-id / user / product search is punctuation-
+    // and font-insensitive (e.g. typing "ve" finds a "V-E" product name). All four
+    // searchable fields collapse into one array haystack, matched against the raw
+    // searchQuery state (numbers stringified since the helper takes strings).
+    const matchesText = matchesSearch(
+      [
+        order.order_id?.toString(),
+        order.username?.toString(),
+        firstProduct,
+        order.user_id?.toString(),
+      ],
+      searchQuery,
+    );
 
     const matchesTab =
       activeTab === "all" ||
       order.status.toLowerCase() === activeTab.toLowerCase();
 
-    return matchesSearch && matchesTab;
+    return matchesText && matchesTab;
   });
 
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);

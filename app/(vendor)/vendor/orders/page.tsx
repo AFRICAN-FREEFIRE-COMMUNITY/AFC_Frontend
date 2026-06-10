@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/table";
 import { IconPackage, IconSearch } from "@tabler/icons-react";
 import { formatDate } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import { VendorOrder } from "@/lib/vendor";
 import { useVendor } from "../_components/VendorContext";
 import { StateBadge } from "../_components/StateBadge";
@@ -84,21 +85,21 @@ export default function VendorOrdersPage() {
 
   // ── Client-side filter over the loaded queue ──
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     return orders.filter((order) => {
       // State filter.
       if (stateFilter !== "all" && order.fulfilment_state !== stateFilter)
         return false;
-      // Text search across buyer name, order id, and item names.
-      if (!q) return true;
-      const haystack = [
-        order.buyer_name,
-        String(order.order_id),
-        ...order.items.map((it) => it.name),
-      ]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(q);
+      // Text search across buyer name, order id, and item names. Uses the shared
+      // matchesSearch() so the box is punctuation/space/accent/fancy-font insensitive
+      // (e.g. typing "ve" finds "V-E"), consistent with every other AFC search box.
+      return matchesSearch(
+        [
+          order.buyer_name,
+          String(order.order_id),
+          ...order.items.map((it) => it.name),
+        ],
+        search,
+      );
     });
   }, [orders, search, stateFilter]);
 

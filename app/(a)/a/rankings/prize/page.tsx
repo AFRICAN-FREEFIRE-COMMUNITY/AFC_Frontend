@@ -21,6 +21,7 @@ import { FullLoader } from "@/components/Loader";
 import { ngn } from "@/lib/rankingsMock";
 import { rankingsApi, Season } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
+import { matchesSearch } from "@/lib/search";
 import {
   IconCoin, IconPlus, IconPencil, IconTrash, IconCalendar, IconCurrencyNaira,
 } from "@tabler/icons-react";
@@ -149,20 +150,25 @@ export default function PrizeMoneyPage() {
     }
   }
 
-  // case-insensitive substring match by name, capped at MATCH_LIMIT
+  // Match by name, capped at MATCH_LIMIT. Uses the shared matchesSearch helper so the
+  // event picker is punctuation/accent/fancy-font insensitive (typing "ve" finds "V-E"),
+  // consistent with every other search box on the site.
   const eventMatches = useMemo(() => {
-    const q = addEventText.trim().toLowerCase();
+    const q = addEventText.trim();
     if (!q) return eventOptions.slice(0, MATCH_LIMIT);
     return eventOptions
-      .filter((e) => e.event_name?.toLowerCase().includes(q))
+      .filter((e) => matchesSearch(e.event_name, addEventText))
       .slice(0, MATCH_LIMIT);
   }, [addEventText, eventOptions]);
 
+  // Match by name, capped at MATCH_LIMIT. Uses the shared matchesSearch helper so the
+  // team picker is punctuation/accent/fancy-font insensitive (typing "ve" finds "V-E"),
+  // consistent with every other search box on the site.
   const teamMatches = useMemo(() => {
-    const q = addTeamText.trim().toLowerCase();
+    const q = addTeamText.trim();
     if (!q) return teamOptions.slice(0, MATCH_LIMIT);
     return teamOptions
-      .filter((t) => t.team_name?.toLowerCase().includes(q))
+      .filter((t) => matchesSearch(t.team_name, addTeamText))
       .slice(0, MATCH_LIMIT);
   }, [addTeamText, teamOptions]);
 

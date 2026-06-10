@@ -28,6 +28,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import { InfoTip } from "@/components/ui/info-tip";
 
 // Backend (afc_rankings/admin_ghost.py serialize_ghost) can return any of these four;
@@ -284,13 +285,13 @@ export default function GhostTeamsAdminPage() {
   }), [rows]);
 
   // server already filters by tab (claim_status); the search box stays client-side.
+  // Match via the shared matchesSearch helper (lib/search.ts): punctuation/space/accent
+  // insensitive and folds stylized "fancy font" unicode, so a query like "ve" finds a ghost
+  // team literally named "V-E". One call spans all three searchable fields.
   const visible = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    if (!needle) return rows;
+    if (!q.trim()) return rows;
     return rows.filter((r) =>
-      r.team_name.toLowerCase().includes(needle) ||
-      (r.country ?? "").toLowerCase().includes(needle) ||
-      (r.external_id ?? "").toLowerCase().includes(needle));
+      matchesSearch([r.team_name, r.country, r.external_id], q));
   }, [rows, q]);
 
   // ---- live writes ----

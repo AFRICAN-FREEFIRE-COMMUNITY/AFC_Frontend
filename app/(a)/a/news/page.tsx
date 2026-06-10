@@ -38,6 +38,7 @@ import {
   IconThumbUp,
 } from "@tabler/icons-react";
 import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
+import { matchesSearch } from "@/lib/search";
 import {
   Tooltip,
   TooltipContent,
@@ -112,20 +113,18 @@ const page = () => {
       );
     }
 
-    // Filter by search query
+    // Filter by search query.
+    // matchesSearch (shared @/lib/search) replaces the old per-field .toLowerCase().includes() chain:
+    // it is punctuation/space/accent-insensitive and folds stylized "fancy font" unicode, so a query
+    // like "ve" still finds titles/authors written as "V-E" or "Ｖ-Ｅ". One array haystack covers all
+    // three fields (title, extracted Tiptap content text, author) in a single order-independent match.
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((item: any) => {
-        const title = item.news_title?.toLowerCase() || "";
-        const content = extractTiptapText(item.content)?.toLowerCase() || "";
-        const author = item.author?.toLowerCase() || "";
-
-        return (
-          title.includes(query) ||
-          content.includes(query) ||
-          author.includes(query)
-        );
-      });
+      filtered = filtered.filter((item: any) =>
+        matchesSearch(
+          [item.news_title, extractTiptapText(item.content), item.author],
+          searchQuery,
+        ),
+      );
     }
 
     // Filter by date

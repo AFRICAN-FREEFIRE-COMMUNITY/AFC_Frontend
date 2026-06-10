@@ -24,6 +24,7 @@ import { Search, ShoppingCart, Loader2, Package, Truck } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -170,9 +171,12 @@ export default function ShopClient() {
         : products.filter((product) => product.type === activeCategory);
 
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+      // Use the shared matchesSearch helper (lib/search.ts) so the product-name search
+      // is punctuation, accent, and fancy-font insensitive (a product named "V-E" is found
+      // by typing "ve"), matching every other "Search ..." box on the site. An empty query
+      // already short-circuits above, so this only runs when the user has typed something.
       filtered = filtered.filter((product) =>
-        product.name.toLowerCase().includes(query),
+        matchesSearch(product.name, searchQuery),
       );
     }
     return filtered;

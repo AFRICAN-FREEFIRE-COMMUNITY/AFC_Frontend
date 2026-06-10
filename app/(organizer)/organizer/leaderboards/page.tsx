@@ -58,6 +58,7 @@ import {
 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../_components/OrganizerContext";
 // Standalone (event-less) leaderboards section — shared with the admin surface, scoped here to this
@@ -200,14 +201,17 @@ export default function OrganizerLeaderboardsPage() {
   }, [leaderboards]);
 
   // ── Search filter (name / type / status), mirroring the admin list page. ──
+  // Uses the shared matchesSearch() helper (lib/search.ts) so the search box is
+  // punctuation/space/accent-insensitive and folds stylized "fancy font" unicode,
+  // matching every other "Search ..." box on the site. The three fields are passed
+  // as one array haystack, replacing the old OR-chain of .toLowerCase().includes().
   const filteredEvents = useMemo(() => {
-    const q = searchQuery.toLowerCase();
-    if (!q) return events;
-    return events.filter(
-      (e) =>
-        e.event_name.toLowerCase().includes(q) ||
-        e.competition_type.toLowerCase().includes(q) ||
-        e.event_status.toLowerCase().includes(q),
+    if (!searchQuery) return events;
+    return events.filter((e) =>
+      matchesSearch(
+        [e.event_name, e.competition_type, e.event_status],
+        searchQuery,
+      ),
     );
   }, [events, searchQuery]);
 

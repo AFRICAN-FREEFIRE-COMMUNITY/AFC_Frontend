@@ -28,6 +28,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import {
   Pagination,
@@ -155,16 +156,16 @@ export default function SponsorDashboardPage() {
   }, [search, statusFilter]);
 
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
     return players.filter((p) => {
-      const matchesSearch =
-        !q ||
-        p.username.toLowerCase().includes(q) ||
-        (p.team_name ?? "").toLowerCase().includes(q) ||
-        (p.user_id_from_sponsor ?? "").toLowerCase().includes(q) ||
-        p.event_name.toLowerCase().includes(q);
+      // Use the shared matchesSearch helper (punctuation/space/accent insensitive,
+      // folds stylized "fancy font" names) so a query like "ve" finds a team named
+      // "V-E" across the username, team, sponsor ID, and event fields at once.
+      const textMatches = matchesSearch(
+        [p.username, p.team_name, p.user_id_from_sponsor, p.event_name],
+        search,
+      );
       const matchesStatus = statusFilter === "all" || p.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      return textMatches && matchesStatus;
     });
   }, [players, search, statusFilter]);
 

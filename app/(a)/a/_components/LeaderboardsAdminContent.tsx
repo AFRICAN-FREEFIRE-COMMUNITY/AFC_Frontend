@@ -58,6 +58,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ITEMS_PER_PAGE } from "@/constants";
+import { matchesSearch } from "@/lib/search";
 import { DownloadLeaderboardButton } from "../leaderboards/_components/DownloadLeaderboardButton";
 import { InfoTip } from "@/components/ui/info-tip";
 // Standalone (event-less) leaderboards section — the shared list + "Create standalone" button.
@@ -138,23 +139,29 @@ export const LeaderboardsAdminContent = () => {
     setEventsPage(1);
   }, [searchQuery]);
 
-  const filteredEvents = events.filter((event) => {
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    return (
-      event.event_name.toLowerCase().includes(lowerCaseQuery) ||
-      event.competition_type.toLowerCase().includes(lowerCaseQuery) ||
-      event.event_status.toLowerCase().includes(lowerCaseQuery)
-    );
-  });
+  // Event search: route through the shared matchesSearch helper so the box is
+  // punctuation/space/accent-insensitive and folds stylized "fancy font" names
+  // (matches the rest of the site). Single call over all three fields (name,
+  // competition_type, status) replaces the old OR-chain of .toLowerCase().includes().
+  const filteredEvents = events.filter((event) =>
+    matchesSearch(
+      [event.event_name, event.competition_type, event.event_status],
+      searchQuery,
+    ),
+  );
 
-  const filteredLeaderboards = leaderboards.filter((leaderboard) => {
-    const lowerCaseQuery = searchLeaderboardQuery.toLowerCase();
-    return (
-      leaderboard.leaderboard_name.toLowerCase().includes(lowerCaseQuery) ||
-      leaderboard.event.event_name.toLowerCase().includes(lowerCaseQuery) ||
-      leaderboard.group.group_name.toLowerCase().includes(lowerCaseQuery)
-    );
-  });
+  // Leaderboard search: same shared matcher, across leaderboard name + parent
+  // event name + group name, so the search behaves like every other list page.
+  const filteredLeaderboards = leaderboards.filter((leaderboard) =>
+    matchesSearch(
+      [
+        leaderboard.leaderboard_name,
+        leaderboard.event.event_name,
+        leaderboard.group.group_name,
+      ],
+      searchLeaderboardQuery,
+    ),
+  );
 
   // ── Breakdown of leaderboards by parent event's competition_type ──
   // Each leaderboard row from GET /events/get-all-leaderboards/ carries its event's

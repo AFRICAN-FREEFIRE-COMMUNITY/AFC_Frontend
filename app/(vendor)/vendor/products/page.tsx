@@ -63,6 +63,7 @@ import {
   IconShoppingBag,
 } from "@tabler/icons-react";
 import { vendorProductApi, VendorProduct } from "@/lib/vendor";
+import { matchesSearch } from "@/lib/search";
 import { ApprovalBadge } from "../_components/ApprovalBadge";
 import { ProductFormDialog } from "./_components/ProductFormDialog";
 
@@ -123,15 +124,17 @@ export default function VendorProductsPage() {
 
   // ── Client-side filter over the loaded list ──
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     return products.filter((p) => {
       if (statusFilter !== "all" && p.approval_status !== statusFilter)
         return false;
-      if (!q) return true;
-      const haystack = [p.name, p.type, ...p.variants.map((v) => v.sku)]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(q);
+      // Text search over name + category + every variant SKU via the shared
+      // matchesSearch() helper (lib/search.ts): punctuation/space/accent-insensitive
+      // and fancy-font folding, so a SKU like "V-E" or a stylized name still matches.
+      // matchesSearch returns true for an empty query, so it shows all when blank.
+      return matchesSearch(
+        [p.name, p.type, ...p.variants.map((v) => v.sku)],
+        search,
+      );
     });
   }, [products, search, statusFilter]);
 

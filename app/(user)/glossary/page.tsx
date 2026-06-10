@@ -33,6 +33,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { matchesSearch } from "@/lib/search";
 import { IconSearch, IconMoodEmpty } from "@tabler/icons-react";
 import {
   GLOSSARY,
@@ -54,19 +55,16 @@ export default function GlossaryPage() {
   // Applies the category pill first, then the case-insensitive text search.
   // Recomputed only when query or filter change (cheap over 60 terms).
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-
     return GLOSSARY.filter((t) => {
       // Category gate: "All" lets everything through.
       if (filter !== "All" && t.category !== filter) return false;
 
-      // Text gate: empty query matches all; otherwise match name/alias/definition.
-      if (!q) return true;
-      return (
-        t.term.toLowerCase().includes(q) ||
-        (t.also?.toLowerCase().includes(q) ?? false) ||
-        t.definition.toLowerCase().includes(q)
-      );
+      // Text gate: shared matchesSearch over name/alias/definition. Using the
+      // shared helper (not raw .includes) makes search punctuation- and
+      // fancy-font-insensitive (so "ve" finds "V-E") and handles the empty
+      // query by returning true. matchesSearch re-normalizes, so passing the
+      // raw `query` state is fine.
+      return matchesSearch([t.term, t.also, t.definition], query);
     });
   }, [query, filter]);
 

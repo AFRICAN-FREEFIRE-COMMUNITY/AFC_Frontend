@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { formatDate } from "@/lib/utils";
 import { IconCalendarEvent, IconUser } from "@tabler/icons-react";
 import axios from "axios";
@@ -58,9 +59,10 @@ const DraftedEventsTable = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filtered = drafts.filter((d) =>
-    d.event_name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  // Use the shared matchesSearch helper so the drafts search is punctuation and
+  // fancy-font insensitive (so a query like "ve" finds an event literally named
+  // "V-E"), matching every other "Search ..." box on the site.
+  const filtered = drafts.filter((d) => matchesSearch(d.event_name, searchQuery));
 
   useEffect(() => {
     setCurrentPage(1);

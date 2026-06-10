@@ -34,16 +34,20 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Header } from "@/app/(user)/_components/Header";
 import { AFC_RULES_DATA } from "@/constants/rules";
+import { matchesSearch } from "@/lib/search";
 
 const RulesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredRules = AFC_RULES_DATA.filter(
-    (cat) =>
-      cat.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cat.rules.some((r) =>
-        r.title.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+  // Use the shared matchesSearch helper (punctuation/space/accent-insensitive, folds stylized
+  // fancy-font unicode) so the rules search behaves like every other "Search ..." box on the site.
+  // The OR-chain (match the category OR any rule title) collapses into a single multi-field haystack:
+  // the category plus all of its rule titles, so a query that hits any one of them keeps the section.
+  const filteredRules = AFC_RULES_DATA.filter((cat) =>
+    matchesSearch(
+      [cat.category, ...cat.rules.map((r) => r.title)],
+      searchQuery
+    )
   );
 
   return (

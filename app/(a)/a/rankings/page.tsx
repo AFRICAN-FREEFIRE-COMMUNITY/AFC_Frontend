@@ -46,6 +46,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import { InfoTip } from "@/components/ui/info-tip";
 import type { HelpId } from "@/lib/help-content";
 
@@ -166,7 +167,9 @@ export default function AdminRankingsPage() {
   }, [teams]);
   const total = teams.length || 1;
 
-  const filtered = teams.filter((t) => t.team_name.toLowerCase().includes(q.toLowerCase()));
+  // Use the shared matchesSearch helper so the teams box is punctuation/font-insensitive (a team
+  // literally named "V-E" is found by typing "ve", stylized in-game names fold too).
+  const filtered = teams.filter((t) => matchesSearch(t.team_name, q));
   const transferOpen = false; // derived from window dates in Phase 2
   const belowFloor = teams.filter((t) => !t.meets_participation_floor).length;
 
@@ -851,11 +854,13 @@ function RecalcEntityDialog({
   };
 
   const source = entityType === "team" ? teamOptions : playerOptions;
-  // case-insensitive substring filter, capped at ~8 matches.
+  // Filter the already-loaded team/player list via the shared matchesSearch helper (punctuation +
+  // fancy-font insensitive, matches the rest of the site), capped at ~8 matches. Empty query still
+  // shows nothing in this typeahead, so we keep the explicit early-return before filtering.
   const matches = useMemo(() => {
-    const term = query.trim().toLowerCase();
+    const term = query.trim();
     if (!term) return [];
-    return source.filter((o) => o.name.toLowerCase().includes(term)).slice(0, 8);
+    return source.filter((o) => matchesSearch(o.name, term)).slice(0, 8);
   }, [source, query]);
 
   // the input is "dirty" once it diverges from the resolved name - show the dropdown then.

@@ -503,6 +503,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IconSearch, IconLoader2 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface TournamentMember {
@@ -673,8 +674,12 @@ export function SelectTeamsStep({
     );
   };
 
+  // Use the shared matchesSearch helper so the team-name search box is punctuation /
+  // accent / fancy-font insensitive (e.g. typing "ve" finds "V-E"), matching every other
+  // search box on the site. Match against team_name and team_tag (tag may be null, which
+  // matchesSearch ignores) so users can also find a team by its short tag.
   const filteredTeams = teams.filter((team) =>
-    team.team_name.toLowerCase().includes(searchQuery.toLowerCase()),
+    matchesSearch([team.team_name, team.team_tag], searchQuery),
   );
 
   const handleContinue = () => {

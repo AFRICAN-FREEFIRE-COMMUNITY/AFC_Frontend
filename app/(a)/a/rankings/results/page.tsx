@@ -30,6 +30,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -327,7 +328,9 @@ export default function ResultMarkersPage() {
   // ── filtering ──
   const filtered = useMemo(() => {
     return tournaments.filter((t) => {
-      if (q && !t.name.toLowerCase().includes(q.toLowerCase())) return false;
+      // Text search uses the shared matchesSearch (punctuation / accent / fancy-font
+      // insensitive) so a stylized event name still matches a normal-keyboard query.
+      if (q && !matchesSearch(t.name, q)) return false;
       if (tierFilter !== "all" && t.tier !== tierFilter) return false;
       const s = statusOf(t);
       if (statusFilter === "counting" && s !== "counting") return false;
@@ -341,10 +344,14 @@ export default function ResultMarkersPage() {
   // substring), cap at 8. Hidden once an option is resolved and the text matches it exactly.
   const addMatches = useMemo(() => {
     const source = addType === "team" ? teamOptions : playerOptions;
-    const query = addQuery.trim().toLowerCase();
+    const query = addQuery.trim();
+    // Keep this empty-query guard: matchesSearch returns true for an empty query, but the
+    // picker should show nothing until the admin actually types a name.
     if (!query) return [];
+    // Match on the shared helper (punctuation / accent / fancy-font insensitive) so a
+    // stylized team / player name resolves from a normal-keyboard query.
     return source
-      .filter((o) => o.name.toLowerCase().includes(query))
+      .filter((o) => matchesSearch(o.name, query))
       .slice(0, 8);
   }, [addType, addQuery, teamOptions, playerOptions]);
 

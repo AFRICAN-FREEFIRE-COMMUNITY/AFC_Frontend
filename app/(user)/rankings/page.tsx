@@ -27,6 +27,7 @@ import {
   IconClock,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import { toast } from "sonner";
 import {
   TransferWindowBanner,
@@ -192,8 +193,11 @@ function RankingsView() {
   }, [subject]);
 
   const all: any[] = subject === "teams" ? teams : players;
+  // Use the shared matchesSearch() helper (lib/search.ts) instead of a raw .includes so the
+  // search box is punctuation/space/accent-insensitive and folds stylized "fancy font" IGNs
+  // (typing "ve" finds "V-E"). The searched field is the team_name or username for the active tab.
   const rows = all.filter((r) =>
-    (subject === "teams" ? r.team_name : r.username).toLowerCase().includes(q.toLowerCase()));
+    matchesSearch(subject === "teams" ? r.team_name : r.username, q));
   const monthLabel = month ? new Date(month).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "This month";
 
   return (
@@ -485,7 +489,9 @@ function TiersView() {
   const byTier = useMemo(() => {
     const g: Record<number, any[]> = { 0: [], 1: [], 2: [], 3: [] };
     teams
-      .filter((r) => r.team_name.toLowerCase().includes(q.toLowerCase()))
+      // Shared matchesSearch() helper (lib/search.ts): punctuation/space/accent-insensitive
+      // and folds stylized "fancy font" team names, unlike the old .toLowerCase().includes().
+      .filter((r) => matchesSearch(r.team_name, q))
       .forEach((r) => { if (r.tier != null) g[r.tier].push(r); });
     return g;
   }, [teams, q]);

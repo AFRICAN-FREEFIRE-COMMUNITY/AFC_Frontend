@@ -37,6 +37,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
 import {
   IconCalendar,
@@ -149,14 +150,16 @@ export const EventsAdminContent = () => {
   }, []);
 
   // --- Search Filtering Logic ---
-  const filteredEvents = events.filter((event) => {
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    return (
-      event.event_name.toLowerCase().includes(lowerCaseQuery) ||
-      event.competition_type.toLowerCase().includes(lowerCaseQuery) ||
-      event.event_status.toLowerCase().includes(lowerCaseQuery)
-    );
-  });
+  // Match the search box across name, type, and status via the shared matchesSearch
+  // helper (lib/search.ts). It is punctuation- and "fancy font"-insensitive, so an
+  // event literally named "V-E Cup" still shows up for the query "ve". Replaces the
+  // old per-field .toLowerCase().includes() OR-chain; behaviour is a strict superset.
+  const filteredEvents = events.filter((event) =>
+    matchesSearch(
+      [event.event_name, event.competition_type, event.event_status],
+      searchQuery,
+    ),
+  );
 
   const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
   const paginatedEvents = filteredEvents.slice(

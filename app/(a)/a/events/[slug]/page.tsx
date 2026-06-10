@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DEFAULT_IMAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { cn, formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
 import { TabsContent } from "@radix-ui/react-tabs";
 import {
@@ -2451,21 +2452,18 @@ function GroupRostersPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const query = search.trim().toLowerCase();
-
   // Does a single player row match the IGN filter? (username = IGN; we also match
-  // full_name + uid so a search is forgiving.)
+  // full_name + uid so a search is forgiving.) Uses the shared matchesSearch helper
+  // so a stylized IGN ("V-E" / fancy-font / accented) still matches a plain query,
+  // and an empty search returns everything (helper treats blank query as match-all).
   const playerMatches = (p: RosterPlayer) =>
-    !query ||
-    (p.username ?? "").toLowerCase().includes(query) ||
-    (p.full_name ?? "").toLowerCase().includes(query) ||
-    (p.uid ?? "").toLowerCase().includes(query);
+    matchesSearch([p.username, p.full_name, p.uid], search);
 
-  // A team is kept if its name/tag matches OR any of its players match.
+  // A team is kept if its name/tag matches OR any of its players match. Same shared
+  // matchesSearch helper (punctuation/font/accent-insensitive) so a team named with
+  // hyphens or stylized characters is still findable from a normal-keyboard query.
   const teamMatches = (t: RosterTeam) =>
-    !query ||
-    (t.team_name ?? "").toLowerCase().includes(query) ||
-    (t.team_tag ?? "").toLowerCase().includes(query) ||
+    matchesSearch([t.team_name, t.team_tag], search) ||
     (t.players ?? []).some(playerMatches);
 
   if (loading) {

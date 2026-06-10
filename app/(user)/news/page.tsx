@@ -22,6 +22,7 @@ import {
 import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { cn, formatDate } from "@/lib/utils";
 import {
   IconCalendar,
@@ -89,20 +90,17 @@ const page = () => {
       );
     }
 
-    // Filter by search query
+    // Filter by search query. Use the shared matchesSearch() helper (lib/search.ts)
+    // instead of raw .toLowerCase().includes() so the box is punctuation, accent, and
+    // fancy-font insensitive and word-order independent. Pass title, content, and author
+    // as one array so the query can match across any of the three fields.
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((item: any) => {
-        const title = item.news_title?.toLowerCase() || "";
-        const content = extractTiptapText(item.content)?.toLowerCase() || "";
-        const author = item.author?.toLowerCase() || "";
-
-        return (
-          title.includes(query) ||
-          content.includes(query) ||
-          author.includes(query)
-        );
-      });
+      filtered = filtered.filter((item: any) =>
+        matchesSearch(
+          [item.news_title, extractTiptapText(item.content), item.author],
+          searchQuery,
+        ),
+      );
     }
 
     // Filter by date

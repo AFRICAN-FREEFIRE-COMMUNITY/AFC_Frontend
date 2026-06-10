@@ -31,6 +31,7 @@ import {
   PlayerRow as ApiPlayerRow,
 } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
+import { matchesSearch } from "@/lib/search";
 import {
   IconGavel, IconBan, IconArrowBackUp, IconSearch, IconHash, IconAlertTriangle,
   IconInfoCircle, IconUsers, IconUser, IconShieldCheck, IconMinus, IconArrowDown,
@@ -566,12 +567,15 @@ export default function OverridesAndBansPage() {
     [players, zeroedPlayerIds],
   );
 
+  // Use the shared matchesSearch helper so the team-name search box is punctuation/space/accent-
+  // insensitive and folds stylized "fancy font" names (e.g. typing "ve" finds a team named "V-E").
   const filteredTeams = useMemo(
-    () => teams.filter((t) => t.team_name.toLowerCase().includes(q.toLowerCase())),
+    () => teams.filter((t) => matchesSearch(t.team_name, q)),
     [teams, q],
   );
+  // Same shared matcher for the player search box, so a query finds stylized/punctuated usernames too.
   const filteredPlayers = useMemo(
-    () => playersView.filter((p) => p.username.toLowerCase().includes(q.toLowerCase())),
+    () => playersView.filter((p) => matchesSearch(p.username, q)),
     [playersView, q],
   );
 

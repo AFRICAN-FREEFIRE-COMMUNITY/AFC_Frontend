@@ -58,6 +58,7 @@ import {
 } from "@/components/ui/table";
 import { IconLock, IconTrophy, IconSearch } from "@tabler/icons-react";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -199,16 +200,17 @@ export default function OrganizerEventGroupsPage({
   }, [routeSlug, token, canView, notMine, resolving]);
 
   // ── IGN filter helpers (same logic as the admin GroupRostersPanel) ────────────
-  const query = search.trim().toLowerCase();
+  // Use the shared matchesSearch() helper instead of raw .toLowerCase().includes so
+  // the IGN box is punctuation/space/accent-insensitive and folds "fancy font"
+  // unicode: typing "ve" finds a stylized name like "V-E" / "Ｖ-Ｅ" / "ᴠᴇ". The
+  // helper returns true on an empty query, so the old !query short-circuit is built in.
+  const query = search;
+  // Player match across IGN (username), full name, and game UID in one call.
   const playerMatches = (p: RosterPlayer) =>
-    !query ||
-    (p.username ?? "").toLowerCase().includes(query) ||
-    (p.full_name ?? "").toLowerCase().includes(query) ||
-    (p.uid ?? "").toLowerCase().includes(query);
+    matchesSearch([p.username, p.full_name, p.uid], query);
+  // Team match across team name + tag, OR any player on the team matching.
   const teamMatches = (t: RosterTeam) =>
-    !query ||
-    (t.team_name ?? "").toLowerCase().includes(query) ||
-    (t.team_tag ?? "").toLowerCase().includes(query) ||
+    matchesSearch([t.team_name, t.team_tag], query) ||
     (t.players ?? []).some(playerMatches);
 
   // ── Gate + loading states (mirror the leaderboard page order) ─────────────────

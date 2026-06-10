@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -192,12 +193,16 @@ const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
 
   const filtered = useMemo(() => {
     if (!searchQuery) return events;
-    const query = searchQuery.toLowerCase();
-    return events.filter(
-      (e) =>
-        e.event_name.toLowerCase().includes(query) ||
-        e.event_date.includes(query) ||
-        e.event_status.toLowerCase().includes(query),
+    // Use the shared matchesSearch so the events search box is punctuation/space/
+    // accent/fancy-font insensitive (matches every other "Search ..." box on the
+    // site). One call across the three searchable fields (title, date, status)
+    // acts as an OR across them. Date stays searchable: matchesSearch keeps digits,
+    // so "2026-06" ("202606") still finds event_date "2026-06-10" ("20260610").
+    return events.filter((e) =>
+      matchesSearch(
+        [e.event_name, e.event_date, e.event_status],
+        searchQuery,
+      ),
     );
   }, [events, searchQuery]);
 
@@ -508,9 +513,12 @@ const OrganizerDirectory: React.FC<{
 
   // ── apply search + filter + sort to the directory grid ──
   const visibleOrgs = useMemo(() => {
-    const q = orgSearch.trim().toLowerCase();
     let list = allOrgs.filter((o) => {
-      const matchesQuery = !q || o.name.toLowerCase().includes(q);
+      // Organizer-name search via the shared matchesSearch: punctuation/space/
+      // accent/fancy-font insensitive and returns true for an empty query, so the
+      // separate `!q` short-circuit is no longer needed. The verified/afc filter
+      // below is untouched.
+      const matchesQuery = matchesSearch(o.name, orgSearch);
       const matchesFilter =
         orgVerFilter === "all" ||
         (orgVerFilter === "verified" && o.verified) ||

@@ -31,6 +31,9 @@ import { AuditLogPanel } from "@/app/(a)/a/_components/AuditLogPanel";
 import { UserSearchSelect } from "@/components/ui/user-search-select";
 // Parses a stored user_agent into a readable device label for the Login History tab.
 import { parseUserAgent } from "@/lib/user-agent";
+// Shared search matcher: punctuation/space/accent-insensitive and folds stylized "fancy font" unicode,
+// so the user-list box finds names like "V-E" / "ᴠᴇ" the same way every other AFC list search does.
+import { matchesSearch } from "@/lib/search";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -356,13 +359,10 @@ const page = () => {
 
   // Filter users
   const filteredUsers = useMemo(() => {
-    return adminUsers.filter(
-      (user) =>
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.roles.some((role) =>
-          role.toLowerCase().includes(searchTerm.toLowerCase()),
-        ),
+    // Match username, email, or any assigned role through the shared matcher so the search box is
+    // punctuation/accent/fancy-font-insensitive (spreading roles preserves the old per-role OR match).
+    return adminUsers.filter((user) =>
+      matchesSearch([user.username, user.email, ...user.roles], searchTerm),
     );
   }, [adminUsers, searchTerm]);
 

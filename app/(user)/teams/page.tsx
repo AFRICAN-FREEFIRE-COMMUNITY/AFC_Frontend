@@ -44,6 +44,8 @@ import { ITEMS_PER_PAGE } from "@/constants";
 import { TransferWindowBanner } from "@/components/rankings/TransferWindowBanner";
 // Subtle clickable names -> public team / player profiles.
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
+// Shared search matcher: punctuation/accent-insensitive + folds stylized "fancy font" IGNs.
+import { matchesSearch } from "@/lib/search";
 
 function page() {
   const [search, setSearch] = useState("");
@@ -58,9 +60,11 @@ function page() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [appliedTeams, setAppliedTeams] = useState<Set<number>>(new Set());
 
-  // Filter teams based on search input
+  // Filter teams by the search box. Uses the shared matchesSearch (lib/search.ts) so the match is
+  // punctuation/space/accent-insensitive AND folds stylized "fancy font" names: typing "ve" now finds
+  // a team literally named "V-E", "Ｖ-Ｅ" or "ᴠᴇ". Matches across the name, tag and owner IGN.
   const filteredTeams = teams.filter((team) =>
-    team.team_name.toLowerCase().includes(search.toLowerCase()),
+    matchesSearch([team.team_name, team.team_tag, team.team_owner], search),
   );
 
   const totalPages = Math.ceil(filteredTeams.length / ITEMS_PER_PAGE);

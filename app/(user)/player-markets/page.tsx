@@ -74,6 +74,9 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate } from "@/lib/utils";
+// Shared search matcher: punctuation/space/accent-insensitive + folds stylized
+// "fancy font" unicode so a normal-keyboard query finds stylized IGNs ("ve" -> "V-E").
+import { matchesSearch } from "@/lib/search";
 import {
   ReviewApplicationDialog,
   getStatusBadge,
@@ -249,9 +252,9 @@ function CountryMultiSelect({
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
-  const filtered = countries.filter((c) =>
-    c.toLowerCase().includes(search.toLowerCase()),
-  );
+  // Country picker search: use the shared matcher so it stays punctuation/accent
+  // insensitive and consistent with every other "Search ..." box on the site.
+  const filtered = countries.filter((c) => matchesSearch(c, search));
 
   const toggle = (country: string) => {
     onChange(
@@ -782,26 +785,25 @@ function PlayerMarketPage() {
   // Filtered data
   const filteredTeams = useMemo(() => {
     return teamPosts.filter((team) => {
-      const matchesSearch = (team.team ?? "")
-        .toLowerCase()
-        .includes(teamSearch.toLowerCase());
+      // Team-name search via the shared matcher (punctuation/accent/fancy-font
+      // insensitive) so a stylized team name still resolves to a plain query.
+      const matchesText = matchesSearch(team.team, teamSearch);
       const matchesCommitment =
         teamCommitmentFilter === "all" ||
         team.commitment_type === teamCommitmentFilter;
       const matchesTier =
         teamTierFilter === "all" ||
         team.minimum_tier_required === teamTierFilter;
-      return matchesSearch && matchesCommitment && matchesTier;
+      return matchesText && matchesCommitment && matchesTier;
     });
   }, [teamPosts, teamSearch, teamCommitmentFilter, teamTierFilter]);
 
   const filteredPlayers = useMemo(() => {
     return playerPosts.filter((player) => {
-      // Null-guard: a post can carry a null player name (e.g. a ghost/incomplete
-      // record), and calling .toLowerCase() on null crashed the whole page.
-      const matchesSearch = (player.player ?? "")
-        .toLowerCase()
-        .includes(playerSearch.toLowerCase());
+      // Player-name search via the shared matcher (punctuation/accent/fancy-font
+      // insensitive), which also null-safely handles a missing player name on a
+      // ghost/incomplete record instead of the page crashing on .toLowerCase().
+      const matchesText = matchesSearch(player.player, playerSearch);
       const matchesAvailability =
         playerAvailabilityFilter === "all" ||
         player.availability_type === playerAvailabilityFilter;
@@ -809,7 +811,7 @@ function PlayerMarketPage() {
         playerRoleFilter === "all" ||
         player.primary_role === playerRoleFilter ||
         player.secondary_role === playerRoleFilter;
-      return matchesSearch && matchesAvailability && matchesRole;
+      return matchesText && matchesAvailability && matchesRole;
     });
   }, [playerPosts, playerSearch, playerAvailabilityFilter, playerRoleFilter]);
 

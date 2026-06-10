@@ -57,6 +57,9 @@ import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
+// Shared site-wide search matcher (punctuation/font/accent-insensitive). Replaces
+// the old .toLowerCase().includes() filters on this page's listing tables.
+import { matchesSearch } from "@/lib/search";
 // Player-market moderation API + Ban dialog (feature "J-market-reporting").
 import {
   playerMarketApi,
@@ -950,13 +953,13 @@ export default function AdminPlayerMarketPage() {
     return apps.filter((app) => {
       const matchesStatus =
         trialsStatusFilter === "all" || app.status === trialsStatusFilter;
-      const q = trialsSearch.toLowerCase();
-      const matchesSearch =
-        !q ||
-        app.player.username.toLowerCase().includes(q) ||
-        app.team.name.toLowerCase().includes(q) ||
-        String(app.id).includes(q);
-      return matchesStatus && matchesSearch;
+      // Text search via the shared matcher (punctuation/font/accent-insensitive,
+      // word-order-independent) across player, team, and the numeric application id.
+      const matchesText = matchesSearch(
+        [app.player.username, app.team.name, String(app.id)],
+        trialsSearch,
+      );
+      return matchesStatus && matchesText;
     });
   }, [trialsData, trialsStatusFilter, trialsSearch]);
 
@@ -1145,9 +1148,11 @@ export default function AdminPlayerMarketPage() {
                   <TableBody>
                     {teamListings
                       .filter((t) => {
-                        const matchSearch = (t.team ?? "")
-                          .toLowerCase()
-                          .includes(teamSearch.toLowerCase());
+                        // Shared matcher: a team literally named "V-E" now matches "ve"
+                        // (punctuation/font/accent-insensitive, word-order-independent).
+                        // Array form because t.team is string | null (array entries
+                        // accept null; a bare-string arg would not).
+                        const matchSearch = matchesSearch([t.team], teamSearch);
                         const status = getListingStatus(t.expiry);
                         const matchStatus =
                           teamStatusFilter === "all" ||
@@ -1298,9 +1303,10 @@ export default function AdminPlayerMarketPage() {
                   <TableBody>
                     {playerListings
                       .filter((p) => {
-                        const matchSearch = p.player
-                          .toLowerCase()
-                          .includes(playerSearch.toLowerCase());
+                        // Shared matcher: finds stylized in-game names a raw
+                        // .toLowerCase().includes() would miss (punctuation/font/accent
+                        // insensitive, word-order-independent).
+                        const matchSearch = matchesSearch(p.player, playerSearch);
                         const status = getListingStatus(p.expiry);
                         const matchStatus =
                           playerStatusFilter === "all" ||

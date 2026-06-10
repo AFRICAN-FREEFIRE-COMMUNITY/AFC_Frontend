@@ -48,6 +48,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 
@@ -195,8 +196,11 @@ export default function CreateSponsorPage() {
     fetchEvents();
   }, [authLoading, token, fetchEvents]);
 
+  // Filter the loaded event list against the search box using the shared matcher
+  // (punctuation/space/accent-insensitive, folds stylized "fancy font" names), so an
+  // event titled "V-E Cup" still surfaces for the query "ve". See lib/search.ts.
   const filteredEvents = events.filter((e) =>
-    e.event_name.toLowerCase().includes(eventSearch.toLowerCase().trim()),
+    matchesSearch(e.event_name, eventSearch),
   );
 
   // ── Password strength ──────────────────────────────────────────────────────

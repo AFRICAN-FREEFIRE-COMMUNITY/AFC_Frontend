@@ -37,6 +37,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -209,8 +210,10 @@ export default function EditSponsorPage({
     );
   };
 
+  // Use the shared matchesSearch helper so the event search box is punctuation,
+  // accent, and stylized-font insensitive (matches every other "Search ..." box on the site).
   const filteredEvents = events.filter((e) =>
-    e.event_name.toLowerCase().includes(eventSearch.toLowerCase().trim()),
+    matchesSearch(e.event_name, eventSearch),
   );
 
   // ── Submit ────────────────────────────────────────────────────────────────

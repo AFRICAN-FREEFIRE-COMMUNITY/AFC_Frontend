@@ -30,6 +30,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import {
   Pagination,
@@ -144,15 +145,16 @@ export default function SponsorsPage({
 
   const filteredCompetitors = useMemo(() => {
     setPage(1);
-    const q = search.toLowerCase().trim();
     return competitors.filter((c) => {
-      const matchesSearch =
-        !q ||
-        c.username.toLowerCase().includes(q) ||
-        c.sponsor_id.toLowerCase().includes(q) ||
-        (c.team_name ?? "").toLowerCase().includes(q);
+      // Text search uses the shared matchesSearch helper (punctuation, space, and
+      // font-insensitive) so stylized in-game names match a plain-keyboard query.
+      // Collapses the old username/sponsor_id/team_name OR-chain into one multi-field call.
+      const textMatch = matchesSearch(
+        [c.username, c.sponsor_id, c.team_name],
+        search,
+      );
       const matchesStatus = statusFilter === "all" || c.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      return textMatch && matchesStatus;
     });
   }, [competitors, search, statusFilter]);
 

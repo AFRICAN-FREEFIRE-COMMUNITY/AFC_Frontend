@@ -59,6 +59,7 @@ import {
 import { FullLoader, Loader } from "@/components/Loader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { formatMoneyInput } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import { env } from "@/lib/env";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
@@ -488,9 +489,11 @@ export const PlayersAdminContent = () => {
 
   const filtered = useMemo(() => {
     return players.filter((p) => {
-      const matchesSearch = p.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      // Use the shared matchesSearch helper (punctuation/accent/fancy-font
+      // insensitive) so a stylized IGN like "V-E" is found by typing "ve".
+      // Only p.name is the user-typed text field here; team is handled by the
+      // separate filterTeam dropdown below.
+      const nameMatches = matchesSearch(p.name, searchTerm);
       const matchesTeam =
         filterTeam === "all"
           ? true
@@ -499,7 +502,7 @@ export const PlayersAdminContent = () => {
             : p.team_name === filterTeam;
       const matchesStatus =
         filterStatus === "all" || p.status === filterStatus;
-      return matchesSearch && matchesTeam && matchesStatus;
+      return nameMatches && matchesTeam && matchesStatus;
     });
   }, [players, searchTerm, filterTeam, filterStatus]);
 

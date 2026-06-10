@@ -72,6 +72,7 @@ import { ITEMS_PER_PAGE } from "@/constants";
 import { Textarea } from "@/components/ui/textarea";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { InfoTip } from "@/components/ui/info-tip";
+import { matchesSearch } from "@/lib/search";
 
 // ── Ghost Teams (provisional placeholder teams used by Rankings & Tiering) ───
 // Shape mirrors the backend serialize_ghost() payload (afc_rankings/admin_ghost.py):
@@ -248,13 +249,13 @@ export const TeamsAdminContent = () => {
     if (!teams) return [];
 
     return teams.filter((team: any) => {
-      const matchesSearch = team.team_name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      // Use the shared matcher (lib/search.ts) so the team search is punctuation,
+      // accent, and fancy-font insensitive: typing "ve" finds a team named "V-E".
+      const matchesTeamSearch = matchesSearch(team.team_name, searchTerm);
       const matchesTier =
         filterTier === "all" || String(team.team_tier) === filterTier;
 
-      return matchesSearch && matchesTier;
+      return matchesTeamSearch && matchesTier;
     });
   }, [teams, searchTerm, filterTier]);
 

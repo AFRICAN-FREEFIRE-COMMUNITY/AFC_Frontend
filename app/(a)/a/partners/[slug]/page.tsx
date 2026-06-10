@@ -31,6 +31,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -253,18 +254,16 @@ export default function PartnerDetailPage({
       .catch(() => toast.error("Failed to load organizations for scope picker."));
   }, []);
 
+  // matchesSearch (the shared lib/search helper) so this picker matches the same
+  // way every "Search ..." box does: punctuation / accent / fancy-font insensitive.
   const filteredEvents = useMemo(
     () =>
-      eventOptions.filter((e) =>
-        e.event_name.toLowerCase().includes(eventSearch.toLowerCase().trim()),
-      ),
+      eventOptions.filter((e) => matchesSearch(e.event_name, eventSearch)),
     [eventOptions, eventSearch],
   );
+  // Same shared matcher for the org picker (punctuation / font-insensitive search).
   const filteredOrgs = useMemo(
-    () =>
-      orgOptions.filter((o) =>
-        o.name.toLowerCase().includes(orgSearch.toLowerCase().trim()),
-      ),
+    () => orgOptions.filter((o) => matchesSearch(o.name, orgSearch)),
     [orgOptions, orgSearch],
   );
 

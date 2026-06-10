@@ -17,6 +17,7 @@ import {
 import { FullLoader } from "@/components/Loader";
 import { rankingsApi, Season } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
+import { matchesSearch } from "@/lib/search";
 import {
   IconBrandInstagram, IconBrandTiktok, IconCircleCheck, IconClock, IconSearch,
   IconShieldCheck, IconUsers, IconSparkles, IconAlertTriangle, IconPlugConnected,
@@ -263,7 +264,10 @@ export default function SocialVerificationPage() {
     }
   };
 
-  const filtered = rows.filter((r) => r.team_name.toLowerCase().includes(q.toLowerCase()));
+  // Use the shared matchesSearch helper so the team search box is punctuation, accent,
+  // and fancy-font insensitive (typing "ve" finds a team named "V-E"), matching every
+  // other "Search ..." box on the site.
+  const filtered = rows.filter((r) => matchesSearch(r.team_name, q));
   const reasonValid = reason.trim().length >= MIN_REASON;
 
   const totals = useMemo(() => {

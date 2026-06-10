@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
+import { matchesSearch } from "@/lib/search";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,8 +90,11 @@ export function AddTeamsModal({
       .finally(() => setLoading(false));
   }, [open, token]);
 
+  // Filter the loaded teams list against the search box using the shared matchesSearch helper
+  // (punctuation/space/accent insensitive, folds stylized fancy-font names), so a team like "V-E"
+  // is found by typing "ve". Match across name and tag.
   const filtered = teams.filter((t) =>
-    t.team_name.toLowerCase().includes(search.toLowerCase().trim()),
+    matchesSearch([t.team_name, t.team_tag], search),
   );
 
   const toggle = (id: number) => {

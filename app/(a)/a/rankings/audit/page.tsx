@@ -18,6 +18,7 @@ import {
 import { FullLoader } from "@/components/Loader";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { Season } from "@/lib/rankings";
+import { matchesSearch } from "@/lib/search";
 import {
   IconHistory, IconSearch, IconDatabase, IconShieldLock, IconUser,
   IconCalendarStats, IconFilter, IconAlertTriangle,
@@ -178,10 +179,11 @@ export default function AuditLogPage() {
   }, [type, from, to]);
 
   // Reason free-text narrowing happens on the already-fetched rows.
+  // Uses the shared matchesSearch helper (lib/search.ts) so reason search is
+  // punctuation, accent, and fancy-font insensitive like every other "Search" box on the site.
+  // matchesSearch returns true for an empty query, so the `q`-empty case is handled inside it.
   const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    if (!needle) return rows;
-    return rows.filter((r) => (r.reason ?? "").toLowerCase().includes(needle));
+    return rows.filter((r) => matchesSearch([r.reason], q));
   }, [rows, q]);
 
   const clearFilters = () => { setType("all"); setQ(""); setFrom(""); setTo(""); };
