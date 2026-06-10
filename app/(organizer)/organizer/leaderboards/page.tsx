@@ -60,6 +60,9 @@ import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../_components/OrganizerContext";
+// Standalone (event-less) leaderboards section — shared with the admin surface, scoped here to this
+// org via organizationId so the organizer only sees + creates leaderboards owned by their org.
+import { StandaloneLeaderboardList } from "@/app/(a)/a/leaderboards/standalone/_components/StandaloneLeaderboardList";
 
 // ── Row shapes ────────────────────────────────────────────────────────────────
 // The org-scoped event row (subset of get-all-events). Only the fields the table
@@ -346,6 +349,14 @@ export default function OrganizerLeaderboardsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* ── Standalone (event-less) leaderboards ──────────────────────────────
+          Sits below the per-event table. Scoped to THIS org via organizationId so
+          the organizer only lists/creates leaderboards owned by their org. The
+          "Create standalone" button reuses the same wizard the admin uses; the
+          backend forces the new leaderboard's organization to the caller's org and
+          forces counts_toward_rankings off for organizers. */}
+      <StandaloneLeaderboardList organizationId={organizationId} />
     </div>
   );
 }

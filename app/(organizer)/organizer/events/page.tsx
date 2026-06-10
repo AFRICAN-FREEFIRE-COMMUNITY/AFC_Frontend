@@ -52,6 +52,11 @@ import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../_components/OrganizerContext";
+// Duplicate action: clones an event into a fresh draft (config + stage/group structure
+// only) via POST /events/<id>/duplicate-event/. Shared with the admin events list; gated
+// here on the same can_create_events permission as the "Create event" button, since the
+// backend authorises duplication exactly like creation (AFC admin OR org can_create_events).
+import { DuplicateEventButton } from "@/app/(a)/a/events/_components/DuplicateEventButton";
 
 // ── Row shape ───────────────────────────────────────────────────────────────
 // The org-scoped get-all-events response. Most fields mirror the admin list; the
@@ -269,6 +274,18 @@ export default function OrganizerEventsPage() {
                               Edit
                             </Link>
                           </Button>
+                        )}
+                        {/* Duplicate → clone this event into a fresh draft, then deep-link
+                            into editing the copy ("/organizer/events/<new-slug>/edit"). Gated
+                            on can_create_events / owner to match the backend duplicate gate. */}
+                        {canCreateEvents && (
+                          <DuplicateEventButton
+                            eventId={event.event_id}
+                            eventName={event.event_name}
+                            editHrefFor={(slug) =>
+                              `/organizer/events/${slug}/edit`
+                            }
+                          />
                         )}
                         {canUploadResults && (
                           <Button asChild variant="outline" size="sm">

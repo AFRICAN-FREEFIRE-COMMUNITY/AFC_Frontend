@@ -85,6 +85,18 @@ export const rankingsAdminApi = {
   approveClaim: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/approve-claim/`, body),
   revokeClaim: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/revoke-claim/`, body),
 
+  // ── Admin CLAIM-REQUEST QUEUE (pending ghost-team + ghost-player claims awaiting review) ──
+  // The combined queue on /a/rankings (Claim requests section) fetches BOTH pending lists and
+  // renders one table, then approves/rejects each row. All Bearer-gated (head_admin |
+  // metrics_admin). Endpoints in afc_rankings.admin_ghost. reason must be >= 10 chars on
+  // approve/reject (the backend 400s otherwise). Consumed by app/(a)/a/rankings/page.tsx.
+  ghostTeamsPending: () => aGet("ghost-teams/", { claim_status: "pending" }),         // GET ghost-teams/?claim_status=pending
+  ghostPlayersPending: () => aGet("ghost-players/", { claim_status: "pending" }),     // GET ghost-players/?claim_status=pending
+  approveGhostTeamClaim: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/approve-claim/`, body),
+  rejectGhostTeamClaim: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/reject-claim/`, body),
+  approveGhostPlayerClaim: (playerId: number, body: any) => aPost(`ghost-players/${playerId}/approve-claim/`, body),
+  rejectGhostPlayerClaim: (playerId: number, body: any) => aPost(`ghost-players/${playerId}/reject-claim/`, body),
+
   // ── Scoring config (versioned) ───────────────────────────────────────────
   scoringConfig: () => aGet("scoring-config/"),
   scoringDefaults: () => aGet("scoring-config/defaults/"),

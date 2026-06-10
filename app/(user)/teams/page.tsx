@@ -147,7 +147,9 @@ function page() {
           title="Teams"
           description="Explore and manage Freefire teams"
         />
-        <Button className="w-full md:w-auto" asChild>
+        {/* data-tour anchor (guided welcome tour): Create Team button. Targeted by
+            guided-tour-stops.ts -> teams stop -> "teams-create". */}
+        <Button className="w-full md:w-auto" asChild data-tour="teams-create">
           <Link href="/teams/create">Create Team</Link>
         </Button>
       </div>
@@ -166,7 +168,9 @@ function page() {
         />
       </div>
 
-      <Tabs defaultValue="all-teams" className="space-y-4">
+      {/* data-tour anchor (guided welcome tour): the teams browse + join list.
+          Targeted by guided-tour-stops.ts -> teams stop -> "teams-list". */}
+      <Tabs defaultValue="all-teams" className="space-y-4" data-tour="teams-list">
         <TabsList className="w-full">
           <TabsTrigger value="all-teams">All Teams</TabsTrigger>
           <TabsTrigger value="my-team">My Team</TabsTrigger>

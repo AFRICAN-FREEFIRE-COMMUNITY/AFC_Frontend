@@ -32,6 +32,11 @@ import {
   TransferWindowBanner,
 } from "@/components/rankings/TransferWindowBanner";
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
+import { useAuth } from "@/contexts/AuthContext";
+// The claim-request dialog (logged-in users) + its target shape. Opened from the "Claim" button
+// on a ghost row below; it POSTs to the user-facing ghost request-claim endpoints (see the
+// component header for the exact endpoints).
+import { ClaimGhostDialog, ClaimGhostTarget } from "./_components/ClaimGhostDialog";
 
 type Subject = "teams" | "players";
 
@@ -154,6 +159,8 @@ function NoMatch({ q }: { q: string }) {
 // Reads rankingsApi.teamsMonthly() / playersMonthly() → /rankings/teams|players/monthly/;
 // rankings_published gates the empty-vs-NotPublished branch (false → "Not published yet").
 function RankingsView() {
+  // isAuthenticated gates the "Claim" button on ghost rows (only logged-in users can request a claim).
+  const { isAuthenticated } = useAuth();
   const [subject, setSubject] = useState<Subject>("teams");
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [players, setPlayers] = useState<PlayerRow[]>([]);
@@ -163,6 +170,9 @@ function RankingsView() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  // The ghost the user is requesting to claim (null = dialog closed). Set by the per-row "Claim"
+  // button; consumed by <ClaimGhostDialog/> at the bottom of this view.
+  const [claimTarget, setClaimTarget] = useState<ClaimGhostTarget | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -246,10 +256,57 @@ function RankingsView() {
                           <span className="inline-flex items-center"><IconHash className="size-3" />{r.rank}</span>
                         </TableCell>
                         <TableCell className="font-medium">
-                          {/* Name links to the public team/player profile. The row
-                              itself toggles the breakdown, so stopPropagation keeps a
-                              name click from also expanding/collapsing the row. */}
-                          {subject === "teams" ? (
+                          {/* Ghost rows (is_ghost) have NO public profile, so they must
+                              NOT be wrapped in a TeamLink/PlayerLink (that would link to a
+                              non-existent /teams|/players page). The backend already prefixes
+                              the name with "[Ghost] ...", so we render that name as plain text
+                              and add a small outline Ghost badge in ADDITION (no double-prefix).
+                              Real rows keep the existing profile link + row-toggle behaviour:
+                              the name links to the public profile and stopPropagation keeps a
+                              name click from also expanding/collapsing the breakdown row. */}
+                          {r.is_ghost ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              {name}
+                              <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
+                                Ghost
+                              </Badge>
+                              {/* Claim action, logged-in users only. We can only target the request
+                                  endpoint when the ladder row carries the ghost's own id (ghost_team_id
+                                  / ghost_player_id, emitted by the serializer); hide otherwise. We also
+                                  hide once the ghost is no longer "unclaimed" (claim_status) so a
+                                  pending/claimed ghost can't be re-requested (the backend is still the
+                                  source of truth and 400s if it slips through). stopPropagation keeps the
+                                  button click from toggling this row's breakdown. */}
+                              {isAuthenticated &&
+                                (subject === "teams" ? r.ghost_team_id : r.ghost_player_id) &&
+                                (r.claim_status == null || r.claim_status === "unclaimed") && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-6 px-2 text-[11px]"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setClaimTarget(
+                                        subject === "teams"
+                                          ? { kind: "team", ghostId: r.ghost_team_id as string, ghostName: name }
+                                          : { kind: "player", ghostId: r.ghost_player_id as number, ghostName: name },
+                                      );
+                                    }}
+                                  >
+                                    Claim
+                                  </Button>
+                                )}
+                              {/* A ghost already awaiting review shows a small status pill instead of Claim. */}
+                              {r.claim_status === "pending" && (
+                                <Badge
+                                  variant="outline"
+                                  className="rounded-full px-2 py-0.5 text-[10px] border-orange-500/40 text-orange-400"
+                                >
+                                  Claim pending
+                                </Badge>
+                              )}
+                            </span>
+                          ) : subject === "teams" ? (
                             <TeamLink name={name} stopPropagation />
                           ) : (
                             <PlayerLink name={name} stopPropagation />
@@ -303,6 +360,15 @@ function RankingsView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Ghost claim-request dialog. Opened by the per-row "Claim" button above; on a successful
+          request it closes itself (the row keeps its claim_status until the next fetch; a refresh
+          will reflect "pending"). We don't auto-refetch the whole ladder to avoid a jarring reflow;
+          the toast confirms the request landed. */}
+      <ClaimGhostDialog
+        target={claimTarget}
+        onOpenChange={(o) => { if (!o) setClaimTarget(null); }}
+      />
     </div>
   );
 }
@@ -321,6 +387,14 @@ function TierTeamRow({ row, elite }: { row: any; elite?: boolean }) {
           {elite ? <IconCrown className="size-5" /> : <><IconHash className="size-3" />{row.rank}</>}
         </span>
         <span className={cn("flex-1 truncate font-medium", elite && "text-lg font-bold")}>{row.team_name}</span>
+        {/* Ghost teams have no profile. The tier row renders the name as plain text
+            already (no TeamLink here), and the backend prefixes it "[Ghost] ...", so we
+            only ADD a small outline Ghost badge to mark the row. No double-prefix. */}
+        {row.is_ghost && (
+          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
+            Ghost
+          </Badge>
+        )}
         {!row.meets_participation_floor && (
           <Badge variant="outline" className="rounded-full text-[10px] text-muted-foreground">
             {row.tournaments_played ?? 0}/2 tournaments

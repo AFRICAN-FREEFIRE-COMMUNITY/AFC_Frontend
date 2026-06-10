@@ -42,6 +42,7 @@ import {
   IconCalendarStats, IconArrowsExchange, IconRefresh, IconGavel, IconSearch,
   IconClipboardCheck, IconGhost2, IconHistory, IconSettings, IconPlayerPlay, IconHash,
   IconAlertTriangle, IconUsers, IconUser, IconEye, IconWorld, IconLock, IconBroadcast,
+  IconCheck, IconX, IconClock,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -345,6 +346,11 @@ export default function AdminRankingsPage() {
         ))}
       </div>
 
+      {/* Claim requests queue: pending ghost-team + ghost-player claims awaiting admin review.
+          Self-contained (fetches both pending lists, renders one combined table, approves/rejects
+          with a mandatory reason). Sits above the team score table. */}
+      <ClaimRequestsSection />
+
       {/* teams table + search
           data-tour anchor: rankings tour "the team score table" step. */}
       <Card data-tour="rankings-teams">
@@ -381,7 +387,19 @@ export default function AdminRankingsPage() {
                   <TableCell className="font-semibold text-muted-foreground">
                     <span className="inline-flex items-center"><IconHash className="size-3" />{t.rank}</span>
                   </TableCell>
-                  <TableCell className="font-medium">{t.team_name}</TableCell>
+                  {/* Ghost teams have no profile. The admin table already shows the name as
+                      plain text (no TeamLink), and the backend prefixes it "[Ghost] ...", so we
+                      only ADD a small outline Ghost badge to mark the row (no double-prefix). */}
+                  <TableCell className="font-medium">
+                    <span className="inline-flex items-center gap-1.5">
+                      {t.team_name}
+                      {t.is_ghost && (
+                        <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
+                          Ghost
+                        </Badge>
+                      )}
+                    </span>
+                  </TableCell>
                   <TableCell><TierBadge tier={t.tier ?? null} /></TableCell>
                   <TableCell className="text-right tabular-nums">{t.tournaments_played ?? 0}</TableCell>
                   <TableCell className="text-right tabular-nums">{t.kills ?? 0}</TableCell>
@@ -971,6 +989,309 @@ function RecalcEntityDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={queuing}>Cancel</Button>
           <Button onClick={submit} disabled={!idOk || queuing}>
             <IconRefresh className="mr-1.5 size-4" /> {queuing ? "Queuing…" : "Queue recalc"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * Claim requests queue: pending ghost-team + ghost-player claims awaiting review
+ *
+ * WHAT IT IS
+ *   The admin half of the ghost claim process. Users request to claim a ghost from the public
+ *   rankings ladders (app/(user)/rankings → ClaimGhostDialog); each request sets the ghost
+ *   "pending". This section lists ALL pending claims (teams + players) in one table and lets a
+ *   head_admin / metrics_admin approve (re-attributes the ghost's history onto the real entity) or
+ *   reject (sends it back to unclaimed).
+ *
+ * DATA IT TALKS TO (all in lib/rankingsAdmin.ts, Bearer-gated)
+ *   - ghostTeamsPending()        → GET ghost-teams/?claim_status=pending
+ *   - ghostPlayersPending()      → GET ghost-players/?claim_status=pending
+ *   - approveGhostTeamClaim()    → POST ghost-teams/<uuid>/approve-claim/  { reason }
+ *   - rejectGhostTeamClaim()     → POST ghost-teams/<uuid>/reject-claim/   { reason }
+ *   - approveGhostPlayerClaim()  → POST ghost-players/<int>/approve-claim/ { reason }
+ *   - rejectGhostPlayerClaim()   → POST ghost-players/<int>/reject-claim/  { reason }
+ *   reason must be >= 10 chars (the backend 400s otherwise, mirrored by the reason prompt below).
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+// One pending claim, normalised across the team + player lists so the table renders them uniformly.
+interface ClaimRow {
+  kind: "team" | "player";
+  id: string;                 // ghost_team_id (uuid) for teams, String(id) for players
+  name: string;               // ghost team_name / player ign
+  requestedBy: number | null; // claim_requested_by (User id)
+  target: string;             // who it would map onto: "Team #<id>" / "User #<id>"
+  evidence: string;           // claim_note
+  requestedAt: string;        // claim_requested_at (date slice)
+}
+
+// The action a reason prompt is gathering (approve vs reject) on a specific row.
+type ClaimAction = { row: ClaimRow; mode: "approve" | "reject" } | null;
+
+function ClaimRequestsSection() {
+  const [rows, setRows] = useState<ClaimRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  // the row+mode a reason is being entered for (null = no prompt open).
+  const [action, setAction] = useState<ClaimAction>(null);
+
+  // Fetch BOTH pending lists in parallel and merge into one normalised list (teams first, then
+  // players), newest request first within each kind.
+  function load() {
+    setLoading(true);
+    Promise.all([
+      rankingsAdminApi.ghostTeamsPending(),
+      rankingsAdminApi.ghostPlayersPending(),
+    ])
+      .then(([teamsRes, playersRes]: [any, any]) => {
+        const teamRows: ClaimRow[] = (teamsRes?.results ?? []).map((g: any) => ({
+          kind: "team" as const,
+          id: String(g.ghost_team_id),
+          name: g.team_name,
+          requestedBy: g.claim_requested_by ?? null,
+          // claimed_by is the target afc_team.Team id (set by the request; confirmed on approve).
+          target: g.claimed_by != null ? `Team #${g.claimed_by}` : "Unassigned",
+          evidence: g.claim_note ?? "",
+          requestedAt: g.claim_requested_at ? String(g.claim_requested_at).slice(0, 10) : "",
+        }));
+        const playerRows: ClaimRow[] = (playersRes?.results ?? []).map((p: any) => ({
+          kind: "player" as const,
+          id: String(p.id),
+          name: p.ign,
+          requestedBy: p.claim_requested_by ?? null,
+          // a self-claim: claimed_by is the requesting User id.
+          target: p.claimed_by != null ? `User #${p.claimed_by}` : "Self",
+          evidence: p.claim_note ?? "",
+          requestedAt: p.claim_requested_at ? String(p.claim_requested_at).slice(0, 10) : "",
+        }));
+        setRows([...teamRows, ...playerRows]);
+      })
+      .catch((err: any) =>
+        toast.error(err?.response?.data?.message || "Failed to load claim requests."))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  // Run the approve/reject the reason prompt confirmed, routing to the right endpoint by kind+mode.
+  async function runAction(reason: string) {
+    if (!action) return;
+    const { row, mode } = action;
+    try {
+      if (row.kind === "team") {
+        if (mode === "approve") await rankingsAdminApi.approveGhostTeamClaim(row.id, { reason });
+        else await rankingsAdminApi.rejectGhostTeamClaim(row.id, { reason });
+      } else {
+        const pid = Number(row.id);
+        if (mode === "approve") await rankingsAdminApi.approveGhostPlayerClaim(pid, { reason });
+        else await rankingsAdminApi.rejectGhostPlayerClaim(pid, { reason });
+      }
+      toast.success(
+        mode === "approve"
+          ? `Claim approved, "${row.name}" transferred. Scores recalculating.`
+          : `Claim on "${row.name}" rejected. It is unclaimed again.`,
+      );
+      setAction(null);
+      load(); // refetch the queue so the resolved row drops out
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || `Failed to ${mode} the claim.`);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex-row items-center justify-between gap-2">
+        <CardTitle className="flex items-center text-base">
+          <IconClipboardCheck className="mr-1.5 size-4 text-primary" /> Claim requests
+          {rows.length > 0 && (
+            <Badge
+              variant="outline"
+              className="ml-2 rounded-full px-2 py-0.5 text-[10px] border-orange-500/40 text-orange-400"
+            >
+              {rows.length} pending
+            </Badge>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Ghost</TableHead>
+              <TableHead>Kind</TableHead>
+              <TableHead>Requested by</TableHead>
+              <TableHead>Target</TableHead>
+              <TableHead>Evidence</TableHead>
+              <TableHead>Requested</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
+                  <span className="inline-flex items-center gap-2">
+                    <IconClock className="size-4 animate-pulse" /> Loading claim requests...
+                  </span>
+                </TableCell>
+              </TableRow>
+            ) : rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
+                  No claim requests awaiting review.
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((r) => (
+                <TableRow key={`${r.kind}-${r.id}`}>
+                  <TableCell className="font-medium">
+                    <span className="inline-flex items-center gap-1.5">
+                      <IconGhost2 className="size-4 text-muted-foreground" />
+                      {r.name}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {/* outline rounded-full kind badge (green team / blue player), AFC tier-badge idiom */}
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[10px]",
+                        r.kind === "team" ? "border-green-600/50 text-green-400" : "border-blue-500/50 text-blue-400",
+                      )}
+                    >
+                      {r.kind === "team" ? (
+                        <><IconUsers className="mr-1 size-3" /> Team</>
+                      ) : (
+                        <><IconUser className="mr-1 size-3" /> Player</>
+                      )}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {r.requestedBy != null ? `User #${r.requestedBy}` : "Unknown"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{r.target}</TableCell>
+                  <TableCell className="max-w-[16rem] truncate text-muted-foreground" title={r.evidence || undefined}>
+                    {r.evidence || <span className="italic">None provided</span>}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground tabular-nums">{r.requestedAt}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" onClick={() => setAction({ row: r, mode: "approve" })}>
+                        <IconCheck className="mr-1 size-3.5" /> Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setAction({ row: r, mode: "reject" })}
+                      >
+                        <IconX className="mr-1 size-3.5" /> Reject
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+
+      {/* approve / reject reason prompt (mandatory >= 10 chars, mirrors the rest of admin rankings) */}
+      <ClaimReasonDialog
+        action={action}
+        onOpenChange={(o) => { if (!o) setAction(null); }}
+        onConfirm={runAction}
+      />
+    </Card>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Mandatory-reason prompt for an approve / reject claim action        */
+/* Mirrors PublishStateDialog / RunEvaluationDialog reason gating.     */
+/* ------------------------------------------------------------------ */
+function ClaimReasonDialog({
+  action,
+  onOpenChange,
+  onConfirm,
+}: {
+  action: ClaimAction;
+  onOpenChange: (o: boolean) => void;
+  onConfirm: (reason: string) => void | Promise<void>;
+}) {
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const open = action !== null;
+
+  React.useEffect(() => {
+    if (open) { setReason(""); setSubmitting(false); }
+  }, [open]);
+
+  const reasonOk = reason.trim().length >= MIN_REASON;
+  const approving = action?.mode === "approve";
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {approving
+              ? <IconCheck className="size-5 text-primary" />
+              : <IconX className="size-5 text-destructive" />}
+            {approving ? "Approve claim" : "Reject claim"}
+            {action ? `, ${action.row.name}` : ""}
+          </DialogTitle>
+          <DialogDescription>
+            {approving
+              ? "Approving transfers this ghost's historical results, stats, and prize money onto the claiming entity and recalculates the affected scores. This can only be undone with a revoke."
+              : "Rejecting sends this request back to unclaimed. Nothing is transferred; the ghost can be claimed again."}
+          </DialogDescription>
+        </DialogHeader>
+
+        {approving && (
+          <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-300">
+            <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
+            <span>
+              History re-attribution is retroactive across every affected month and season. If the
+              real entity already shares a leaderboard with this ghost, the approval is blocked and
+              must be resolved manually.
+            </span>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="claim-reason">
+            Reason <span className="text-orange-400">(required, logged)</span>
+          </Label>
+          <Textarea
+            id="claim-reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Explain why, at least 10 characters. This is written to the audit log."
+            className="min-h-24"
+          />
+          <p className={cn("text-[11px]", reasonOk ? "text-muted-foreground" : "text-orange-500")}>
+            {reason.trim().length}/{MIN_REASON} characters minimum
+          </p>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+            Go back
+          </Button>
+          <Button
+            variant={approving ? "default" : "destructive"}
+            disabled={!reasonOk || submitting}
+            onClick={async () => {
+              setSubmitting(true);
+              try { await onConfirm(reason.trim()); }
+              finally { setSubmitting(false); }
+            }}
+          >
+            {approving ? "Approve & transfer" : "Reject request"}
           </Button>
         </DialogFooter>
       </DialogContent>

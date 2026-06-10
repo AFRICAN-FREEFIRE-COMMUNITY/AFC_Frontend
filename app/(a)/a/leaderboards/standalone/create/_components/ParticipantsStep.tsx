@@ -1,0 +1,264 @@
+"use client";
+
+// ── ParticipantsStep (wizard step 2) ──────────────────────────────────────────
+// Adds participants to the draft leaderboard. For TEAM format it searches existing teams via
+// TeamSearchSelect (-> /team/search-teams/); for SOLO format it searches users via UserSearchSelect
+// (-> /auth/search-users/). Either way, "not found?" reveals the GhostCreateInline mini-form to mint a
+// ghost (placeholder) entity inline. Every add hits
+// POST /leaderboards/standalone/<id>/participants/ via standaloneLeaderboardsApi.addParticipant;
+// removes hit DELETE .../participants/<pid>/.
+//
+// The selected list is the live server state of participants (returned from each add), so a refresh of
+// the page would show the same picks. Real vs ghost is badged (green / orange outline).
+//
+// NOTE on the real-user add: UserSearchSelect emits the USERNAME (its house contract), but the
+// participant endpoint needs the numeric user_id. We capture the full PickedUser object from
+// onChange's 2nd arg and send user.user_id.
+//
+// OCR shortcut (Stream P2): an "Upload screenshot" button opens OcrUploadDialog. On apply, the
+// dialog returns {match, participants, standings} (the backend created a map + participants +
+// results in one call). We hand that to onOcrApplied, which the wizard (../page.tsx) uses to merge
+// the new participants and jump straight to the Results step with the created map pre-filled.
+//
+// CONSUMED BY: ../page.tsx (the wizard). Reads/writes the shared `participants` list via props.
+
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { IconTrash, IconUserPlus, IconScan } from "@tabler/icons-react";
+import { InfoTip } from "@/components/ui/info-tip";
+import { TeamSearchSelect, type PickedTeam } from "@/components/ui/team-search-select";
+import {
+  UserSearchSelect,
+  type PickedUser,
+} from "@/components/ui/user-search-select";
+import { GhostCreateInline } from "./GhostCreateInline";
+import { OcrUploadDialog } from "./OcrUploadDialog";
+import {
+  standaloneLeaderboardsApi,
+  type StandaloneParticipant,
+  type OcrApplyResponse,
+} from "@/lib/standaloneLeaderboards";
+
+export function ParticipantsStep({
+  leaderboardId,
+  format,
+  participants,
+  onParticipantsChange,
+  onOcrApplied,
+  onBack,
+  onNext,
+}: {
+  leaderboardId: number;
+  format: "team" | "solo";
+  participants: StandaloneParticipant[];
+  onParticipantsChange: (next: StandaloneParticipant[]) => void;
+  // Fired after the OCR dialog applies a screenshot. The wizard merges the returned participants and
+  // advances to the Results step carrying the created match (see ../page.tsx::handleOcrApplied).
+  onOcrApplied: (result: OcrApplyResponse) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  const [showGhost, setShowGhost] = useState(false);
+  const [adding, setAdding] = useState(false);
+  // Whether the OCR upload dialog is open.
+  const [ocrOpen, setOcrOpen] = useState(false);
+
+  // ── Add a participant (real or ghost) and append the returned row to the list. ──
+  const add = async (body: Record<string, any>) => {
+    setAdding(true);
+    try {
+      const res = await standaloneLeaderboardsApi.addParticipant(leaderboardId, body);
+      onParticipantsChange([...participants, res.participant]);
+      toast.success(`Added ${res.participant.name}.`);
+      setShowGhost(false);
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to add the participant.",
+      );
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  // Real TEAM pick: TeamSearchSelect emits team_id directly.
+  const handleTeamPick = (teamId: number | null, team?: PickedTeam) => {
+    if (teamId == null) return;
+    if (participants.some((p) => p.team_id === teamId)) {
+      toast.info(`${team?.team_name ?? "That team"} is already added.`);
+      return;
+    }
+    add({ kind: "real", team_id: teamId });
+  };
+
+  // Real SOLO pick: UserSearchSelect emits a username, but we need the numeric user_id
+  // (captured from the 2nd onChange arg).
+  const handleUserPick = (_username: string | null, user?: PickedUser) => {
+    if (!user) return;
+    if (participants.some((p) => p.user_id === user.user_id)) {
+      toast.info(`${user.username} is already added.`);
+      return;
+    }
+    add({ kind: "real", user_id: user.user_id });
+  };
+
+  const remove = async (p: StandaloneParticipant) => {
+    try {
+      await standaloneLeaderboardsApi.removeParticipant(leaderboardId, p.id);
+      onParticipantsChange(participants.filter((x) => x.id !== p.id));
+      toast.success(`Removed ${p.name}.`);
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to remove the participant.",
+      );
+    }
+  };
+
+  return (
+    <Card className="gap-0">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          Participants
+          <InfoTip
+            text="Add the teams or players competing. Search existing ones, or create a ghost placeholder for anyone not on the platform yet."
+            className="ml-1.5"
+          />
+        </CardTitle>
+        <CardDescription>
+          {format === "team"
+            ? "Search and add teams, or create ghost teams for entities not on the platform."
+            : "Search and add players, or create ghost players for entities not on the platform."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {/* Search picker (team or solo). Single mode: each pick triggers an add. */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <Label>{format === "team" ? "Find a team" : "Find a player"}</Label>
+            {/* OCR shortcut (Stream P2): read a results screenshot to create a map + participants in
+                one go. Opens OcrUploadDialog; on apply, onOcrApplied advances to Results pre-filled. */}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setOcrOpen(true)}
+            >
+              <IconScan size={14} className="mr-1" />
+              Upload screenshot
+            </Button>
+          </div>
+          {format === "team" ? (
+            <TeamSearchSelect
+              value={null}
+              onChange={handleTeamPick}
+              disabled={adding}
+              placeholder="Search a team..."
+            />
+          ) : (
+            <UserSearchSelect
+              value={null}
+              onChange={handleUserPick}
+              disabled={adding}
+              placeholder="Search a player..."
+            />
+          )}
+        </div>
+
+        {/* OCR upload + review dialog (Stream P2). Mounted here so its trigger sits with the search. */}
+        <OcrUploadDialog
+          open={ocrOpen}
+          onOpenChange={setOcrOpen}
+          leaderboardId={leaderboardId}
+          format={format}
+          onApplied={onOcrApplied}
+        />
+
+        {/* Inline ghost create toggle + form. */}
+        {showGhost ? (
+          <GhostCreateInline
+            format={format}
+            submitting={adding}
+            onCreate={add}
+            onCancel={() => setShowGhost(false)}
+          />
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowGhost(true)}
+          >
+            <IconUserPlus size={14} className="mr-1" />
+            Not found? Create as ghost
+          </Button>
+        )}
+
+        {/* Selected participants list with real/ghost badges + remove. */}
+        <div className="space-y-2">
+          <Label>Added ({participants.length})</Label>
+          {participants.length === 0 ? (
+            <p className="rounded-md border border-dashed py-8 text-center text-sm text-muted-foreground">
+              No participants yet. Add at least two to make a meaningful leaderboard.
+            </p>
+          ) : (
+            <div className="divide-y rounded-md border">
+              {participants.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between gap-2 p-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{p.name}</span>
+                    {p.is_ghost ? (
+                      <Badge
+                        variant="outline"
+                        className="rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                      >
+                        Ghost
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+                      >
+                        Real
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={() => remove(p)}
+                    aria-label={`Remove ${p.name}`}
+                  >
+                    <IconTrash size={15} />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between pt-2">
+          <Button variant="ghost" onClick={onBack}>
+            Back
+          </Button>
+          <Button onClick={onNext} disabled={participants.length === 0}>
+            Continue to results
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

@@ -53,6 +53,9 @@ import Link from "next/link";
 import React, { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { DeleteEventModal } from "../events/_components/DeleteEventModal";
+// Duplicate action: clones an event into a fresh draft (config + stage/group structure
+// only) via POST /events/<id>/duplicate-event/. Shared with the organizer events list.
+import { DuplicateEventButton } from "../events/_components/DuplicateEventButton";
 import {
   Pagination,
   PaginationContent,
@@ -409,6 +412,15 @@ export const EventsAdminContent = () => {
                             Edit
                           </Link>
                         </Button>
+                        {/* Duplicate → clone into a fresh draft, then deep-link into
+                            editing the copy ("/a/events/<new-slug>/edit"). Also re-fetches
+                            so the new draft appears in the list. */}
+                        <DuplicateEventButton
+                          eventId={event.event_id}
+                          eventName={event.event_name}
+                          editHrefFor={(slug) => `/a/events/${slug}/edit`}
+                          onSuccess={fetchEvents}
+                        />
                         <DeleteEventModal
                           eventId={event.event_id}
                           onSuccess={fetchEvents} // re-fetches the list

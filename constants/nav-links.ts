@@ -16,6 +16,7 @@ import {
   IconStar,
   IconUsers,
   IconUsersGroup,
+  IconVocabulary,
 } from "@tabler/icons-react";
 import { Award } from "lucide-react";
 
@@ -23,6 +24,7 @@ export const homeNavLinks = [
   { slug: "/home", label: "Home", icon: IconHome },
   { slug: "/teams", label: "Teams", icon: IconUsers },
   { slug: "/news", label: "News", icon: IconArticle },
+  { slug: "/glossary", label: "Glossary", icon: IconVocabulary },
   { slug: "/awards", label: "Awards", icon: Award },
 ];
 
@@ -69,6 +71,7 @@ export const homeNavLinksMobile: NavLinks[] = [
     icon: IconUsers,
   },
   { slug: "/news", label: "News & Updates", icon: IconArticle },
+  { slug: "/glossary", label: "Glossary", icon: IconVocabulary },
   {
     slug: "/rules",
     label: "Rules",

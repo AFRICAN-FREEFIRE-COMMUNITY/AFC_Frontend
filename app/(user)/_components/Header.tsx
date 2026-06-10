@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import React, { useEffect, useState, useCallback } from "react";
 import { MobileNavbar } from "./MobileNavbar";
-import { IconShoppingCart } from "@tabler/icons-react";
+import { IconShoppingCart, IconSparkles } from "@tabler/icons-react";
+// Force-opens the first-time welcome tour, ignoring the seen flags (replay).
+import { openWelcomeTour } from "./WelcomeTour";
 import { useCart } from "@/contexts/CartContext";
 import { CartSheet } from "@/components/CartSheet";
 import { Badge } from "@/components/ui/badge";
@@ -92,6 +94,19 @@ export const Header = () => {
               unreadCount={unreadCount}
               onNotificationUpdate={fetchNotifications}
             />
+            {/* Replay the first-time welcome tour. Always available; force-opens the
+                animated tour (mounted in (user)/layout.tsx) regardless of the seen flags.
+                Same ghost icon-button style as the ThemeToggle next to it. */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={openWelcomeTour}
+              aria-label="Replay welcome tour"
+              title="Replay welcome tour"
+            >
+              <IconSparkles className="h-[1.2rem] w-[1.2rem]" />
+              <span className="sr-only">Replay welcome tour</span>
+            </Button>
             <ThemeToggle />
             {user ? (
               <>

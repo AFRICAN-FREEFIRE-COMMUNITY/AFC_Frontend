@@ -217,7 +217,9 @@ const Page = () => {
                 control={form.control}
                 name="uid"
                 render={({ field }) => (
-                  <FormItem>
+                  // data-tour anchor (guided welcome tour): the Free Fire UID field.
+                  // Targeted by guided-tour-stops.ts -> profile stop -> "profile-uid".
+                  <FormItem data-tour="profile-uid">
                     <FormLabel>
                       UID <InfoTip id="profile.edit.uid" />
                     </FormLabel>
@@ -236,7 +238,9 @@ const Page = () => {
                 control={form.control}
                 name="ingameName"
                 render={({ field }) => (
-                  <FormItem>
+                  // data-tour anchor (guided welcome tour): the in-game name field.
+                  // Targeted by guided-tour-stops.ts -> profile stop -> "profile-ign".
+                  <FormItem data-tour="profile-ign">
                     <FormLabel>
                       In-game Name <InfoTip id="profile.edit.in_game_name" />
                     </FormLabel>
@@ -280,7 +284,14 @@ const Page = () => {
                 )}
               /> */}
               <div className="flex gap-2 items-center justify-between">
-                <Button className="flex-1" disabled={pending} type="submit">
+                {/* data-tour anchor (guided welcome tour): the Save button. Targeted
+                    by guided-tour-stops.ts -> profile stop -> "profile-save". */}
+                <Button
+                  className="flex-1"
+                  disabled={pending}
+                  type="submit"
+                  data-tour="profile-save"
+                >
                   {pending ? <Loader text="Saving..." /> : "Save changes"}
                 </Button>
                 <Button className="flex-1" variant="outline" asChild>

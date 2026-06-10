@@ -402,6 +402,27 @@ function PlayerMarketPage() {
   const [newPlayerInfo, setNewPlayerInfo] = useState("");
   const [newPlayerExpiry, setNewPlayerExpiry] = useState("");
 
+  // ── One-month expiry bound (feature "L-market-expiry-cap") ──
+  // A recruitment post lasts AT MOST one calendar month, then auto-closes (the backend
+  // RecruitmentPost.is_active property goes false once post_expiry_date < today). So a
+  // post's expiry must sit in [today, today + 1 month]. We compute both bounds once and
+  // feed them to the two Expiry date inputs (min/max) AND re-check them in the submit
+  // handlers, mirroring the backend guard in create_recruitment_post / edit_recruitment_post.
+  // maxExpiryStr clamps the day to the target month length exactly like the backend's
+  // add_one_month (e.g. Jan 31 → Feb 28), so the FE and BE caps land on the same date.
+  const { todayStr, maxExpiryStr } = useMemo(() => {
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const today = new Date();
+    // Target month = this month + 1 (Date handles the year rollover for December).
+    const y = today.getFullYear();
+    const m = today.getMonth() + 1;
+    // Last day of the target month: day 0 of the month AFTER it.
+    const lastDayOfTargetMonth = new Date(y, m + 1, 0).getDate();
+    const max = new Date(y, m, Math.min(today.getDate(), lastDayOfTargetMonth));
+    return { todayStr: fmt(today), maxExpiryStr: fmt(max) };
+  }, []);
+
   // API data
   const [teamPosts, setTeamPosts] = useState<TeamRecruitmentPost[]>([]);
   const [playerPosts, setPlayerPosts] = useState<PlayerAvailablePost[]>([]);
@@ -820,6 +841,12 @@ function PlayerMarketPage() {
       toast.error("Please fill in all required fields.");
       return;
     }
+    // One-month cap (feature "L-market-expiry-cap"): re-check the bound here so a hand-edited
+    // date field can't slip a far-future expiry past the input min/max. Mirrors the backend.
+    if (newTeamExpiry < todayStr || newTeamExpiry > maxExpiryStr) {
+      toast.error("Post expiry must be within 1 month from today.");
+      return;
+    }
     setIsSubmitting(true);
     try {
       await axios.post(
@@ -853,6 +880,12 @@ function PlayerMarketPage() {
       !newPlayerExpiry
     ) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    // One-month cap (feature "L-market-expiry-cap"): re-check the bound here so a hand-edited
+    // date field can't slip a far-future expiry past the input min/max. Mirrors the backend.
+    if (newPlayerExpiry < todayStr || newPlayerExpiry > maxExpiryStr) {
+      toast.error("Post expiry must be within 1 month from today.");
       return;
     }
     setIsSubmitting(true);
@@ -974,8 +1007,11 @@ function PlayerMarketPage() {
               Chats
             </Button>
           )}
+          {/* data-tour anchor (guided welcome tour): Create Post button. Targeted by
+              guided-tour-stops.ts -> market stop -> "market-create". */}
           <Button
             className="flex-1 md:flex-none"
+            data-tour="market-create"
             onClick={() => {
               resetCreateForm();
               setCreatePostOpen(true);
@@ -1071,7 +1107,10 @@ function PlayerMarketPage() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <ScrollArea>
-          <TabsList className="w-full">
+          {/* data-tour anchor (guided welcome tour): the Teams Recruiting / Players
+              Open to Join tabs. Targeted by guided-tour-stops.ts -> market stop ->
+              "market-tabs". */}
+          <TabsList className="w-full" data-tour="market-tabs">
             <TabsTrigger value="teams" className="flex-1">
               <IconUsers className="h-4 w-4 mr-1.5" />
               Teams Recruiting
@@ -2335,7 +2374,14 @@ function PlayerMarketPage() {
                   type="date"
                   value={newTeamExpiry}
                   onChange={(e) => setNewTeamExpiry(e.target.value)}
+                  min={todayStr}
+                  max={maxExpiryStr}
                 />
+                {/* One-month cap (feature "L-market-expiry-cap"): the input min/max bound
+                    the picker; the backend enforces the same window on submit. */}
+                <p className="text-xs text-muted-foreground">
+                  Posts last up to 1 month, then close automatically.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -2450,7 +2496,14 @@ function PlayerMarketPage() {
                   type="date"
                   value={newPlayerExpiry}
                   onChange={(e) => setNewPlayerExpiry(e.target.value)}
+                  min={todayStr}
+                  max={maxExpiryStr}
                 />
+                {/* One-month cap (feature "L-market-expiry-cap"): the input min/max bound
+                    the picker; the backend enforces the same window on submit. */}
+                <p className="text-xs text-muted-foreground">
+                  Posts last up to 1 month, then close automatically.
+                </p>
               </div>
 
               <div className="space-y-2">

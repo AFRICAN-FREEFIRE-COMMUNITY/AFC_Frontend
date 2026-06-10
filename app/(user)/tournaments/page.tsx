@@ -977,8 +977,13 @@ const EventsPage = () => {
       )}
 
       {!error && (
-        <Tabs defaultValue="tournaments">
-          <TabsList className="w-full">
+        // data-tour anchor (guided welcome tour): the whole events list. Targeted by
+        // guided-tour-stops.ts -> tournaments stop -> "tournaments-list".
+        <Tabs defaultValue="tournaments" data-tour="tournaments-list">
+          {/* data-tour anchor (guided welcome tour): the Tournaments / Scrims tabs,
+              which distinguish official competitions from practice matches. Targeted
+              by guided-tour-stops.ts -> tournaments stop -> "tournaments-filter". */}
+          <TabsList className="w-full" data-tour="tournaments-filter">
             <TabsTrigger value="tournaments">
               Tournaments ({tournaments.length})
             </TabsTrigger>

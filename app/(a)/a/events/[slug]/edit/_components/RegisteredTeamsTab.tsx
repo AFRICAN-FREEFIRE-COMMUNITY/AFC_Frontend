@@ -17,6 +17,10 @@ import { IconChevronDown, IconUser } from "@tabler/icons-react";
 import { DisqualifyModal } from "../../../_components/DisqualifyModal";
 import { ReactivateModal } from "../../../_components/ReactivateModal";
 import { AddTeamsModal } from "../../../_components/AddTeamsModal";
+// Admin roster corrector: lets staff fix a registered team's event lineup (even after
+// registration closes) by POSTing /events/edit-roster/. Reopens the team for sponsor
+// re-approval when the roster changes. See EditRosterModal.tsx for the full contract.
+import { EditRosterModal } from "../../../_components/EditRosterModal";
 
 // A single player on a registered team's roster (from get_event_details
 // tournament_teams[].members). username is the in-game name; uid + full_name give full
@@ -34,6 +38,10 @@ interface RegisteredTeamsTabProps {
     event_id: number;
     event_name: string;
     participant_type: string;
+    // Whether the event requires sponsor IDs. Threaded from the parent edit page's
+    // eventDetails (get_event_details exposes is_sponsored; see edit/types.tsx). The
+    // EditRosterModal needs it to collect per-player sponsor IDs on a sponsored event.
+    is_sponsored?: boolean;
     registered_competitors: Array<{
       player_id: number;
       username: string;
@@ -213,33 +221,47 @@ export default function RegisteredTeamsTab({
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      {team.status === "active" ? (
-                        <DisqualifyModal
-                          competitor_id={team.team_id || team.player_id}
+                      {/* Squad-only actions: correct the roster, then disqualify /
+                          reactivate. EditRosterModal POSTs /events/edit-roster/ for THIS
+                          team and reopens it for sponsor re-approval on change. */}
+                      <div className="flex items-center justify-end gap-2">
+                        <EditRosterModal
                           event_id={eventDetails.event_id}
-                          name={team.team_name}
-                          showLabel
-                          onSuccess={() =>
-                            updateCompetitorStatus(
-                              team.team_id || team.player_id,
-                              "disqualified",
-                            )
-                          }
+                          team_id={team.team_id || team.player_id}
+                          team_name={team.team_name}
+                          participant_type={eventDetails.participant_type}
+                          is_sponsored={!!eventDetails.is_sponsored}
+                          currentRoster={members}
+                          onSuccess={() => window.location.reload()}
                         />
-                      ) : (
-                        <ReactivateModal
-                          competitor_id={team.team_id || team.player_id}
-                          event_id={eventDetails.event_id}
-                          name={team.team_name}
-                          showLabel
-                          onSuccess={() =>
-                            updateCompetitorStatus(
-                              team.team_id || team.player_id,
-                              "registered",
-                            )
-                          }
-                        />
-                      )}
+                        {team.status === "active" ? (
+                          <DisqualifyModal
+                            competitor_id={team.team_id || team.player_id}
+                            event_id={eventDetails.event_id}
+                            name={team.team_name}
+                            showLabel
+                            onSuccess={() =>
+                              updateCompetitorStatus(
+                                team.team_id || team.player_id,
+                                "disqualified",
+                              )
+                            }
+                          />
+                        ) : (
+                          <ReactivateModal
+                            competitor_id={team.team_id || team.player_id}
+                            event_id={eventDetails.event_id}
+                            name={team.team_name}
+                            showLabel
+                            onSuccess={() =>
+                              updateCompetitorStatus(
+                                team.team_id || team.player_id,
+                                "registered",
+                              )
+                            }
+                          />
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                   {/* Expanded roster: the players on this registered team. */}

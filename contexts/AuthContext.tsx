@@ -55,6 +55,10 @@ export interface User {
   // sidebar entry (the /vendor portal is otherwise only reachable by URL). Set by the
   // backend get-user-profile payload.
   is_vendor?: boolean;
+  // True once the user has finished/skipped the first-time animated WELCOME tour. Consumed by
+  // app/(user)/_components/WelcomeTour.tsx: the tour auto-shows only while this is false. Set by
+  // the backend get-user-profile payload and flipped via POST /auth/mark-welcome-seen/.
+  has_seen_welcome?: boolean;
 
   stats: UserStats;
 }
@@ -194,6 +198,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         discord_username: dbUser.discord_username,
         is_banned: dbUser.is_banned,
         is_vendor: dbUser.is_vendor ?? false,
+        // First-time welcome tour flag (see User interface). The backend get-user-profile
+        // payload ALWAYS includes this boolean (afc_auth.views.get_user_profile -> the
+        // User.has_seen_welcome field, which defaults to False for a brand-new account), so on
+        // a fresh login/signup it carries the real `false` and the guided tour fires. login()
+        // below calls fetchUser() right after auth, so has_seen_welcome is known the moment a
+        // new user lands on their first authenticated page.
+        // We must NOT default an ABSENT field to `true`: that would wrongly SUPPRESS the tour
+        // for a newcomer if a payload ever omitted the field. Default to `false` (show the
+        // tour) so a missing field never silences a new user; the explicit POST
+        // /auth/mark-welcome-seen/ is what permanently turns it off once they finish or skip.
+        has_seen_welcome: dbUser.has_seen_welcome ?? false,
         stats: dbUser.stats,
       };
 

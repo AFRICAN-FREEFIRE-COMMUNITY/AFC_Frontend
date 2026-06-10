@@ -60,6 +60,9 @@ import {
 import { ITEMS_PER_PAGE } from "@/constants";
 import { DownloadLeaderboardButton } from "../leaderboards/_components/DownloadLeaderboardButton";
 import { InfoTip } from "@/components/ui/info-tip";
+// Standalone (event-less) leaderboards section — the shared list + "Create standalone" button.
+// Additive: it sits below the existing event-leaderboard table and does not touch that UI.
+import { StandaloneLeaderboardList } from "../leaderboards/standalone/_components/StandaloneLeaderboardList";
 
 interface LeaderboardProps {
   leaderboard_id: number;
@@ -503,6 +506,13 @@ export const LeaderboardsAdminContent = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* ── Standalone (event-less) leaderboards ──────────────────────────────
+          A separate section from the event leaderboards above. Lists the standalone
+          leaderboards this admin can manage and links into the create wizard. The
+          admin caller is unscoped (no organizationId), so it shows everything the
+          backend lets the admin see (afc_leaderboard list view). */}
+      <StandaloneLeaderboardList />
     </div>
   );
 };
