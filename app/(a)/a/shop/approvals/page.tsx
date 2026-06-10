@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -63,8 +64,20 @@ import { formatDate, formatMoneyInput } from "@/lib/utils";
 import {
   PendingProduct,
   PendingProductMedia,
+  ProductApprovalStatus,
   marketplaceAdminApi,
 } from "@/lib/marketplaceAdmin";
+
+// The status tabs on this page. BUGFIX (2026-06-10): the page used to show ONLY the
+// pending (submitted) queue, so once an admin approved a product it vanished and there
+// was no way to see it was accepted or by whom. These tabs let the admin switch the
+// ?status= filter so Approved (with approved_by/approved_at) and Rejected (with
+// rejection_reason) are visible too. Values mirror the backend ProductApprovalStatus.
+const STATUS_TABS: { value: ProductApprovalStatus; label: string }[] = [
+  { value: "submitted", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+];
 
 // Build a human price label from a product's variants. The backend serialises each
 // variant price as a decimal STRING; we parse, drop empties, and show a single price
@@ -106,6 +119,10 @@ export default function ProductApprovalsPage() {
   // ── Queue state ──
   const [products, setProducts] = useState<PendingProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // Which approval state is shown. Drives the ?status= filter on the fetch below.
+  // "submitted" is the default (the original pending queue) for back-compat.
+  const [activeStatus, setActiveStatus] =
+    useState<ProductApprovalStatus>("submitted");
 
   // The product whose Approve action is in flight (spins just that row's button).
   const [approveBusyId, setApproveBusyId] = useState<number | null>(null);
@@ -124,12 +141,13 @@ export default function ProductApprovalsPage() {
   const [detailTarget, setDetailTarget] = useState<PendingProduct | null>(null);
   const [detailMediaIndex, setDetailMediaIndex] = useState(0);
 
-  // Fetch the approval queue (submitted vendor products). The client reads the Bearer
-  // token from the cookie itself; we only gate on having a token at all.
+  // Fetch products for the active status tab (submitted / approved / rejected). The
+  // client reads the Bearer token from the cookie itself; we only gate on having a token
+  // at all. Re-fetches whenever the tab changes so each tab shows its own slice.
   const fetchPending = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await marketplaceAdminApi.listPendingProducts();
+      const data = await marketplaceAdminApi.listPendingProducts(activeStatus);
       setProducts(data.products ?? []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to load the queue.");
@@ -137,7 +155,7 @@ export default function ProductApprovalsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeStatus]);
 
   useEffect(() => {
     if (token) fetchPending();
@@ -197,22 +215,45 @@ export default function ProductApprovalsPage() {
       <PageHeader
         back
         title="Product Approvals"
-        description="Review products vendors have submitted. Approve to let them go live, or reject with a reason the vendor can act on."
+        description="Review products vendors have submitted. Approve to let them go live, or reject with a reason the vendor can act on. Use the tabs to see what was already approved (and by whom) or rejected."
       />
+
+      {/* Status tabs: switch the ?status= filter between the pending queue and the
+          already-decided products. Matches the pill/segment Tabs idiom the sibling shop
+          orders page uses (Tabs + TabsList + TabsTrigger). */}
+      <Tabs
+        value={activeStatus}
+        onValueChange={(v) => setActiveStatus(v as ProductApprovalStatus)}
+      >
+        <TabsList className="w-full justify-start overflow-x-auto">
+          {STATUS_TABS.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="flex-shrink-0"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       <Card data-tour="shop-approvals-queue-table">
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader text="Loading the approval queue..." />
+              <Loader text="Loading products..." />
             </div>
           ) : products.length === 0 ? (
             <p
               className="py-16 text-center text-sm text-muted-foreground"
               data-tour="shop-approvals-empty-state"
             >
-              The approval queue is empty. Submitted vendor products will appear
-              here.
+              {activeStatus === "submitted"
+                ? "The approval queue is empty. Submitted vendor products will appear here."
+                : activeStatus === "approved"
+                  ? "No approved vendor products yet."
+                  : "No rejected vendor products."}
             </p>
           ) : (
             <Table>
@@ -222,7 +263,16 @@ export default function ProductApprovalsPage() {
                   <TableHead className="text-foreground">Vendor</TableHead>
                   <TableHead className="text-foreground">Price</TableHead>
                   <TableHead className="text-foreground">Variants</TableHead>
-                  <TableHead className="text-foreground">Submitted</TableHead>
+                  {/* The Details column is status-aware: Submitted date on the pending
+                      tab, the approver + approval date on the approved tab, and the
+                      rejection reason on the rejected tab. */}
+                  <TableHead className="text-foreground">
+                    {activeStatus === "approved"
+                      ? "Approved by"
+                      : activeStatus === "rejected"
+                        ? "Reason"
+                        : "Submitted"}
+                  </TableHead>
                   <TableHead className="text-foreground text-right">
                     Actions
                   </TableHead>
@@ -259,15 +309,37 @@ export default function ProductApprovalsPage() {
                     <TableCell className="text-muted-foreground">
                       {product.variants?.length ?? 0}
                     </TableCell>
+                    {/* Details cell, status-aware (see the matching header above). */}
                     <TableCell className="text-muted-foreground">
-                      {product.submitted_at
-                        ? formatDate(product.submitted_at)
-                        : "-"}
+                      {activeStatus === "approved" ? (
+                        // BUGFIX (2026-06-10): surface WHO approved + WHEN, the data the
+                        // backend serialiser now returns (approved_by / approved_at).
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground">
+                            {product.approved_by || "Unknown"}
+                          </span>
+                          {product.approved_at && (
+                            <span className="text-xs">
+                              {formatDate(product.approved_at)}
+                            </span>
+                          )}
+                        </div>
+                      ) : activeStatus === "rejected" ? (
+                        // Show the reason the vendor was given so an admin can review it.
+                        <span className="whitespace-pre-line">
+                          {product.rejection_reason?.trim() || "-"}
+                        </span>
+                      ) : product.submitted_at ? (
+                        formatDate(product.submitted_at)
+                      ) : (
+                        "-"
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         {/* View: opens the full detail modal (gallery + description +
-                            variants) so the admin can review before deciding. */}
+                            variants) so the admin can review before deciding. Available
+                            on every tab. */}
                         <Button
                           size="sm"
                           variant="outline"
@@ -276,32 +348,40 @@ export default function ProductApprovalsPage() {
                         >
                           <IconEye className="mr-1 h-4 w-4" /> View
                         </Button>
-                        <Button
-                          size="sm"
-                          disabled={approveBusyId === product.id}
-                          onClick={() => handleApprove(product)}
-                          data-tour="shop-approvals-approve-button"
-                        >
-                          {approveBusyId === product.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <IconCheck className="mr-1 h-4 w-4" /> Approve
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-destructive text-destructive hover:bg-destructive hover:text-white"
-                          onClick={() => {
-                            setRejectTarget(product);
-                            setRejectReason("");
-                          }}
-                          data-tour="shop-approvals-reject-button"
-                        >
-                          <IconX className="mr-1 h-4 w-4" /> Reject
-                        </Button>
+                        {/* Approve / Reject only make sense for a SUBMITTED product (the
+                            backend rejects approving/rejecting anything else), so they
+                            show only on the Pending tab. The Approved/Rejected tabs are
+                            read-only history. */}
+                        {activeStatus === "submitted" && (
+                          <>
+                            <Button
+                              size="sm"
+                              disabled={approveBusyId === product.id}
+                              onClick={() => handleApprove(product)}
+                              data-tour="shop-approvals-approve-button"
+                            >
+                              {approveBusyId === product.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <IconCheck className="mr-1 h-4 w-4" /> Approve
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                              onClick={() => {
+                                setRejectTarget(product);
+                                setRejectReason("");
+                              }}
+                              data-tour="shop-approvals-reject-button"
+                            >
+                              <IconX className="mr-1 h-4 w-4" /> Reject
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -534,35 +614,41 @@ export default function ProductApprovalsPage() {
                     </div>
                   </div>
 
-                  {/* ── Footer: Approve + Reject, reusing the table's flow ── */}
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      className="border-destructive text-destructive hover:bg-destructive hover:text-white"
-                      onClick={() => {
-                        // Hand off to the existing reject-reason dialog. Close the
-                        // detail modal first so only one dialog is open at a time.
-                        const target = detailTarget;
-                        setDetailTarget(null);
-                        setRejectTarget(target);
-                        setRejectReason("");
-                      }}
-                    >
-                      <IconX className="mr-1 h-4 w-4" /> Reject
-                    </Button>
-                    <Button
-                      disabled={approveBusyId === detailTarget.id}
-                      onClick={() => handleApprove(detailTarget)}
-                    >
-                      {approveBusyId === detailTarget.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <IconCheck className="mr-1 h-4 w-4" /> Approve
-                        </>
-                      )}
-                    </Button>
-                  </DialogFooter>
+                  {/* ── Footer: Approve + Reject, reusing the table's flow ──
+                      Only a SUBMITTED product can be approved/rejected (the backend
+                      enforces this), so the action buttons show only when viewing a
+                      pending product. For an already-approved/rejected product the modal
+                      is read-only review, so no footer actions are rendered. */}
+                  {detailTarget.approval_status === "submitted" && (
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                        onClick={() => {
+                          // Hand off to the existing reject-reason dialog. Close the
+                          // detail modal first so only one dialog is open at a time.
+                          const target = detailTarget;
+                          setDetailTarget(null);
+                          setRejectTarget(target);
+                          setRejectReason("");
+                        }}
+                      >
+                        <IconX className="mr-1 h-4 w-4" /> Reject
+                      </Button>
+                      <Button
+                        disabled={approveBusyId === detailTarget.id}
+                        onClick={() => handleApprove(detailTarget)}
+                      >
+                        {approveBusyId === detailTarget.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <IconCheck className="mr-1 h-4 w-4" /> Approve
+                          </>
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  )}
                 </>
               );
             })()}

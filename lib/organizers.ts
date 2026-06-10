@@ -151,6 +151,73 @@ export const organizersApi = {
   // the reported event for rankings (the integrity action).
   adminUpdateReport: (id: number | string, body: any) => aPatch(`admin/reports/${id}/`, body),
 
+  // ── ORGANIZER BLACKLIST - team blacklists + lift requests (feature "organizer-blacklist") ──
+  // Backed by afc_organizers/views_blacklist.py (routes in afc_organizers/urls.py, prefix
+  // /organizers/blacklists/...). Two audiences share these calls:
+  //   • ORGANIZER staff (gated on can_manage_registrations for the org): create / list / lift a
+  //     blacklist, list incoming lift requests, decide one. CONSUMED BY the organizer dashboard
+  //     "Blacklists" page (app/(organizer)/organizer/blacklists/page.tsx).
+  //   • The AFFECTED PARTY (team manager or snapshot player - NOT org-gated): myBlacklists (the
+  //     team auto-discovers the blacklists affecting it) + requestBlacklistLift.
+  //     CONSUMED BY the team page "Request blacklist lift" section (app/(user)/teams/[id]/page.tsx).
+  // All gating + validation lives server-side; the FE just surfaces the result.
+
+  // createBlacklist - POST blacklists/ -> 201 { message, blacklist }. Blacklists a team for a
+  // calendar date RANGE and snapshots its current roster. body: { organization_id, team_id,
+  // start_date, end_date, reason }. start_date / end_date are ISO "YYYY-MM-DD" (the backend now
+  // takes the range directly; duration_days is only a legacy fallback the FE no longer sends).
+  createBlacklist: (body: {
+    organization_id: number;
+    team_id: number;
+    start_date: string;
+    end_date: string;
+    reason?: string;
+  }) => aPost("blacklists/", body),
+
+  // listBlacklists - GET blacklists/?organization_id=&status= -> { results, total_count, has_more }.
+  // Each result carries its nested snapshot `players` (the expandable roster on the dashboard).
+  listBlacklists: (params: { organization_id: number; status?: string; limit?: number; offset?: number }) =>
+    aGet("blacklists/", params),
+
+  // liftBlacklist - POST blacklists/<id>/lift/ -> { message, blacklist }. Organizer early-lift:
+  // sets status "lifted" and clears every player block.
+  liftBlacklist: (blacklistId: number | string) => aPost(`blacklists/${blacklistId}/lift/`),
+
+  // myBlacklists - GET blacklists/mine/?team_id= -> { results, total_count, has_more }. The
+  // AFFECTED PARTY's auto-discovery call: lists the blacklists that affect the caller (the teams
+  // they manage AND any blacklist they are a snapshot player on), so the team page never has to
+  // ask the user to type a blacklist id. NOT org-permission-gated (the backend scopes results to
+  // the caller). Pass team_id to narrow to one team. Each result carries the per-action flags the
+  // UI keys off: can_request_team_lift (caller manages that team), can_request_self_lift (caller is
+  // an active snapshot player on it), and my_pending_request (the caller's pending lift request,
+  // serialized, or null). CONSUMED BY app/(user)/teams/[id]/_components/RequestBlacklistLift.tsx.
+  myBlacklists: (params?: { team_id?: number }) => aGet("blacklists/mine/", params),
+
+  // requestBlacklistLift - POST blacklists/<id>/request-lift/ -> 201 { message, lift_request }.
+  // The affected party asks for a lift. scope "team" (a manager asks for the whole blacklist) or
+  // "player" (the player themselves, or a manager on their behalf, asks for one person);
+  // target_user_id is required for player scope. The blacklist id now comes from myBlacklists.
+  requestBlacklistLift: (
+    blacklistId: number | string,
+    body: { scope: "team" | "player"; target_user_id?: number; reason?: string },
+  ) => aPost(`blacklists/${blacklistId}/request-lift/`, body),
+
+  // listBlacklistLiftRequests - GET blacklists/lift-requests/?organization_id=&status= ->
+  // { results, total_count, has_more }. The org's incoming lift requests (with team context).
+  listBlacklistLiftRequests: (params: {
+    organization_id: number;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }) => aGet("blacklists/lift-requests/", params),
+
+  // decideBlacklistLiftRequest - POST blacklists/lift-requests/<id>/decide/ -> { message,
+  // lift_request }. Organizer approves/denies a pending request. body: { decision, reason }.
+  decideBlacklistLiftRequest: (
+    requestId: number | string,
+    body: { decision: "approve" | "deny"; reason?: string },
+  ) => aPost(`blacklists/lift-requests/${requestId}/decide/`, body),
+
   // ── PUBLIC - public org page (NO auth header) ────────────────────────────
   getOrganizationPublic: (slug: string) => pGet(`get-organization-public/${slug}/`),
   // Public organizer DIRECTORY (NO auth header) - backs the "Organizers" tab on

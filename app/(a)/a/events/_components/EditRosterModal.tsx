@@ -73,11 +73,15 @@ interface CurrentRosterMember {
 }
 
 // A player in the team's FULL member pool, returned by /team/get-team-details/.
-// id is the user_id; uid is the in-game UID.
+// id is the user_id; uid is the in-game UID; in_game_role is the player's POSITION
+// (rusher / support / grenader / sniper) — get_team_details already returns it per
+// member (afc_team.views.get_team_details -> members_data["in_game_role"]). We surface
+// it here so an admin can see each player's role while picking the lineup.
 interface PoolMember {
   id: number;
   username: string;
   uid?: string | null;
+  in_game_role?: string | null;
 }
 
 interface EditRosterModalProps {
@@ -324,9 +328,22 @@ export function EditRosterModal({
                           onCheckedChange={() => toggle(member.id)}
                         />
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="text-sm font-medium truncate capitalize">
-                            {member.username}
-                          </span>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-sm font-medium truncate capitalize">
+                              {member.username}
+                            </span>
+                            {/* Player POSITION (in_game_role) surfaced from the team pool so an
+                                admin can see each member's role while building the lineup. When the
+                                player has no position we render nothing. */}
+                            {member.in_game_role ? (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] rounded-full px-2 py-0.5 shrink-0 capitalize text-muted-foreground"
+                              >
+                                {member.in_game_role}
+                              </Badge>
+                            ) : null}
+                          </div>
                           {member.uid && (
                             <span className="text-xs text-muted-foreground">
                               UID {member.uid}

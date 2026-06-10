@@ -71,7 +71,6 @@ export const homeNavLinksMobile: NavLinks[] = [
     icon: IconUsers,
   },
   { slug: "/news", label: "News & Updates", icon: IconArticle },
-  { slug: "/glossary", label: "Glossary", icon: IconVocabulary },
   {
     slug: "/rules",
     label: "Rules",
@@ -113,6 +112,8 @@ export const homeNavLinksMobile: NavLinks[] = [
   },
   { slug: "/about", label: "About Us", icon: IconInfoCircle },
   { slug: "/contact", label: "Contact", icon: IconMessage },
+  // Glossary sits under Contact in the hamburger menu (owner request 2026-06-10).
+  { slug: "/glossary", label: "Glossary", icon: IconVocabulary },
 ];
 // Define the shape of our admin links for type safety
 interface AdminNavLink {

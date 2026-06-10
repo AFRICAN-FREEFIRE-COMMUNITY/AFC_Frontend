@@ -134,6 +134,12 @@ export interface PendingProduct {
   media: PendingProductMedia[];
   approval_status: string;
   submitted_at: string | null;
+  // BUGFIX (2026-06-10): the approval audit trail. approved_at is WHEN an admin approved
+  // the product; approved_by is the approver's username (null until first approved). The
+  // approvals page shows both on the Approved tab so an admin can see a product WAS
+  // accepted and by whom (the backend serialiser previously omitted approved_by).
+  approved_at: string | null;
+  approved_by: string | null;
   rejection_reason: string;
   vendor_id: number | null;
   vendor_name: string | null;
@@ -141,6 +147,11 @@ export interface PendingProduct {
   updated_at: string;
   variants: PendingProductVariant[];
 }
+
+// The status filter the approvals page passes to listPendingProducts. Mirrors the
+// backend ?status= contract (admin_list_pending_products): submitted is the default
+// pending queue; approved/rejected show decided products; all = every state.
+export type ProductApprovalStatus = "submitted" | "approved" | "rejected" | "all";
 
 // The create-vendor body. INVITE-ONLY: provide the user_id (preferred) OR the email
 // of an EXISTING user to link; display_name is the required shop-facing seller name.
@@ -186,10 +197,16 @@ export const marketplaceAdminApi = {
 
   // ── B) PRODUCT APPROVAL (require_admin) ───────────────────────────────────
 
-  // GET /shop/admin/products/pending/ — the approval queue (approval_status ==
-  // "submitted"). Returns { count, products }.
-  listPendingProducts: () =>
-    aGet<{ count: number; products: PendingProduct[] }>("products/pending/"),
+  // GET /shop/admin/products/pending/ - vendor products by approval state. With no
+  // argument it returns the pending queue (approval_status == "submitted", back-compat);
+  // pass a status to fetch approved / rejected / all instead. BUGFIX (2026-06-10): the
+  // Approved/Rejected tabs on the approvals page use this so an approved product (and its
+  // approver) is visible, not lost the moment it leaves the queue. Returns { count,
+  // status, products }.
+  listPendingProducts: (status?: ProductApprovalStatus) =>
+    aGet<{ count: number; status: string; products: PendingProduct[] }>(
+      status ? `products/pending/?status=${status}` : "products/pending/",
+    ),
 
   // POST /shop/admin/products/approve/ — submitted -> approved (the Approve button).
   // Returns { message, product_id, approval_status }.

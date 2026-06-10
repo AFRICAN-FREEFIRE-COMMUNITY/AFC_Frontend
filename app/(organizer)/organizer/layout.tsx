@@ -103,6 +103,11 @@ const NAV_ITEMS = [
   // "Reviews" - the org's per-event ratings + ANONYMOUS comments,
   // gated per-page on can_view_reviews (or owner).
   { label: "Reviews", href: "/organizer/reviews" },
+  // "Blacklists" - block a team (and the players snapshotted on it) from registering
+  // for this org's events, plus the queue of lift requests the affected party raises.
+  // Gated PER-PAGE on can_manage_registrations (or owner) - the SAME permission the
+  // backend blacklist endpoints require. See app/(organizer)/organizer/blacklists/page.tsx.
+  { label: "Blacklists", href: "/organizer/blacklists" },
 ];
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────

@@ -77,13 +77,23 @@ interface CategoryTab {
   is_physical: boolean;
 }
 
+// The always-present "All" tab. BUGFIX (2026-06-10): a product with no category (e.g.
+// an approved vendor product whose category/slug is null, like "Vendor Test Hoodie")
+// matched NO category tab and was therefore invisible on the shop page, even though the
+// homepage featured list (a flat list, no category filter) still showed it. This tab is
+// the first option and is selected by default; it lists every active product regardless
+// of category, so uncategorised products always have a home.
+const ALL_TAB: CategoryTab = { value: "all", label: "All", is_physical: false };
+
 export default function ShopClient() {
   const { token } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CategoryTab[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string>("");
+  // Default to the "All" tab so the storefront shows everything (including
+  // uncategorised products) on first load.
+  const [activeCategory, setActiveCategory] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   // 2. Fetch products + live categories in parallel.
@@ -121,14 +131,18 @@ export default function ShopClient() {
           is_physical: c.is_physical,
         }));
 
-        const tabs: CategoryTab[] =
+        const liveTabs: CategoryTab[] =
           liveCats.length > 0
             ? liveCats
             : [{ value: "diamonds", label: "Diamonds", is_physical: false }];
 
+        // Prepend the "All" tab so it is always the first option (and the default).
+        const tabs: CategoryTab[] = [ALL_TAB, ...liveTabs];
+
         setCategories(tabs);
-        // Default to the first available tab.
-        setActiveCategory((prev) => prev || tabs[0]?.value || "");
+        // Default to "All" (the first tab) so uncategorised products are visible too;
+        // keep any tab the user already picked.
+        setActiveCategory((prev) => prev || tabs[0]?.value || "all");
       } catch (error) {
         console.error("Failed to fetch shop", error);
       } finally {
@@ -147,9 +161,13 @@ export default function ShopClient() {
   );
 
   const filteredProducts = useMemo(() => {
-    let filtered = products.filter(
-      (product) => product.type === activeCategory,
-    );
+    // "all" shows every active product regardless of category (so uncategorised
+    // products like a vendor product with a null category are visible); any other tab
+    // filters to that category slug as before.
+    let filtered =
+      activeCategory === "all"
+        ? products
+        : products.filter((product) => product.type === activeCategory);
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();

@@ -109,6 +109,11 @@ import TeamStatisticsTab from "./_components/TeamStatisticsTab";
 import TeamAchievementsTab from "./_components/TeamAchievementsTab";
 // Subtle clickable player name -> public player profile (roster / applications / requests).
 import { PlayerLink } from "@/components/ui/entity-link";
+// Team-side "Request blacklist lift" action: lets a manager (or a member, for themselves)
+// ask an organizer to lift an active organizer blacklist on this team. It AUTO-DISCOVERS the
+// blacklists affecting this team via GET /organizers/blacklists/mine/?team_id= (no manual id
+// entry), then posts to /organizers/blacklists/<id>/request-lift/. See RequestBlacklistLift.tsx.
+import { RequestBlacklistLift } from "./_components/RequestBlacklistLift";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -215,6 +220,17 @@ const Page = ({ params }: { params: Params }) => {
       member.management_role === "coach",
   );
   const canManageRoster = hasFullAccess || isCoachOnTeam;
+
+  // canManageTeam = may act for the WHOLE team on the blacklist-lift surface. Mirrors the
+  // backend _is_team_manager gate (afc_organizers/views_blacklist.py): the team owner, or a
+  // member whose management_role is team_captain / coach / manager. A plain member can still
+  // request a lift for THEMSELVES (player scope), just not for the whole team.
+  const isManagerMember = teamDetails?.members?.some(
+    (member: any) =>
+      member.username === user?.in_game_name &&
+      ["team_captain", "coach", "manager"].includes(member.management_role),
+  );
+  const canManageTeam = hasFullAccess || isManagerMember;
 
   const handleJoinTeam = () => {
     startRequestTransition(async () => {
@@ -734,6 +750,21 @@ const Page = ({ params }: { params: Params }) => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Organizer blacklist - request lift. Visible to team MEMBERS only
+                    (a non-member has no standing to ask). The component auto-discovers the
+                    blacklists affecting this team (GET /organizers/blacklists/mine/) and the
+                    backend flags on each one decide whether a whole-team or for-myself lift is
+                    offered. canManageTeam is just a hint for the empty-state line. */}
+                {isMember && (
+                  <div className="mt-4">
+                    <RequestBlacklistLift
+                      teamId={teamDetails?.team_id}
+                      currentUserId={user?.user_id}
+                      canManageTeam={!!canManageTeam}
+                    />
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="members">
