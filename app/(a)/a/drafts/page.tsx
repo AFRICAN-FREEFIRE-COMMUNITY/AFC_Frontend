@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { matchesSearch } from "@/lib/search";
 import { formatDate } from "@/lib/utils";
-import { IconCalendarEvent, IconUser } from "@tabler/icons-react";
+import { IconCalendarEvent, IconRocket, IconUser } from "@tabler/icons-react";
 import axios from "axios";
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -50,11 +50,17 @@ const DraftedEventsTable = ({
   drafts,
   searchQuery,
   onDeleted,
+  onPublish,
+  publishingId,
   emptyMessage,
 }: {
   drafts: DraftedEvent[];
   searchQuery: string;
   onDeleted: () => void;
+  // Publish-this-draft handler + the id currently publishing, both owned by the
+  // parent page (it holds the auth token and re-fetches both draft lists on success).
+  onPublish: (draft: DraftedEvent) => void;
+  publishingId: number | null;
   emptyMessage: string;
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -108,6 +114,23 @@ const DraftedEventsTable = ({
                 <TableCell>{formatDate(draft.created_at)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2 justify-end">
+                    {/* Publish → flip this draft live via
+                        POST /events/edit-event/ { is_draft: false }. The mirror of the
+                        Unpublish action on the published events list (EventsAdminContent).
+                        Works on organizer-owned drafts too: get-drafted-events returns
+                        every org's drafts to an AFC admin, and edit_event lets an admin
+                        edit any event, so no client-side gate is applied. */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onPublish(draft)}
+                      disabled={publishingId === draft.event_id}
+                    >
+                      <IconRocket className="size-4" />
+                      {publishingId === draft.event_id
+                        ? "Publishing..."
+                        : "Publish"}
+                    </Button>
                     <Button
                       asChild
                       variant="outline"
@@ -222,6 +245,10 @@ const page = () => {
   const [pendingAll, startAllTransition] = useTransition();
   const [pendingMy, startMyTransition] = useTransition();
 
+  // Tracks which draft's Publish request is in flight (keyed by event_id) so only that
+  // row's button is disabled while the call runs.
+  const [publishingId, setPublishingId] = useState<number | null>(null);
+
   const fetchAllDrafts = () => {
     startAllTransition(async () => {
       try {
@@ -262,6 +289,32 @@ const page = () => {
   const handleDeleted = () => {
     fetchAllDrafts();
     fetchMyDrafts();
+  };
+
+  // ── Publish a draft (draft → live) ──────────────────────────────────────────
+  // Sets the event's is_draft back to false via POST /events/edit-event/, which makes
+  // it appear in every public list (and on the published list in EventsAdminContent,
+  // where the mirror "Unpublish" action lives). Allowed on organizer-owned drafts too:
+  // edit_event lets an AFC admin edit any event, so no client-side gate is applied.
+  // On success we re-fetch both draft lists, so the now-published event leaves them.
+  const handlePublish = async (draft: DraftedEvent) => {
+    setPublishingId(draft.event_id);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
+        { event_id: draft.event_id, is_draft: false },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Event published.");
+      fetchAllDrafts();
+      fetchMyDrafts();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to publish event.",
+      );
+    } finally {
+      setPublishingId(null);
+    }
   };
 
   if (pendingAll && pendingMy) return <FullLoader />;
@@ -359,6 +412,8 @@ const page = () => {
                   drafts={allDrafts}
                   searchQuery={searchQuery}
                   onDeleted={handleDeleted}
+                  onPublish={handlePublish}
+                  publishingId={publishingId}
                   emptyMessage="No drafted events found."
                 />
               )}
@@ -384,6 +439,8 @@ const page = () => {
                   drafts={myDrafts}
                   searchQuery={searchQuery}
                   onDeleted={handleDeleted}
+                  onPublish={handlePublish}
+                  publishingId={publishingId}
                   emptyMessage="You have no drafted events."
                 />
               )}

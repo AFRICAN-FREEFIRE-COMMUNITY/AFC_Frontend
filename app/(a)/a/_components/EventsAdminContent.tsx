@@ -36,12 +36,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { matchesSearch } from "@/lib/search";
 import { formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
 import {
   IconCalendar,
   IconClock,
+  IconEyeOff,
   IconLockFilled,
   IconSwords,
   IconTrendingUp,
@@ -97,6 +99,43 @@ export const EventsAdminContent = () => {
 
   const [pending, startTransition] = useTransition();
   const [events, setEvents] = useState<EventProp[]>([]);
+
+  // Bearer token for the authed edit-event call below (the events/count fetches are
+  // public, but edit-event requires the admin's session token).
+  const { token } = useAuth();
+  // Tracks which row's Unpublish request is in flight so we can disable just that
+  // button while it runs (keyed by event_id).
+  const [unpublishingId, setUnpublishingId] = useState<string | null>(null);
+
+  // ── Unpublish an event (publish → draft) ────────────────────────────────────
+  // Every event in THIS list is already published (get-all-events filters
+  // is_draft=False), so the row action is always "Unpublish": it sets the event back
+  // to a draft, which hides it from every public list. Works for organizer-owned
+  // events too because edit_event lets an AFC admin edit ANY event (no org gate for
+  // admins), so we deliberately add no client-side gate here.
+  //
+  // Calls POST /events/edit-event/ with { event_id, is_draft: true } (the same
+  // endpoint ActionsTab uses for the public/private toggle and the [slug]/edit form).
+  // On success we re-fetch, so the now-drafted event drops off this list; it then
+  // shows up under /a/drafts where it can be Published again.
+  const handleUnpublish = async (event: EventProp) => {
+    setUnpublishingId(event.event_id);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
+        { event_id: event.event_id, is_draft: true },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Event unpublished.");
+      fetchEvents(); // re-fetch: the event is now a draft and leaves this list.
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to unpublish event.",
+      );
+    } finally {
+      setUnpublishingId(null);
+    }
+  };
 
   const fetchEvents = () => {
     startTransition(async () => {
@@ -414,6 +453,21 @@ export const EventsAdminContent = () => {
                           <Link href={`/a/events/${event.slug}/edit`}>
                             Edit
                           </Link>
+                        </Button>
+                        {/* Unpublish → set the event back to a draft via
+                            POST /events/edit-event/ { is_draft: true }. Hides it from
+                            all public lists. Allowed on organizer-owned events too (the
+                            backend lets AFC admins edit any event), so no gate here. */}
+                        <Button
+                          variant={"outline"}
+                          size="sm"
+                          onClick={() => handleUnpublish(event)}
+                          disabled={unpublishingId === event.event_id}
+                        >
+                          <IconEyeOff className="size-4" />
+                          {unpublishingId === event.event_id
+                            ? "Unpublishing..."
+                            : "Unpublish"}
                         </Button>
                         {/* Duplicate → clone into a fresh draft, then deep-link into
                             editing the copy ("/a/events/<new-slug>/edit"). Also re-fetches
