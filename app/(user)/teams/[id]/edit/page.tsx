@@ -55,6 +55,17 @@ export const EditTeamFormSchema = z.object({
       message:
         "Team name can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @). Special characters like emojis or fancy unicode text are not allowed.",
     }),
+  // Optional short team handle (e.g. "AFC"). Letters and digits only, up to 5 chars. Mirrors
+  // the backend rule in afc_team/views.py (_normalize_team_tag), which also feeds team search
+  // and OCR name matching. Empty value is allowed (clears the tag).
+  team_tag: z
+    .string()
+    .max(5, { message: "Team tag must be at most 5 characters." })
+    .refine((val) => !val || /^[a-zA-Z0-9]+$/.test(val), {
+      message:
+        "Team tag can only contain letters and digits (no spaces or symbols).",
+    })
+    .optional(),
   team_logo: z.string().optional(),
   join_settings: z
     .string()
@@ -95,6 +106,7 @@ export default function page({ params }: { params: Params }) {
     defaultValues: {
       team_id: "",
       team_name: "",
+      team_tag: "",
       team_logo: "",
       join_settings: "",
       facebook_url: "",
@@ -138,6 +150,8 @@ export default function page({ params }: { params: Params }) {
       form.reset({
         team_id: String(teamDetails.team_id), // ✅ convert to string
         team_name: teamDetails.team_name || "",
+        // Pre-fill the current tag (get-team-details returns team_tag); "" when unset.
+        team_tag: teamDetails.team_tag || "",
         join_settings: teamDetails.join_settings || "",
         team_logo: teamDetails.team_logo || "",
         ...socialUrls,
@@ -155,6 +169,9 @@ export default function page({ params }: { params: Params }) {
         formData.append("team_id", data.team_id); // ✅ send as string
         formData.append("team_name", data.team_name);
         formData.append("join_settings", data.join_settings);
+        // Always send team_tag (key present) so the owner can also CLEAR it: an empty value
+        // tells edit_team to null the tag. The backend normalises + validates it.
+        formData.append("team_tag", (data.team_tag || "").trim().toUpperCase());
 
         if (selectedFile) {
           formData.append("team_logo", selectedFile);
@@ -238,6 +255,36 @@ export default function page({ params }: { params: Params }) {
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Team tag: short handle, auto-uppercased, max 5 chars. Sent to edit-team as
+                  `team_tag`; also used by team search and OCR name matching. */}
+              <FormField
+                control={form.control}
+                name="team_tag"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Team tag</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g. AFC"
+                        maxLength={5}
+                        onPaste={preventPaste}
+                        {...field}
+                        value={field.value ?? ""}
+                        // Auto-uppercase as the owner types so the stored handle is consistent.
+                        onChange={(e) =>
+                          field.onChange(e.target.value.toUpperCase())
+                        }
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Short team handle (up to 5 letters), e.g. AFC. Shown on your
+                      players and used in search.
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}

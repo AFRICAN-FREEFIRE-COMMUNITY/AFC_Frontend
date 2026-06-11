@@ -526,9 +526,20 @@ const Page = ({ params }: { params: Params }) => {
                   <AvatarFallback>{teamDetails?.team_name[0]}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <CardTitle className="text-xl md:text-3xl">
-                    {teamDetails?.team_name}
-                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-xl md:text-3xl">
+                      {teamDetails?.team_name}
+                    </CardTitle>
+                    {/* Short team handle (Team.team_tag) shown next to the name when set. */}
+                    {teamDetails?.team_tag && (
+                      <Badge
+                        variant="outline"
+                        className="rounded-full text-xs"
+                      >
+                        {teamDetails.team_tag}
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-1">
                     Country: {teamDetails?.country}
                   </p>
