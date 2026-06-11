@@ -53,11 +53,16 @@ const TIER_LABELS: Record<RankingTier, string> = {
 export function StandaloneLeaderboardList({
   organizationId,
   createHref = "/a/leaderboards/standalone/create",
+  viewHrefBase = "/a/leaderboards/standalone",
 }: {
   // When set (organizer surface), the list is scoped to this org. Omitted on the admin surface.
   organizationId?: number;
   // Where "Create standalone" points (default = the admin wizard; both surfaces use the same wizard).
   createHref?: string;
+  // Route base each row's "View" link points at (default = the admin view; the organizer surface
+  // passes its own base so the link lands inside the organizer portal it can actually reach).
+  // The row link is `${viewHrefBase}/${lb.id}`.
+  viewHrefBase?: string;
 }) {
   const [rows, setRows] = useState<StandaloneLeaderboardHeader[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,7 +174,7 @@ export function StandaloneLeaderboardList({
                     <TableCell className="p-2 text-xs">
                       <div className="flex items-center justify-end">
                         <Button asChild variant="outline" size="sm">
-                          <Link href={`/a/leaderboards/standalone/${lb.id}`}>
+                          <Link href={`${viewHrefBase}/${lb.id}`}>
                             <IconEye className="size-4" /> View
                           </Link>
                         </Button>

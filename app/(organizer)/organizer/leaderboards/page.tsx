@@ -359,8 +359,19 @@ export default function OrganizerLeaderboardsPage() {
           the organizer only lists/creates leaderboards owned by their org. The
           "Create standalone" button reuses the same wizard the admin uses; the
           backend forces the new leaderboard's organization to the caller's org and
-          forces counts_toward_rankings off for organizers. */}
-      <StandaloneLeaderboardList organizationId={organizationId} />
+          forces counts_toward_rankings off for organizers.
+
+          createHref / viewHrefBase point at the ORGANIZER-portal copies of the
+          create wizard + view page (app/(organizer)/organizer/leaderboards/standalone/...),
+          NOT the admin /a/... routes (which the OrganizerProvider-gated organizer
+          cannot reach). Those organizer pages reuse the same admin-owned wizard/view
+          components, just mounted with the organizer basePath, so an organizer gets
+          the full create flow (including the OCR "Upload screenshots" batch dialog). */}
+      <StandaloneLeaderboardList
+        organizationId={organizationId}
+        createHref="/organizer/leaderboards/standalone/create"
+        viewHrefBase="/organizer/leaderboards/standalone"
+      />
     </div>
   );
 }

@@ -74,8 +74,15 @@ function buildPlacementObj(ranks: RankEntry[]): Record<string, number> {
 
 export function BasicsStep({
   onCreated,
+  organizationId,
 }: {
   onCreated: (lb: StandaloneLeaderboardHeader) => void;
+  // Owning org for the new leaderboard. REQUIRED for organizers: the backend's
+  // _resolve_organization_for_create rejects an organizer create that has no
+  // organization_id (403 "must create under their organization"). The organizer
+  // page passes the selected org from OrganizerContext; the admin page omits it
+  // (null/undefined = AFC-native leaderboard).
+  organizationId?: number | null;
 }) {
   const { user } = useAuth();
 
@@ -129,6 +136,11 @@ export function BasicsStep({
         points_per_assist: parseFloat(assistPoint) || 0,
         points_per_1000_damage: parseFloat(damagePoint) || 0,
       };
+      // Organizer surface: send the selected org so the backend accepts the create
+      // (organizers MUST create under an org they can upload results to).
+      if (organizationId) {
+        body.organization_id = organizationId;
+      }
       // Only an AFC admin may set the flag; for everyone else it's omitted (backend forces false).
       if (isAfcAdmin) {
         body.counts_toward_rankings = countsTowardRankings;

@@ -156,6 +156,9 @@ export interface OcrCandidate {
 export interface OcrExtractRow {
   row_id: string;
   raw_name: string;
+  // Team format only: the player names the OCR read inside this placement. Shown under the team name so
+  // the admin can identify the team (and used to seed a created ghost team's roster). Absent for solo.
+  players_read?: string[];
   placement: number;
   kills: number;
   matched_team_id?: number | null; // team format
@@ -181,7 +184,9 @@ export interface OcrExtractResponse {
  */
 export type OcrRowResolution =
   | { kind: "real"; id: number }
-  | { kind: "ghost_new"; name: string; country?: string }
+  // players (team format): the OCR-read roster, seeded into the new ghost team so a created ghost
+  // carries its players (the backend ghost_new team path accepts a `players` IGN list).
+  | { kind: "ghost_new"; name: string; country?: string; players?: string[] }
   | { kind: "ghost_existing"; id: number | string };
 
 /** One row in the apply payload: the (possibly edited) score plus its single resolution. */
@@ -209,6 +214,24 @@ export interface OcrApplyResponse {
   standings: StandaloneStandingRow[];
 }
 
+// ── OCR batch (async, multi-image, Phase 2.6) ────────────────────────────────
+// The synchronous single-shot ocrExtract above could time out on prod (a Gemini read is 12-26s). The
+// batch backgrounds the read: the admin uploads 1+ screenshots PER MAP, the server persists them as an
+// OcrJob (one job == one map), a Celery worker reads + merges + matches them, and the FE POLLS the job
+// until done. `rows` is the same OcrExtractRow shape the single-shot returned (null until done).
+export type OcrJobStatus = "pending" | "processing" | "done" | "failed" | "applied";
+export interface OcrJob {
+  id: string;
+  map_label: string;
+  status: OcrJobStatus;
+  engine: string; // which engine read it ("gemini-2.5-flash", "local_student_vN", ...)
+  error: string; // populated when status === "failed"
+  image_count: number;
+  applied_match_id: number | null; // set once the job's rows were applied to a map
+  rows: OcrExtractRow[] | null; // merged + matched review rows, null until status === "done"
+  created_at: string | null;
+}
+
 // ── Create / edit payloads ───────────────────────────────────────────────────
 // Kept loose (index signature) to match the existing "plain body" convention while still
 // surfacing the Stream P3 ranking fields so callers get autocompletion + type-checking on them.
@@ -220,7 +243,7 @@ export interface StandaloneLeaderboardCreatePayload {
   kill_point?: number;
   points_per_assist?: number;
   points_per_1000_damage?: number;
-  organization_id?: number; // admin only
+  organization_id?: number; // admin: optional (omit = AFC-native); organizer: REQUIRED (their own org)
   counts_toward_rankings?: boolean; // admin only
   played_on?: string | null; // admin only, Stream P3: ISO date the results bucket under
   ranking_tier?: RankingTier; // admin only, Stream P3: weight band for the rankings engine
@@ -282,4 +305,29 @@ export const standaloneLeaderboardsApi = {
   //   OcrUploadDialog's "Apply" button; the wizard then advances to Results with `match` pre-filled.
   ocrApply: (id: number | string, body: OcrApplyPayload) =>
     aPost<OcrApplyResponse>(`${id}/ocr/apply/`, body),
+
+  // ── OCR batch (async, multi-image, Phase 2.6) ──────────────────────────────
+  // One job == one map. Flow: ocrJobCreate (upload that map's screenshots) -> ocrJobRun OR ocrRunAll
+  // (enqueue the background read) -> poll ocrJobList until each job is done/failed -> ocrJobApply
+  // (turn the reviewed rows into a map + participants + results). Consumed by OcrBatchDialog.
+  ocrJobCreate: (id: number | string, images: File[], mapLabel?: string) => {
+    const fd = new FormData();
+    images.forEach((f) => fd.append("images", f)); // backend reads request.FILES.getlist("images")
+    if (mapLabel) fd.append("map_label", mapLabel);
+    return aPostForm<{ job: OcrJob }>(`${id}/ocr/jobs/create/`, fd);
+  },
+  // Poll endpoint: every job for this leaderboard with status + merged rows (rows null until done).
+  ocrJobList: (id: number | string) => aGet<{ jobs: OcrJob[] }>(`${id}/ocr/jobs/`),
+  // Enqueue ONE map's background read.
+  ocrJobRun: (id: number | string, jobId: string) =>
+    aPost<{ job: OcrJob }>(`${id}/ocr/jobs/${jobId}/run/`),
+  // Enqueue EVERY pending/failed map at once (parallel "run as a group").
+  ocrRunAll: (id: number | string) =>
+    aPost<{ jobs: OcrJob[]; queued: number }>(`${id}/ocr/run-all/`),
+  // Apply ONE map's reviewed rows -> a map + participants + results (reuses the apply contract above).
+  ocrJobApply: (id: number | string, jobId: string, body: OcrApplyPayload) =>
+    aPost<OcrApplyResponse>(`${id}/ocr/jobs/${jobId}/apply/`, body),
+  // Discard a map's job + its uploaded screenshots.
+  ocrJobDelete: (id: number | string, jobId: string) =>
+    aDelete(`${id}/ocr/jobs/${jobId}/`),
 };

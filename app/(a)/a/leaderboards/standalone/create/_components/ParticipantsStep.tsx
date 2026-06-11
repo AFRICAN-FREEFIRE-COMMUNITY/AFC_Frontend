@@ -42,7 +42,9 @@ import {
   type PickedUser,
 } from "@/components/ui/user-search-select";
 import { GhostCreateInline } from "./GhostCreateInline";
-import { OcrUploadDialog } from "./OcrUploadDialog";
+// Phase 2.6: the async, multi-image batch reader (replaces the old single-shot OcrUploadDialog, which
+// read one screenshot synchronously and timed out on prod). One map per card, 1+ screenshots each.
+import { OcrBatchDialog } from "./OcrBatchDialog";
 import {
   standaloneLeaderboardsApi,
   type StandaloneParticipant,
@@ -144,8 +146,9 @@ export function ParticipantsStep({
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
             <Label>{format === "team" ? "Find a team" : "Find a player"}</Label>
-            {/* OCR shortcut (Stream P2): read a results screenshot to create a map + participants in
-                one go. Opens OcrUploadDialog; on apply, onOcrApplied advances to Results pre-filled. */}
+            {/* OCR shortcut (Phase 2.6): read result screenshots to create maps + participants in one go.
+                Opens OcrBatchDialog (multiple maps, multiple images each, read in the background); each
+                applied map calls onOcrApplied to merge its participants + match into the wizard. */}
             <Button
               type="button"
               variant="secondary"
@@ -153,7 +156,7 @@ export function ParticipantsStep({
               onClick={() => setOcrOpen(true)}
             >
               <IconScan size={14} className="mr-1" />
-              Upload screenshot
+              Upload screenshots
             </Button>
           </div>
           {format === "team" ? (
@@ -173,8 +176,8 @@ export function ParticipantsStep({
           )}
         </div>
 
-        {/* OCR upload + review dialog (Stream P2). Mounted here so its trigger sits with the search. */}
-        <OcrUploadDialog
+        {/* OCR batch upload + review dialog (Phase 2.6). Mounted here so its trigger sits with the search. */}
+        <OcrBatchDialog
           open={ocrOpen}
           onOpenChange={setOcrOpen}
           leaderboardId={leaderboardId}
