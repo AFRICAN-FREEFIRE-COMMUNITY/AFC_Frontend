@@ -73,6 +73,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
+// Search-as-you-type user picker (GET /auth/search-users) for the add-member dialog.
+import { UserSearchSelect } from "@/components/ui/user-search-select";
 import { organizersApi } from "@/lib/organizers";
 import { InfoTip } from "@/components/ui/info-tip";
 
@@ -860,12 +862,13 @@ export default function OrganizationDetailPage({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="member-username">Username</Label>
-              <Input
-                id="member-username"
-                value={memberUsername}
-                onChange={(e) => setMemberUsername(e.target.value)}
-                placeholder="Existing user to add"
+              <Label>User</Label>
+              {/* Typeahead picker (GET /auth/search-users) instead of a raw username
+                  input - the admin sees matching accounts as they type and selects one. */}
+              <UserSearchSelect
+                value={memberUsername || null}
+                onChange={(username) => setMemberUsername(username ?? "")}
+                placeholder="Search by username or name..."
               />
             </div>
             <div className="space-y-2">

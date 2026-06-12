@@ -24,7 +24,6 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -56,6 +55,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { IconLoader2, IconTrash, IconUserPlus } from "@tabler/icons-react";
+// Search-as-you-type user picker (GET /auth/search-users) - replaces the old raw
+// username <Input> so the caller picks a real account instead of guessing the spelling.
+import { UserSearchSelect } from "@/components/ui/user-search-select";
 import { organizersApi } from "@/lib/organizers";
 import {
   OrgPermissions,
@@ -287,13 +289,14 @@ export default function OrganizerMembersPage() {
                   <DialogTitle>Add sub-organizer</DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col gap-4 py-2">
-                  {/* Username. */}
+                  {/* User - typeahead picker, not a raw username input, so the
+                      caller sees matching accounts as they type and selects one. */}
                   <div className="space-y-2">
-                    <Label>Username</Label>
-                    <Input
-                      placeholder="Enter username"
-                      value={addUsername}
-                      onChange={(e) => setAddUsername(e.target.value)}
+                    <Label>User</Label>
+                    <UserSearchSelect
+                      value={addUsername || null}
+                      onChange={(username) => setAddUsername(username ?? "")}
+                      placeholder="Search by username or name..."
                       disabled={adding}
                     />
                   </div>
