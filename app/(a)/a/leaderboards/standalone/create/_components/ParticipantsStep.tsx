@@ -34,7 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { IconTrash, IconUserPlus, IconScan } from "@tabler/icons-react";
+import { IconTrash, IconUserPlus, IconScan, IconPencil, IconFileText } from "@tabler/icons-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { TeamSearchSelect, type PickedTeam } from "@/components/ui/team-search-select";
 import {
@@ -45,6 +45,7 @@ import { GhostCreateInline } from "./GhostCreateInline";
 // Phase 2.6: the async, multi-image batch reader (replaces the old single-shot OcrUploadDialog, which
 // read one screenshot synchronously and timed out on prod). One map per card, 1+ screenshots each.
 import { OcrBatchDialog } from "./OcrBatchDialog";
+import { ResultFileDialog } from "./ResultFileDialog";
 import {
   standaloneLeaderboardsApi,
   type StandaloneParticipant,
@@ -78,6 +79,8 @@ export function ParticipantsStep({
   const [adding, setAdding] = useState(false);
   // Whether the OCR upload dialog is open.
   const [ocrOpen, setOcrOpen] = useState(false);
+  // Whether the result-FILE upload dialog is open (team format only - the file is team-shaped).
+  const [fileOpen, setFileOpen] = useState(false);
 
   // ── Add a participant (real or ghost) and append the returned row to the list. ──
   const add = async (body: Record<string, any>) => {
@@ -150,18 +153,37 @@ export function ParticipantsStep({
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
             <Label>{format === "team" ? "Find a team" : "Find a player"}</Label>
-            {/* OCR shortcut (Phase 2.6): read result screenshots to create maps + participants in one go.
-                Opens OcrBatchDialog (multiple maps, multiple images each, read in the background); each
-                applied map calls onOcrApplied to merge its participants + match into the wizard. */}
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setOcrOpen(true)}
-            >
-              <IconScan size={14} className="mr-1" />
-              Upload screenshots
-            </Button>
+            {/* ── Results-entry options (owner 2026-06-12: ALL entry methods visible side by side) ──
+                1. Manual entry lives on the Results step - this button jumps straight there.
+                2. "Upload screenshots" opens OcrBatchDialog (multi-map background OCR).
+                3. "Upload result file" (team only) opens ResultFileDialog (the game's match-log
+                   export, parsed synchronously, players matched exactly by UID). */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={onNext}>
+                <IconPencil size={14} className="mr-1" />
+                Enter results manually
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setOcrOpen(true)}
+              >
+                <IconScan size={14} className="mr-1" />
+                Upload screenshots
+              </Button>
+              {format === "team" && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setFileOpen(true)}
+                >
+                  <IconFileText size={14} className="mr-1" />
+                  Upload result file
+                </Button>
+              )}
+            </div>
           </div>
           {format === "team" ? (
             <TeamSearchSelect
@@ -189,6 +211,17 @@ export function ParticipantsStep({
           scoring={ocrScoring}
           onApplied={onOcrApplied}
         />
+
+        {/* Result-file upload + review (team format; mirrors the OCR dialog's apply/merge contract). */}
+        {format === "team" && (
+          <ResultFileDialog
+            open={fileOpen}
+            onOpenChange={setFileOpen}
+            leaderboardId={leaderboardId}
+            scoring={ocrScoring}
+            onApplied={onOcrApplied}
+          />
+        )}
 
         {/* Inline ghost create toggle + form. */}
         {showGhost ? (

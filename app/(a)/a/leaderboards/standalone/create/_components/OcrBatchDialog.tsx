@@ -69,7 +69,8 @@ import { OcrReviewTable, type OcrScoring } from "./OcrReviewTable";
 // The six Free Fire battle-royale maps. The admin SELECTS a map (no typing) and may pick the same map on
 // as many cards as they want (e.g. two matches both played on Bermuda). The chosen name is sent as the
 // match_map label for the created LeaderboardMatch. Keep in sync if Garena adds/renames a BR map.
-const FF_MAPS = ["Bermuda", "Nexterra", "Alpine", "Purgatory", "Kalahari", "Solara"] as const;
+// Exported for ResultFileDialog (the "upload result file" option uses the same map picker).
+export const FF_MAPS = ["Bermuda", "Nexterra", "Alpine", "Purgatory", "Kalahari", "Solara"] as const;
 
 // One map card's local state. "draft" = staged locally with no server job yet; after a read it carries a
 // server jobId + the job status. `rows` arrives from the poll once the job is done.

@@ -333,6 +333,16 @@ export const standaloneLeaderboardsApi = {
   ocrApply: (id: number | string, body: OcrApplyPayload) =>
     aPost<OcrApplyResponse>(`${id}/ocr/apply/`, body),
 
+  // resultsFileExtract: multipart POST /<id>/results-file/ (field `file`). Parses the game's
+  //   match-log TEXT export into the SAME review-row draft ocrExtract returns (players resolve
+  //   exactly by UID at confidence 1.0). TEAM leaderboards only. Reviewed rows are applied through
+  //   the same ocrApply above. Consumed by ResultFileDialog ("Upload result file" in the wizard).
+  resultsFileExtract: (id: number | string, file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return aPostForm<OcrExtractResponse>(`${id}/results-file/`, fd);
+  },
+
   // ── OCR batch (async, multi-image, Phase 2.6) ──────────────────────────────
   // One job == one map. Flow: ocrJobCreate (upload that map's screenshots) -> ocrJobRun OR ocrRunAll
   // (enqueue the background read) -> poll ocrJobList until each job is done/failed -> ocrJobApply
