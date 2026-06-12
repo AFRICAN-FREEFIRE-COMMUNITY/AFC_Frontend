@@ -4,6 +4,7 @@ import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 // One-click ZIP of the event's registered team logos + player esport images.
 import { DownloadEventMediaButton } from "@/components/esport-media";
+import { LinkedEventsCard } from "@/components/event-links";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -880,6 +881,13 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
         {/* --- Overview Tab --- */}
         <TabsContent value="overview" className="mt-2 space-y-4">
+          {/* ── Linked events (EVENT LINKING P1, owner-approved 2026-06-12) ── per-stage
+              qualification links into other events: create, fire, allow/reject, decline,
+              replace, undo, standings-edited diffs. Backend: events/.../links/ endpoints. */}
+          <LinkedEventsCard
+            eventId={eventDetails.event_id}
+            stages={(eventDetails.stages ?? []).map((s) => ({ id: s.stage_id, stage_name: s.stage_name }))}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 2xl:grid-cols-4">
             <Card className="hover:shadow-lg transition-shadow gap-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
