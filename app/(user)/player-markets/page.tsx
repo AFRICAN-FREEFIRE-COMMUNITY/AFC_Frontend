@@ -45,6 +45,8 @@ import {
   IconShield,
   IconMapPin,
   IconClock,
+  IconDeviceMobile,
+  IconVideo,
   IconCalendar,
   IconPlus,
   IconChevronRight,
@@ -77,6 +79,9 @@ import { formatDate } from "@/lib/utils";
 // Shared search matcher: punctuation/space/accent-insensitive + folds stylized
 // "fancy font" unicode so a normal-keyboard query finds stylized IGNs ("ve" -> "V-E").
 import { matchesSearch } from "@/lib/search";
+// Gameplay video link helpers: allowlist validation (forms), safe embed derivation (dialog),
+// and the human-readable accepted-platforms list shown in helper text + toasts.
+import { isAllowedVideoUrl, parseVideoEmbed, VIDEO_PLATFORMS_LABEL } from "@/lib/videoEmbed";
 import {
   ReviewApplicationDialog,
   getStatusBadge,
@@ -151,6 +156,12 @@ interface PlayerAvailablePost {
   secondary_role: string;
   availability_type: string;
   additional_info: string;
+  // The phone the player currently plays on. COMPULSORY on create (owner 2026-06-12) and
+  // displayed on the card + the View Player dialog so recruiters see it up front.
+  mobile_device?: string;
+  // Optional gameplay video LINK (YouTube/TikTok, backend-allowlisted). Rendered as an embedded
+  // player in the View Player dialog via lib/videoEmbed.ts; cards show a "Video" badge.
+  video_url?: string;
   expiry: string;
 }
 
@@ -403,6 +414,11 @@ function PlayerMarketPage() {
   const [newPlayerAvailability, setNewPlayerAvailability] = useState("");
   const [newPlayerCountries, setNewPlayerCountries] = useState<string[]>([]);
   const [newPlayerInfo, setNewPlayerInfo] = useState("");
+  // COMPULSORY (owner 2026-06-12): the phone the player currently plays on. Required by the
+  // backend create path and shown on the post card + View Player dialog.
+  const [newPlayerDevice, setNewPlayerDevice] = useState("");
+  // OPTIONAL gameplay video link (YouTube/TikTok only - validated against lib/videoEmbed.ts).
+  const [newPlayerVideo, setNewPlayerVideo] = useState("");
   const [newPlayerExpiry, setNewPlayerExpiry] = useState("");
 
   // ── One-month expiry bound (feature "L-market-expiry-cap") ──
@@ -455,6 +471,10 @@ function PlayerMarketPage() {
   const [editPlayerAvailability, setEditPlayerAvailability] = useState("");
   const [editPlayerCountries, setEditPlayerCountries] = useState<string[]>([]);
   const [editPlayerInfo, setEditPlayerInfo] = useState("");
+  // Same compulsory device field on edit (may change, never clear - mirrors the backend rule).
+  const [editPlayerDevice, setEditPlayerDevice] = useState("");
+  // Optional gameplay video link on edit (clearable: an empty string removes it).
+  const [editPlayerVideo, setEditPlayerVideo] = useState("");
   const [editPlayerExpiry, setEditPlayerExpiry] = useState("");
 
   // inside your component, near the top with other hooks:
@@ -540,6 +560,8 @@ function PlayerMarketPage() {
           (data.countries ?? []).map((c: { name: string }) => c.name),
         );
         setEditPlayerInfo(data.additional_info ?? "");
+        setEditPlayerDevice(data.mobile_device ?? "");
+        setEditPlayerVideo(data.video_url ?? "");
         setEditPlayerExpiry(data.post_expiry_date ?? "");
       }
       setEditingPost({ id: postId, type });
@@ -608,9 +630,15 @@ function PlayerMarketPage() {
       !editPlayerPrimary ||
       !editPlayerAvailability ||
       !editPlayerCountries.length ||
-      !editPlayerExpiry
+      !editPlayerExpiry ||
+      !editPlayerDevice.trim()
     ) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    // Optional gameplay link: when present it must be YouTube/TikTok (backend rejects the rest).
+    if (!isAllowedVideoUrl(editPlayerVideo)) {
+      toast.error(`The gameplay video link must be a ${VIDEO_PLATFORMS_LABEL} link.`);
       return;
     }
     setIsEditSubmitting(true);
@@ -624,6 +652,8 @@ function PlayerMarketPage() {
           secondary_role: editPlayerSecondary,
           availability_type: editPlayerAvailability,
           additional_info: editPlayerInfo,
+          mobile_device: editPlayerDevice.trim(),
+          video_url: editPlayerVideo.trim(),
           country_names: editPlayerCountries,
         },
         { headers: { Authorization: `Bearer ${token}` } },
@@ -638,6 +668,8 @@ function PlayerMarketPage() {
                 secondary_role: editPlayerSecondary,
                 availability_type: editPlayerAvailability,
                 additional_info: editPlayerInfo,
+                mobile_device: editPlayerDevice.trim(),
+                video_url: editPlayerVideo.trim(),
                 expiry: editPlayerExpiry,
                 country: editPlayerCountries[0] ?? p.country,
               }
@@ -829,6 +861,8 @@ function PlayerMarketPage() {
     setNewPlayerAvailability("");
     setNewPlayerCountries([]);
     setNewPlayerInfo("");
+    setNewPlayerDevice("");
+    setNewPlayerVideo("");
     setNewPlayerExpiry("");
   };
 
@@ -879,9 +913,15 @@ function PlayerMarketPage() {
       !newPlayerPrimary ||
       !newPlayerAvailability ||
       !newPlayerCountries.length ||
-      !newPlayerExpiry
+      !newPlayerExpiry ||
+      !newPlayerDevice.trim()
     ) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    // Optional gameplay link: when present it must be YouTube/TikTok (backend rejects the rest).
+    if (!isAllowedVideoUrl(newPlayerVideo)) {
+      toast.error(`The gameplay video link must be a ${VIDEO_PLATFORMS_LABEL} link.`);
       return;
     }
     // One-month cap (feature "L-market-expiry-cap"): re-check the bound here so a hand-edited
@@ -902,6 +942,8 @@ function PlayerMarketPage() {
           secondary_role: newPlayerSecondary,
           availability_type: newPlayerAvailability,
           additional_info: newPlayerInfo,
+          mobile_device: newPlayerDevice.trim(),
+          video_url: newPlayerVideo.trim(),
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -1449,7 +1491,7 @@ function PlayerMarketPage() {
                     </div>
 
                     {/* Info row */}
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <IconClock className="h-3 w-3" />
                         {labelFor(AVAILABILITIES, player.availability_type)}
@@ -1458,6 +1500,21 @@ function PlayerMarketPage() {
                         <span className="flex items-center gap-1">
                           <IconMapPin className="h-3 w-3" />
                           {player.country}
+                        </span>
+                      )}
+                      {/* The phone the player currently plays on (compulsory on new posts;
+                          may be empty on posts created before the field existed). */}
+                      {player.mobile_device && (
+                        <span className="flex items-center gap-1">
+                          <IconDeviceMobile className="h-3 w-3" />
+                          {player.mobile_device}
+                        </span>
+                      )}
+                      {/* Signals a gameplay video waits in View Details (no embed on cards). */}
+                      {player.video_url && (
+                        <span className="flex items-center gap-1 text-primary">
+                          <IconVideo className="h-3 w-3" />
+                          Video
                         </span>
                       )}
                     </div>
@@ -2167,6 +2224,20 @@ function PlayerMarketPage() {
                             <Badge variant="outline" className="text-xs">
                               {labelFor(AVAILABILITIES, post.availability_type)}
                             </Badge>
+                            {/* The phone this post advertises (compulsory on new posts). */}
+                            {post.mobile_device && (
+                              <Badge variant="outline" className="text-xs">
+                                <IconDeviceMobile className="h-3 w-3 mr-1" />
+                                {post.mobile_device}
+                              </Badge>
+                            )}
+                            {/* Signals the post carries a gameplay video link. */}
+                            {post.video_url && (
+                              <Badge variant="outline" className="text-xs border-primary text-primary">
+                                <IconVideo className="h-3 w-3 mr-1" />
+                                Video
+                              </Badge>
+                            )}
                           </div>
 
                           {post.additional_info && (
@@ -2508,6 +2579,38 @@ function PlayerMarketPage() {
                 </p>
               </div>
 
+              {/* COMPULSORY (owner 2026-06-12): the phone the player currently plays on.
+                  Required by the backend; shown on the post card + View Player dialog. */}
+              <div className="space-y-2">
+                <Label>Current Mobile Device *</Label>
+                <Input
+                  placeholder="e.g. iPhone 13, Infinix Note 30 Pro"
+                  maxLength={80}
+                  value={newPlayerDevice}
+                  onChange={(e) => setNewPlayerDevice(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Teams see this on your post. Use the exact phone you play on now.
+                </p>
+              </div>
+
+              {/* OPTIONAL gameplay video LINK. Embedded in the View Player dialog via
+                  lib/videoEmbed.ts; the backend allowlists the host. The helper text NAMES the
+                  accepted platforms (owner: "tell them the platform links we are accepting"). */}
+              <div className="space-y-2">
+                <Label>Gameplay Video Link</Label>
+                <Input
+                  placeholder="Link to your gameplay clip"
+                  maxLength={300}
+                  value={newPlayerVideo}
+                  onChange={(e) => setNewPlayerVideo(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional, but posts with gameplay get noticed: teams can watch you play right
+                  on your post. One video per post. Accepted platforms: {VIDEO_PLATFORMS_LABEL}.
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label>Additional Info</Label>
                 <Textarea
@@ -2766,6 +2869,32 @@ function PlayerMarketPage() {
                 />
               </div>
 
+              {/* Compulsory device field: may change, never clear (mirrors the backend rule). */}
+              <div className="space-y-2">
+                <Label>Current Mobile Device *</Label>
+                <Input
+                  placeholder="e.g. iPhone 13, Infinix Note 30 Pro"
+                  maxLength={80}
+                  value={editPlayerDevice}
+                  onChange={(e) => setEditPlayerDevice(e.target.value)}
+                />
+              </div>
+
+              {/* Optional gameplay video link: editable, clear the field to remove it. */}
+              <div className="space-y-2">
+                <Label>Gameplay Video Link</Label>
+                <Input
+                  placeholder="Link to your gameplay clip"
+                  maxLength={300}
+                  value={editPlayerVideo}
+                  onChange={(e) => setEditPlayerVideo(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  One video per post. Accepted platforms: {VIDEO_PLATFORMS_LABEL}. Entering a new
+                  link replaces the current video; clear the field to remove it.
+                </p>
+              </div>
+
               <DialogFooter className="gap-2">
                 <Button
                   variant="outline"
@@ -2980,6 +3109,45 @@ function PlayerMarketPage() {
                 </div>
               )}
 
+              {/* Gameplay video (optional): the embed src is DERIVED from the parsed host +
+                  video id (lib/videoEmbed.ts), never the raw stored URL; an unparseable link
+                  (e.g. a vm.tiktok.com short link) renders as an outbound link instead. */}
+              {viewPlayer.video_url && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1.5">Gameplay</h4>
+                  {(() => {
+                    const embed = parseVideoEmbed(viewPlayer.video_url);
+                    if (!embed) {
+                      return (
+                        <a
+                          href={viewPlayer.video_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                        >
+                          <IconVideo className="h-4 w-4" />
+                          Watch the gameplay video
+                        </a>
+                      );
+                    }
+                    return (
+                      <iframe
+                        src={embed.embedUrl}
+                        title="Gameplay video"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className={
+                          // TikTok + Instagram players are portrait; YouTube is 16:9.
+                          embed.provider === "youtube"
+                            ? "aspect-video w-full rounded-md border"
+                            : "h-[480px] w-full max-w-[325px] rounded-md border"
+                        }
+                      />
+                    );
+                  })()}
+                </div>
+              )}
+
               <Separator />
 
               {/* Details */}
@@ -3000,6 +3168,13 @@ function PlayerMarketPage() {
                     <IconCalendar className="h-3 w-3 mr-1" />
                     Expires {new Date(viewPlayer.expiry).toLocaleDateString()}
                   </Badge>
+                  {/* The phone the player currently plays on (compulsory on new posts). */}
+                  {viewPlayer.mobile_device && (
+                    <Badge variant="outline" className="text-xs">
+                      <IconDeviceMobile className="h-3 w-3 mr-1" />
+                      {viewPlayer.mobile_device}
+                    </Badge>
+                  )}
                 </div>
               </div>
 
