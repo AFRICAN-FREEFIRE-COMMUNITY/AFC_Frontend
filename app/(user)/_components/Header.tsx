@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import React, { useEffect, useState, useCallback } from "react";
 import { MobileNavbar } from "./MobileNavbar";
+// One-time "your new dashboard lives HERE" callout pointing at the menu button below.
+import { DashboardIntroCoachmark } from "./DashboardIntroCoachmark";
 import { IconShoppingCart, IconSparkles } from "@tabler/icons-react";
 // Force-opens the first-time welcome tour, ignoring the seen flags (replay).
 import { openWelcomeTour } from "./WelcomeTour";
@@ -159,6 +161,9 @@ export const Header = () => {
           </div>
         </div>
       </header>
+      {/* One-time dashboard intro callout: anchors visually under the MobileNavbar hamburger
+          (top right), shows only on the first login after a dashboard was granted. */}
+      <DashboardIntroCoachmark />
       <CartSheet />
     </>
   );

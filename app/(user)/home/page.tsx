@@ -14,7 +14,6 @@ import { Trophy, Users, Calendar, BarChart2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
 import { HomeBoxes } from "../_components/HomeBoxes";
@@ -22,63 +21,19 @@ import { HomeBoxes } from "../_components/HomeBoxes";
 // stat boxes per the approved home-additions mockup.
 import { HomeLatestSections } from "../_components/HomeLatestSections";
 import { LatestNews } from "../_components/LatestNews";
-import { useEffect, useState } from "react";
 import { FeaturedShop } from "../_components/FeaturedShop";
 import { quarterlyTiers, teamRankings } from "@/constants";
 import { ProtectedRoute } from "../_components/ProtectedRoute";
 // Subtle clickable team name -> public team page.
 import { TeamLink } from "@/components/ui/entity-link";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
 
-function SponsorRedirectModal() {
-  const { user } = useAuth();
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (user?.roles?.includes("sponsor_admin")) {
-      setOpen(true);
-    }
-  }, [user]);
-
-  function handleRedirect() {
-    setOpen(false);
-    router.push("/a/sponsor-dashboard");
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Sponsor Dashboard Available</DialogTitle>
-          <DialogDescription>
-            You have a sponsor admin account. Would you like to go to your
-            Sponsor Dashboard instead?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Stay Here
-          </Button>
-          <Button onClick={handleRedirect}>Go to Sponsor Dashboard</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+// The old SponsorRedirectModal ("Sponsor Dashboard Available - go now?") lived here and re-asked
+// on EVERY /home visit. Replaced (owner 2026-06-12) by the one-time DashboardIntroCoachmark in the
+// Header, which points at the menu where the dashboard lives instead of navigating away.
 
 export default function HomePage() {
   return (
     <ProtectedRoute>
-      <SponsorRedirectModal />
       <PageHeader
         title="Welcome to AFC"
         description="Your hub for African Freefire community stats and events"
