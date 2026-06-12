@@ -49,7 +49,9 @@ const DASHBOARDS: DashboardIntro[] = [
   {
     key: "sponsor",
     label: "Sponsor Dashboard",
-    section: "in the Admin section",
+    // The hamburger's dedicated Sponsor section (owner 2026-06-12: dashboards live in their
+    // own bottom sections, not the Admin list - see MobileNavbar).
+    section: "in the Sponsor section",
     // Same trigger the old SponsorRedirectModal used, plus the sponsor base role.
     hasAccess: (user) =>
       user.roles?.includes("sponsor_admin") || user.role === "sponsor",

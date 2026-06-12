@@ -22,6 +22,7 @@ import {
   IconLogout,
   IconMenu2,
   IconMoon,
+  IconStar,
   IconSun,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -302,7 +303,12 @@ export function MobileNavbar() {
               );
             })}
 
-            {/* Admin Links Section */}
+            {/* Admin Links Section.
+                Sponsor Dashboard + Organizer Dashboard are EXCLUDED here (owner 2026-06-12:
+                they showed twice for admin+sponsor/organizer users - once in this Admin list
+                via adminNavLinks and again in the dedicated sections below; the owner prefers
+                the dedicated sections, which are also what the DashboardIntroCoachmark points
+                at). The admin SIDEBAR (components/app-sidebar.tsx) keeps its own entries. */}
             {isAdmin && (
               <>
                 <Separator className="my-2" />
@@ -310,7 +316,11 @@ export function MobileNavbar() {
                   Admin
                 </p>
                 {adminNavLinks
-                  .filter((link) => canAccess(link.allowedRoles))
+                  .filter(
+                    (link) =>
+                      canAccess(link.allowedRoles) &&
+                      !["/a/sponsor-dashboard", "/organizer/overview"].includes(link.slug),
+                  )
                   .map(({ icon: Icon, slug, label, comingSoon }, index) => (
                     <Button
                       key={index}
@@ -334,6 +344,29 @@ export function MobileNavbar() {
                       )}
                     </Button>
                   ))}
+              </>
+            )}
+
+            {/* Sponsor Section - the ONE place the hamburger offers the Sponsor Dashboard
+                (owner 2026-06-12: dedicated section like Organizer/Vendor below, no duplicate
+                in the Admin list). Gated like the old admin entry: the sponsor_admin granular
+                role OR the sponsor base role. */}
+            {(user?.roles?.includes("sponsor_admin") || user?.role === "sponsor") && (
+              <>
+                <Separator className="my-2" />
+                <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
+                  Sponsor
+                </p>
+                <Button
+                  className="justify-start"
+                  asChild
+                  variant={isActive("/a/sponsor-dashboard") ? "default" : "ghost"}
+                  onClick={handleLinkClick}
+                >
+                  <Link href="/a/sponsor-dashboard">
+                    <IconStar size={18} className="mr-2" /> Sponsor Dashboard
+                  </Link>
+                </Button>
               </>
             )}
 
