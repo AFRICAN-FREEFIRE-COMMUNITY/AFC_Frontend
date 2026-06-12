@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/table";
 import {
   IconCalendarEvent,
+  IconLink,
   IconPlus,
   IconPencil,
   IconTrophy,
@@ -296,6 +297,17 @@ export default function OrganizerEventsPage() {
                             >
                               <IconTrophy className="size-4" />
                               Results & Leaderboard
+                            </Link>
+                          </Button>
+                        )}
+                        {/* Event detail hub (event linking P2): qualification links,
+                            chain map and the cross-event merge live there. Same gate as
+                            Edit (the backend authorizes links via can_edit_events). */}
+                        {canEditEvents && (
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/organizer/events/${event.slug}`}>
+                              <IconLink className="size-4" />
+                              Links
                             </Link>
                           </Button>
                         )}

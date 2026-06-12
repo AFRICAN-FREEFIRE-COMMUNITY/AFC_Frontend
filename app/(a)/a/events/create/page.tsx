@@ -28,6 +28,15 @@ import { StepSponsorRequirement } from "./_components/StepSponsorRequirement";
 import { StepWaitlist } from "./_components/StepWaitlist";
 import { StageModal, StageModalData } from "./_components/StageModal";
 import { DEFAULT_ROUND_ROBIN_CONFIG } from "../_components/RoundRobinPanel";
+// ── Sponsor-system P2: post-create sponsor attach loop. ──
+// StepSponsorRequirement's builder holds SponsorshipDraft rows in the `sponsorships`
+// form field; after create-event returns the new event_id, onSubmit below attaches +
+// configures each via sponsorsApi (see the "attach picked sponsors" block).
+import { sponsorsApi } from "@/lib/sponsors";
+import {
+  SponsorshipDraft,
+  sponsorshipIssues,
+} from "@/components/sponsorship-builder";
 
 const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
   stage_name: "",
@@ -123,6 +132,8 @@ export default function CreateEventPage() {
       sponsor_usernames: [],
       sponsor_requirement_description: "",
       sponsor_field_label: "",
+      // Sponsor-system P2: builder rows (SponsorshipDraft[]), attached post-create.
+      sponsorships: [],
       is_waitlist_enabled: false,
       waitlist_capacity: undefined,
       waitlist_discord_role_id: "",
@@ -622,9 +633,22 @@ export default function CreateEventPage() {
         isValid = true;
         break;
 
-      case 7:
+      case 7: {
+        // Sponsor-system P2: block Next while a builder engagement is missing a
+        // server-required field (client mirror of afc_sponsors/engagements.py).
+        const issues = sponsorshipIssues(
+          // @ts-ignore - sponsorships is z.array(z.any()) in the schema.
+          (form.getValues("sponsorships") as SponsorshipDraft[] | undefined) ?? [],
+        );
+        if (issues.length > 0) {
+          toast.error(
+            issues[0] + (issues.length > 1 ? ` (+${issues.length - 1} more)` : ""),
+          );
+          return;
+        }
         isValid = true;
         break;
+      }
 
       case 8:
         isValid = true;
@@ -800,6 +824,36 @@ export default function CreateEventPage() {
 
         const res = await response.json();
         if (response.ok) {
+          // ── Sponsor-system P2: attach the builder's picked sponsors. ──
+          // create_event returns {message, event_id} (afc_tournament_and_scrims/
+          // views.py); the sponsorship endpoints key on that event_id. Loop the
+          // wizard's `sponsorships` rows: attach, then patch the engagement config.
+          // Partial failures only toast (the event itself was created) - the admin
+          // can re-add the failed sponsor from the event's Sponsor tab. Navigation
+          // is never blocked.
+          const newEventId: number | undefined = res.event_id;
+          const sponsorships: SponsorshipDraft[] =
+            // @ts-ignore - sponsorships is z.array(z.any()) in the schema.
+            (data.sponsorships as SponsorshipDraft[] | undefined) ?? [];
+          if (newEventId && sponsorships.length > 0) {
+            const failedSponsors: string[] = [];
+            for (const s of sponsorships) {
+              try {
+                await sponsorsApi.attachEvent(s.sponsor_id, newEventId);
+                await sponsorsApi.configureSponsorship(s.sponsor_id, newEventId, {
+                  requires_approval: s.requires_approval,
+                  engagements: s.engagements,
+                });
+              } catch {
+                failedSponsors.push(s.sponsor_name);
+              }
+            }
+            if (failedSponsors.length > 0) {
+              toast.error(
+                `Event created, but attaching failed for: ${failedSponsors.join(", ")}. Re-add them from the event's Sponsor tab.`,
+              );
+            }
+          }
           toast.success(res.message || "Event created successfully!");
           router.push("/a/events");
         } else {

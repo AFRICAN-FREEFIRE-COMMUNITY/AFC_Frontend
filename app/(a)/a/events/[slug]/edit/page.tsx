@@ -1766,12 +1766,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             </TabsContent>
 
             <TabsContent value="sponsor">
+              {/* eventId powers the new sponsorship builder (P2): SponsorTab loads
+                  sponsorsApi.forEvent(eventId) and diff-saves attach/detach/configure.
+                  The legacy free-text fields still save through saveSponsorRequirement. */}
               <SponsorTab
                 slug={slug}
                 sponsorForm={sponsorForm}
                 setSponsorForm={setSponsorForm}
                 onSave={saveSponsorRequirement}
                 saving={savingSponsor}
+                eventId={eventDetails.event_id}
               />
             </TabsContent>
 

@@ -1882,7 +1882,10 @@ export default function OrganizerEditEventPage({
 
             <TabsContent value="sponsor">
               {/* hideAdminReviewLink: the "Review Sponsors" shortcut deep-links into
-                  the admin route, so it's hidden on the organizer surface. */}
+                  the admin route, so it's hidden on the organizer surface.
+                  eventId powers the new sponsorship builder (P2): SponsorTab loads
+                  sponsorsApi.forEvent(eventId) and diff-saves attach/detach/configure
+                  (the configure endpoint allows the event's organizer too). */}
               <SponsorTab
                 slug={slug}
                 sponsorForm={sponsorForm}
@@ -1890,6 +1893,7 @@ export default function OrganizerEditEventPage({
                 onSave={saveSponsorRequirement}
                 saving={savingSponsor}
                 hideAdminReviewLink
+                eventId={eventDetails?.event_id ?? null}
               />
             </TabsContent>
 

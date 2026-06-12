@@ -249,6 +249,15 @@ export const EventFormSchema = z
     sponsor_usernames: z.array(z.string()).optional(),
     sponsor_requirement_description: z.string().optional(),
     sponsor_field_label: z.string().optional(),
+    // ── Sponsor-system P2: the wizard's sponsorship builder rows. ────────────────
+    // Array of SponsorshipDraft ({sponsor_id, sponsor_name, requires_approval,
+    // engagements[]} - see components/sponsorship-builder.tsx). Held loosely (z.any)
+    // like the other wizard passthrough fields because the event doesn't exist yet at
+    // step 7: the rows are NOT part of the create-event FormData. After
+    // /events/create-event/ returns the new event_id, the create pages (admin +
+    // organizer) loop these and call sponsorsApi.attachEvent + configureSponsorship.
+    // The legacy sponsor_* fields above stay for the old free-text flow.
+    sponsorships: z.array(z.any()).optional(),
     is_waitlist_enabled: z.boolean().default(false),
     waitlist_capacity: z.coerce.number().optional(),
     waitlist_discord_role_id: z.string().optional(),

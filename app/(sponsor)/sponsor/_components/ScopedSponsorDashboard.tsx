@@ -7,12 +7,16 @@
 // see ONLY their own sponsor(s) - the ydpay rule.
 //
 // FLOW: sponsor switcher (when in several) -> the sponsor's attached events -> one event's
-// submissions table (usernames + the value each registrant gave THIS sponsor; never emails)
-// + Export CSV (owner: CSV ships at P1).
+// drill-down. The drill-down probes GET .../engagement-submissions/ alongside the legacy
+// submissions read:
+//   - engagements CONFIGURED (P2 wizard wrote entries) -> EngagementSubmissionsPanel.tsx
+//     (same folder): per-engagement pill tabs + the P4 approval queue + scoped CSV.
+//   - NO engagements (or the P3 endpoint is missing on an older backend) -> the legacy
+//     submissions table below, unchanged.
 //
-// HOW IT CONNECTS: lib/sponsors.ts -> afc_sponsors portal endpoints. The submissions read
-// pulls the legacy per-competitor sponsor ids (P3 swaps the source to engagement submissions
-// without changing this UI). Approve/reject lands with the P4 approval gate.
+// HOW IT CONNECTS: lib/sponsors.ts -> afc_sponsors portal endpoints. The legacy table reads
+// the per-competitor sponsor ids (sponsorsApi.submissions); the new surface reads engagement
+// submissions (sponsorsApi.engagementSubmissions) and decides via sponsorsApi.decideSubmission.
 //
 // Design: mirrors the CURRENT sponsor dashboard idioms (search input, light pill status
 // badges, Card p-0 table, showing-x-of-y footer) per the owner's design-parity feedback.
@@ -57,6 +61,14 @@ import {
   IconX,
 } from "@tabler/icons-react";
 
+// P3/P4: the per-engagement tables + approval queue (same folder). The payload type +
+// page size are exported there so this probe fetch doubles as the panel's page 1.
+import {
+  ENGAGEMENT_PAGE_SIZE,
+  EngagementSubmissionsPanel,
+  type EngagementSubmissionsPayload,
+} from "./EngagementSubmissionsPanel";
+
 // The CURRENT page's light pill badge, reused verbatim so both systems read identically.
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -85,6 +97,9 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
   const [events, setEvents] = useState<SponsorEventRow[] | null>(null);
   const [openEvent, setOpenEvent] = useState<SponsorEventRow | null>(null);
   const [rows, setRows] = useState<SponsorSubmissionRow[] | null>(null);
+  // P3 probe result. null = in flight. engagements NON-EMPTY -> render the new
+  // per-engagement surface (the payload doubles as its page 1); EMPTY -> legacy table.
+  const [engData, setEngData] = useState<EngagementSubmissionsPayload | null>(null);
   const [search, setSearch] = useState("");
 
   // Events of the selected sponsor (reloads on switcher change).
@@ -103,7 +118,9 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
   const drillIn = useCallback((e: SponsorEventRow) => {
     setOpenEvent(e);
     setRows(null);
+    setEngData(null);
     setSearch("");
+    // Legacy read (still the surface for events without engagements).
     sponsorsApi
       .submissions(sponsorId, e.event_id)
       .then((res) => setRows(res.results))
@@ -111,6 +128,26 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
         toast.error("Failed to load submissions.");
         setRows([]);
       });
+    // P3 probe, fetched alongside: page 1 of the engagement submissions (All tab,
+    // no status filter). Errors (e.g. an older backend without the endpoint) fall
+    // back silently to the legacy table so the portal never goes blank.
+    sponsorsApi
+      .engagementSubmissions(sponsorId, e.event_id, {
+        limit: ENGAGEMENT_PAGE_SIZE,
+        offset: 0,
+      })
+      .then(setEngData)
+      .catch(() =>
+        setEngData({
+          event: { event_id: e.event_id, event_name: e.event_name },
+          engagements: [],
+          requires_approval: false,
+          results: [],
+          total_count: 0,
+          has_more: false,
+          next_offset: null,
+        }),
+      );
   }, [sponsorId]);
 
   const filtered = useMemo(() => {
@@ -186,97 +223,120 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
           </div>
         )
       ) : (
-        // ── one event's submissions (current-table idiom + CSV) ──
+        // ── one event's drill-down ──
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <Button variant="ghost" size="sm" onClick={() => setOpenEvent(null)}>
               <IconArrowLeft className="size-4" /> Back to your events
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                sponsorsApi.submissionsCsv(
-                  sponsorId,
-                  openEvent.event_id,
-                  `${sponsor.slug}-${openEvent.slug || openEvent.event_id}-submissions.csv`,
-                )
-              }
-            >
-              <IconDownload className="size-4" /> Export CSV
-            </Button>
-          </div>
-
-          <div className="relative">
-            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by username, team, or submitted value..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
-            {search && (
-              <button
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                onClick={() => setSearch("")}
+            {/* The legacy CSV rides with the legacy surface only; the engagement
+                panel ships its own tab + status scoped Export CSV. */}
+            {engData !== null && engData.engagements.length === 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  sponsorsApi.submissionsCsv(
+                    sponsorId,
+                    openEvent.event_id,
+                    `${sponsor.slug}-${openEvent.slug || openEvent.event_id}-submissions.csv`,
+                  )
+                }
               >
-                <IconX className="size-4" />
-              </button>
+                <IconDownload className="size-4" /> Export CSV
+              </Button>
             )}
           </div>
 
-          {rows === null ? (
+          {engData === null ? (
+            // P3 probe in flight: which surface this event gets is not known yet.
             <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground text-sm">
               <IconLoader2 className="size-5 animate-spin" /> Loading submissions...
             </div>
-          ) : filtered.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                {rows.length === 0
-                  ? "No registrations for this event yet."
-                  : "No results match your search."}
-              </CardContent>
-            </Card>
+          ) : engData.engagements.length > 0 ? (
+            // ── NEW surface (P3/P4): per-engagement tables + approval queue ──
+            // key remounts the panel per sponsor+event so tab/filter/page state resets.
+            <EngagementSubmissionsPanel
+              key={`${sponsorId}-${openEvent.event_id}`}
+              sponsor={sponsor}
+              event={openEvent}
+              initial={engData}
+            />
           ) : (
-            <Card className="pt-2">
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Username</TableHead>
-                        <TableHead>Team</TableHead>
-                        <TableHead>Submitted value</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filtered.map((r) => (
-                        <TableRow key={r.id}>
-                          <TableCell className="font-medium">{r.username}</TableCell>
-                          <TableCell>{r.team_name ?? "-"}</TableCell>
-                          <TableCell>
-                            {r.value ?? (
-                              <span className="text-muted-foreground italic text-xs">
-                                Not provided
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={r.status} />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+            // ── LEGACY surface (no engagements configured): the original table ──
+            <>
+              <div className="relative">
+                <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by username, team, or submitted value..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+                {search && (
+                  <button
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    onClick={() => setSearch("")}
+                  >
+                    <IconX className="size-4" />
+                  </button>
+                )}
+              </div>
+
+              {rows === null ? (
+                <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground text-sm">
+                  <IconLoader2 className="size-5 animate-spin" /> Loading submissions...
                 </div>
-                <div className="px-4 py-3 border-t">
-                  <p className="text-xs text-muted-foreground">
-                    Showing {filtered.length} of {rows.length}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+              ) : filtered.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center text-muted-foreground">
+                    {rows.length === 0
+                      ? "No registrations for this event yet."
+                      : "No results match your search."}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="pt-2">
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Username</TableHead>
+                            <TableHead>Team</TableHead>
+                            <TableHead>Submitted value</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filtered.map((r) => (
+                            <TableRow key={r.id}>
+                              <TableCell className="font-medium">{r.username}</TableCell>
+                              <TableCell>{r.team_name ?? "-"}</TableCell>
+                              <TableCell>
+                                {r.value ?? (
+                                  <span className="text-muted-foreground italic text-xs">
+                                    Not provided
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <StatusBadge status={r.status} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    <div className="px-4 py-3 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        Showing {filtered.length} of {rows.length}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
         </div>
       )}

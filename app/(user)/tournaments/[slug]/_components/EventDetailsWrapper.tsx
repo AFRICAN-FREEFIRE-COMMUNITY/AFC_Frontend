@@ -85,6 +85,30 @@ import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 // Paid-event registration client (Stripe). startPaidRegistration() below calls
 // initRegistrationPayment, then the success page verifies + completes registration.
 import { eventPaymentsApi } from "@/lib/api/eventPayments";
+// ── Sponsor redesign P3/P4 ── typed client for the entity-sponsorship system
+// (backend afc_sponsors). forEvent() decides whether the SPONSOR step renders the
+// NEW engagement form or the legacy single-ID inputs; mySubmissions/resubmit power
+// the post-registration SponsorRequirementsCard.
+import { sponsorsApi, EventSponsorshipRow } from "@/lib/sponsors";
+// The data-driven engagement form (one per player) + its validation/payload
+// helpers. The helpers build the `sponsorships` key of register-for-event/.
+import {
+  SponsorEngagementForm,
+  SponsorEngagementPlayerSection,
+  EngagementAnswers,
+  patchEngagementAnswer,
+  isEngagementAnswerComplete,
+  countIncompleteEngagements,
+  findCollectIdDuplicates,
+  buildSoloSponsorshipsBody,
+  buildSquadSponsorshipsBody,
+} from "./SponsorEngagementForm";
+// Post-registration status board: the player's own sponsor submissions with
+// pending/approved/rejected pills and the rejected-row resubmit loop.
+import { SponsorRequirementsCard } from "./SponsorRequirementsCard";
+// Public "Qualified field" provenance banner (event linking P2): who entered this
+// event through fired qualification links. Self-hides when there are none.
+import { QualifiedFromBanner } from "@/components/qualified-from-banner";
 // localStorage key for the saved register-for-event payload, so it survives the Stripe
 // redirect. Keyed by payment_id; the success page reads `${PAID_REG_KEY_PREFIX}${payment_id}`.
 const PAID_REG_KEY_PREFIX = "afc_evt_reg_";
@@ -1292,6 +1316,24 @@ interface ModalProps {
   setSoloSponsorUuid: (v: string) => void;
   teamSponsorUuids: Record<string, string>;
   setTeamSponsorUuids: (v: Record<string, string>) => void;
+  // ── Sponsor redesign P3 ── the event's entity sponsorships (sponsorsApi.forEvent,
+  // fetched once by the parent). NON-EMPTY flips the SPONSOR step to the new
+  // engagement form; EMPTY keeps the legacy single-ID UI above untouched.
+  eventSponsorships: EventSponsorshipRow[];
+  // Engagement answer drafts, owned by the parent so buildRegistrationPayload can
+  // read them. Solo: [sponsorship_id][engagement_index] -> draft payload. Squad:
+  // the same shape nested under each rostered player's user id.
+  soloEngagementAnswers: EngagementAnswers;
+  setSoloEngagementAnswers: React.Dispatch<
+    React.SetStateAction<EngagementAnswers>
+  >;
+  teamEngagementAnswers: Record<string, EngagementAnswers>;
+  setTeamEngagementAnswers: React.Dispatch<
+    React.SetStateAction<Record<string, EngagementAnswers>>
+  >;
+  // True when register-for-event/ answered pending_sponsor_approval (a sponsor
+  // with requires_approval must vet the submissions) - flips the SUCCESS copy.
+  pendingSponsorApproval?: boolean;
 }
 
 const RegistrationModals: React.FC<ModalProps> = ({
@@ -1327,11 +1369,20 @@ const RegistrationModals: React.FC<ModalProps> = ({
   setSoloSponsorUuid,
   teamSponsorUuids,
   setTeamSponsorUuids,
+  eventSponsorships,
+  soloEngagementAnswers,
+  setSoloEngagementAnswers,
+  teamEngagementAnswers,
+  setTeamEngagementAnswers,
+  pendingSponsorApproval = false,
   token,
 }) => {
   const isSoloDisabled = eventDetails.participant_type === "squad";
   const isTeamDisabled = eventDetails.participant_type === "solo";
   const closeAll = () => setModalStep("CLOSED");
+  // Sponsor redesign P3: non-empty = this event uses the NEW engagement system,
+  // so the SPONSOR step renders the engagement form instead of the legacy UI.
+  const hasEntitySponsorships = eventSponsorships.length > 0;
 
   // Keep refs fresh so the interval can read latest values without causing re-runs
   const onCheckDiscordStatusRef = useRef(onCheckDiscordStatus);
@@ -1377,7 +1428,13 @@ const RegistrationModals: React.FC<ModalProps> = ({
   }, [eventDetails.validationResults, eventDetails.selectedTeamMembers]);
 
   useEffect(() => {
-    if (modalStep === "SPONSOR" && eventDetails.is_sponsored) {
+    // The cross-event duplicate fetch belongs to the LEGACY sponsor-ID step only;
+    // the new engagement path (hasEntitySponsorships) validates server-side.
+    if (
+      modalStep === "SPONSOR" &&
+      eventDetails.is_sponsored &&
+      !hasEntitySponsorships
+    ) {
       fetchAllSponsorIds();
     }
     // fetchAllSponsorIds reads token + eventDetails.event_id via closure;
@@ -1778,13 +1835,171 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 onClick={handleRulesContinue} // ← plain call; useEffect above handles the fetch
                 disabled={!rulesAccepted}
               >
-                {eventDetails.is_sponsored ? "Continue" : "Continue to Discord"}
+                {eventDetails.is_sponsored || hasEntitySponsorships
+                  ? "Continue"
+                  : "Continue to Discord"}
               </Button>
             </DialogFooter>
           </>
         );
 
       case "SPONSOR": {
+        // ── NEW PATH (sponsor redesign P3): entity sponsorships w/ engagements ──
+        // When sponsors/for-event/ returned rows for this event, render the
+        // per-sponsorship engagement form (SponsorEngagementForm.tsx) instead of
+        // the legacy single sponsor-ID inputs below. Solo: one form. Squad: the
+        // form repeats per ROSTERED player (collapsible, mirroring the legacy
+        // per-member inputs) - the server requires EVERY engagement of EVERY
+        // sponsorship answered by EVERY rostered player. Continue stays disabled
+        // until all answers validate and no collect_id value repeats across the
+        // roster. The answers feed buildRegistrationPayload's `sponsorships` key.
+        if (hasEntitySponsorships) {
+          const engTeamMembers = eventDetails.selectedTeamMembers || [];
+          const isTeamEngagement =
+            regType === "team" && engTeamMembers.length > 0;
+          const engNextStep =
+            regType === "team" ? "DISCORD_STATUS" : "DISCORD_LINK";
+
+          // ── collect_id duplicate check across the roster (squad only) ──
+          // Keys: "<user_id>|<sponsorship_id>|<engagement_index>" (both sides
+          // of a clash are flagged, same UX as the legacy duplicate check).
+          const engDuplicateKeys = isTeamEngagement
+            ? findCollectIdDuplicates(
+                eventSponsorships,
+                teamEngagementAnswers,
+                engTeamMembers.map((m) => m.id),
+              )
+            : new Set<string>();
+          // Narrow the global duplicate set to one player's
+          // "<sponsorship_id>|<engagement_index>" keys for the form's inline errors.
+          const duplicateKeysFor = (memberId: string): Set<string> => {
+            const out = new Set<string>();
+            engDuplicateKeys.forEach((k) => {
+              if (k.startsWith(`${memberId}|`))
+                out.add(k.slice(memberId.length + 1));
+            });
+            return out;
+          };
+
+          // ── Continue gate: every engagement answered by every player ──
+          const allEngagementsComplete = isTeamEngagement
+            ? engTeamMembers.every(
+                (m) =>
+                  countIncompleteEngagements(
+                    eventSponsorships,
+                    teamEngagementAnswers[m.id],
+                  ) === 0,
+              )
+            : eventSponsorships.every((s) =>
+                s.engagements.every((eng, idx) =>
+                  isEngagementAnswerComplete(
+                    eng,
+                    soloEngagementAnswers[s.sponsorship_id]?.[idx],
+                  ),
+                ),
+              );
+          const canContinueEngagements =
+            allEngagementsComplete && engDuplicateKeys.size === 0;
+
+          return (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl">
+                  Sponsor Requirements
+                  <InfoTip id="tournaments.register.sponsor._section" />
+                </DialogTitle>
+                <DialogDescription>
+                  {isTeamEngagement
+                    ? "Every rostered player must complete each sponsor's steps to finish registration."
+                    : "Complete each sponsor's steps to finish registration."}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-3 py-2">
+                {/* Roster-wide duplicate banner, mirroring the legacy copy. */}
+                {engDuplicateKeys.size > 0 && (
+                  <p className="text-sm text-destructive">
+                    Each sponsor ID must be unique across your roster. Fix the
+                    highlighted duplicates.
+                  </p>
+                )}
+
+                {isTeamEngagement ? (
+                  // ── SQUAD: one collapsible engagement form per rostered player ──
+                  engTeamMembers.map((member, i) => {
+                    const memberDuplicates = duplicateKeysFor(member.id);
+                    return (
+                      <SponsorEngagementPlayerSection
+                        key={member.id}
+                        username={member.username}
+                        remaining={countIncompleteEngagements(
+                          eventSponsorships,
+                          teamEngagementAnswers[member.id],
+                        )}
+                        hasDuplicate={memberDuplicates.size > 0}
+                        defaultOpen={i === 0}
+                      >
+                        <SponsorEngagementForm
+                          sponsorships={eventSponsorships}
+                          answers={teamEngagementAnswers[member.id] ?? {}}
+                          onAnswerChange={(sid, idx, patch) =>
+                            setTeamEngagementAnswers((prev) => ({
+                              ...prev,
+                              [member.id]: patchEngagementAnswer(
+                                prev[member.id] ?? {},
+                                sid,
+                                idx,
+                                patch,
+                              ),
+                            }))
+                          }
+                          duplicateKeys={memberDuplicates}
+                          idPrefix={`m${member.id}`}
+                        />
+                      </SponsorEngagementPlayerSection>
+                    );
+                  })
+                ) : (
+                  // ── SOLO: a single engagement form for the registrant ──
+                  <SponsorEngagementForm
+                    sponsorships={eventSponsorships}
+                    answers={soloEngagementAnswers}
+                    onAnswerChange={(sid, idx, patch) =>
+                      setSoloEngagementAnswers((prev) =>
+                        patchEngagementAnswer(prev, sid, idx, patch),
+                      )
+                    }
+                    idPrefix="solo"
+                  />
+                )}
+              </div>
+
+              <DialogFooter className="flex sm:justify-between">
+                <Button
+                  variant="secondary"
+                  onClick={() => setModalStep("RULES")}
+                >
+                  Back
+                </Button>
+                {/* Same routing as the legacy step: Discord next when required,
+                    otherwise straight into handleJoinedServer (register / pay). */}
+                <Button
+                  onClick={() =>
+                    DISCORD_REQUIRED
+                      ? setModalStep(engNextStep)
+                      : handleJoinedServer()
+                  }
+                  disabled={!canContinueEngagements || pendingJoined}
+                >
+                  {pendingJoined ? <Loader text="Submitting..." /> : "Continue"}
+                </Button>
+              </DialogFooter>
+            </>
+          );
+        }
+
+        // ── LEGACY PATH below: unchanged single sponsor-ID step for events
+        // with no entity sponsorships (is_sponsored flag + sponsor_field_label). ──
         // const teamMembers = eventDetails.selectedTeamMembers || [];
         // const isTeamSponsor = regType === "team" && teamMembers.length > 0;
         // const nextStep = regType === "team" ? "DISCORD_STATUS" : "DISCORD_LINK";
@@ -2249,14 +2464,16 @@ const RegistrationModals: React.FC<ModalProps> = ({
                                 </span>
                                 {hasIssues && reasons.length > 0 && (
                                   <div className="mt-1 space-y-0.5">
-                                    {reasons.map((reason, idx) => (
-                                      <p
-                                        key={idx}
-                                        className="text-xs text-red-300"
-                                      >
-                                        • {reason.replace(/_/g, " ")}
-                                      </p>
-                                    ))}
+                                    {reasons.map(
+                                      (reason: string, idx: number) => (
+                                        <p
+                                          key={idx}
+                                          className="text-xs text-red-300"
+                                        >
+                                          • {reason.replace(/_/g, " ")}
+                                        </p>
+                                      ),
+                                    )}
                                   </div>
                                 )}
                                 {result.ok && !inAfcServer && (
@@ -2439,9 +2656,15 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 <CheckCircle className="w-12 h-12 text-primary mx-auto mb-2" />
               </DialogHeader>
               <p className="text-sm font-semibold">
+                {/* Order matters: waitlist > sponsor approval > plain success.
+                    pendingSponsorApproval comes from register-for-event/'s
+                    pending_sponsor_approval flag (a requires_approval sponsor
+                    must vet the engagement submissions first). */}
                 {wasWaitlisted
                   ? "You're on the waitlist. We'll let you know if a spot opens up."
-                  : "Welcome to the tournament! Check Discord for match details."}
+                  : pendingSponsorApproval
+                    ? "Registered, waiting for sponsor approval. Your spot is confirmed once the sponsor reviews your submissions."
+                    : "Welcome to the tournament! Check Discord for match details."}
               </p>
             </div>
             <DialogFooter>
@@ -2518,6 +2741,25 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const [teamSponsorUuids, setTeamSponsorUuids] = useState<
     Record<string, string>
   >({});
+
+  // ── Sponsor redesign P3/P4 state ──
+  // The event's entity sponsorships (sponsors/for-event/). Non-empty switches the
+  // SPONSOR modal step to the engagement form AND the register payload to the
+  // `sponsorships` key; empty keeps the full legacy path. Fetched once below.
+  const [eventSponsorships, setEventSponsorships] = useState<
+    EventSponsorshipRow[]
+  >([]);
+  // Engagement answer drafts (see SponsorEngagementForm.tsx for the draft keys).
+  // Solo: [sponsorship_id][engagement_index] -> draft payload object.
+  const [soloEngagementAnswers, setSoloEngagementAnswers] =
+    useState<EngagementAnswers>({});
+  // Squad: the same nesting per rostered player: [user_id][sponsorship_id][engagement_index].
+  const [teamEngagementAnswers, setTeamEngagementAnswers] = useState<
+    Record<string, EngagementAnswers>
+  >({});
+  // register-for-event/ returns pending_sponsor_approval when a requires_approval
+  // sponsor must vet the submissions; flips the SUCCESS step copy.
+  const [pendingSponsorApproval, setPendingSponsorApproval] = useState(false);
 
   // Invite token state
   const [inviteToken, setInviteToken] = useState<string | null>(null);
@@ -2932,6 +3174,28 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     fetchPageRoster,
   ]);
 
+  // ── Sponsor redesign P3: fetch the event's entity sponsorships ONCE ──
+  // Public endpoint (sponsors/for-event/<event_id>/), fetched as soon as the
+  // event id is known so the SPONSOR step + buildRegistrationPayload + the
+  // SponsorRequirementsCard gate all read the same answer. A failed fetch is
+  // non-fatal: eventSponsorships stays [] and everything falls back to legacy.
+  useEffect(() => {
+    const eventId = eventDetails?.event_id;
+    if (!eventId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await sponsorsApi.forEvent(eventId);
+        if (!cancelled) setEventSponsorships(res.results || []);
+      } catch {
+        // Non-fatal - the registration flow simply uses the legacy sponsor path.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventDetails?.event_id]);
+
   useEffect(() => {
     // Wait until auth has fully resolved before fetching.
     // This prevents the public endpoint from being called first and then
@@ -3092,7 +3356,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   const handleRulesContinue = useCallback(() => {
     if (!rulesAccepted) return;
-    if (eventDetails?.is_sponsored) {
+    // SPONSOR step is reachable on BOTH sponsor systems: the legacy is_sponsored
+    // flag AND the new entity sponsorships (sponsor redesign P3) - the step itself
+    // picks which UI to render based on eventSponsorships.
+    if (eventDetails?.is_sponsored || eventSponsorships.length > 0) {
       setModalStep("SPONSOR");
       return;
     }
@@ -3105,7 +3372,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     } else {
       setModalStep("DISCORD_LINK");
     }
-  }, [rulesAccepted, regType, selectedTeamMembersData, eventDetails]);
+  }, [
+    rulesAccepted,
+    regType,
+    selectedTeamMembersData,
+    eventDetails,
+    eventSponsorships,
+  ]);
 
   const handleDiscordConnect = useCallback(() => {
     let redirectPath = `${window.location.origin}${window.location.pathname}?id=${slug}&discord=connected&step=discord`;
@@ -3137,8 +3410,24 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       payload.invite_token = inviteToken;
     }
 
-    // Add sponsor IDs if required
-    if (eventDetails?.is_sponsored) {
+    // ── Sponsor data ──
+    // NEW PATH (sponsor redesign P3): events with entity sponsorships send the
+    // per-engagement answers as `sponsorships` and OMIT the legacy
+    // sponsor_id/sponsor_ids keys entirely. Solo: [{sponsorship_id, submissions}].
+    // Squad: [{sponsorship_id, submissions_by_user: {"<user_id>": [...]}}] - one
+    // entry per SELECTED roster member (the server requires every player covered;
+    // 400 code "sponsor_submission_invalid" otherwise).
+    if (eventSponsorships.length > 0) {
+      payload.sponsorships =
+        regType === "team"
+          ? buildSquadSponsorshipsBody(
+              eventSponsorships,
+              selectedMembers,
+              teamEngagementAnswers,
+            )
+          : buildSoloSponsorshipsBody(eventSponsorships, soloEngagementAnswers);
+    } else if (eventDetails?.is_sponsored) {
+      // LEGACY PATH: single sponsor-ID value(s), unchanged.
       if (regType === "team") {
         payload.sponsor_ids = teamSponsorUuids;
       } else {
@@ -3155,6 +3444,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     inviteToken,
     teamSponsorUuids,
     soloSponsorUuid,
+    eventSponsorships,
+    soloEngagementAnswers,
+    teamEngagementAnswers,
     eventDetails,
   ]);
 
@@ -3194,6 +3486,17 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 },
               }
             : {}),
+          duration: 12000,
+        });
+        return;
+      }
+      // Sponsor redesign P3: the server re-validates every engagement answer for
+      // every rostered player and rejects the whole registration with this code
+      // when anything is missing or malformed. The message names what failed.
+      if (data?.code === "sponsor_submission_invalid") {
+        toast.error(message, {
+          description:
+            "Check the sponsor requirements step: every rostered player must complete every sponsor item.",
           duration: 12000,
         });
         return;
@@ -3246,6 +3549,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           );
           toast.success(res.data.message || "You're registered!");
           setWasWaitlisted(!!res.data.waitlisted);
+          // Sponsor redesign P3: true when a requires_approval sponsor must vet
+          // the engagement submissions before the spot is confirmed.
+          setPendingSponsorApproval(!!res.data.pending_sponsor_approval);
           // Clean up the saved payload - registration is done.
           try {
             localStorage.removeItem(`${PAID_REG_KEY_PREFIX}${init.payment_id}`);
@@ -3308,6 +3614,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         // M: backend returns waitlisted:true when the active cap was full and the
         // entry was routed to the waitlist instead of a confirmed slot.
         setWasWaitlisted(!!res.data.waitlisted);
+        // Sponsor redesign P3: pending_sponsor_approval flips the SUCCESS copy to
+        // "Registered, waiting for sponsor approval" (requires_approval sponsor).
+        setPendingSponsorApproval(!!res.data.pending_sponsor_approval);
         setModalStep("SUCCESS");
 
         // Refresh event details to update registration status
@@ -3756,6 +4065,26 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         </div>
       )}
 
+      {/* ── Sponsor requirements status (sponsor redesign P4) ──
+          For registered users on events with entity sponsorships: the caller's
+          own engagement submissions with pending/approved/rejected pills and the
+          rejected-row resubmit loop (sponsorsApi.mySubmissions / resubmitSubmission).
+          Sits right under the registration status on purpose. NOT gated to the
+          captain: every rostered player has their own submissions to track. The
+          card hides itself when the user has no submissions for this event. */}
+      {token && eventDetails.is_registered && eventSponsorships.length > 0 && (
+        <SponsorRequirementsCard eventId={eventDetails.event_id} />
+      )}
+
+      {/* ── Qualified field provenance (event linking P2) ──
+          Public banner naming who qualified into this event through fired
+          qualification links ("top N from <stage> of <source event>"). Renders
+          nothing when the event has no fired inbound links, so it is mounted
+          unconditionally. */}
+      <div className="mt-4">
+        <QualifiedFromBanner eventId={eventDetails.event_id} />
+      </div>
+
       <Card className="mt-4">
         <CardHeader>
           <CardTitle className="flex items-center justify-start gap-2">
@@ -4024,6 +4353,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         setSoloSponsorUuid={setSoloSponsorUuid}
         teamSponsorUuids={teamSponsorUuids}
         setTeamSponsorUuids={setTeamSponsorUuids}
+        eventSponsorships={eventSponsorships}
+        soloEngagementAnswers={soloEngagementAnswers}
+        setSoloEngagementAnswers={setSoloEngagementAnswers}
+        teamEngagementAnswers={teamEngagementAnswers}
+        setTeamEngagementAnswers={setTeamEngagementAnswers}
+        pendingSponsorApproval={pendingSponsorApproval}
       />
     </div>
   );

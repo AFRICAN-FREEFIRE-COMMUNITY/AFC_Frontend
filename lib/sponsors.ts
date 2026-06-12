@@ -72,6 +72,69 @@ export interface SponsorSubmissionRow {
   status: string;
 }
 
+// ── P2/P3/P4 shapes (backend afc_sponsors/engagements.py) ─────────────────────
+// One engagement entry of a sponsorship's config (the wizard builder writes these,
+// the registration step renders inputs from them). Schema per the design spec:
+//   collect_id {label, help?} / follow_social {platform, url, actions[], collect_profile_link}
+//   create_account {label, signup_url} / join_group {platform: whatsapp|discord, invite_url}
+export interface SponsorEngagement {
+  type: "collect_id" | "follow_social" | "create_account" | "join_group";
+  label?: string;
+  help?: string;
+  platform?: string;
+  url?: string;
+  actions?: Array<"follow" | "like" | "share">;
+  collect_profile_link?: boolean;
+  signup_url?: string;
+  invite_url?: string;
+}
+
+// An event's sponsorship + config, as returned by GET sponsors/for-event/<event_id>/
+// (public; consumed by the registration sponsor step and the wizard rehydrate).
+export interface EventSponsorshipRow {
+  sponsorship_id: number;
+  sponsor: {
+    id: number;
+    name: string;
+    slug: string;
+    logo: string | null;
+    website: string;
+    socials: Array<{ platform: string; url: string }>;
+  };
+  requires_approval: boolean;
+  engagements: SponsorEngagement[];
+}
+
+// One registrant answer row in the portal's per-engagement table
+// (GET .../engagement-submissions/). Privacy: usernames + submitted values only.
+export interface EngagementSubmissionRow {
+  id: number;
+  username: string;
+  engagement_index: number;
+  engagement_label: string;
+  engagement_type: string;
+  value: string;
+  payload: Record<string, any>;
+  approval_status: "not_required" | "pending" | "approved" | "rejected";
+  reason: string;
+  can_undo: boolean;
+  updated_at: string | null;
+}
+
+// The caller's OWN submissions for one event (GET sponsors/my-submissions/<event_id>/),
+// powering the "waiting for approval" badges + the rejected re-input prompt.
+export interface MySubmissionRow {
+  id: number;
+  sponsorship_id: number;
+  sponsor_name: string;
+  engagement_index: number;
+  engagement_label: string;
+  engagement_type: string;
+  payload: Record<string, any>;
+  approval_status: "not_required" | "pending" | "approved" | "rejected";
+  reason: string;
+}
+
 export const sponsorsApi = {
   // ── admin (sponsor-admin gated) ──
   create: (body: { name: string; description?: string; website?: string }) =>
@@ -109,4 +172,63 @@ export const sponsorsApi = {
     a.click();
     URL.revokeObjectURL(url);
   },
+
+  // ── P2: wizard sponsorship config ──
+  // PATCH the per-sponsorship engagement builder + approval toggle (sponsor-admin or the
+  // event's organizer). Attach/detach above remain the way sponsors join/leave an event.
+  configureSponsorship: (
+    sponsorId: number,
+    eventId: number,
+    body: { requires_approval?: boolean; engagements?: SponsorEngagement[] },
+  ) => sPatch(`${sponsorId}/events/${eventId}/configure/`, body),
+  // PUBLIC read of an event's sponsorships + engagement config (registration UI + wizard
+  // rehydrate). No auth header needed but harmless to send.
+  forEvent: (eventId: number) =>
+    sGet<{ results: EventSponsorshipRow[]; total_count: number }>(`for-event/${eventId}/`),
+
+  // ── P3: the portal's per-engagement submission tables ──
+  engagementSubmissions: (
+    sponsorId: number,
+    eventId: number,
+    params?: { engagement?: number; status?: string; limit?: number; offset?: number },
+  ) =>
+    sGet<{
+      event: { event_id: number; event_name: string };
+      engagements: SponsorEngagement[];
+      requires_approval: boolean;
+      results: EngagementSubmissionRow[];
+      total_count: number;
+      has_more: boolean;
+      next_offset: number | null;
+    }>(`${sponsorId}/events/${eventId}/engagement-submissions/`, params),
+  engagementSubmissionsCsv: async (
+    sponsorId: number, eventId: number, filename: string,
+    params?: { engagement?: number; status?: string },
+  ) => {
+    const res = await axios.get(
+      `${BASE}/${sponsorId}/events/${eventId}/engagement-submissions/`,
+      { headers: headers(), params: { ...(params ?? {}), csv: 1 }, responseType: "blob" },
+    );
+    const url = URL.createObjectURL(res.data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  // ── P4: the decision surface + the player's side of the rejection loop ──
+  // decide: approve | reject (reason REQUIRED) | reject_final (reason REQUIRED, frees the
+  // slot) | undo (one-step revert). Member of the sponsor or sponsor-admin.
+  decideSubmission: (
+    submissionId: number,
+    action: "approve" | "reject" | "reject_final" | "undo",
+    reason?: string,
+  ) => sPost(`submissions/${submissionId}/decide/`, { action, ...(reason ? { reason } : {}) }),
+  // The player re-enters a corrected value on a rejected submission; row returns to pending.
+  resubmitSubmission: (submissionId: number, payload: Record<string, any>) =>
+    sPost(`submissions/${submissionId}/resubmit/`, { payload }),
+  // The caller's own submissions for one event (status badges + re-input prompts).
+  mySubmissions: (eventId: number) =>
+    sGet<{ results: MySubmissionRow[]; total_count: number }>(`my-submissions/${eventId}/`),
 };

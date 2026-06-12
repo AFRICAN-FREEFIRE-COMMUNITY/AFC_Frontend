@@ -8,6 +8,8 @@ import { LinkedEventsCard } from "@/components/event-links";
 // Ratings + anonymous feedback for this event (admin read surface; users rate
 // on the public tournament page, admins read the aggregate + comments here).
 import { EventReviewsCard } from "@/components/event-reviews-admin";
+// Clash-Squad head-to-head bracket (sub-project C): generate/tree/results per CS stage.
+import { H2HBracketCard } from "@/components/h2h-bracket";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -124,6 +126,9 @@ interface EventDetails {
   tournament_teams: any[];
   stages: Array<{
     id: number;
+    // The backend serializes the PK as stage_id (get_event_details ~L3762); the
+    // LinkedEventsCard mount below reads it (an `id` lookup gave undefined values).
+    stage_id: number;
     stage_name: string;
     start_date: string;
     end_date: string;
@@ -207,6 +212,8 @@ interface AdminEventDetails {
   stages: Array<{
     stage_id: number;
     stage_name: string;
+    // Drives the per-stage Clash-Squad bracket card on the Stages tab (cs formats).
+    stage_format?: string;
     start_date: string;
     end_date: string;
     number_of_groups: number;
@@ -1960,6 +1967,26 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       </div>
                     </CardTitle>
                   </CardHeader>
+                  {/* ── Clash-Squad bracket (sub-project C) ──
+                      CS-format stages get the head-to-head bracket card: generate
+                      (seed order from the registered teams), tree + result entry,
+                      standings. BR stages keep the plain groups grid below. */}
+                  {String(stage.stage_format || "").startsWith("cs") && (
+                    <CardContent>
+                      <H2HBracketCard
+                        stageId={stage.stage_id}
+                        stageName={stage.stage_name}
+                        stageFormat={stage.stage_format ?? ""}
+                        isManager
+                        registeredTeams={(eventDetails.tournament_teams ?? [])
+                          .filter((t: any) => !t.is_waitlisted && t.tournament_team_id)
+                          .map((t: any) => ({
+                            tournament_team_id: t.tournament_team_id,
+                            team_name: t.team_name,
+                          }))}
+                      />
+                    </CardContent>
+                  )}
                   <CardContent className="max-h-96 overflow-auto grid md:grid-cols-2 gap-2">
                     {stage.groups.map((group) => (
                       <Card

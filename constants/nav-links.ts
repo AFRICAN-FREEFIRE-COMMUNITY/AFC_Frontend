@@ -1,7 +1,9 @@
 import {
   IconArticle,
+  IconBan,
   IconBuilding,
   IconCalendar,
+  IconCash,
   IconChartBarPopular,
   IconFolder,
   IconHome,
@@ -43,7 +45,11 @@ interface NavLinks {
     label?: string;
     slug: string;
     icon: any;
-    comingSoon: boolean;
+    // Optional like on the top-level links: the Shop submenu items carry
+    // newLink/addedAt for the auto-clearing NEW badge, so the type allows them
+    // (they were always passed; the type just never declared them).
+    comingSoon?: boolean;
+    newLink?: boolean;
     addedAt?: string;
   }[];
 }
@@ -180,6 +186,17 @@ export const adminNavLinks: AdminNavLink[] = [
     allowedRoles: ["head_admin", "organizer_admin"],
   },
   {
+    // Blacklist visibility dashboard (owner ask 2026-06-12): every organizer
+    // blacklist across all orgs - how many times, by whom, and why - with stat
+    // cards + filters (app/(a)/a/blacklists/page.tsx). Sits next to Organizations
+    // because it oversees the same organizer ecosystem, gated to the SAME roles the
+    // backend endpoint checks (is_platform_org_admin: head_admin / organizer_admin).
+    label: "Blacklists",
+    slug: "/a/blacklists",
+    icon: IconBan,
+    allowedRoles: ["head_admin", "organizer_admin"],
+  },
+  {
     // Data-API partner management (afc_partner_api admin surface). Gated on
     // head_admin / partner_admin to match the backend's _is_partner_admin check
     // (role__role_name__in=["head_admin","partner_admin"]) - same team that runs
@@ -221,6 +238,17 @@ export const adminNavLinks: AdminNavLink[] = [
     label: "Admin Shop",
     slug: "/a/shop",
     icon: IconShoppingCart,
+    allowedRoles: ["head_admin", "shop_admin"],
+  },
+  // Vendor payouts ledger (app/(a)/a/shop/payouts/page.tsx): every VendorPayout
+  // row across both rails (Paystack Transfers + Stripe Connect) with the owed
+  // release/retry actions. Same audience as Admin Shop above (head_admin +
+  // shop_admin), matching the backend require_admin gate on /shop/admin/payouts/.
+  // IconCash reads as "money going out".
+  {
+    label: "Shop Payouts",
+    slug: "/a/shop/payouts",
+    icon: IconCash,
     allowedRoles: ["head_admin", "shop_admin"],
   },
   {

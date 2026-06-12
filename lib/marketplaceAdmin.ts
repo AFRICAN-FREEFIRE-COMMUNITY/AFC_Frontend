@@ -1,11 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // lib/marketplaceAdmin.ts
 //
-// Typed client for the MARKETPLACE Phase B1 ADMIN API (backend prefix /shop/admin/,
-// implemented in afc_shop/vendors.py clusters A + B). This is the data layer behind
-// the two AFC admin marketplace surfaces:
+// Typed client for the MARKETPLACE ADMIN API (backend prefix /shop/admin/,
+// implemented in afc_shop/vendors.py clusters A + B and the Phase B3 payout rails
+// afc_shop/connect.py + afc_shop/paystack_payout.py). This is the data layer behind
+// the AFC admin marketplace surfaces:
 //   - app/(a)/a/shop/vendors/page.tsx    → "Manage vendors"  (cluster A)
 //   - app/(a)/a/shop/approvals/page.tsx  → "Product approvals" (cluster B)
+//   - app/(a)/a/shop/payouts/page.tsx    → "Vendor payouts"  (the B3 ledger)
 //
 // WHY a dedicated client (not inline fetch on each page): both admin pages hit the
 // same /shop/admin/ cluster, so centralising the Bearer auth + base URL in one place
@@ -163,6 +165,63 @@ export interface CreateVendorBody {
   whatsapp_number?: string;
 }
 
+// ── Payouts (Phase B3) row shapes: mirror connect.admin_list_vendor_payouts ────
+
+// A payout row's lifecycle (VendorPayout.STATUS in afc_shop/models.py):
+//   owed     -> AFC owes the vendor; no transfer landed yet (vendor not onboarded /
+//               bank not saved, or a transfer attempt failed). Releasable.
+//   released -> transient seam between owed and paid (treated like owed by the
+//               backend release/retry endpoints).
+//   paid     -> the transfer succeeded; stripe_transfer_id holds the reference. Final.
+export type PayoutStatus = "owed" | "released" | "paid";
+
+// Which rail settles the row (Vendor.payout_provider): Paystack Transfers is the
+// PRIMARY rail (African vendors, local banks); Stripe Connect is the fallback for
+// vendors Stripe can actually reach. Decides which release endpoint applies.
+export type PayoutProvider = "paystack" | "stripe";
+
+// One row from GET /shop/admin/payouts/ (connect.admin_list_vendor_payouts). Both
+// rails write the SAME VendorPayout table, so this one shape covers Paystack and
+// Stripe rows alike. amount/platform_fee are decimal STRINGS server-side (same
+// convention as prices everywhere else); stripe_transfer_id is the SHARED transfer
+// reference column (a Stripe tr_... id OR a Paystack TRF_... code), blank while owed.
+export interface AdminVendorPayout {
+  id: number;
+  vendor_id: number;
+  vendor_name: string;
+  provider: PayoutProvider;
+  order_id: number;
+  amount: string;
+  platform_fee: string;
+  status: PayoutStatus;
+  stripe_transfer_id: string;
+  paid_at: string | null; // ISO timestamp, null while owed
+  created_at: string; // ISO timestamp
+}
+
+// The escrow-style totals block on the same response (for the ledger header cards).
+export interface PayoutSummary {
+  owed_count: number;
+  owed_amount: string;
+  paid_count: number;
+  paid_amount: string;
+}
+
+// The release/retry endpoints share one response shape: how many flipped to paid,
+// how many are still owed, plus a per-payout result trail (id + status + note/detail).
+export interface ReleasePayoutsResult {
+  released: number;
+  still_owed: number;
+  results: Array<{
+    payout_id: number;
+    status: PayoutStatus;
+    note?: string;
+    detail?: string;
+    stripe_transfer_id?: string;
+    transfer_code?: string;
+  }>;
+}
+
 export const marketplaceAdminApi = {
   // ── A) VENDOR MANAGEMENT (require_admin) ──────────────────────────────────
 
@@ -224,4 +283,33 @@ export const marketplaceAdminApi = {
       "products/reject/",
       { product_id: productId, reason },
     ),
+
+  // ── C) VENDOR PAYOUTS LEDGER (require_admin, Phase B3) ─────────────────────
+
+  // GET /shop/admin/payouts/ - every VendorPayout row (both rails: Paystack +
+  // Stripe write the one table) plus the owed/paid summary totals. Consumed by the
+  // payouts ledger table on /a/shop/payouts. Returns { count, currency, payouts,
+  // summary }.
+  listPayouts: () =>
+    aGet<{
+      count: number;
+      currency: string;
+      payouts: AdminVendorPayout[];
+      summary: PayoutSummary;
+    }>("payouts/"),
+
+  // POST /shop/admin/payouts/release/ - (re)attempt the STRIPE transfer for a
+  // vendor's owed payouts (connect.admin_release_owed_payouts). Pass the vendor_id;
+  // the backend releases every owed/released row of that vendor (a vendor without a
+  // stripe_account_id stays owed, reported in still_owed). The "Release owed
+  // (Stripe)" button calls this once per vendor that has owed Stripe rows.
+  releaseOwedStripe: (vendorId: number) =>
+    aPost<ReleasePayoutsResult>("payouts/release/", { vendor_id: vendorId }),
+
+  // POST /shop/admin/payouts/retry-paystack/ - the Paystack twin
+  // (paystack_payout.admin_retry_owed_paystack_payouts): (re)attempt the PAYSTACK
+  // transfer for a vendor's owed payouts once they have saved their bank. The
+  // "Retry owed (Paystack)" button calls this once per vendor with owed Paystack rows.
+  retryOwedPaystack: (vendorId: number) =>
+    aPost<ReleasePayoutsResult>("payouts/retry-paystack/", { vendor_id: vendorId }),
 };

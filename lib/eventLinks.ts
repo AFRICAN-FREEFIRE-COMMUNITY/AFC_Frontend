@@ -43,6 +43,10 @@ export interface EventLinkRow {
   roster_mode: "copy" | "captain_repick";
   status: "active" | "fired" | "cancelled";
   created_by: string | null;
+  // capacity advisory (linking P2): firing would push the target past its cap.
+  target_capacity: number;
+  target_registered: number;
+  capacity_warning: boolean;
   qualifications?: EventQualificationRow[];
   // outbound only: the standings-edited diff vs the fire-time snapshot
   standings_changed?: boolean;
@@ -56,6 +60,30 @@ export interface EventLinkRow {
 }
 
 export type DecideAction = "allow" | "reject" | "decline" | "replace_next" | "replace_team" | "undo";
+
+// ── linking P3: the chain map graph (GET events/<id>/links/chain/) ──
+export interface ChainNode {
+  event_id: number;
+  event_name: string;
+  event_status: string;
+  is_focus: boolean;
+}
+export interface ChainEdge {
+  link_id: number;
+  source_event_id: number;
+  source_stage_name: string;
+  target_event_id: number;
+  qualify_count: number;
+  status: "active" | "fired" | "cancelled";
+}
+
+// ── event merge (owner 2026-06-12): per-source import report ──
+export interface ImportReportRow {
+  source_event_id: number;
+  source_event_name: string;
+  imported: number;
+  skipped_duplicates: number;
+}
 
 export const eventLinksApi = {
   list: async (eventId: number) =>
@@ -80,6 +108,24 @@ export const eventLinksApi = {
     (await axios.post(
       `${BASE}/links/${linkId}/decide/`,
       { qualification_id: qualificationId, action, ...(teamId ? { team_id: teamId } : {}) },
+      { headers: headers() },
+    )).data,
+  // P3: the whole qualification graph this event belongs to (the chain map).
+  chain: async (eventId: number) =>
+    (await axios.get<{ nodes: ChainNode[]; edges: ChainEdge[] }>(
+      `${BASE}/${eventId}/links/chain/`, { headers: headers() },
+    )).data,
+  // Event MERGE: bulk-enter every confirmed competitor of the source events into eventId
+  // (duplicates skipped; per-source report returned). Same-type events only.
+  importCompetitors: async (eventId: number, sourceEventIds: number[]) =>
+    (await axios.post<{
+      report: ImportReportRow[];
+      target_registered: number;
+      target_capacity: number;
+      over_capacity: boolean;
+    }>(
+      `${BASE}/${eventId}/import-competitors/`,
+      { source_event_ids: sourceEventIds },
       { headers: headers() },
     )).data,
 };

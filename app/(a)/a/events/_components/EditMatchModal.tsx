@@ -56,8 +56,12 @@ export const EditMatchModal = ({
     resolver: zodResolver(EditMatchFormSchema),
     defaultValues: {
       roomId: roomId || "",
-      roomName: roomName || "",
-      roomPassword: roomPassword || "",
+      // Room name + password deliberately start EMPTY (owner 2026-06-12): room
+      // credentials are per-session secrets, so the admin types fresh values each
+      // time instead of silently re-saving (or leaking on screen) the old ones.
+      // What is typed here is exactly what gets saved.
+      roomName: "",
+      roomPassword: "",
     },
   });
 

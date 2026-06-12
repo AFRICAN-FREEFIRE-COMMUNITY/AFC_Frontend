@@ -218,6 +218,47 @@ export const organizersApi = {
     body: { decision: "approve" | "deny"; reason?: string },
   ) => aPost(`blacklists/lift-requests/${requestId}/decide/`, body),
 
+  // ── BLACKLIST VISIBILITY (owner ask 2026-06-12) ──────────────────────────
+  // Backed by afc_organizers/views_blacklist_lookup.py (routes in afc_organizers/urls.py).
+  // Cross-org transparency on top of the blacklist feature: organizers can check whether a
+  // team or player was blacklisted by OTHER orgs (counts + orgs + dates, NEVER the reasons:
+  // the owner privacy rule); AFC admins get the full dashboard feed, reasons included.
+
+  // lookupBlacklists - GET blacklist-lookup/?team_id=|user_id=&start=&end= ->
+  // { target, window, total_count, active_count, entries, has_more }. Pass EXACTLY ONE of
+  // team_id / user_id; start/end are optional ISO "YYYY-MM-DD" bounds on each blacklist's
+  // start date (omit both for all time). Each entry: { id, organization_name,
+  // organization_slug, team_id, team_name, start_date, end_date, status } - `reason` is only
+  // present when the caller is a platform admin. Caller must be an ACTIVE member of any org
+  // (or a platform admin); plain players are 403'd server-side.
+  // CONSUMED BY the Lookup section on app/(organizer)/organizer/blacklists/page.tsx.
+  lookupBlacklists: (params: {
+    team_id?: number;
+    user_id?: number;
+    start?: string;
+    end?: string;
+    limit?: number;
+    offset?: number;
+  }) => aGet("blacklist-lookup/", params),
+
+  // adminListBlacklists - GET admin/blacklists/?search=&status=&start=&end=&limit=&offset= ->
+  // { results, total_count, has_more, aggregates }. PLATFORM-ADMIN ONLY (head_admin /
+  // organizer_admin). results rows: { id, organization_name, organization_slug, team_name,
+  // team_id, reason, status (effective active|expired|lifted), start_date, end_date,
+  // created_at, lifted_by_username, lifted_at, player_snapshot_count }. aggregates (computed
+  // over the FILTERED set so the stat cards follow the filters): { total, active,
+  // by_organization top 10, most_blacklisted_teams top 10 }. search matches team + org name
+  // punctuation-insensitively; status filters by EFFECTIVE status; start/end window the rows
+  // by start date. CONSUMED BY the AFC admin dashboard at app/(a)/a/blacklists/page.tsx.
+  adminListBlacklists: (params?: {
+    search?: string;
+    status?: string;
+    start?: string;
+    end?: string;
+    limit?: number;
+    offset?: number;
+  }) => aGet("admin/blacklists/", params),
+
   // ── PUBLIC - public org page (NO auth header) ────────────────────────────
   getOrganizationPublic: (slug: string) => pGet(`get-organization-public/${slug}/`),
   // Public organizer DIRECTORY (NO auth header) - backs the "Organizers" tab on

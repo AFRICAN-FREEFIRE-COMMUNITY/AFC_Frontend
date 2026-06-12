@@ -42,7 +42,8 @@ import {
 import { env } from "@/lib/env";
 import { matchesSearch } from "@/lib/search";
 import {
-  eventLinksApi, type DecideAction, type EventLinkRow, type EventQualificationRow,
+  eventLinksApi, type ChainEdge, type ChainNode, type DecideAction, type EventLinkRow,
+  type EventQualificationRow, type ImportReportRow,
 } from "@/lib/eventLinks";
 
 const QUAL_BADGE: Record<EventQualificationRow["status"], string> = {
@@ -78,6 +79,18 @@ export function LinkedEventsCard({
 
   // Replace-with-specific-team picker state: which qualification it is open for.
   const [pickFor, setPickFor] = useState<{ linkId: number; qualId: number } | null>(null);
+
+  // ── event MERGE state (owner ask 2026-06-12: combine the Dynasty Cup country events) ──
+  // The dialog multi-picks same-type source events; importCompetitors bulk-enters every
+  // confirmed competitor (duplicates skipped) and returns a per-source report we show inline.
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [mergeQuery, setMergeQuery] = useState("");
+  const [mergeSources, setMergeSources] = useState<Array<{ event_id: number; event_name: string }>>([]);
+  const [mergeReport, setMergeReport] = useState<ImportReportRow[] | null>(null);
+
+  // ── chain map state (linking P3): the whole qualification graph around this event ──
+  const [chainOpen, setChainOpen] = useState(false);
+  const [chain, setChain] = useState<{ nodes: ChainNode[]; edges: ChainEdge[] } | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -189,6 +202,71 @@ export function LinkedEventsCard({
       if (q) decide(linkId, q, "replace_team", teamId);
     };
 
+  // Merge dialog helpers: the source picker reuses the same all-events list as the create
+  // dialog (loaded lazily via openCreate's fetch; reuse it here).
+  const openMerge = async () => {
+    setMergeReport(null);
+    setMergeSources([]);
+    setMergeQuery("");
+    setMergeOpen(true);
+    if (allEvents.length === 0) {
+      try {
+        const res = await axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`, {
+          headers: { Authorization: `Bearer ${Cookies.get("auth_token") ?? ""}` },
+        });
+        setAllEvents(
+          (res.data?.events ?? []).map((e: any) => ({
+            event_id: e.event_id, event_name: e.event_name, event_status: e.event_status,
+          })),
+        );
+      } catch { /* picker stays empty */ }
+    }
+  };
+
+  const mergeResults = useMemo(() => {
+    if (mergeQuery.trim().length < 2) return [];
+    const picked = new Set(mergeSources.map((s) => s.event_id));
+    return allEvents
+      .filter((e) => e.event_id !== eventId && !picked.has(e.event_id)
+        && matchesSearch([e.event_name], mergeQuery))
+      .slice(0, 8);
+  }, [mergeQuery, allEvents, eventId, mergeSources]);
+
+  const handleMerge = async () => {
+    if (mergeSources.length === 0) {
+      toast.error("Pick at least one source event.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await eventLinksApi.importCompetitors(
+        eventId, mergeSources.map((s) => s.event_id),
+      );
+      setMergeReport(res.report);
+      const total = res.report.reduce((n, r) => n + r.imported, 0);
+      toast.success(`Merged ${total} competitor${total === 1 ? "" : "s"} into this event.`);
+      if (res.over_capacity) {
+        toast.warning("This event is now over its capacity. Review the registrations list.");
+      }
+      refresh();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Merge failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const openChain = async () => {
+    setChainOpen((o) => !o);
+    if (!chain) {
+      try {
+        setChain(await eventLinksApi.chain(eventId));
+      } catch {
+        toast.error("Failed to load the qualification chain.");
+      }
+    }
+  };
+
   if (outbound === null) {
     return (
       <Card className="mt-4">
@@ -215,12 +293,77 @@ export function LinkedEventsCard({
               read per stage when results are final.
             </CardDescription>
           </div>
-          <Button size="sm" onClick={openCreate}>
-            <IconPlus className="size-4" /> Link a stage to an event
-          </Button>
+          <div className="flex items-center gap-1.5">
+            {/* Chain map toggle (P3): the whole qualification cascade around this event. */}
+            <Button size="sm" variant="outline" onClick={openChain}>
+              <IconLink className="size-4" /> Chain map
+            </Button>
+            {/* Event MERGE: bulk-import every confirmed competitor of other events. */}
+            <Button size="sm" variant="outline" onClick={openMerge}>
+              <IconPlus className="size-4" /> Import from events
+            </Button>
+            <Button size="sm" onClick={openCreate}>
+              <IconPlus className="size-4" /> Link a stage to an event
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* ── chain map (P3): every event connected through links, cascade-listed. ── */}
+        {chainOpen && chain && (
+          <div className="space-y-2 rounded-md border bg-muted/20 p-3">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              Qualification chain ({chain.nodes.length} event{chain.nodes.length === 1 ? "" : "s"})
+            </Label>
+            <div className="flex flex-wrap gap-1.5">
+              {chain.nodes.map((n) => (
+                <Badge
+                  key={n.event_id}
+                  variant="outline"
+                  className={
+                    n.is_focus
+                      ? "rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+                      : "rounded-full px-2 py-0.5 text-xs"
+                  }
+                >
+                  {n.event_name}
+                  <span className="ml-1 capitalize text-muted-foreground">{n.event_status}</span>
+                </Badge>
+              ))}
+            </div>
+            {chain.edges.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No links in this chain yet.</p>
+            ) : (
+              <div className="space-y-1">
+                {chain.edges.map((e) => {
+                  const src = chain.nodes.find((n) => n.event_id === e.source_event_id);
+                  const dst = chain.nodes.find((n) => n.event_id === e.target_event_id);
+                  return (
+                    <div key={e.link_id} className="flex flex-wrap items-center gap-1.5 text-xs">
+                      <b>{src?.event_name ?? "?"}</b>
+                      <Badge variant="outline" className="rounded-full border-blue-500 px-2 py-0.5 text-xs text-blue-500">
+                        {e.source_stage_name}
+                      </Badge>
+                      <IconArrowRight className="size-3.5 text-primary" />
+                      top {e.qualify_count} into <b>{dst?.event_name ?? "?"}</b>
+                      <Badge
+                        variant="outline"
+                        className={
+                          e.status === "fired"
+                            ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+                            : "rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                        }
+                      >
+                        {e.status}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {outbound.length === 0 && inbound.length === 0 && (
           <p className="rounded-md border border-dashed py-8 text-center text-sm text-muted-foreground">
             No links yet. Link a stage to another event and its top teams will qualify there
@@ -244,6 +387,12 @@ export function LinkedEventsCard({
               <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs">
                 roster: {link.roster_mode === "copy" ? "copied" : "captain re-picks"}
               </Badge>
+              {/* Capacity advisory (P2): firing would push the target past its cap. */}
+              {link.capacity_warning && (
+                <Badge variant="outline" className="rounded-full border-gold px-2 py-0.5 text-xs text-gold">
+                  target nearly full: {link.target_registered}/{link.target_capacity} + top {link.qualify_count}
+                </Badge>
+              )}
               <span className="ml-auto flex items-center gap-1.5">
                 <Badge
                   variant="outline"
@@ -473,6 +622,94 @@ export function LinkedEventsCard({
             <Button variant="outline" disabled={busy} onClick={() => setCreateOpen(false)}>Cancel</Button>
             <Button disabled={busy} onClick={handleCreate}>
               {busy && <IconLoader2 className="mr-1 size-4 animate-spin" />} Create link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── merge dialog (Import from events) ── */}
+      <Dialog open={mergeOpen} onOpenChange={(o) => !busy && setMergeOpen(o)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Import competitors from other events</DialogTitle>
+            <DialogDescription>
+              Every confirmed competitor of the chosen events is entered into this event
+              immediately (already-entered teams and players are skipped, never doubled).
+              Events must share this event's participant type.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-1">
+            <div className="space-y-1.5">
+              <Label>Source events</Label>
+              {mergeSources.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {mergeSources.map((s) => (
+                    <Badge key={s.event_id} variant="outline" className="rounded-full px-2 py-0.5 text-xs">
+                      {s.event_name}
+                      <button
+                        type="button"
+                        className="ml-1 text-muted-foreground hover:text-destructive"
+                        onClick={() =>
+                          setMergeSources((prev) => prev.filter((x) => x.event_id !== s.event_id))
+                        }
+                        aria-label={`Remove ${s.event_name}`}
+                      >
+                        x
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <div className="relative">
+                <Input
+                  value={mergeQuery}
+                  onChange={(e) => setMergeQuery(e.target.value)}
+                  placeholder="Search events to merge in..."
+                />
+                {mergeResults.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
+                    {mergeResults.map((e) => (
+                      <button
+                        key={e.event_id}
+                        type="button"
+                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted"
+                        onClick={() => {
+                          setMergeSources((prev) => [...prev, { event_id: e.event_id, event_name: e.event_name }]);
+                          setMergeQuery("");
+                        }}
+                      >
+                        <span className="truncate">{e.event_name}</span>
+                        <span className="text-xs capitalize text-muted-foreground">{e.event_status}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Per-source result report, shown after the merge ran. */}
+            {mergeReport && (
+              <div className="space-y-1 rounded-md border bg-muted/20 p-2.5 text-xs">
+                {mergeReport.map((r) => (
+                  <div key={r.source_event_id}>
+                    <b>{r.source_event_name}</b>: {r.imported} imported
+                    {r.skipped_duplicates > 0 && (
+                      <span className="text-muted-foreground">
+                        , {r.skipped_duplicates} already in this event
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={busy} onClick={() => setMergeOpen(false)}>
+              {mergeReport ? "Close" : "Cancel"}
+            </Button>
+            <Button disabled={busy || mergeSources.length === 0} onClick={handleMerge}>
+              {busy && <IconLoader2 className="mr-1 size-4 animate-spin" />}
+              Merge into this event
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -7,7 +7,13 @@
 // player" even after they leave the team). The affected party can ASK for a lift;
 // this page is where the organizer reviews and decides those requests.
 //
-// THREE parts on one page:
+// FOUR parts on one page:
+//   0. "Lookup" section (BLACKLIST VISIBILITY, owner ask 2026-06-12) - check whether
+//      a team or player was blacklisted by OTHER organizations: how many times, by
+//      whom, and when, over an optional date window. NO reasons are shown (the owner
+//      privacy rule; the backend strips them for organizers). Team/Player toggle ->
+//      TeamSearchSelect / UserSearchSelect + two optional date inputs
+//      -> GET /organizers/blacklist-lookup/  (organizersApi.lookupBlacklists).
 //   1. "Blacklist a team" dialog - TeamSearchSelect + duration (days) + reason
 //      -> POST /organizers/blacklists/  (organizersApi.createBlacklist).
 //   2. Active/all blacklists table - team, reason, dates, status, an EXPANDABLE
@@ -22,7 +28,9 @@
 // GATING: mirrors the rest of the portal. The gate here is
 // membership.permissions.can_manage_registrations OR isOwner (the SAME permission
 // the backend create/list/lift/decide endpoints require). A member without it gets
-// a read-only lock notice and NO data is fetched.
+// a read-only lock notice and NO data is fetched. EXCEPTION: the Lookup section (0)
+// renders for EVERY portal member because its backend gate is only "active member of
+// any org" - cross-org visibility is deliberately open to all organizers.
 //
 // The selected org is read from OrganizerContext (the portal layout provides it);
 // switching orgs re-mounts this subtree (keyed on slug), re-running the fetch for
@@ -46,6 +54,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { TeamSearchSelect } from "@/components/ui/team-search-select";
+import { UserSearchSelect, type PickedUser } from "@/components/ui/user-search-select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -78,6 +88,7 @@ import {
   IconChevronDown,
   IconLoader2,
   IconLock,
+  IconSearch,
   IconUser,
 } from "@tabler/icons-react";
 import { cn, formatDate } from "@/lib/utils";
@@ -108,6 +119,37 @@ interface Blacklist {
   created_by_username: string | null;
   created_at: string | null;
   players: BlacklistPlayer[];
+}
+
+// ── Lookup types (mirror the blacklist_lookup payload in views_blacklist_lookup.py) ──
+// One cross-org lookup entry. NOTE: no `reason` field here on purpose - the backend only
+// includes it for platform admins, and this organizer surface never renders it (owner rule).
+interface LookupEntry {
+  id: number;
+  organization_name: string | null;
+  organization_slug: string | null;
+  team_id: number | null;
+  team_name: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: "active" | "expired" | "lifted" | string;
+}
+
+// The full lookup response: who was looked up, the applied window, the counts the result
+// headline shows ("Blacklisted N times (M active)"), and the per-blacklist entries.
+interface LookupResult {
+  target: {
+    type: "team" | "player";
+    team_id?: number;
+    team_name?: string;
+    user_id?: number;
+    username?: string;
+  };
+  window: { start: string | null; end: string | null };
+  total_count: number;
+  active_count: number;
+  entries: LookupEntry[];
+  has_more: boolean;
 }
 
 // One BlacklistLiftRequest row (team or player scope) with a little blacklist context.
@@ -317,6 +359,8 @@ export default function OrganizerBlacklistsPage() {
   };
 
   // ── Non-permitted member: read-only lock notice (mirrors Reviews / Metrics). ──
+  // The LOOKUP section still renders: its backend gate is "active member of any org",
+  // not can_manage_registrations, so every portal member may check other orgs' blacklists.
   if (!canManage) {
     return (
       <div className="flex flex-col gap-5">
@@ -324,6 +368,7 @@ export default function OrganizerBlacklistsPage() {
           title="Blacklists"
           description="Block teams from registering for your events."
         />
+        <BlacklistLookupSection />
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <IconLock className="size-8 text-muted-foreground" />
@@ -450,6 +495,9 @@ export default function OrganizerBlacklistsPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* ── 0. Cross-org Lookup (blacklist visibility, owner ask 2026-06-12). ── */}
+      <BlacklistLookupSection />
 
       {/* ── 2. Blacklists table (expandable snapshot roster + Lift action). ── */}
       <Card>
@@ -759,5 +807,232 @@ function DecideButton({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ── BlacklistLookupSection ────────────────────────────────────────────────────
+// BLACKLIST VISIBILITY (owner ask 2026-06-12): "other organizers can see if a team
+// or player was blacklisted by other orgs and how many times ... in any time frame
+// they decide to check."
+//
+// A self-contained lookup card: a Team/Player pill toggle (shadcn Tabs, per AFC
+// constants), the matching typeahead (TeamSearchSelect emits the numeric team_id;
+// UserSearchSelect emits the username but hands back the full PickedUser, whose
+// user_id is what the API wants), two OPTIONAL date inputs (empty = all time), and
+// a Search button -> GET /organizers/blacklist-lookup/ (organizersApi.lookupBlacklists).
+//
+// The result reads "Blacklisted N times (M active)" plus a compact entries table:
+// organization, dates, status badge. NO reasons - the backend strips them for
+// organizers (the owner privacy rule), and this surface never asks for them.
+//
+// Rendered TWICE by the page: at the top of the managing view, and above the lock
+// notice for members WITHOUT can_manage_registrations - the backend gate for this
+// call is just "active member of any org", so every portal member can use it.
+function BlacklistLookupSection() {
+  // Which kind of target is being looked up. Switching modes clears the picked
+  // target AND the previous result so stale answers never sit under a new picker.
+  const [mode, setMode] = useState<"team" | "player">("team");
+
+  // Team mode: the picked numeric team_id (what the API takes).
+  const [teamId, setTeamId] = useState<number | null>(null);
+  // Player mode: UserSearchSelect's value is the USERNAME, but the API keys off the
+  // numeric user_id - so we keep both (username drives the picker UI, id the call).
+  const [pickedUsername, setPickedUsername] = useState<string | null>(null);
+  const [pickedUserId, setPickedUserId] = useState<number | null>(null);
+
+  // Optional date window (ISO "YYYY-MM-DD" from the native date inputs). Both empty
+  // = all time, mirroring the backend's open-ended-window default.
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const [searching, setSearching] = useState(false);
+  const [result, setResult] = useState<LookupResult | null>(null);
+
+  // A target must be picked before Search enables (the API 400s without one).
+  const hasTarget = mode === "team" ? teamId != null : pickedUserId != null;
+
+  const switchMode = (next: "team" | "player") => {
+    setMode(next);
+    setTeamId(null);
+    setPickedUsername(null);
+    setPickedUserId(null);
+    setResult(null);
+  };
+
+  // ── Run the lookup. GET /organizers/blacklist-lookup/ ──
+  const handleSearch = async () => {
+    if (!hasTarget || searching) return;
+    setSearching(true);
+    try {
+      const res: LookupResult = await organizersApi.lookupBlacklists({
+        ...(mode === "team"
+          ? { team_id: teamId as number }
+          : { user_id: pickedUserId as number }),
+        // Only send the bounds the user actually set (empty string = omit = open).
+        ...(startDate ? { start: startDate } : {}),
+        ...(endDate ? { end: endDate } : {}),
+        limit: 100,
+      });
+      setResult(res);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Lookup failed.");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // The headline name for the result card (team name or username, echoed by the API).
+  const targetLabel =
+    result?.target.type === "team"
+      ? result.target.team_name ?? `Team #${result.target.team_id}`
+      : result?.target.username ?? `User #${result?.target.user_id}`;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Blacklist lookup</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Check whether a team or player has been blacklisted by other
+          organizations: how many times, by whom, and when. Reasons stay private
+          to the blacklisting organization.
+        </p>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {/* Target type toggle: pill-segment Tabs per AFC constants. */}
+        <Tabs value={mode} onValueChange={(v) => switchMode(v as "team" | "player")}>
+          <TabsList>
+            <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="player">Player</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Picker + date window + Search, on one row on desktop. */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+          {/* The target typeahead (team_id or user_id, depending on mode). */}
+          <div className="flex flex-1 flex-col gap-2">
+            <Label>{mode === "team" ? "Team" : "Player"}</Label>
+            {mode === "team" ? (
+              <TeamSearchSelect
+                value={teamId}
+                onChange={(id) => setTeamId(id)}
+                placeholder="Search a team to look up..."
+              />
+            ) : (
+              <UserSearchSelect
+                value={pickedUsername}
+                onChange={(username: string | null, user?: PickedUser) => {
+                  setPickedUsername(username);
+                  // user is only present on a pick; clearing hands back null.
+                  setPickedUserId(user?.user_id ?? null);
+                }}
+                placeholder="Search a player to look up..."
+              />
+            )}
+          </div>
+          {/* Optional window: any time frame the organizer decides to check. */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="lookup-start">From (optional)</Label>
+            <Input
+              id="lookup-start"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="lookup-end">To (optional)</Label>
+            <Input
+              id="lookup-end"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+          <Button
+            className="gap-1.5"
+            onClick={handleSearch}
+            disabled={!hasTarget || searching}
+          >
+            {searching ? (
+              <IconLoader2 className="size-4 animate-spin" />
+            ) : (
+              <IconSearch className="size-4" />
+            )}
+            Search
+          </Button>
+        </div>
+
+        {/* ── Result: headline counts + the per-blacklist entries table. ── */}
+        {result && (
+          <div className="flex flex-col gap-3 rounded-md border p-4">
+            {/* Headline: "Blacklisted N times (M active)" for the looked-up target. */}
+            <p className="text-sm">
+              <span className="font-medium">{targetLabel}</span>{" "}
+              {result.total_count === 0 ? (
+                <span className="text-muted-foreground">
+                  has not been blacklisted
+                  {result.window.start || result.window.end
+                    ? " in the selected time frame."
+                    : "."}
+                </span>
+              ) : (
+                <>
+                  <span className="text-muted-foreground">blacklisted</span>{" "}
+                  <span className="font-semibold text-primary">
+                    {result.total_count} time{result.total_count === 1 ? "" : "s"}
+                  </span>{" "}
+                  <span className="text-muted-foreground">
+                    ({result.active_count} active)
+                  </span>
+                </>
+              )}
+            </p>
+
+            {result.entries.length > 0 && (
+              <div className="overflow-x-auto rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-foreground">Organization</TableHead>
+                      {/* Player lookups show WHICH team the player was snapshotted on. */}
+                      {result.target.type === "player" && (
+                        <TableHead className="text-foreground">Team</TableHead>
+                      )}
+                      <TableHead className="text-foreground">Start</TableHead>
+                      <TableHead className="text-foreground">End</TableHead>
+                      <TableHead className="text-foreground">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {result.entries.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell className="text-xs font-medium">
+                          {entry.organization_name ?? "-"}
+                        </TableCell>
+                        {result.target.type === "player" && (
+                          <TableCell className="text-xs text-muted-foreground">
+                            {entry.team_name ?? "-"}
+                          </TableCell>
+                        )}
+                        <TableCell className="text-xs text-muted-foreground">
+                          {entry.start_date ? formatDate(entry.start_date) : "-"}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {entry.end_date ? formatDate(entry.end_date) : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {/* Same active-green / muted badge the blacklists table uses. */}
+                          <StatusBadge status={entry.status} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
