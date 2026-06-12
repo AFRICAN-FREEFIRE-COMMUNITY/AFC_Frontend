@@ -46,6 +46,10 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 
+// P1 scoped portal: membership check + the new entity-scoped dashboard component.
+import { sponsorsApi, type SponsorRow } from "@/lib/sponsors";
+import { ScopedSponsorDashboard } from "../_components/ScopedSponsorDashboard";
+
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 type Status = "pending" | "active" | "rejected";
@@ -92,8 +96,42 @@ function StatusBadge({ status }: { status: Status }) {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
+// Sponsor-system redesign P1 (owner-approved 2026-06-12): when the caller belongs to one or
+// more Sponsor ENTITIES (GET /sponsors/mine/, afc_sponsors.SponsorMember), the NEW scoped
+// dashboard renders (sponsor switcher -> attached events -> per-event submissions + CSV; a
+// ydpay member sees only ydpay). Users on the LEGACY user-keyed sponsor system (sponsor_admin
+// role + SponsorEvent rows) keep the original dashboard below, untouched, until the P2 cutover.
 
 export default function SponsorDashboardPage() {
+  const { loading: outerAuthLoading, token: outerToken } = useAuth();
+  // null = membership check in flight; [] = no entity memberships (render legacy).
+  const [mine, setMine] = useState<SponsorRow[] | null>(null);
+
+  useEffect(() => {
+    if (outerAuthLoading || !outerToken) return;
+    sponsorsApi
+      .mine()
+      .then((res) => setMine(res.results))
+      .catch(() => setMine([])); // membership check failing must never block the legacy view
+  }, [outerAuthLoading, outerToken]);
+
+  if (outerAuthLoading || (outerToken && mine === null)) {
+    return (
+      <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
+        <IconLoader2 className="size-5 animate-spin" />
+        Loading your dashboard...
+      </div>
+    );
+  }
+  if (mine && mine.length > 0) {
+    return <ScopedSponsorDashboard sponsors={mine} />;
+  }
+  return <LegacySponsorDashboard />;
+}
+
+// ── LEGACY dashboard (the original page, unchanged) ───────────────────────────
+
+function LegacySponsorDashboard() {
   const { token, loading: authLoading, user } = useAuth();
 
   const [players, setPlayers] = useState<Player[]>([]);
@@ -104,8 +142,6 @@ export default function SponsorDashboardPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [page, setPage] = useState(1);
-
-  console.log("timuwa");
 
   const [rejectDialog, setRejectDialog] = useState<RejectDialogState>({
     open: false,

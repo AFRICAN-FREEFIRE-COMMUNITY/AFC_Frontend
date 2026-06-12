@@ -34,6 +34,12 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Sponsor-system redesign P1 (owner-approved 2026-06-12): sponsor ENTITIES with members +
+// attached events live on this new tab; the legacy user-keyed sponsor accounts stay on the
+// second tab until the P2 cutover. Spec: WEBSITE/tasks/sponsors-redesign-design.md.
+import { SponsorProfilesContent } from "./_components/SponsorProfilesContent";
+
 interface SponsorAccount {
   user_id: number;
   username: string;
@@ -101,7 +107,7 @@ export default function SponsorsAdminPage() {
               <InfoTip id="sponsors._page" className="ml-1.5" />
             </span>
           }
-          description={`${sponsors.length} sponsor account${sponsors.length !== 1 ? "s" : ""}`}
+          description="Sponsor profiles with members and events, plus the legacy sponsor accounts."
         />
         {/* ⓘ sits beside the create action (sibling, not nested in the button). */}
         <div className="flex w-full md:w-auto items-center gap-1.5">
@@ -116,6 +122,21 @@ export default function SponsorsAdminPage() {
           <InfoTip id="sponsors.create" />
         </div>
       </div>
+
+      {/* ── Two-tab structure (same merge idiom as /a/teams and /a/events) ──
+          "Sponsor profiles" = the NEW entity system (P1); "Sponsor accounts" = the legacy
+          user-keyed system, unchanged, until P2 cuts it over. */}
+      <Tabs defaultValue="profiles" className="w-full">
+        <TabsList className="w-full">
+          <TabsTrigger value="profiles" className="flex-1">Sponsor profiles</TabsTrigger>
+          <TabsTrigger value="accounts" className="flex-1">Sponsor accounts (legacy)</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profiles" className="mt-4">
+          <SponsorProfilesContent />
+        </TabsContent>
+
+        <TabsContent value="accounts" className="mt-4 flex flex-col gap-6">
 
       <div className="relative">
         <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -254,6 +275,8 @@ export default function SponsorsAdminPage() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
