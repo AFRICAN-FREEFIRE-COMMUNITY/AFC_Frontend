@@ -78,12 +78,22 @@ function foldConfusables(input: string): string {
  *
  * Null/undefined are treated as empty so callers can pass optional fields directly.
  */
+// Look-alike digits folded into the letters they imitate, on BOTH sides of a match (owner
+// 2026-06-12: searching "SHEDOO" could not find the user "SHED005" - OCR reads letter Os where the
+// real name uses zeros). Folding both sides stays consistent: numeric queries still match numeric
+// names because the two fold identically. 2/6/9 stay digits (no convincing letter form). Mirrors
+// LEET_DIGITS in backend utils/search_utils.py.
+const LEET_DIGITS: Record<string, string> = {
+  "0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "8": "b",
+};
+
 export function normalizeSearch(value: string | null | undefined): string {
   return foldConfusables(value ?? "") // fold stylized letters NFKD can't ("ᴠᴇ"/"Ѵе"/"🇻🇪" -> "ve")
     .normalize("NFKD") // fold the math/fullwidth/circled/... families + split accents off base letters
     .replace(/\p{Diacritic}/gu, "") // drop the combining diacritics ("e" + accent becomes "e")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ""); // strip spaces, hyphens, punctuation: the core fix
+    .replace(/[^a-z0-9]+/g, "") // strip spaces, hyphens, punctuation: the core fix
+    .replace(/[0134578]/g, (d) => LEET_DIGITS[d]); // fold look-alike digits ("shed005" -> "shedoos")
 }
 
 /**
