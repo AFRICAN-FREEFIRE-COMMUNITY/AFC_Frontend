@@ -5,6 +5,9 @@ import { PageHeader } from "@/components/PageHeader";
 // One-click ZIP of the event's registered team logos + player esport images.
 import { DownloadEventMediaButton } from "@/components/esport-media";
 import { LinkedEventsCard } from "@/components/event-links";
+// Ratings + anonymous feedback for this event (admin read surface; users rate
+// on the public tournament page, admins read the aggregate + comments here).
+import { EventReviewsCard } from "@/components/event-reviews-admin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -2141,6 +2144,11 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               </CardContent>
             </Card>
           </div>
+
+          {/* ── Ratings + anonymous feedback (read surface for AFC's own events) ──
+              Aggregate from GET organizers/events/<id>/rating/; comments (text +
+              date only, gated to platform admins) lazy-load on expand. */}
+          <EventReviewsCard eventId={eventDetails.event_id} />
         </TabsContent>
 
         {/* ── Discord Tools Tab ── */}
