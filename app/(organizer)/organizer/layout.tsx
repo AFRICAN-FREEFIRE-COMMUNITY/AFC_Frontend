@@ -224,11 +224,22 @@ function OrganizerSidebar() {
 // ── Guard ────────────────────────────────────────────────────────────────────
 // Mirror of the sponsor SponsorGuard, gated on isOrganizer instead of a role
 // string: redirect to /login when not authed, /unauthorized when not an organizer.
+//
+// STALE-ROLE RECHECK: the 'organizer' role is granted the moment an owner/admin adds
+// someone as a sub-organizer (add_organization_member / admin_manage_organization_member
+// both UserRoles.get_or_create synchronously), but THIS browser only loaded its roles
+// once, at page load. Without a recheck the freshly-added member bounces to
+// /unauthorized until they hard-refresh or re-log ("access takes time"). So when the
+// cached roles say "not an organizer", we refreshUser() exactly ONCE and only redirect
+// if the FRESH roles still lack 'organizer'.
 
 function OrganizerGuard({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading, isOrganizer } = useAuth();
+  const { isAuthenticated, loading, isOrganizer, refreshUser } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  // One-shot recheck state machine: idle → checking (profile refetch in flight)
+  // → done (refetch resolved; cached verdict is now fresh and final).
+  const [recheck, setRecheck] = useState<"idle" | "checking" | "done">("idle");
 
   useEffect(() => {
     if (loading) return;
@@ -239,9 +250,20 @@ function OrganizerGuard({ children }: { children: ReactNode }) {
     }
 
     if (!isOrganizer) {
-      router.replace("/unauthorized");
+      if (recheck === "idle") {
+        // Roles might be stale (just granted) - refetch once before judging.
+        setRecheck("checking");
+        refreshUser().finally(() => setRecheck("done"));
+        return;
+      }
+      if (recheck === "done") {
+        // Fresh roles still lack 'organizer' - genuinely unauthorized.
+        router.replace("/unauthorized");
+      }
+      // recheck === "checking": wait for the refetch; the effect re-runs when it
+      // lands (isOrganizer flips or recheck becomes "done").
     }
-  }, [isAuthenticated, loading, isOrganizer, pathname, router]);
+  }, [isAuthenticated, loading, isOrganizer, recheck, refreshUser, pathname, router]);
 
   if (loading) return <FullLoader text="Loading" />;
   if (!isAuthenticated || !isOrganizer)

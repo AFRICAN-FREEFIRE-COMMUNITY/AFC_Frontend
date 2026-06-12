@@ -76,6 +76,10 @@ interface AuthContextType {
   hasRole: (role: string) => boolean;
   hasAnyRole: (roles: string[]) => boolean;
   signalSessionExpired: () => void;
+  // Re-fetch the profile (roles included) with the current token and update context
+  // state. For surfaces that gate on a role which may have JUST been granted
+  // server-side (see OrganizerGuard in app/(organizer)/organizer/layout.tsx).
+  refreshUser: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -238,6 +242,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null);
   }, []);
 
+  // Re-fetch get-user-profile with the CURRENT token so role changes made since page
+  // load become visible without a full reload or re-login. Why this exists: roles are
+  // only loaded once (the fetchUser on mount), so when an org owner adds someone as a
+  // sub-organizer, that person's already-open session still reads isOrganizer=false
+  // and OrganizerGuard bounces them to /unauthorized until they hard-refresh ("access
+  // takes time"). Guards await this once before concluding the user lacks a role.
+  // Returns the fresh User, or null when there is no token or the fetch failed
+  // (fetchUser itself toasts + logs out on a genuinely dead session, same as on load).
+  const refreshUser = useCallback(async (): Promise<User | null> => {
+    const current = token ?? Cookies.get(COOKIE_NAME);
+    if (!current) return null;
+    try {
+      return await fetchUser(current);
+    } catch {
+      return null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
   const signalSessionExpired = useCallback(() => {
     Cookies.remove(COOKIE_NAME, { path: "/" });
     setUser(null);
@@ -318,6 +341,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         hasAnyRole,
         isAdminByRoleOrRoles,
         signalSessionExpired,
+        refreshUser,
       }}
     >
       {children}
