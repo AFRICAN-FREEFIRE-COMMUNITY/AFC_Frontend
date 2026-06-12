@@ -64,7 +64,7 @@ import {
   type OcrJob,
   type OcrJobStatus,
 } from "@/lib/standaloneLeaderboards";
-import { OcrReviewTable } from "./OcrReviewTable";
+import { OcrReviewTable, type OcrScoring } from "./OcrReviewTable";
 
 // The six Free Fire battle-royale maps. The admin SELECTS a map (no typing) and may pick the same map on
 // as many cards as they want (e.g. two matches both played on Bermuda). The chosen name is sent as the
@@ -129,12 +129,16 @@ export function OcrBatchDialog({
   onOpenChange,
   leaderboardId,
   format,
+  scoring,
   onApplied,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   leaderboardId: number;
   format: LeaderboardFormat;
+  // The leaderboard's scoring config, forwarded to each map's OcrReviewTable for its per-row
+  // Points preview (placement points + kills * kill point). Optional.
+  scoring?: OcrScoring;
   // Fired after EACH map is applied. The wizard merges result.participants + result.match (see
   // ParticipantsStep / create/page.tsx). The dialog stays open so the admin can apply more maps.
   onApplied: (result: OcrApplyResponse) => void;
@@ -349,7 +353,10 @@ export function OcrBatchDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
+      {/* Wide dialog: the review table gained Points + per-player panels (2026-06-12), so 5xl started
+          clipping the match column behind a horizontal scrollbar. 95vw capped at 7xl keeps every
+          column visible on a laptop while still fitting small screens. */}
+      <DialogContent className="w-[95vw] sm:max-w-7xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconScan size={18} className="text-muted-foreground" />
@@ -497,6 +504,7 @@ export function OcrBatchDialog({
                   rows={m.rows}
                   applied={m.applied}
                   applying={m.applying}
+                  scoring={scoring}
                   onApply={(applyRows) => applyMap(m.localId, applyRows)}
                 />
               )}

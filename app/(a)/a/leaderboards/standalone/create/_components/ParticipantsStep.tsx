@@ -57,6 +57,7 @@ export function ParticipantsStep({
   participants,
   onParticipantsChange,
   onOcrApplied,
+  ocrScoring,
   onBack,
   onNext,
 }: {
@@ -67,6 +68,9 @@ export function ParticipantsStep({
   // Fired after the OCR dialog applies a screenshot. The wizard merges the returned participants and
   // advances to the Results step carrying the created match (see ../page.tsx::handleOcrApplied).
   onOcrApplied: (result: OcrApplyResponse) => void;
+  // The leaderboard's scoring config (from the wizard's created header), forwarded into the OCR
+  // dialog so each reviewed row previews the points this map would award.
+  ocrScoring?: { placementPoints: Record<string, number>; killPoint: number };
   onBack: () => void;
   onNext: () => void;
 }) {
@@ -182,6 +186,7 @@ export function ParticipantsStep({
           onOpenChange={setOcrOpen}
           leaderboardId={leaderboardId}
           format={format}
+          scoring={ocrScoring}
           onApplied={onOcrApplied}
         />
 

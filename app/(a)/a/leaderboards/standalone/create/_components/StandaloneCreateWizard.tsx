@@ -162,6 +162,12 @@ export function StandaloneCreateWizard({
             participants={participants}
             onParticipantsChange={setParticipants}
             onOcrApplied={handleOcrApplied}
+            // Scoring config from the created header: lets the OCR review preview each row's points
+            // (placement points + kills * kill point) before the map is applied.
+            ocrScoring={{
+              placementPoints: leaderboard.placement_points ?? {},
+              killPoint: leaderboard.kill_point ?? 0,
+            }}
             onBack={() => setStep(1)}
             onNext={() => setStep(3)}
           />

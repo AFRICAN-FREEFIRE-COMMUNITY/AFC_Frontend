@@ -138,12 +138,17 @@ export interface StandaloneLeaderboardDetail {
 //    select, ocrApply on "Apply"). The dialog is opened from ParticipantsStep's "Upload screenshot"
 //    button; on apply it advances the wizard to the Results step with the created match pre-filled.
 
-/** One alternative entity the backend matched a raw OCR name against (team OR user variant). */
+/** One alternative entity the backend matched a raw OCR name against (team OR user variant).
+ *  Team candidates may be GHOST teams (the pool includes afc_rankings.GhostTeam so a ghost created on
+ *  an earlier map is suggested instead of duplicated): those carry ghost_team_id + is_ghost and
+ *  resolve as kind="ghost_existing", never as an automatic match. */
 export interface OcrCandidate {
-  team_id?: number;
+  team_id?: number | null;
   team_name?: string;
   user_id?: number;
   username?: string;
+  ghost_team_id?: string; // set only on ghost-team candidates (uuid)
+  is_ghost?: boolean;
   confidence: number; // 0..1
 }
 
@@ -153,12 +158,30 @@ export interface OcrCandidate {
  * `is_unmatched` is true when the backend could not confidently link the raw name to a real entity
  * (the admin then re-matches via free-search or creates a ghost).
  */
+/**
+ * Team format only: ONE read player inside a placement, with their kills and their own platform-user
+ * match (mirrors the row-level team matching). Produced by the backend's build_team_ocr_rows when
+ * given the platform user pool; consumed by OcrReviewTable's per-player approve/search controls so
+ * the admin can confirm or correct who each read name is on the platform.
+ */
+export interface OcrPlayerDetail {
+  name: string; // the IGN exactly as the OCR read it
+  kills: number;
+  matched_user_id: number | null;
+  matched_username: string | null;
+  confidence: number;
+  top_candidates: OcrCandidate[]; // user-shaped candidates ({user_id, username, confidence})
+  is_unmatched: boolean;
+}
+
 export interface OcrExtractRow {
   row_id: string;
   raw_name: string;
   // Team format only: the player names the OCR read inside this placement. Shown under the team name so
   // the admin can identify the team (and used to seed a created ghost team's roster). Absent for solo.
   players_read?: string[];
+  // Team format only: the same players with kills + per-player platform matches (see OcrPlayerDetail).
+  players_detail?: OcrPlayerDetail[];
   placement: number;
   kills: number;
   matched_team_id?: number | null; // team format
@@ -184,10 +207,14 @@ export interface OcrExtractResponse {
  */
 export type OcrRowResolution =
   | { kind: "real"; id: number }
-  // players (team format): the OCR-read roster, seeded into the new ghost team so a created ghost
-  // carries its players (the backend ghost_new team path accepts a `players` IGN list).
+  // players (team format): the admin-approved roster (matched usernames where approved, else the
+  // OCR-read names), seeded into the new ghost team so a created ghost carries its players (the
+  // backend ghost_new team path accepts a `players` IGN list and dedupes case-insensitively).
   | { kind: "ghost_new"; name: string; country?: string; players?: string[] }
-  | { kind: "ghost_existing"; id: number | string };
+  // players (team format): same list for an EXISTING ghost team - the backend APPENDS the slots the
+  // ghost does not have yet (never edits existing slots), so OCR-read players can be attached to an
+  // old ghost team too.
+  | { kind: "ghost_existing"; id: number | string; players?: string[] };
 
 /** One row in the apply payload: the (possibly edited) score plus its single resolution. */
 export interface OcrApplyRow {
