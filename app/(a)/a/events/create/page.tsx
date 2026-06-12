@@ -772,6 +772,17 @@ export default function CreateEventPage() {
           formData.append("waitlist_discord_role_id", data.waitlist_discord_role_id || "");
         }
 
+        // Media registration criteria (owner 2026-06-12). Read straight off the form (NOT the
+        // zod-parsed `data` - the schema strips these shared optional toggles from StepWaitlist).
+        formData.append(
+          "require_team_logo",
+          String((form.getValues("require_team_logo" as never) as unknown as boolean) ?? false),
+        );
+        formData.append(
+          "require_esport_images",
+          String((form.getValues("require_esport_images" as never) as unknown as boolean) ?? false),
+        );
+
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`,
           {

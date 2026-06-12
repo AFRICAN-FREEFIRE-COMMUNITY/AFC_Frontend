@@ -78,6 +78,72 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
           />
         </div>
 
+        {/* ── Media registration requirements (owner 2026-06-12) ──────────────────
+            Two per-event criteria enforced by the backend at registration time
+            (register_for_event): teams need an uploaded logo, and every registering
+            player (solo, or each roster member) needs their ESPORT IMAGE uploaded
+            (profile edit -> Esport Image). Rendered here because this shared step
+            already hosts the event's registration behaviour toggles, so BOTH the
+            admin and organizer wizards get them from one place. */}
+        <div className="space-y-3 rounded-lg border p-4">
+          <div>
+            <Label>Registration requirements</Label>
+            <p className="text-xs text-muted-foreground">
+              Block registration until competitors have uploaded the media you need for
+              graphics and broadcasts.
+            </p>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-team-logo">Require team logo</Label>
+              <p className="text-xs text-muted-foreground">
+                Teams cannot register until their team logo is uploaded.
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field, mirrors the waitlist toggle idiom above.
+              control={form.control}
+              name={"require_team_logo" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-team-logo"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-esport-images">Require player esport images</Label>
+              <p className="text-xs text-muted-foreground">
+                Every registering player must have their esport image uploaded on their
+                profile.
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field, mirrors the waitlist toggle idiom above.
+              control={form.control}
+              name={"require_esport_images" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-esport-images"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
         {waitlistEnabled && (
           <div className="space-y-4">
             <FormField

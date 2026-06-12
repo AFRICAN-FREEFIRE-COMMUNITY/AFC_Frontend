@@ -756,6 +756,17 @@ export default function OrganizerCreateEventPage() {
           );
         }
 
+        // Media registration criteria (owner 2026-06-12). Read straight off the form (NOT the
+        // zod-parsed `data` - the schema strips these shared optional toggles from StepWaitlist).
+        formData.append(
+          "require_team_logo",
+          String((form.getValues("require_team_logo" as never) as unknown as boolean) ?? false),
+        );
+        formData.append(
+          "require_esport_images",
+          String((form.getValues("require_esport_images" as never) as unknown as boolean) ?? false),
+        );
+
         // ── ORGANIZER-SPECIFIC: home the event to the selected organization. ──
         // The backend's create_event reads this, verifies org_can(user,
         // "can_create_events", org), and sets event.organization=org. Without it the

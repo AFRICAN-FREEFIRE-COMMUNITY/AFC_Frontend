@@ -21,30 +21,43 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { IconUsersGroup, IconUsers } from "@tabler/icons-react";
+import { IconDownload, IconUsersGroup, IconUsers } from "@tabler/icons-react";
 import { TeamsAdminContent } from "../_components/TeamsAdminContent";
 import { PlayersAdminContent } from "../_components/PlayersAdminContent";
+// ZIP export of team logos + player esport images for any picked set (owner 2026-06-12).
+import { DownloadEsportMediaDialog } from "@/components/esport-media";
 
 export default function TeamsAndPlayersPage() {
   const searchParams = useSearchParams();
   // /a/players redirects here as ?tab=players; everything else opens on Teams.
   const initialTab = searchParams.get("tab") === "players" ? "players" : "teams";
   const [tab, setTab] = useState<string>(initialTab);
+  // The "Download media" dialog (pick teams/players -> one ZIP of logos + esport images).
+  const [mediaOpen, setMediaOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
         {/* shadcn pill/segment tabs (matches the rest of the admin area).
             data-tour anchor: first content step of the teams tour. */}
-        <TabsList data-tour="teams-tabs">
-          <TabsTrigger value="teams">
-            <IconUsersGroup className="h-4 w-4" /> Teams
-          </TabsTrigger>
-          <TabsTrigger value="players">
-            <IconUsers className="h-4 w-4" /> Players
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <TabsList data-tour="teams-tabs">
+            <TabsTrigger value="teams">
+              <IconUsersGroup className="h-4 w-4" /> Teams
+            </TabsTrigger>
+            <TabsTrigger value="players">
+              <IconUsers className="h-4 w-4" /> Players
+            </TabsTrigger>
+          </TabsList>
+          {/* Bulk media export: any set of teams (logos) + players (esport images). */}
+          <Button type="button" variant="outline" size="sm" onClick={() => setMediaOpen(true)}>
+            <IconDownload className="mr-1 h-4 w-4" />
+            Download media
+          </Button>
+        </div>
+        <DownloadEsportMediaDialog open={mediaOpen} onOpenChange={setMediaOpen} />
 
         {/* Each tab keeps its own PageHeader + actions (Rank Teams / Create ghost player). */}
         <TabsContent value="teams">

@@ -57,6 +57,8 @@ import { useOrganizer } from "../_components/OrganizerContext";
 // here on the same can_create_events permission as the "Create event" button, since the
 // backend authorises duplication exactly like creation (AFC admin OR org can_create_events).
 import { DuplicateEventButton } from "@/app/(a)/a/events/_components/DuplicateEventButton";
+// One-click ZIP of an event's registered team logos + player esport images.
+import { DownloadEventMediaButton } from "@/components/esport-media";
 
 // ── Row shape ───────────────────────────────────────────────────────────────
 // The org-scoped get-all-events response. Most fields mirror the admin list; the
@@ -310,6 +312,9 @@ export default function OrganizerEventsPage() {
                             </Link>
                           </Button>
                         )}
+                        {/* ZIP of registered team logos + player esport images for THIS
+                            event (owner 2026-06-12; organizers use them in graphics). */}
+                        <DownloadEventMediaButton eventId={Number(event.event_id)} />
                       </div>
                     </TableCell>
                   </TableRow>

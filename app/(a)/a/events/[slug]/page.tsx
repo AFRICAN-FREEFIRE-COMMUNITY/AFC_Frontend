@@ -2,6 +2,8 @@
 
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
+// One-click ZIP of the event's registered team logos + player esport images.
+import { DownloadEventMediaButton } from "@/components/esport-media";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -803,6 +805,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           </div>
         </div>
         <div className="flex gap-2 w-full lg:w-auto">
+          {/* ZIP of every registered team's logo + every rostered player's esport image
+              (owner 2026-06-12). Backend: events/download-esport-media/ {event_id}. */}
+          <DownloadEventMediaButton eventId={eventDetails.event_id} size="md" />
           <Button variant="outline" className="flex-1 lg:flex-none" asChild>
             <Link href={`/a/events/create?duplicate=${slug}`}>
               <IconCopy />

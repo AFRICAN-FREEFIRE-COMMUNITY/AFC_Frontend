@@ -186,6 +186,13 @@ interface EventDetails {
   registration_type?: "free" | "paid";
   registration_fee?: number | null;
   registration_fee_currency?: string;
+  // ── Registration criteria (owner 2026-06-12) ── set on the event create/edit wizard.
+  // require_team_logo: the team must have a logo before it can register. require_esport_images:
+  // every (rostered) player must have their esport image uploaded (UserProfile.esports_pic).
+  // Shown as a "Profile Requirements" callout on the INFO step so people know what to upload
+  // and WHERE, before the backend gates reject them.
+  require_team_logo?: boolean;
+  require_esport_images?: boolean;
 }
 
 interface ApiResponse {
@@ -1175,6 +1182,56 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                   ))}
                 </ul>
               </div>
+
+              {/* ── Profile requirements (owner 2026-06-12) ── TEAM flow twin of the solo INFO
+                  step callout: tells the captain what the event demands and WHERE each item is
+                  uploaded, BEFORE the backend gates reject the registration. Esport image (and
+                  Free Fire UID) live on each player's /profile/edit; the team logo on the
+                  team's edit page. */}
+              {(eventDetails.require_esport_images ||
+                eventDetails.require_team_logo) && (
+                <div className="flex items-start space-x-2 text-sm">
+                  <AlertTriangle className="size-4 flex-shrink-0 mt-1 text-yellow-400" />
+                  <div className="space-y-1">
+                    <p className="font-semibold text-yellow-400">
+                      Profile Requirements
+                    </p>
+                    {eventDetails.require_esport_images && (
+                      <p className="text-xs">
+                        Every rostered player must have an esport image uploaded
+                        on their own profile, under{" "}
+                        <Link
+                          href="/profile/edit"
+                          className="text-primary underline underline-offset-2"
+                        >
+                          Edit Profile
+                        </Link>{" "}
+                        (the Free Fire UID is set on the same page).
+                      </p>
+                    )}
+                    {eventDetails.require_team_logo && (
+                      <p className="text-xs">
+                        Your team must have a logo uploaded
+                        {userTeam?.team_id ? (
+                          <>
+                            {" "}
+                            on{" "}
+                            <Link
+                              href={`/teams/${userTeam.team_id}/edit`}
+                              className="text-primary underline underline-offset-2"
+                            >
+                              your team&apos;s edit page
+                            </Link>
+                          </>
+                        ) : (
+                          <> on your team&apos;s edit page</>
+                        )}
+                        . Only the captain can upload it.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <DialogFooter className="flex sm:justify-between">
@@ -1228,6 +1285,9 @@ interface ModalProps {
   isInAfcServer?: boolean;
   teamAfcServerStatus?: Record<string, boolean>;
   copyAfcServerLink: () => void;
+  // The registering user's team (null until loaded / solo). Used by the INFO step's
+  // "Profile Requirements" callout to deep-link the team-logo upload (/teams/<id>/edit).
+  userTeam?: UserTeam | null;
   soloSponsorUuid: string;
   setSoloSponsorUuid: (v: string) => void;
   teamSponsorUuids: Record<string, string>;
@@ -1262,6 +1322,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
   checkUserDiscordStatus,
   copyAfcServerLink,
   teamAfcServerStatus,
+  userTeam,
   soloSponsorUuid,
   setSoloSponsorUuid,
   teamSponsorUuids,
@@ -1398,6 +1459,58 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   </p>
                 </div>
               </div>
+              {/* ── Profile requirements (owner 2026-06-12: "let there be a way for people to
+                  know where to upload their esports picture or uid") ── shown BEFORE the user
+                  walks into the backend gates, with links to the exact upload pages: esport
+                  image + Free Fire UID live on /profile/edit, the team logo on the team's edit
+                  page. Only rendered when the event creator turned the criteria on. */}
+              {(eventDetails.require_esport_images ||
+                eventDetails.require_team_logo) && (
+                <div className="flex items-start space-x-2 text-sm">
+                  <AlertTriangle className="size-4 flex-shrink-0 mt-1 text-yellow-400" />
+                  <div className="space-y-1">
+                    <p className="font-semibold text-yellow-400">
+                      Profile Requirements
+                    </p>
+                    {eventDetails.require_esport_images && (
+                      <p className="text-xs">
+                        Every{" "}
+                        {eventDetails.participant_type === "solo"
+                          ? "player"
+                          : "rostered player"}{" "}
+                        must have an esport image uploaded. Add yours under{" "}
+                        <Link
+                          href="/profile/edit"
+                          className="text-primary underline underline-offset-2"
+                        >
+                          Edit Profile
+                        </Link>{" "}
+                        (your Free Fire UID is set on the same page).
+                      </p>
+                    )}
+                    {eventDetails.require_team_logo && (
+                      <p className="text-xs">
+                        Your team must have a logo uploaded
+                        {userTeam?.team_id ? (
+                          <>
+                            {" "}
+                            on{" "}
+                            <Link
+                              href={`/teams/${userTeam.team_id}/edit`}
+                              className="text-primary underline underline-offset-2"
+                            >
+                              your team&apos;s edit page
+                            </Link>
+                          </>
+                        ) : (
+                          <> on your team&apos;s edit page</>
+                        )}
+                        . Only the captain can upload it.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
               <DialogFooter className="flex sm:justify-between">
                 <Button
                   variant="secondary"
@@ -3045,6 +3158,51 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     eventDetails,
   ]);
 
+  // ── Actionable registration-gate errors (owner 2026-06-12: "let there be a way for people
+  // to know where to upload their esports picture or uid when they try to register") ──
+  // register-for-event/ returns code:"esport_image_required" or "team_logo_required" when the
+  // event's registration criteria are unmet (see backend register_for_event gates). Instead of
+  // a dead-end toast, each code gets a description naming WHERE the missing asset lives plus an
+  // action button that jumps straight there: esport image AND Free Fire UID are both on
+  // /profile/edit, the team logo is on /teams/<id>/edit (captain). Any other error falls back
+  // to the plain backend message. Used by BOTH register catches (free + paid already-paid path).
+  const handleRegistrationGateError = useCallback(
+    (error: any, fallback = "An error occurred") => {
+      const data = error?.response?.data;
+      const message: string = data?.message || fallback;
+      if (data?.code === "esport_image_required") {
+        toast.error(message, {
+          description:
+            "Esport images are uploaded on your profile page (Edit Profile, then the Esport Image section). Your Free Fire UID is set on the same page.",
+          action: {
+            label: "Open profile editor",
+            onClick: () => router.push("/profile/edit"),
+          },
+          duration: 12000,
+        });
+        return;
+      }
+      if (data?.code === "team_logo_required") {
+        toast.error(message, {
+          description: "Your team logo is uploaded on the team's edit page.",
+          // Only captains can edit the team, but the link helps everyone find the place.
+          ...(userTeam?.team_id
+            ? {
+                action: {
+                  label: "Open team editor",
+                  onClick: () => router.push(`/teams/${userTeam.team_id}/edit`),
+                },
+              }
+            : {}),
+          duration: 12000,
+        });
+        return;
+      }
+      toast.error(message);
+    },
+    [router, userTeam],
+  );
+
   // ── PAID PATH ──────────────────────────────────────────────────────────────
   // Kicks off a Stripe Checkout for a paid event. Called from the PAYMENT step's
   // "Pay ..." button. Steps: (a) init the payment, (b) save the full register payload to
@@ -3108,10 +3266,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         // on /tournaments/<slug>/register/success with ?session_id & ?payment_id.
         window.location.href = init.checkout_url;
       } catch (error: any) {
-        // 409 = already registered; other 4xx carry a human message from the backend.
-        toast.error(
-          error.response?.data?.message ||
-            "Could not start the payment. Please try again.",
+        // 409 = already registered; other 4xx carry a human message from the backend. The
+        // already_paid branch above hits register-for-event/ directly, so its gate errors
+        // (esport image / team logo) get the same actionable deep-link toast as the free path.
+        handleRegistrationGateError(
+          error,
+          "Could not start the payment. Please try again.",
         );
       }
     });
@@ -3123,6 +3283,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     token,
     fetchEventDetails,
     startJoinedTransition,
+    handleRegistrationGateError,
   ]);
 
   const handleJoinedServer = useCallback(async () => {
@@ -3152,7 +3313,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         // Refresh event details to update registration status
         await fetchEventDetails();
       } catch (error: any) {
-        toast.error(error.response?.data?.message || "An error occurred");
+        // Gate errors (esport image / team logo) become actionable toasts with a deep-link.
+        handleRegistrationGateError(error);
       }
     });
   }, [
@@ -3161,6 +3323,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     token,
     fetchEventDetails,
     startJoinedTransition,
+    handleRegistrationGateError,
   ]);
 
   // Keep ref in sync so handleRulesContinue can call it without a circular dep
@@ -3829,6 +3992,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           selectedTeamMembers: selectedTeamMembersData,
           validationResults: validationResults,
         }}
+        userTeam={userTeam}
         token={token}
         modalStep={modalStep}
         setModalStep={setModalStep}

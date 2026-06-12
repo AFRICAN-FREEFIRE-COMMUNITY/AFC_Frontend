@@ -49,6 +49,10 @@ export interface User {
   roles: string[];
   email: string;
   profile_pic?: string;
+  // The SEPARATE esport image (UserProfile.esports_pic): organizers use it as the player's image
+  // in event graphics, and events can require it before registration. Uploaded/replaced via
+  // POST /auth/upload-esport-image/ (replace-only); see the profile-edit "Esport Image" section.
+  esport_image_url?: string | null;
   discord_username?: string;
   is_banned: boolean;
   // True if this user is an active marketplace vendor. Drives the "Vendor Dashboard"
@@ -204,6 +208,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         roles: dbUser.roles || [],
         email: dbUser.email,
         profile_pic: dbUser.profile_pic,
+        esport_image_url: dbUser.esport_image_url ?? null,
         discord_username: dbUser.discord_username,
         is_banned: dbUser.is_banned,
         is_vendor: dbUser.is_vendor ?? false,
