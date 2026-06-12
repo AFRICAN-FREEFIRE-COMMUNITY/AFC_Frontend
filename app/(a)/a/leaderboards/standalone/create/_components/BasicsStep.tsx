@@ -72,9 +72,18 @@ function buildPlacementObj(ranks: RankEntry[]): Record<string, number> {
   return obj;
 }
 
+// Inverse of buildPlacementObj: turn a stored {"1":12,"2":9,...} back into the editable
+// RankEntry list, ordered by placement. Used to PREFILL the form in edit mode.
+function placementObjToRanks(obj: Record<string, number> | null | undefined): RankEntry[] {
+  const entries = Object.entries(obj ?? {}).sort((a, b) => Number(a[0]) - Number(b[0]));
+  if (entries.length === 0) return DEFAULT_RANKS.map((r) => ({ ...r }));
+  return entries.map(([place, pts]) => ({ id: Number(place), val: String(pts) }));
+}
+
 export function BasicsStep({
   onCreated,
   organizationId,
+  initial,
 }: {
   onCreated: (lb: StandaloneLeaderboardHeader) => void;
   // Owning org for the new leaderboard. REQUIRED for organizers: the backend's
@@ -83,6 +92,12 @@ export function BasicsStep({
   // page passes the selected org from OrganizerContext; the admin page omits it
   // (null/undefined = AFC-native leaderboard).
   organizationId?: number | null;
+  // EDIT MODE (owner 2026-06-12: "when you try to edit a draft you shouldnt have to renter the
+  // name... it should simply just be continue so you dont create another draft"). When the wizard
+  // already holds a draft (deep-link create?id=<id>, or the admin stepped back to Basics after
+  // creating), it passes the header here: the form PREFILLS from it and the submit becomes a
+  // PATCH /<id>/edit/ ("Continue") instead of a second POST /create/ ("Create and continue").
+  initial?: StandaloneLeaderboardHeader | null;
 }) {
   const { user } = useAuth();
 
@@ -97,18 +112,27 @@ export function BasicsStep({
     );
   }, [user]);
 
-  const [name, setName] = useState("");
-  const [format, setFormat] = useState<"team" | "solo">("team");
-  const [ranks, setRanks] = useState<RankEntry[]>(DEFAULT_RANKS.map((r) => ({ ...r })));
-  const [killPoint, setKillPoint] = useState("1");
-  const [assistPoint, setAssistPoint] = useState("0.5");
-  const [damagePoint, setDamagePoint] = useState("0.5");
-  const [countsTowardRankings, setCountsTowardRankings] = useState(false);
+  // Edit mode: every field initialises from the existing draft so nothing has to be re-typed.
+  const [name, setName] = useState(initial?.name ?? "");
+  const [format, setFormat] = useState<"team" | "solo">(initial?.format ?? "team");
+  const [ranks, setRanks] = useState<RankEntry[]>(() =>
+    initial ? placementObjToRanks(initial.placement_points) : DEFAULT_RANKS.map((r) => ({ ...r })),
+  );
+  const [killPoint, setKillPoint] = useState(initial != null ? String(initial.kill_point ?? 1) : "1");
+  const [assistPoint, setAssistPoint] = useState(
+    initial != null ? String(initial.points_per_assist ?? 0.5) : "0.5",
+  );
+  const [damagePoint, setDamagePoint] = useState(
+    initial != null ? String(initial.points_per_1000_damage ?? 0.5) : "0.5",
+  );
+  const [countsTowardRankings, setCountsTowardRankings] = useState(
+    initial?.counts_toward_rankings ?? false,
+  );
   // Stream P3 (AFC-admin-only) ranking inputs, only meaningful when the toggle above is on.
   // playedOn binds to the leaderboard.played_on field (ISO date the results bucket under, "" = null).
   // rankingTier binds to leaderboard.ranking_tier (weight band, defaults to tier_3 per the backend).
-  const [playedOn, setPlayedOn] = useState<string>("");
-  const [rankingTier, setRankingTier] = useState<RankingTier>("tier_3");
+  const [playedOn, setPlayedOn] = useState<string>(initial?.played_on ?? "");
+  const [rankingTier, setRankingTier] = useState<RankingTier>(initial?.ranking_tier ?? "tier_3");
   const [submitting, setSubmitting] = useState(false);
 
   // ── Placement rank mutators (mirror ConfigurePointSystem) ──
@@ -152,12 +176,22 @@ export function BasicsStep({
         }
       }
 
-      const res = await standaloneLeaderboardsApi.create(body);
-      toast.success("Draft leaderboard created.");
-      onCreated(res.leaderboard);
+      if (initial) {
+        // EDIT MODE: the draft already exists, so save the changes onto it (PATCH /<id>/edit/)
+        // instead of POSTing a duplicate draft. format and organization_id are create-time-only
+        // (participants key off the format), so they are stripped from the PATCH body.
+        const { format: _f, organization_id: _o, ...editBody } = body;
+        const res = await standaloneLeaderboardsApi.update(initial.id, editBody);
+        onCreated(res.leaderboard);
+      } else {
+        const res = await standaloneLeaderboardsApi.create(body);
+        toast.success("Draft leaderboard created.");
+        onCreated(res.leaderboard);
+      }
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to create the leaderboard.",
+        err?.response?.data?.message ||
+          (initial ? "Failed to save the leaderboard." : "Failed to create the leaderboard."),
       );
     } finally {
       setSubmitting(false);
@@ -198,10 +232,12 @@ export function BasicsStep({
               className="ml-1"
             />
           </Label>
+          {/* Edit mode: the format is LOCKED once the draft exists (participants key off it). */}
           <RadioGroup
             value={format}
             onValueChange={(v) => setFormat(v as "team" | "solo")}
             className="flex gap-6"
+            disabled={!!initial}
           >
             <div className="flex items-center gap-2">
               <RadioGroupItem value="team" id="format-team" />
@@ -216,6 +252,11 @@ export function BasicsStep({
               </Label>
             </div>
           </RadioGroup>
+          {initial && (
+            <p className="text-xs text-muted-foreground">
+              Format is locked after creation because participants depend on it.
+            </p>
+          )}
         </div>
 
         {/* Placement points */}
@@ -365,8 +406,16 @@ export function BasicsStep({
         )}
 
         <div className="flex justify-end pt-2">
+          {/* Edit mode says just "Continue" (saves onto the existing draft); only a brand-new
+              wizard says "Create and continue" (POSTs the draft). */}
           <Button onClick={handleCreate} disabled={submitting}>
-            {submitting ? "Creating..." : "Create and continue"}
+            {submitting
+              ? initial
+                ? "Saving..."
+                : "Creating..."
+              : initial
+                ? "Continue"
+                : "Create and continue"}
           </Button>
         </div>
       </CardContent>

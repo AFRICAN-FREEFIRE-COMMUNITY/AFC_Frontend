@@ -26,19 +26,22 @@
 // indicator, rounded-md cards. No em or en dashes in any copy.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
+import { FullLoader } from "@/components/Loader";
 import { cn } from "@/lib/utils";
 import { BasicsStep } from "./BasicsStep";
 import { ParticipantsStep } from "./ParticipantsStep";
 import { ResultsStep } from "./ResultsStep";
 import { ReviewStep } from "./ReviewStep";
-import type {
-  StandaloneLeaderboardHeader,
-  StandaloneMatch,
-  StandaloneParticipant,
-  OcrApplyResponse,
+import {
+  standaloneLeaderboardsApi,
+  type StandaloneLeaderboardHeader,
+  type StandaloneMatch,
+  type StandaloneParticipant,
+  type OcrApplyResponse,
 } from "@/lib/standaloneLeaderboards";
 
 const STEP_LABELS = ["Basics", "Participants", "Results", "Review"];
@@ -47,7 +50,20 @@ const STEP_LABELS = ["Basics", "Participants", "Results", "Review"];
 // post-publish redirect lands inside the organizer portal (which the organizer can reach).
 const DEFAULT_BASE_PATH = "/a/leaderboards/standalone";
 
-export function StandaloneCreateWizard({
+// useSearchParams (the ?id= draft deep-link) requires a Suspense boundary for prerendering,
+// so the exported wizard wraps the real component. Both mounting pages are unchanged.
+export function StandaloneCreateWizard(props: {
+  basePath?: string;
+  organizationId?: number | null;
+}) {
+  return (
+    <Suspense fallback={<FullLoader />}>
+      <StandaloneCreateWizardInner {...props} />
+    </Suspense>
+  );
+}
+
+function StandaloneCreateWizardInner({
   basePath = DEFAULT_BASE_PATH,
   organizationId,
 }: {
@@ -60,15 +76,46 @@ export function StandaloneCreateWizard({
   organizationId?: number | null;
 }) {
   const router = useRouter();
+  // EDIT deep-link: the view pages' "Edit" buttons land on create?id=<draft id>. Before this
+  // existed the wizard ignored the param, so editing a draft meant re-typing the basics and
+  // "Create and continue" minted a SECOND draft (owner 2026-06-12). Now the draft is loaded
+  // into the wizard state and BasicsStep runs in edit mode (prefilled, PATCH, "Continue").
+  const editId = useSearchParams().get("id");
 
   // 1-based step index. Step 1 is always reachable; steps 2-4 unlock once the draft exists.
   const [step, setStep] = useState(1);
+  // True while the ?id= draft detail is being fetched; the steps render after it lands so
+  // BasicsStep mounts with the prefill already in hand (its state initialises on mount).
+  const [loadingDraft, setLoadingDraft] = useState(!!editId);
 
   // Shared state threaded between steps (the created header + its participants + maps).
   const [leaderboard, setLeaderboard] =
     useState<StandaloneLeaderboardHeader | null>(null);
   const [participants, setParticipants] = useState<StandaloneParticipant[]>([]);
   const [matches, setMatches] = useState<StandaloneMatch[]>([]);
+
+  // Load the existing draft when deep-linked (GET /<id>/ returns header + participants + matches,
+  // so steps 2-3 also resume with what the draft already has).
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await standaloneLeaderboardsApi.detail(editId);
+        if (cancelled) return;
+        setLeaderboard(res.leaderboard);
+        setParticipants(res.participants ?? []);
+        setMatches(res.matches ?? []);
+      } catch {
+        if (!cancelled) toast.error("Could not load the draft to edit.");
+      } finally {
+        if (!cancelled) setLoadingDraft(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editId]);
 
   // Step 1 done -> store the created leaderboard and advance.
   const handleCreated = (lb: StandaloneLeaderboardHeader) => {
@@ -151,8 +198,17 @@ export function StandaloneCreateWizard({
       </div>
 
       <div className="mt-2">
-        {step === 1 && (
-          <BasicsStep onCreated={handleCreated} organizationId={organizationId} />
+        {/* Hold the steps until a deep-linked draft has loaded: BasicsStep prefills on mount. */}
+        {loadingDraft && <FullLoader />}
+
+        {!loadingDraft && step === 1 && (
+          // `initial` puts BasicsStep in edit mode whenever a draft already exists (deep-link OR
+          // stepping back after create): prefilled fields, PATCH on submit, "Continue" button.
+          <BasicsStep
+            onCreated={handleCreated}
+            organizationId={organizationId}
+            initial={leaderboard}
+          />
         )}
 
         {step === 2 && leaderboard && (
@@ -176,7 +232,11 @@ export function StandaloneCreateWizard({
         {step === 3 && leaderboard && (
           <ResultsStep
             leaderboardId={leaderboard.id}
+            // format + onParticipantsChange power the INLINE participant add on the Results step
+            // (manual entry must be able to add teams/players itself, owner 2026-06-12).
+            format={leaderboard.format}
             participants={participants}
+            onParticipantsChange={setParticipants}
             matches={matches}
             onMatchesChange={setMatches}
             onBack={() => setStep(2)}

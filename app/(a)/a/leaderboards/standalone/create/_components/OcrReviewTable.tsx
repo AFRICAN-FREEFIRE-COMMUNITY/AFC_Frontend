@@ -97,6 +97,10 @@ interface EditablePlayer {
   candidates: OcrPlayerDetail["top_candidates"];
   chosenUserId: number | null;
   chosenUsername: string | null;
+  // The chosen player's CURRENT platform team (owner 2026-06-12: "should be able to see the teams
+  // each of the suggested players are currently in"). From matched_team_name / candidate team_name;
+  // null for free agents and free-search picks (the search endpoint does not return a team).
+  chosenTeamName: string | null;
   searchOpen: boolean;
 }
 
@@ -140,8 +144,9 @@ function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
       kills: 0,
       matched_user_id: null,
       matched_username: null,
+      matched_team_name: null,
       confidence: 0,
-      top_candidates: [],
+      top_candidates: [] as OcrPlayerDetail["top_candidates"],
       is_unmatched: true,
     }))
   ).map((p) => ({
@@ -154,6 +159,7 @@ function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
     // weak candidates stay one click away in the Select, but the row starts "not on platform".
     chosenUserId: p.confidence >= 0.75 ? p.matched_user_id : null,
     chosenUsername: p.confidence >= 0.75 ? p.matched_username : null,
+    chosenTeamName: p.confidence >= 0.75 ? p.matched_team_name ?? null : null,
     searchOpen: false,
   }));
   return {
@@ -279,7 +285,12 @@ export function OcrReviewTable({
     }
     if (value === PLAYER_NONE) {
       // Explicit "not on the platform": the read name itself becomes the approved roster entry.
-      setPlayer(row.row_id, idx, { chosenUserId: null, chosenUsername: null, searchOpen: false });
+      setPlayer(row.row_id, idx, {
+        chosenUserId: null,
+        chosenUsername: null,
+        chosenTeamName: null,
+        searchOpen: false,
+      });
       return;
     }
     const uid = parseInt(value, 10);
@@ -287,6 +298,7 @@ export function OcrReviewTable({
     setPlayer(row.row_id, idx, {
       chosenUserId: uid,
       chosenUsername: cand?.username ?? `#${uid}`,
+      chosenTeamName: cand?.team_name ?? null,
       searchOpen: false,
     });
   };
@@ -301,6 +313,7 @@ export function OcrReviewTable({
     setPlayer(row.row_id, idx, {
       chosenUserId: user.user_id,
       chosenUsername: user.username,
+      chosenTeamName: null, // the user-search endpoint does not return the team
       searchOpen: false,
     });
   };
@@ -675,6 +688,9 @@ export function OcrReviewTable({
                               {p.confidence > 0 && p.chosenUserId != null
                                 ? ` (${Math.round(p.confidence * 100)}%)`
                                 : ""}
+                              {/* The matched player's CURRENT platform team, so same-named
+                                  players are tellable apart at a glance. */}
+                              {p.chosenTeamName ? ` - ${p.chosenTeamName}` : ""}
                             </Badge>
                           ) : (
                             <Badge
@@ -704,6 +720,8 @@ export function OcrReviewTable({
                                   c.user_id == null ? null : (
                                     <SelectItem key={c.user_id} value={String(c.user_id)}>
                                       {c.username} ({Math.round(c.confidence * 100)}%)
+                                      {/* Candidate's current team, when they have one. */}
+                                      {c.team_name ? ` - ${c.team_name}` : ""}
                                     </SelectItem>
                                   ),
                                 )}

@@ -90,7 +90,8 @@ export interface StandaloneParticipant {
   is_ghost: boolean;
   kind: "team" | "ghost_team" | "user" | "ghost_player";
   team_id?: number | null;
-  ghost_team_id?: number | null;
+  // GhostTeam uuid, serialized as a STRING by the backend (_serialize_participant).
+  ghost_team_id?: string | null;
   user_id?: number | null;
   ghost_player_id?: number | null;
 }
@@ -100,6 +101,14 @@ export interface StandaloneMatch {
   match_number: number;
   match_map: string | null;
   created_at: string;
+}
+
+/** One roster entry from GET /<id>/participants/<pid>/roster/ - a real team member
+ *  (user_id set) or a ghost team's slot name (user_id null). Consumed by ResultsStep's
+ *  per-player kills panel. */
+export interface ParticipantRosterEntry {
+  name: string;
+  user_id: number | null;
 }
 
 export interface StandaloneStandingRow {
@@ -169,8 +178,11 @@ export interface OcrPlayerDetail {
   kills: number;
   matched_user_id: number | null;
   matched_username: string | null;
+  // The matched player's CURRENT platform team (owner 2026-06-12: shown next to every player
+  // suggestion so reviewers can tell same-named players apart). Candidates carry team_name too.
+  matched_team_name?: string | null;
   confidence: number;
-  top_candidates: OcrCandidate[]; // user-shaped candidates ({user_id, username, confidence})
+  top_candidates: OcrCandidate[]; // user-shaped candidates ({user_id, username, team_name?, confidence})
   is_unmatched: boolean;
 }
 
@@ -308,6 +320,12 @@ export const standaloneLeaderboardsApi = {
     aPost<{ participant: StandaloneParticipant }>(`${id}/participants/`, body),
   removeParticipant: (id: number | string, pid: number | string) =>
     aDelete(`${id}/participants/${pid}/`),
+  // participantRoster: GET /<id>/participants/<pid>/roster/ - the participant's player list
+  //   (real team -> TeamMembers usernames + user_ids; ghost team -> GhostPlayer slot names with
+  //   user_id null; solo kinds -> empty). Feeds the manual ResultsStep's per-player kills panel
+  //   (owner 2026-06-12: "when a team is selected the players must show").
+  participantRoster: (id: number | string, pid: number | string) =>
+    aGet<{ players: ParticipantRosterEntry[] }>(`${id}/participants/${pid}/roster/`),
 
   // ── Matches (maps) ─────────────────────────────────────────────────────────
   addMatch: (id: number | string, body?: any) =>
@@ -315,7 +333,11 @@ export const standaloneLeaderboardsApi = {
   removeMatch: (mid: number | string) => aDelete(`matches/${mid}/`),
 
   // ── Results (bulk per map) ─────────────────────────────────────────────────
-  // body: {results:[{participant_id, placement, kills, damage?, assists?, bonus?, penalty?, played?}]}
+  // body: {results:[{participant_id, placement, kills, damage?, assists?, bonus?, penalty?,
+  //                  played?, players?:[{name, user_id|null, kills}]}]}
+  //   players (team format) is the per-player kill breakdown: when sent, the BACKEND sums the
+  //   player kills into the row's team kills (server authority, same as the event manual flow)
+  //   and stores the breakdown on ParticipantMatchResult.player_kills.
   saveResults: (mid: number | string, body: any) => aPost(`matches/${mid}/results/`, body),
 
   // ── OCR screenshot extract + apply (Stream P2) ─────────────────────────────

@@ -36,10 +36,15 @@ import {
 } from "@/components/ui/card";
 import { IconTrash, IconUserPlus, IconScan, IconPencil, IconFileText } from "@tabler/icons-react";
 import { InfoTip } from "@/components/ui/info-tip";
-import { TeamSearchSelect, type PickedTeam } from "@/components/ui/team-search-select";
+import {
+  TeamSearchSelect,
+  type PickedTeam,
+  type PickedGhostTeam,
+} from "@/components/ui/team-search-select";
 import {
   UserSearchSelect,
   type PickedUser,
+  type PickedGhostPlayer,
 } from "@/components/ui/user-search-select";
 import { GhostCreateInline } from "./GhostCreateInline";
 // Phase 2.6: the async, multi-image batch reader (replaces the old single-shot OcrUploadDialog, which
@@ -120,6 +125,25 @@ export function ParticipantsStep({
     add({ kind: "real", user_id: user.user_id });
   };
 
+  // ── Existing-ghost picks (owner 2026-06-12: "let ghost teams and players be searchable") ──
+  // The search selects also surface ghosts (includeGhosts); a pick is added through the SAME
+  // kind=ghost_existing contract the OCR review uses, so an existing ghost is reused, never duplicated.
+  const handleGhostTeamPick = (g: PickedGhostTeam) => {
+    if (participants.some((p) => p.ghost_team_id === g.ghost_team_id)) {
+      toast.info(`${g.team_name} is already added.`);
+      return;
+    }
+    add({ kind: "ghost_existing", ghost_team_id: g.ghost_team_id });
+  };
+
+  const handleGhostPlayerPick = (g: PickedGhostPlayer) => {
+    if (participants.some((p) => p.ghost_player_id === g.ghost_player_id)) {
+      toast.info(`${g.ign} is already added.`);
+      return;
+    }
+    add({ kind: "ghost_existing", ghost_player_id: g.ghost_player_id });
+  };
+
   const remove = async (p: StandaloneParticipant) => {
     try {
       await standaloneLeaderboardsApi.removeParticipant(leaderboardId, p.id);
@@ -190,14 +214,19 @@ export function ParticipantsStep({
               value={null}
               onChange={handleTeamPick}
               disabled={adding}
-              placeholder="Search a team..."
+              placeholder="Search a team (real or ghost)..."
+              // Also surfaces existing GHOST teams so they are reused, not recreated.
+              includeGhosts
+              onPickGhost={handleGhostTeamPick}
             />
           ) : (
             <UserSearchSelect
               value={null}
               onChange={handleUserPick}
               disabled={adding}
-              placeholder="Search a player..."
+              placeholder="Search a player (real or ghost)..."
+              includeGhosts
+              onPickGhost={handleGhostPlayerPick}
             />
           )}
         </div>

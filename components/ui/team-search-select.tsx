@@ -40,11 +40,27 @@ export type PickedTeam = {
   country?: string;
 };
 
+// A GHOST team hit (owner 2026-06-12: "let ghost teams and players be searchable"). Returned by
+// GET /leaderboards/standalone/search-ghost-teams/ and surfaced only when `includeGhosts` is set.
+// Ghosts key off a uuid (not the numeric team_id), so they are delivered via the separate
+// onPickGhost callback instead of onChange - existing callers are untouched.
+export type PickedGhostTeam = {
+  ghost_team_id: string;
+  team_name: string;
+  country?: string;
+  players_count?: number;
+};
+
 type BaseProps = {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
   limit?: number;
+  // Opt-in: ALSO search existing ghost teams and list them under a "Ghost teams" group.
+  // Used by the standalone-leaderboard wizard so an existing ghost is reused (kind=ghost_existing)
+  // instead of duplicated. Picking a ghost fires onPickGhost, never onChange.
+  includeGhosts?: boolean;
+  onPickGhost?: (ghost: PickedGhostTeam) => void;
 };
 
 type SingleProps = BaseProps & {
@@ -69,42 +85,61 @@ function authHeaders() {
 }
 
 export function TeamSearchSelect(props: Props) {
-  const { placeholder = "Search a team...", className, disabled, limit = 10 } = props;
+  const {
+    placeholder = "Search a team...",
+    className,
+    disabled,
+    limit = 10,
+    includeGhosts = false,
+    onPickGhost,
+  } = props;
   const multiple = props.multiple === true;
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PickedTeam[]>([]);
+  // Ghost-team hits, kept separate so they render under their own labelled group.
+  const [ghostResults, setGhostResults] = useState<PickedGhostTeam[]>([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Cache the picked teams so chips/trigger can show the name even though `value` is just the id.
   const [pickedById, setPickedById] = useState<Record<number, PickedTeam>>({});
 
   // Debounced server search. Fewer than 2 chars -> clear (matches the backend's q>=2 guard).
+  // With includeGhosts the ghost endpoint is queried in PARALLEL; a ghost-search failure never
+  // breaks the real-team results (each list settles independently).
   const runSearch = useCallback(
     (q: string) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (q.trim().length < 2) {
         setResults([]);
+        setGhostResults([]);
         setLoading(false);
         return;
       }
       setLoading(true);
       debounceRef.current = setTimeout(async () => {
-        try {
-          const res = await axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/team/search-teams/`, {
+        const real = axios
+          .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/team/search-teams/`, {
             headers: authHeaders(),
             params: { q: q.trim(), limit },
-          });
-          setResults(res.data?.results ?? []);
-        } catch {
-          setResults([]);
-        } finally {
-          setLoading(false);
-        }
+          })
+          .then((res) => setResults(res.data?.results ?? []))
+          .catch(() => setResults([]));
+        const ghost = includeGhosts
+          ? axios
+              .get(
+                `${env.NEXT_PUBLIC_BACKEND_API_URL}/leaderboards/standalone/search-ghost-teams/`,
+                { headers: authHeaders(), params: { q: q.trim(), limit } },
+              )
+              .then((res) => setGhostResults(res.data?.results ?? []))
+              .catch(() => setGhostResults([]))
+          : Promise.resolve(setGhostResults([]));
+        await Promise.all([real, ghost]);
+        setLoading(false);
       }, 300);
     },
-    [limit],
+    [limit, includeGhosts],
   );
 
   useEffect(() => {
@@ -205,11 +240,12 @@ export function TeamSearchSelect(props: Props) {
                   Type at least 2 characters to search.
                 </div>
               )}
-              {!loading && query.trim().length >= 2 && (
-                <CommandEmpty>No teams found.</CommandEmpty>
-              )}
+              {!loading &&
+                query.trim().length >= 2 &&
+                results.length === 0 &&
+                ghostResults.length === 0 && <CommandEmpty>No teams found.</CommandEmpty>}
               {!loading && results.length > 0 && (
-                <CommandGroup>
+                <CommandGroup heading={includeGhosts ? "Teams" : undefined}>
                   {results.map((t) => (
                     <CommandItem
                       key={t.team_id}
@@ -227,6 +263,40 @@ export function TeamSearchSelect(props: Props) {
                         </span>
                       </span>
                       {isSelected(t.team_id) && <Check className="h-4 w-4 shrink-0 text-primary" />}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+              {/* Ghost-team hits (includeGhosts only): own group, orange Ghost badge - the same
+                  real/ghost visual language the wizard's participants list uses. Picking one fires
+                  onPickGhost (the caller adds it via kind=ghost_existing). */}
+              {!loading && includeGhosts && ghostResults.length > 0 && (
+                <CommandGroup heading="Ghost teams">
+                  {ghostResults.map((g) => (
+                    <CommandItem
+                      key={g.ghost_team_id}
+                      value={`ghost-${g.ghost_team_id}`}
+                      onSelect={() => {
+                        onPickGhost?.(g);
+                        setOpen(false);
+                        setQuery("");
+                      }}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <span className="flex min-w-0 flex-col">
+                        <span className="truncate font-medium">{g.team_name}</span>
+                        <span className="truncate text-xs text-muted-foreground">
+                          {[g.country, g.players_count ? `${g.players_count} players` : null]
+                            .filter(Boolean)
+                            .join(" / ")}
+                        </span>
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="shrink-0 rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                      >
+                        Ghost
+                      </Badge>
                     </CommandItem>
                   ))}
                 </CommandGroup>
