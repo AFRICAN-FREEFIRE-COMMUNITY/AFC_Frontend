@@ -233,6 +233,12 @@ export function StageConfigModal({
 }: StageConfigModalProps) {
   const form = useFormContext<EventFormType>();
 
+  // Round-robin stages are defined ENTIRELY by the base groups + schedule in the
+  // Round-Robin panel: the classic "Number of Groups" field and the Step-2 per-group
+  // config (match count / maps) are ignored by the backend for this format, so they are
+  // hidden and Step 2 is skipped (owner 2026-06-13, matching the create wizard).
+  const isRoundRobin = stageModalData.stage_format === "br - round robin";
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] overflow-auto justify-start flex-col gap-0">
@@ -577,26 +583,36 @@ export function StageConfigModal({
               />
             </div>
 
-            <div>
-              <Label className="mb-2.5">
-                Number of Groups
-                <InfoTip id="events.create.number_of_groups" className="ml-1" />
-              </Label>
-              <Input
-                type="number"
-                min={1}
-                value={
-                  stageModalData.number_of_groups === 0
-                    ? ""
-                    : stageModalData.number_of_groups
-                }
-                onChange={(e) =>
-                  handleGroupCountChangeLogic(
-                    e.target.value === "" ? 0 : Number(e.target.value),
-                  )
-                }
-              />
-            </div>
+            {/* Classic "Number of Groups" - NOT used for round-robin (its base groups
+                above define the structure), so it is hidden for that format. */}
+            {isRoundRobin ? (
+              <p className="text-xs text-muted-foreground rounded-md border border-dashed p-3">
+                This is a round-robin stage. Its lobbies come from the base groups and
+                schedule above, so there is no separate "number of groups" or per-group
+                map setup. "Games per day" above sets how many matches each lobby runs.
+              </p>
+            ) : (
+              <div>
+                <Label className="mb-2.5">
+                  Number of Groups
+                  <InfoTip id="events.create.number_of_groups" className="ml-1" />
+                </Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={
+                    stageModalData.number_of_groups === 0
+                      ? ""
+                      : stageModalData.number_of_groups
+                  }
+                  onChange={(e) =>
+                    handleGroupCountChangeLogic(
+                      e.target.value === "" ? 0 : Number(e.target.value),
+                    )
+                  }
+                />
+              </div>
+            )}
 
             {/* Stage Discord Role ID — hidden in the organizer flow (hideDiscord).
                 The empty stage_discord_role_id still rides in the payload so the
@@ -642,24 +658,27 @@ export function StageConfigModal({
               }
             />
 
-            <div className="pt-4 border-t">
-              <p className="text-xs text-muted-foreground mb-3">
-                You will configure {stageModalData.number_of_groups} group(s) in
-                the next step
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {tempGroups
-                  .slice(0, stageModalData.number_of_groups)
-                  .map((group, i) => (
-                    <div
-                      key={i}
-                      className="px-3 py-1 border border-primary rounded-md text-xs"
-                    >
-                      {group.group_name}
-                    </div>
-                  ))}
+            {/* Group preview only for classic formats - round-robin has no Step 2. */}
+            {!isRoundRobin && (
+              <div className="pt-4 border-t">
+                <p className="text-xs text-muted-foreground mb-3">
+                  You will configure {stageModalData.number_of_groups} group(s) in
+                  the next step
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {tempGroups
+                    .slice(0, stageModalData.number_of_groups)
+                    .map((group, i) => (
+                      <div
+                        key={i}
+                        className="px-3 py-1 border border-primary rounded-md text-xs"
+                      >
+                        {group.group_name}
+                      </div>
+                    ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -990,6 +1009,12 @@ export function StageConfigModal({
                     );
                     return;
                   }
+                  // Round-robin: no classic groups, no Step 2 - save from Step 1
+                  // (handleSaveStageLogic validates the base groups for this format).
+                  if (isRoundRobin) {
+                    handleSaveStageLogic();
+                    return;
+                  }
                   if (stageModalData.number_of_groups < 1) {
                     toast.error("Number of groups must be at least 1.");
                     return;
@@ -997,7 +1022,7 @@ export function StageConfigModal({
                   setStageModalStep(2);
                 }}
               >
-                Next: Configure Groups
+                {isRoundRobin ? "Save Stage" : "Next: Configure Groups"}
               </Button>
             ) : (
               <Button type="button" onClick={handleSaveStageLogic}>
