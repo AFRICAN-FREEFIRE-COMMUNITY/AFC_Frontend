@@ -421,6 +421,10 @@ interface StagesGroupsTabProps {
   onToggleVisibility: (groupIndex: number) => void;
   onAddNewStage: () => void;
   onSaveChanges: () => void;
+  // In-place refresh (owner 2026-06-13 "no manual refresh"): the edit page passes its
+  // fetchEventDetails here so the Add-Teams modals can re-pull + re-render the new stage
+  // and group rosters instead of forcing a window.location.reload().
+  onRefresh?: () => void;
 }
 
 export default function StagesGroupsTab({
@@ -439,6 +443,7 @@ export default function StagesGroupsTab({
   onToggleVisibility,
   onAddNewStage,
   onSaveChanges,
+  onRefresh,
 }: StagesGroupsTabProps) {
   const form = useFormContext<EventFormType>();
   const stages = (form.watch("stages") || []) as any[];
@@ -513,7 +518,8 @@ export default function StagesGroupsTab({
                           mode="stage"
                           targetId={stage.stage_id}
                           targetName={stage.stage_name}
-                          onSuccess={() => window.location.reload()}
+                          // Re-pull + re-render in place after teams are added (no reload).
+                          onSuccess={() => onRefresh?.()}
                         />
                       )}
                     <SeedToGroupModal
@@ -578,7 +584,8 @@ export default function StagesGroupsTab({
                                 mode="group"
                                 targetId={group.group_id}
                                 targetName={`${stage.stage_name} › ${group.group_name}`}
-                                onSuccess={() => window.location.reload()}
+                                // Re-pull + re-render in place after teams are added (no reload).
+                                onSuccess={() => onRefresh?.()}
                               />
                             )}
                           {/* Per-group broadcast composer (labelled "Message group").

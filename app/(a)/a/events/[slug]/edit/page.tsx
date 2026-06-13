@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect, use } from "react";
+import {
+  useState,
+  useTransition,
+  useRef,
+  useEffect,
+  useCallback,
+  use,
+} from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -338,6 +345,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   useEffect(() => {
     if (!slug || authLoading || !token) return;
     fetchEventDetails();
+    // fetchEventDetails is a stable useCallback declared below; it is intentionally not
+    // listed here to avoid a use-before-declaration TDZ (the deps array is evaluated at
+    // render time, before the const is initialised). slug/token/authLoading gate the load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, token, authLoading]);
 
   useEffect(() => {
@@ -503,7 +514,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   // DATA FETCHING
   // ============================================================================
 
-  const fetchEventDetails = async () => {
+  // Reusable event-details loader (owner 2026-06-13 "no manual refresh"): this is the
+  // SINGLE place the edit page pulls fresh server state. The initial load effect above
+  // calls it, and it is threaded into the action tabs (Actions / Stages & Groups /
+  // Registered Teams) as `onRefresh` so any mutating action (start/pause/resume, add
+  // teams, edit roster, etc.) can re-pull + re-render in place instead of forcing a
+  // window.location.reload(). Re-running it re-runs form.reset(...) (via the eventDetails
+  // effect) so the react-hook-form fields + every tab reflect the latest server state.
+  // Wrapped in useCallback so the deps it closes over (slug/token/authLoading/router) are
+  // stable and it can safely sit in the load effect's dependency array.
+  const fetchEventDetails = useCallback(async () => {
     if (!slug || authLoading || !token) return;
     try {
       setLoadingEvent(true);
@@ -571,7 +591,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       setLoadingEvent(false);
       setInitialLoading(false);
     }
-  };
+    // Closes over slug/token/authLoading/router; setState setters are stable.
+  }, [slug, token, authLoading, router]);
 
   // ============================================================================
   // HANDLERS
@@ -1750,6 +1771,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               <RegisteredTeamsTab
                 eventDetails={eventDetails}
                 updateCompetitorStatus={updateCompetitorStatus}
+                // In-place refresh (no manual reload): the tab's Add-Teams / Edit-Roster
+                // modals call this onSuccess to re-pull the event and re-render the roster.
+                onRefresh={fetchEventDetails}
               />
             </TabsContent>
 
@@ -1773,6 +1797,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 onToggleVisibility={toggleVisibility}
                 onAddNewStage={addNewStage}
                 onSaveChanges={() => handleSaveChangesClick(form.getValues())}
+                // In-place refresh (no manual reload): the stage/group Add-Teams modals
+                // call this onSuccess to re-pull the event and re-render the new rosters.
+                onRefresh={fetchEventDetails}
               />
             </TabsContent>
 

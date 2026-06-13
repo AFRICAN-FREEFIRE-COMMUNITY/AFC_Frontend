@@ -53,11 +53,16 @@ interface RegisteredTeamsTabProps {
     tournament_teams: any[];
   };
   updateCompetitorStatus: (playerId: number, newStatus: string) => void;
+  // In-place refresh (owner 2026-06-13 "no manual refresh"): the edit page passes its
+  // fetchEventDetails here so the Add-Teams + Edit-Roster modals can re-pull + re-render
+  // the registered roster instead of forcing a window.location.reload().
+  onRefresh?: () => void;
 }
 
 export default function RegisteredTeamsTab({
   eventDetails,
   updateCompetitorStatus,
+  onRefresh,
 }: RegisteredTeamsTabProps) {
   // Which registered teams are expanded to show their player roster. Keyed by
   // tournament_team_id (falls back to team_id) so each team toggles independently.
@@ -93,7 +98,8 @@ export default function RegisteredTeamsTab({
                 existingTeamIds={eventDetails.tournament_teams.map(
                   (t: any) => t.team_id,
                 )}
-                onSuccess={() => window.location.reload()}
+                // Re-pull + re-render in place after teams are added (no reload).
+                onSuccess={() => onRefresh?.()}
               />
               {/* Edit-only: manually placing teams into the event. */}
               <InfoTip id="events.edit.add_teams" />
@@ -232,7 +238,9 @@ export default function RegisteredTeamsTab({
                           participant_type={eventDetails.participant_type}
                           is_sponsored={!!eventDetails.is_sponsored}
                           currentRoster={members}
-                          onSuccess={() => window.location.reload()}
+                          // Re-pull + re-render in place after the roster is corrected
+                          // (no reload): the team's new lineup + reopened status show.
+                          onSuccess={() => onRefresh?.()}
                         />
                         {team.status === "active" ? (
                           <DisqualifyModal

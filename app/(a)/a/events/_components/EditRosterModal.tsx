@@ -38,8 +38,9 @@
 //   - is_sponsored is threaded from eventDetails (get_event_details exposes is_sponsored;
 //     see edit/types.tsx EventDetails.is_sponsored), passed down through
 //     RegisteredTeamsTabProps.
-//   - onSuccess() is wired to a full reload of the edit page so the tab reflects the new
-//     roster + the team's reopened status.
+//   - onSuccess() is wired to the page's in-place refresh (fetchEventDetails / refetchEvent)
+//     so the tab re-pulls + re-renders the new roster + the team's reopened status without
+//     a full page reload (owner 2026-06-13 "no manual refresh").
 // ──────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
@@ -95,8 +96,8 @@ interface EditRosterModalProps {
   // The team's CURRENT event roster (team.members from get_event_details). Used to
   // pre-check the players already on the lineup when the modal opens.
   currentRoster: CurrentRosterMember[];
-  // Reload callback (the tab passes window.location.reload) so the new roster +
-  // reopened team status show after a successful edit.
+  // In-place refresh callback (the tab passes the page's fetchEventDetails / refetchEvent)
+  // so the new roster + reopened team status show after a successful edit, without a reload.
   onSuccess?: () => void;
 }
 

@@ -43,7 +43,7 @@ import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useMemo, useState, useTransition } from "react";
+import { use, useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { GroupResultModal } from "../_components/GroupResultModal";
 import {
@@ -379,70 +379,77 @@ const Page = ({ params }: { params: Promise<Params> }) => {
       .finally(() => setLoadingSponsors(false));
   }, [showSponsorDialog, token]);
 
+  // Reusable event-details refetch (owner 2026-06-13 "no manual refresh"): any action that
+  // mutates the event calls this to pull fresh data and re-render in place, instead of a
+  // window.location.reload(). Used by the initial load effect below AND passed as the
+  // onSuccess of the page's action modals (add teams, edit roster, registrations, etc.).
+  const refetchEvent = useCallback(async () => {
+    if (!slug || !token) return;
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      // Fetch both datasets in parallel
+      const [res, resAdmin] = await Promise.all([
+        axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+          { slug: slug },
+          config,
+        ),
+        axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
+          { slug: slug },
+          config,
+        ),
+      ]);
+
+      setEventDetails(res.data.event_details);
+      setAdminDetails(resAdmin.data);
+
+      // Sync sponsor form from API data
+      const ed = res.data.event_details;
+      if (ed) {
+        setSponsorForm({
+          is_sponsored: ed.is_sponsored ?? false,
+          sponsor_name: ed.sponsor_name ?? "",
+          sponsor_usernames:
+            ed.sponsors?.map(
+              (s: { sponsor_username: string }) => s.sponsor_username,
+            ) ?? [],
+          requirement_description: ed.sponsor_requirement_description ?? "",
+          uuid_label: ed.sponsor_field_label ?? "Player UUID",
+        });
+      }
+
+      // If event is private, fetch invite links
+      if (ed && !ed.is_public) {
+        fetchInviteLinks(ed.event_id);
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        "Failed to fetch event details.";
+      toast.error(errorMessage);
+      // Only redirect to login if it's an auth error (401 or 403)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        router.push("/login");
+      }
+    }
+    // fetchInviteLinks is a stable local closure; intentionally not in deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, token, router]);
+
   useEffect(() => {
     // Wait for auth context to load before making API calls
     if (!slug || authLoading || !token) return;
-
-    startTransition(async () => {
-      try {
-        const config = {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
-        // Fetch both datasets in parallel
-        const [res, resAdmin] = await Promise.all([
-          axios.post(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
-            { slug: slug },
-            config,
-          ),
-          axios.post(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-for-admin/`,
-            { slug: slug },
-            config,
-          ),
-        ]);
-
-        setEventDetails(res.data.event_details);
-        setAdminDetails(resAdmin.data);
-
-        // Sync sponsor form from API data
-        const ed = res.data.event_details;
-        if (ed) {
-          setSponsorForm({
-            is_sponsored: ed.is_sponsored ?? false,
-            sponsor_name: ed.sponsor_name ?? "",
-            sponsor_usernames:
-              ed.sponsors?.map(
-                (s: { sponsor_username: string }) => s.sponsor_username,
-              ) ?? [],
-            requirement_description: ed.sponsor_requirement_description ?? "",
-            uuid_label: ed.sponsor_field_label ?? "Player UUID",
-          });
-        }
-
-        // If event is private, fetch invite links
-        if (!res.data.event_details.is_public) {
-          fetchInviteLinks(res.data.event_details.event_id);
-        }
-      } catch (error: any) {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.response?.data?.detail ||
-          "Failed to fetch event details.";
-
-        toast.error(errorMessage);
-
-        // Only redirect to login if it's an auth error (401 or 403)
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          router.push("/login");
-        }
-      }
+    startTransition(() => {
+      refetchEvent();
     });
-  }, [slug, token, authLoading, router]);
+  }, [slug, token, authLoading, refetchEvent]);
 
   const fetchInviteLinks = async (eventId: number) => {
     if (!token) return;
@@ -1748,7 +1755,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                     existingTeamIds={eventDetails.tournament_teams.map(
                       (t: any) => t.team_id,
                     )}
-                    onSuccess={() => window.location.reload()}
+                    onSuccess={() => refetchEvent()}
                   />
                 )}
               </CardTitle>
@@ -1958,7 +1965,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                             mode="stage"
                             targetId={stage.stage_id}
                             targetName={stage.stage_name}
-                            onSuccess={() => window.location.reload()}
+                            onSuccess={() => refetchEvent()}
                           />
                         )}
                         <Badge variant={"default"} className="capitalize">
@@ -2012,7 +2019,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                               mode="group"
                               targetId={group.group_id}
                               targetName={`${stage.stage_name} › ${group.group_name}`}
-                              onSuccess={() => window.location.reload()}
+                              onSuccess={() => refetchEvent()}
                             />
                           )}
                           <GroupResultModal

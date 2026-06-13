@@ -173,6 +173,9 @@ export default function ActionsTab({
         { headers: authHeader },
       );
       toast.success(res.data.message);
+      // Seeding repopulates the stage's groups; refetch so the new group rosters show
+      // in place (no manual reload). onRefresh = the edit page's fetchEventDetails.
+      onRefresh?.();
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Seeding failed");
     } finally {
@@ -190,6 +193,9 @@ export default function ActionsTab({
         { headers: authHeader },
       );
       toast.success(res.data.message || "Stage advanced successfully");
+      // Advancing moves competitors into the next stage; refetch so the updated stage
+      // composition shows in place (no manual reload). onRefresh = fetchEventDetails.
+      onRefresh?.();
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Advance failed");
     } finally {
@@ -228,8 +234,9 @@ export default function ActionsTab({
         { headers: authHeader },
       );
       toast.success(res.data.message);
-      // The page owns the stage status; reload so the badge + this control re-render.
-      window.location.reload();
+      // The page owns the stage status; refetch so the badge + this control re-render
+      // in place (no manual page reload). onRefresh = the edit page's fetchEventDetails.
+      onRefresh?.();
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Could not update the stage.");
     } finally {
