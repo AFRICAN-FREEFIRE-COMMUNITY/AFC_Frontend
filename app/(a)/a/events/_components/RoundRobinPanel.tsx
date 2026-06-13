@@ -52,6 +52,10 @@ export interface RoundRobinGameDayInput {
   source_group_indices: number[];
   match_count: number;
   match_maps: string[];
+  // When this meeting runs (owner 2026-06-13). Optional: blank falls back to the stage
+  // start date + a default time server-side. "YYYY-MM-DD" / "HH:MM".
+  playing_date?: string;
+  playing_time?: string;
 }
 
 export interface RoundRobinConfig {
@@ -146,6 +150,32 @@ export function RoundRobinPanel({
     onChange({ ...config, round_robin_groups: next });
   };
 
+  // ── Auto-distribute (owner 2026-06-13) ──────────────────────────────────────
+  // Spread every available team evenly across the base groups, round-robin by index
+  // (team 0 → A, 1 → B, 2 → C, 3 → A, ...). 18 teams over 3 groups → 6/6/6. This is
+  // the "seed N teams, auto-split into the groups" convenience; the manual checkboxes
+  // below still work for fine-tuning afterwards. Only meaningful once the event has
+  // registrations (availableTeams present), so the button is shown only then.
+  const distributeTeamsEvenly = () => {
+    if (!availableTeams || availableTeams.length === 0 || groups.length === 0) return;
+    const buckets: number[][] = groups.map(() => []);
+    availableTeams.forEach((team, i) => {
+      buckets[i % groups.length].push(team.team_id);
+    });
+    onChange({
+      ...config,
+      round_robin_groups: groups.map((g, i) => ({ ...g, team_ids: buckets[i] })),
+    });
+  };
+
+  // Clear every base group's team assignments (start the manual assignment over).
+  const clearAllTeams = () => {
+    onChange({
+      ...config,
+      round_robin_groups: groups.map((g) => ({ ...g, team_ids: [] })),
+    });
+  };
+
   // Toggle a team into / out of a base group. A team belongs to exactly ONE base
   // group, so adding it here removes it from every other group first.
   const toggleTeamInGroup = (index: number, teamId: number) => {
@@ -175,11 +205,38 @@ export function RoundRobinPanel({
         {
           game_day: config.game_days.length + 1,
           source_group_indices: [],
-          match_count: config.games_per_day || 1,
+          // match_count is derived from maps (one per map); starts with one map = one match.
+          match_count: 1,
           match_maps: ["Bermuda"],
+          playing_date: "",
+          playing_time: "",
         },
       ],
     });
+  };
+
+  // ── Generate one meeting per group pairing (owner 2026-06-13) ────────────────
+  // Fill the manual game-day list with every unordered pair of base groups
+  // (A vs B, A vs C, B vs C for 3 groups), each as its own editable meeting. Gives
+  // the round-robin pairings automatically, then the admin sets date / time / maps /
+  // match count per meeting below. Replaces whatever was in the list.
+  const generateMeetings = () => {
+    const meetings: RoundRobinGameDayInput[] = [];
+    let day = 1;
+    for (let i = 0; i < groups.length; i++) {
+      for (let j = i + 1; j < groups.length; j++) {
+        meetings.push({
+          game_day: day++,
+          source_group_indices: [i, j],
+          // match_count is derived from maps (one per map); starts at one map = one match.
+          match_count: 1,
+          match_maps: ["Bermuda"],
+          playing_date: "",
+          playing_time: "",
+        });
+      }
+    }
+    onChange({ ...config, game_days: meetings });
   };
 
   const removeGameDay = (gdIndex: number) => {
@@ -211,19 +268,18 @@ export function RoundRobinPanel({
     });
   };
 
-  // +/- a single map onto a manual lobby (mirrors the group map stepper).
+  // +/- a single map onto a manual lobby (mirrors the group map stepper). Match count is
+  // DERIVED from the maps (owner 2026-06-13): one match per map, kept in sync here.
   const addMapToGameDay = (gdIndex: number, map: string) => {
-    updateGameDay(gdIndex, {
-      match_maps: [...config.game_days[gdIndex].match_maps, map],
-    });
+    const maps = [...config.game_days[gdIndex].match_maps, map];
+    updateGameDay(gdIndex, { match_maps: maps, match_count: maps.length });
   };
   const removeMapFromGameDay = (gdIndex: number, map: string) => {
     const current = config.game_days[gdIndex].match_maps;
     const last = current.lastIndexOf(map);
     if (last === -1) return;
-    updateGameDay(gdIndex, {
-      match_maps: current.filter((_, i) => i !== last),
-    });
+    const maps = current.filter((_, i) => i !== last);
+    updateGameDay(gdIndex, { match_maps: maps, match_count: maps.length });
   };
 
   return (
@@ -235,7 +291,38 @@ export function RoundRobinPanel({
 
       {/* ── Base Groups editor ──────────────────────────────────────────────── */}
       <div className="space-y-3">
-        <Label className="block text-xs text-muted-foreground">Base Groups</Label>
+        <div className="flex items-start justify-between gap-2 flex-wrap">
+          <div>
+            <Label className="block text-xs text-muted-foreground">Base Groups</Label>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Teams are split across these groups. Each pair of groups meets once.
+            </p>
+          </div>
+          {/* Auto-distribute + clear: only on edit, where registered teams exist. */}
+          {availableTeams && availableTeams.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={distributeTeamsEvenly}
+                className="h-7 text-xs"
+              >
+                Auto-distribute {availableTeams.length} team
+                {availableTeams.length === 1 ? "" : "s"} evenly
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clearAllTeams}
+                className="h-7 text-xs text-muted-foreground hover:text-destructive"
+              >
+                Clear
+              </Button>
+            </div>
+          )}
+        </div>
         {groups.map((group, index) => (
           <div key={index} className="space-y-2 rounded-md border p-3">
             <div className="flex items-center gap-2">
@@ -248,6 +335,13 @@ export function RoundRobinPanel({
                 placeholder="A"
                 className="flex-1"
               />
+              {/* Live team count per group so the split (e.g. 6/6/6) is visible. */}
+              {availableTeams && availableTeams.length > 0 && (
+                <span className="text-[11px] text-muted-foreground shrink-0 whitespace-nowrap">
+                  {group.team_ids.length} team
+                  {group.team_ids.length === 1 ? "" : "s"}
+                </span>
+              )}
               <Button
                 type="button"
                 variant="ghost"
@@ -317,7 +411,8 @@ export function RoundRobinPanel({
               />
             </Label>
             <p className="text-xs text-muted-foreground mt-1">
-              Every pair of base groups meets once, one pairing per game-day.
+              Every pair of base groups meets once (3 groups: A vs B, A vs C, B vs C).
+              Each meeting is one game-day lobby.
             </p>
           </div>
           <Switch
@@ -331,10 +426,15 @@ export function RoundRobinPanel({
         {config.generate_schedule ? (
           // ── Auto path: just a games-per-day applied to every generated lobby. ──
           <div>
-            <Label className="mb-2 block text-xs text-muted-foreground">
-              Games per day
+            <Label className="mb-1 block text-xs text-muted-foreground">
+              Matches per meeting
               <InfoTip id="events.create.rr_games_per_day" className="ml-1" />
             </Label>
+            <p className="text-[11px] text-muted-foreground mb-2">
+              How many matches (maps) the two groups play each time they meet. This is
+              NOT how many times the round-robin repeats: each pair still meets once.
+              E.g. 5 means A vs B is a single meeting of 5 matches.
+            </p>
             <Input
               type="number"
               min={1}
@@ -346,16 +446,34 @@ export function RoundRobinPanel({
                     e.target.value === "" ? 0 : Number(e.target.value),
                 })
               }
-              placeholder="e.g. 1"
+              placeholder="e.g. 5"
             />
+            <p className="text-[11px] text-muted-foreground mt-2">
+              Auto uses the stage start date and the same maps for every meeting. To set the
+              date, time and maps PER meeting, turn this off and use the meeting list below.
+            </p>
           </div>
         ) : (
-          // ── Manual path: explicit game-day lobbies (merge groups + count + maps). ──
+          // ── Manual path: explicit meetings (merge groups + date/time + count + maps). ──
           <div className="space-y-3">
-            <Label className="block text-xs text-muted-foreground">
-              Game Days
-              <InfoTip id="events.create.rr_game_days" className="ml-1" />
-            </Label>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <Label className="block text-xs text-muted-foreground">
+                Meetings (game days)
+                <InfoTip id="events.create.rr_game_days" className="ml-1" />
+              </Label>
+              {/* One-click: fill the list with every group pairing, then edit each. */}
+              {groups.length >= 2 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={generateMeetings}
+                  className="h-7 text-xs"
+                >
+                  Generate a meeting per pairing
+                </Button>
+              )}
+            </div>
             {config.game_days.length === 0 && (
               <p className="text-xs text-muted-foreground italic">
                 No game days yet. Click below to add a lobby.
@@ -399,22 +517,43 @@ export function RoundRobinPanel({
                   </div>
                 </div>
 
-                {/* Match count for this lobby. */}
+                {/* When this meeting runs (owner 2026-06-13): date + time per meeting. */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="mb-1.5 block text-[11px] text-muted-foreground">
+                      Date
+                    </Label>
+                    <Input
+                      type="date"
+                      value={gd.playing_date ?? ""}
+                      onChange={(e) =>
+                        updateGameDay(gdIndex, { playing_date: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label className="mb-1.5 block text-[11px] text-muted-foreground">
+                      Time
+                    </Label>
+                    <Input
+                      type="time"
+                      value={gd.playing_time ?? ""}
+                      onChange={(e) =>
+                        updateGameDay(gdIndex, { playing_time: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Match count is DERIVED from the maps selected below: one match per map. */}
                 <div>
                   <Label className="mb-1.5 block text-[11px] text-muted-foreground">
-                    Match count
+                    Matches in this meeting
                   </Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={gd.match_count === 0 ? "" : gd.match_count}
-                    onChange={(e) =>
-                      updateGameDay(gdIndex, {
-                        match_count:
-                          e.target.value === "" ? 0 : Number(e.target.value),
-                      })
-                    }
-                  />
+                  <p className="text-[11px] text-muted-foreground rounded-md border border-dashed p-2">
+                    {gd.match_maps.length} match
+                    {gd.match_maps.length === 1 ? "" : "es"} (one per map selected below).
+                  </p>
                 </div>
 
                 {/* Maps for this lobby (same +/- stepper as the group editor). */}

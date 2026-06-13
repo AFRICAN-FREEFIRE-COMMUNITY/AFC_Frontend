@@ -311,6 +311,9 @@ export const AVAILABLE_MAPS = [
   "Nexterra",
   "Alpine",
   "Solara",
+  // "Random" lets admins/organizers leave the map unfixed (decided at match time).
+  // Owner 2026-06-13. Stored as a normal map string; the backend treats it like any other.
+  "Random",
 ];
 
 // Currencies an organizer/admin can charge a paid registration fee in. Drives the

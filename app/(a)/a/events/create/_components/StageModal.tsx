@@ -1175,23 +1175,18 @@ export function StageModal({
                   />
                 </div>
 
+                {/* Match count is DERIVED from the maps selected below (owner 2026-06-13):
+                    one match per map, so there is no separate count to type. */}
                 <div>
                   <label className="text-sm font-medium mb-2 block">
                     Match Count
                     <InfoTip id="events.create.match_count" className="ml-1" />
                   </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={group.match_count === 0 ? "" : group.match_count}
-                    onChange={(e) =>
-                      onUpdateGroupDetail(
-                        index,
-                        "match_count",
-                        e.target.value === "" ? 0 : Number(e.target.value),
-                      )
-                    }
-                  />
+                  <p className="text-sm text-muted-foreground rounded-md border border-dashed p-3">
+                    {(group.match_maps?.length || 0)} match
+                    {(group.match_maps?.length || 0) === 1 ? "" : "es"} (one per map
+                    selected below). Add or remove maps to change this.
+                  </p>
                 </div>
 
                 {/* Group Discord Role ID - omitted in the organizer flow (hideDiscord). */}

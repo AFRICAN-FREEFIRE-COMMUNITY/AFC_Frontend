@@ -382,12 +382,12 @@ export default function OrganizerCreateEventPage() {
     setTempGroups(updated);
   };
 
+  // Match count is DERIVED from the maps selected (owner 2026-06-13): one match per map.
   const addMapToGroup = (groupIndex: number, map: string) => {
     const updated = [...tempGroups];
-    updated[groupIndex].match_maps = [
-      ...(updated[groupIndex].match_maps || []),
-      map,
-    ];
+    const maps = [...(updated[groupIndex].match_maps || []), map];
+    updated[groupIndex].match_maps = maps;
+    updated[groupIndex].match_count = maps.length;
     setTempGroups(updated);
   };
 
@@ -396,7 +396,9 @@ export default function OrganizerCreateEventPage() {
     const current: string[] = updated[groupIndex].match_maps || [];
     const idx = current.lastIndexOf(map);
     if (idx !== -1) {
-      updated[groupIndex].match_maps = current.filter((_, i) => i !== idx);
+      const maps = current.filter((_, i) => i !== idx);
+      updated[groupIndex].match_maps = maps;
+      updated[groupIndex].match_count = maps.length;
     }
     setTempGroups(updated);
   };

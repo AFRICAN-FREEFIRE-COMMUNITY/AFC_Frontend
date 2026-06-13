@@ -78,13 +78,13 @@ export const HELP = {
   //    format is Battle Royale - Round Robin. Base groups are the fixed A/B/C
   //    identities; game-day lobbies merge two base groups each. ────────────────
   "events.create.rr_base_groups":
-    "The fixed base groups (A, B, C…). A team belongs to exactly one base group for the whole stage - game-day lobbies are then formed by merging two base groups at a time.",
+    "The base groups (A, B, C…) the teams are split across. A team sits in exactly one base group for the whole stage. Each pair of groups meets once (3 groups: A vs B, A vs C, B vs C), and a meeting is one game-day lobby.",
   "events.create.rr_group_teams":
-    "Assign the registered teams that make up this base group. Each team can sit in only one base group. (Teams can only be assigned once the event has registrations.)",
+    "Assign the registered teams in this base group. Each team can sit in only one base group. Use Auto-distribute to spread all teams evenly across the groups (e.g. 18 teams over 3 groups = 6 each), then fine-tune by hand. (Teams can only be assigned once the event has registrations.)",
   "events.create.rr_generate_schedule":
-    "On: auto-build the round-robin schedule - every pair of base groups meets once, one pairing per game-day. Off: add the game-day lobbies by hand below.",
+    "On: auto-build the round-robin schedule - every pair of base groups meets once, one meeting per game-day. Off: add the game-day lobbies by hand below.",
   "events.create.rr_games_per_day":
-    "How many matches each game-day lobby plays. Applied to every auto-generated lobby.",
+    "How many matches (maps) the two groups play each time they meet. This is NOT how many times the round-robin repeats - each pair still meets exactly once. E.g. 5 means A vs B is a single meeting of 5 matches.",
   "events.create.rr_game_days":
     "The manual game-day list. Each game-day is a lobby that merges the base groups you pick, plus its match count and maps. Add one per day you want to run.",
 

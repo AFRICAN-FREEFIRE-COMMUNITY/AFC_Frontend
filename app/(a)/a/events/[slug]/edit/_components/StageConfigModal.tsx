@@ -786,24 +786,18 @@ export function StageConfigModal({
                   />
                 </div>
 
-                {/* Match Count */}
+                {/* Match Count - DERIVED from the maps selected below (owner 2026-06-13):
+                    one match per map, so there is no separate count to type. */}
                 <div>
                   <Label className="mb-2.5">
                     Match count
                     <InfoTip id="events.create.match_count" className="ml-1" />
                   </Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={group.match_count === 0 ? "" : group.match_count}
-                    onChange={(e) =>
-                      updateGroupDetailLogic(
-                        index,
-                        "match_count",
-                        e.target.value === "" ? 0 : Number(e.target.value),
-                      )
-                    }
-                  />
+                  <p className="text-sm text-muted-foreground rounded-md border border-dashed p-3">
+                    {(group.match_maps?.length || 0)} match
+                    {(group.match_maps?.length || 0) === 1 ? "" : "es"} (one per map
+                    selected below). Add or remove maps to change this.
+                  </p>
                 </div>
 
                 {/* Discord Role — hidden in the organizer flow (hideDiscord).
