@@ -42,7 +42,7 @@ async function aPost<T = any>(path: string, body?: any): Promise<T> {
 }
 // Multipart POST - for the OCR screenshot upload (FormData {screenshot}). We do NOT set a
 // Content-Type header so axios fills in the multipart boundary itself (same idiom as
-// lib/api/ocr.ts::aPostForm and organizersApi.submitDesignRequest).
+// lib/api/ocr.ts::aPostForm and the standard multipart upload idiom in this app).
 async function aPostForm<T = any>(path: string, body: FormData): Promise<T> {
   return (await axios.post(url(path), body, { headers: authHeaders() })).data;
 }

@@ -10,7 +10,7 @@ import { env } from "@/lib/env";
  * AuthContext sets (js-cookie), so callers don't have to thread it through props/hooks. The
  * one exception is the upload, which goes up as multipart FormData (the screenshot bytes) -
  * we do NOT set a Content-Type header so axios fills in the multipart boundary itself, exactly
- * like organizersApi.submitDesignRequest.
+ * like organizersApi.editOrganizationProfile's FormData path.
  *
  * This is the api surface for the admin OCR review flow that lives under
  * app/(a)/a/leaderboards/_components/:
@@ -47,7 +47,7 @@ async function aPost<T = any>(path: string, body?: any): Promise<T> {
   return (await axios.post(url(path), body ?? {}, { headers: authHeaders() })).data;
 }
 // Multipart POST - for the FormData screenshot upload. We do NOT set a Content-Type header so
-// axios fills in the multipart boundary itself (mirrors organizersApi.submitDesignRequest).
+// axios fills in the multipart boundary itself (the standard multipart upload idiom in this app).
 async function aPostForm<T = any>(path: string, body: FormData): Promise<T> {
   return (await axios.post(url(path), body, { headers: authHeaders() })).data;
 }

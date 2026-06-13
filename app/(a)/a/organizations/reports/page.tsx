@@ -8,11 +8,9 @@
 // lifecycle (open → reviewing → resolved/dismissed), attach resolution notes, and
 // - the integrity action - optionally exclude the reported event from rankings.
 //
-// Mirrors the sibling Design Requests queue idiom
-// (app/(a)/a/organizations/design-requests/page.tsx): PageHeader, a status Select
-// filter, a shadcn Table, the shared Pagination component, a per-row Dialog, and
-// sonner toasts. Paginates SERVER-side because adminListReports hands back
-// { results, total_count, has_more }, exactly like adminListDesignRequests.
+// Standard admin-queue idiom: PageHeader, a status Select filter, a shadcn Table, the shared
+// Pagination component, a per-row Dialog, and sonner toasts. Paginates SERVER-side because
+// adminListReports hands back { results, total_count, has_more }.
 //
 // Static segment under /a/organizations/ - Next.js matches this before the sibling
 // [slug] dynamic route, so /a/organizations/reports lands here.

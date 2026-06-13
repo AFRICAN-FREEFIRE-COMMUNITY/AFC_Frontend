@@ -175,10 +175,10 @@ export const adminNavLinks: AdminNavLink[] = [
     allowedRoles: ["head_admin", "event_admin"],
   },
   {
-    // Design Requests + Org Reports used to be separate sidebar entries here. They
-    // now live UNDER this page as a segmented sub-nav (OrgSubNav) on the three
-    // organizations index routes, so the sidebar stays lean. Routes are unchanged:
-    //   /a/organizations/design-requests  and  /a/organizations/reports
+    // Org Reports used to be a separate sidebar entry here. It now lives UNDER this page
+    // as a segmented sub-nav (OrgSubNav) on the organizations index routes, so the sidebar
+    // stays lean. Route unchanged: /a/organizations/reports. (The "Design Requests" tab was
+    // removed 2026-06-13 with the request-a-design feature.)
     label: "Organizations",
     slug: "/a/organizations",
     icon: IconUsersGroup,

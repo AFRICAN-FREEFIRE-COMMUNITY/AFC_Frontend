@@ -111,7 +111,6 @@ export type AdminTourPageKey =
   | "events-lb-leaderboards-edit"
   // ── Organizations / sponsors / partners / news (orgs-misc area) ───────────
   | "orgs-misc-organizations-list"
-  | "orgs-misc-design-requests"
   | "orgs-misc-org-reports"
   | "orgs-misc-org-detail"
   | "orgs-misc-sponsors-list"
@@ -1788,50 +1787,7 @@ export const ADMIN_TOUR_STEPS: Record<AdminTourPageKey, AdminTourStep[]> = {
     },
   ],
 
-  // Design Requests queue (app/(a)/a/organizations/design-requests/page.tsx)
-  "orgs-misc-design-requests": [
-    SIDEBAR_STEP,
-    {
-      element: '[data-tour="orgs-misc-design-requests-title"]',
-      title: "Design Requests review queue",
-      description:
-        "A centralized queue for organizer leaderboard design requests across all organizations. Status-filterable and paginated.",
-      side: "bottom",
-      align: "start",
-    },
-    {
-      element: '[data-tour="org-subnav"]',
-      title: "Switch between organization views",
-      description:
-        "Navigate to Organizations list, Design Requests, and Org Reports from this sub-nav.",
-      side: "bottom",
-      align: "start",
-    },
-    {
-      element: '[data-tour="orgs-misc-design-status-filter"]',
-      title: "Filter by request status",
-      description:
-        "Show requests by status: all, open, in-progress, applied, or rejected. The table updates as you filter.",
-      side: "bottom",
-      align: "start",
-    },
-    {
-      element: '[data-tour="orgs-misc-design-requests-table"]',
-      title: "Design request rows",
-      description:
-        "Each row shows organization, request title, submitter, status, and date. Use Manage to move it through its lifecycle.",
-      side: "top",
-      align: "center",
-    },
-    {
-      element: '[data-tour="orgs-misc-design-manage-button"]',
-      title: "Manage a design request",
-      description:
-        "Open a dialog to update the status, add resolution notes, and attach reference images or organizer context.",
-      side: "top",
-      align: "center",
-    },
-  ],
+  // (The "Design Requests" queue tour was removed 2026-06-13 with the request-a-design feature.)
 
   // Organization integrity reports (app/(a)/a/organizations/reports/page.tsx)
   "orgs-misc-org-reports": [
@@ -2467,10 +2423,8 @@ export function resolveAdminTourPageKey(
   // ── Teams (combined teams+players page; sub-routes reuse the parent tour).
   if (path.startsWith("/a/teams")) return "teams";
 
-  // ── Organizations: design-requests / reports before the [slug] detail and the
-  //    bare list root (the detail prefix /a/organizations/<slug> must come last).
-  if (path === "/a/organizations/design-requests")
-    return "orgs-misc-design-requests";
+  // ── Organizations: reports before the [slug] detail and the bare list root
+  //    (the detail prefix /a/organizations/<slug> must come last).
   if (path === "/a/organizations/reports") return "orgs-misc-org-reports";
   if (path === "/a/organizations") return "orgs-misc-organizations-list";
   if (path.startsWith("/a/organizations/")) return "orgs-misc-org-detail";
