@@ -64,10 +64,6 @@ import { InfoTip } from "@/components/ui/info-tip";
 // Standalone (event-less) leaderboards section — the shared list + "Create standalone" button.
 // Additive: it sits below the existing event-leaderboard table and does not touch that UI.
 import { StandaloneLeaderboardList } from "../leaderboards/standalone/_components/StandaloneLeaderboardList";
-// AFC-NATIVE leaderboard design library (organizationId=null). AFC admins upload branded backgrounds
-// here; the standalone leaderboard export picker renders standings onto the chosen one. Mirrors the
-// org-scoped copy on the organizer Leaderboards page. Admins always have write access.
-import { LeaderboardDesignsManager } from "../leaderboards/standalone/_components/LeaderboardDesignsManager";
 
 interface LeaderboardProps {
   leaderboard_id: number;
@@ -524,11 +520,9 @@ export const LeaderboardsAdminContent = () => {
           admin caller is unscoped (no organizationId), so it shows everything the
           backend lets the admin see (afc_leaderboard list view). */}
       <StandaloneLeaderboardList />
-
-      {/* ── AFC-native leaderboard design library ──────────────────────────────
-          organizationId omitted (null) -> the AFC-native library the backend manages
-          under role=="admin". canManage is always true on the admin surface. */}
-      <LeaderboardDesignsManager organizationId={null} canManage />
+      {/* The AFC-native leaderboard DESIGN LIBRARY lives on the "Designs" tab of this page
+          (DesignsAdminContent), not in this Leaderboards tab. Here you only pick a design when
+          exporting a leaderboard (the "Export graphic" button on the standalone view page). */}
     </div>
   );
 };

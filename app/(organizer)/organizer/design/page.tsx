@@ -59,6 +59,10 @@ import {
 import { formatDate } from "@/lib/utils";
 import { organizersApi } from "@/lib/organizers";
 import { useOrganizer } from "../_components/OrganizerContext";
+// The self-serve leaderboard DESIGN LIBRARY (create/edit branded designs + positioned logos) lives
+// here on the Design page (owner 2026-06-13). It is the org-scoped copy of the shared manager; the
+// leaderboard export picker (on each leaderboard's view) renders standings onto the chosen design.
+import { LeaderboardDesignsManager } from "@/app/(a)/a/leaderboards/standalone/_components/LeaderboardDesignsManager";
 
 // Accepted reference-image types (same set the Profile page allows).
 const ACCEPTED_IMAGE_TYPES = [
@@ -202,7 +206,7 @@ export default function OrganizerDesignPage() {
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Design"
-        description="Request a custom leaderboard design from the AFC team."
+        description="Build your own leaderboard designs, or request a custom one from the AFC team."
         // "Request a design" lives in the header action slot, gated on the permission.
         action={
           canSubmitDesigns ? (
@@ -215,6 +219,14 @@ export default function OrganizerDesignPage() {
             </Button>
           ) : undefined
         }
+      />
+
+      {/* ── Self-serve leaderboard design library (primary) ──────────────────────
+          The org's own branded designs: backgrounds, colours, and positioned logos. Write access
+          gates on can_submit_designs (or owner) - the SAME permission the request flow below uses. */}
+      <LeaderboardDesignsManager
+        organizationId={membership.organization.organization_id}
+        canManage={canSubmitDesigns}
       />
 
       {/* ── Non-permitted member: read-only lock notice (mirrors Profile page) ── */}

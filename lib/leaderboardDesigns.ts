@@ -39,6 +39,21 @@ function authHeaders() {
 }
 
 // ── Shapes ────────────────────────────────────────────────────────────────────
+// Per-logo size band (afc_leaderboard.graphic.LOGO_SIZE_FRAC); scales the logo as a fraction
+// of canvas height when rendered.
+export type LogoSize = "small" | "medium" | "large";
+
+// One positioned logo on a design (afc_organizers.OrgLeaderboardDesignLogo). Position is the
+// logo's CENTRE as a percent of the canvas (0..100), so the same placement maps to both the
+// Instagram (portrait) and YouTube (landscape) renders without re-positioning per size.
+export interface LeaderboardDesignLogo {
+  id: number;
+  image: string | null; // media URL of the uploaded logo
+  x_pct: number; // centre X, 0..100
+  y_pct: number; // centre Y, 0..100
+  size: LogoSize;
+}
+
 // One library design as returned by _serialize_design (backend views_leaderboard_design). The two
 // background_* fields are media URLs (or null when that size has not been uploaded yet).
 export interface LeaderboardDesign {
@@ -52,6 +67,7 @@ export interface LeaderboardDesign {
   show_subtitle: boolean;
   max_rows: number; // how many standings rows the render fits (1..50)
   is_default: boolean; // the library's auto-selected design
+  logos: LeaderboardDesignLogo[]; // positioned logos drawn on top of the design
   created_at: string | null;
 }
 
@@ -105,6 +121,50 @@ export const leaderboardDesignsApi = {
       .delete(`${BASE}/organizers/leaderboard-designs/by-id/${designId}/`, {
         headers: authHeaders(),
       })
+      .then((r) => r.data),
+
+  // ── Positioned logos on a design (sub-endpoints) ─────────────────────────────
+  // A design carries 0..N logos at a centre position (x_pct/y_pct) + size. The drag-canvas editor
+  // adds/moves/removes them. addLogo is multipart (the image rides along); update/delete key off id.
+  // POST organizers/leaderboard-designs/by-id/<designId>/logos/  (multipart) -> {logo}
+  addLogo: (
+    designId: number,
+    file: File,
+    opts: { x_pct: number; y_pct: number; size: LogoSize },
+  ) => {
+    const fd = new FormData();
+    fd.append("image", file);
+    fd.append("x_pct", String(opts.x_pct));
+    fd.append("y_pct", String(opts.y_pct));
+    fd.append("size", opts.size);
+    return axios
+      .post<{ logo: LeaderboardDesignLogo }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/logos/`,
+        fd,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data);
+  },
+  // PATCH .../logos/<logoId>/  — reposition/resize (only the keys sent are changed) -> {logo}
+  updateLogo: (
+    designId: number,
+    logoId: number,
+    body: Partial<{ x_pct: number; y_pct: number; size: LogoSize }>,
+  ) =>
+    axios
+      .patch<{ logo: LeaderboardDesignLogo }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/logos/${logoId}/`,
+        body,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+  // DELETE .../logos/<logoId>/ -> {message}
+  deleteLogo: (designId: number, logoId: number) =>
+    axios
+      .delete(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/logos/${logoId}/`,
+        { headers: authHeaders() },
+      )
       .then((r) => r.data),
 
   // ── Export renderer (leaderboards/standalone/<id>/graphic/) ──────────────────

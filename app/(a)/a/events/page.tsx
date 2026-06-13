@@ -24,15 +24,21 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { IconCalendar, IconTrophy } from "@tabler/icons-react";
+import { IconCalendar, IconPalette, IconTrophy } from "@tabler/icons-react";
 import { EventsAdminContent } from "../_components/EventsAdminContent";
 import { LeaderboardsAdminContent } from "../_components/LeaderboardsAdminContent";
+import { DesignsAdminContent } from "../_components/DesignsAdminContent";
 
 export default function EventsAndLeaderboardsPage() {
   const searchParams = useSearchParams();
   // /a/leaderboards redirects here as ?tab=leaderboards; everything else opens on Events.
+  const tabParam = searchParams.get("tab");
   const initialTab =
-    searchParams.get("tab") === "leaderboards" ? "leaderboards" : "events";
+    tabParam === "leaderboards"
+      ? "leaderboards"
+      : tabParam === "designs"
+        ? "designs"
+        : "events";
   const [tab, setTab] = useState<string>(initialTab);
 
   return (
@@ -47,6 +53,10 @@ export default function EventsAndLeaderboardsPage() {
           <TabsTrigger value="leaderboards">
             <IconTrophy className="h-4 w-4" /> Leaderboards
           </TabsTrigger>
+          {/* "Designs" - the AFC-native leaderboard design library (owner 2026-06-13). */}
+          <TabsTrigger value="designs">
+            <IconPalette className="h-4 w-4" /> Designs
+          </TabsTrigger>
         </TabsList>
 
         {/* Each tab keeps its own PageHeader + actions (Event Payments / Create event). */}
@@ -55,6 +65,9 @@ export default function EventsAndLeaderboardsPage() {
         </TabsContent>
         <TabsContent value="leaderboards">
           <LeaderboardsAdminContent />
+        </TabsContent>
+        <TabsContent value="designs">
+          <DesignsAdminContent />
         </TabsContent>
       </Tabs>
     </div>

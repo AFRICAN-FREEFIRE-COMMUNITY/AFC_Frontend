@@ -21,7 +21,7 @@
 // Design: AFC constants - shadcn Dialog + Select, outline buttons, sonner toasts. No em/en dashes.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,14 +93,18 @@ export function ExportGraphicButton({
     }
   }, [organizationId]);
 
+  // Reset + load ONLY on the false->true open transition (a prevOpen ref), not on every
+  // defaultTitle/loadDesigns change - otherwise a parent re-render with a new leaderboard name
+  // would wipe the title/subtitle/size the user is typing mid-export.
+  const prevOpenRef = useRef(false);
   useEffect(() => {
-    if (open) {
-      // Reset the title to the leaderboard name each time it opens, then load designs.
+    if (open && !prevOpenRef.current) {
       setTitle(defaultTitle);
       setSubtitle("");
       setSize("instagram");
       loadDesigns();
     }
+    prevOpenRef.current = open;
   }, [open, defaultTitle, loadDesigns]);
 
   // ── Download: fetch the PNG blob (auth header) and save it via a hidden anchor. ──

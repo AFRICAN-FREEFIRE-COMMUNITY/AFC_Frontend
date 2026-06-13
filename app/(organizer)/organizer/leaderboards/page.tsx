@@ -64,10 +64,6 @@ import { useOrganizer } from "../_components/OrganizerContext";
 // Standalone (event-less) leaderboards section — shared with the admin surface, scoped here to this
 // org via organizationId so the organizer only sees + creates leaderboards owned by their org.
 import { StandaloneLeaderboardList } from "@/app/(a)/a/leaderboards/standalone/_components/StandaloneLeaderboardList";
-// This org's leaderboard design library (org-scoped). Organizers upload branded backgrounds here;
-// the standalone leaderboard export picker renders standings onto the chosen one. Write access is
-// gated on can_submit_designs (or owner) - the SAME permission the AFC design-request page uses.
-import { LeaderboardDesignsManager } from "@/app/(a)/a/leaderboards/standalone/_components/LeaderboardDesignsManager";
 
 // ── Row shapes ────────────────────────────────────────────────────────────────
 // The org-scoped event row (subset of get-all-events). Only the fields the table
@@ -376,15 +372,9 @@ export default function OrganizerLeaderboardsPage() {
         createHref="/organizer/leaderboards/standalone/create"
         viewHrefBase="/organizer/leaderboards/standalone"
       />
-
-      {/* ── This org's leaderboard design library ───────────────────────────────
-          Scoped to organizationId so the organizer only sees + manages their own
-          designs. Write buttons gate on can_submit_designs (or owner) - the design
-          permission, distinct from the can_upload_results gate on this page above. */}
-      <LeaderboardDesignsManager
-        organizationId={organizationId}
-        canManage={membership.permissions.can_submit_designs || isOwner}
-      />
+      {/* The leaderboard DESIGN LIBRARY (create/edit branded designs) lives on the Design page
+          (/organizer/design), not here. Here you only pick a design when exporting a leaderboard
+          (the "Export graphic" button on each leaderboard's view page). */}
     </div>
   );
 }
