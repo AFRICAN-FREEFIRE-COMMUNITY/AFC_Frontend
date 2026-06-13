@@ -42,6 +42,9 @@ import {
 } from "@/components/ui/card";
 import { IconPencil, IconUsers } from "@tabler/icons-react";
 import { StandaloneStandings } from "./StandaloneStandings";
+// "Export graphic" picker - renders the standings onto a branded design (PNG). Reuses the
+// leaderboard's design library (org-scoped, or AFC-native), so it works on both surfaces.
+import { ExportGraphicButton } from "./ExportGraphicDialog";
 import {
   standaloneLeaderboardsApi,
   type StandaloneLeaderboardDetail,
@@ -118,13 +121,21 @@ export function StandaloneLeaderboardView({
         }
         action={
           can_manage ? (
-            // Edit reuses the create wizard keyed off this leaderboard's id (Phase 1).
-            // basePath keeps the link surface-correct (admin vs organizer portal).
-            <Button asChild variant="outline" size="sm">
-              <Link href={`${basePath}/create?id=${leaderboard.id}`}>
-                <IconPencil className="size-4" /> Edit
-              </Link>
-            </Button>
+            // Managers get two actions: Export graphic (download branded standings PNG) and
+            // Edit (reuses the create wizard keyed off this leaderboard's id - Phase 1).
+            // basePath keeps the Edit link surface-correct (admin vs organizer portal).
+            <div className="flex items-center gap-2">
+              <ExportGraphicButton
+                lbId={leaderboard.id}
+                organizationId={leaderboard.organization_id}
+                defaultTitle={leaderboard.name}
+              />
+              <Button asChild variant="outline" size="sm">
+                <Link href={`${basePath}/create?id=${leaderboard.id}`}>
+                  <IconPencil className="size-4" /> Edit
+                </Link>
+              </Button>
+            </div>
           ) : undefined
         }
       />
