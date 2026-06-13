@@ -40,6 +40,7 @@ import {
   Eye,
   EyeOff,
   Megaphone,
+  Pause,
   Play,
   Radio,
   RefreshCw,
@@ -213,6 +214,29 @@ export default function ActionsTab({
     }
   }
 
+  // Pause / resume a started Stage 1 (owner 2026-06-13). After Start seeds the stage to
+  // ongoing, the Start button becomes "Started" and this toggles ongoing <-> paused.
+  const [loadingStageStatus, setLoadingStageStatus] = useState(false);
+  async function handleSetStageStatus(nextStatus: "ongoing" | "paused") {
+    const stageId = eventDetails.stages[0]?.stage_id;
+    if (!stageId) return;
+    setLoadingStageStatus(true);
+    try {
+      const res = await axios.post(
+        `${API}/events/set-stage-status/`,
+        { event_id: eventDetails.event_id, stage_id: stageId, status: nextStatus },
+        { headers: authHeader },
+      );
+      toast.success(res.data.message);
+      // The page owns the stage status; reload so the badge + this control re-render.
+      window.location.reload();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Could not update the stage.");
+    } finally {
+      setLoadingStageStatus(false);
+    }
+  }
+
   async function handleBroadcast() {
     if (!annTitle.trim() || !annMessage.trim())
       return toast.error("Title and message are required");
@@ -306,19 +330,51 @@ export default function ActionsTab({
                 <InfoTip id="events.edit.start_tournament" className="ml-1" />
               </p>
               <p className="text-xs text-muted-foreground">
-                Seed registered players into Stage 1.
+                {eventDetails.stages[0]?.stage_status === "paused"
+                  ? "Stage 1 is paused. Resume when you are ready to continue."
+                  : eventDetails.stages[0]?.stage_status === "ongoing"
+                    ? "Stage 1 is running. You can pause it anytime."
+                    : "Seed registered players into Stage 1."}
               </p>
             </div>
-            <Button
-              size="sm"
-              onClick={onStartTournament}
-              disabled={
-                status !== "upcoming" ||
-                eventDetails.stages[0]?.stage_status === "ongoing"
-              }
-            >
-              <Play className="h-4 w-4 mr-1" /> Start
-            </Button>
+            {/* Before start: the Start button. After start (ongoing/paused): a "Started"
+                marker + a Pause/Resume toggle (owner 2026-06-13). */}
+            {eventDetails.stages[0]?.stage_status === "ongoing" ? (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
+                  <CheckCircle2 className="h-4 w-4" /> Started
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={loadingStageStatus}
+                  onClick={() => handleSetStageStatus("paused")}
+                >
+                  <Pause className="h-4 w-4 mr-1" /> Pause
+                </Button>
+              </div>
+            ) : eventDetails.stages[0]?.stage_status === "paused" ? (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-orange-500">
+                  <Pause className="h-4 w-4" /> Paused
+                </span>
+                <Button
+                  size="sm"
+                  disabled={loadingStageStatus}
+                  onClick={() => handleSetStageStatus("ongoing")}
+                >
+                  <Play className="h-4 w-4 mr-1" /> Resume
+                </Button>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                onClick={onStartTournament}
+                disabled={status !== "upcoming"}
+              >
+                <Play className="h-4 w-4 mr-1" /> Start
+              </Button>
+            )}
           </div>
 
           <Separator />
