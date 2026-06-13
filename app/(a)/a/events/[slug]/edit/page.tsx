@@ -673,6 +673,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           prizepool: g.prizepool || "",
           prizepool_cash_value: g.prizepool_cash_value || "",
           prize_distribution: g.prize_distribution || {},
+          // Room name + password always start EMPTY in the editor (owner 2026-06-13):
+          // per-session secrets, re-entered each time, never pre-shown.
+          room_name: "",
+          room_password: "",
         })),
       );
     } else {
@@ -885,7 +889,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       !stageModalData.stage_format ||
       !stageModalData.start_date ||
       !stageModalData.end_date ||
-      !stageModalData.stage_discord_role_id ||
+      // Stage Discord Role ID is OPTIONAL (owner 2026-06-13): adding a Discord role to a
+      // stage or group is never compulsory for admins or organizers. Left blank, the
+      // stage just has no Discord automation wired.
       stageModalData.teams_qualifying_from_stage === undefined
     ) {
       toast.error("Please fill all required stage fields (Step 1)");
@@ -914,11 +920,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         return;
       }
     } else {
+      // group_discord_role_id is OPTIONAL (owner 2026-06-13): a per-group Discord role
+      // is never compulsory. Everything else stays required.
       const invalidGroup = tempGroups.find(
         (g) =>
           !g.playing_date ||
           !g.playing_time ||
-          !g.group_discord_role_id ||
           !g.group_name.trim() ||
           g.teams_qualifying < 1 ||
           g.match_count < 1 ||

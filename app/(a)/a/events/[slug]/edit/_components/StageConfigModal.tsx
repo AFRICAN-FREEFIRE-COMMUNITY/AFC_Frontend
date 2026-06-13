@@ -998,10 +998,8 @@ export function StageConfigModal({
                     !stageModalData.stage_format ||
                     !stageModalData.start_date ||
                     !stageModalData.end_date ||
-                    // Stage Discord Role ID is only required when the Discord inputs
-                    // are shown (admin flow). The organizer flow hides them, so it is
-                    // not part of the gate there.
-                    (!hideDiscord && !stageModalData.stage_discord_role_id) ||
+                    // Stage Discord Role ID is OPTIONAL (owner 2026-06-13): never
+                    // compulsory for admins or organizers, so it is not gated here.
                     stageModalData.teams_qualifying_from_stage === undefined
                   ) {
                     toast.error(

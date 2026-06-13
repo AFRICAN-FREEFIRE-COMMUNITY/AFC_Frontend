@@ -445,6 +445,10 @@ export default function OrganizerEditEventPage({
           prizepool: group.prizepool || "",
           prizepool_cash_value: group.prizepool_cash_value || "",
           prize_distribution: group.prize_distribution || {},
+          // Room name + password start EMPTY (owner 2026-06-13): per-session secrets,
+          // re-entered each time, never pre-shown. room_id (a label) is kept.
+          room_name: "",
+          room_password: "",
         })),
       }));
 
@@ -625,8 +629,10 @@ export default function OrganizerEditEventPage({
           id: g.id ?? g.group_id,
           group_discord_role_id: g.group_discord_role_id ?? "",
           room_id: g.room_id ?? "",
-          room_name: g.room_name ?? "",
-          room_password: g.room_password ?? "",
+          // Room name + password start EMPTY (owner 2026-06-13): per-session secrets,
+          // never pre-filled from the saved value.
+          room_name: "",
+          room_password: "",
         })),
       }));
 
