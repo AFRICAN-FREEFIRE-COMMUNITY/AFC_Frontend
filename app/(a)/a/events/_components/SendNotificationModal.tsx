@@ -38,12 +38,21 @@ import { Loader } from "@/components/Loader";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { Megaphone, DoorOpen, Pencil, Send } from "lucide-react";
+import { Megaphone, DoorOpen, Pencil, Send, Bell, Mail, BellRing } from "lucide-react";
 
 // The two broadcast modes. "room_details" sends the saved room info for every map;
 // "custom" sends a free-text title + message. Default = custom (the new capability
 // the user asked for); room-details stays one click away.
 type Mode = "custom" | "room_details";
+
+// Delivery channel (owner 2026-06-13): in-app push, email, or both. Email goes out in
+// the fixed branded AFC design. Default "both".
+type Delivery = "both" | "push" | "email";
+const DELIVERY_OPTIONS: { value: Delivery; label: string; icon: typeof Bell }[] = [
+  { value: "both", label: "App + Email", icon: BellRing },
+  { value: "push", label: "App only", icon: Bell },
+  { value: "email", label: "Email only", icon: Mail },
+];
 
 export const SendNotificationModal = ({
   eventId,
@@ -68,11 +77,13 @@ export const SendNotificationModal = ({
   const [mode, setMode] = useState<Mode>("custom");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
+  const [delivery, setDelivery] = useState<Delivery>("both");
 
   const reset = () => {
     setMode("custom");
     setTitle("");
     setMessage("");
+    setDelivery("both");
   };
 
   const handleSend = () => {
@@ -85,13 +96,14 @@ export const SendNotificationModal = ({
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/broadcast-to-group/`,
           mode === "room_details"
-            ? { event_id: eventId, group_id: groupId, mode }
+            ? { event_id: eventId, group_id: groupId, mode, delivery }
             : {
                 event_id: eventId,
                 group_id: groupId,
                 mode,
                 title: title.trim(),
                 message: message.trim(),
+                delivery,
               },
           { headers: { Authorization: `Bearer ${token}` } },
         );
@@ -207,6 +219,36 @@ export const SendNotificationModal = ({
               group to all of its players. Maps without room details set are skipped.
             </p>
           )}
+
+          {/* Delivery channel: app push / email (branded) / both. */}
+          <div className="space-y-2">
+            <Label>Send to</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {DELIVERY_OPTIONS.map((opt) => {
+                const Icon = opt.icon;
+                const selected = delivery === opt.value;
+                return (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => setDelivery(opt.value)}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 border rounded-md p-2.5 text-xs text-center transition-colors",
+                      selected
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "hover:bg-muted",
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Emails are sent in the standard AFC branded design.
+            </p>
+          </div>
 
           <div className="flex gap-3">
             <Button

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 import { env } from "@/lib/env";
 import axios from "axios";
 import { toast } from "sonner";
@@ -113,6 +114,8 @@ export default function ActionsTab({
   // announcement form
   const [annTitle, setAnnTitle] = useState("");
   const [annMessage, setAnnMessage] = useState("");
+  // Delivery channel (owner 2026-06-13): app push / email (branded) / both. Default both.
+  const [annDelivery, setAnnDelivery] = useState<"both" | "push" | "email">("both");
 
   const advanceStage = eventDetails.stages.find(
     (s) => s.stage_id === Number(advanceStageId),
@@ -217,13 +220,19 @@ export default function ActionsTab({
     try {
       const res = await axios.post(
         `${API}/events/broadcast-announcement/`,
-        { event_id: eventDetails.event_id, title: annTitle, message: annMessage },
+        {
+          event_id: eventDetails.event_id,
+          title: annTitle,
+          message: annMessage,
+          delivery: annDelivery,
+        },
         { headers: authHeader },
       );
       toast.success(res.data.message);
       setAnnouncementOpen(false);
       setAnnTitle("");
       setAnnMessage("");
+      setAnnDelivery("both");
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Broadcast failed");
     } finally {
@@ -740,6 +749,36 @@ export default function ActionsTab({
                 value={annMessage}
                 onChange={(e) => setAnnMessage(e.target.value)}
               />
+            </div>
+            {/* Delivery channel: app push / email (branded) / both. */}
+            <div className="space-y-2">
+              <Label>Send to</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    { value: "both", label: "App + Email" },
+                    { value: "push", label: "App only" },
+                    { value: "email", label: "Email only" },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => setAnnDelivery(opt.value)}
+                    className={cn(
+                      "border rounded-md p-2.5 text-xs text-center transition-colors",
+                      annDelivery === opt.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "hover:bg-muted",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Emails are sent in the standard AFC branded design.
+              </p>
             </div>
             <div className="flex gap-3">
               <Button
