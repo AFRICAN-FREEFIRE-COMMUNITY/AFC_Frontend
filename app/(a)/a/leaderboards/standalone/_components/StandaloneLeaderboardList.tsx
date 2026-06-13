@@ -26,6 +26,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -33,7 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconEye, IconPlus, IconTrophy } from "@tabler/icons-react";
+import { IconEye, IconLoader2, IconPlus, IconTrash, IconTrophy } from "@tabler/icons-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { formatDate } from "@/lib/utils";
 import {
@@ -66,6 +73,29 @@ export function StandaloneLeaderboardList({
 }) {
   const [rows, setRows] = useState<StandaloneLeaderboardHeader[]>([]);
   const [loading, setLoading] = useState(true);
+  // Delete confirmation (owner 2026-06-13: admins + organizers can delete a standalone
+  // leaderboard). Backend: DELETE /leaderboards/standalone/<id>/delete/, gated by
+  // can_manage_standalone_lb (admin OR the org owner/can_upload_results). On success we
+  // refetch the list in place (no page reload).
+  const [deleteTarget, setDeleteTarget] = useState<StandaloneLeaderboardHeader | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await standaloneLeaderboardsApi.remove(deleteTarget.id);
+      toast.success(`Deleted "${deleteTarget.name}".`);
+      setDeleteTarget(null);
+      load();
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to delete the leaderboard.",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -172,11 +202,20 @@ export function StandaloneLeaderboardList({
                       {lb.created_at ? formatDate(lb.created_at) : "-"}
                     </TableCell>
                     <TableCell className="p-2 text-xs">
-                      <div className="flex items-center justify-end">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button asChild variant="outline" size="sm">
                           <Link href={`${viewHrefBase}/${lb.id}`}>
                             <IconEye className="size-4" /> View
                           </Link>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteTarget(lb)}
+                          aria-label={`Delete ${lb.name}`}
+                        >
+                          <IconTrash className="size-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -187,6 +226,40 @@ export function StandaloneLeaderboardList({
           </div>
         )}
       </CardContent>
+
+      {/* Delete confirmation. Removes the leaderboard (cascades its participants/matches/
+          results); reusable ghosts are NOT deleted. Refetches the list in place after. */}
+      <Dialog
+        open={deleteTarget !== null}
+        onOpenChange={(o) => !deleting && !o && setDeleteTarget(null)}
+      >
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogTitle>Delete this leaderboard?</DialogTitle>
+          <DialogDescription>
+            {deleteTarget
+              ? `"${deleteTarget.name}" and its participants, matches and results will be
+                 permanently deleted. This cannot be undone.`
+              : ""}
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={deleting}
+              onClick={() => setDeleteTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deleting}
+              onClick={handleDelete}
+            >
+              {deleting && <IconLoader2 className="mr-1 size-4 animate-spin" />}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
