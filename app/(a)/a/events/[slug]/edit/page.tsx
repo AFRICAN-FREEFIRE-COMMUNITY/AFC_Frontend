@@ -375,6 +375,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           prizepool: group.prizepool || "",
           prizepool_cash_value: group.prizepool_cash_value || "",
           prize_distribution: group.prize_distribution || {},
+          // Room name + password start EMPTY on the edit form (owner 2026-06-13):
+          // they are per-session secrets, so the admin re-enters them each time
+          // instead of the form pre-showing the saved value. What is typed here is
+          // what gets saved. room_id (a non-secret label like "Room 1") is kept.
+          room_name: "",
+          room_password: "",
         })),
       }));
 

@@ -453,26 +453,49 @@ export default function CreateEventPage() {
       return;
     }
 
-    const invalidGroup = tempGroups.find(
-      (g) =>
-        !g.playing_date ||
-        !g.playing_time ||
-        !g.group_name.trim() ||
-        g.teams_qualifying < 1 ||
-        g.match_count < 1 ||
-        !g.match_maps ||
-        g.match_maps.length === 0,
-    );
-    if (invalidGroup) {
-      toast.error(
-        "Please complete all group details correctly, including selecting at least one map per group",
+    // Round-robin stages are validated on their BASE GROUPS, not the classic per-group
+    // config (which the backend ignores for this format, and which the modal no longer
+    // shows). A round-robin needs at least two base groups to form a pairing.
+    const isRoundRobinStage = stageModalData.stage_format === "br - round robin";
+    if (isRoundRobinStage) {
+      const baseGroups = stageModalData.round_robin?.round_robin_groups ?? [];
+      if (baseGroups.length < 2) {
+        toast.error("A round-robin stage needs at least two base groups.");
+        return;
+      }
+      if (baseGroups.some((g) => !g.label.trim())) {
+        toast.error("Every base group needs a label.");
+        return;
+      }
+      if (
+        stageModalData.round_robin.generate_schedule &&
+        stageModalData.round_robin.games_per_day < 1
+      ) {
+        toast.error("Games per day must be at least 1.");
+        return;
+      }
+    } else {
+      const invalidGroup = tempGroups.find(
+        (g) =>
+          !g.playing_date ||
+          !g.playing_time ||
+          !g.group_name.trim() ||
+          g.teams_qualifying < 1 ||
+          g.match_count < 1 ||
+          !g.match_maps ||
+          g.match_maps.length === 0,
       );
-      return;
-    }
+      if (invalidGroup) {
+        toast.error(
+          "Please complete all group details correctly, including selecting at least one map per group",
+        );
+        return;
+      }
 
-    if (stageModalData.number_of_groups < 1) {
-      toast.error("A stage must have at least one group.");
-      return;
+      if (stageModalData.number_of_groups < 1) {
+        toast.error("A stage must have at least one group.");
+        return;
+      }
     }
 
     const newStage: StageType = {
