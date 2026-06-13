@@ -3,7 +3,6 @@ import {
   IconBan,
   IconBuilding,
   IconCalendar,
-  IconCash,
   IconChartBarPopular,
   IconFolder,
   IconHome,
@@ -234,21 +233,15 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconScan,
     allowedRoles: ["head_admin"],
   },
+  // Admin Shop is the single shop entry point. The vendor payouts ledger
+  // (app/(a)/a/shop/payouts/page.tsx) used to have its own "Shop Payouts" entry
+  // here; it now lives INSIDE the shop dashboard as the "Vendor Payouts" card in
+  // the Marketplace section (owner request 2026-06-13: "Shop payouts should be
+  // under the shop page"). Route unchanged: /a/shop/payouts.
   {
     label: "Admin Shop",
     slug: "/a/shop",
     icon: IconShoppingCart,
-    allowedRoles: ["head_admin", "shop_admin"],
-  },
-  // Vendor payouts ledger (app/(a)/a/shop/payouts/page.tsx): every VendorPayout
-  // row across both rails (Paystack Transfers + Stripe Connect) with the owed
-  // release/retry actions. Same audience as Admin Shop above (head_admin +
-  // shop_admin), matching the backend require_admin gate on /shop/admin/payouts/.
-  // IconCash reads as "money going out".
-  {
-    label: "Shop Payouts",
-    slug: "/a/shop/payouts",
-    icon: IconCash,
     allowedRoles: ["head_admin", "shop_admin"],
   },
   {

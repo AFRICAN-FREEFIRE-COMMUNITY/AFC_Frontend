@@ -6,17 +6,29 @@
 // page.tsx when the caller has at least one SponsorMember row (GET /sponsors/mine/); members
 // see ONLY their own sponsor(s) - the ydpay rule.
 //
-// FLOW: sponsor switcher (when in several) -> the sponsor's attached events -> one event's
-// drill-down. The drill-down probes GET .../engagement-submissions/ alongside the legacy
-// submissions read:
+// FLOW (owner request 2026-06-13: "under the sponsor dashboard i should be able to see all
+// events assigned to me as a sponsor and then i can decide which to open"):
+//   1. The dashboard OPENS with a FLAT list of ALL events across ALL the caller's sponsor
+//      memberships (every membership's GET /sponsors/<id>/events/ fetched in parallel, rows
+//      merged and tagged with the sponsor they came from). Each row shows the event name,
+//      a sponsor chip, the registrant count and the event status.
+//   2. The sponsor switcher is now an optional FILTER (default "All sponsors"), not a hard
+//      gate: it narrows the merged list client-side and only renders when the member belongs
+//      to several sponsors.
+//   3. Clicking a row opens the existing per-sponsor+event drill-down; the sponsor id rides
+//      on the clicked row, so the drill-down fetches stay exactly as before.
+//
+// The drill-down probes GET .../engagement-submissions/ alongside the legacy submissions read:
 //   - engagements CONFIGURED (P2 wizard wrote entries) -> EngagementSubmissionsPanel.tsx
 //     (same folder): per-engagement pill tabs + the P4 approval queue + scoped CSV.
 //   - NO engagements (or the P3 endpoint is missing on an older backend) -> the legacy
 //     submissions table below, unchanged.
 //
-// HOW IT CONNECTS: lib/sponsors.ts -> afc_sponsors portal endpoints. The legacy table reads
-// the per-competitor sponsor ids (sponsorsApi.submissions); the new surface reads engagement
-// submissions (sponsorsApi.engagementSubmissions) and decides via sponsorsApi.decideSubmission.
+// HOW IT CONNECTS: lib/sponsors.ts -> afc_sponsors portal endpoints. The event list composes
+// sponsorsApi.events(sponsorId) per membership (lib/sponsors.ts is untouched; the sponsor tag
+// is added HERE). The legacy table reads the per-competitor sponsor ids (sponsorsApi
+// .submissions); the new surface reads engagement submissions (sponsorsApi
+// .engagementSubmissions) and decides via sponsorsApi.decideSubmission.
 //
 // Design: mirrors the CURRENT sponsor dashboard idioms (search input, light pill status
 // badges, Card p-0 table, showing-x-of-y footer) per the owner's design-parity feedback.
@@ -69,6 +81,18 @@ import {
   type EngagementSubmissionsPayload,
 } from "./EngagementSubmissionsPanel";
 
+// One row of the merged event list: the backend SponsorEventRow tagged with the sponsor
+// membership it was fetched under, so a click can derive the sponsor id (and the drill-down
+// + CSV filename can name the sponsor) without a separate "selected sponsor" gate.
+interface TaggedEventRow extends SponsorEventRow {
+  sponsor_id: number;
+  sponsor_name: string;
+  sponsor_slug: string;
+}
+
+// The sponsor-filter Select's "no filter" sentinel ("All sponsors", the default).
+const ALL_SPONSORS = "all";
+
 // The CURRENT page's light pill badge, reused verbatim so both systems read identically.
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -91,38 +115,80 @@ function StatusBadge({ status }: { status: string }) {
 
 export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] }) {
   const { user } = useAuth();
-  const [sponsorId, setSponsorId] = useState<number>(sponsors[0].id);
-  const sponsor = sponsors.find((s) => s.id === sponsorId) ?? sponsors[0];
 
-  const [events, setEvents] = useState<SponsorEventRow[] | null>(null);
-  const [openEvent, setOpenEvent] = useState<SponsorEventRow | null>(null);
+  // ── state ──
+  // events: the MERGED flat list across every membership. null = parallel fetch in flight.
+  const [events, setEvents] = useState<TaggedEventRow[] | null>(null);
+  // sponsorFilter: "all" (default) or a sponsor id as a string (Select values are strings).
+  const [sponsorFilter, setSponsorFilter] = useState<string>(ALL_SPONSORS);
+  const [openEvent, setOpenEvent] = useState<TaggedEventRow | null>(null);
   const [rows, setRows] = useState<SponsorSubmissionRow[] | null>(null);
   // P3 probe result. null = in flight. engagements NON-EMPTY -> render the new
   // per-engagement surface (the payload doubles as its page 1); EMPTY -> legacy table.
   const [engData, setEngData] = useState<EngagementSubmissionsPayload | null>(null);
   const [search, setSearch] = useState("");
 
-  // Events of the selected sponsor (reloads on switcher change).
+  // ── load ALL memberships' events in parallel and merge ──
+  // One sponsorsApi.events() call per membership; each result row is tagged with its
+  // sponsor before the lists are flattened. A failing sponsor degrades to an empty list
+  // (one toast for the whole batch) so one bad membership never blanks the dashboard.
   useEffect(() => {
+    let cancelled = false;
+    let anyFailed = false;
     setEvents(null);
     setOpenEvent(null);
-    sponsorsApi
-      .events(sponsorId)
-      .then((res) => setEvents(res.results))
-      .catch(() => {
-        toast.error("Failed to load this sponsor's events.");
-        setEvents([]);
-      });
-  }, [sponsorId]);
+    Promise.all(
+      sponsors.map((s) =>
+        sponsorsApi
+          .events(s.id)
+          .then((res) =>
+            res.results.map(
+              (e): TaggedEventRow => ({
+                ...e,
+                sponsor_id: s.id,
+                sponsor_name: s.name,
+                sponsor_slug: s.slug,
+              }),
+            ),
+          )
+          .catch(() => {
+            anyFailed = true;
+            return [] as TaggedEventRow[];
+          }),
+      ),
+    ).then((perSponsor) => {
+      if (cancelled) return;
+      if (anyFailed) toast.error("Some of your sponsors' events failed to load.");
+      setEvents(perSponsor.flat());
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sponsors]);
 
-  const drillIn = useCallback((e: SponsorEventRow) => {
+  // ── the visible list: merged events, narrowed by the optional sponsor filter ──
+  const visibleEvents = useMemo(() => {
+    if (!events) return [];
+    if (sponsorFilter === ALL_SPONSORS) return events;
+    const id = parseInt(sponsorFilter, 10);
+    return events.filter((e) => e.sponsor_id === id);
+  }, [events, sponsorFilter]);
+
+  // The sponsor entity behind the OPEN event (for the engagement panel's props + the
+  // privacy line). sponsor_id always comes from `sponsors`, so find() always hits; the
+  // ?? fallback only satisfies the type (the page gate guarantees sponsors is non-empty).
+  const openSponsor =
+    sponsors.find((s) => s.id === openEvent?.sponsor_id) ?? sponsors[0];
+
+  // ── drill into one event (sponsor id rides on the clicked row) ──
+  const drillIn = useCallback((e: TaggedEventRow) => {
     setOpenEvent(e);
     setRows(null);
     setEngData(null);
     setSearch("");
     // Legacy read (still the surface for events without engagements).
     sponsorsApi
-      .submissions(sponsorId, e.event_id)
+      .submissions(e.sponsor_id, e.event_id)
       .then((res) => setRows(res.results))
       .catch(() => {
         toast.error("Failed to load submissions.");
@@ -132,7 +198,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
     // no status filter). Errors (e.g. an older backend without the endpoint) fall
     // back silently to the legacy table so the portal never goes blank.
     sponsorsApi
-      .engagementSubmissions(sponsorId, e.event_id, {
+      .engagementSubmissions(e.sponsor_id, e.event_id, {
         limit: ENGAGEMENT_PAGE_SIZE,
         offset: 0,
       })
@@ -148,7 +214,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
           next_offset: null,
         }),
       );
-  }, [sponsorId]);
+  }, []);
 
   const filtered = useMemo(() => {
     if (!rows) return [];
@@ -162,55 +228,80 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
         title={`Welcome, ${user?.full_name || user?.in_game_name || ""}`}
         description={
           openEvent
-            ? `${openEvent.event_name} submissions for ${sponsor.name}`
-            : `Your ${sponsor.name} sponsor dashboard`
+            ? `${openEvent.event_name} submissions for ${openEvent.sponsor_name}`
+            : sponsors.length > 1
+              ? "All events across your sponsors"
+              : `Your ${sponsors[0].name} sponsor dashboard`
         }
       />
 
-      {/* Sponsor switcher (only when the member belongs to several sponsors). */}
+      {/* ── sponsor filter row ──
+          The switcher is an optional FILTER now, not a gate: "All sponsors" is the
+          default and the event list always opens merged. Changing it also pops any
+          open drill-down so the user lands back on the (re)filtered list. Single
+          membership keeps the plain name label, exactly as before. */}
       <div className="flex items-center gap-2 flex-wrap">
         <Badge variant="outline" className="rounded-full border-gold px-2 py-0.5 text-xs" style={{ color: "var(--gold)" }}>
           Sponsor
         </Badge>
         {sponsors.length > 1 ? (
-          <Select value={String(sponsorId)} onValueChange={(v) => setSponsorId(parseInt(v, 10))}>
+          <Select
+            value={sponsorFilter}
+            onValueChange={(v) => {
+              setSponsorFilter(v);
+              setOpenEvent(null);
+            }}
+          >
             <SelectTrigger className="w-56">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value={ALL_SPONSORS}>All sponsors</SelectItem>
               {sponsors.map((s) => (
                 <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         ) : (
-          <span className="text-sm font-semibold">{sponsor.name}</span>
+          <span className="text-sm font-semibold">{sponsors[0].name}</span>
         )}
       </div>
 
       {!openEvent ? (
-        // ── events list ──
+        // ── events list (ALL memberships merged; rows tagged with a sponsor chip) ──
         events === null ? (
           <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground text-sm">
             <IconLoader2 className="size-5 animate-spin" /> Loading your events...
           </div>
-        ) : events.length === 0 ? (
+        ) : visibleEvents.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              No events are attached to {sponsor.name} yet.
+              {events.length === 0
+                ? sponsors.length > 1
+                  ? "No events are attached to your sponsors yet."
+                  : `No events are attached to ${sponsors[0].name} yet.`
+                : "No events for this sponsor yet."}
             </CardContent>
           </Card>
         ) : (
           <div className="flex flex-col gap-2">
-            {events.map((e) => (
+            {visibleEvents.map((e) => (
+              // Key includes the sponsor id: the same event can be attached to two of
+              // the caller's sponsors, and each pairing is its own drill-down.
               <button
-                key={e.event_id}
+                key={`${e.sponsor_id}-${e.event_id}`}
                 type="button"
                 onClick={() => drillIn(e)}
                 className="flex items-center justify-between gap-3 rounded-md border bg-card p-4 text-left hover:border-primary/50"
               >
                 <div>
-                  <div className="font-semibold">{e.event_name}</div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold">{e.event_name}</span>
+                    {/* Sponsor chip: which membership this row belongs to. */}
+                    <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs">
+                      {e.sponsor_name}
+                    </Badge>
+                  </div>
                   <div className="text-xs text-muted-foreground">
                     {e.registrants} registrant{e.registrants !== 1 ? "s" : ""}
                   </div>
@@ -223,7 +314,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
           </div>
         )
       ) : (
-        // ── one event's drill-down ──
+        // ── one event's drill-down (per sponsor+event; sponsor came from the row) ──
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <Button variant="ghost" size="sm" onClick={() => setOpenEvent(null)}>
@@ -237,9 +328,9 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
                 size="sm"
                 onClick={() =>
                   sponsorsApi.submissionsCsv(
-                    sponsorId,
+                    openEvent.sponsor_id,
                     openEvent.event_id,
-                    `${sponsor.slug}-${openEvent.slug || openEvent.event_id}-submissions.csv`,
+                    `${openEvent.sponsor_slug}-${openEvent.slug || openEvent.event_id}-submissions.csv`,
                   )
                 }
               >
@@ -257,8 +348,8 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
             // ── NEW surface (P3/P4): per-engagement tables + approval queue ──
             // key remounts the panel per sponsor+event so tab/filter/page state resets.
             <EngagementSubmissionsPanel
-              key={`${sponsorId}-${openEvent.event_id}`}
-              sponsor={sponsor}
+              key={`${openEvent.sponsor_id}-${openEvent.event_id}`}
+              sponsor={openSponsor}
               event={openEvent}
               initial={engData}
             />

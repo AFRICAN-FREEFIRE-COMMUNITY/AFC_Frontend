@@ -64,6 +64,12 @@ import { env } from "@/lib/env";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
+// "Blacklists" column (owner ask 2026-06-13): shared hook fetches the visible
+// page's organizer-blacklist counts in ONE bulk call; the cell renders them.
+import {
+  useBlacklistCounts,
+  BlacklistCountCell,
+} from "./useBlacklistCounts";
 import axios from "axios";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -512,6 +518,15 @@ export const PlayersAdminContent = () => {
     currentPage * ITEMS_PER_PAGE,
   );
 
+  // Organizer-blacklist counts for the VISIBLE page of players (one bulk call per
+  // page via GET /organizers/admin/blacklist-counts/ - see useBlacklistCounts).
+  // A player's count = their snapshot rows (the follows-the-player rule), so it
+  // matches what the organizer lookup reports for the same user.
+  const blacklistCounts = useBlacklistCounts(
+    "user",
+    paginated.map((p) => p.user_id),
+  );
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterTeam, filterStatus]);
@@ -708,6 +723,8 @@ export const PlayersAdminContent = () => {
                 <TableHead>Wins</TableHead>
                 <TableHead>MVPs</TableHead>
                 <TableHead>Status</TableHead>
+                {/* Organizer blacklists: "N (M active)", red while blocking. */}
+                <TableHead>Blacklists</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -715,7 +732,7 @@ export const PlayersAdminContent = () => {
               {paginated.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="text-center text-muted-foreground py-8"
                   >
                     No players found
@@ -739,6 +756,12 @@ export const PlayersAdminContent = () => {
                       >
                         {player.status === "active" ? "Active" : "Banned"}
                       </Badge>
+                    </TableCell>
+                    {/* How often organizers blacklisted this player (snapshots). */}
+                    <TableCell>
+                      <BlacklistCountCell
+                        counts={blacklistCounts[String(player.user_id)]}
+                      />
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

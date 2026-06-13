@@ -73,6 +73,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { InfoTip } from "@/components/ui/info-tip";
 import { matchesSearch } from "@/lib/search";
+// "Blacklists" column (owner ask 2026-06-13): shared hook fetches the visible
+// page's organizer-blacklist counts in ONE bulk call; the cell renders them.
+import {
+  useBlacklistCounts,
+  BlacklistCountCell,
+} from "./useBlacklistCounts";
 
 // ── Ghost Teams (provisional placeholder teams used by Rankings & Tiering) ───
 // Shape mirrors the backend serialize_ghost() payload (afc_rankings/admin_ghost.py):
@@ -265,6 +271,14 @@ export const TeamsAdminContent = () => {
     currentPage * ITEMS_PER_PAGE,
   );
 
+  // Organizer-blacklist counts for the VISIBLE page of teams (one bulk call per
+  // page via GET /organizers/admin/blacklist-counts/ - see useBlacklistCounts).
+  // Keyed by stringified team_id; rows without history render as a dash.
+  const blacklistCounts = useBlacklistCounts(
+    "team",
+    paginatedTeams.map((team: any) => team.team_id),
+  );
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterTier]);
@@ -337,6 +351,8 @@ export const TeamsAdminContent = () => {
                 <TableHead>Total Wins</TableHead>
                 <TableHead>Total Earnings</TableHead>
                 <TableHead>Status</TableHead>
+                {/* Organizer blacklists: "N (M active)", red while blocking. */}
+                <TableHead>Blacklists</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -362,6 +378,12 @@ export const TeamsAdminContent = () => {
                         <Badge variant="secondary">Active</Badge>
                       )}
                     </TableCell>
+                    {/* How often organizers blacklisted this team (all orgs). */}
+                    <TableCell>
+                      <BlacklistCountCell
+                        counts={blacklistCounts[String(team.team_id)]}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <Button
@@ -385,7 +407,7 @@ export const TeamsAdminContent = () => {
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="text-center py-8 text-muted-foreground"
                   >
                     No teams found

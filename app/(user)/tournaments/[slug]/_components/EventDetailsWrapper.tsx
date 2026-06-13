@@ -96,6 +96,7 @@ import {
   SponsorEngagementForm,
   SponsorEngagementPlayerSection,
   EngagementAnswers,
+  RosterDiscordStatus,
   patchEngagementAnswer,
   isEngagementAnswerComplete,
   countIncompleteEngagements,
@@ -112,6 +113,45 @@ import { QualifiedFromBanner } from "@/components/qualified-from-banner";
 // localStorage key for the saved register-for-event payload, so it survives the Stripe
 // redirect. Keyed by payment_id; the success page reads `${PAID_REG_KEY_PREFIX}${payment_id}`.
 const PAID_REG_KEY_PREFIX = "afc_evt_reg_";
+
+// ── Registration draft resume (owner 2026-06-13: "if any user starts registration on
+// the platform, if they close the page or reload ... they should continue where they
+// stopped even if they have not submitted") ──
+// One draft per event, in localStorage under afc_reg_draft_<event_id>. EventDetailsWrapper
+// persists it on every meaningful change of the registration modal state, restores it
+// SILENTLY into state when the page reopens, and resumes at the saved step when the user
+// clicks Register again (less intrusive than auto-opening the modal on load). Cleared on
+// every successful registration path: the free flow's SUCCESS step, the paid already-paid
+// branch (also lands on SUCCESS), and - for the Stripe round trip, which completes on the
+// /register/success page - by the is_registered sweep when the user next views the event.
+// JSON-safe values only (strings, booleans, arrays, plain objects).
+const REG_DRAFT_KEY_PREFIX = "afc_reg_draft_";
+
+// Where Register drops the user back in: the main RegistrationModals step OR the
+// TeamRegistrationModals step (mid member-selection), whichever was open last.
+interface RegistrationDraftResumePoint {
+  kind: "main" | "team";
+  step: ModalStep | TeamModalStep;
+}
+
+// The full draft shape. Every field mirrors one piece of EventDetailsWrapper state the
+// registration flow collects before submission (see the persist effect for the mapping).
+interface RegistrationDraft {
+  v: 1; // shape version - bump if fields ever change incompatibly
+  resume: RegistrationDraftResumePoint | null;
+  regType: RegistrationType | null;
+  teamId: string | null; // snapshot of the team the roster was picked from
+  selectedMembers: string[];
+  selectedTeamMembersData: TeamMember[];
+  rulesAccepted: boolean;
+  // Legacy single-ID sponsor inputs (events without entity sponsorships).
+  soloSponsorUuid: string;
+  teamSponsorUuids: Record<string, string>;
+  // Sponsor-engagement answer drafts (solo + per rostered player).
+  soloEngagementAnswers: EngagementAnswers;
+  teamEngagementAnswers: Record<string, EngagementAnswers>;
+  savedAt: number;
+}
 
 // Set to true when Discord is required for tournament registration
 const DISCORD_REQUIRED = false;
@@ -1096,7 +1136,10 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
 
   const closeAll = () => {
     setTeamModalStep("CLOSED");
-    setSelectedMembers([]);
+    // NOTE (draft resume, owner 2026-06-13): the member selection is intentionally
+    // KEPT on close. It used to be wiped here, but the registration draft in
+    // localStorage now restores the roster when the user comes back - clearing it
+    // on dismiss would defeat "continue where you stopped".
   };
 
   if (teamModalStep === "CLOSED") return null;
@@ -1334,6 +1377,22 @@ interface ModalProps {
   // True when register-for-event/ answered pending_sponsor_approval (a sponsor
   // with requires_approval must vet the submissions) - flips the SUCCESS copy.
   pendingSponsorApproval?: boolean;
+  // ── Roster Discord auto-verification (owner 2026-06-13, join_group discord) ──
+  // Per-player results from POST events/roster-discord-status/, keyed by
+  // String(user_id). Fetched by the parent's checkRosterDiscordStatus when the
+  // SPONSOR step opens; each SponsorEngagementForm gets its player's row.
+  rosterDiscordStatus: Record<string, RosterDiscordStatus>;
+  // True while that roster check is in flight (the panels show a checking row).
+  isCheckingRosterDiscord: boolean;
+  // Re-runs the roster check (the panels' "Re-check" buttons).
+  onRecheckRosterDiscord: () => void;
+  // The logged-in registrant's user id - the SOLO path picks their own status row.
+  currentUserId: string | null;
+  // ── Registration draft resume ──
+  // True when a saved draft was restored this visit: the TYPE step then shows the
+  // subtle "Clear saved progress" affordance wired to onClearDraft.
+  hasResumableDraft?: boolean;
+  onClearDraft?: () => void;
 }
 
 const RegistrationModals: React.FC<ModalProps> = ({
@@ -1375,6 +1434,12 @@ const RegistrationModals: React.FC<ModalProps> = ({
   teamEngagementAnswers,
   setTeamEngagementAnswers,
   pendingSponsorApproval = false,
+  rosterDiscordStatus,
+  isCheckingRosterDiscord,
+  onRecheckRosterDiscord,
+  currentUserId,
+  hasResumableDraft = false,
+  onClearDraft,
   token,
 }) => {
   const isSoloDisabled = eventDetails.participant_type === "squad";
@@ -1714,6 +1779,19 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 </CardHeader>
               </Card>
             </div>
+            {/* ── Draft resume (owner 2026-06-13) ── subtle start-over affordance,
+                only when a saved draft was restored this visit. Clears the
+                localStorage draft AND the in-memory flow state (onClearDraft =
+                EventDetailsWrapper.clearRegistrationDraft). */}
+            {hasResumableDraft && onClearDraft && (
+              <button
+                type="button"
+                onClick={onClearDraft}
+                className="mx-auto mt-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-destructive transition"
+              >
+                Clear saved progress and start over
+              </button>
+            )}
           </>
         );
 
@@ -1955,6 +2033,13 @@ const RegistrationModals: React.FC<ModalProps> = ({
                           }
                           duplicateKeys={memberDuplicates}
                           idPrefix={`m${member.id}`}
+                          // join_group(discord) auto-verify: this member's
+                          // roster-discord-status row + the shared re-check.
+                          discordStatus={
+                            rosterDiscordStatus[String(member.id)] ?? null
+                          }
+                          discordChecking={isCheckingRosterDiscord}
+                          onRecheckDiscord={onRecheckRosterDiscord}
                         />
                       </SponsorEngagementPlayerSection>
                     );
@@ -1970,6 +2055,14 @@ const RegistrationModals: React.FC<ModalProps> = ({
                       )
                     }
                     idPrefix="solo"
+                    // join_group(discord) auto-verify: the registrant's own row.
+                    discordStatus={
+                      currentUserId
+                        ? (rosterDiscordStatus[currentUserId] ?? null)
+                        : null
+                    }
+                    discordChecking={isCheckingRosterDiscord}
+                    onRecheckDiscord={onRecheckRosterDiscord}
                   />
                 )}
               </div>
@@ -2791,6 +2884,32 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     Record<string, boolean>
   >({});
 
+  // ── Roster Discord auto-verification (owner 2026-06-13) ──
+  // Per-player rows from POST events/roster-discord-status/ keyed String(user_id).
+  // Filled by checkRosterDiscordStatus when the SPONSOR step opens (and on every
+  // "Re-check"); read by the SponsorEngagementForm discord join_group panels.
+  const [rosterDiscordStatus, setRosterDiscordStatus] = useState<
+    Record<string, RosterDiscordStatus>
+  >({});
+  const [isCheckingRosterDiscord, setIsCheckingRosterDiscord] = useState(false);
+
+  // The logged-in registrant's id as a string - the key used everywhere user ids
+  // are map keys (selectedMembers / answers / rosterDiscordStatus).
+  const currentUserId = user?.user_id != null ? String(user.user_id) : null;
+
+  // ── Registration draft resume (owner 2026-06-13) ──
+  // draftRef holds the last saved/restored draft; the persist effect below keeps
+  // localStorage (afc_reg_draft_<event_id>) in sync. hydrated = restore attempted
+  // (writes allowed only after); restored guards the one-shot restore.
+  const regDraftKey = eventDetails?.event_id
+    ? `${REG_DRAFT_KEY_PREFIX}${eventDetails.event_id}`
+    : null;
+  const draftRef = useRef<RegistrationDraft | null>(null);
+  const draftHydratedRef = useRef(false);
+  const draftRestoredRef = useRef(false);
+  // True once a draft was restored this visit: shows the TYPE step's clear button.
+  const [hasResumableDraft, setHasResumableDraft] = useState(false);
+
   // UID prompt state
   const [uidInput, setUidInput] = useState("");
   const [savingUid, setSavingUid] = useState(false);
@@ -3018,6 +3137,113 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     toast.success("AFC Discord server link copied!");
   }, []);
 
+  // ── Roster Discord auto-verification (owner 2026-06-13) ──────────────────────
+  // Calls POST events/roster-discord-status/ (backend
+  // afc_tournament_and_scrims/roster_discord.py) for the SELECTED roster (squad)
+  // or just the registrant (solo), stores the per-player results, and AUTO-FILLS
+  // every discord join_group engagement answer:
+  //   verified player  -> {discord_username: <their Discord username or id>, verified: true}
+  //   anyone else      -> {discord_username: "", verified: false}
+  // isEngagementAnswerComplete (SponsorEngagementForm) gates Continue on
+  // verified === true, so an unverified player blocks the SPONSOR step with the
+  // exact feedback panel shown. Triggered on entering the SPONSOR step (effect
+  // below) and by the per-player "Re-check" buttons.
+  const checkRosterDiscordStatus = useCallback(async () => {
+    if (!token) return;
+    const ids =
+      regType === "team" ? selectedMembers : currentUserId ? [currentUserId] : [];
+    if (ids.length === 0) return;
+
+    setIsCheckingRosterDiscord(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/roster-discord-status/`,
+        { user_ids: ids.map((id) => parseInt(id, 10)) },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const byId: Record<string, RosterDiscordStatus> = {};
+      (res.data.results || []).forEach((r: RosterDiscordStatus) => {
+        byId[String(r.user_id)] = r;
+      });
+      setRosterDiscordStatus(byId);
+
+      // Every discord join_group engagement across the event's sponsorships -
+      // each one gets the same auto-filled answer per player.
+      const discordEngagements: Array<{ sid: number; idx: number }> = [];
+      eventSponsorships.forEach((s) =>
+        s.engagements.forEach((eng, idx) => {
+          if (
+            eng.type === "join_group" &&
+            (eng.platform ?? "").toLowerCase() !== "whatsapp"
+          ) {
+            discordEngagements.push({ sid: s.sponsorship_id, idx });
+          }
+        }),
+      );
+      if (discordEngagements.length === 0) return;
+
+      const patchFor = (st: RosterDiscordStatus | undefined) => {
+        const verified = !!st && st.discord_connected && st.in_server === true;
+        return {
+          discord_username: verified
+            ? st!.discord_username || st!.discord_id || ""
+            : "",
+          verified,
+        };
+      };
+
+      if (regType === "team") {
+        setTeamEngagementAnswers((prev) => {
+          const next = { ...prev };
+          ids.forEach((uid) => {
+            const p = patchFor(byId[uid]);
+            let ans = next[uid] ?? {};
+            discordEngagements.forEach(({ sid, idx }) => {
+              ans = patchEngagementAnswer(ans, sid, idx, p);
+            });
+            next[uid] = ans;
+          });
+          return next;
+        });
+      } else {
+        const p = patchFor(currentUserId ? byId[currentUserId] : undefined);
+        setSoloEngagementAnswers((prev) => {
+          let next = prev;
+          discordEngagements.forEach(({ sid, idx }) => {
+            next = patchEngagementAnswer(next, sid, idx, p);
+          });
+          return next;
+        });
+      }
+    } catch (err: any) {
+      console.error("Error checking roster Discord status:", err);
+      toast.error(
+        err.response?.data?.message ||
+          "Could not verify Discord status. Use the Re-check button to try again.",
+      );
+    } finally {
+      setIsCheckingRosterDiscord(false);
+    }
+  }, [token, regType, selectedMembers, currentUserId, eventSponsorships]);
+
+  // Fire the roster Discord check the moment the SPONSOR step opens, but only
+  // when a sponsorship actually asks for a discord join_group. modalStep is the
+  // only dep on purpose (same idiom as the legacy fetchAllSponsorIds effect):
+  // re-running on every keystroke in the answers would spam the Discord API.
+  useEffect(() => {
+    if (modalStep !== "SPONSOR") return;
+    const needsDiscord = eventSponsorships.some((s) =>
+      s.engagements.some(
+        (e) =>
+          e.type === "join_group" &&
+          (e.platform ?? "").toLowerCase() !== "whatsapp",
+      ),
+    );
+    if (!needsDiscord) return;
+    checkRosterDiscordStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modalStep]);
+
   useEffect(() => {
     // Fix malformed URLs where backend uses ? instead of & (e.g. ?invite_token=...?discord=connected)
     const fullQuery = window.location.search;
@@ -3196,6 +3422,164 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     };
   }, [eventDetails?.event_id]);
 
+  // ── Registration draft resume: remove ────────────────────────────────────────
+  // Drops the saved draft + the in-memory copy. Used by the SUCCESS clear, the
+  // is_registered sweep, and the TYPE step's "start over" affordance.
+  const removeRegDraft = useCallback(() => {
+    if (regDraftKey) {
+      try {
+        localStorage.removeItem(regDraftKey);
+      } catch {
+        // localStorage can throw in private mode - nothing to clean then anyway.
+      }
+    }
+    draftRef.current = null;
+    setHasResumableDraft(false);
+  }, [regDraftKey]);
+
+  // ── Registration draft resume: RESTORE (one-shot per visit) ──────────────────
+  // When the event loads for a logged-in, NOT-yet-registered user, silently put a
+  // saved draft back into state. The modal is NOT auto-opened (less intrusive);
+  // clicking Register resumes at the saved step (see handleRegisterClick).
+  // If the user IS registered, any leftover draft is stale - this also covers the
+  // paid Stripe flow, whose registration completes on /register/success: the next
+  // time this page loads, is_registered is true and the draft is swept away.
+  useEffect(() => {
+    if (!eventDetails?.event_id || !regDraftKey) return;
+    if (eventDetails.is_registered) {
+      draftRestoredRef.current = true;
+      draftHydratedRef.current = true;
+      removeRegDraft();
+      return;
+    }
+    if (draftRestoredRef.current) return;
+    // Not logged in yet: allow persistence (inert - nothing meaningful exists
+    // without a session) but hold the restore until the token arrives.
+    if (!token) {
+      draftHydratedRef.current = true;
+      return;
+    }
+    draftRestoredRef.current = true;
+    try {
+      const raw = localStorage.getItem(regDraftKey);
+      if (raw) {
+        const draft = JSON.parse(raw) as RegistrationDraft;
+        if (draft && draft.v === 1) {
+          // Restore every collected field silently. Each setter mirrors one
+          // RegistrationDraft field (see the persist effect for the save side).
+          if (draft.regType) setRegType(draft.regType);
+          if (Array.isArray(draft.selectedMembers))
+            setSelectedMembers(draft.selectedMembers);
+          if (Array.isArray(draft.selectedTeamMembersData))
+            setSelectedTeamMembersData(draft.selectedTeamMembersData);
+          setRulesAccepted(!!draft.rulesAccepted);
+          setSoloSponsorUuid(draft.soloSponsorUuid || "");
+          setTeamSponsorUuids(draft.teamSponsorUuids || {});
+          setSoloEngagementAnswers(draft.soloEngagementAnswers || {});
+          setTeamEngagementAnswers(draft.teamEngagementAnswers || {});
+          draftRef.current = draft;
+          setHasResumableDraft(true);
+        }
+      }
+    } catch {
+      // Corrupt/old draft - ignore it; the persist effect will overwrite.
+    }
+    draftHydratedRef.current = true;
+  }, [
+    eventDetails?.event_id,
+    eventDetails?.is_registered,
+    token,
+    regDraftKey,
+    removeRegDraft,
+  ]);
+
+  // ── Registration draft resume: PERSIST (every meaningful change) ─────────────
+  // Saves the whole collected flow state to localStorage whenever anything the
+  // registration collects changes. Runs only after the restore attempt
+  // (draftHydratedRef) so an empty first render can't clobber a saved draft.
+  useEffect(() => {
+    if (!draftHydratedRef.current || !regDraftKey || !eventDetails?.event_id)
+      return;
+    if (eventDetails.is_registered) return;
+    // SUCCESS = registration done (free flow + the paid already-paid branch both
+    // land here): the draft has served its purpose.
+    if (modalStep === "SUCCESS") {
+      removeRegDraft();
+      return;
+    }
+
+    // Resume point = whichever dialog is open NOW; when both are closed (the
+    // user dismissed mid-flow) keep the LAST open step from the previous save so
+    // Register still drops them back where they stopped. TYPE is excluded - it's
+    // the natural entry step, resuming "at TYPE" is just a normal start.
+    const resume: RegistrationDraftResumePoint | null =
+      teamModalStep !== "CLOSED"
+        ? { kind: "team", step: teamModalStep }
+        : modalStep !== "CLOSED" && modalStep !== "TYPE"
+          ? { kind: "main", step: modalStep }
+          : (draftRef.current?.resume ?? null);
+
+    // "Meaningful" = the user actually started registering (picked a type or got
+    // past TYPE). Otherwise write nothing - this also keeps the "Clear saved
+    // progress" reset from instantly re-saving an empty draft.
+    if (regType === null && resume === null) return;
+
+    const draft: RegistrationDraft = {
+      v: 1,
+      resume,
+      regType,
+      teamId: userTeam?.team_id ?? null,
+      selectedMembers,
+      selectedTeamMembersData,
+      rulesAccepted,
+      soloSponsorUuid,
+      teamSponsorUuids,
+      soloEngagementAnswers,
+      teamEngagementAnswers,
+      savedAt: Date.now(),
+    };
+    draftRef.current = draft;
+    try {
+      localStorage.setItem(regDraftKey, JSON.stringify(draft));
+    } catch {
+      // Private mode / quota: resume simply won't survive a reload - non-fatal.
+    }
+  }, [
+    modalStep,
+    teamModalStep,
+    regType,
+    selectedMembers,
+    selectedTeamMembersData,
+    rulesAccepted,
+    soloSponsorUuid,
+    teamSponsorUuids,
+    soloEngagementAnswers,
+    teamEngagementAnswers,
+    userTeam?.team_id,
+    eventDetails?.event_id,
+    eventDetails?.is_registered,
+    regDraftKey,
+    removeRegDraft,
+  ]);
+
+  // ── Registration draft resume: START OVER ────────────────────────────────────
+  // The TYPE step's subtle "Clear saved progress and start over" button. Wipes
+  // the saved draft AND resets the in-memory flow state so nothing leaks into a
+  // fresh registration.
+  const clearRegistrationDraft = useCallback(() => {
+    removeRegDraft();
+    setRegType(null);
+    setSelectedMembers([]);
+    setSelectedTeamMembersData([]);
+    setRulesAccepted(false);
+    setSoloSponsorUuid("");
+    setTeamSponsorUuids({});
+    setSoloEngagementAnswers({});
+    setTeamEngagementAnswers({});
+    setTeamModalStep("CLOSED");
+    toast.info("Saved registration progress cleared");
+  }, [removeRegDraft]);
+
   useEffect(() => {
     // Wait until auth has fully resolved before fetching.
     // This prevents the public endpoint from being called first and then
@@ -3258,6 +3642,24 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       }
     }
 
+    // ── Draft resume (owner 2026-06-13) ── a restored draft reopens the flow at
+    // the step where the user stopped instead of restarting at TYPE. The state
+    // behind that step (regType / roster / answers / rules) was already restored
+    // silently on page load, so the step renders exactly as they left it.
+    const draft = draftRef.current;
+    if (draft?.resume) {
+      toast.info("Resuming your registration where you stopped");
+      if (draft.resume.kind === "team") {
+        // Mid member-selection: reopen the team dialog. userTeam is normally
+        // fetched on mount; fetch here only if it never arrived.
+        if (!userTeam) await fetchUserTeam();
+        setTeamModalStep(draft.resume.step as TeamModalStep);
+      } else {
+        setModalStep(draft.resume.step as ModalStep);
+      }
+      return;
+    }
+
     setModalStep("TYPE");
   }, [
     eventDetails,
@@ -3266,6 +3668,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     checkInviteTokenStatus,
     userTeam,
     isUserBanned,
+    fetchUserTeam,
   ]);
 
   const handleSelectType = useCallback(
@@ -4072,7 +4475,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           Sits right under the registration status on purpose. NOT gated to the
           captain: every rostered player has their own submissions to track. The
           card hides itself when the user has no submissions for this event. */}
-      {token && eventDetails.is_registered && eventSponsorships.length > 0 && (
+      {/* NOT gated on is_registered: a pending-sponsor-approval competitor reads
+          is_registered=false yet is exactly who must see their submission status
+          (found in the 2026-06-13 Chrome walk). The card self-hides when the
+          caller has no submissions, so mounting on any logged-in viewer is safe. */}
+      {token && eventSponsorships.length > 0 && (
         <SponsorRequirementsCard eventId={eventDetails.event_id} />
       )}
 
@@ -4359,6 +4766,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         teamEngagementAnswers={teamEngagementAnswers}
         setTeamEngagementAnswers={setTeamEngagementAnswers}
         pendingSponsorApproval={pendingSponsorApproval}
+        rosterDiscordStatus={rosterDiscordStatus}
+        isCheckingRosterDiscord={isCheckingRosterDiscord}
+        onRecheckRosterDiscord={checkRosterDiscordStatus}
+        currentUserId={currentUserId}
+        hasResumableDraft={hasResumableDraft}
+        onClearDraft={clearRegistrationDraft}
       />
     </div>
   );

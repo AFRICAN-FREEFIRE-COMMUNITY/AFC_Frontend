@@ -17,6 +17,9 @@
 //     StockItem / SummaryOrder interfaces below).
 //   • /a/shop/orders   (full order tracker: "View Orders" link + per-order drill-in)
 //   • /a/shop/inventory (stock management: "Manage Inventory" link)
+//   • /a/shop/payouts  (vendor payouts ledger: "Vendor Payouts" card below; this
+//     card is the payouts entry point now that the standalone sidebar link was
+//     folded into this page, owner request 2026-06-13)
 //
 // NOTE on "Total Revenue" / "Subscriptions" cards: those stay as static 0 placeholders.
 // The only revenue endpoint (get_total_revenue_generated) is COUPON-scoped (needs a
@@ -46,6 +49,7 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import {
+  IconCash,
   IconCurrencyDollar,
   IconPackage,
   IconUsers,
@@ -250,12 +254,15 @@ export default function AdminShopPage() {
       </div>
 
       {/* ── Marketplace section ──
-          Entry points to the two vendor-marketplace admin surfaces (Phase B1):
-          Manage Vendors (/a/shop/vendors) and Product Approvals (/a/shop/approvals).
+          Entry points to the three vendor-marketplace admin surfaces:
+          Manage Vendors (/a/shop/vendors), Product Approvals (/a/shop/approvals)
+          and Vendor Payouts (/a/shop/payouts). Payouts moved here from its own
+          sidebar entry (owner request 2026-06-13: "Shop payouts should be under
+          the shop page"); the route itself is unchanged, only the entry point.
           Mirrors the existing dashboard card idiom (Card + CardHeader/Content +
           outline Button asChild Link) used by the "Your Orders" / "Manage Inventory"
           cards above and below, so these read as the same surface. */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
         {/* Manage Vendors → /a/shop/vendors (lib/marketplaceAdmin.ts cluster A) */}
         <Card data-tour="shop-dashboard-vendors-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -293,6 +300,30 @@ export default function AdminShopPage() {
             </p>
             <Button asChild variant="outline" size="sm">
               <Link href="/a/shop/approvals">
+                Open
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Vendor Payouts → /a/shop/payouts (lib/marketplaceAdmin.ts, Phase B3 ledger).
+            Same audience as this page (head_admin + shop_admin); replaces the old
+            "Shop Payouts" sidebar entry in constants/nav-links.ts. */}
+        <Card data-tour="shop-dashboard-payouts-card">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <IconCash className="h-4 w-4 text-muted-foreground" />
+              Vendor Payouts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground mb-3">
+              Track every vendor payout across Paystack and Stripe, and release
+              or retry owed payouts.
+            </p>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/a/shop/payouts">
                 Open
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

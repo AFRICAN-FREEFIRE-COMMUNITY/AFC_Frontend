@@ -16,9 +16,16 @@
 //   create_account - "Create your account" external link to signup_url +
 //                    username input. Payload {username}.
 //   join_group     - "Join the group" external link to invite_url. WhatsApp
-//                    collects country code (+234 default) + phone; Discord
-//                    collects a Discord username. Payload {phone, country_code}
-//                    or {discord_username}.
+//                    collects country code (+234 default) + phone; Discord is
+//                    AUTO-VERIFIED (owner 2026-06-13): no manual username input.
+//                    The parent calls POST events/roster-discord-status/ for the
+//                    roster (backend afc_tournament_and_scrims/roster_discord.py)
+//                    and passes this player's result in via the discordStatus
+//                    prop; the form renders a green/red/orange verification
+//                    panel + a re-check button. Payload {phone, country_code}
+//                    or {discord_username, verified: true} - the verified flag
+//                    and username are auto-filled by the parent
+//                    (EventDetailsWrapper.applyDiscordAutofill), never typed.
 //
 // HOW IT CONNECTS:
 //   - EventDetailsWrapper renders this form once for a solo registrant, or
@@ -37,9 +44,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState } from "react";
-import { ChevronDown, ExternalLink } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  ChevronDown,
+  ExternalLink,
+  RefreshCw,
+  XCircle,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,6 +101,25 @@ export const patchEngagementAnswer = (
     },
   },
 });
+
+// ── Roster Discord status (join_group discord auto-verification) ─────────────
+// ONE player's row from POST events/roster-discord-status/ (backend
+// afc_tournament_and_scrims/roster_discord.py). Fetched by EventDetailsWrapper
+// (checkRosterDiscordStatus) for the whole roster and passed per player into
+// this form via the discordStatus prop. in_server semantics:
+//   true  -> the bot confirmed the player is in the AFC Discord server
+//   false -> connected but NOT in the server (orange state)
+//   null  -> not checkable: Discord not connected, or the live check failed
+//            (error carries the reason).
+export interface RosterDiscordStatus {
+  user_id: number;
+  username: string | null;
+  discord_connected: boolean;
+  discord_id: string | null;
+  discord_username: string | null;
+  in_server: boolean | null;
+  error: string | null;
+}
 
 // WhatsApp join_group default dialing code (owner audience is mostly Nigeria).
 const DEFAULT_COUNTRY_CODE = "+234";
@@ -156,9 +190,13 @@ export const isEngagementAnswerComplete = (
       return String(a.username ?? "").trim() !== "";
     case "join_group":
       // country_code always has the +234 default, so only the phone gates.
+      // Discord: the answer is only complete once the roster-discord-status
+      // check verified the player (connected + in the AFC server). The parent
+      // auto-fills {discord_username, verified: true} on a green result, so an
+      // unverified player BLOCKS Continue with the panel's feedback visible.
       return (engagement.platform ?? "").toLowerCase() === "whatsapp"
         ? String(a.phone ?? "").trim() !== ""
-        : String(a.discord_username ?? "").trim() !== "";
+        : a.verified === true;
     default:
       // Unknown future type: don't block registration client-side; the server
       // is the source of truth (sponsor_submission_invalid).
@@ -237,6 +275,11 @@ export const buildEngagementSubmissionPayload = (
     case "create_account":
       return { username: String(a.username ?? "").trim() };
     case "join_group":
+      // Discord: discord_username + verified are auto-filled from the
+      // roster-discord-status check (the player's stored Discord username, or
+      // their Discord id as fallback) - never typed by the registrant. The
+      // backend join_group validator only requires a non-empty
+      // discord_username; the extra verified flag is informational.
       return (engagement.platform ?? "").toLowerCase() === "whatsapp"
         ? {
             phone: String(a.phone ?? "").trim(),
@@ -244,7 +287,10 @@ export const buildEngagementSubmissionPayload = (
               a.country_code ?? DEFAULT_COUNTRY_CODE,
             ).trim(),
           }
-        : { discord_username: String(a.discord_username ?? "").trim() };
+        : {
+            discord_username: String(a.discord_username ?? "").trim(),
+            verified: a.verified === true,
+          };
     default:
       return {};
   }
@@ -309,6 +355,137 @@ const EngagementLink: React.FC<{ href?: string; children: React.ReactNode }> =
     );
   };
 
+// ── Discord verification panel (join_group discord) ──────────────────────────
+// The per-player feedback surface for the auto-verification: one colored row in
+// the DISCORD_STATUS-step idiom (green = connected + in server, red = not
+// connected, orange = connected but not in the server, yellow = check failed)
+// plus a Re-check button that re-runs the parent's roster check. Rendered by
+// the join_group(discord) case above; the Continue gate reads the matching
+// auto-filled answer, NOT this panel.
+const DiscordVerificationPanel: React.FC<{
+  status: RosterDiscordStatus | null;
+  checking: boolean;
+  onRecheck?: () => void;
+}> = ({ status, checking, onRecheck }) => {
+  // Re-check affordance, shown under every non-checking state.
+  const recheckButton = onRecheck ? (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="h-7 px-2 text-xs"
+      onClick={onRecheck}
+      disabled={checking}
+    >
+      <RefreshCw className={`size-3 mr-1 ${checking ? "animate-spin" : ""}`} />
+      {status ? "Re-check" : "Check Discord"}
+    </Button>
+  ) : null;
+
+  if (checking) {
+    return (
+      <div className="p-3 rounded-md border border-input bg-background/50 flex items-center gap-2">
+        <RefreshCw className="size-4 animate-spin text-muted-foreground flex-shrink-0" />
+        <p className="text-xs text-muted-foreground">
+          Checking Discord connection and server membership...
+        </p>
+      </div>
+    );
+  }
+
+  // No result yet (e.g. the auto-check on opening the step failed silently).
+  if (!status) {
+    return (
+      <div className="p-3 rounded-md border border-input bg-background/50 space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Discord is verified automatically. Run the check to confirm this
+          player has connected Discord and joined the server.
+        </p>
+        {recheckButton}
+      </div>
+    );
+  }
+
+  const verified = status.discord_connected && status.in_server === true;
+  const displayName = status.discord_username || status.discord_id || "";
+
+  // ── green: connected AND in the server ──
+  if (verified) {
+    return (
+      <div className="p-3 rounded-md border border-green-500/50 bg-green-500/10 flex items-center justify-between gap-2">
+        <div className="flex items-start gap-2">
+          <CheckCircle className="size-4 text-green-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-green-400">
+            Connected and in the server ({displayName})
+          </p>
+        </div>
+        {recheckButton}
+      </div>
+    );
+  }
+
+  // ── red: Discord never connected on the AFC profile ──
+  if (!status.discord_connected) {
+    return (
+      <div className="p-3 rounded-md border border-red-500/50 bg-red-500/10 space-y-2">
+        <div className="flex items-start gap-2">
+          <XCircle className="size-4 text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-medium text-red-400">
+              Has not connected Discord
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {status.error
+                ? status.error
+                : "This player must link their Discord account on their AFC profile, then re-check."}
+            </p>
+          </div>
+        </div>
+        {recheckButton}
+      </div>
+    );
+  }
+
+  // ── orange: connected but the bot could not find them in the server ──
+  if (status.in_server === false) {
+    return (
+      <div className="p-3 rounded-md border border-orange-500/50 bg-orange-500/10 space-y-2">
+        <div className="flex items-start gap-2">
+          <AlertTriangle className="size-4 text-orange-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-medium text-orange-400">
+              Connected but has NOT joined the server
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Use the &quot;Join the group&quot; link above
+              {displayName ? ` as ${displayName}` : ""}, then re-check.
+            </p>
+          </div>
+        </div>
+        {recheckButton}
+      </div>
+    );
+  }
+
+  // ── yellow: connected, but the live Discord check errored (in_server null) ──
+  return (
+    <div className="p-3 rounded-md border border-yellow-500/50 bg-yellow-500/10 space-y-2">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="size-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-xs font-medium text-yellow-400">
+            Could not verify server membership
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {status.error || "The Discord check failed. Try again."}
+          </p>
+        </div>
+      </div>
+      {recheckButton}
+    </div>
+  );
+};
+
 // ── The form itself ───────────────────────────────────────────────────────────
 interface SponsorEngagementFormProps {
   // The event's sponsorships (sponsorsApi.forEvent results), already non-empty.
@@ -327,6 +504,15 @@ interface SponsorEngagementFormProps {
   // Unique prefix for input ids so the same form repeated per player keeps
   // htmlFor/id pairs unique ("solo", "m<user_id>", ...).
   idPrefix: string;
+  // ── join_group(discord) auto-verification (owner 2026-06-13) ──
+  // THIS player's roster-discord-status result (null until the parent's check
+  // returns). Drives the verification panel rendered instead of a manual
+  // Discord username input.
+  discordStatus?: RosterDiscordStatus | null;
+  // True while the parent's roster check is in flight (shows the checking row).
+  discordChecking?: boolean;
+  // Re-runs the parent's roster check (the panel's "Re-check" button).
+  onRecheckDiscord?: () => void;
 }
 
 export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
@@ -335,6 +521,9 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
   onAnswerChange,
   duplicateKeys,
   idPrefix,
+  discordStatus = null,
+  discordChecking = false,
+  onRecheckDiscord,
 }) => {
   // Renders the type-specific input block for one engagement.
   const renderEngagement = (
@@ -458,7 +647,7 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
           </div>
         );
 
-      // ── join_group: invite link + (WhatsApp: code+phone | Discord: username) ──
+      // ── join_group: invite link + (WhatsApp: code+phone | Discord: auto-verify) ──
       case "join_group": {
         const isWhatsapp =
           (engagement.platform ?? "").toLowerCase() === "whatsapp";
@@ -504,11 +693,15 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
                 </p>
               </>
             ) : (
-              <Input
-                id={inputId}
-                placeholder="Your Discord username"
-                value={answer.discord_username || ""}
-                onChange={(e) => patch({ discord_username: e.target.value })}
+              // Discord: AUTO-VERIFIED panel (owner 2026-06-13) - replaces the
+              // old manual username input. The status comes from the parent's
+              // POST events/roster-discord-status/ call; the matching answer
+              // {discord_username, verified} is auto-filled there too, so this
+              // block is purely the feedback surface + the re-check trigger.
+              <DiscordVerificationPanel
+                status={discordStatus}
+                checking={discordChecking}
+                onRecheck={onRecheckDiscord}
               />
             )}
           </div>

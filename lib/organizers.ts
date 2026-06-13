@@ -259,6 +259,20 @@ export const organizersApi = {
     offset?: number;
   }) => aGet("admin/blacklists/", params),
 
+  // adminBlacklistCounts - GET admin/blacklist-counts/?team_ids=1,2,3 | ?user_ids=4,5,6 ->
+  // { counts: { "<id>": { total, active } } }. PLATFORM-ADMIN ONLY (same gate as
+  // adminListBlacklists). Pass EXACTLY ONE of team_ids / user_ids as a comma-separated id
+  // string (max 200; callers only ever send one table page). Semantics mirror
+  // lookupBlacklists exactly: total = blacklist rows for a team / snapshot rows for a
+  // player; active = blocking RIGHT NOW (live expiry; an individually-lifted player does
+  // not count). Every requested id comes back (zeros when never blacklisted), so callers
+  // need no missing-key logic. ONE call per table page decorates the "Blacklists" column
+  // on the admin Teams & Players tables - CONSUMED BY the shared useBlacklistCounts hook
+  // (app/(a)/a/_components/useBlacklistCounts.tsx), used by TeamsAdminContent.tsx +
+  // PlayersAdminContent.tsx.
+  adminBlacklistCounts: (params: { team_ids?: string; user_ids?: string }) =>
+    aGet("admin/blacklist-counts/", params),
+
   // ── PUBLIC - public org page (NO auth header) ────────────────────────────
   getOrganizationPublic: (slug: string) => pGet(`get-organization-public/${slug}/`),
   // Public organizer DIRECTORY (NO auth header) - backs the "Organizers" tab on

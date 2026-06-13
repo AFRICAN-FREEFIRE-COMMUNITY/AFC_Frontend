@@ -16,7 +16,7 @@
 //
 // Design: house admin idioms (Card, compact table, outline rounded-full badges, dialogs).
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
@@ -87,6 +87,11 @@ export function LinkedEventsCard({
   const [mergeQuery, setMergeQuery] = useState("");
   const [mergeSources, setMergeSources] = useState<Array<{ event_id: number; event_name: string }>>([]);
   const [mergeReport, setMergeReport] = useState<ImportReportRow[] | null>(null);
+  // A merge changes the page's registration data (counts, lists) which this card does not
+  // own, so the merged competitors "did not show until refresh" (owner 2026-06-13). Full
+  // reload when the dialog closes after a successful merge (the AddTeamsModal idiom),
+  // AFTER the admin has read the per-source report.
+  const mergedRef = useRef(false);
 
   // ── chain map state (linking P3): the whole qualification graph around this event ──
   const [chainOpen, setChainOpen] = useState(false);
@@ -242,6 +247,7 @@ export function LinkedEventsCard({
       const res = await eventLinksApi.importCompetitors(
         eventId, mergeSources.map((s) => s.event_id),
       );
+      mergedRef.current = true; // page data is stale now: reload when the dialog closes
       setMergeReport(res.report);
       const total = res.report.reduce((n, r) => n + r.imported, 0);
       toast.success(`Merged ${total} competitor${total === 1 ? "" : "s"} into this event.`);
@@ -628,7 +634,16 @@ export function LinkedEventsCard({
       </Dialog>
 
       {/* ── merge dialog (Import from events) ── */}
-      <Dialog open={mergeOpen} onOpenChange={(o) => !busy && setMergeOpen(o)}>
+      <Dialog
+        open={mergeOpen}
+        onOpenChange={(o) => {
+          if (busy) return;
+          setMergeOpen(o);
+          // Closing after a successful merge: the page's registration counts/lists are
+          // stale (this card does not own them), so hard-reload, AddTeamsModal-style.
+          if (!o && mergedRef.current) window.location.reload();
+        }}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Import competitors from other events</DialogTitle>
@@ -704,7 +719,14 @@ export function LinkedEventsCard({
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" disabled={busy} onClick={() => setMergeOpen(false)}>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => {
+                setMergeOpen(false);
+                if (mergedRef.current) window.location.reload();
+              }}
+            >
               {mergeReport ? "Close" : "Cancel"}
             </Button>
             <Button disabled={busy || mergeSources.length === 0} onClick={handleMerge}>

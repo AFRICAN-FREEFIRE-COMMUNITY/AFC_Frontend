@@ -29,9 +29,11 @@
 //   • lib/marketplaceAdmin.ts  → the typed client wrapping
 //     afc_shop/connect.py (admin_list_vendor_payouts / admin_release_owed_payouts)
 //     and afc_shop/paystack_payout.py (admin_retry_owed_paystack_payouts).
-//   • constants/nav-links.ts   → the "Shop Payouts" admin sidebar entry points here.
-//   • /a/shop                  → the Admin Shop dashboard (PageHeader `back` returns
-//     there); /a/shop/vendors is where the vendors being paid are managed.
+//   • /a/shop                  → the Admin Shop dashboard's "Vendor Payouts" card
+//     (Marketplace section) is the entry point here. The old standalone "Shop
+//     Payouts" sidebar entry in constants/nav-links.ts was removed (owner request
+//     2026-06-13: payouts live under the shop page). PageHeader `back` returns to
+//     /a/shop; /a/shop/vendors is where the vendors being paid are managed.
 //   • backend models: VendorPayout (the ledger row), Vendor.payout_provider (the
 //     rail badge), Order (the order each payout settles).
 // ─────────────────────────────────────────────────────────────────────────────
