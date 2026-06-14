@@ -216,6 +216,16 @@ export default function EditLeaderboardPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Registered playing roster per team: tournament_team_id -> {team_name, members[]}.
+  // Sourced from get-event-details (tournament_teams[].members) the SAME way
+  // ManualMatchResultStep does. The leaderboard's saved stats often carry no per-player
+  // breakdown (stats[].players empty), which made the inline Player Stats section show
+  // "No player data available". We overlay any saved per-player kills onto this roster so a
+  // team's registered players ALWAYS show, pre-filled. (bug fix 2026-06-15)
+  const [rosterByTeam, setRosterByTeam] = useState<
+    Map<number, { team_name: string; members: { player_id: number; username: string }[] }>
+  >(new Map());
+
   // Navigation state
   const [selectedStageId, setSelectedStageId] = useState<string>("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -327,6 +337,46 @@ export default function EditLeaderboardPage({
     } catch {}
   };
 
+  // Pull the registered playing roster (per team) for this event. Mirrors
+  // ManualMatchResultStep: POST get-event-details {slug} -> event_details.tournament_teams[]
+  // each with members[]{player_id, username}. Stored in rosterByTeam so the group-change effect
+  // can overlay saved stats onto the registered players. Team mode only (solo has no team roster).
+  const fetchRoster = async (slug: string) => {
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ slug }),
+        },
+      );
+      const data = await res.json();
+      const details = data.event_details ?? data;
+      const teams: any[] = details.tournament_teams ?? [];
+      const map = new Map<
+        number,
+        { team_name: string; members: { player_id: number; username: string }[] }
+      >();
+      for (const tt of teams) {
+        if (tt?.tournament_team_id == null) continue;
+        map.set(tt.tournament_team_id, {
+          team_name: tt.team_name ?? "-",
+          members: (tt.members ?? []).map((m: any) => ({
+            player_id: m.player_id,
+            username: m.username,
+          })),
+        });
+      }
+      setRosterByTeam(map);
+    } catch {
+      // Non-fatal: fall back to whatever per-player stats the leaderboard saved.
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [id, token]);
@@ -337,6 +387,14 @@ export default function EditLeaderboardPage({
       fetchEventSlug();
     }
   }, [eventData]);
+
+  // Once we know the slug and it's a team event, load the registered roster so the
+  // Player Stats section can show each team's players (overlaying any saved kills).
+  useEffect(() => {
+    if (eventSlug && participantType === "team") {
+      fetchRoster(eventSlug);
+    }
+  }, [eventSlug, participantType]);
 
   // When stage changes, reset group to first
   useEffect(() => {
@@ -368,9 +426,38 @@ export default function EditLeaderboardPage({
 
     for (const m of groupMatches) {
       initialRows[m.match_id] = (m.stats ?? []).map(statToEditRow);
-      initialPlayerGroups[m.match_id] = (m.stats ?? []).map(
-        statToTeamPlayerGroup,
-      );
+      // Build each team's player rows from the REGISTERED ROSTER when we have it,
+      // overlaying any saved per-player kills/damage/assists. Falls back to the saved
+      // stats' players[] (statToTeamPlayerGroup) when the roster isn't loaded yet or the
+      // team has no registered members. This is what makes a team's 6 players show up
+      // even when the leaderboard only saved team-level placements. (bug fix 2026-06-15)
+      initialPlayerGroups[m.match_id] = (m.stats ?? []).map((stat) => {
+        const teamId = stat.tournament_team_id ?? 0;
+        const roster = rosterByTeam.get(teamId);
+        if (!roster || roster.members.length === 0) {
+          return statToTeamPlayerGroup(stat);
+        }
+        // Index saved per-player stats by user id so we can overlay them onto the roster.
+        const savedByUid = new Map<number, RawPlayer>();
+        for (const p of stat.players ?? []) {
+          if (p?.player_id != null) savedByUid.set(p.player_id, p);
+        }
+        return {
+          teamId,
+          teamName: stat.team_name ?? roster.team_name ?? "-",
+          players: roster.members.map((mem) => {
+            const sp = savedByUid.get(mem.player_id);
+            return {
+              player_id: mem.player_id,
+              username: mem.username,
+              kills: sp?.kills ?? 0,
+              damage: sp?.damage ?? 0,
+              assists: sp?.assists ?? 0,
+              played: true,
+            };
+          }),
+        };
+      });
     }
 
     setEditRows(initialRows);
@@ -401,7 +488,7 @@ export default function EditLeaderboardPage({
       };
     }
     setMatchScoring(initialMatchScoring);
-  }, [selectedGroupId, eventData]);
+  }, [selectedGroupId, eventData, rosterByTeam]);
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 

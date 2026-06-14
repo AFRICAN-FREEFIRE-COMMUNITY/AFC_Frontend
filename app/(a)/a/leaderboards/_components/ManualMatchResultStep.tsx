@@ -114,40 +114,24 @@ export function ManualMatchResultStep({
     try {
       // ── Fast path: use pre-built stats passed from the details page ──────────
       // API stats structure has tournament_team_id (team) or competitor_id (solo)
-      if (participantTypeOverride && initialStats && initialStats.length > 0) {
-        setParticipantType(participantTypeOverride);
-
-        if (participantTypeOverride === "team") {
-          setTeamResults(
-            initialStats.map((s: any) => ({
-              tournament_team_id: s.tournament_team_id,
-              team_name: s.team_name,
-              team_logo: s.team_logo ?? null,
-              placement: s.placement ?? 0,
-              played: s.played ?? true,
-              players: (s.players ?? []).map((p: any) => ({
-                user_id: p.player_id ?? p.user_id,
-                username: p.username,
-                kills: p.kills ?? 0,
-                damage: p.damage ?? 0,
-                assists: p.assists ?? 0,
-                played: p.played ?? true,
-              })),
-            })),
-          );
-        } else {
-          setSoloResults(
-            initialStats.map((s: any) => ({
-              competitor_id: s.competitor_id,
-              username: s.username,
-              placement: s.placement ?? 0,
-              kills: s.kills ?? 0,
-              bonus_points: s.bonus_points ?? 0,
-              penalty_points: s.penalty_points ?? 0,
-              played: s.played ?? true,
-            })),
-          );
-        }
+      // Fast path for SOLO only: solo initialStats carry full data (kills inline). For TEAM we do
+      // NOT fast-path off initialStats, because the leaderboard's saved stats often have NO
+      // per-player breakdown (players[] empty) -> the result form showed "0 players". The player
+      // list MUST come from the team's REGISTERED ROSTER (tt.members, fetched below) with any saved
+      // stats overlaid, so a team's registered players always show, pre-filled. (bug fix 2026-06-15)
+      if (participantTypeOverride === "solo" && initialStats && initialStats.length > 0) {
+        setParticipantType("solo");
+        setSoloResults(
+          initialStats.map((s: any) => ({
+            competitor_id: s.competitor_id,
+            username: s.username,
+            placement: s.placement ?? 0,
+            kills: s.kills ?? 0,
+            bonus_points: s.bonus_points ?? 0,
+            penalty_points: s.penalty_points ?? 0,
+            played: s.played ?? true,
+          })),
+        );
         return;
       }
 
@@ -174,23 +158,61 @@ export function ManualMatchResultStep({
       const teams: TournamentTeam[] = details.tournament_teams ?? [];
 
       if (pType === "team") {
-        setTeamResults(
-          teams.map((tt) => ({
-            tournament_team_id: tt.tournament_team_id,
-            team_name: tt.team_name,
-            team_logo: tt.team_logo ?? null,
-            placement: 0,
-            played: true,
-            players: (tt.members ?? []).map((m) => ({
-              user_id: m.player_id,
-              username: m.username,
-              kills: 0,
-              damage: 0,
-              assists: 0,
-              played: true,
+        // Overlay any SAVED stats (placement + per-player kills) onto the REGISTERED ROSTER, so the
+        // team's registered players always show, pre-filled with whatever was already entered.
+        const statByTeam = new Map<number, any>();
+        for (const s of initialStats ?? []) {
+          if (s?.tournament_team_id != null) statByTeam.set(s.tournament_team_id, s);
+        }
+        if (teams.length > 0) {
+          setTeamResults(
+            teams.map((tt) => {
+              const stat = statByTeam.get(tt.tournament_team_id);
+              const savedByUid = new Map<number, any>();
+              for (const p of stat?.players ?? []) {
+                const uid = p?.player_id ?? p?.user_id;
+                if (uid != null) savedByUid.set(uid, p);
+              }
+              return {
+                tournament_team_id: tt.tournament_team_id,
+                team_name: tt.team_name,
+                team_logo: tt.team_logo ?? null,
+                placement: stat?.placement ?? 0,
+                played: stat?.played ?? true,
+                players: (tt.members ?? []).map((m) => {
+                  const sp = savedByUid.get(m.player_id);
+                  return {
+                    user_id: m.player_id,
+                    username: m.username,
+                    kills: sp?.kills ?? 0,
+                    damage: sp?.damage ?? 0,
+                    assists: sp?.assists ?? 0,
+                    played: sp?.played ?? true,
+                  };
+                }),
+              };
+            }),
+          );
+        } else if (initialStats && initialStats.length > 0) {
+          // Fallback: roster fetch returned nothing (e.g. no event slug) - use saved stats as-is.
+          setTeamResults(
+            initialStats.map((s: any) => ({
+              tournament_team_id: s.tournament_team_id,
+              team_name: s.team_name,
+              team_logo: s.team_logo ?? null,
+              placement: s.placement ?? 0,
+              played: s.played ?? true,
+              players: (s.players ?? []).map((p: any) => ({
+                user_id: p.player_id ?? p.user_id,
+                username: p.username,
+                kills: p.kills ?? 0,
+                damage: p.damage ?? 0,
+                assists: p.assists ?? 0,
+                played: p.played ?? true,
+              })),
             })),
-          })),
-        );
+          );
+        }
       } else {
         const competitors: string[] = formData.competitors_in_group ?? [];
         if (competitors.length > 0) {
