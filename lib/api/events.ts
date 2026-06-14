@@ -1,6 +1,6 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 import { env } from "@/lib/env";
+import { authHeaders } from "@/lib/http";
 
 /**
  * Typed client for event-level mutations (routes under /events/). Today this only holds
@@ -30,12 +30,6 @@ import { env } from "@/lib/env";
  */
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
-
-// Bearer header from the auth_token cookie (the cookie AuthContext writes on login).
-function authHeaders() {
-  const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
-}
 
 // All endpoints sit under the /events/ prefix.
 const url = (path: string) => `${BASE}/events/${path}`;

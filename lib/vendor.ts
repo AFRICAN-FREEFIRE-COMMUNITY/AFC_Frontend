@@ -33,17 +33,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import axios from "axios";
-import Cookies from "js-cookie";
 import { env } from "@/lib/env";
+import { authHeaders } from "@/lib/http";
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
-
-// Bearer header from the auth_token cookie (the cookie AuthContext writes on login),
-// mirroring lib/organizers.ts::authHeaders so the whole app reads the token one way.
-function authHeaders() {
-  const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
-}
 
 const url = (path: string) => `${BASE}/shop/fulfilment/${path}`;
 

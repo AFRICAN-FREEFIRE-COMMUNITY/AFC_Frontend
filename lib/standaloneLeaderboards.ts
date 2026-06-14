@@ -1,6 +1,6 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 import { env } from "@/lib/env";
+import { authHeaders } from "@/lib/http";
 
 /**
  * Typed client for the Standalone Leaderboards API (prefix /leaderboards/standalone/).
@@ -24,12 +24,6 @@ import { env } from "@/lib/env";
  */
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
-
-// Bearer header from the auth_token cookie (the cookie AuthContext writes on login).
-function authHeaders() {
-  const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
-}
 
 // All standalone routes hang off this prefix (afc_leaderboard.urls mounted at /leaderboards/).
 const url = (path: string) => `${BASE}/leaderboards/standalone/${path}`;

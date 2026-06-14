@@ -1,6 +1,6 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 import { env } from "@/lib/env";
+import { authHeaders } from "@/lib/http";
 
 /**
  * Typed client for the self-hosted OCR MODEL ops API (all routes under /events/ocr/).
@@ -31,12 +31,6 @@ import { env } from "@/lib/env";
  */
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
-
-// Bearer header from the auth_token cookie (the cookie AuthContext writes on login).
-function authHeaders() {
-  const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
-}
 
 // All OCR-model endpoints sit under the /events/ocr/ prefix (afc_ocr.urls is included there).
 const url = (path: string) => `${BASE}/events/ocr/${path}`;

@@ -1,6 +1,6 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 import { env } from "@/lib/env";
+import { authHeaders } from "@/lib/http";
 
 /**
  * Typed client for the LEADERBOARD DESIGN feature (owner 2026-06-13).
@@ -31,12 +31,6 @@ import { env } from "@/lib/env";
  */
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
-
-// Bearer header from the auth_token cookie (the cookie AuthContext writes on login).
-function authHeaders() {
-  const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
-}
 
 // ── Shapes ────────────────────────────────────────────────────────────────────
 // Per-logo size band (afc_leaderboard.graphic.LOGO_SIZE_FRAC); scales the logo as a fraction
