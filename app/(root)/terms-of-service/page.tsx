@@ -2,6 +2,17 @@ import { Header } from "@/app/(user)/_components/Header";
 import { Footer } from "@/app/_components/Footer";
 import { PageHeader } from "@/components/PageHeader";
 import React from "react";
+import type { Metadata } from "next";
+import { siteConfig } from "@/lib/seo";
+
+// SEO: this public page had no metadata (audit 2026-06-14). Give it a real title + canonical so it
+// indexes cleanly (it is now also listed in app/sitemap.ts).
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description:
+    "The terms governing use of the African Freefire Community Free Fire esports platform.",
+  alternates: { canonical: `${siteConfig.url}/terms-of-service` },
+};
 
 const page = () => {
   return (

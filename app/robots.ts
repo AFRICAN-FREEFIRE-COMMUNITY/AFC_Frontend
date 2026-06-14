@@ -37,6 +37,7 @@ const DISALLOW: string[] = [
   "/a/",
   "/organizer/",
   "/sponsor/",
+  "/vendor/",  // gated vendor portal - like organizer/sponsor, must not be crawled/indexed
   "/login",
   "/create-account",
   "/reset-password",

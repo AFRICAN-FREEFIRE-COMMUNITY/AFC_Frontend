@@ -42,7 +42,6 @@ async function getEventData(slug: string) {
     if (!response.ok) return null;
 
     const data = await response.json();
-    console.log("[generateMetadata] API response keys:", Object.keys(data));
     // Adjusted to match your previous result structure
     return data.event_details || data.team || null;
   } catch (error) {

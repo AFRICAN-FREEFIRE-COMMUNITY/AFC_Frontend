@@ -3,6 +3,17 @@ import { Footer } from "@/app/_components/Footer";
 
 import { PageHeader } from "@/components/PageHeader";
 import React from "react";
+import type { Metadata } from "next";
+import { siteConfig } from "@/lib/seo";
+
+// SEO: this public page had no metadata (audit 2026-06-14). Give it a real title + canonical so it
+// indexes cleanly (it is now also listed in app/sitemap.ts).
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "How African Freefire Community collects, uses, and protects your data across our Free Fire esports platform.",
+  alternates: { canonical: `${siteConfig.url}/privacy-policy` },
+};
 
 const page = () => {
   return (
