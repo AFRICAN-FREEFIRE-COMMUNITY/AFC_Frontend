@@ -1,4 +1,10 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+// Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
+// 404 (unknown / suspended / deleted org) → notFound() (real 404, no soft-404);
+// "error" = transient → keep the 200 fallback so a live org page is never
+// deindexed on an API blip.
+import { fetchDetail } from "@/lib/detailFetch";
 // Shared link-embed builder (lib/seo.ts) — LARGE Twitter card + absolute URLs;
 // resolveOgImage (used inside it) proxies a backend /media/ banner through
 // /api/og-image so social crawlers can fetch it.
@@ -31,25 +37,26 @@ type Props = {
 //   events: [...], rating }. Suspended / deleted / missing orgs return 404 → null,
 // so generateMetadata falls back gracefully. Never throws.
 async function getOrgData(slug: string) {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/organizers/get-organization-public/${encodeURIComponent(
-        decodeURIComponent(slug),
-      )}/`,
-      { next: { revalidate: 60 } },
-    );
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
-  }
+  return fetchDetail(
+    `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/organizers/get-organization-public/${encodeURIComponent(
+      decodeURIComponent(slug),
+    )}/`,
+    { next: { revalidate: 60 } },
+    // The whole JSON body IS the org; require a name so an empty 200 is treated
+    // as transient (kept as a fallback) rather than a wrongful 404.
+    (j) => (j && j.name ? j : null),
+  );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const org = await getOrgData(slug);
+  const result = await getOrgData(slug);
 
-  // Missing / suspended org → branded fallback embed (still a large card).
+  // Confirmed-gone org (backend 404: unknown / suspended / deleted) → real 404.
+  if (result.status === "missing") notFound();
+  const org = result.status === "ok" ? result.data : null;
+
+  // Transient failure (not a confirmed 404) → branded fallback embed at 200.
   if (!org) {
     return buildEntityMetadata({
       title: "Organization",
@@ -88,7 +95,12 @@ export default async function OrganizationLayout({ children, params }: Props) {
   // Re-use the cached org fetch (same request as generateMetadata) to embed real
   // JSON-LD in the INITIAL HTML. The client org page still renders via {children}.
   const { slug } = await params;
-  const org = await getOrgData(slug);
+  const result = await getOrgData(slug);
+
+  // Confirmed-gone org (backend 404) → real 404. Transient errors fall through
+  // to org=null and render {children} at 200 (the client page retries).
+  if (result.status === "missing") notFound();
+  const org = result.status === "ok" ? result.data : null;
 
   let orgSchema: object | null = null;
   let breadcrumbSchema: object | null = null;

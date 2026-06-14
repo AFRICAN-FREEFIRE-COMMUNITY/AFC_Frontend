@@ -1,4 +1,9 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+// Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
+// 404 (Team.DoesNotExist) → notFound() (real 404, no soft-404); "error" = transient
+// → keep the 200 fallback so a live team page is never deindexed on an API blip.
+import { fetchDetail } from "@/lib/detailFetch";
 // Shared link-embed plumbing (lib/seo.ts):
 //   buildEntityMetadata    → LARGE Twitter card + absolute og:url/og:image/canonical
 //   resolveOgImage         → proxy a backend /media/ logo through /api/og-image
@@ -32,32 +37,30 @@ type Props = {
 //   total_members, team_description, ... } }. Returns null on any failure so
 // generateMetadata can fall back gracefully (never throws).
 async function getTeamData(teamName: string) {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ team_name: decodeURIComponent(teamName) }),
-        next: { revalidate: 60 },
-      },
-    );
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.team;
-  } catch {
-    return null;
-  }
+  return fetchDetail(
+    `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ team_name: decodeURIComponent(teamName) }),
+      next: { revalidate: 60 },
+    },
+    (j) => j?.team,
+  );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const teamName = decodeURIComponent(id);
-  const team = await getTeamData(id);
+  const result = await getTeamData(id);
 
-  // Missing team → branded fallback embed (still a large card). Image is omitted
-  // here too: the sibling opengraph-image.tsx still renders a branded card (it
-  // falls back to the team name), so it remains the single og:image.
+  // Confirmed-gone team (backend 404) → real 404, not a soft-404.
+  if (result.status === "missing") notFound();
+  const team = result.status === "ok" ? result.data : null;
+
+  // Transient failure (not a confirmed 404) → branded fallback embed at 200.
+  // Image is omitted here too: the sibling opengraph-image.tsx still renders a
+  // branded card (it falls back to the team name), so it remains the single og:image.
   if (!team) {
     return buildEntityMetadata({
       title: teamName,
@@ -109,7 +112,12 @@ export default async function TeamDetailLayout({ children, params }: Props) {
   // generateMetadata) to embed real JSON-LD in the INITIAL HTML. The client page
   // still renders via {children}, completely unaffected.
   const { id } = await params;
-  const team = await getTeamData(id);
+  const result = await getTeamData(id);
+
+  // Confirmed-gone team (backend 404) → real 404. Transient errors fall through
+  // to team=null and render {children} at 200 (the client page retries).
+  if (result.status === "missing") notFound();
+  const team = result.status === "ok" ? result.data : null;
 
   let teamSchema: object | null = null;
   let breadcrumbSchema: object | null = null;

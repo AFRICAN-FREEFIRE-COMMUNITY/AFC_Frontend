@@ -13,6 +13,10 @@ import {
 } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
+// Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
+// 404 → notFound() (real 404); "error" = transient → keep a 200 so a live article
+// is never deindexed on an API blip (the previous code 404'd on ANY null).
+import { fetchDetail } from "@/lib/detailFetch";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -65,40 +69,22 @@ function extractNewsExcerpt(content: unknown, max = 160): string {
  * and handle URL decoding in one place.
  * Now supports optional authentication via cookies.
  */
+// Returns a DetailResult: "ok" with the article, "missing" on a backend 404
+// (unknown slug → News.DoesNotExist), or "error" on any transient failure.
 async function getNewsData(slug: string, token?: string) {
-  try {
-    const response = await fetch(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({ slug }),
-        // Choose caching strategy based on your needs:
-        // - 'no-store': Always fetch fresh data (good for frequently updated content)
-        // - 'force-cache': Use cached data when available (good for static content)
-        // - { next: { revalidate: 60 } }: Revalidate every 60 seconds (ISR)
-        cache: "no-store",
+  return fetchDetail(
+    `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
-    );
-
-    if (!response.ok) {
-      console.error(
-        "Failed to fetch news:",
-        response.status,
-        response.statusText,
-      );
-      return null;
-    }
-
-    const data = await response.json();
-    return data.news;
-  } catch (error) {
-    console.error("Error fetching news for SEO/Render:", error);
-    return null;
-  }
+      body: JSON.stringify({ slug }),
+      cache: "no-store",
+    },
+    (j) => j?.news,
+  );
 }
 
 // --- SEO GENERATION ---
@@ -109,10 +95,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
 
-  const news = await getNewsData(slug, token);
+  const result = await getNewsData(slug, token);
+
+  // Confirmed-gone article (backend 404) → real 404, not a soft-404.
+  if (result.status === "missing") notFound();
+  const news = result.status === "ok" ? result.data : null;
 
   if (!news) {
-    // Missing article → branded fallback embed (still large card, no broken image).
+    // Transient failure (not a confirmed 404) → branded fallback embed at 200
+    // (still a large card, no broken image). Never deindex on a momentary blip.
     return buildEntityMetadata({
       title: "News",
       description:
@@ -152,11 +143,17 @@ export default async function Page({ params }: Props) {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
 
-  const news = await getNewsData(slug, token);
+  const result = await getNewsData(slug, token);
 
-  // If the news doesn't exist, trigger the Next.js 404 page
+  // Confirmed-gone article (backend 404) → real Next.js 404 page.
+  if (result.status === "missing") notFound();
+  const news = result.status === "ok" ? result.data : null;
+
+  // Transient failure (network / 5xx) → DON'T 404 a real article on a blip.
+  // Render the client with no initial data; NewsClient refetches itself and
+  // shows its own loading/error state, while the route stays a 200.
   if (!news) {
-    notFound();
+    return <NewsClient params={params} />;
   }
 
   // Ensure image URL is absolute for schema

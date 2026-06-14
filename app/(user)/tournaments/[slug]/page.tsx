@@ -1,7 +1,11 @@
 import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
 import { Metadata } from "next";
-import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import { env } from "@/lib/env";
+// Existence-aware detail fetch (lib/detailFetch.ts): distinguishes a CONFIRMED
+// backend 404 ("missing" → notFound() → a real 404, no soft-404) from a TRANSIENT
+// error ("error" → keep the 200 fallback so a live event is never deindexed).
+import { fetchDetail } from "@/lib/detailFetch";
 // SEO helpers (lib/seo.ts):
 //   generateDynamicMetadata → OG/Twitter fallback metadata
 //   generateEventSchema     → JSON-LD SportsEvent for this tournament
@@ -22,40 +26,33 @@ type Props = {
 };
 
 // 1. Centralized Fetch Function
+// Returns a DetailResult: "ok" with the event, "missing" on a backend 404
+// (unknown slug, or the event's org is suspended/deleted), or "error" on any
+// transient failure. Public endpoint — no auth needed.
 async function getEventData(slug: string) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
-
-    const response = await fetch(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-not-logged-in/`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ slug: decodeURIComponent(slug) }),
-        next: { revalidate: 60 },
-      },
-    );
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    // Adjusted to match your previous result structure
-    return data.event_details || data.team || null;
-  } catch (error) {
-    console.error("Metadata Fetch Error:", error);
-    return null;
-  }
+  return fetchDetail(
+    `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-not-logged-in/`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug: decodeURIComponent(slug) }),
+      next: { revalidate: 60 },
+    },
+    // The endpoint returns the event under event_details (or team for the
+    // legacy team shape); either present means the event loaded.
+    (j) => j?.event_details ?? j?.team,
+  );
 }
 
 // 2. Metadata Generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const data = await getEventData(slug);
+  const result = await getEventData(slug);
 
-  // Fallback if the API fails
+  // Confirmed-gone event (backend 404) → real 404, not a soft-404 with metadata.
+  if (result.status === "missing") notFound();
+  // Transient failure → fall back to generic metadata at 200 (never deindex).
+  const data = result.status === "ok" ? result.data : null;
   if (!data) {
     return generateDynamicMetadata({
       title: "Tournament Details",
@@ -91,7 +88,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? `${siteConfig.url}/api/og-image?url=${encodeURIComponent(resolvedImage)}`
     : siteConfig.ogImage;
 
-  const canonicalUrl = `${siteConfig.url}/tournaments/${slug}`;
+  // Canonicalize to the event's TRUE slug from the backend (not the URL param),
+  // so case/encoding variants of the same event collapse to one canonical URL
+  // (fixes GSC "Duplicate without user-selected canonical"). Falls back to the
+  // requested slug when the payload omits one.
+  const canonicalUrl = `${siteConfig.url}/tournaments/${data.slug || slug}`;
 
   return {
     title,
@@ -131,7 +132,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // entirely inside the client EventDetailsWrapper below, unaffected.
 const Page = async ({ params }: Props) => {
   const { slug } = await params;
-  const data = await getEventData(slug);
+  const result = await getEventData(slug);
+
+  // Confirmed-gone event (backend 404) → real 404. Transient errors fall through
+  // to data=null and render the wrapper at 200 (the client retries gracefully).
+  if (result.status === "missing") notFound();
+  const data = result.status === "ok" ? result.data : null;
 
   // Build the structured data only when the event actually loaded (graceful
   // fallback: no <script> rather than a schema full of nulls).
@@ -139,7 +145,7 @@ const Page = async ({ params }: Props) => {
   let breadcrumbSchema: object | null = null;
   if (data) {
     const eventName = data.event_name || "Tournament";
-    const canonicalUrl = `${siteConfig.url}/tournaments/${slug}`;
+    const canonicalUrl = `${siteConfig.url}/tournaments/${data.slug || slug}`;
     eventSchema = generateEventSchema({
       name: eventName,
       url: canonicalUrl,

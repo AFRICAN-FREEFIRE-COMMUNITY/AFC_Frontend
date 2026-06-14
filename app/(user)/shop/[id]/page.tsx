@@ -1,7 +1,11 @@
 import { Metadata } from "next";
-import axios from "axios";
+import { notFound } from "next/navigation";
 import { env } from "@/lib/env";
 import ProductDetailPage from "../_components/ProductDetailPage";
+// Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
+// 404 → notFound() (real 404, no soft-404); "error" = transient → keep the 200
+// fallback so a live product page is never deindexed on an API blip.
+import { fetchDetail } from "@/lib/detailFetch";
 // Shared link-embed builder (lib/seo.ts) — LARGE Twitter card + absolute URLs.
 //   generateProductSchema    → JSON-LD Product (offers in NGN) for this product
 //   generateBreadcrumbSchema → Home > Shop > <product> trail
@@ -20,16 +24,17 @@ type Props = {
 };
 
 // Shared server-side fetch of a single product (public, no auth). Same endpoint
-// generateMetadata uses, so Next de-dupes the call. Returns the product or null.
+// generateMetadata uses, so Next de-dupes the GET. Returns a DetailResult:
+// "ok" with the product, "missing" on a backend 404 (unknown product_id →
+// get_object_or_404), or "error" on any transient failure.
 async function getProductData(id: string) {
-  try {
-    const res = await axios.get(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-product-details/?product_id=${id}`,
-    );
-    return res.data.product || null;
-  } catch {
-    return null;
-  }
+  return fetchDetail(
+    `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-product-details/?product_id=${encodeURIComponent(
+      id,
+    )}`,
+    { next: { revalidate: 60 } },
+    (j) => j?.product,
+  );
 }
 
 // Compute the cheapest active variant price (the "from $X" figure). Returns null
@@ -51,8 +56,12 @@ function cheapestActivePrice(product: any): number | null {
 // to site-default metadata when the product is missing — never throws.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
+  const result = await getProductData(id);
+  // Confirmed-gone product (backend 404) → real 404, not a soft-404.
+  if (result.status === "missing") notFound();
   try {
-    const product = await getProductData(id);
+    const product = result.status === "ok" ? result.data : null;
+    // Transient failure → fall through to the branded fallback embed at 200.
     if (!product) throw new Error("product not found");
 
     // Starting price = the cheapest active variant price (the "from $X" figure the
@@ -93,7 +102,11 @@ export default async function Page({ params }: Props) {
 
   // Re-use the cached product fetch to embed JSON-LD in the INITIAL HTML. The
   // interactive product UI still renders inside <ProductDetailPage> (client).
-  const product = await getProductData(id);
+  const result = await getProductData(id);
+  // Confirmed-gone product (backend 404) → real 404. Transient errors fall
+  // through to product=null and render at 200 (the client UI retries).
+  if (result.status === "missing") notFound();
+  const product = result.status === "ok" ? result.data : null;
 
   let productSchema: object | null = null;
   let breadcrumbSchema: object | null = null;

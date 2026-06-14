@@ -30,6 +30,26 @@ const nextConfig: NextConfig = {
         destination: "/a/events?tab=leaderboards",
         permanent: false,
       },
+      // ── SEO: retire dead legacy URLs Google still has indexed (audit 2026-06-14) ──
+      // News used to be served by numeric DB id (/news/19); it now lives at a text
+      // slug (/news/[slug]). Google still crawls ~12 old id URLs (/news/9,11,14-24)
+      // and gets a 404. A permanent (301) redirect to the news index drops those
+      // 404s and passes the link signal to a live page. The :id(\\d+) constraint
+      // matches ONLY all-numeric paths, so real (textual) article slugs are never
+      // caught by this rule.
+      {
+        source: "/news/:id(\\d+)",
+        destination: "/news",
+        permanent: true,
+      },
+      // The privacy page lives at /privacy-policy; Google still has the old /privacy
+      // path indexed (404). 301 it to the real page so the URL consolidates instead
+      // of 404-ing. (Only /privacy was flagged; /terms-of-service has no stale alias.)
+      {
+        source: "/privacy",
+        destination: "/privacy-policy",
+        permanent: true,
+      },
     ];
   },
   images: {

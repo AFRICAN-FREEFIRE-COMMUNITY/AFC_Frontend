@@ -1,7 +1,12 @@
 import React from "react";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { PlayerClient } from "./_components/PlayerClient"; // Adjust path as needed
 import { env } from "@/lib/env";
+// Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
+// 404 (User.DoesNotExist) → notFound() (real 404); "error" = transient → keep the
+// 200 fallback so a live profile is never deindexed on an API blip.
+import { fetchDetail } from "@/lib/detailFetch";
 // Shared link-embed builder + image resolver (lib/seo.ts). buildEntityMetadata
 // emits a LARGE Twitter card and absolute, crawler-safe URLs; resolveOgImage
 // proxies a backend /media/ avatar through /api/og-image so crawlers can fetch it.
@@ -25,22 +30,16 @@ type Params = Promise<{
 // client reads + the metadata uses, so Next's fetch cache de-dupes the call.
 // Returns the player object or null on any failure (callers fall back gracefully).
 async function getPlayerData(ign: string) {
-  try {
-    const response = await fetch(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-public-player-stats/`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_ign: ign }),
-        next: { revalidate: 3600 },
-      },
-    );
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.player || null;
-  } catch {
-    return null;
-  }
+  return fetchDetail(
+    `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-public-player-stats/`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ player_ign: ign }),
+      next: { revalidate: 3600 },
+    },
+    (j) => j?.player,
+  );
 }
 
 // ── generateMetadata: rich link embed for a single player profile ────────────
@@ -59,32 +58,17 @@ export async function generateMetadata({
   const { username } = await params;
   const ign = decodeURIComponent(username);
 
+  // Re-use the shared helper (Next de-dupes nothing for POST, but keeping ONE
+  // fetch path means the metadata + the page agree on existence).
+  const result = await getPlayerData(ign);
+  // Confirmed-gone player (backend 404 → User.DoesNotExist) → real 404.
+  if (result.status === "missing") notFound();
+
   try {
-    const response = await fetch(
-      `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-public-player-stats/`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_ign: ign }),
-        next: { revalidate: 3600 }, // Cache for 1 hour
-      },
-    );
+    const player = result.status === "ok" ? result.data : null;
 
-    if (!response.ok) {
-      // Missing player → still give a sensible branded embed, not a broken one.
-      // omitImage: the sibling opengraph-image.tsx renders the branded card.
-      return buildEntityMetadata({
-        title: ign,
-        description: `View ${ign}'s Free Fire player profile, stats, and tournament history on African Freefire Community.`,
-        path: `/players/${username}`,
-        type: "profile",
-        omitImage: true,
-      });
-    }
-
-    const data = await response.json();
-    const player = data.player;
-
+    // Transient failure (not a confirmed 404) → branded fallback embed at 200,
+    // never a broken one. omitImage: opengraph-image.tsx renders the branded card.
     if (!player) {
       return buildEntityMetadata({
         title: ign,
@@ -149,7 +133,11 @@ const Page = async ({ params }: { params: Params }) => {
 
   // Re-use the cached public-stats fetch to embed JSON-LD in the INITIAL HTML.
   // The interactive profile still renders via <PlayerClient> below, unaffected.
-  const player = await getPlayerData(ign);
+  const result = await getPlayerData(ign);
+  // Confirmed-gone player (backend 404) → real 404. Transient errors fall
+  // through to player=null and render at 200 (PlayerClient retries).
+  if (result.status === "missing") notFound();
+  const player = result.status === "ok" ? result.data : null;
 
   let playerSchema: object | null = null;
   let breadcrumbSchema: object | null = null;
