@@ -96,11 +96,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Cookie configuration
 const COOKIE_NAME = "auth_token";
 const COOKIE_OPTIONS = {
-  expires: 7, // 7 days
+  // 3 hours (owner 2026-06-14: auto-logout after 3h). js-cookie `expires` is in DAYS, so
+  // 3 hours = 3/24. MUST match the backend SessionToken.SESSION_LIFETIME (timedelta(hours=3)),
+  // otherwise the cookie outlives the token and requests start 401-ing while still "logged in".
+  expires: 3 / 24,
   secure: process.env.NODE_ENV === "production", // HTTPS only in production
   sameSite: "strict" as const,
   path: "/",
 };
+
+// Idle-timeout slide (owner 2026-06-14): on activity we re-set the auth_token cookie with a fresh
+// 3h expiry so an active user is never logged out, mirroring the backend SessionToken.touch(). We
+// throttle to once per 5 min so we are not re-writing the cookie on every single request.
+let lastCookieBumpAt = 0;
+const COOKIE_BUMP_THROTTLE_MS = 5 * 60 * 1000;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -124,7 +133,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Set up axios interceptor to handle invalid/expired tokens
   useEffect(() => {
     const interceptor = axios.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // Idle-timeout cookie slide: any successful API call counts as activity, so refresh the
+        // auth_token cookie's 3h expiry (throttled). Keeps an active user logged in; once they go
+        // idle for 3h the cookie lapses + the backend token expires, and they are logged out.
+        try {
+          const t = Cookies.get(COOKIE_NAME);
+          const now = Date.now();
+          if (t && now - lastCookieBumpAt > COOKIE_BUMP_THROTTLE_MS) {
+            lastCookieBumpAt = now;
+            Cookies.set(COOKIE_NAME, t, COOKIE_OPTIONS);
+          }
+        } catch {
+          // cookie access can throw in rare sandboxed contexts; never break a response over it
+        }
+        return response;
+      },
       (error) => {
         // Skip interceptor for auth endpoints (login, register, etc.)
         const requestUrl = error.config?.url || "";
