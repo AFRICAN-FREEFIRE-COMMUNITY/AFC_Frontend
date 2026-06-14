@@ -121,7 +121,7 @@ export const GUIDED_STOPS: GuidedStop[] = [
     idle: "bounce",
     accent: "gold",
     title: "Set up your profile",
-    body: "Add your Free Fire UID and in-game name so teams and tournaments can find you. A complete profile is your ticket into the action.",
+    body: "Add your Free Fire UID, in-game name, and esport image so teams and tournaments can find you. A complete profile is your ticket into the action.",
     kind: "guide",
     route: "/profile/edit",
     launchLabel: "Show me on my profile",
@@ -149,6 +149,18 @@ export const GUIDED_STOPS: GuidedStop[] = [
           "Save changes lives here when you are ready. No need to fill anything in right now, just click Next to keep the tour going.",
         side: "top",
         align: "start",
+      },
+      {
+        // Esport image stop (owner 2026-06-14): the photo organizers use as your
+        // player picture in event graphics, and the image that powers your
+        // shareable profile card. Anchored on the esport-image Card in
+        // profile/edit/page.tsx ([data-tour="profile-esports"]).
+        element: '[data-tour="profile-esports"]',
+        title: "Add your esport image",
+        description:
+          "This is the photo organizers use as your player picture in event graphics, and it powers your shareable profile card. Some events require it. You can add it later, just click Next.",
+        side: "top",
+        align: "center",
       },
     ],
   },

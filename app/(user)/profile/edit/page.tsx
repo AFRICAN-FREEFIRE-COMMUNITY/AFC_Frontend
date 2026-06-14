@@ -333,8 +333,10 @@ const Page = () => {
       {/* ── Esport Image ── a SEPARATE asset from the profile picture (owner 2026-06-12).
           Organizers use it as the player's image in event graphics, and events can REQUIRE it
           before registration. Uploads hit POST /auth/upload-esport-image/ immediately (its own
-          flow, not part of the form above); replace-only - there is no way to remove it. */}
-      <Card className="mt-4">
+          flow, not part of the form above); replace-only - there is no way to remove it.
+          data-tour anchor (guided welcome tour): the esport-image card. Targeted by the
+          "profile" stop's final driver step in guided-tour-stops.ts (owner 2026-06-14). */}
+      <Card className="mt-4" data-tour="profile-esports">
         <CardHeader>
           <CardTitle className="flex items-center">
             Esport Image

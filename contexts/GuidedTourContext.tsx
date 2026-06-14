@@ -120,16 +120,10 @@ function writeState(state: GuidedState): void {
   }
 }
 
-// Persist the anonymous "welcome seen" flag (read by the auto-start gate below and
-// by the original WelcomeTour idiom).
-function hasSeenAnon(): boolean {
-  if (typeof window === "undefined") return true;
-  try {
-    return window.localStorage.getItem(WELCOME_SEEN_KEY) === "1";
-  } catch {
-    return true;
-  }
-}
+// Persist the "welcome seen" flag on tour end. Anonymous visitors no longer
+// auto-start the tour (see the auto-start gate below), so this flag is now just a
+// best-effort breadcrumb written on finish/skip; the authoritative first-run
+// signal for logged-in users is the backend user.has_seen_welcome flag.
 function setSeenAnon(): void {
   if (typeof window === "undefined") return;
   try {
@@ -273,8 +267,13 @@ export function GuidedTourProvider({ children }: { children: React.ReactNode }) 
   }, [start]);
 
   // ── Auto-start on first run ──
-  // Logged in -> start when user.has_seen_welcome === false.
-  // Anonymous -> start when the localStorage seen flag is unset.
+  // ONLY a LOGGED-IN user who has not yet seen it gets the tour automatically,
+  // i.e. a freshly created account on its first login (user.has_seen_welcome ===
+  // false). Anonymous / not-logged-in visitors NEVER get the tour automatically
+  // anymore (owner request 2026-06-14: "the site should not show the tour except
+  // the user creates an account and logs in for the first time"). They can still
+  // replay it on demand from the Header sparkles button (the OPEN_EVENT path,
+  // which bypasses this gate).
   // Only once per session (autoEvaluatedRef), never while auth is still loading, and
   // ONLY if a run is not already in flight (a navigation mid-tour restores via the
   // hydrate effect above, and must not be clobbered by a fresh auto-start).
@@ -287,7 +286,8 @@ export function GuidedTourProvider({ children }: { children: React.ReactNode }) 
     // auto-start over it; the hydrate effect handles continuation.
     if (readState().active) return;
 
-    const shouldShow = user ? user.has_seen_welcome === false : !hasSeenAnon();
+    // Logged-in + first run only. No `user` (anonymous) => never auto-start.
+    const shouldShow = !!user && user.has_seen_welcome === false;
     if (shouldShow) {
       // Small delay so the landing page paints first, then the hub springs in.
       const t = window.setTimeout(() => start(), 700);
