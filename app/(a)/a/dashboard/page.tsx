@@ -1,9 +1,7 @@
 "use client";
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { ComingSoon } from "@/components/ComingSoon";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
-import { SectionCards } from "@/components/section-cards";
 import { Button } from "@/components/ui/button";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

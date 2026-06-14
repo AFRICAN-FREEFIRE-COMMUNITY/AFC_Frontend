@@ -48,7 +48,6 @@ import { EventProp } from "./EventsAdminContent";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { FullLoader } from "@/components/Loader";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   Table,
   TableBody,
@@ -59,7 +58,6 @@ import {
 } from "@/components/ui/table";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { matchesSearch } from "@/lib/search";
-import { DownloadLeaderboardButton } from "../leaderboards/_components/DownloadLeaderboardButton";
 import { InfoTip } from "@/components/ui/info-tip";
 // Standalone (event-less) leaderboards section — the shared list + "Create standalone" button.
 // Additive: it sits below the existing event-leaderboard table and does not touch that UI.
@@ -96,7 +94,6 @@ interface LeaderboardProps {
 }
 
 export const LeaderboardsAdminContent = () => {
-  const { token } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLeaderboardQuery, setSearchLeaderboardQuery] = useState("");
   const [eventsPage, setEventsPage] = useState(1);
@@ -375,64 +372,6 @@ export const LeaderboardsAdminContent = () => {
                             Edit
                           </Link>
                         </Button>
-                        {/* <DownloadLeaderboardButton
-                          leaderboardName={event.event_name}
-                          fetchData={async () => {
-                            const res = await fetch(
-                              `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboard-details-for-event/`,
-                              {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                                },
-                                body: JSON.stringify({
-                                  event_id: String(event.event_id),
-                                }),
-                              },
-                            );
-                            const data = await res.json();
-
-                            // Aggregate team rows from first stage/group overall leaderboard
-                            const firstGroup = data.stages?.[0]?.groups?.[0];
-                            const teamRows =
-                              firstGroup?.overall_leaderboard ?? [];
-
-                            // Aggregate player rows across ALL stages and groups
-                            const playerMap = new Map<number, any>();
-                            for (const stage of data.stages ?? []) {
-                              for (const group of stage.groups ?? []) {
-                                for (const match of group.matches ?? []) {
-                                  for (const teamStat of match.stats ?? []) {
-                                    for (const player of teamStat.players ?? []) {
-                                      const existing = playerMap.get(
-                                        player.player_id,
-                                      );
-                                      if (existing) {
-                                        existing.total_kills += player.kills;
-                                        existing.total_damage += player.damage;
-                                        existing.total_assists += player.assists;
-                                      } else {
-                                        playerMap.set(player.player_id, {
-                                          player_id: player.player_id,
-                                          username: player.username,
-                                          team_name: teamStat.team_name ?? "-",
-                                          total_kills: player.kills,
-                                          total_damage: player.damage,
-                                          total_assists: player.assists,
-                                        });
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                            const playerRows = [...playerMap.values()].sort(
-                              (a, b) => b.total_kills - a.total_kills,
-                            );
-                            return { teamRows, playerRows };
-                          }}
-                        /> */}
                       </div>
                     </TableCell>
                   </TableRow>
