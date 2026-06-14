@@ -400,7 +400,16 @@ export const siteConfig = {
   description:
     "The official platform for African Free Fire esports. Join teams, compete in tournaments, track player stats, and stay updated with the latest news across Africa.",
   url: env.NEXT_PUBLIC_URL || "https://africanfreefirecommunity.com",
-  ogImage: `${env.NEXT_PUBLIC_URL}/logo.png`,
+  // Site-wide SOCIAL CARD fallback (og:image + twitter:image) used whenever a page
+  // has no entity image of its own. This MUST be the wide 1200x630 branded card,
+  // NOT the square logo: a summary_large_image Twitter card / Discord embed
+  // letterboxes or crops a square image badly. (audit 2026-06-14: twitter was
+  // falling back to /logo.png while OG used /assets/opengraph.png, so X showed the
+  // square logo. Pointing both at the wide card fixes that mismatch in one place,
+  // since defaultMetadata, generatePageMetadata, and generateDynamicMetadata all
+  // fall back to siteConfig.ogImage.) The square /logo.png is still used directly as
+  // the schema.org Organization `logo` (a brand mark, which SHOULD be square).
+  ogImage: `${env.NEXT_PUBLIC_URL || "https://africanfreefirecommunity.com"}/assets/opengraph.png`,
   links: {
     twitter: "https://twitter.com/afcdatabase",
     instagram: "https://instagram.com/africanfreefirecommunity",
@@ -514,6 +523,9 @@ export function generatePageMetadata({
       title: `${title} | ${siteConfig.shortName}`,
       description,
       url: pageUrl,
+      // siteName so the embed shows the AFC label (Next does NOT deep-merge a
+      // page's openGraph onto the root default, so we set it here too).
+      siteName: siteConfig.name,
       images: [{ url: pageImage, width: 1200, height: 630, alt: title }],
     },
     twitter: {
