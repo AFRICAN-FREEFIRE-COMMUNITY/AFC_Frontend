@@ -1022,12 +1022,17 @@ export function LeaderboardDesignsManager({
           canManage={canManage}
           open={fieldsEditorDesign !== null}
           onOpenChange={(open) => {
-            if (!open) setFieldsEditorDesign(null);
+            // Close ONLY when the user dismisses the editor. Refresh the list once here so the
+            // manager reflects any change, without refetching mid-edit.
+            if (!open) {
+              setFieldsEditorDesign(null);
+              load();
+            }
           }}
-          onSaved={() => {
-            setFieldsEditorDesign(null);
-            load();
-          }}
+          // Auto-save fires after EVERY change (add/move/restyle). It must NOT close the editor or
+          // refetch the list (that remounts/closes it). Keep it a no-op; the editor's own status
+          // indicator shows "Saved", and the list refreshes when the editor closes (above).
+          onSaved={() => {}}
         />
       )}
 
