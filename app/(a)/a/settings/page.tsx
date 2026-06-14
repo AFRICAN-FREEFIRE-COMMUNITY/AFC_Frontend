@@ -638,6 +638,28 @@ const page = () => {
     }
   };
 
+  // ── Account overlap (multi-account / sharing review signal) ────────────────
+  // IPs used by more than one account, surfaced from afc_auth/get-account-overlap/. A REVIEW
+  // signal only (IP-sharing is noisy: households, mobile CGNAT, cafes), paired with the VPN flag.
+  const [overlap, setOverlap] = useState<any[]>([]);
+  const [loadingOverlap, setLoadingOverlap] = useState(false);
+  const [overlapLoaded, setOverlapLoaded] = useState(false);
+  const fetchOverlap = async () => {
+    setLoadingOverlap(true);
+    try {
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-account-overlap/`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setOverlap(res.data?.overlap ?? []);
+      setOverlapLoaded(true);
+    } catch {
+      toast.error("Failed to load account overlap.");
+    } finally {
+      setLoadingOverlap(false);
+    }
+  };
+
   // ── Admin activities ─────────────────────────────────────────────────────
   // The "Admin Activities" tab now renders the shared <AuditLogPanel/> (GET /auth/get-audit-log/),
   // which shows ALL admin/staff actions with search + date + pagination. The old
@@ -1997,12 +2019,94 @@ const page = () => {
                         <TableCell className="font-medium">{entry.user}</TableCell>
                         {/* Device parsed from the stored user_agent (lib/user-agent.ts). */}
                         <TableCell className="text-xs">{parseUserAgent(entry.user_agent)}</TableCell>
-                        <TableCell>{entry.ip_address}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            {entry.ip_address}
+                            {/* Heuristic datacenter/VPN flag (afc_auth.looks_like_vpn). Title shows
+                                the detected ASN/provider. A review signal, not a block. */}
+                            {entry.is_vpn && (
+                              <Badge
+                                variant="outline"
+                                className="rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
+                                title={entry.org || "Datacenter / VPN network"}
+                              >
+                                VPN
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>{entry.country ?? "-"}</TableCell>
                         <TableCell>{entry.city ?? "-"}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "-"}
                         </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* ── Account overlap ── IPs used by more than one account (multi-account / account-
+              sharing review signal). A red VPN badge marks datacenter/VPN IPs. NOTE: IP-sharing is
+              noisy (households, mobile carriers, cafes) - triage, do not auto-act. */}
+          <div className="flex items-center justify-between pt-2">
+            <p className="flex items-center text-sm text-muted-foreground">
+              Accounts sharing an IP address (possible shared / duplicate accounts)
+            </p>
+            <Button size="sm" variant="outline" onClick={fetchOverlap} disabled={loadingOverlap}>
+              {loadingOverlap ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {loadingOverlap ? "Loading..." : "Load overlap"}
+            </Button>
+          </div>
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>IP Address</TableHead>
+                    <TableHead>Accounts</TableHead>
+                    <TableHead>Logins</TableHead>
+                    <TableHead>Network</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {overlap.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-10 text-muted-foreground text-sm">
+                        {loadingOverlap
+                          ? "Loading..."
+                          : overlapLoaded
+                            ? "No IPs are shared across multiple accounts."
+                            : "Click 'Load overlap' to find IPs shared by multiple accounts."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    overlap.map((row, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            {row.ip_address}
+                            {row.is_vpn && (
+                              <Badge
+                                variant="outline"
+                                className="rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
+                                title={row.org || "Datacenter / VPN network"}
+                              >
+                                VPN
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          <span className="font-medium">{row.account_count}</span>{" "}
+                          <span className="text-muted-foreground">
+                            ({(row.accounts ?? []).map((a: any) => a.username).join(", ")})
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{row.login_count}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{row.org ?? "-"}</TableCell>
                       </TableRow>
                     ))
                   )}

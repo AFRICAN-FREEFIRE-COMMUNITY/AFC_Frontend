@@ -690,7 +690,21 @@ const Page = ({ params }: Props) => {
                     <TableRow key={i}>
                       {/* Device parsed from the stored user_agent (lib/user-agent.ts). */}
                       <TableCell className="text-xs">{parseUserAgent(entry.user_agent)}</TableCell>
-                      <TableCell>{entry.ip_address}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          {entry.ip_address}
+                          {/* Heuristic datacenter/VPN flag (afc_auth.looks_like_vpn); title = ASN. */}
+                          {entry.is_vpn && (
+                            <Badge
+                              variant="outline"
+                              className="rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
+                              title={entry.org || "Datacenter / VPN network"}
+                            >
+                              VPN
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>{entry.country ?? "-"}</TableCell>
                       <TableCell>{entry.city ?? "-"}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">
