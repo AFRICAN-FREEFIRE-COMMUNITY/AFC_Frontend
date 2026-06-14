@@ -76,6 +76,7 @@ import {
   IconPhoto,
   IconPlus,
   IconStar,
+  IconTableColumn,
   IconTrash,
   IconUpload,
   IconX,
@@ -88,6 +89,7 @@ import {
   type GraphicSize,
   type LogoSize,
 } from "@/lib/leaderboardDesigns";
+import { DesignFieldsEditor } from "./DesignFieldsEditor";
 
 // Accepted background/logo image types (same set the organizer Design-request page allows).
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
@@ -189,6 +191,9 @@ export function LeaderboardDesignsManager({
   // Delete confirmation target.
   const [deleteTarget, setDeleteTarget] = useState<LeaderboardDesign | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Fields+text editor: which design (if any) has the DesignFieldsEditor open.
+  const [fieldsEditorDesign, setFieldsEditorDesign] = useState<LeaderboardDesign | null>(null);
 
   // ── Load the library. ──
   const load = useCallback(async () => {
@@ -616,6 +621,16 @@ export function LeaderboardDesignsManager({
                           >
                             <IconPencil className="size-4" />
                           </Button>
+                          {/* Opens the DesignFieldsEditor for columns, text, groups, and fonts. */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setFieldsEditorDesign(d)}
+                            aria-label={`Edit fields and text for ${d.name}`}
+                            title="Edit fields and text"
+                          >
+                            <IconTableColumn className="size-4" />
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -997,6 +1012,24 @@ export function LeaderboardDesignsManager({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── Fields + text editor (DesignFieldsEditor): opens for one design at a time. ──
+           Wires the organizationId + canManage from this manager. onSaved reloads the list. */}
+      {fieldsEditorDesign && (
+        <DesignFieldsEditor
+          design={fieldsEditorDesign}
+          organizationId={organizationId}
+          canManage={canManage}
+          open={fieldsEditorDesign !== null}
+          onOpenChange={(open) => {
+            if (!open) setFieldsEditorDesign(null);
+          }}
+          onSaved={() => {
+            setFieldsEditorDesign(null);
+            load();
+          }}
+        />
+      )}
 
       {/* ── Delete confirmation ── */}
       <Dialog

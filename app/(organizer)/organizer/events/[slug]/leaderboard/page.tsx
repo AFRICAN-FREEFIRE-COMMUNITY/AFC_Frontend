@@ -91,6 +91,7 @@ import {
 } from "@/components/ui/table";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
+  IconDownload,
   IconEdit,
   IconLock,
   IconMap,
@@ -121,6 +122,10 @@ import { EditLeaderboardStep } from "@/app/(a)/a/leaderboards/_components/EditLe
 // AFC admin editor. The bulk-upload panel is embedded INSIDE this editor.
 import { GroupResultsEditor } from "@/app/(a)/a/leaderboards/_components/GroupResultsEditor";
 import { InfoTip } from "@/components/ui/info-tip";
+// Export graphic dialog (event-stage variant) - see _components/EventStageExportGraphicDialog.tsx.
+// Calls leaderboardDesignsApi.downloadEventStageGraphic, which hits
+// GET events/<eventId>/stages/<stageId>/graphic/ and returns a PNG blob.
+import { EventStageExportGraphicDialog } from "./_components/EventStageExportGraphicDialog";
 
 type Params = { slug: string };
 // The match-edit sub-views, mirroring the admin [id] page's MatchView union.
@@ -1011,7 +1016,10 @@ export default function OrganizerEventLeaderboardPage({
                 • Edit Match Results - per-map flow (manual / image / room file) for ONE map.
                 • Edit Whole Group   - this group's hub: UPLOAD results (bulk, all maps) AND
                   edit every map manually, then Save all. Upload now lives in here, so there
-                  is no separate stage-looking "Bulk Upload" button. */}
+                  is no separate stage-looking "Bulk Upload" button.
+                • Export graphic     - download the current stage standings as a branded PNG.
+                  Only shown on the overall view (selectedMatchId === "overall") since the
+                  backend graphic endpoint renders cumulative stage standings, not a single map. */}
             {/* ⓘ sit as siblings (not nested) - InfoTip is itself a button. */}
             <div className="flex gap-2 flex-wrap items-center">
               <Button onClick={handleStartEditMatch}>
@@ -1028,6 +1036,21 @@ export default function OrganizerEventLeaderboardPage({
                   </Button>
                   <InfoTip id="leaderboards.detail.upload_edit_group" />
                 </>
+              )}
+              {/* Export graphic - only meaningful on the cumulative overall view. */}
+              {selectedMatchId === "overall" && selectedStageId && (
+                <EventStageExportGraphicDialog
+                  eventId={eventId}
+                  stageId={selectedStageId}
+                  organizationId={organizationId}
+                  defaultTitle={eventData.event_name || eventNameFromList}
+                  defaultSubtitle={currentStage?.stage_name ?? ""}
+                  trigger={
+                    <Button variant="outline" size="sm">
+                      <IconDownload size={16} /> Export graphic
+                    </Button>
+                  }
+                />
               )}
             </div>
           </CardContent>

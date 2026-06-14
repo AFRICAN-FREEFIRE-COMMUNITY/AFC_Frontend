@@ -48,6 +48,58 @@ export interface LeaderboardDesignLogo {
   size: LogoSize;
 }
 
+// ── Positionable connected-column fields + freeform text + uploaded fonts (owner 2026-06-14) ──
+// A "connected column" binds to a real standings stat (field_type) and is drawn at x_pct for every
+// row of its column_group. Available stats (mirror OrgLeaderboardDesignField.FIELD_CHOICES):
+export type FieldType =
+  | "pos" | "team_name" | "team_logo" | "booyah" | "placement_points" | "kill_points"
+  | "total_points" | "rush_points" | "kills" | "matches" | "base_total" | "bonus" | "penalty";
+
+export type TextAlign = "left" | "center" | "right";
+
+// Row tiling for one column group (the field-layout path). The Dynasty board = two groups, each
+// 8 rows, start_rank 1 and 9. An empty column_groups list => the legacy auto-table render.
+export interface DesignColumnGroup {
+  row_start_pct: number; // Y of the first row centre, 0..100
+  row_height_pct: number; // vertical gap between rows, % of canvas height
+  row_count: number; // rows this group draws
+  start_rank: number; // the standings position the group's first row shows (1, 9, ...)
+}
+
+// One placed/connected column. font_id/font_size_pct/color are optional overrides (null/"" =>
+// renderer default: built-in font, default size, design.text_color).
+export interface LeaderboardDesignField {
+  id: number;
+  field_type: FieldType;
+  column_group: number; // index into design.column_groups
+  x_pct: number; // centre X, 0..100
+  align: TextAlign;
+  font_id: number | null;
+  font_size_pct: number | null; // size as % of canvas height
+  color: string; // hex, or "" for the design default
+  order: number;
+}
+
+// One freeform text element (static copy placed anywhere, with its own style).
+export interface LeaderboardDesignText {
+  id: number;
+  text: string;
+  x_pct: number;
+  y_pct: number;
+  align: TextAlign;
+  font_id: number | null;
+  font_size_pct: number | null;
+  color: string;
+  order: number;
+}
+
+// An uploaded font (TTF/OTF) library item (afc_organizers.OrgLeaderboardDesignFont).
+export interface LeaderboardDesignFont {
+  id: number;
+  name: string;
+  file: string | null; // media URL
+}
+
 // One library design as returned by _serialize_design (backend views_leaderboard_design). The two
 // background_* fields are media URLs (or null when that size has not been uploaded yet).
 export interface LeaderboardDesign {
@@ -61,7 +113,10 @@ export interface LeaderboardDesign {
   show_subtitle: boolean;
   max_rows: number; // how many standings rows the render fits (1..50)
   is_default: boolean; // the library's auto-selected design
+  column_groups: DesignColumnGroup[]; // row tiling per group (field-layout path); [] = legacy table
   logos: LeaderboardDesignLogo[]; // positioned logos drawn on top of the design
+  fields: LeaderboardDesignField[]; // placed/connected data columns
+  texts: LeaderboardDesignText[]; // freeform text elements
   created_at: string | null;
 }
 
@@ -161,6 +216,108 @@ export const leaderboardDesignsApi = {
       )
       .then((r) => r.data),
 
+  // ── Connected-column FIELDS on a design (owner 2026-06-14) ──────────────────
+  // A field binds to a stat (field_type, set on create) + position/style. Plain JSON bodies.
+  // POST .../fields/  -> {field}
+  addField: (
+    designId: number,
+    body: {
+      field_type: FieldType;
+      column_group?: number;
+      x_pct?: number;
+      align?: TextAlign;
+      font_id?: number | null;
+      font_size_pct?: number | null;
+      color?: string;
+    },
+  ) =>
+    axios
+      .post<{ field: LeaderboardDesignField }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/fields/`,
+        body,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+  // PATCH .../fields/<fieldId>/ — only keys sent change -> {field}
+  updateField: (
+    designId: number,
+    fieldId: number,
+    body: Partial<{
+      column_group: number;
+      x_pct: number;
+      align: TextAlign;
+      font_id: number | null;
+      font_size_pct: number | null;
+      color: string;
+    }>,
+  ) =>
+    axios
+      .patch<{ field: LeaderboardDesignField }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/fields/${fieldId}/`,
+        body,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+  // DELETE .../fields/<fieldId>/ -> {message}
+  deleteField: (designId: number, fieldId: number) =>
+    axios
+      .delete(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/fields/${fieldId}/`,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+
+  // ── Freeform TEXT elements on a design ───────────────────────────────────────
+  // POST .../texts/  -> {text}
+  addText: (
+    designId: number,
+    body: {
+      text: string;
+      x_pct?: number;
+      y_pct?: number;
+      align?: TextAlign;
+      font_id?: number | null;
+      font_size_pct?: number | null;
+      color?: string;
+    },
+  ) =>
+    axios
+      .post<{ text: LeaderboardDesignText }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/texts/`,
+        body,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+  // PATCH .../texts/<textId>/ -> {text}
+  updateText: (
+    designId: number,
+    textId: number,
+    body: Partial<{
+      text: string;
+      x_pct: number;
+      y_pct: number;
+      align: TextAlign;
+      font_id: number | null;
+      font_size_pct: number | null;
+      color: string;
+    }>,
+  ) =>
+    axios
+      .patch<{ text: LeaderboardDesignText }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/texts/${textId}/`,
+        body,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+  // DELETE .../texts/<textId>/ -> {message}
+  deleteText: (designId: number, textId: number) =>
+    axios
+      .delete(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/texts/${textId}/`,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+
   // ── Export renderer (leaderboards/standalone/<id>/graphic/) ──────────────────
   // GET the rendered PNG as a Blob. design_id is optional (the backend falls back to the library
   // default, then a plain dark AFC background); size picks the canvas; title defaults to the
@@ -187,4 +344,70 @@ export const leaderboardDesignsApi = {
       })
       .then((r) => r.data as Blob);
   },
+
+  // ── Event stage export (owner 2026-06-14) ────────────────────────────────────
+  // GET events/<eventId>/stages/<stageId>/graphic/ -> PNG Blob. Renders the stage's cumulative
+  // standings onto a design (the event org's library, or AFC-native). Same blob+auth idiom as
+  // downloadGraphic. Consumed by EventGroupExportGraphicDialog on the event leaderboard page.
+  downloadEventStageGraphic: (
+    eventId: number | string,
+    stageId: number | string,
+    opts: {
+      designId?: number | null;
+      size: GraphicSize;
+      title?: string;
+      subtitle?: string;
+    },
+  ): Promise<Blob> => {
+    const params: Record<string, any> = { size: opts.size };
+    if (opts.designId != null) params.design_id = opts.designId;
+    if (opts.title) params.title = opts.title;
+    if (opts.subtitle) params.subtitle = opts.subtitle;
+    return axios
+      .get(`${BASE}/events/${eventId}/stages/${stageId}/graphic/`, {
+        params,
+        headers: authHeaders(),
+        responseType: "blob",
+      })
+      .then((r) => r.data as Blob);
+  },
+};
+
+// ── Uploaded FONT library (organizers/leaderboard-fonts/) ───────────────────────
+// TTF/OTF fonts an org (or AFC, org=null) can apply to a design's fields + freeform text. Same
+// org-scoping rule as the design library. Consumed by the editor's font picker + upload control.
+export const leaderboardFontsApi = {
+  // GET organizers/leaderboard-fonts/?organization_id=<id?> -> {results, total_count}
+  list: (organizationId?: number | null) =>
+    axios
+      .get<{ results: LeaderboardDesignFont[]; total_count: number }>(
+        `${BASE}/organizers/leaderboard-fonts/`,
+        {
+          params: organizationId != null ? { organization_id: organizationId } : {},
+          headers: authHeaders(),
+        },
+      )
+      .then((r) => r.data),
+  // POST organizers/leaderboard-fonts/ (multipart: file + name? + organization_id?) -> {font}
+  upload: (file: File, opts?: { name?: string; organizationId?: number | null }) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    if (opts?.name) fd.append("name", opts.name);
+    if (opts?.organizationId != null)
+      fd.append("organization_id", String(opts.organizationId));
+    return axios
+      .post<{ font: LeaderboardDesignFont }>(
+        `${BASE}/organizers/leaderboard-fonts/`,
+        fd,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data);
+  },
+  // DELETE organizers/leaderboard-fonts/by-id/<fontId>/ -> {message}
+  remove: (fontId: number) =>
+    axios
+      .delete(`${BASE}/organizers/leaderboard-fonts/by-id/${fontId}/`, {
+        headers: authHeaders(),
+      })
+      .then((r) => r.data),
 };
