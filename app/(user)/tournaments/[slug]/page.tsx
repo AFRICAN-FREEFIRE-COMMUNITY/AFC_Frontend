@@ -76,17 +76,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? `${title} - ${parts.join(" • ")}`
       : `${title} is a competitive tournament on African Freefire Community. Register now!`;
 
-  // Safely resolve the banner URL - proxy through our domain so crawlers can reach it
-  const rawImage = data.event_banner_url || data.team_logo;
-  const resolvedImage =
-    rawImage && typeof rawImage === "string"
-      ? rawImage.startsWith("http")
-        ? rawImage
-        : `${env.NEXT_PUBLIC_URL}/${rawImage.replace(/^\//, "")}`
-      : null;
-  const absoluteImageUrl = resolvedImage
-    ? `${siteConfig.url}/api/og-image?url=${encodeURIComponent(resolvedImage)}`
-    : siteConfig.ogImage;
+  // Link-embed image FALLBACK CHAIN (owner 2026-06-14): the event banner, else the
+  // organizing org's logo, else the AFC branded card. resolveOgImage proxies a
+  // backend /media/ image through /api/og-image so crawlers can fetch it, and returns
+  // the site default (/assets/opengraph.png) when nothing usable is passed.
+  // (organization_logo comes from the not-logged-in event detail endpoint.)
+  const absoluteImageUrl = resolveOgImage(
+    data.event_banner_url || data.organization_logo || data.team_logo,
+  );
 
   // Canonicalize to the event's TRUE slug from the backend (not the URL param),
   // so case/encoding variants of the same event collapse to one canonical URL
@@ -151,8 +148,12 @@ const Page = async ({ params }: Props) => {
       url: canonicalUrl,
       startDate: data.start_date,
       endDate: data.end_date,
-      // Proxy the backend banner through /api/og-image so crawlers can fetch it.
-      image: data.event_banner_url ? resolveOgImage(data.event_banner_url) : null,
+      // Proxy the backend banner (else the org logo) through /api/og-image so
+      // crawlers can fetch it; null when the event has neither (no fake image).
+      image:
+        data.event_banner_url || data.organization_logo
+          ? resolveOgImage(data.event_banner_url || data.organization_logo)
+          : null,
       // The not-logged-in detail endpoint omits org name/slug; the list endpoint
       // carries them. Pass through if present, otherwise omit (no fabrication).
       organizerName: data.organization_name || null,
