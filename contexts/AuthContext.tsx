@@ -108,18 +108,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Cookie configuration
 const COOKIE_NAME = "auth_token";
 const COOKIE_OPTIONS = {
-  // 3 hours (owner 2026-06-14: auto-logout after 3h). js-cookie `expires` is in DAYS, so
-  // 3 hours = 3/24. MUST match the backend SessionToken.SESSION_LIFETIME (timedelta(hours=3)),
-  // otherwise the cookie outlives the token and requests start 401-ing while still "logged in".
-  expires: 3 / 24,
+  // Cookie lifetime is STORAGE ONLY — it is NOT the session timeout. The real timeout is the
+  // backend's 3h IDLE window (SessionToken: expires_at slides forward on every authed request via
+  // validate_token -> touch()), so an actively-used session never expires and a 3h-idle one does.
+  //
+  // BUG FIX (owner 2026-06-15: "logs out mid-use, not up to 3h"): the cookie used to be pinned to
+  // 3h (3/24) and only slid on AXIOS successes, so on fetch-heavy / SSR pages (or a slide race) the
+  // cookie lapsed WHILE the backend token was still alive — logging an active user out early. We now
+  // give the cookie a long life (7d) and let the backend be the single source of truth: while active,
+  // the backend keeps sliding so requests succeed; once idle past 3h the backend token expires and the
+  // next request 401s, which the response interceptor below turns into a clean logout (via the
+  // get-user-profile revalidation path). So the 3h-idle behaviour is preserved, without the early
+  // mid-use logout.
+  expires: 7, // days (storage only; backend SessionToken 3h-idle is the actual timeout)
   secure: process.env.NODE_ENV === "production", // HTTPS only in production
   sameSite: "strict" as const,
   path: "/",
 };
 
-// Idle-timeout slide (owner 2026-06-14): on activity we re-set the auth_token cookie with a fresh
-// 3h expiry so an active user is never logged out, mirroring the backend SessionToken.touch(). We
-// throttle to once per 5 min so we are not re-writing the cookie on every single request.
+// Activity slide: on activity we re-write the auth_token cookie so its 7d storage window keeps
+// refreshing for as long as the user keeps using the app (the actual session timeout is the
+// backend's sliding 3h-idle window — see COOKIE_OPTIONS). Throttled to once per 5 min so we are
+// not re-writing the cookie on every single request.
 let lastCookieBumpAt = 0;
 const COOKIE_BUMP_THROTTLE_MS = 5 * 60 * 1000;
 
@@ -146,9 +156,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const interceptor = axios.interceptors.response.use(
       (response) => {
-        // Idle-timeout cookie slide: any successful API call counts as activity, so refresh the
-        // auth_token cookie's 3h expiry (throttled). Keeps an active user logged in; once they go
-        // idle for 3h the cookie lapses + the backend token expires, and they are logged out.
+        // Activity cookie slide: any successful API call counts as activity, so refresh the
+        // auth_token cookie's 7d storage window (throttled). The real 3h-idle timeout lives on the
+        // backend (SessionToken slides on every authed request); once idle past 3h the backend
+        // token expires and the next request 401s -> clean logout via the handler below.
         try {
           const t = Cookies.get(COOKIE_NAME);
           const now = Date.now();
