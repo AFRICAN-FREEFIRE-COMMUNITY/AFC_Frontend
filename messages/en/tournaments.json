@@ -230,7 +230,8 @@
     "competitor": "Competitor",
     "kills": "Kills",
     "totalPoints": "Total Points",
-    "noResults": "No results available for this selection."
+    "noResults": "No results available for this selection.",
+    "placePts": "Place Pts"
   },
   "teamRegister": {
     "selectMembers": {

@@ -168,6 +168,7 @@
   "stageResults.kills": "Kills",
   "stageResults.totalPoints": "Total Points",
   "stageResults.noResults": "No results available for this selection.",
+  "stageResults.placePts": "Place Pts",
   "teamRegister.selectMembers.title": "Select Team Members",
   "teamRegister.selectMembers.description": "Select {min}-{max} players from your team roster",
   "teamRegister.selectMembers.availablePlayers": "Available Players:",

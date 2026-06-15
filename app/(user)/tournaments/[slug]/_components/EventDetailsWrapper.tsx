@@ -1110,6 +1110,12 @@ const StageResultsTable: React.FC<{
                 <TableHead className="text-center ">
                   {t("stageResults.kills")}
                 </TableHead>
+                {/* Place Pts: always-shown placement-points contribution behind the total
+                    (owner 2026-06-15). Group standings carry it as placement_sum; per-match
+                    rows as placement_points. */}
+                <TableHead className="text-center ">
+                  {t("stageResults.placePts")}
+                </TableHead>
                 <TableHead className="text-right text-[10px] uppercase font-semibold pr-6">
                   {t("stageResults.totalPoints")}
                 </TableHead>
@@ -1124,6 +1130,8 @@ const StageResultsTable: React.FC<{
                     `Player ${row.competitor_id || idx + 1}`;
                   const kills = row.total_kills ?? row.kills ?? 0;
                   const points = row.total_points ?? row.total_pts ?? 0;
+                  // Group standings expose placement_sum; per-match rows expose placement_points.
+                  const placePts = row.placement_sum ?? row.placement_points ?? 0;
                   const placement = row.placement ?? idx + 1;
 
                   return (
@@ -1148,6 +1156,9 @@ const StageResultsTable: React.FC<{
                       <TableCell className="text-center group-hover:text-white font-medium">
                         {kills}
                       </TableCell>
+                      <TableCell className="text-center font-medium">
+                        {placePts}
+                      </TableCell>
                       <TableCell className="text-right font-semibold text-primary pr-6">
                         {parseFloat(points).toFixed(1)}
                       </TableCell>
@@ -1157,7 +1168,7 @@ const StageResultsTable: React.FC<{
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="h-40 text-center text-muted-foreground italic"
                   >
                     {t("stageResults.noResults")}

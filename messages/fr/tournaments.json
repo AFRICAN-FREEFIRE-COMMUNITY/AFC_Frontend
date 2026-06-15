@@ -230,7 +230,8 @@
     "competitor": "Compétiteur",
     "kills": "Frags",
     "totalPoints": "Points totaux",
-    "noResults": "Aucun résultat disponible pour cette sélection."
+    "noResults": "Aucun résultat disponible pour cette sélection.",
+    "placePts": "Pts de placement"
   },
   "teamRegister": {
     "selectMembers": {

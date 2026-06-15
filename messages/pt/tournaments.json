@@ -230,7 +230,8 @@
     "competitor": "Competidor",
     "kills": "Abates",
     "totalPoints": "Pontos Totais",
-    "noResults": "Nenhum resultado disponível para esta seleção."
+    "noResults": "Nenhum resultado disponível para esta seleção.",
+    "placePts": "Pontos de Colocação"
   },
   "teamRegister": {
     "selectMembers": {
