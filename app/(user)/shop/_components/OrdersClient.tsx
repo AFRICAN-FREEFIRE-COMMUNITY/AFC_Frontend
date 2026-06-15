@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Pagination,
   PaginationContent,
@@ -62,6 +63,8 @@ interface Order {
 }
 
 export default function OrdersClient() {
+  // Localized copy for the orders list (messages/en/shop.json -> "orders").
+  const t = useTranslations("shop");
   const { token } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -114,7 +117,9 @@ export default function OrdersClient() {
 
   const renderItemsSummary = (items: OrderItem[]) => {
     if (items.length === 0)
-      return <span className="text-muted-foreground">No items</span>;
+      return (
+        <span className="text-muted-foreground">{t("orders.noItems")}</span>
+      );
 
     const firstItem = items[0];
     const remainingItems = items.slice(1);
@@ -122,7 +127,10 @@ export default function OrdersClient() {
     return (
       <div className="flex items-center gap-2">
         <span className="truncate max-w-[150px]">
-          {firstItem.product_name} (x{firstItem.quantity})
+          {t("orders.itemSummary", {
+            name: firstItem.product_name,
+            quantity: firstItem.quantity,
+          })}
         </span>
 
         {items.length > 1 && (
@@ -133,12 +141,12 @@ export default function OrdersClient() {
                   variant="secondary"
                   className="cursor-help text-[10px] px-1.5 py-0 hover:bg-secondary/80"
                 >
-                  +{items.length - 1} more
+                  {t("orders.moreItems", { count: items.length - 1 })}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent side="right" className="p-3 bg-background border">
                 <p className="text-xs font-semibold text-primary mb-2 border-b pb-1">
-                  Additional Items:
+                  {t("orders.additionalItems")}
                 </p>
                 <ul className="space-y-1">
                   {remainingItems.map((item, idx) => (
@@ -173,7 +181,7 @@ export default function OrdersClient() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Loading your orders...</p>
+        <p className="text-muted-foreground">{t("orders.loading")}</p>
       </div>
     );
   }
@@ -182,39 +190,43 @@ export default function OrdersClient() {
     <div className="space-y-6">
       <PageHeader
         back
-        title="My Orders"
-        description="View and track your diamond purchases"
+        title={t("orders.pageTitle")}
+        description={t("orders.pageDescription")}
       />
 
       {orders.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <IconShoppingBag className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <CardTitle className="mb-2">No orders yet</CardTitle>
+            <CardTitle className="mb-2">{t("orders.emptyTitle")}</CardTitle>
             <CardDescription className="text-muted-foreground mb-4">
-              You haven&apos;t made any purchases yet.
+              {t("orders.emptyDescription")}
             </CardDescription>
             <Button asChild>
-              <Link href="/shop">Browse Shop</Link>
+              <Link href="/shop">{t("orders.browseShop")}</Link>
             </Button>
           </CardContent>
         </Card>
       ) : (
         <Card className="gap-1 bg-transparent">
           <CardHeader>
-            <CardTitle>Order History</CardTitle>
+            <CardTitle>{t("orders.historyTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px]">ID</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead className="w-[100px]">
+                      {t("orders.table.id")}
+                    </TableHead>
+                    <TableHead>{t("orders.table.items")}</TableHead>
+                    <TableHead>{t("orders.table.total")}</TableHead>
+                    <TableHead>{t("orders.table.date")}</TableHead>
+                    <TableHead>{t("orders.table.status")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("orders.table.action")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -238,7 +250,7 @@ export default function OrdersClient() {
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/orders/${order.order_id}`}>
-                            Details
+                            {t("orders.table.details")}
                           </Link>
                         </Button>
                       </TableCell>
@@ -249,9 +261,11 @@ export default function OrdersClient() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="hidden md:block text-sm text-muted-foreground">
-                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                    {Math.min(currentPage * ITEMS_PER_PAGE, orders.length)} of{" "}
-                    {orders.length}
+                    {t("orders.showingRange", {
+                      start: (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                      end: Math.min(currentPage * ITEMS_PER_PAGE, orders.length),
+                      total: orders.length,
+                    })}
                   </p>
                   <Pagination className="w-full md:w-auto mx-0">
                     <PaginationContent>

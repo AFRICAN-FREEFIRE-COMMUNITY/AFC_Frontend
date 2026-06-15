@@ -13,6 +13,11 @@ import {
 import { CartProvider } from "@/contexts/CartContext";
 import Script from "next/script";
 import { AuthModalProvider } from "@/components/AuthModal";
+// i18n: locale + messages come from i18n/request.ts (driven by the NEXT_LOCALE
+// cookie). I18nProvider (NextIntlClientProvider) makes them available to every
+// Client Component via useTranslations(). See components/I18nProvider.tsx.
+import { getLocale, getMessages } from "next-intl/server";
+import { I18nProvider } from "@/components/I18nProvider";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -31,13 +36,21 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
+// RootLayout is async so it can await the locale and messages resolved by
+// next-intl for this request (cookie-based, no URL prefix). The <html lang>
+// then reflects the active language for accessibility + SEO.
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Resolved from the NEXT_LOCALE cookie via i18n/request.ts; fallback 'en'.
+  const locale = await getLocale();
+  // Deep-merged catalog (English base + fr/pt overlay) for Client Components.
+  const messages = await getMessages();
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         {/*
           Site-wide default link embed (logo + tagline card) is set via the
@@ -90,20 +103,28 @@ export default function RootLayout({
             mixpanel.init('abc2f1f29e9862cc5ca32d8b51e3b265', { autocapture: true, record_sessions_percent: 100 });
           `}
         </Script>
-        <AuthProvider>
-          <AuthModalProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <PageGradient />
-              <CartProvider>{children}</CartProvider>
-              <Toaster position="bottom-center" />
-            </ThemeProvider>
-          </AuthModalProvider>
-        </AuthProvider>
+        {/*
+          I18nProvider is mounted outermost so every Client Component below it
+          (auth, modals, theme, cart, all pages) can call useTranslations().
+          locale + messages are resolved server-side above from the NEXT_LOCALE
+          cookie via i18n/request.ts.
+        */}
+        <I18nProvider locale={locale} messages={messages}>
+          <AuthProvider>
+            <AuthModalProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="dark"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <PageGradient />
+                <CartProvider>{children}</CartProvider>
+                <Toaster position="bottom-center" />
+              </ThemeProvider>
+            </AuthModalProvider>
+          </AuthProvider>
+        </I18nProvider>
       </body>
     </html>
   );

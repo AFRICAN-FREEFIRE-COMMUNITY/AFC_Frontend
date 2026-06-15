@@ -17,6 +17,11 @@ import { Separator } from "@/components/ui/separator";
 import { IconThumbDown, IconThumbUp } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
+// useTranslations: next-intl hook. Localizes the static chrome on the article
+// detail (title suffix, register CTA, "was this helpful", vote toasts) from the
+// "news" namespace (messages/en/news.json). The article body (RenderDescription)
+// is backend-supplied and arrives already translated, so it is not touched here.
+import { useTranslations } from "next-intl";
 
 export function NewsClient({
   params,
@@ -25,6 +30,8 @@ export function NewsClient({
   params: Promise<{ slug: string }>;
   initialData?: any;
 }) {
+  // Localized static chrome for the article detail page ("news" namespace).
+  const t = useTranslations("news");
   const { token } = useAuth();
   const { slug } = use(params);
 
@@ -74,7 +81,7 @@ export function NewsClient({
         });
       } catch (error: any) {
         console.error("Fetch Error:", error);
-        toast.error("Failed to sync news data");
+        toast.error(t("toast.syncFailed"));
       } finally {
         setLoading(false);
       }
@@ -85,7 +92,7 @@ export function NewsClient({
 
   const handleVote = async (actionType: "like" | "dislike") => {
     if (!token) {
-      return toast.error("Please login to vote");
+      return toast.error(t("toast.loginToVote"));
     }
     if (isActionLoading) return;
 
@@ -155,7 +162,7 @@ export function NewsClient({
             </div>
           </div>
         }
-        title={`${newsDetails.news_title} Details`}
+        title={t("detail.titleSuffix", { title: newsDetails.news_title })}
         back
       />
 
@@ -178,7 +185,7 @@ export function NewsClient({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Register for Tournament{" "}
+                {t("detail.registerForTournament")}{" "}
                 <ExternalLink className="ml-2 h-4 w-4" />
               </a>
             </Button>
@@ -188,7 +195,7 @@ export function NewsClient({
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-2">
           <p className="text-muted-foreground text-sm font-medium">
-            Was this helpful?
+            {t("detail.wasThisHelpful")}
           </p>
           <div className="flex items-center gap-3">
             <Button

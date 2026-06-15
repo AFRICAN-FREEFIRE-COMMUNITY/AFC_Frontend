@@ -22,6 +22,7 @@ import {
 } from "@/lib/zodSchemas";
 import { OTPInput, SlotProps } from "input-otp";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface Props {
   identifier: string;
@@ -31,6 +32,9 @@ interface Props {
 export function VerifyTokenForm({ identifier, method }: Props) {
   const router = useRouter();
 
+  // Auth namespace: messages/en/auth.json (verifyToken.* keys). Drives the
+  // submit/resend buttons, cooldown label, and verify/resend toasts.
+  const t = useTranslations("auth");
   const [pending, startTransition] = useTransition();
   const [pendingResend, startResendTransition] = useTransition();
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -71,10 +75,13 @@ export function VerifyTokenForm({ identifier, method }: Props) {
           toast.success(response.data.message);
           setResendCooldown(300);
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("verifyToken.genericError"));
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Internal server error");
+        toast.error(
+          error?.response?.data?.message ||
+            t("verifyToken.internalServerError")
+        );
       }
     });
   };
@@ -99,17 +106,24 @@ export function VerifyTokenForm({ identifier, method }: Props) {
         );
 
         if (response.statusText === "OK") {
-          toast.success(`${response.data.message}. Redirecting...`);
+          toast.success(
+            t("verifyToken.successRedirecting", {
+              message: response.data.message,
+            })
+          );
           const param =
             method === "email"
               ? `email=${encodeURIComponent(identifier)}`
               : `uid=${encodeURIComponent(identifier)}`;
           router.push(`/reset-password?${param}&token=${data.token}`);
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("verifyToken.genericError"));
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Internal server error");
+        toast.error(
+          error?.response?.data?.message ||
+            t("verifyToken.internalServerError")
+        );
       }
     });
   }
@@ -146,7 +160,11 @@ export function VerifyTokenForm({ identifier, method }: Props) {
             type="submit"
             disabled={pending || pendingResend}
           >
-            {pending ? <Loader text="Verifying..." /> : "Verify token"}
+            {pending ? (
+              <Loader text={t("verifyToken.verifying")} />
+            ) : (
+              t("verifyToken.submit")
+            )}
           </Button>
           <Button
             type="button"
@@ -156,11 +174,13 @@ export function VerifyTokenForm({ identifier, method }: Props) {
             onClick={handleResendToken}
           >
             {pendingResend ? (
-              <Loader text="Resending..." />
+              <Loader text={t("verifyToken.resending")} />
             ) : resendCooldown > 0 ? (
-              `Resend token in ${formatCooldown(resendCooldown)}`
+              t("verifyToken.resendCooldown", {
+                time: formatCooldown(resendCooldown),
+              })
             ) : (
-              "Resend token"
+              t("verifyToken.resend")
             )}
           </Button>
         </div>

@@ -32,6 +32,10 @@ import {
 } from "@tabler/icons-react";
 import axios from "axios";
 import { ExternalLink, Search } from "lucide-react";
+// useTranslations: next-intl hook for Client Components. Pulls the "news"
+// namespace (messages/en/news.json) so all static UI chrome on the news list
+// renders in the active locale (NEXT_LOCALE cookie -> 'en' fallback).
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState, useTransition } from "react";
@@ -47,6 +51,9 @@ import {
 import { toast } from "sonner";
 
 const page = () => {
+  // Localized strings for the news list chrome (titles, filters, empty states,
+  // toasts, card buttons). Article body text stays backend-supplied.
+  const t = useTranslations("news");
   const { token } = useAuth();
   const [pending, startTransition] = useTransition();
   const [news, setNews] = useState<any>();
@@ -70,11 +77,14 @@ const page = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("all");
 
+  // Category options drive both the filter dropdown and the card badge label
+  // (via getCategoryLabel). Labels are localized from messages/en/news.json
+  // (categories.*); the `value` is the backend category key and stays untranslated.
   const categories = [
-    { value: "all", label: "All Categories" },
-    { value: "general", label: "General News" },
-    { value: "tournament", label: "Tournament Updates" },
-    { value: "bans", label: "Banned Player/Team Updates" },
+    { value: "all", label: t("categories.all") },
+    { value: "general", label: t("categories.general") },
+    { value: "tournament", label: t("categories.tournament") },
+    { value: "bans", label: t("categories.bans") },
   ];
 
   // Filter and search news
@@ -155,7 +165,7 @@ const page = () => {
 
         setNews(newsWithCounts);
       } catch (error: any) {
-        toast.error(error?.response?.data.message || "Failed to load news");
+        toast.error(error?.response?.data.message || t("toast.loadFailed"));
       }
     });
   }, [token]);
@@ -164,7 +174,7 @@ const page = () => {
     newsDetails: any,
     actionType: "like" | "dislike",
   ) => {
-    if (!token) return toast.error("Please login to vote");
+    if (!token) return toast.error(t("toast.loginToVote"));
     if (isActionLoading) return;
 
     const newsId = newsDetails.id || newsDetails.news_id;
@@ -207,7 +217,7 @@ const page = () => {
         ),
       );
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Action failed");
+      toast.error(error?.response?.data?.message || t("toast.actionFailed"));
     } finally {
       setIsActionLoading(null);
     }
@@ -228,12 +238,12 @@ const page = () => {
   return (
     <div>
       <div className="flex flex-col md:flex-row items-start justify-start md:justify-between md:items-center mb-6">
-        <PageHeader title="News & Updates" />
+        <PageHeader title={t("pageTitle")} />
         {(userRole === "moderator" || userRole === "admin") && (
           <Button className="w-full md:w-auto" asChild>
             <Link href="/a/news/create">
               <IconCirclePlus className="mr-2 h-4 w-4" />
-              Create New Post
+              {t("createPost")}
             </Link>
           </Button>
         )}
@@ -246,7 +256,7 @@ const page = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search news by title, content, or author..."
+              placeholder={t("search.placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 bg-background/50 backdrop-blur-sm"
@@ -268,7 +278,7 @@ const page = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-full ">
-              <SelectValue placeholder="Select category" />
+              <SelectValue placeholder={t("search.categoryPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {categories.map((category) => (
@@ -286,15 +296,15 @@ const page = () => {
         <div className="text-center py-12">
           <div className="max-w-md mx-auto">
             <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No articles found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("empty.title")}</h3>
             <p className="text-muted-foreground mb-4">
               {searchQuery || dateFilter || selectedCategory !== "all"
-                ? "Try adjusting your search terms or filters"
-                : "No articles available at the moment"}
+                ? t("empty.withFilters")
+                : t("empty.noArticles")}
             </p>
             {(searchQuery || dateFilter || selectedCategory !== "all") && (
               <Button variant="outline" onClick={clearFilters}>
-                Clear all filters
+                {t("empty.clearFilters")}
               </Button>
             )}
           </div>
@@ -349,7 +359,9 @@ const page = () => {
                   </p>
                   <div className="mt-auto flex space-x-2">
                     <Button className="flex-1" asChild>
-                      <Link href={`/news/${newsDetails.slug}`}>Read More</Link>
+                      <Link href={`/news/${newsDetails.slug}`}>
+                        {t("card.readMore")}
+                      </Link>
                     </Button>
                     {newsDetails.category === "tournament" &&
                       newsDetails.registrationLink && (
@@ -359,7 +371,8 @@ const page = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            Register <ExternalLink className="ml-1 h-3 w-3" />
+                            {t("card.register")}{" "}
+                            <ExternalLink className="ml-1 h-3 w-3" />
                           </a>
                         </Button>
                       )}
@@ -430,9 +443,14 @@ const page = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <p className="hidden md:block text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                {Math.min(currentPage * ITEMS_PER_PAGE, filteredNews.length)} of{" "}
-                {filteredNews.length} articles
+                {t("pagination.showing", {
+                  from: (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                  to: Math.min(
+                    currentPage * ITEMS_PER_PAGE,
+                    filteredNews.length,
+                  ),
+                  total: filteredNews.length,
+                })}
               </p>
               <Pagination className="w-full md:w-auto mx-0">
                 <PaginationContent>

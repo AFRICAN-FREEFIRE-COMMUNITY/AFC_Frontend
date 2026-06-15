@@ -1,0 +1,138 @@
+{
+  "landing": {
+    "hero": {
+      "seasonBadge": "Temporada 2026 Já Começou",
+      "titleHighlight": "Domine",
+      "titleRest": "a Arena",
+      "subtitle": "Junte-se à plataforma competitiva definitiva de Free Fire. Dispute torneios, suba nos rankings e prove que você é o melhor jogador na comunidade AFC.",
+      "createAccount": "Criar Conta",
+      "startCompeting": "Começar a Competir",
+      "viewTournaments": "Ver Torneios"
+    },
+    "stats": {
+      "activePlayers": "Jogadores Ativos",
+      "tournamentsHeld": "Torneios Realizados",
+      "prizePoolDistributed": "Premiação Distribuída",
+      "teamsRegistered": "Equipes Registradas"
+    },
+    "features": {
+      "headingHighlight": "Por Que Escolher",
+      "headingRest": "AFC Esports?",
+      "subtitle": "Experimente a plataforma competitiva de Free Fire mais completa, com recursos projetados para jogadores sérios.",
+      "tournaments": {
+        "title": "Torneios Competitivos",
+        "description": "Participe de torneios de alto risco com prêmios incríveis e reconhecimento na comunidade AFC."
+      },
+      "teamManagement": {
+        "title": "Gestão de Equipes",
+        "description": "Crie e gerencie sua equipe de esports com ferramentas avançadas de elenco e estratégia."
+      },
+      "rankings": {
+        "title": "Rankings de Habilidade",
+        "description": "Acompanhe seu progresso com nosso sistema de ranking abrangente e tabelas de classificação."
+      },
+      "scheduling": {
+        "title": "Agendamento de Eventos",
+        "description": "Nunca perca uma partida com nosso calendário integrado e sistema de notificações."
+      },
+      "fairPlay": {
+        "title": "Jogo Limpo",
+        "description": "Compita em um ambiente seguro com medidas anti-trapaça e políticas de jogo limpo."
+      },
+      "achievements": {
+        "title": "Conquistas",
+        "description": "Desbloqueie distintivos, títulos e recompensas enquanto sobe na escada competitiva."
+      }
+    },
+    "cta": {
+      "headingPrefix": "Pronto para",
+      "headingHighlight": "Subir de Nível",
+      "headingSuffix": "Seu Jogo?",
+      "subtitle": "Junte-se a milhares de jogadores competindo por glória, prêmios e o direito de se gabar no Free Fire.",
+      "createAccount": "Criar Conta",
+      "learnMore": "Saiba Mais"
+    }
+  },
+  "dashboard": {
+    "pageTitle": "Bem-vindo ao AFC",
+    "pageDescription": "Seu centro para estatísticas e eventos da comunidade africana de Free Fire"
+  },
+  "boxes": {
+    "totalKills": "Total de Abates",
+    "activePlayers": "Jogadores Ativos",
+    "hostedTournaments": "Torneios Realizados",
+    "totalPrizePool": "Premiação Total"
+  },
+  "rankingsTiers": {
+    "title": "Rankings e Níveis",
+    "tabs": {
+      "rankings": "Rankings Atuais",
+      "tiers": "Níveis Trimestrais"
+    },
+    "rankings": {
+      "subtitle": "Rankings de equipes baseados em métricas de desempenho geral",
+      "rank": "Classificação",
+      "team": "Equipe",
+      "points": "Pontos",
+      "wins": "Vitórias",
+      "kills": "Abates"
+    },
+    "tiers": {
+      "subtitle": "Classificação dos níveis do terceiro trimestre (Julho - Setembro)",
+      "tier": "Nível",
+      "team": "Equipe",
+      "points": "Pontos",
+      "apr": "Abr",
+      "may": "Mai",
+      "jun": "Jun"
+    }
+  },
+  "latestNews": {
+    "title": "Últimas Notícias e Atualizações",
+    "loading": "Carregando notícias...",
+    "viewAll": "Ver Todas as Notícias",
+    "categories": {
+      "all": "Todas as Categorias",
+      "general": "Notícias Gerais",
+      "tournament": "Atualizações de Torneios",
+      "bans": "Atualizações de Jogadores/Equipes Banidos"
+    },
+    "toast": {
+      "error": "Ops! Ocorreu um erro"
+    }
+  },
+  "featuredShop": {
+    "title": "Itens em Destaque na Loja",
+    "empty": "Nenhum produto disponível ainda. Volte em breve.",
+    "productFallback": "Produto",
+    "from": "A partir de",
+    "viewOptions": "Ver opções",
+    "view": "Ver",
+    "visitShop": "Visitar Loja"
+  },
+  "latestSections": {
+    "filterAll": "Todos",
+    "events": {
+      "title": "Últimos Torneios e Scrims",
+      "subtitle": "Uma olhada rápida nos eventos mais recentes. A lista completa está na página de eventos.",
+      "viewAll": "Ver todos os eventos",
+      "filterTournaments": "Torneios",
+      "filterScrims": "Scrims",
+      "labelScrim": "Scrim",
+      "labelTournament": "Torneio",
+      "noPrize": "Sem prêmio",
+      "officialOrg": "Oficial AFC"
+    },
+    "playerMarket": {
+      "title": "Do Mercado de Jogadores",
+      "subtitle": "As postagens mais recentes. Abra o Mercado de Jogadores para todos que estão recrutando ou disponíveis.",
+      "viewAll": "Abrir Mercado de Jogadores",
+      "filterTeams": "Equipes recrutando",
+      "filterPlayers": "Jogadores disponíveis",
+      "unnamedTeam": "Equipe sem nome",
+      "recruiting": "Recrutando",
+      "openToJoin": "Disponível para entrar",
+      "anyTier": "Qualquer nível"
+    }
+  }
+}

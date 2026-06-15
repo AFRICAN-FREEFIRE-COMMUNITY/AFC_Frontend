@@ -1,0 +1,571 @@
+{
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "close": "Close",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "sending": "Sending...",
+    "submitting": "Submitting...",
+    "completing": "Completing...",
+    "checking": "Checking..."
+  },
+  "list": {
+    "pageTitle": "Tournaments & Scrims",
+    "card": {
+      "date": "Date: {date}",
+      "paid": "Paid: {fee}",
+      "viewDetails": "View Details"
+    },
+    "search": {
+      "placeholder": "Search by title, date (YYYY-MM-DD), or status...",
+      "noMatch": "No events match \"{query}\"",
+      "noEvents": "No events available."
+    },
+    "loadError": "Failed to load events. Please check your connection and try again.",
+    "showing": "Showing {start}-{end} of {total}",
+    "filters": {
+      "allOrganizers": "All organizers",
+      "afcOfficial": "AFC (official)",
+      "allDatesPlaceholder": "All Dates",
+      "allDates": "All Dates",
+      "newestFirst": "Newest First",
+      "oldestFirst": "Oldest First"
+    },
+    "status": {
+      "all": "All",
+      "upcoming": "Upcoming",
+      "ongoing": "Ongoing",
+      "completed": "Completed"
+    },
+    "tabs": {
+      "tournaments": "Tournaments ({count})",
+      "scrims": "Scrims ({count})",
+      "organizers": "Organizers"
+    }
+  },
+  "organizers": {
+    "loading": "Loading organizers...",
+    "loadFailed": "Failed to load organizers",
+    "card": {
+      "noDescription": "No description provided yet.",
+      "eventCount": "{count} events",
+      "afcOfficial": "AFC Official",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "verifiedAria": "Verified organizer"
+    },
+    "afcCard": {
+      "name": "AFC Official",
+      "description": "Events run directly by the African Freefire Community. Flagship leagues, majors, and weekly community scrims."
+    },
+    "detail": {
+      "allOrganizers": "All organizers",
+      "viewFullPage": "View full organizer page",
+      "stats": {
+        "events": "Events",
+        "upcoming": "Upcoming",
+        "tier": "Tier"
+      },
+      "tabs": {
+        "tournaments": "Tournaments ({count})",
+        "scrims": "Scrims ({count})"
+      },
+      "empty": "No {type} from this organizer match the current filter."
+    },
+    "directory": {
+      "searchPlaceholder": "Search organizers by name...",
+      "filter": {
+        "all": "All organizers",
+        "verifiedOnly": "Verified only",
+        "afcOfficial": "AFC official"
+      },
+      "sort": {
+        "mostEvents": "Most events",
+        "nameAZ": "Name (A to Z)"
+      },
+      "noMatch": "No organizers match \"{query}\".",
+      "empty": "No organizers to show yet."
+    }
+  },
+  "detail": {
+    "bannerAlt": "Event Banner",
+    "date": "Date: {date}",
+    "prizePool": "Prize Pool: {value}",
+    "locationOnline": "Location: Online",
+    "format": "Format: {value}",
+    "participants": "Participants: {value}",
+    "paidBadge": "Paid: {fee}",
+    "viewToggle": {
+      "results": "Results",
+      "structure": "Structure"
+    },
+    "noStages": "Tournament hasn't started yet. Results will appear here.",
+    "privateEvent": {
+      "title": "Private Event",
+      "validating": "Validating invite link...",
+      "alreadyUsed": "This invite link has already been used.",
+      "usedBy": "Used by: {name}",
+      "usedAt": "Used at: {time}",
+      "sharedLink": "Shared invite link. Slots are first come, first serve.",
+      "needInvite": "You need an invite link to register for this event.",
+      "validInvite": "Valid invite detected, you can register!"
+    },
+    "rejectionNotice": {
+      "personal": "Your registration has been <bold>rejected</bold> for this tournament.",
+      "captainAll": "<bold>All players</bold> on your registered roster have been rejected. Update your roster to continue.",
+      "captainSome": "<bold>{count} {playerWord}</bold> on your roster {haveWord} been rejected ({names}). Open Edit Registration to update your roster.",
+      "playerSingular": "player",
+      "playerPlural": "players",
+      "hasWord": "has",
+      "haveWord": "have"
+    },
+    "registered": {
+      "already": "You've registered already",
+      "leftToast": "You have left the tournament"
+    },
+    "registerButton": {
+      "loginToRegister": "Login to Register",
+      "eventEnded": "Event Has Ended",
+      "registrationNotOpen": "Registration Not Open Yet",
+      "registrationClosed": "Registration Closed",
+      "registerExternal": "Register (External Link)",
+      "validatingInvite": "Validating invite...",
+      "inviteAlreadyUsed": "Invite Already Used",
+      "joinWaitlist": "Join Waitlist",
+      "registerPaid": "Register ({fee})",
+      "registerForTournament": "Register for Tournament"
+    },
+    "disabledReason": {
+      "privateInviteRequired": "Private event, invite required",
+      "registrationClosed": "Registration Closed",
+      "eventEnded": "Event Has Ended",
+      "registrationNotOpen": "Registration Not Open Yet",
+      "registrationFull": "Registration Full"
+    },
+    "registeredList": {
+      "teamsTitle": "Registered Teams",
+      "participantsTitle": "Registered Participants",
+      "totalTeams": "Total Teams",
+      "players": "Players",
+      "slotLeft": "Slot left"
+    },
+    "rulesCard": {
+      "title": "Rules",
+      "downloadableDoc": "Official rules are provided as a downloadable document.",
+      "downloadButton": "Download Rules Document",
+      "pending": "Rules document pending."
+    },
+    "prizeDistribution": {
+      "title": "Prize Distribution"
+    },
+    "bannedModal": {
+      "title": "Registration Blocked",
+      "team": "Your team is banned and cannot participate in this event.",
+      "account": "Your account is banned and you cannot participate in this event."
+    },
+    "loadFailed": "Failed to load event details",
+    "loadTeamFailed": "Failed to load team data",
+    "noTeam": "You don't have a team. Please create one first.",
+    "loadingTeamData": "Loading team data..."
+  },
+  "leaveModal": {
+    "trigger": "Leave Tournament",
+    "title": "Leave Tournament?",
+    "confirm": "Are you sure you want to leave <bold>\"{name}\"</bold>?",
+    "note": "You can re-register later if registration is still open and you change your mind.",
+    "leaving": "Leaving...",
+    "successFallback": "Successfully left the tournament",
+    "failed": "Failed to leave tournament"
+  },
+  "editRoster": {
+    "trigger": "Edit Registration",
+    "loadFailed": "Failed to load roster details",
+    "selectMembers": {
+      "title": "Edit Team Roster",
+      "description": "Update your players for {eventName}",
+      "allRejected": "<bold>All players</bold> on the current roster have been rejected. Please select a new lineup.",
+      "someRejected": "<bold>{count} {playerWord}</bold> on the current roster {haveWord} been rejected. Review and update your lineup.",
+      "playerSingular": "player",
+      "playerPlural": "players",
+      "hasWord": "has",
+      "haveWord": "have",
+      "selectPlayers": "Select Players ({min}-{max}):",
+      "current": "Current",
+      "rejected": "Rejected",
+      "selectedCount": "Selected: {count} / {max} players",
+      "continue": "Continue"
+    },
+    "sponsorIds": {
+      "title": "{sponsorName} Details",
+      "description": "Update {fieldLabel} for your roster",
+      "validating": "Validating against registered players...",
+      "uniqueRequired": "Each {fieldLabel} must be unique and not already used by another registered participant.",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "placeholder": "Enter {fieldLabel}",
+      "rejectedReason": "Reason: {reason}",
+      "rejectedUpdate": "This player was rejected. Update their {fieldLabel}.",
+      "duplicateMember": "This value is already used by another selected member.",
+      "externalConflict": "This {fieldLabel} is already registered by a player."
+    },
+    "selectMaxError": "You can only select up to {max} members",
+    "selectMinError": "Please select at least {min} team members",
+    "updateSuccess": "Registration updated successfully!",
+    "updateFailed": "Failed to update registration"
+  },
+  "stageResults": {
+    "selectGroup": "Select Group",
+    "chooseGroup": "Choose a group",
+    "viewType": "View Type",
+    "consolidatedLeaderboard": "Consolidated Leaderboard",
+    "match": "Match {number} ({map})",
+    "groupFallback": "Group",
+    "groupStandings": "{group} Standings",
+    "matchHeading": "Match {number}: {map}",
+    "noGroups": "No groups defined for this stage yet.",
+    "rank": "Rank",
+    "competitor": "Competitor",
+    "kills": "Kills",
+    "totalPoints": "Total Points",
+    "noResults": "No results available for this selection."
+  },
+  "teamRegister": {
+    "selectMembers": {
+      "title": "Select Team Members",
+      "description": "Select {min}-{max} players from your team roster",
+      "availablePlayers": "Available Players:",
+      "selectedCount": "Selected: {count} / {max} players",
+      "continue": "Continue"
+    },
+    "teamInfo": {
+      "title": "Team Information",
+      "teamName": "Team Name:",
+      "membersSelected": "Members Selected:",
+      "tournament": "Tournament:",
+      "format": "Format:",
+      "teamMembers": "Team Members:",
+      "profileRequirements": "Profile Requirements",
+      "esportImageNote": "Every rostered player must have an esport image uploaded on their own profile, under <editProfileLink>Edit Profile</editProfileLink> (the Free Fire UID is set on the same page).",
+      "teamLogoNoteWithLink": "Your team must have a logo uploaded on <teamEditLink>your team's edit page</teamEditLink>. Only the captain can upload it.",
+      "teamLogoNote": "Your team must have a logo uploaded on your team's edit page. Only the captain can upload it.",
+      "continueToRules": "Continue to Rules"
+    },
+    "selectMaxError": "You can only select up to {max} members",
+    "selectMinError": "Please select at least {min} team members",
+    "selectAtMostError": "Please select at most {max} team members"
+  },
+  "register": {
+    "info": {
+      "title": "Tournament Information",
+      "description": "Review tournament details before proceeding.",
+      "format": "Format: {mode} / {type}",
+      "date": "Date: {date}",
+      "prizePool": "Prize Pool: {value}",
+      "location": "Location: {value}",
+      "discordRequirement": "Discord Requirement",
+      "discordRequirementNote": "A connected Discord account is required to participate.",
+      "profileRequirements": "Profile Requirements",
+      "esportImageNote": "Every {playerWord} must have an esport image uploaded. Add yours under <editProfileLink>Edit Profile</editProfileLink> (your Free Fire UID is set on the same page).",
+      "esportPlayerSolo": "player",
+      "esportPlayerTeam": "rostered player",
+      "teamLogoNoteWithLink": "Your team must have a logo uploaded on <teamEditLink>your team's edit page</teamEditLink>. Only the captain can upload it.",
+      "teamLogoNote": "Your team must have a logo uploaded on your team's edit page. Only the captain can upload it.",
+      "continue": "Continue"
+    },
+    "uidPrompt": {
+      "title": "AFC UID Required",
+      "description": "Your AFC UID is required to participate in this tournament.",
+      "notSet": "You haven't set your AFC UID on your profile yet. Please enter it below to continue with registration.",
+      "label": "AFC UID",
+      "placeholder": "Enter your AFC UID",
+      "saving": "Saving...",
+      "saveContinue": "Save & Continue"
+    },
+    "uidMissingMembers": {
+      "title": "Missing AFC UIDs",
+      "description": "Some team members need to set their AFC UID before you can register.",
+      "andJoiner": " and ",
+      "bodySingular": "<bold>{names}</bold> hasn't filled their AFC UID yet. Ask them to update their profiles and come back once everyone's UID is set.",
+      "bodyPlural": "<bold>{names}</bold> haven't filled their AFC UID yet. Ask them to update their profiles and come back once everyone's UID is set.",
+      "close": "Close"
+    },
+    "type": {
+      "title": "Tournament Registration",
+      "description": "Select registration type",
+      "soloTitle": "Solo Registration",
+      "soloDescription": "Register as an individual player",
+      "teamTitle": "Team Registration",
+      "teamDescription": "Register as a team",
+      "clearDraft": "Clear saved progress and start over"
+    },
+    "rules": {
+      "title": "Tournament Rules & Policies",
+      "generalRules": "General Rules:",
+      "fullRulesDocument": "Full Rules Document:",
+      "downloadOfficialDoc": "Download Official Rules Document",
+      "officialDocAvailable": "Official Rules Document Available",
+      "officialDocNote": "Please click the button below to download and review the official document.",
+      "downloadDoc": "Download Rules Document",
+      "rulesMissing": "Rules Document Missing",
+      "rulesMissingNote": "Tournament rules are currently unavailable. Contact tournament admins.",
+      "conductPolicy": "Conduct Policy:",
+      "conductPolicyNote": "Maintain professional conduct at all times.",
+      "devicePolicy": "Device Policy:",
+      "devicePolicyNote": "Device must remain consistent throughout the tournament.",
+      "agree": "I agree to all tournament rules and policies.",
+      "continue": "Continue",
+      "continueToDiscord": "Continue to Discord"
+    },
+    "sponsor": {
+      "title": "Sponsor Requirements",
+      "descriptionTeam": "Every rostered player must complete each sponsor's steps to finish registration.",
+      "descriptionSolo": "Complete each sponsor's steps to finish registration.",
+      "duplicateBanner": "Each sponsor ID must be unique across your roster. Fix the highlighted duplicates.",
+      "continue": "Continue",
+      "legacyTitle": "{sponsorName} Requirement",
+      "legacyDescription": "Complete this step to finish registration",
+      "legacyValidating": "Validating against registered players...",
+      "legacyUniqueRequired": "Each {fieldLabel} must be unique and not already registered by another participant.",
+      "legacyDuplicateMember": "This value is already used by another selected member.",
+      "legacyExternalConflict": "This {fieldLabel} is already registered by a player.",
+      "legacyPlaceholderTeam": "Enter {fieldLabel}",
+      "legacyPlaceholderSolo": "Enter your {fieldLabel}",
+      "legacySoloConflict": "This {fieldLabel} is already registered by <bold>{owner}</bold>."
+    },
+    "discordLink": {
+      "title": "Connect Discord Account",
+      "description": "Required for tournament participation",
+      "checking": "Checking Discord status...",
+      "connected": "Discord Account Connected!",
+      "connectedNote": "You can now proceed to the final step.",
+      "connectPrompt": "Click below to link your Discord account.",
+      "connectButton": "Connect Discord Account",
+      "continueToFinal": "Continue to Final Step"
+    },
+    "discordJoin": {
+      "title": "Join AFC Discord Server",
+      "description": "Final step for registration",
+      "checkingMembership": "Checking server membership...",
+      "alreadyIn": "You're already in the AFC Discord server!",
+      "alreadyInNote": "You can proceed with registration.",
+      "joinPrompt": "Join the AFC Discord server to complete registration.",
+      "joinButton": "Join AFC Discord Server",
+      "completeRegistration": "Complete Registration",
+      "joinedServer": "I've Joined the Server"
+    },
+    "discordStatus": {
+      "title": "Connect Discord - All Members",
+      "description": "All team members must have Discord linked and join AFC server",
+      "membersStatus": "Team Members Status:",
+      "notInServer": "Not in AFC Discord server",
+      "discordId": "Discord ID: {id}",
+      "inAfcServer": "In AFC Server",
+      "checkingStatus": "Checking Discord and server status...",
+      "waiting": "Waiting for all team members to link their Discord accounts and join the AFC server...",
+      "someNotJoined": "Some members haven't joined the AFC Discord server yet. Share the server link with them!",
+      "allReady": "All team members are ready! You can proceed with registration.",
+      "copyLink": "Copy Link",
+      "checking": "Checking...",
+      "refreshStatus": "Refresh Status",
+      "completeRegistration": "Complete Registration"
+    },
+    "payment": {
+      "title": "Complete Payment",
+      "description": "This is a paid tournament. Pay the entry fee to finish your registration.",
+      "entryFee": "Entry Fee",
+      "note": "You'll be redirected to our secure checkout. After payment, you'll come back here and your registration is completed automatically. Do not close the checkout tab until it is done.",
+      "startingCheckout": "Starting checkout...",
+      "payToRegister": "Pay {fee} to register"
+    },
+    "success": {
+      "waitlist": "You're on the waitlist. We'll let you know if a spot opens up.",
+      "pendingApproval": "Registered, waiting for sponsor approval. Your spot is confirmed once the sponsor reviews your submissions.",
+      "registered": "Welcome to the tournament! Check Discord for match details.",
+      "close": "Close"
+    },
+    "toast": {
+      "expiredInvite": "This invite link has expired.",
+      "usedInvite": "This invite link has already been used.",
+      "invalidInvite": "Invalid or expired invite link.",
+      "discordLinked": "Discord account linked successfully!",
+      "discordAlreadyLinked": "This Discord account is already linked to your profile.",
+      "discordFailed": "Discord connection failed.",
+      "allMembersDiscord": "All team members have Discord connected!",
+      "discordValidateFailed": "Failed to validate Discord status",
+      "serverLinkCopied": "AFC Discord server link copied!",
+      "rosterDiscordFailed": "Could not verify Discord status. Use the Re-check button to try again.",
+      "noTeam": "You don't have a team. Please create one first.",
+      "privateEvent": "This is a private event. You need an invite link to register.",
+      "resuming": "Resuming your registration where you stopped",
+      "draftCleared": "Saved registration progress cleared",
+      "saveUidFailed": "Failed to save UID",
+      "registeredFallback": "You're registered!",
+      "checkoutFailed": "Could not start checkout. Please try again.",
+      "paymentStartFailed": "Could not start the payment. Please try again.",
+      "genericError": "An error occurred",
+      "esportImageDescription": "Esport images are uploaded on your profile page (Edit Profile, then the Esport Image section). Your Free Fire UID is set on the same page.",
+      "esportImageAction": "Open profile editor",
+      "teamLogoDescription": "Your team logo is uploaded on the team's edit page.",
+      "teamLogoAction": "Open team editor",
+      "sponsorSubmissionDescription": "Check the sponsor requirements step: every rostered player must complete every sponsor item."
+    }
+  },
+  "structure": {
+    "noStages": "No stages configured for this tournament yet.",
+    "finals": "Finals",
+    "playerWord": "Player",
+    "teamWord": "Team",
+    "tournamentFlow": "Tournament Flow",
+    "stage": "Stage {number}",
+    "championCrowned": "Champion crowned",
+    "topAdvance": "Top {count}",
+    "advanceGroups": "advance · {count} {groupWord}",
+    "groupSingular": "group",
+    "groupPlural": "groups",
+    "topN": "top {count}",
+    "qualificationLinks": "Qualification Links",
+    "qualifiesFrom": "Qualifies from",
+    "qualifiesFromChip": "{eventName} - {stageName} top {count}",
+    "qualifiesInto": "Qualifies into",
+    "qualifiesIntoChip": "Top {count} of {stageName} qualifies into: {eventName}",
+    "standingsHeading": "Standings & Qualification - {stageName}",
+    "qualifiedLegend": "Qualified for next stage",
+    "advancePerGroup": "Top <b>{count}</b> advance per group",
+    "noGroups": "No groups defined for this stage yet.",
+    "matchCount": "{count} {matchWord}",
+    "matchSingular": "match",
+    "matchPlural": "matches",
+    "topNAdvance": " · Top {count} advance",
+    "resultsPending": "Results pending.",
+    "rank": "#",
+    "kills": "Kills",
+    "points": "Pts",
+    "qualificationLine": "Qualification line",
+    "footnote": "Built from the data this tournament already records: stages, groups, standings and \"top-N advance\". Stage formats (including \"Knockout\") show their accurate standings, since that is how results are entered."
+  },
+  "review": {
+    "title": "Rate this event",
+    "noRatings": "No ratings yet",
+    "ratingSingular": "rating",
+    "ratingPlural": "ratings",
+    "rateStarAria": "Rate {count} star",
+    "rateStarsAria": "Rate {count} stars",
+    "helperEditable": "You rated this event, click a star to change it.",
+    "helperRate": "Click a star to rate this event.",
+    "helperLogin": "Log in to rate this event and leave feedback.",
+    "feedbackLabel": "Leave feedback for the organizer",
+    "feedbackPlaceholder": "Share your thoughts on {eventName}...",
+    "feedbackPrivate": "Only the organizer (and AFC) can read this.",
+    "send": "Send",
+    "sending": "Sending...",
+    "rateSuccess": "Thanks for rating this event!",
+    "rateFailed": "Failed to submit your rating",
+    "commentSuccess": "Sent to the organizer",
+    "commentFailed": "Failed to send your comment"
+  },
+  "sponsorRequirements": {
+    "title": "Sponsor Requirements",
+    "description": "Your sponsor submissions for this event. Rejected items can be corrected and resubmitted below.",
+    "typeLabels": {
+      "collectId": "Sponsor ID",
+      "followSocial": "Social follow",
+      "createAccount": "Account signup",
+      "joinGroup": "Group join"
+    },
+    "fallbackTitle": "Sponsor requirement",
+    "actionsConfirmed": "Actions confirmed",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "submitted": "Submitted"
+    },
+    "reason": "Reason: {reason}",
+    "correctedPlaceholder": "Enter the corrected value",
+    "resubmit": "Resubmit",
+    "sending": "Sending...",
+    "resubmitSuccess": "Submitted. The sponsor will review it again.",
+    "resubmitFailed": "Failed to resubmit"
+  },
+  "sponsorForm": {
+    "platformSocial": "Social",
+    "validation": {
+      "duplicate": "This value is already used by another rostered player.",
+      "uniqueAcrossRoster": "Each sponsor ID must be unique across your roster. Fix the highlighted duplicates."
+    },
+    "collectId": {
+      "defaultLabel": "Sponsor ID",
+      "placeholder": "Enter {label}",
+      "placeholderFallback": "the requested ID"
+    },
+    "followSocial": {
+      "pageLabel": "{platform} page",
+      "openPage": "Open page",
+      "instructions": "Open the page, complete each action, then tick it here.",
+      "profileLinkLabel": "Your profile link",
+      "profileLinkPlaceholder": "Paste a link to your profile"
+    },
+    "createAccount": {
+      "defaultLabel": "Create an account",
+      "createYourAccount": "Create your account",
+      "usernamePlaceholder": "Enter the username you signed up with"
+    },
+    "joinGroup": {
+      "joinLabel": "Join the {platform} group",
+      "joinButton": "Join the group",
+      "phonePlaceholder": "Phone number",
+      "phoneNote": "The phone number you joined the group with."
+    },
+    "discord": {
+      "checking": "Checking Discord connection and server membership...",
+      "noResult": "Discord is verified automatically. Run the check to confirm this player has connected Discord and joined the server.",
+      "recheck": "Re-check",
+      "check": "Check Discord",
+      "connectedInServer": "Connected and in the server ({name})",
+      "notConnected": "Has not connected Discord",
+      "notConnectedNote": "This player must link their Discord account on their AFC profile, then re-check.",
+      "notJoined": "Connected but has NOT joined the server",
+      "notJoinedNote": "Use the \"Join the group\" link above{name}, then re-check.",
+      "notJoinedAs": " as {name}",
+      "verifyFailed": "Could not verify server membership",
+      "verifyFailedNote": "The Discord check failed. Try again."
+    },
+    "sponsorSection": {
+      "requiresApproval": "Requires approval",
+      "requiresApprovalNote": "This sponsor reviews submissions. Your spot is confirmed once they approve."
+    },
+    "playerSection": {
+      "done": "Done",
+      "duplicate": "Duplicate",
+      "remaining": "{count} left"
+    }
+  },
+  "paymentSuccess": {
+    "confirming": "Confirming your payment...",
+    "finishing": "Finishing your registration...",
+    "doNotRefresh": "Please do not refresh or close this page.",
+    "registered": "You're registered!",
+    "paymentReceived": "Payment received",
+    "paymentConfirmed": "Payment confirmed",
+    "confirmingTitle": "Confirming your payment",
+    "registeredBody": "You're registered for {eventLabel}. Check the tournament page for match details and updates.",
+    "registerFailedBody": "Your payment went through, but we couldn't complete your registration. This can happen if the event filled up. Please contact support and quote your payment reference.",
+    "needsCompletionBody": "Your payment is confirmed. We couldn't find your saved registration details on this device, so tap the button below to finish, or re-open the event if you registered as a team.",
+    "pendingBody": "We haven't confirmed your payment yet. If you've been charged, it can take a moment. You can retry the check below.",
+    "paymentReference": "Payment reference",
+    "paymentReferenceInline": "Payment reference: ",
+    "eventLabelFallback": "the tournament",
+    "goToTournament": "Go to tournament",
+    "allTournaments": "All tournaments",
+    "completeRegistration": "Complete registration",
+    "reopenEvent": "Re-open event",
+    "contactSupport": "Contact support",
+    "backToEvent": "Back to event",
+    "retryNow": "Retry now",
+    "reopenToFinish": "Please re-open the event to finish registering.",
+    "registerCompleteFailed": "Payment received, but registration could not be completed."
+  }
+}

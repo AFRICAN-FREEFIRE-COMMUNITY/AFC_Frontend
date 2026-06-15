@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +26,8 @@ import { Footer } from "../_components/Footer";
 import { Header } from "../(user)/_components/Header";
 
 const page = () => {
+  // Translations for the public landing page (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -34,39 +37,33 @@ const page = () => {
   const features = [
     {
       icon: Trophy,
-      title: "Competitive Tournaments",
-      description:
-        "Join high-stakes tournaments with amazing prizes and recognition in the AFC community.",
+      title: t("landing.features.tournaments.title"),
+      description: t("landing.features.tournaments.description"),
     },
     {
       icon: Users,
-      title: "Team Management",
-      description:
-        "Create and manage your esports team with advanced roster and strategy tools.",
+      title: t("landing.features.teamManagement.title"),
+      description: t("landing.features.teamManagement.description"),
     },
     {
       icon: Target,
-      title: "Skill Rankings",
-      description:
-        "Track your progress with our comprehensive ranking system and leaderboards.",
+      title: t("landing.features.rankings.title"),
+      description: t("landing.features.rankings.description"),
     },
     {
       icon: Calendar,
-      title: "Event Scheduling",
-      description:
-        "Never miss a match with our integrated calendar and notification system.",
+      title: t("landing.features.scheduling.title"),
+      description: t("landing.features.scheduling.description"),
     },
     {
       icon: Shield,
-      title: "Fair Play",
-      description:
-        "Compete in a secure environment with anti-cheat measures and fair play policies.",
+      title: t("landing.features.fairPlay.title"),
+      description: t("landing.features.fairPlay.description"),
     },
     {
       icon: Award,
-      title: "Achievements",
-      description:
-        "Unlock badges, titles, and rewards as you climb the competitive ladder.",
+      title: t("landing.features.achievements.title"),
+      description: t("landing.features.achievements.description"),
     },
   ];
 
@@ -90,14 +87,18 @@ const page = () => {
 
   const stats = [
     {
-      label: "Active Players",
+      label: t("landing.stats.activePlayers"),
       value: `${formatMoneyInput(totalUsers)}+`,
       icon: Users,
     },
-    { label: "Tournaments Held", value: "1,200+", icon: Trophy },
-    { label: "Prize Pool Distributed", value: "$500K+", icon: Crown },
+    { label: t("landing.stats.tournamentsHeld"), value: "1,200+", icon: Trophy },
     {
-      label: "Teams Registered",
+      label: t("landing.stats.prizePoolDistributed"),
+      value: "$500K+",
+      icon: Crown,
+    },
+    {
+      label: t("landing.stats.teamsRegistered"),
       value: `${formatMoneyInput(totalTeams)}+`,
       icon: Shield,
     },
@@ -122,21 +123,21 @@ const page = () => {
           >
             <Badge className="mb-6 bg-primary/20 text-primary border-primary/30 hover:bg-primary/30">
               <Flame className="w-4 h-4 mr-2" />
-              Season 2026 Now Live
+              {t("landing.hero.seasonBadge")}
             </Badge>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-4">
               <span className="bg-gradient-to-r from-primary via-gold to-primary bg-clip-text text-transparent">
-                Dominate
+                {t("landing.hero.titleHighlight")}
               </span>
               <br />
-              <span className="text-foreground">the Arena</span>
+              <span className="text-foreground">
+                {t("landing.hero.titleRest")}
+              </span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join the ultimate Free Fire competitive platform. Compete in
-              tournaments, climb rankings, and prove you're the best player in
-              the AFC community.
+              {t("landing.hero.subtitle")}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -162,7 +163,7 @@ const page = () => {
               <Link href="/create-account">
                 <Button variant="gradient">
                   <Star />
-                  Create Account
+                  {t("landing.hero.createAccount")}
                 </Button>
               </Link>
             </div>
@@ -196,11 +197,13 @@ const page = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              <span className="text-primary">Why Choose</span> AFC Esports?
+              <span className="text-primary">
+                {t("landing.features.headingHighlight")}
+              </span>{" "}
+              {t("landing.features.headingRest")}
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Experience the most comprehensive Free Fire competitive platform
-              with features designed for serious players.
+              {t("landing.features.subtitle")}
             </p>
           </div>
 
@@ -232,22 +235,25 @@ const page = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to <span className="text-primary">Level Up</span> Your Game?
+              {t("landing.cta.headingPrefix")}{" "}
+              <span className="text-primary">
+                {t("landing.cta.headingHighlight")}
+              </span>{" "}
+              {t("landing.cta.headingSuffix")}
             </h2>
             <p className="text-base md:text-lg text-muted-foreground mb-4">
-              Join thousands of players competing for glory, prizes, and the
-              ultimate bragging rights in Free Fire.
+              {t("landing.cta.subtitle")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/create-account">
                 <Button variant="gradient" className="w-full">
                   <Star className="w-5 h-5 mr-2" />
-                  Create Account
+                  {t("landing.cta.createAccount")}
                 </Button>
               </Link>
               <Link href="/about">
                 <Button variant="outline" className="w-full">
-                  Learn More
+                  {t("landing.cta.learnMore")}
                 </Button>
               </Link>
             </div>

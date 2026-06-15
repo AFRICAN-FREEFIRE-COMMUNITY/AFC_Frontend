@@ -28,6 +28,9 @@
  */
 
 import { useMemo, useState } from "react";
+// i18n: user-visible copy (stat labels, table headers, empty states, chart axis
+// labels) is sourced from the `profile` namespace (messages/en/profile.json).
+import { useTranslations } from "next-intl";
 import {
   LineChart,
   Line,
@@ -107,6 +110,9 @@ type MetricId = (typeof METRICS)[number]["id"];
 const placeLabel = (p: number | null | undefined) => (p == null ? "-" : `#${p}`);
 
 export function OwnStatsTab({ player }: { player: RichStats | null }) {
+  const t = useTranslations("profile");
+  // Translated label for a metric id (used by the switcher, axis and tooltip).
+  const metricLabel = (id: MetricId) => t(`ownStats.metric.${id}`);
   // Which metric the curve plots. Self-contained state (no coupling to the parent).
   const [metric, setMetric] = useState<MetricId>("kills");
 
@@ -143,10 +149,10 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
   const activeMetric = METRICS.find((m) => m.id === metric)!;
   const yAxisLabel =
     metric === "placement"
-      ? "Placement (lower is better)"
+      ? t("ownStats.axis.placement")
       : metric === "kd"
-        ? "K-D ratio"
-        : activeMetric.label;
+        ? t("ownStats.axis.kd")
+        : metricLabel(activeMetric.id);
 
   // Have we any recorded data at all? Drives the honest empty-state note.
   const hasAnyStats =
@@ -158,34 +164,36 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
     <div className="space-y-6">
       {/* ── Headline cards (all-time scalars straight from richProfile) ──────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatBox label="Total Matches" value={player?.total_matches ?? 0} />
         <StatBox
-          label="Total Kills"
+          label={t("ownStats.totalMatches")}
+          value={player?.total_matches ?? 0}
+        />
+        <StatBox
+          label={t("ownStats.totalKills")}
           value={player?.total_kills ?? 0}
           accent="green"
         />
-        <StatBox label="Wins" value={player?.total_wins ?? 0} />
+        <StatBox label={t("ownStats.wins")} value={player?.total_wins ?? 0} />
         <StatBox
-          label="MVP Awards"
+          label={t("ownStats.mvpAwards")}
           value={player?.total_mvps ?? 0}
           accent="gold"
         />
-        <StatBox label="KDR" value={(player?.kdr ?? 0).toFixed(2)} />
+        <StatBox label={t("ownStats.kdr")} value={(player?.kdr ?? 0).toFixed(2)} />
         <StatBox
-          label="Win Rate"
+          label={t("ownStats.winRate")}
           value={`${(player?.win_rate ?? 0).toFixed(1)}%`}
         />
         <StatBox
-          label="Avg Damage"
+          label={t("ownStats.avgDamage")}
           value={Math.round(player?.avg_damage ?? 0)}
         />
-        <StatBox label="Events Played" value={perEvent.length} />
+        <StatBox label={t("ownStats.eventsPlayed")} value={perEvent.length} />
       </div>
 
       {!hasAnyStats && (
         <p className="text-xs text-muted-foreground">
-          You have no recorded matches yet. Your stats will populate here as you
-          compete in AFC events.
+          {t("ownStats.noRecordedMatches")}
         </p>
       )}
 
@@ -193,7 +201,9 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle className="text-base">Performance curve</CardTitle>
+            <CardTitle className="text-base">
+              {t("ownStats.performanceCurve")}
+            </CardTitle>
             {/* metric switcher (AFC pill segment) */}
             <div className="inline-flex gap-1 bg-muted rounded-lg p-[3px] w-fit">
               {METRICS.map((m) => (
@@ -207,7 +217,7 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {m.label}
+                  {metricLabel(m.id)}
                 </button>
               ))}
             </div>
@@ -227,7 +237,7 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
                   fontSize={11}
                   tickMargin={8}
                   label={{
-                    value: "Event date",
+                    value: t("ownStats.axis.eventDate"),
                     position: "insideBottom",
                     offset: -14,
                     fill: "var(--muted-foreground)",
@@ -262,7 +272,7 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
                     metric === "placement" && value != null
                       ? `#${value}`
                       : value,
-                    activeMetric.label,
+                    metricLabel(activeMetric.id),
                   ]}
                   labelFormatter={(_label, payload) =>
                     payload?.[0]?.payload?.event ?? _label
@@ -281,7 +291,7 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
             </ResponsiveContainer>
           ) : (
             <div className="py-10">
-              <NothingFound text="Not enough events to plot a performance curve yet." />
+              <NothingFound text={t("ownStats.notEnoughEvents")} />
             </div>
           )}
         </CardContent>
@@ -290,22 +300,30 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
       {/* ── Per-event breakdown table ────────────────────────────────────────── */}
       <div>
         <div className="mb-3 text-xs font-medium text-muted-foreground">
-          Events played
+          {t("ownStats.eventsPlayedHeading")}
         </div>
         {perEvent.length === 0 ? (
-          <NothingFound text="No events played yet." />
+          <NothingFound text={t("ownStats.noEventsPlayed")} />
         ) : (
           <div className="rounded-md border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-center">Best place</TableHead>
-                  <TableHead className="text-center">My kills</TableHead>
-                  <TableHead className="text-center">My points</TableHead>
-                  <TableHead className="text-center">MVPs</TableHead>
+                  <TableHead>{t("ownStats.table.event")}</TableHead>
+                  <TableHead>{t("ownStats.table.type")}</TableHead>
+                  <TableHead>{t("ownStats.table.date")}</TableHead>
+                  <TableHead className="text-center">
+                    {t("ownStats.table.bestPlace")}
+                  </TableHead>
+                  <TableHead className="text-center">
+                    {t("ownStats.table.myKills")}
+                  </TableHead>
+                  <TableHead className="text-center">
+                    {t("ownStats.table.myPoints")}
+                  </TableHead>
+                  <TableHead className="text-center">
+                    {t("ownStats.table.mvps")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -343,23 +361,33 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
       {/* ── Recent matches table (the player's last individual match lines) ──── */}
       <div>
         <div className="mb-3 text-xs font-medium text-muted-foreground">
-          Recent matches
+          {t("ownStats.recentMatches")}
         </div>
         {recentMatches.length === 0 ? (
-          <NothingFound text="No recent matches yet." />
+          <NothingFound text={t("ownStats.noRecentMatches")} />
         ) : (
           <div className="rounded-md border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Map</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-center">Placement</TableHead>
-                  <TableHead className="text-center">Kills</TableHead>
-                  <TableHead className="text-center">Damage</TableHead>
-                  <TableHead className="text-center">Points</TableHead>
-                  <TableHead className="text-center">MVP</TableHead>
+                  <TableHead>{t("ownStats.table.event")}</TableHead>
+                  <TableHead>{t("ownStats.table.map")}</TableHead>
+                  <TableHead>{t("ownStats.table.date")}</TableHead>
+                  <TableHead className="text-center">
+                    {t("ownStats.table.placement")}
+                  </TableHead>
+                  <TableHead className="text-center">
+                    {t("ownStats.table.kills")}
+                  </TableHead>
+                  <TableHead className="text-center">
+                    {t("ownStats.table.damage")}
+                  </TableHead>
+                  <TableHead className="text-center">
+                    {t("ownStats.table.points")}
+                  </TableHead>
+                  <TableHead className="text-center">
+                    {t("ownStats.table.mvp")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

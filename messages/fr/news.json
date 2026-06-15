@@ -1,0 +1,38 @@
+{
+  "pageTitle": "Actualités et mises à jour",
+  "createPost": "Créer un nouvel article",
+  "categories": {
+    "all": "Toutes les catégories",
+    "general": "Actualités générales",
+    "tournament": "Mises à jour des tournois",
+    "bans": "Mises à jour des joueurs/équipes bannis"
+  },
+  "search": {
+    "placeholder": "Rechercher des actualités par titre, contenu ou auteur...",
+    "categoryPlaceholder": "Sélectionner une catégorie"
+  },
+  "empty": {
+    "title": "Aucun article trouvé",
+    "withFilters": "Essayez d'ajuster vos termes de recherche ou vos filtres",
+    "noArticles": "Aucun article disponible pour le moment",
+    "clearFilters": "Effacer tous les filtres"
+  },
+  "card": {
+    "readMore": "Lire la suite",
+    "register": "S'inscrire"
+  },
+  "pagination": {
+    "showing": "Affichage de {from}-{to} sur {total} articles"
+  },
+  "detail": {
+    "titleSuffix": "Détails de {title}",
+    "registerForTournament": "S'inscrire au tournoi",
+    "wasThisHelpful": "Cela vous a-t-il été utile ?"
+  },
+  "toast": {
+    "loadFailed": "Échec du chargement des actualités",
+    "syncFailed": "Échec de la synchronisation des données d'actualités",
+    "loginToVote": "Veuillez vous connecter pour voter",
+    "actionFailed": "L'action a échoué"
+  }
+}

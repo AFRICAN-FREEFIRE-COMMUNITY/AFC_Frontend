@@ -1,0 +1,223 @@
+{
+  "list": {
+    "pageTitle": "Boutique AFC",
+    "cart": "Panier",
+    "searchPlaceholder": "Rechercher des {category}...",
+    "searchDefaultCategory": "produits",
+    "loading": "Chargement de la boutique...",
+    "noProducts": "Aucun produit trouvé",
+    "outOfStock": "En rupture de stock",
+    "shipsToYou": "{count, plural, one {# option} other {# options}}, expédié chez vous",
+    "options": "{count, plural, one {# option} other {# options}}",
+    "from": "à partir de",
+    "view": "Voir",
+    "buyNow": "Acheter maintenant",
+    "showingRange": "Affichage de {start}-{end} sur {total}",
+    "mediaCount": "{count} médias"
+  },
+  "detail": {
+    "notFoundTitle": "Produit introuvable",
+    "backToShop": "Retour à la boutique",
+    "physicalHint": "Article physique. Une adresse de livraison est demandée lors du paiement.",
+    "digitalHint": "Recharge numérique. Livré à votre UID de jeu, pas d'expédition.",
+    "diamonds": "{amount} Diamants",
+    "selectOption": "Sélectionner une option",
+    "outOfStock": "En rupture de stock",
+    "subtotal": "Sous-total",
+    "promoLabel": "Vous avez un code promo ?",
+    "promoPlaceholder": "Saisir le code",
+    "applying": "Application en cours...",
+    "apply": "Appliquer",
+    "couponAppliedPercent": "Coupon {code} appliqué ! ({value}% de réduction)",
+    "couponAppliedFixed": "Coupon {code} appliqué ! ({value} de réduction)",
+    "adding": "Ajout en cours...",
+    "addToCart": "Ajouter au panier",
+    "archivedNotice": "Ce produit est actuellement archivé et pourrait ne pas être disponible à l'achat.",
+    "coupon": {
+      "successApplied": "Coupon appliqué avec succès !",
+      "inactive": "Ce coupon n'est plus actif.",
+      "invalid": "Code coupon invalide"
+    },
+    "toast": {
+      "addedToCart": "{name} ajouté au panier !",
+      "addFailed": "Échec de l'ajout au panier"
+    }
+  },
+  "media": {
+    "previous": "Média précédent",
+    "next": "Média suivant",
+    "showMedia": "Afficher le média {index}",
+    "thumbnailAlt": "Vignette {alt} {index}"
+  },
+  "cart": {
+    "steps": {
+      "cart": "Panier",
+      "details": "Détails",
+      "review": "Vérifier et Payer"
+    },
+    "review": {
+      "title": "Vérifier votre panier",
+      "subtitle": "Veuillez vérifier vos articles avant de continuer",
+      "empty": "Votre panier est vide",
+      "continueShopping": "Continuer vos achats",
+      "qty": "Qté : {quantity}",
+      "coupon": "Coupon : {code}",
+      "backToShop": "Retour à la boutique",
+      "continueToDetails": "Continuer vers les détails"
+    },
+    "details": {
+      "title": "Détails du client",
+      "subtitle": "Saisissez vos informations de contact et de livraison",
+      "firstName": "Prénom",
+      "firstNamePlaceholder": "Jean",
+      "lastName": "Nom de famille",
+      "lastNamePlaceholder": "Dupont",
+      "email": "Adresse e-mail",
+      "emailPlaceholder": "jean@exemple.com",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "addressPlaceholder": "123 Rue du Luxe",
+      "city": "Ville",
+      "cityPlaceholder": "Lagos",
+      "state": "État",
+      "statePlaceholder": "État de Lagos",
+      "postalCode": "Code postal",
+      "postalCodePlaceholder": "100001",
+      "backToCart": "Retour au panier",
+      "continueToReview": "Continuer vers la vérification"
+    },
+    "reviewOrder": {
+      "title": "Vérifier votre commande",
+      "subtitle": "Veuillez vérifier les détails de votre commande avant de finaliser votre achat",
+      "orderItems": "Articles commandés",
+      "quantity": "Quantité : {quantity}",
+      "coupon": "Coupon : {code}",
+      "deliveryInfo": "Informations de livraison",
+      "name": "Nom :",
+      "email": "E-mail :",
+      "phone": "Téléphone :",
+      "address": "Adresse :",
+      "orderSummary": "Récapitulatif de la commande",
+      "originalSubtotal": "Sous-total original :",
+      "subtotal": "Sous-total :",
+      "discount": "Remise :",
+      "tax": "Taxe (7,5%)",
+      "total": "Total",
+      "paymentMethod": "Méthode de paiement",
+      "paystack": "Paystack",
+      "paystackDesc": "Payez en Naira par carte, virement bancaire, USSD ou mobile money.",
+      "stripe": "Stripe",
+      "stripeDesc": "Payez par carte internationale. Affiché et facturé dans votre devise locale.",
+      "backToDetails": "Retour aux détails",
+      "processing": "Traitement en cours...",
+      "payWithStripe": "Payer avec Stripe",
+      "payNow": "Payer maintenant"
+    },
+    "summary": {
+      "title": "Récapitulatif de la commande",
+      "originalSubtotal": "Sous-total original",
+      "subtotal": "Sous-total",
+      "discount": "Remise",
+      "tax": "Taxe (7,5%)",
+      "total": "Total",
+      "coupon": "Coupon : {code}"
+    },
+    "claim": {
+      "title": "Comment réclamer vos diamants",
+      "intro": "Après avoir finalisé votre achat, suivez ces étapes pour réclamer vos diamants :",
+      "step1": "Visitez le site officiel de Free Fire",
+      "step2": "Connectez-vous avec votre compte Free Fire",
+      "step3": "Accédez à la section \"Code d'échange\"",
+      "step4": "Saisissez le code qui vous sera envoyé par e-mail après l'achat",
+      "step5": "Confirmez l'échange et les diamants seront ajoutés à votre compte",
+      "visitFreeFire": "Visiter le site web de Free Fire"
+    },
+    "faqTitle": "Besoin d'aide ?",
+    "faqs": {
+      "delivery": {
+        "question": "Combien de temps faut-il pour recevoir mes diamants ?",
+        "answer": "Après avoir finalisé votre achat, vous recevrez votre code d'échange par e-mail dans les 5 à 10 minutes. Dans de rares cas, cela peut prendre jusqu'à 24 heures pendant les périodes de forte affluence."
+      },
+      "payment": {
+        "question": "Quels modes de paiement sont acceptés ?",
+        "answer": "Nous acceptons divers modes de paiement, y compris les virements bancaires, les paiements par carte et le mobile money. Tous les paiements sont traités en toute sécurité par nos partenaires de paiement."
+      },
+      "refund": {
+        "question": "Puis-je obtenir un remboursement ?",
+        "answer": "Les remboursements ne sont pas disponibles. Veuillez contacter notre équipe de support pour obtenir de l'aide concernant les demandes de remboursement."
+      }
+    },
+    "toast": {
+      "stripeCancelled": "Le paiement a été annulé. Votre panier est toujours là, vous pouvez réessayer.",
+      "detailsMissing": "Les détails du client sont manquants",
+      "cartEmpty": "Votre panier est vide",
+      "stripeStartFailed": "Impossible de démarrer le paiement Stripe. Veuillez réessayer.",
+      "orderPlaced": "Commande passée avec succès !",
+      "orderFailed": "Échec du traitement de la commande. Veuillez réessayer."
+    }
+  },
+  "orders": {
+    "pageTitle": "Mes commandes",
+    "pageDescription": "Consulter et suivre vos achats de diamants",
+    "loading": "Chargement de vos commandes...",
+    "emptyTitle": "Aucune commande pour l'instant",
+    "emptyDescription": "Vous n'avez pas encore effectué d'achats.",
+    "browseShop": "Parcourir la boutique",
+    "historyTitle": "Historique des commandes",
+    "noItems": "Aucun article",
+    "itemSummary": "{name} (x{quantity})",
+    "moreItems": "+{count} de plus",
+    "additionalItems": "Articles supplémentaires :",
+    "table": {
+      "id": "ID",
+      "items": "Articles",
+      "total": "Total",
+      "date": "Date",
+      "status": "Statut",
+      "action": "Action",
+      "details": "Détails"
+    },
+    "showingRange": "Affichage de {start}-{end} sur {total}"
+  },
+  "orderDetail": {
+    "notFoundTitle": "Commande introuvable",
+    "backToOrders": "Retour aux commandes",
+    "title": "Détails de la commande",
+    "description": "Gérer et consulter votre historique de transactions",
+    "itemsPurchased": "Articles achetés",
+    "variantQty": "Variante : {variant} | Qté : {quantity}",
+    "subtotal": "Sous-total",
+    "tax": "Taxe",
+    "totalAmount": "Montant total",
+    "paymentVerifiedTitle": "Paiement vérifié",
+    "paymentVerifiedBody": "Vos diamants ont été expédiés. Veuillez vérifier votre e-mail enregistré pour les codes d'échange.",
+    "orderSummary": "Récapitulatif de la commande",
+    "orderId": "ID de commande",
+    "date": "Date",
+    "status": "Statut",
+    "printReceipt": "Imprimer le reçu"
+  },
+  "success": {
+    "verifying": "Vérification de votre paiement...",
+    "doNotRefresh": "Veuillez ne pas rafraîchir la page.",
+    "paymentSuccessful": "Paiement réussi !",
+    "pendingVerification": "Vérification en attente",
+    "confirmed": "Votre commande a été confirmée. Vos diamants sont en cours de livraison !",
+    "reference": "Référence :",
+    "session": "Session :",
+    "orderId": "ID de commande :",
+    "redemptionNote": "Les codes d'échange sont envoyés à votre e-mail. Cela prend généralement 5 à 10 minutes.",
+    "noConfirmationReference": "Nous n'avons pas reçu de confirmation pour la référence :",
+    "noConfirmationSession": "Nous n'avons pas reçu de confirmation pour la session :",
+    "autoRetry": "Le système réessaie automatiquement toutes les 30 secondes. Vous pouvez également cliquer sur <strong>Réessayer maintenant</strong> si vous avez été débité.",
+    "continueShopping": "Continuer vos achats",
+    "viewOrders": "Voir les commandes",
+    "retryNow": "Réessayer maintenant",
+    "contactSupport": "Contacter le support",
+    "backToShop": "Retour à la boutique",
+    "toast": {
+      "verified": "Paiement vérifié !",
+      "verificationFailed": "Échec de la vérification. Veuillez réessayer."
+    }
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Pagination,
   PaginationContent,
@@ -87,6 +88,8 @@ interface CategoryTab {
 const ALL_TAB: CategoryTab = { value: "all", label: "All", is_physical: false };
 
 export default function ShopClient() {
+  // Localized copy for the shop list (messages/en/shop.json -> "list" + "media").
+  const t = useTranslations("shop");
   const { token } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CategoryTab[]>([]);
@@ -211,7 +214,7 @@ export default function ShopClient() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-        <p className="text-muted-foreground">Loading Shop...</p>
+        <p className="text-muted-foreground">{t("list.loading")}</p>
       </div>
     );
   }
@@ -220,11 +223,11 @@ export default function ShopClient() {
     <div>
       {/* <ComingSoon /> */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-2 gap-4">
-        <PageHeader title="AFC Shop" back />
+        <PageHeader title={t("list.pageTitle")} back />
         <Button asChild variant="outline">
           <Link href="/shop/cart">
             <ShoppingCart className="mr-2 h-4 w-4" />
-            Cart
+            {t("list.cart")}
           </Link>
         </Button>
       </div>
@@ -251,9 +254,13 @@ export default function ShopClient() {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           type="search"
-          placeholder={`Search ${
-            activeCategoryMeta?.label.toLowerCase() || "products"
-          }...`}
+          placeholder={t("list.searchPlaceholder", {
+            // Category portion: live category labels come from the backend (not
+            // translatable here); the generic "products" fallback is localized.
+            category:
+              activeCategoryMeta?.label.toLowerCase() ||
+              t("list.searchDefaultCategory"),
+          })}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 bg-background/50 backdrop-blur-sm"
@@ -263,7 +270,7 @@ export default function ShopClient() {
       {filteredProducts.length === 0 ? (
         <div className="text-center py-12">
           <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No products found</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("list.noProducts")}</h3>
         </div>
       ) : (
         <>
@@ -307,7 +314,7 @@ export default function ShopClient() {
                         variant="destructive"
                         className="text-sm px-4 py-2"
                       >
-                        Out of Stock
+                        {t("list.outOfStock")}
                       </Badge>
                     </div>
                   )}
@@ -326,13 +333,12 @@ export default function ShopClient() {
                       {isPhysical ? (
                         <>
                           <Truck className="h-3.5 w-3.5" />
-                          {optionCount} option{optionCount > 1 ? "s" : ""},
-                          ships to you
+                          {t("list.shipsToYou", { count: optionCount })}
                         </>
                       ) : (
                         <>
                           <Package className="h-3.5 w-3.5" />
-                          {optionCount} option{optionCount > 1 ? "s" : ""}
+                          {t("list.options", { count: optionCount })}
                         </>
                       )}
                     </div>
@@ -340,13 +346,13 @@ export default function ShopClient() {
 
                   <p className="text-xl font-bold mb-4">
                     <span className="text-xs font-medium text-muted-foreground uppercase mr-1">
-                      from
+                      {t("list.from")}
                     </span>
                     {formatPrice(startingPrice)}
                   </p>
                   <Button asChild className="w-full">
                     <Link href={`/shop/${product.id}`}>
-                      {isOutOfStock ? "View" : "Buy Now"}
+                      {isOutOfStock ? t("list.view") : t("list.buyNow")}
                     </Link>
                   </Button>
                 </CardContent>
@@ -357,9 +363,14 @@ export default function ShopClient() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-6">
             <p className="hidden md:block text-sm text-muted-foreground">
-              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-              {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)}{" "}
-              of {filteredProducts.length}
+              {t("list.showingRange", {
+                start: (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                end: Math.min(
+                  currentPage * ITEMS_PER_PAGE,
+                  filteredProducts.length,
+                ),
+                total: filteredProducts.length,
+              })}
             </p>
             <Pagination className="w-full md:w-auto mx-0">
               <PaginationContent>

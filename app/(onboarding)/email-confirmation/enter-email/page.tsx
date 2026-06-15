@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/Loader";
+import { useTranslations } from "next-intl";
 
 const FormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -37,6 +38,9 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 export default function EnterEmailPage() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  // Auth namespace: messages/en/auth.json (enterEmail.* keys). Drives the
+  // heading, description, email field, submit button, and resend-code toasts.
+  const t = useTranslations("auth");
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -54,7 +58,7 @@ export default function EnterEmailPage() {
           { email: data.email }
         );
 
-        toast.success(response.data.message || "Verification code sent!");
+        toast.success(response.data.message || t("enterEmail.successSent"));
         // Redirect to confirmation page with email
         router.push(
           `/email-confirmation?email=${encodeURIComponent(data.email)}`
@@ -63,7 +67,7 @@ export default function EnterEmailPage() {
         toast.error(
           error?.response?.data?.error ||
             error?.response?.data?.message ||
-            "Failed to send verification code"
+            t("enterEmail.failed")
         );
       }
     });
@@ -72,10 +76,10 @@ export default function EnterEmailPage() {
   return (
     <div>
       <h1 className="text-2xl md:text-3xl font-semibold text-primary mb-2 text-center">
-        Email Verification Required
+        {t("enterEmail.heading")}
       </h1>
       <p className="text-muted-foreground text-center text-base mb-8">
-        Please enter your email address to receive a verification code
+        {t("enterEmail.description")}
       </p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -84,11 +88,11 @@ export default function EnterEmailPage() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email Address</FormLabel>
+                <FormLabel>{t("enterEmail.emailLabel")}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t("enterEmail.emailPlaceholder")}
                     className="bg-input border-border"
                     {...field}
                   />
@@ -98,7 +102,11 @@ export default function EnterEmailPage() {
             )}
           />
           <Button className="w-full" type="submit" disabled={pending}>
-            {pending ? <Loader text="Sending..." /> : "Send Verification Code"}
+            {pending ? (
+              <Loader text={t("enterEmail.sending")} />
+            ) : (
+              t("enterEmail.submit")
+            )}
           </Button>
         </form>
       </Form>

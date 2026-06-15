@@ -1,0 +1,38 @@
+{
+  "pageTitle": "Notícias e Atualizações",
+  "createPost": "Criar Nova Publicação",
+  "categories": {
+    "all": "Todas as Categorias",
+    "general": "Notícias Gerais",
+    "tournament": "Atualizações de Torneios",
+    "bans": "Atualizações de Jogadores/Equipes Banidos"
+  },
+  "search": {
+    "placeholder": "Pesquisar notícias por título, conteúdo ou autor...",
+    "categoryPlaceholder": "Selecionar categoria"
+  },
+  "empty": {
+    "title": "Nenhum artigo encontrado",
+    "withFilters": "Tente ajustar seus termos de busca ou filtros",
+    "noArticles": "Nenhum artigo disponível no momento",
+    "clearFilters": "Limpar todos os filtros"
+  },
+  "card": {
+    "readMore": "Ler Mais",
+    "register": "Registrar"
+  },
+  "pagination": {
+    "showing": "Mostrando {from}-{to} de {total} artigos"
+  },
+  "detail": {
+    "titleSuffix": "Detalhes de {title}",
+    "registerForTournament": "Registrar para o Torneio",
+    "wasThisHelpful": "Isso foi útil?"
+  },
+  "toast": {
+    "loadFailed": "Falha ao carregar notícias",
+    "syncFailed": "Falha ao sincronizar dados de notícias",
+    "loginToVote": "Por favor, faça login para votar",
+    "actionFailed": "Ação falhou"
+  }
+}

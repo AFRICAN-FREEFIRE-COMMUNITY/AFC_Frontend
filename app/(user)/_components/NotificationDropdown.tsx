@@ -23,6 +23,8 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
 import { env } from "@/lib/env";
+// Shared-chrome strings live in messages/en/common.json under "common".
+import { useTranslations } from "next-intl";
 
 interface NotificationDropdownProps {
   notifications: any[];
@@ -36,6 +38,7 @@ export function NotificationDropdown({
   onNotificationUpdate,
 }: NotificationDropdownProps) {
   const { token } = useAuth();
+  const t = useTranslations("common");
   const [selectedNotification, setSelectedNotification] = useState<any | null>(null);
 
   const handleNotificationClick = async (notification: any) => {
@@ -82,9 +85,11 @@ export function NotificationDropdown({
         <SheetContent side="right" className="p-0 flex flex-col w-[90vw] sm:max-w-sm">
           <SheetHeader className="px-4 pt-5 pb-3 border-b">
             <SheetTitle className="flex items-center justify-between">
-              <span>Notifications</span>
+              <span>{t("notifications.title")}</span>
               {unreadCount > 0 && (
-                <Badge variant="secondary">{unreadCount} unread</Badge>
+                <Badge variant="secondary">
+                  {t("notifications.unreadCount", { count: unreadCount })}
+                </Badge>
               )}
             </SheetTitle>
           </SheetHeader>
@@ -92,7 +97,7 @@ export function NotificationDropdown({
           <ScrollArea className="flex-1 min-h-0">
             {notifications.length === 0 ? (
               <p className="italic text-sm text-muted-foreground text-center py-10 px-4">
-                No notifications yet
+                {t("notifications.empty")}
               </p>
             ) : (
               <div className="flex flex-col">
@@ -130,7 +135,7 @@ export function NotificationDropdown({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Notification</DialogTitle>
+            <DialogTitle>{t("notifications.singular")}</DialogTitle>
           </DialogHeader>
           <div className="py-2">
             <p className="text-sm leading-relaxed">

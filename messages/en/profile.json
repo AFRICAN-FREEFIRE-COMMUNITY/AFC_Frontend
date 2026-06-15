@@ -1,0 +1,218 @@
+{
+  "page": {
+    "title": "Player Profile",
+    "banned": {
+      "title": "Account Banned",
+      "description": "This account has been banned."
+    }
+  },
+  "card": {
+    "avatarAlt": "{name}'s picture",
+    "uid": "UID: {uid}",
+    "team": "Team:",
+    "role": "Role:",
+    "language": "Language:",
+    "editProfile": "Edit Profile",
+    "connectDiscord": "Connect to Discord",
+    "connecting": "Connecting...",
+    "disconnecting": "Disconnecting...",
+    "disconnect": "Disconnect - {username}"
+  },
+  "discord": {
+    "disconnectTitle": "Are you absolutely sure?",
+    "disconnectDescription": "This will disconnect your Discord account from your player profile. You will lose access to Discord-linked features until you reconnect.",
+    "disconnectCancel": "Cancel",
+    "disconnectConfirm": "Disconnect",
+    "disconnected": "Discord account disconnected.",
+    "disconnectFailed": "Failed to disconnect Discord. Please try again.",
+    "linked": "Discord account linked successfully!",
+    "linkFailed": "This account is already in use by another user."
+  },
+  "tabs": {
+    "overview": "Overview",
+    "stats": "Stats",
+    "history": "Team History",
+    "achievements": "Achievements",
+    "applications": "My Applications",
+    "admin": "Admin Capabilities"
+  },
+  "overview": {
+    "totalKills": "Total Kills",
+    "wins": "Wins",
+    "mvps": "MVPs",
+    "booyahs": "Booyahs",
+    "tournaments": "Tournaments",
+    "scrims": "Scrims",
+    "currentTier": "Current Tier",
+    "unranked": "Unranked",
+    "kdr": "KDR",
+    "winRate": "Win Rate"
+  },
+  "stats": {
+    "loading": "Loading your stats..."
+  },
+  "history": {
+    "team": "Team",
+    "role": "Role",
+    "from": "From",
+    "to": "To",
+    "loading": "Loading team history...",
+    "present": "Present",
+    "empty": "No team history yet.",
+    "note": "Full past-team history will appear here once roster movement is tracked. Only your current team is shown for now."
+  },
+  "applications": {
+    "loading": "Loading...",
+    "emptyTitle": "No applications yet",
+    "emptyHint": "Apply to teams from the Player Market",
+    "applied": "Applied {date}",
+    "contactUnlocked": "Contact Unlocked",
+    "view": "View",
+    "loadFailed": "Failed to load your applications."
+  },
+  "achievementsPanel": {
+    "pointsEarned": "Achievement points earned",
+    "pointsSuffix": " / {total} pts",
+    "unlockedCount": "{earned} of {total} achievements unlocked",
+    "pointsBadge": "{points} pts",
+    "comingSoonNote": "Achievement points will be usable to boost your rankings and tiers. Coming soon.",
+    "goalsNotTracked": "{section} goals are not tracked yet. They will light up automatically once time based stats are recorded.",
+    "section": {
+      "monthly": "Monthly",
+      "daily": "Daily"
+    },
+    "groupProgress": "{earned} / {total}",
+    "tierPoints": "{points} pts",
+    "progressLabel": "{value} / {threshold} {unit}",
+    "status": {
+      "unlocked": "Unlocked",
+      "notTracked": "Not tracked yet",
+      "upNext": "Up next",
+      "locked": "Locked"
+    }
+  },
+  "ownStats": {
+    "totalMatches": "Total Matches",
+    "totalKills": "Total Kills",
+    "wins": "Wins",
+    "mvpAwards": "MVP Awards",
+    "kdr": "KDR",
+    "winRate": "Win Rate",
+    "avgDamage": "Avg Damage",
+    "eventsPlayed": "Events Played",
+    "noRecordedMatches": "You have no recorded matches yet. Your stats will populate here as you compete in AFC events.",
+    "performanceCurve": "Performance curve",
+    "metric": {
+      "kills": "Kills",
+      "placement": "Placement",
+      "points": "Points",
+      "kd": "K-D"
+    },
+    "axis": {
+      "eventDate": "Event date",
+      "placement": "Placement (lower is better)",
+      "kd": "K-D ratio"
+    },
+    "notEnoughEvents": "Not enough events to plot a performance curve yet.",
+    "eventsPlayedHeading": "Events played",
+    "noEventsPlayed": "No events played yet.",
+    "recentMatches": "Recent matches",
+    "noRecentMatches": "No recent matches yet.",
+    "table": {
+      "event": "Event",
+      "type": "Type",
+      "date": "Date",
+      "bestPlace": "Best place",
+      "myKills": "My kills",
+      "myPoints": "My points",
+      "mvps": "MVPs",
+      "map": "Map",
+      "placement": "Placement",
+      "kills": "Kills",
+      "damage": "Damage",
+      "points": "Points",
+      "mvp": "MVP"
+    }
+  },
+  "edit": {
+    "title": "Edit Profile: {name}",
+    "cardTitle": "Update Your Information",
+    "avatarAlt": "{name}'s picture",
+    "profilePicture": "Profile Picture",
+    "name": "Name",
+    "namePlaceholder": "Enter your full name",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "uid": "UID",
+    "uidPlaceholder": "Enter your FreeFire UID",
+    "inGameName": "In-game Name",
+    "inGameNamePlaceholder": "Enter your in-game name",
+    "language": "Language",
+    "languagePlaceholder": "Select your language",
+    "saving": "Saving...",
+    "saveChanges": "Save changes",
+    "changePassword": "Change Password",
+    "internalError": "Internal server error",
+    "reloginError": "Oops! An error occurred. Login again",
+    "esport": {
+      "title": "Esport Image",
+      "infoTip": "Tournament organizers use this image as your player picture in event graphics. Some events require it before you can register.",
+      "warningTitle": "Read before uploading",
+      "warningOwnPictureLead": "Upload",
+      "warningOwnPictureBold": "only your own picture",
+      "warningOwnPictureTail": ".",
+      "warningBust": "It must look like an esport image: a clear shot covering your bust, facing the camera.",
+      "warningNoBrandLead": "Do",
+      "warningNoBrandBold": "not",
+      "warningNoBrandTail": "wear a branded shirt.",
+      "warningBan": "If you upload a picture that is not yours, or anything that is not an esport picture, we can and will ban both you and your team.",
+      "samplesTitle": "Examples of what your esport image should look like:",
+      "sampleAlt": "Esport image example",
+      "currentAlt": "Your esport image",
+      "noImageYet": "No esport image yet",
+      "replaceNote": "Picking a file replaces your current esport image immediately. Esport images cannot be removed, only replaced.",
+      "uploadNote": "Picking a file uploads it immediately. Esport images cannot be removed, only replaced.",
+      "uploading": "Uploading esport image...",
+      "saved": "Esport image saved.",
+      "uploadFailed": "Failed to upload the esport image."
+    }
+  },
+  "password": {
+    "title": "Change Password",
+    "currentPassword": "Current Password",
+    "currentPasswordPlaceholder": "Current password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Password",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Enter your password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "requirementsLabel": "Password requirements",
+    "mustContain": "{strength}. Must contain:",
+    "requirementMet": " - Requirement met",
+    "requirementNotMet": " - Requirement not met",
+    "strength": {
+      "enter": "Enter a password",
+      "weak": "Weak password",
+      "medium": "Medium password",
+      "strong": "Strong password"
+    },
+    "requirement": {
+      "minLength": "At least 8 characters",
+      "number": "At least 1 number",
+      "lowercase": "At least 1 lowercase letter",
+      "uppercase": "At least 1 uppercase letter",
+      "special": "At least 1 special character"
+    },
+    "updating": "Updating...",
+    "updatePassword": "Update Password",
+    "changed": "Password changed successfully",
+    "changeFailed": "Failed to change password",
+    "validation": {
+      "currentRequired": "Current password is required",
+      "minLength": "Password must be at least 8 characters",
+      "confirmRequired": "Please confirm your new password",
+      "mismatch": "Passwords do not match"
+    }
+  }
+}

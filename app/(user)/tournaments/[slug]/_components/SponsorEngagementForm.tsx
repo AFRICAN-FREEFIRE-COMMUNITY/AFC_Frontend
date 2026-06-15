@@ -44,6 +44,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState } from "react";
+// i18n: copy lives in messages/en/tournaments.json under "sponsorForm.*"
+// (useTranslations resolves the NEXT_LOCALE cookie locale, en fallback).
+import { useTranslations } from "next-intl";
 import {
   AlertTriangle,
   CheckCircle,
@@ -159,8 +162,12 @@ const PLATFORM_NAMES: Record<string, string> = {
   x: "X",
 };
 
-const platformName = (platform?: string): string =>
-  (platform && PLATFORM_NAMES[platform.toLowerCase()]) || platform || "Social";
+// Proper-noun platform names (WhatsApp, Discord, ...) are NOT translated; only
+// the generic fallback ("Social") is localized and passed in by the caller.
+const platformName = (platform?: string, socialFallback = "Social"): string =>
+  (platform && PLATFORM_NAMES[platform.toLowerCase()]) ||
+  platform ||
+  socialFallback;
 
 // ── Validation ────────────────────────────────────────────────────────────────
 // True when one engagement's draft satisfies its type's required fields. Drives
@@ -367,6 +374,7 @@ const DiscordVerificationPanel: React.FC<{
   checking: boolean;
   onRecheck?: () => void;
 }> = ({ status, checking, onRecheck }) => {
+  const t = useTranslations("tournaments");
   // Re-check affordance, shown under every non-checking state.
   const recheckButton = onRecheck ? (
     <Button
@@ -378,7 +386,9 @@ const DiscordVerificationPanel: React.FC<{
       disabled={checking}
     >
       <RefreshCw className={`size-3 mr-1 ${checking ? "animate-spin" : ""}`} />
-      {status ? "Re-check" : "Check Discord"}
+      {status
+        ? t("sponsorForm.discord.recheck")
+        : t("sponsorForm.discord.check")}
     </Button>
   ) : null;
 
@@ -387,7 +397,7 @@ const DiscordVerificationPanel: React.FC<{
       <div className="p-3 rounded-md border border-input bg-background/50 flex items-center gap-2">
         <RefreshCw className="size-4 animate-spin text-muted-foreground flex-shrink-0" />
         <p className="text-xs text-muted-foreground">
-          Checking Discord connection and server membership...
+          {t("sponsorForm.discord.checking")}
         </p>
       </div>
     );
@@ -398,8 +408,7 @@ const DiscordVerificationPanel: React.FC<{
     return (
       <div className="p-3 rounded-md border border-input bg-background/50 space-y-2">
         <p className="text-xs text-muted-foreground">
-          Discord is verified automatically. Run the check to confirm this
-          player has connected Discord and joined the server.
+          {t("sponsorForm.discord.noResult")}
         </p>
         {recheckButton}
       </div>
@@ -416,7 +425,7 @@ const DiscordVerificationPanel: React.FC<{
         <div className="flex items-start gap-2">
           <CheckCircle className="size-4 text-green-400 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-green-400">
-            Connected and in the server ({displayName})
+            {t("sponsorForm.discord.connectedInServer", { name: displayName })}
           </p>
         </div>
         {recheckButton}
@@ -432,12 +441,12 @@ const DiscordVerificationPanel: React.FC<{
           <XCircle className="size-4 text-red-400 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-xs font-medium text-red-400">
-              Has not connected Discord
+              {t("sponsorForm.discord.notConnected")}
             </p>
             <p className="text-xs text-muted-foreground">
               {status.error
                 ? status.error
-                : "This player must link their Discord account on their AFC profile, then re-check."}
+                : t("sponsorForm.discord.notConnectedNote")}
             </p>
           </div>
         </div>
@@ -454,11 +463,14 @@ const DiscordVerificationPanel: React.FC<{
           <AlertTriangle className="size-4 text-orange-400 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-xs font-medium text-orange-400">
-              Connected but has NOT joined the server
+              {t("sponsorForm.discord.notJoined")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Use the &quot;Join the group&quot; link above
-              {displayName ? ` as ${displayName}` : ""}, then re-check.
+              {t("sponsorForm.discord.notJoinedNote", {
+                name: displayName
+                  ? t("sponsorForm.discord.notJoinedAs", { name: displayName })
+                  : "",
+              })}
             </p>
           </div>
         </div>
@@ -474,10 +486,10 @@ const DiscordVerificationPanel: React.FC<{
         <AlertTriangle className="size-4 text-yellow-400 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-xs font-medium text-yellow-400">
-            Could not verify server membership
+            {t("sponsorForm.discord.verifyFailed")}
           </p>
           <p className="text-xs text-muted-foreground">
-            {status.error || "The Discord check failed. Try again."}
+            {status.error || t("sponsorForm.discord.verifyFailedNote")}
           </p>
         </div>
       </div>
@@ -525,6 +537,7 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
   discordChecking = false,
   onRecheckDiscord,
 }) => {
+  const t = useTranslations("tournaments");
   // Renders the type-specific input block for one engagement.
   const renderEngagement = (
     sponsorshipId: number,
@@ -542,7 +555,9 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
         const isDuplicate = !!duplicateKeys?.has(`${sponsorshipId}|${idx}`);
         return (
           <div key={inputId} className="space-y-1">
-            <Label htmlFor={inputId}>{engagement.label || "Sponsor ID"}</Label>
+            <Label htmlFor={inputId}>
+              {engagement.label || t("sponsorForm.collectId.defaultLabel")}
+            </Label>
             <Input
               id={inputId}
               className={
@@ -550,7 +565,11 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
                   ? "border-destructive focus-visible:ring-destructive"
                   : "border-input"
               }
-              placeholder={`Enter ${engagement.label || "the requested ID"}`}
+              placeholder={t("sponsorForm.collectId.placeholder", {
+                label:
+                  engagement.label ||
+                  t("sponsorForm.collectId.placeholderFallback"),
+              })}
               value={answer.value || ""}
               onChange={(e) => patch({ value: e.target.value })}
             />
@@ -559,7 +578,7 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
             )}
             {isDuplicate && (
               <p className="text-xs text-destructive">
-                This value is already used by another rostered player.
+                {t("sponsorForm.validation.duplicate")}
               </p>
             )}
           </div>
@@ -578,8 +597,17 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
         return (
           <div key={inputId} className="space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <Label>{platformName(engagement.platform)} page</Label>
-              <EngagementLink href={engagement.url}>Open page</EngagementLink>
+              <Label>
+                {t("sponsorForm.followSocial.pageLabel", {
+                  platform: platformName(
+                    engagement.platform,
+                    t("sponsorForm.platformSocial"),
+                  ),
+                })}
+              </Label>
+              <EngagementLink href={engagement.url}>
+                {t("sponsorForm.followSocial.openPage")}
+              </EngagementLink>
             </div>
             {/* Action checklist: chips the user ticks AFTER doing each action
                 on the sponsor's page. Client-side confirmation only; the ticks
@@ -609,14 +637,18 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              Open the page, complete each action, then tick it here.
+              {t("sponsorForm.followSocial.instructions")}
             </p>
             {engagement.collect_profile_link && (
               <div className="space-y-1">
-                <Label htmlFor={inputId}>Your profile link</Label>
+                <Label htmlFor={inputId}>
+                  {t("sponsorForm.followSocial.profileLinkLabel")}
+                </Label>
                 <Input
                   id={inputId}
-                  placeholder="Paste a link to your profile"
+                  placeholder={t(
+                    "sponsorForm.followSocial.profileLinkPlaceholder",
+                  )}
                   value={answer.profile_link || ""}
                   onChange={(e) => patch({ profile_link: e.target.value })}
                 />
@@ -632,15 +664,16 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
           <div key={inputId} className="space-y-1">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor={inputId}>
-                {engagement.label || "Create an account"}
+                {engagement.label ||
+                  t("sponsorForm.createAccount.defaultLabel")}
               </Label>
               <EngagementLink href={engagement.signup_url}>
-                Create your account
+                {t("sponsorForm.createAccount.createYourAccount")}
               </EngagementLink>
             </div>
             <Input
               id={inputId}
-              placeholder="Enter the username you signed up with"
+              placeholder={t("sponsorForm.createAccount.usernamePlaceholder")}
               value={answer.username || ""}
               onChange={(e) => patch({ username: e.target.value })}
             />
@@ -655,10 +688,15 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
           <div key={inputId} className="space-y-1">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor={inputId}>
-                Join the {platformName(engagement.platform)} group
+                {t("sponsorForm.joinGroup.joinLabel", {
+                  platform: platformName(
+                    engagement.platform,
+                    t("sponsorForm.platformSocial"),
+                  ),
+                })}
               </Label>
               <EngagementLink href={engagement.invite_url}>
-                Join the group
+                {t("sponsorForm.joinGroup.joinButton")}
               </EngagementLink>
             </div>
             {isWhatsapp ? (
@@ -683,13 +721,13 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
                     id={inputId}
                     className="flex-1"
                     inputMode="tel"
-                    placeholder="Phone number"
+                    placeholder={t("sponsorForm.joinGroup.phonePlaceholder")}
                     value={answer.phone || ""}
                     onChange={(e) => patch({ phone: e.target.value })}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  The phone number you joined the group with.
+                  {t("sponsorForm.joinGroup.phoneNote")}
                 </p>
               </>
             ) : (
@@ -734,14 +772,13 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
                 variant="outline"
                 className="rounded-full px-2 py-0.5 text-xs border-yellow-500/50 text-yellow-400 flex-shrink-0"
               >
-                Requires approval
+                {t("sponsorForm.sponsorSection.requiresApproval")}
               </Badge>
             )}
           </div>
           {s.requires_approval && (
             <p className="text-xs text-muted-foreground">
-              This sponsor reviews submissions. Your spot is confirmed once
-              they approve.
+              {t("sponsorForm.sponsorSection.requiresApprovalNote")}
             </p>
           )}
           {s.engagements.map((eng, idx) =>
@@ -770,6 +807,7 @@ interface SponsorEngagementPlayerSectionProps {
 export const SponsorEngagementPlayerSection: React.FC<
   SponsorEngagementPlayerSectionProps
 > = ({ username, remaining, hasDuplicate = false, defaultOpen = false, children }) => {
+  const t = useTranslations("tournaments");
   const [open, setOpen] = useState(defaultOpen);
   const done = remaining === 0 && !hasDuplicate;
   return (
@@ -787,21 +825,21 @@ export const SponsorEngagementPlayerSection: React.FC<
                 variant="outline"
                 className="rounded-full px-2 py-0.5 text-xs border-green-500/50 text-green-500"
               >
-                Done
+                {t("sponsorForm.playerSection.done")}
               </Badge>
             ) : hasDuplicate ? (
               <Badge
                 variant="outline"
                 className="rounded-full px-2 py-0.5 text-xs border-destructive/50 text-destructive"
               >
-                Duplicate
+                {t("sponsorForm.playerSection.duplicate")}
               </Badge>
             ) : (
               <Badge
                 variant="outline"
                 className="rounded-full px-2 py-0.5 text-xs border-yellow-500/50 text-yellow-400"
               >
-                {remaining} left
+                {t("sponsorForm.playerSection.remaining", { count: remaining })}
               </Badge>
             )}
             <ChevronDown

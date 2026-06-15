@@ -14,6 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import axios from "axios";
@@ -44,6 +45,8 @@ const startingPrice = (variants: Variant[]): number | null => {
 };
 
 export function FeaturedShop() {
+  // Strings for the home-page "Featured Shop" teaser (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,7 +73,7 @@ export function FeaturedShop() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Featured Shop Items</CardTitle>
+        <CardTitle>{t("featuredShop.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -87,7 +90,7 @@ export function FeaturedShop() {
           </ul>
         ) : products.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">
-            No products available yet. Check back soon.
+            {t("featuredShop.empty")}
           </p>
         ) : (
           <ul className="space-y-4">
@@ -106,21 +109,25 @@ export function FeaturedShop() {
                     className="rounded object-cover"
                   />
                   <div className="flex-grow">
-                    <h3 className="font-semibold">{item.name || "Product"}</h3>
+                    <h3 className="font-semibold">
+                      {item.name || t("featuredShop.productFallback")}
+                    </h3>
                     <p className="flex items-center gap-1 text-sm text-muted-foreground">
                       {price !== null ? (
                         <>
-                          From <NairaIcon className="size-3" />
+                          {t("featuredShop.from")}{" "}
+                          <NairaIcon className="size-3" />
                           {price.toLocaleString()}
                         </>
                       ) : (
-                        "View options"
+                        t("featuredShop.viewOptions")
                       )}
                     </p>
                   </div>
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/shop/${item.id}`}>
-                      View <ExternalLink className="ml-2 h-4 w-4" />
+                      {t("featuredShop.view")}{" "}
+                      <ExternalLink className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                 </li>
@@ -129,7 +136,7 @@ export function FeaturedShop() {
           </ul>
         )}
         <Button asChild className="mt-4 w-full">
-          <Link href="/shop">Visit Shop</Link>
+          <Link href="/shop">{t("featuredShop.visitShop")}</Link>
         </Button>
       </CardContent>
     </Card>

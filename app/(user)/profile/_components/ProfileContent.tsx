@@ -2,6 +2,10 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+// i18n: user-visible copy on the owner's own profile page is sourced from the
+// `profile` namespace (messages/en/profile.json). The active locale comes from the
+// NEXT_LOCALE cookie (set on the profile edit page) and falls back to English.
+import { useTranslations } from "next-intl";
 // import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -73,6 +77,7 @@ import {
 import { OwnStatsTab } from "./OwnStatsTab";
 
 export const ProfileContent = () => {
+  const t = useTranslations("profile");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -128,10 +133,10 @@ export const ProfileContent = () => {
           },
         );
         setDiscordConnected(false);
-        toast.success("Discord account disconnected.");
+        toast.success(t("discord.disconnected"));
       } catch (error) {
         console.error("Error disconnecting Discord:", error);
-        toast.error("Failed to disconnect Discord. Please try again.");
+        toast.error(t("discord.disconnectFailed"));
       }
     });
   };
@@ -146,7 +151,7 @@ export const ProfileContent = () => {
           { headers: { Authorization: `Bearer ${token}` } },
         )
         .then((res) => setMyApplications(res.data))
-        .catch(() => toast.error("Failed to load your applications."))
+        .catch(() => toast.error(t("applications.loadFailed")))
         .finally(() => setLoadingApplications(false));
     }
   }, [user, token]);
@@ -234,12 +239,11 @@ export const ProfileContent = () => {
       setTimeout(() => {
         if (discordStatus === "connected") {
           setDiscordConnected(true);
-          toast.success("Discord account linked successfully!");
+          toast.success(t("discord.linked"));
         } else {
           setDiscordConnected(false);
           toast.error(
-            searchParams.get("message") ||
-              "This account is already in use by another user.",
+            searchParams.get("message") || t("discord.linkFailed"),
           );
         }
 
@@ -266,12 +270,12 @@ export const ProfileContent = () => {
 
   return (
     <div>
-      <PageHeader back title={`Player Profile`} />
+      <PageHeader back title={t("page.title")} />
       {user.is_banned && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Account Banned</AlertTitle>
-          <AlertDescription>This account has been banned.</AlertDescription>
+          <AlertTitle>{t("page.banned.title")}</AlertTitle>
+          <AlertDescription>{t("page.banned.description")}</AlertDescription>
         </Alert>
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -280,7 +284,7 @@ export const ProfileContent = () => {
             <Avatar className="w-32 h-32 mb-4">
               <AvatarImage
                 src={user.profile_pic || DEFAULT_PROFILE_PICTURE}
-                alt={`${user.full_name}'s picture`}
+                alt={t("card.avatarAlt", { name: user.full_name })}
                 className="object-cover"
               />
               <AvatarFallback>{user.full_name.charAt(0)}</AvatarFallback>
@@ -291,23 +295,24 @@ export const ProfileContent = () => {
             <p className="text-sm text-muted-foreground mb-2">
               @{user.in_game_name}
             </p>
-            <p className="mb-2 text-sm">UID: {user.uid}</p>
+            <p className="mb-2 text-sm">{t("card.uid", { uid: user.uid })}</p>
             {user.team && (
               <p className="mb-4 text-sm">
                 {/* Team name links to the public team page. */}
-                Team: <TeamLink name={user.team} />
+                {t("card.team")} <TeamLink name={user.team} />
               </p>
             )}
             {user.role !== "user" && (
               <Badge className="mb-4" variant="secondary">
-                Role: <span className="capitalize">{user.role}</span>
+                {t("card.role")} <span className="capitalize">{user.role}</span>
               </Badge>
             )}
             {/* i18n Phase 0: read-only display of the preferred UI language (user.language from
                 AuthContext, set on the profile edit page). Maps the stored code to its native name;
                 change it from "Edit Profile". Defaults to English when absent. */}
             <p className="mb-4 text-sm">
-              Language:{" "}
+              {t("card.language")}{" "}
+              {/* Native language names stay in their own language by design. */}
               {{ en: "English", fr: "Français", pt: "Português" }[
                 user.language ?? "en"
               ] ?? "English"}
@@ -317,7 +322,7 @@ export const ProfileContent = () => {
                 <InfoTip id="profile.discord_connect" />
               </div>
               <Button className="w-full" asChild>
-                <Link href="/profile/edit">Edit Profile</Link>
+                <Link href="/profile/edit">{t("card.editProfile")}</Link>
               </Button>
               {/* <Button
                 disabled={pending}
@@ -351,30 +356,35 @@ export const ProfileContent = () => {
                       disabled={pending}
                     >
                       {pending ? (
-                        <Loader text="Disconnecting..." />
+                        <Loader text={t("card.disconnecting")} />
                       ) : (
-                        `Disconnect - ${user.discord_username}`
+                        t("card.disconnect", {
+                          // discord_username is optional on the User type; this branch
+                          // only renders when Discord is connected (so it is set), but
+                          // fall back to an empty string to satisfy the value type.
+                          username: user.discord_username ?? "",
+                        })
                       )}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        Are you absolutely sure?
+                        {t("discord.disconnectTitle")}
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will disconnect your Discord account from your
-                        player profile. You will lose access to Discord-linked
-                        features until you reconnect.
+                        {t("discord.disconnectDescription")}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>
+                        {t("discord.disconnectCancel")}
+                      </AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleDiscordDisconnect}
                         className="bg-destructive text-white hover:bg-destructive/90"
                       >
-                        Disconnect
+                        {t("discord.disconnectConfirm")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -387,9 +397,9 @@ export const ProfileContent = () => {
                   className="w-full"
                 >
                   {pending ? (
-                    <Loader text="Connecting..." />
+                    <Loader text={t("card.connecting")} />
                   ) : (
-                    "Connect to Discord"
+                    t("card.connectDiscord")
                   )}
                 </Button>
               )}
@@ -402,16 +412,20 @@ export const ProfileContent = () => {
             <Tabs defaultValue="overview">
               <ScrollArea>
                 <TabsList className="w-full mb-4">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="overview">
+                    {t("tabs.overview")}
+                  </TabsTrigger>
                   {/* Owner's OWN full stats window (rich cards + curve + tables). */}
-                  <TabsTrigger value="stats">Stats</TabsTrigger>
-                  <TabsTrigger value="history">Team History</TabsTrigger>
-                  <TabsTrigger value="achievements">Achievements</TabsTrigger>
+                  <TabsTrigger value="stats">{t("tabs.stats")}</TabsTrigger>
+                  <TabsTrigger value="history">{t("tabs.history")}</TabsTrigger>
+                  <TabsTrigger value="achievements">
+                    {t("tabs.achievements")}
+                  </TabsTrigger>
                   <TabsTrigger value="applications">
-                    My Applications
+                    {t("tabs.applications")}
                   </TabsTrigger>
                   {user.role === "admin" && (
-                    <TabsTrigger value="admin">Admin Capabilities</TabsTrigger>
+                    <TabsTrigger value="admin">{t("tabs.admin")}</TabsTrigger>
                   )}
                 </TabsList>
                 <ScrollBar orientation="horizontal" />
@@ -420,37 +434,49 @@ export const ProfileContent = () => {
               <TabsContent value="overview">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Kills</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("overview.totalKills")}
+                    </p>
                     <p className="text-lg md:text-xl font-semibold">
                       {user?.stats.total_kills}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Wins</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("overview.wins")}
+                    </p>
                     <p className="text-lg md:text-xl font-semibold">
                       {user?.stats.total_wins}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">MVPs</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("overview.mvps")}
+                    </p>
                     <p className="text-lg md:text-xl font-semibold">
                       {user?.stats.total_mvps}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Booyahs</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("overview.booyahs")}
+                    </p>
                     <p className="text-lg md:text-xl font-semibold">
                       {user?.stats.total_booyahs}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Tournaments</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("overview.tournaments")}
+                    </p>
                     <p className="text-lg md:text-xl font-semibold">
                       {user?.stats.total_tournaments_played}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Scrims</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("overview.scrims")}
+                    </p>
                     <p className="text-lg md:text-xl font-semibold">
                       {user?.stats.total_scrims_played}
                     </p>
@@ -461,12 +487,13 @@ export const ProfileContent = () => {
                       fabricate a numeric rank. */}
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Current Tier
+                      {t("overview.currentTier")}
                     </p>
                     <p className="text-lg md:text-xl font-semibold">
                       {loadingRich && !richProfile
                         ? "..."
-                        : (currentTier?.tier_label ?? "Unranked")}
+                        : (currentTier?.tier_label ??
+                          t("overview.unranked"))}
                     </p>
                   </div>
                   {/* KDR + Win Rate only render when the rich endpoint actually
@@ -474,7 +501,9 @@ export const ProfileContent = () => {
                       fake 0). */}
                   {typeof richProfile?.kdr === "number" && (
                     <div>
-                      <p className="text-sm text-muted-foreground">KDR</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t("overview.kdr")}
+                      </p>
                       <p className="text-lg md:text-xl font-semibold">
                         {richProfile.kdr.toFixed(2)}
                       </p>
@@ -482,7 +511,9 @@ export const ProfileContent = () => {
                   )}
                   {typeof richProfile?.win_rate === "number" && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Win Rate</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t("overview.winRate")}
+                      </p>
                       <p className="text-lg md:text-xl font-semibold">
                         {richProfile.win_rate.toFixed(1)}%
                       </p>
@@ -502,7 +533,7 @@ export const ProfileContent = () => {
               <TabsContent value="stats">
                 {loadingRich && !richProfile ? (
                   <div className="text-center py-10 text-sm text-muted-foreground">
-                    Loading your stats...
+                    {t("stats.loading")}
                   </div>
                 ) : (
                   <OwnStatsTab player={richProfile} />
@@ -521,10 +552,10 @@ export const ProfileContent = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Team</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>From</TableHead>
-                      <TableHead>To</TableHead>
+                      <TableHead>{t("history.team")}</TableHead>
+                      <TableHead>{t("history.role")}</TableHead>
+                      <TableHead>{t("history.from")}</TableHead>
+                      <TableHead>{t("history.to")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -534,7 +565,7 @@ export const ProfileContent = () => {
                           colSpan={4}
                           className="text-center text-muted-foreground py-8"
                         >
-                          Loading team history...
+                          {t("history.loading")}
                         </TableCell>
                       </TableRow>
                     ) : richProfile?.team ? (
@@ -560,7 +591,7 @@ export const ProfileContent = () => {
                             ? formatDate(richProfile.join_date)
                             : "-"}
                         </TableCell>
-                        <TableCell>Present</TableCell>
+                        <TableCell>{t("history.present")}</TableCell>
                       </TableRow>
                     ) : user.team ? (
                       // Fallback: the lean user object still knows the team name
@@ -576,7 +607,7 @@ export const ProfileContent = () => {
                         <TableCell className="text-muted-foreground">
                           -
                         </TableCell>
-                        <TableCell>Present</TableCell>
+                        <TableCell>{t("history.present")}</TableCell>
                       </TableRow>
                     ) : (
                       <TableRow>
@@ -584,15 +615,14 @@ export const ProfileContent = () => {
                           colSpan={4}
                           className="text-center text-muted-foreground py-8"
                         >
-                          No team history yet.
+                          {t("history.empty")}
                         </TableCell>
                       </TableRow>
                     )}
                   </TableBody>
                 </Table>
                 <p className="text-xs text-muted-foreground mt-3">
-                  Full past-team history will appear here once roster movement is
-                  tracked. Only your current team is shown for now.
+                  {t("history.note")}
                 </p>
               </TabsContent>
               {/* ── ACHIEVEMENTS ─────────────────────────────────────────────
@@ -609,15 +639,15 @@ export const ProfileContent = () => {
               <TabsContent value="applications">
                 {loadingApplications ? (
                   <div className="text-center py-10 text-sm text-muted-foreground">
-                    Loading...
+                    {t("applications.loading")}
                   </div>
                 ) : myApplications.length === 0 ? (
                   <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
                     <IconClipboardList className="h-10 w-10 opacity-40" />
-                    <p className="text-sm font-medium">No applications yet</p>
-                    <p className="text-xs">
-                      Apply to teams from the Player Market
+                    <p className="text-sm font-medium">
+                      {t("applications.emptyTitle")}
                     </p>
+                    <p className="text-xs">{t("applications.emptyHint")}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -642,7 +672,9 @@ export const ProfileContent = () => {
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold truncate">{app.team}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              Applied {formatDate(app.applied_at)}
+                              {t("applications.applied", {
+                                date: formatDate(app.applied_at),
+                              })}
                             </p>
                           </div>
 
@@ -675,7 +707,7 @@ export const ProfileContent = () => {
                                 variant="outline"
                                 className="text-xs text-green-400 border-green-800"
                               >
-                                Contact Unlocked
+                                {t("applications.contactUnlocked")}
                               </Badge>
                             )}
 
@@ -683,7 +715,7 @@ export const ProfileContent = () => {
                               <Link
                                 href={`/player-markets/applications/${app.id}`}
                               >
-                                View
+                                {t("applications.view")}
                               </Link>
                             </Button>
                           </div>
@@ -719,6 +751,7 @@ export const ProfileContent = () => {
 // facts). This component is pure presentation over that context.
 // ──────────────────────────────────────────────────────────────────────────────
 function AchievementsPanel({ ctx }: { ctx: AchievementContext }) {
+  const t = useTranslations("profile");
   // Which section is showing (lifetime is the substantive, computable one first).
   const [section, setSection] = useState<AchievementCategory>("lifetime");
 
@@ -736,17 +769,21 @@ function AchievementsPanel({ ctx }: { ctx: AchievementContext }) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <p className="text-sm text-muted-foreground">
-            Achievement points earned
+            {t("achievementsPanel.pointsEarned")}
           </p>
           <p className="text-2xl font-bold text-primary">
             {earnedPoints}
             <span className="text-sm font-normal text-muted-foreground">
-              {" "}
-              / {TOTAL_POINTS_AVAILABLE} pts
+              {t("achievementsPanel.pointsSuffix", {
+                total: TOTAL_POINTS_AVAILABLE,
+              })}
             </span>
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {earnedCount} of {ACHIEVEMENTS.length} achievements unlocked
+            {t("achievementsPanel.unlockedCount", {
+              earned: earnedCount,
+              total: ACHIEVEMENTS.length,
+            })}
           </p>
         </div>
         {/* Trophy badge mirrors the gold accent used across AFC stat surfaces. */}
@@ -755,15 +792,14 @@ function AchievementsPanel({ ctx }: { ctx: AchievementContext }) {
           className="border-gold/60 text-gold self-start sm:self-auto"
         >
           <IconTrophy className="h-4 w-4 mr-1" />
-          {earnedPoints} pts
+          {t("achievementsPanel.pointsBadge", { points: earnedPoints })}
         </Badge>
       </div>
 
       {/* Honest note: the boost itself is a FUTURE feature, so we only promise it
           is coming, we do not apply it. */}
       <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-2 mb-4">
-        Achievement points will be usable to boost your rankings and tiers.
-        Coming soon.
+        {t("achievementsPanel.comingSoonNote")}
       </p>
 
       {/* ── section tabs (AFC pill segment style) ── */}
@@ -788,9 +824,12 @@ function AchievementsPanel({ ctx }: { ctx: AchievementContext }) {
       {section !== "lifetime" && (
         <p className="text-xs text-muted-foreground mb-4 flex items-center gap-1">
           <IconClock className="h-3.5 w-3.5" />
-          {section === "monthly" ? "Monthly" : "Daily"} goals are not tracked
-          yet. They will light up automatically once time based stats are
-          recorded.
+          {t("achievementsPanel.goalsNotTracked", {
+            section:
+              section === "monthly"
+                ? t("achievementsPanel.section.monthly")
+                : t("achievementsPanel.section.daily"),
+          })}
         </p>
       )}
 
@@ -868,6 +907,7 @@ function AchievementCard({
   ctx: AchievementContext;
   isNext?: boolean;
 }) {
+  const t = useTranslations("profile");
   const Icon = achievement.icon;
   const earned = isEarned(achievement, ctx);
   const goal = isGoal(achievement);
@@ -925,7 +965,7 @@ function AchievementCard({
               earned ? "border-gold/60 text-gold" : "text-muted-foreground"
             }`}
           >
-            {achievement.points} pts
+            {t("achievementsPanel.tierPoints", { points: achievement.points })}
           </Badge>
         </div>
 
@@ -944,9 +984,13 @@ function AchievementCard({
               />
             </div>
             <p className="text-xs text-primary font-medium mt-1">
-              {(value as number).toLocaleString()} /{" "}
-              {achievement.threshold!.toLocaleString()}{" "}
-              {achievement.group.toLowerCase()}
+              {/* unit (e.g. "kills") comes from the achievement's group label in
+                  achievements.ts; the surrounding label is translated. */}
+              {t("achievementsPanel.progressLabel", {
+                value: (value as number).toLocaleString(),
+                threshold: achievement.threshold!.toLocaleString(),
+                unit: achievement.group.toLowerCase(),
+              })}
             </p>
           </div>
         )}
@@ -956,22 +1000,22 @@ function AchievementCard({
           {earned ? (
             <span className="inline-flex items-center gap-1 text-primary font-medium">
               <IconCircleCheckFilled className="h-3.5 w-3.5" />
-              Unlocked
+              {t("achievementsPanel.status.unlocked")}
             </span>
           ) : goal ? (
             <span className="inline-flex items-center gap-1 text-muted-foreground">
               <IconClock className="h-3.5 w-3.5" />
-              Not tracked yet
+              {t("achievementsPanel.status.notTracked")}
             </span>
           ) : isNext ? (
             <span className="inline-flex items-center gap-1 text-primary font-medium">
               <IconShieldCheck className="h-3.5 w-3.5" />
-              Up next
+              {t("achievementsPanel.status.upNext")}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-muted-foreground">
               <IconLock className="h-3.5 w-3.5" />
-              Locked
+              {t("achievementsPanel.status.locked")}
             </span>
           )}
         </div>

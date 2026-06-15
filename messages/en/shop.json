@@ -1,0 +1,223 @@
+{
+  "list": {
+    "pageTitle": "AFC Shop",
+    "cart": "Cart",
+    "searchPlaceholder": "Search {category}...",
+    "searchDefaultCategory": "products",
+    "loading": "Loading Shop...",
+    "noProducts": "No products found",
+    "outOfStock": "Out of Stock",
+    "shipsToYou": "{count, plural, one {# option} other {# options}}, ships to you",
+    "options": "{count, plural, one {# option} other {# options}}",
+    "from": "from",
+    "view": "View",
+    "buyNow": "Buy Now",
+    "showingRange": "Showing {start}-{end} of {total}",
+    "mediaCount": "{count} media"
+  },
+  "detail": {
+    "notFoundTitle": "Product Not Found",
+    "backToShop": "Back to Shop",
+    "physicalHint": "Physical item. A delivery address is collected at checkout.",
+    "digitalHint": "Digital topup. Delivered to your game UID, no shipping.",
+    "diamonds": "{amount} Diamonds",
+    "selectOption": "Select Option",
+    "outOfStock": "Out of Stock",
+    "subtotal": "Subtotal",
+    "promoLabel": "Have a promo code?",
+    "promoPlaceholder": "Enter code",
+    "applying": "Applying...",
+    "apply": "Apply",
+    "couponAppliedPercent": "Coupon {code} applied! ({value}% off)",
+    "couponAppliedFixed": "Coupon {code} applied! ({value} off)",
+    "adding": "Adding...",
+    "addToCart": "Add to Cart",
+    "archivedNotice": "This product is currently archived and may not be available for purchase.",
+    "coupon": {
+      "successApplied": "Coupon applied successfully!",
+      "inactive": "This coupon is no longer active.",
+      "invalid": "Invalid coupon code"
+    },
+    "toast": {
+      "addedToCart": "{name} added to cart!",
+      "addFailed": "Failed to add to cart"
+    }
+  },
+  "media": {
+    "previous": "Previous media",
+    "next": "Next media",
+    "showMedia": "Show media {index}",
+    "thumbnailAlt": "{alt} thumbnail {index}"
+  },
+  "cart": {
+    "steps": {
+      "cart": "Cart",
+      "details": "Details",
+      "review": "Review & Pay"
+    },
+    "review": {
+      "title": "Review Your Cart",
+      "subtitle": "Please review your items before proceeding",
+      "empty": "Your cart is empty",
+      "continueShopping": "Continue Shopping",
+      "qty": "Qty: {quantity}",
+      "coupon": "Coupon: {code}",
+      "backToShop": "Back to Shop",
+      "continueToDetails": "Continue to Details"
+    },
+    "details": {
+      "title": "Customer Details",
+      "subtitle": "Enter your contact and delivery information",
+      "firstName": "First Name",
+      "firstNamePlaceholder": "John",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "email": "Email Address",
+      "emailPlaceholder": "john@example.com",
+      "phone": "Phone",
+      "address": "Street Address",
+      "addressPlaceholder": "123 Luxury Lane",
+      "city": "City",
+      "cityPlaceholder": "Lagos",
+      "state": "State",
+      "statePlaceholder": "Lagos State",
+      "postalCode": "Postal Code",
+      "postalCodePlaceholder": "100001",
+      "backToCart": "Back to Cart",
+      "continueToReview": "Continue to Review"
+    },
+    "reviewOrder": {
+      "title": "Review Your Order",
+      "subtitle": "Please review your order details before completing your purchase",
+      "orderItems": "Order Items",
+      "quantity": "Quantity: {quantity}",
+      "coupon": "Coupon: {code}",
+      "deliveryInfo": "Delivery Information",
+      "name": "Name:",
+      "email": "Email:",
+      "phone": "Phone:",
+      "address": "Address:",
+      "orderSummary": "Order Summary",
+      "originalSubtotal": "Original Subtotal:",
+      "subtotal": "Subtotal:",
+      "discount": "Discount:",
+      "tax": "Tax (7.5%)",
+      "total": "Total",
+      "paymentMethod": "Payment Method",
+      "paystack": "Paystack",
+      "paystackDesc": "Pay in Naira with card, bank transfer, USSD, or mobile money.",
+      "stripe": "Stripe",
+      "stripeDesc": "Pay by international card. Shown and charged in your local currency.",
+      "backToDetails": "Back to Details",
+      "processing": "Processing...",
+      "payWithStripe": "Pay with Stripe",
+      "payNow": "Pay Now"
+    },
+    "summary": {
+      "title": "Order Summary",
+      "originalSubtotal": "Original Subtotal",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "tax": "Tax (7.5%)",
+      "total": "Total",
+      "coupon": "Coupon: {code}"
+    },
+    "claim": {
+      "title": "How to Claim Your Diamonds",
+      "intro": "After completing your purchase, follow these steps to claim your diamonds:",
+      "step1": "Visit the Free Fire official website",
+      "step2": "Log in with your Free Fire account",
+      "step3": "Navigate to the \"Redeem Code\" section",
+      "step4": "Enter the code that will be sent to your email after purchase",
+      "step5": "Confirm the redemption and the diamonds will be added to your account",
+      "visitFreeFire": "Visit Free Fire Website"
+    },
+    "faqTitle": "Need Help?",
+    "faqs": {
+      "delivery": {
+        "question": "How long does it take to receive my diamonds?",
+        "answer": "After completing your purchase, you will receive your redemption code via email within 5-10 minutes. In rare cases, it may take up to 24 hours during high traffic periods."
+      },
+      "payment": {
+        "question": "What payment methods are accepted?",
+        "answer": "We accept various payment methods including bank transfers, card payments, and mobile money. All payments are processed securely through our payment partners."
+      },
+      "refund": {
+        "question": "Can I get a refund?",
+        "answer": "Refunds are not available. Please contact our support team for assistance with refund requests."
+      }
+    },
+    "toast": {
+      "stripeCancelled": "Payment was cancelled. Your cart is still here, you can try again.",
+      "detailsMissing": "Customer details are missing",
+      "cartEmpty": "Your cart is empty",
+      "stripeStartFailed": "Could not start Stripe checkout. Please try again.",
+      "orderPlaced": "Order placed successfully!",
+      "orderFailed": "Failed to process order. Please try again."
+    }
+  },
+  "orders": {
+    "pageTitle": "My Orders",
+    "pageDescription": "View and track your diamond purchases",
+    "loading": "Loading your orders...",
+    "emptyTitle": "No orders yet",
+    "emptyDescription": "You haven't made any purchases yet.",
+    "browseShop": "Browse Shop",
+    "historyTitle": "Order History",
+    "noItems": "No items",
+    "itemSummary": "{name} (x{quantity})",
+    "moreItems": "+{count} more",
+    "additionalItems": "Additional Items:",
+    "table": {
+      "id": "ID",
+      "items": "Items",
+      "total": "Total",
+      "date": "Date",
+      "status": "Status",
+      "action": "Action",
+      "details": "Details"
+    },
+    "showingRange": "Showing {start}-{end} of {total}"
+  },
+  "orderDetail": {
+    "notFoundTitle": "Order not found",
+    "backToOrders": "Back to orders",
+    "title": "Order Details",
+    "description": "Manage and view your transaction history",
+    "itemsPurchased": "Items Purchased",
+    "variantQty": "Variant: {variant} | Qty: {quantity}",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "totalAmount": "Total Amount",
+    "paymentVerifiedTitle": "Payment Verified",
+    "paymentVerifiedBody": "Your diamonds have been dispatched. Please check your registered email for the redemption codes.",
+    "orderSummary": "Order Summary",
+    "orderId": "Order ID",
+    "date": "Date",
+    "status": "Status",
+    "printReceipt": "Print Receipt"
+  },
+  "success": {
+    "verifying": "Verifying your payment...",
+    "doNotRefresh": "Please do not refresh the page.",
+    "paymentSuccessful": "Payment Successful!",
+    "pendingVerification": "Pending Verification",
+    "confirmed": "Your order has been confirmed. Your diamonds are being delivered!",
+    "reference": "Reference:",
+    "session": "Session:",
+    "orderId": "Order ID:",
+    "redemptionNote": "Redemption codes are sent to your email. This usually takes 5-10 minutes.",
+    "noConfirmationReference": "We haven't received confirmation for reference:",
+    "noConfirmationSession": "We haven't received confirmation for session:",
+    "autoRetry": "The system is automatically retrying every 30 seconds. You can also click <strong>Retry Now</strong> if you have been debited.",
+    "continueShopping": "Continue Shopping",
+    "viewOrders": "View Orders",
+    "retryNow": "Retry Now",
+    "contactSupport": "Contact Support",
+    "backToShop": "Back to Shop",
+    "toast": {
+      "verified": "Payment verified!",
+      "verificationFailed": "Verification failed. Try again."
+    }
+  }
+}

@@ -21,12 +21,16 @@ import { LoginFormSchema, LoginFormSchemaType } from "@/lib/zodSchemas";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader } from "@/components/Loader";
+import { useTranslations } from "next-intl";
 
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, user, login } = useAuth();
   const redirectUrl = searchParams.get("redirect");
+  // Auth namespace: messages/en/auth.json (login.* keys). Powers field labels,
+  // placeholders, the submit button, and every sonner toast surfaced here.
+  const t = useTranslations("auth");
 
   const [pending, startTransition] = useTransition();
   const [isVisible, setIsVisible] = useState<boolean>(false);
@@ -62,13 +66,13 @@ function LoginFormContent() {
           toast.success(response.data.message);
           // redirect is handled by the useEffect above once auth state updates
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("login.genericError"));
         }
       } catch (error: any) {
         if (error.response?.status === 403) {
           // User hasn't confirmed their email
           const email = data.ign_or_uid.includes("@") ? data.ign_or_uid : "";
-          toast.info("Please confirm your email to continue");
+          toast.info(t("login.confirmEmailInfo"));
 
           // Redirect to email confirmation with email parameter
           if (email) {
@@ -80,7 +84,7 @@ function LoginFormContent() {
             router.push(`/email-confirmation/enter-email`);
           }
         } else {
-          toast.error(error?.response?.data?.message || "Oop! Failed to login");
+          toast.error(error?.response?.data?.message || t("login.failed"));
           return;
         }
       }
@@ -95,11 +99,11 @@ function LoginFormContent() {
           name="ign_or_uid"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>In-game Name, UID, or Email</FormLabel>
+              <FormLabel>{t("login.identifierLabel")}</FormLabel>
               <FormControl>
                 <Input
                   className="bg-input border-border"
-                  placeholder="Enter your in-game name, UID, or email"
+                  placeholder={t("login.identifierPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -112,13 +116,13 @@ function LoginFormContent() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t("login.passwordLabel")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={isVisible ? "text" : "password"}
                     className="bg-input border-border"
-                    placeholder="Enter your password"
+                    placeholder={t("login.passwordPlaceholder")}
                     {...field}
                   />
                   <Button
@@ -127,7 +131,11 @@ function LoginFormContent() {
                     size="icon"
                     type="button"
                     onClick={toggleVisibility}
-                    aria-label={isVisible ? "Hide password" : "Show password"}
+                    aria-label={
+                      isVisible
+                        ? t("showHidePassword.hide")
+                        : t("showHidePassword.show")
+                    }
                     aria-pressed={isVisible}
                     aria-controls="password"
                   >
@@ -148,7 +156,7 @@ function LoginFormContent() {
           type="submit"
           disabled={pending}
         >
-          {pending ? <Loader text="Loading..." /> : "Login"}
+          {pending ? <Loader text={t("login.loading")} /> : t("login.submit")}
         </Button>
       </form>
     </Form>

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { ForgotPasswordForm } from "../_components/ForgotPasswordForm";
@@ -14,20 +15,22 @@ export const metadata: Metadata = generatePageMetadata({
   noIndex: true,
 });
 
-const page = () => {
+// Server Component: pulls auth.forgotPassword.* copy via getTranslations. The
+// Email/UID tabbed form lives in the ForgotPasswordForm Client Component.
+const page = async () => {
+  const t = await getTranslations("auth");
   return (
     <div>
       <h1 className="text-3xl font-bold text-primary mb-6 text-center">
-        Reset Your Password
+        {t("forgotPassword.heading")}
       </h1>
       <p className="text-muted-foreground mb-6 text-center">
-        Enter your email address or UID and we'll send you instructions to reset
-        your password.
+        {t("forgotPassword.description")}
       </p>
       <ForgotPasswordForm />
       <div className="mt-4 text-center">
         <Button className="w-full" variant={"secondary"} asChild>
-          <Link href="/login">Back to Login</Link>
+          <Link href="/login">{t("forgotPassword.backToLogin")}</Link>
         </Button>
       </div>
     </div>

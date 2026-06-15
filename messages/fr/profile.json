@@ -1,0 +1,218 @@
+{
+  "page": {
+    "title": "Profil du joueur",
+    "banned": {
+      "title": "Compte banni",
+      "description": "Ce compte a été banni."
+    }
+  },
+  "card": {
+    "avatarAlt": "Photo de {name}",
+    "uid": "UID : {uid}",
+    "team": "Équipe :",
+    "role": "Rôle :",
+    "language": "Langue :",
+    "editProfile": "Modifier le profil",
+    "connectDiscord": "Se connecter à Discord",
+    "connecting": "Connexion en cours...",
+    "disconnecting": "Déconnexion en cours...",
+    "disconnect": "Déconnexion - {username}"
+  },
+  "discord": {
+    "disconnectTitle": "Êtes-vous absolument sûr ?",
+    "disconnectDescription": "Cela déconnectera votre compte Discord de votre profil de joueur. Vous perdrez l'accès aux fonctionnalités liées à Discord jusqu'à ce que vous vous reconnectiez.",
+    "disconnectCancel": "Annuler",
+    "disconnectConfirm": "Déconnecter",
+    "disconnected": "Compte Discord déconnecté.",
+    "disconnectFailed": "Échec de la déconnexion de Discord. Veuillez réessayer.",
+    "linked": "Compte Discord lié avec succès !",
+    "linkFailed": "Ce compte est déjà utilisé par un autre utilisateur."
+  },
+  "tabs": {
+    "overview": "Aperçu",
+    "stats": "Statistiques",
+    "history": "Historique d'équipe",
+    "achievements": "Succès",
+    "applications": "Mes candidatures",
+    "admin": "Fonctionnalités d'administration"
+  },
+  "overview": {
+    "totalKills": "Total d'éliminations",
+    "wins": "Victoires",
+    "mvps": "MVP",
+    "booyahs": "Booyahs",
+    "tournaments": "Tournois",
+    "scrims": "Scrims",
+    "currentTier": "Niveau actuel",
+    "unranked": "Non classé",
+    "kdr": "KDR",
+    "winRate": "Taux de victoire"
+  },
+  "stats": {
+    "loading": "Chargement de vos statistiques..."
+  },
+  "history": {
+    "team": "Équipe",
+    "role": "Rôle",
+    "from": "De",
+    "to": "À",
+    "loading": "Chargement de l'historique d'équipe...",
+    "present": "Actuel",
+    "empty": "Aucun historique d'équipe pour l'instant.",
+    "note": "L'historique complet des équipes passées apparaîtra ici une fois que les mouvements de roster seront suivis. Seule votre équipe actuelle est affichée pour l'instant."
+  },
+  "applications": {
+    "loading": "Chargement...",
+    "emptyTitle": "Aucune candidature pour l'instant",
+    "emptyHint": "Postulez aux équipes depuis le Marché des joueurs",
+    "applied": "Candidature envoyée le {date}",
+    "contactUnlocked": "Contact débloqué",
+    "view": "Voir",
+    "loadFailed": "Échec du chargement de vos candidatures."
+  },
+  "achievementsPanel": {
+    "pointsEarned": "Points de succès gagnés",
+    "pointsSuffix": " / {total} pts",
+    "unlockedCount": "{earned} succès sur {total} débloqués",
+    "pointsBadge": "{points} pts",
+    "comingSoonNote": "Les points de succès pourront être utilisés pour améliorer vos classements et vos niveaux. Bientôt disponible.",
+    "goalsNotTracked": "Les objectifs {section} ne sont pas encore suivis. Ils s'activeront automatiquement une fois que les statistiques basées sur le temps seront enregistrées.",
+    "section": {
+      "monthly": "Mensuel",
+      "daily": "Quotidien"
+    },
+    "groupProgress": "{earned} / {total}",
+    "tierPoints": "{points} pts",
+    "progressLabel": "{value} / {threshold} {unit}",
+    "status": {
+      "unlocked": "Débloqué",
+      "notTracked": "Pas encore suivi",
+      "upNext": "Prochain",
+      "locked": "Verrouillé"
+    }
+  },
+  "ownStats": {
+    "totalMatches": "Total de matchs",
+    "totalKills": "Total d'éliminations",
+    "wins": "Victoires",
+    "mvpAwards": "Récompenses MVP",
+    "kdr": "KDR",
+    "winRate": "Taux de victoire",
+    "avgDamage": "Dégâts moyens",
+    "eventsPlayed": "Événements joués",
+    "noRecordedMatches": "Vous n'avez pas encore de matchs enregistrés. Vos statistiques s'afficheront ici au fur et à mesure que vous participerez aux événements AFC.",
+    "performanceCurve": "Courbe de performance",
+    "metric": {
+      "kills": "Éliminations",
+      "placement": "Classement",
+      "points": "Points",
+      "kd": "K-D"
+    },
+    "axis": {
+      "eventDate": "Date de l'événement",
+      "placement": "Classement (plus bas est mieux)",
+      "kd": "Ratio K-D"
+    },
+    "notEnoughEvents": "Pas assez d'événements pour tracer une courbe de performance pour l'instant.",
+    "eventsPlayedHeading": "Événements joués",
+    "noEventsPlayed": "Aucun événement joué pour l'instant.",
+    "recentMatches": "Matchs récents",
+    "noRecentMatches": "Aucun match récent pour l'instant.",
+    "table": {
+      "event": "Événement",
+      "type": "Type",
+      "date": "Date",
+      "bestPlace": "Meilleur classement",
+      "myKills": "Mes éliminations",
+      "myPoints": "Mes points",
+      "mvps": "MVP",
+      "map": "Carte",
+      "placement": "Classement",
+      "kills": "Éliminations",
+      "damage": "Dégâts",
+      "points": "Points",
+      "mvp": "MVP"
+    }
+  },
+  "edit": {
+    "title": "Modifier le profil : {name}",
+    "cardTitle": "Mettre à jour vos informations",
+    "avatarAlt": "Photo de {name}",
+    "profilePicture": "Photo de profil",
+    "name": "Nom",
+    "namePlaceholder": "Entrez votre nom complet",
+    "email": "E-mail",
+    "emailPlaceholder": "Entrez votre e-mail",
+    "uid": "UID",
+    "uidPlaceholder": "Entrez votre UID FreeFire",
+    "inGameName": "Nom en jeu",
+    "inGameNamePlaceholder": "Entrez votre nom en jeu",
+    "language": "Langue",
+    "languagePlaceholder": "Sélectionnez votre langue",
+    "saving": "Enregistrement...",
+    "saveChanges": "Enregistrer les modifications",
+    "changePassword": "Changer le mot de passe",
+    "internalError": "Erreur interne du serveur",
+    "reloginError": "Oups ! Une erreur est survenue. Veuillez vous reconnecter.",
+    "esport": {
+      "title": "Image esport",
+      "infoTip": "Les organisateurs de tournois utilisent cette image comme photo de joueur dans les graphiques d'événements. Certains événements l'exigent avant que vous puissiez vous inscrire.",
+      "warningTitle": "À lire avant de télécharger",
+      "warningOwnPictureLead": "Téléchargez",
+      "warningOwnPictureBold": "uniquement votre propre photo",
+      "warningOwnPictureTail": ".",
+      "warningBust": "Elle doit ressembler à une image esport : un cliché clair couvrant votre buste, face à la caméra.",
+      "warningNoBrandLead": "Ne",
+      "warningNoBrandBold": "portez",
+      "warningNoBrandTail": "pas de t-shirt de marque.",
+      "warningBan": "Si vous téléchargez une photo qui n'est pas la vôtre, ou quoi que ce soit qui ne soit pas une image esport, nous pouvons et allons vous bannir, vous et votre équipe.",
+      "samplesTitle": "Exemples de ce à quoi votre image esport devrait ressembler :",
+      "sampleAlt": "Exemple d'image esport",
+      "currentAlt": "Votre image esport",
+      "noImageYet": "Pas encore d'image esport",
+      "replaceNote": "Choisir un fichier remplace immédiatement votre image esport actuelle. Les images esport ne peuvent pas être supprimées, seulement remplacées.",
+      "uploadNote": "Choisir un fichier le télécharge immédiatement. Les images esport ne peuvent pas être supprimées, seulement remplacées.",
+      "uploading": "Téléchargement de l'image esport...",
+      "saved": "Image esport enregistrée.",
+      "uploadFailed": "Échec du téléchargement de l'image esport."
+    }
+  },
+  "password": {
+    "title": "Changer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "currentPasswordPlaceholder": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "newPasswordPlaceholder": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "confirmPasswordPlaceholder": "Entrez votre mot de passe",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
+    "requirementsLabel": "Exigences du mot de passe",
+    "mustContain": "{strength}. Doit contenir :",
+    "requirementMet": " - Exigence satisfaite",
+    "requirementNotMet": " - Exigence non satisfaite",
+    "strength": {
+      "enter": "Entrez un mot de passe",
+      "weak": "Mot de passe faible",
+      "medium": "Mot de passe moyen",
+      "strong": "Mot de passe fort"
+    },
+    "requirement": {
+      "minLength": "Au moins 8 caractères",
+      "number": "Au moins 1 chiffre",
+      "lowercase": "Au moins 1 lettre minuscule",
+      "uppercase": "Au moins 1 lettre majuscule",
+      "special": "Au moins 1 caractère spécial"
+    },
+    "updating": "Mise à jour...",
+    "updatePassword": "Mettre à jour le mot de passe",
+    "changed": "Mot de passe changé avec succès",
+    "changeFailed": "Échec du changement de mot de passe",
+    "validation": {
+      "currentRequired": "Le mot de passe actuel est requis",
+      "minLength": "Le mot de passe doit contenir au moins 8 caractères",
+      "confirmRequired": "Veuillez confirmer votre nouveau mot de passe",
+      "mismatch": "Les mots de passe ne correspondent pas"
+    }
+  }
+}

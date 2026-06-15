@@ -1,4 +1,11 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// next-intl wiring: points the plugin at our per-request config (i18n/request.ts),
+// which resolves the locale from the NEXT_LOCALE cookie and loads the merged
+// message catalog. The plugin wraps the exported config below, leaving all the
+// existing redirects() and images settings untouched.
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -81,4 +88,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

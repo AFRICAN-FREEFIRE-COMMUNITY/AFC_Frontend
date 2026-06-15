@@ -48,6 +48,10 @@ import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Progress } from "./ui/progress";
+// Shared-chrome auth strings live in messages/en/common.json under "common".
+// Each Client Component below (AuthModal, LoginTabContent, RegisterTabContent)
+// reads them via its own useTranslations() hook call.
+import { useTranslations } from "next-intl";
 
 interface AuthModalContextValue {
   openAuthModal: (options?: {
@@ -142,6 +146,7 @@ export function AuthModal({
   onSuccess,
 }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
+  const t = useTranslations("common");
 
   // Sync tab when defaultTab changes (i.e. when modal is re-opened)
   React.useEffect(() => {
@@ -153,12 +158,14 @@ export function AuthModal({
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center">
-            {sessionExpired ? "Session expired" : "Join the AFC"}
+            {sessionExpired
+              ? t("auth.sessionExpiredTitle")
+              : t("auth.joinTitle")}
           </DialogTitle>
           <DialogDescription className="text-center text-sm text-muted-foreground">
             {sessionExpired
-              ? "Log back in to pick up right where you left off."
-              : "Login or create an account to continue."}
+              ? t("auth.sessionExpiredDescription")
+              : t("auth.joinDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -168,10 +175,10 @@ export function AuthModal({
         >
           <TabsList className="w-full">
             <TabsTrigger value="login" className="flex-1">
-              Login
+              {t("auth.tabLogin")}
             </TabsTrigger>
             <TabsTrigger value="register" className="flex-1">
-              Create Account
+              {t("auth.tabCreateAccount")}
             </TabsTrigger>
           </TabsList>
 
@@ -193,6 +200,7 @@ export function AuthModal({
 // ---------------------------------------------------------------------------
 function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
   const router = useRouter();
+  const t = useTranslations("common");
 
   const { login } = useAuth();
   const [pending, startTransition] = useTransition();
@@ -213,16 +221,16 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
 
         if (response.statusText === "OK") {
           await login(response.data.session_token);
-          toast.success(response.data.message || "Logged in successfully!");
+          toast.success(response.data.message || t("auth.loginSuccess"));
           onSuccess?.();
         } else {
-          toast.error("Oops! An error occurred.");
+          toast.error(t("auth.genericError"));
         }
       } catch (error: any) {
         if (error.response?.status === 403) {
           // User hasn't confirmed their email
           const email = data.ign_or_uid.includes("@") ? data.ign_or_uid : "";
-          toast.info("Please confirm your email to continue");
+          toast.info(t("auth.confirmEmailPrompt"));
 
           // Redirect to email confirmation with email parameter
           if (email) {
@@ -234,7 +242,9 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
             router.push(`/email-confirmation/enter-email`);
           }
         } else {
-          toast.error(error?.response?.data?.message || "Oop! Failed to login");
+          toast.error(
+            error?.response?.data?.message || t("auth.loginFailed"),
+          );
           return;
         }
       }
@@ -249,10 +259,10 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
           name="ign_or_uid"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>In-game Name or UID</FormLabel>
+              <FormLabel>{t("auth.ignOrUidLabel")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter your in-game name or UID"
+                  placeholder={t("auth.ignOrUidPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -266,12 +276,12 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t("auth.passwordLabel")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={isVisible ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder={t("auth.passwordPlaceholder")}
                     {...field}
                   />
                   <Button
@@ -295,7 +305,11 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
         />
 
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? <Loader text="Logging in..." /> : "Login"}
+          {pending ? (
+            <Loader text={t("auth.loggingIn")} />
+          ) : (
+            t("auth.loginButton")
+          )}
         </Button>
       </form>
     </Form>
@@ -306,6 +320,7 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
 // Register tab
 // ---------------------------------------------------------------------------
 function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
+  const t = useTranslations("common");
   const { login } = useAuth();
   const [pending, startTransition] = useTransition();
   const [isVisible, setIsVisible] = useState(false);
@@ -330,13 +345,13 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
   const checkStrength = (pass: string) => {
     // ... (rest of checkStrength logic remains the same)
     const requirements = [
-      { regex: /.{8,}/, text: "At least 8 characters" },
-      { regex: /[0-9]/, text: "At least 1 number" },
-      { regex: /[a-z]/, text: "At least 1 lowercase letter" },
-      { regex: /[A-Z]/, text: "At least 1 uppercase letter" },
+      { regex: /.{8,}/, text: t("auth.passwordReq8") },
+      { regex: /[0-9]/, text: t("auth.passwordReqNumber") },
+      { regex: /[a-z]/, text: t("auth.passwordReqLowercase") },
+      { regex: /[A-Z]/, text: t("auth.passwordReqUppercase") },
       {
         regex: /[!@#$%^&*(),.?":{}|<>]/,
-        text: "At least 1 special character",
+        text: t("auth.passwordReqSpecial"),
       },
     ];
 
@@ -353,10 +368,10 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
   }, [strength]);
 
   const getStrengthText = (score: number) => {
-    if (score === 0) return "Enter a password";
-    if (score <= 2) return "Weak password";
-    if (score === 3) return "Medium password";
-    return "Strong password";
+    if (score === 0) return t("auth.passwordStrengthEnter");
+    if (score <= 2) return t("auth.passwordStrengthWeak");
+    if (score === 3) return t("auth.passwordStrengthMedium");
+    return t("auth.passwordStrengthStrong");
   };
 
   function onSubmit(data: RegisterFormSchemaType) {
@@ -376,8 +391,7 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
 
         if (response.status === 200 || response.status === 201) {
           toast.success(
-            response.data.message ||
-              "Account created! Please check your email to confirm.",
+            response.data.message || t("auth.accountCreated"),
           );
           // If the API returns a session token on registration, auto-login
           if (response.data.session_token) {
@@ -388,11 +402,11 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
             onSuccess?.();
           }
         } else {
-          toast.error("Oops! An error occurred.");
+          toast.error(t("auth.genericError"));
         }
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Failed to create account.",
+          error?.response?.data?.message || t("auth.createAccountFailed"),
         );
       }
     });
@@ -406,10 +420,10 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>{t("auth.fullNameLabel")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter your full name"
+                  placeholder={t("auth.fullNamePlaceholder")}
                   onPaste={preventPaste}
                   {...field}
                 />
@@ -423,11 +437,11 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           name="ingameName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>In-game Name</FormLabel>
+              <FormLabel>{t("auth.ingameNameLabel")}</FormLabel>
               <FormControl>
                 <Input
                   onPaste={preventPaste}
-                  placeholder="Your in-game name"
+                  placeholder={t("auth.ingameNamePlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -441,9 +455,13 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t("auth.emailLabel")}</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
+                <Input
+                  type="email"
+                  placeholder={t("auth.emailPlaceholder")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -473,12 +491,12 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t("auth.passwordLabel")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={isVisible ? "text" : "password"}
-                    placeholder="At least 8 characters"
+                    placeholder={t("auth.passwordMinPlaceholder")}
                     {...field}
                   />
                   <Button
@@ -508,11 +526,16 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
                 />
                 {/* Password strength description */}
                 <p className="text-foreground mb-2 text-sm font-medium">
-                  {getStrengthText(strengthScore)}. Must contain:
+                  {t("auth.passwordStrengthMustContain", {
+                    strength: getStrengthText(strengthScore),
+                  })}
                 </p>
 
                 {/* Password requirements list */}
-                <ul className="space-y-1.5" aria-label="Password requirements">
+                <ul
+                  className="space-y-1.5"
+                  aria-label={t("auth.passwordRequirements")}
+                >
                   {strength.map((req, index) => (
                     <li key={index} className="flex items-center gap-2">
                       {req.met ? (
@@ -536,8 +559,8 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
                         {req.text}
                         <span className="sr-only">
                           {req.met
-                            ? " - Requirement met"
-                            : " - Requirement not met"}
+                            ? t("auth.requirementMet")
+                            : t("auth.requirementNotMet")}
                         </span>
                       </span>
                     </li>
@@ -553,12 +576,12 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>{t("auth.confirmPasswordLabel")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={isConfirmVisible ? "text" : "password"}
-                    placeholder="Repeat your password"
+                    placeholder={t("auth.confirmPasswordPlaceholder")}
                     {...field}
                   />
                   <Button
@@ -594,19 +617,19 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
               </FormControl>
               <div className="space-y-1 leading-none">
                 <label htmlFor="terms" className="text-sm leading-relaxed">
-                  I confirm that I have read and agree to the{" "}
+                  {t("auth.termsCheckboxPrefix")}
                   <Link
                     href="/terms-of-service"
                     className="text-primary hover:underline font-medium"
                   >
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
+                    {t("auth.termsLink")}
+                  </Link>
+                  {t("auth.termsCheckboxConnector")}
                   <Link
                     href="/privacy-policy"
                     className="text-primary hover:underline font-medium"
                   >
-                    Privacy Policy
+                    {t("auth.privacyLink")}
                   </Link>
                   .
                 </label>
@@ -621,13 +644,17 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           className="w-full"
           disabled={pending || !acceptTerms}
         >
-          {pending ? <Loader text="Creating account..." /> : "Create Account"}
+          {pending ? (
+            <Loader text={t("auth.creatingAccount")} />
+          ) : (
+            t("auth.createAccountButton")
+          )}
         </Button>
 
         <Separator />
 
         <p className="text-center text-xs text-muted-foreground">
-          By creating an account you agree to our Terms of Service.
+          {t("auth.termsAgreement")}
         </p>
       </form>
     </Form>

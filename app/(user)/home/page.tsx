@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -32,11 +33,13 @@ import { TeamLink } from "@/components/ui/entity-link";
 // Header, which points at the menu where the dashboard lives instead of navigating away.
 
 export default function HomePage() {
+  // Translations for the authed home/dashboard landing (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   return (
     <ProtectedRoute>
       <PageHeader
-        title="Welcome to AFC"
-        description="Your hub for African Freefire community stats and events"
+        title={t("dashboard.pageTitle")}
+        description={t("dashboard.pageDescription")}
       />
       <HomeBoxes />
       <div className="grid gap-2 md:grid-cols-2 mb-4">
@@ -55,28 +58,32 @@ export default function HomePage() {
       <HomeLatestSections />
       <Card>
         <CardHeader>
-          <CardTitle>Rankings and Tiers</CardTitle>
+          <CardTitle>{t("rankingsTiers.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="rankings" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-2">
-              <TabsTrigger value="rankings">Current Rankings</TabsTrigger>
-              <TabsTrigger value="tiers">Quarterly Tiers</TabsTrigger>
+              <TabsTrigger value="rankings">
+                {t("rankingsTiers.tabs.rankings")}
+              </TabsTrigger>
+              <TabsTrigger value="tiers">
+                {t("rankingsTiers.tabs.tiers")}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="rankings">
               <p className="text-sm text-muted-foreground mb-4">
-                Team rankings based on overall performance metrics
+                {t("rankingsTiers.rankings.subtitle")}
               </p>
               <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Rank</TableHead>
-                      <TableHead>Team</TableHead>
-                      <TableHead>Points</TableHead>
-                      <TableHead>Wins</TableHead>
-                      <TableHead>Kills</TableHead>
+                      <TableHead>{t("rankingsTiers.rankings.rank")}</TableHead>
+                      <TableHead>{t("rankingsTiers.rankings.team")}</TableHead>
+                      <TableHead>{t("rankingsTiers.rankings.points")}</TableHead>
+                      <TableHead>{t("rankingsTiers.rankings.wins")}</TableHead>
+                      <TableHead>{t("rankingsTiers.rankings.kills")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -114,18 +121,18 @@ export default function HomePage() {
 
             <TabsContent value="tiers">
               <p className="text-sm text-muted-foreground mb-4">
-                Third quarter tier standings (July - September)
+                {t("rankingsTiers.tiers.subtitle")}
               </p>
               <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Tier</TableHead>
-                      <TableHead>Team</TableHead>
-                      <TableHead>Points</TableHead>
-                      <TableHead>Apr</TableHead>
-                      <TableHead>May</TableHead>
-                      <TableHead>Jun</TableHead>
+                      <TableHead>{t("rankingsTiers.tiers.tier")}</TableHead>
+                      <TableHead>{t("rankingsTiers.tiers.team")}</TableHead>
+                      <TableHead>{t("rankingsTiers.tiers.points")}</TableHead>
+                      <TableHead>{t("rankingsTiers.tiers.apr")}</TableHead>
+                      <TableHead>{t("rankingsTiers.tiers.may")}</TableHead>
+                      <TableHead>{t("rankingsTiers.tiers.jun")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

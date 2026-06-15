@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { ResetPasswordForm } from "../_components/ResetPasswordForm";
 
 const page = async ({ searchParams }: { searchParams: any }) => {
   const { email, uid, token } = await searchParams;
+  // Server Component: auth.resetPassword.* copy via getTranslations. The new
+  // password form (strength meter, toasts) is the ResetPasswordForm Client Component.
+  const t = await getTranslations("auth");
 
   const identifier = email
     ? decodeURIComponent(email)
@@ -16,10 +20,10 @@ const page = async ({ searchParams }: { searchParams: any }) => {
   return (
     <div>
       <h1 className="text-3xl font-rajdhani font-bold text-primary mb-6 text-center">
-        Set new password
+        {t("resetPassword.heading")}
       </h1>
       <p className="text-muted-foreground mb-6 text-center">
-        Enter your new password for{" "}
+        {t("resetPassword.description")}{" "}
         <span className="font-medium">{identifier}</span>
       </p>
       <ResetPasswordForm token={token} identifier={identifier} method={method} />

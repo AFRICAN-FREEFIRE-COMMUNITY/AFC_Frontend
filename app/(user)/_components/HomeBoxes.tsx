@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { env } from "@/lib/env";
 import { formatMoneyInput } from "@/lib/utils";
@@ -12,6 +13,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 
 export const HomeBoxes = () => {
+  // Stat-box labels on the authed home page (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalTournaments, setTotalTournaments] = useState<number>(0);
   const [totalKills, setTotalKills] = useState<number>(0);
@@ -41,7 +44,7 @@ export const HomeBoxes = () => {
       <Card className="border-primary">
         <CardHeader>
           <IconTrophy className="h-8 w-8 text-gold mb-1" />
-          <CardTitle>Total Kills</CardTitle>
+          <CardTitle>{t("boxes.totalKills")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-4xl font-bold text-gold">
@@ -52,7 +55,7 @@ export const HomeBoxes = () => {
       <Card className="border-primary">
         <CardHeader>
           <IconUsers className="h-8 w-8 text-gold mb-1" />
-          <CardTitle>Active Players</CardTitle>
+          <CardTitle>{t("boxes.activePlayers")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-4xl font-bold text-gold">
@@ -63,7 +66,7 @@ export const HomeBoxes = () => {
       <Card className="border-primary">
         <CardHeader>
           <IconCalendar className="h-8 w-8 text-gold mb-1" />
-          <CardTitle>Hosted Tournaments</CardTitle>
+          <CardTitle>{t("boxes.hostedTournaments")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-4xl font-bold text-gold">
@@ -74,7 +77,7 @@ export const HomeBoxes = () => {
       <Card className="border-primary">
         <CardHeader>
           <IconMoneybag className="h-8 w-8 text-gold mb-1" />
-          <CardTitle>Total Prize Pool</CardTitle>
+          <CardTitle>{t("boxes.totalPrizePool")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-4xl font-bold text-gold">$5,750</p>

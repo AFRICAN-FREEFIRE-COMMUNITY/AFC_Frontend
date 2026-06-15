@@ -24,6 +24,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { DEFAULT_IMAGE } from "@/constants";
@@ -53,6 +54,9 @@ export function ProductMediaGallery({
   variant = "detail",
   className,
 }: ProductMediaGalleryProps) {
+  // Localized gallery copy (media count chip + control aria-labels):
+  // messages/en/shop.json -> "list.mediaCount" and "media.*".
+  const t = useTranslations("shop");
   // Build the ordered list of slides. When there is no real media, synthesise a
   // single image slide from the fallback so the gallery always renders something.
   const slides = useMemo<ProductMediaItem[]>(() => {
@@ -123,7 +127,7 @@ export function ProductMediaGallery({
         {/* small count chip when there is more than one media item */}
         {slides.length > 1 && (
           <span className="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white">
-            {slides.length} media
+            {t("list.mediaCount", { count: slides.length })}
           </span>
         )}
       </div>
@@ -155,7 +159,7 @@ export function ProductMediaGallery({
           <>
             <button
               type="button"
-              aria-label="Previous media"
+              aria-label={t("media.previous")}
               onClick={() => go(-1)}
               className="absolute left-2 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full bg-black/45 text-white hover:bg-black/65 transition-colors"
             >
@@ -163,7 +167,7 @@ export function ProductMediaGallery({
             </button>
             <button
               type="button"
-              aria-label="Next media"
+              aria-label={t("media.next")}
               onClick={() => go(1)}
               className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full bg-black/45 text-white hover:bg-black/65 transition-colors"
             >
@@ -181,7 +185,7 @@ export function ProductMediaGallery({
               key={m.id}
               type="button"
               onClick={() => setActive(i)}
-              aria-label={`Show media ${i + 1}`}
+              aria-label={t("media.showMedia", { index: i + 1 })}
               className={cn(
                 "relative h-16 w-16 flex-shrink-0 rounded-md overflow-hidden border-2 bg-muted",
                 i === active
@@ -196,7 +200,7 @@ export function ProductMediaGallery({
               ) : (
                 <Image
                   src={m.url}
-                  alt={`${alt} thumbnail ${i + 1}`}
+                  alt={t("media.thumbnailAlt", { alt, index: i + 1 })}
                   fill
                   className="object-cover"
                 />

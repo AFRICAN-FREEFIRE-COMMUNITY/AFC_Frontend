@@ -206,8 +206,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     );
 
+    // i18n: send the active locale as Accept-Language on EVERY axios request, so the backend
+    // (LocaleMiddleware) can localize user-generated content (news/events/notifications) and
+    // action-triggered emails to the user's language. Locale = the NEXT_LOCALE cookie written by
+    // the profile language selector / Phase 0; absent -> backend defaults to English.
+    // Belt-and-suspenders: set it as an axios DEFAULT header (covers any request, even ones made
+    // before this effect runs) AND via a request interceptor (picks up a mid-session language
+    // change). Use AxiosHeaders.set when present (axios v1) since bracket-assign can be ignored.
+    try {
+      const loc0 = Cookies.get("NEXT_LOCALE");
+      if (loc0) axios.defaults.headers.common["Accept-Language"] = loc0;
+    } catch {
+      /* ignore */
+    }
+    const localeInterceptor = axios.interceptors.request.use((config) => {
+      try {
+        const loc = Cookies.get("NEXT_LOCALE");
+        if (loc) {
+          const h: any = config.headers;
+          if (h && typeof h.set === "function") h.set("Accept-Language", loc);
+          else config.headers = { ...(config.headers as any), "Accept-Language": loc };
+        }
+      } catch {
+        // never block a request over cookie access
+      }
+      return config;
+    });
+
     return () => {
       axios.interceptors.response.eject(interceptor);
+      axios.interceptors.request.eject(localeInterceptor);
     };
   }, [token]);
 

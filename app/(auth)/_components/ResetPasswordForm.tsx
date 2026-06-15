@@ -33,6 +33,7 @@ import { countries } from "@/constants";
 import { CheckIcon, EyeIcon, EyeOffIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { useTranslations } from "next-intl";
 
 interface Props {
   identifier: string;
@@ -44,6 +45,10 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
   const router = useRouter();
 
   const [pending, startTransition] = useTransition();
+  // Auth namespace: messages/en/auth.json. resetPassword.* drives the field
+  // labels + submit button + success toast; passwordStrength.* and
+  // showHidePassword.* power the live strength meter and visibility toggles.
+  const t = useTranslations("auth");
 
   const form = useForm<ResetPasswordFormSchemaType>({
     resolver: zodResolver(ResetPasswordFormSchema),
@@ -61,14 +66,16 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
     setConfirmIsVisible((prevState) => !prevState);
 
   const checkStrength = (pass: string) => {
+    // Each requirement carries a localized label (passwordStrength.* keys) shown
+    // in the live requirements list below the password field.
     const requirements = [
-      { regex: /.{8,}/, text: "At least 8 characters" },
-      { regex: /[0-9]/, text: "At least 1 number" },
-      { regex: /[a-z]/, text: "At least 1 lowercase letter" },
-      { regex: /[A-Z]/, text: "At least 1 uppercase letter" },
+      { regex: /.{8,}/, text: t("passwordStrength.req8Chars") },
+      { regex: /[0-9]/, text: t("passwordStrength.req1Number") },
+      { regex: /[a-z]/, text: t("passwordStrength.req1Lowercase") },
+      { regex: /[A-Z]/, text: t("passwordStrength.req1Uppercase") },
       {
         regex: /[!@#$%^&*(),.?":{}|<>]/,
-        text: "At least 1 special character",
+        text: t("passwordStrength.req1Special"),
       },
     ];
 
@@ -85,10 +92,10 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
   }, [strength]);
 
   const getStrengthText = (score: number) => {
-    if (score === 0) return "Enter a password";
-    if (score <= 2) return "Weak password";
-    if (score === 3) return "Medium password";
-    return "Strong password";
+    if (score === 0) return t("passwordStrength.enterPassword");
+    if (score <= 2) return t("passwordStrength.weak");
+    if (score === 3) return t("passwordStrength.medium");
+    return t("passwordStrength.strong");
   };
 
   function onSubmit(data: ResetPasswordFormSchemaType) {
@@ -103,10 +110,17 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
           { ...authData }
         );
 
-        toast.success(`${response.data.message}. Redirecting...`);
+        toast.success(
+          t("resetPassword.successRedirecting", {
+            message: response.data.message,
+          })
+        );
         router.push(`/login`);
       } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Internal server error");
+        toast.error(
+          error?.response?.data?.error ||
+            t("resetPassword.internalServerError")
+        );
         return;
       }
     });
@@ -120,12 +134,12 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t("resetPassword.passwordLabel")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={isVisible ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder={t("resetPassword.passwordPlaceholder")}
                     {...field}
                   />
                   <Button
@@ -134,7 +148,11 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
                     size="icon"
                     type="button"
                     onClick={toggleVisibility}
-                    aria-label={isVisible ? "Hide password" : "Show password"}
+                    aria-label={
+                      isVisible
+                        ? t("showHidePassword.hide")
+                        : t("showHidePassword.show")
+                    }
                     aria-pressed={isVisible}
                     aria-controls="password"
                   >
@@ -158,11 +176,16 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
                 />
                 {/* Password strength description */}
                 <p className="text-foreground mb-2 text-sm font-medium">
-                  {getStrengthText(strengthScore)}. Must contain:
+                  {t("passwordStrength.mustContain", {
+                    strength: getStrengthText(strengthScore),
+                  })}
                 </p>
 
                 {/* Password requirements list */}
-                <ul className="space-y-1.5" aria-label="Password requirements">
+                <ul
+                  className="space-y-1.5"
+                  aria-label={t("passwordStrength.requirementsLabel")}
+                >
                   {strength.map((req, index) => (
                     <li key={index} className="flex items-center gap-2">
                       {req.met ? (
@@ -186,8 +209,8 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
                         {req.text}
                         <span className="sr-only">
                           {req.met
-                            ? " - Requirement met"
-                            : " - Requirement not met"}
+                            ? t("passwordStrength.requirementMet")
+                            : t("passwordStrength.requirementNotMet")}
                         </span>
                       </span>
                     </li>
@@ -202,12 +225,12 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm password</FormLabel>
+              <FormLabel>{t("resetPassword.confirmPasswordLabel")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={isConfirmVisible ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder={t("resetPassword.passwordPlaceholder")}
                     {...field}
                   />
                   <Button
@@ -216,7 +239,11 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
                     size="icon"
                     type="button"
                     onClick={toggleConfirmVisibility}
-                    aria-label={isConfirmVisible ? "Hide password" : "Show password"}
+                    aria-label={
+                      isConfirmVisible
+                        ? t("showHidePassword.hide")
+                        : t("showHidePassword.show")
+                    }
                     aria-pressed={isConfirmVisible}
                     aria-controls="password"
                   >
@@ -237,7 +264,11 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
           type="submit"
           disabled={pending}
         >
-          {pending ? <Loader text="Resetting..." /> : "Reset password"}
+          {pending ? (
+            <Loader text={t("resetPassword.resetting")} />
+          ) : (
+            t("resetPassword.submit")
+          )}
         </Button>
       </form>
     </Form>

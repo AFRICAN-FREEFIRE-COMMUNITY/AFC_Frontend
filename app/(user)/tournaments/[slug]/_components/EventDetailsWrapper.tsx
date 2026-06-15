@@ -10,6 +10,10 @@ import React, {
   useTransition,
 } from "react";
 import { notFound, useRouter, useSearchParams } from "next/navigation";
+// i18n: copy lives in messages/en/tournaments.json (detail.* / register.* /
+// editRoster.* / leaveModal.* / stageResults.* / teamRegister.*). useTranslations
+// resolves the NEXT_LOCALE cookie locale, en fallback.
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -344,6 +348,7 @@ const LeaveEventModal: React.FC<LeaveEventModalProps> = ({
   eventName,
   onSuccess,
 }) => {
+  const t = useTranslations("tournaments");
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const { token } = useAuth();
@@ -360,11 +365,11 @@ const LeaveEventModal: React.FC<LeaveEventModalProps> = ({
             },
           },
         );
-        toast.success(res.data.message || "Successfully left the tournament");
+        toast.success(res.data.message || t("leaveModal.successFallback"));
         setOpen(false);
         onSuccess();
       } catch (e: any) {
-        toast.error(e.response?.data?.message || "Failed to leave tournament");
+        toast.error(e.response?.data?.message || t("leaveModal.failed"));
       }
     });
   };
@@ -373,7 +378,7 @@ const LeaveEventModal: React.FC<LeaveEventModalProps> = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="destructive" className="w-full md:w-auto">
-          Leave Tournament
+          {t("leaveModal.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px] max-h-[85vh] overflow-y-auto">
@@ -381,13 +386,15 @@ const LeaveEventModal: React.FC<LeaveEventModalProps> = ({
           <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
             <AlertTriangle className="h-7 w-7 text-red-600" />
           </div>
-          <DialogTitle className="text-xl">Leave Tournament?</DialogTitle>
+          <DialogTitle className="text-xl">{t("leaveModal.title")}</DialogTitle>
           <DialogDescription className="mt-2 text-base">
-            Are you sure you want to leave <b>"{eventName}"</b>?
+            {t.rich("leaveModal.confirm", {
+              name: eventName,
+              bold: (chunks) => <b>{chunks}</b>,
+            })}
           </DialogDescription>
           <p className="text-sm text-muted-foreground mt-4">
-            You can re-register later if registration is still open and you
-            change your mind.
+            {t("leaveModal.note")}
           </p>
           <div className="flex gap-3 mt-6">
             <Button
@@ -396,7 +403,7 @@ const LeaveEventModal: React.FC<LeaveEventModalProps> = ({
               disabled={pending}
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -404,7 +411,11 @@ const LeaveEventModal: React.FC<LeaveEventModalProps> = ({
               onClick={handleLeave}
               disabled={pending}
             >
-              {pending ? <Loader text="Leaving..." /> : "Leave Tournament"}
+              {pending ? (
+                <Loader text={t("leaveModal.leaving")} />
+              ) : (
+                t("leaveModal.trigger")
+              )}
             </Button>
           </div>
         </div>
@@ -426,6 +437,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
   token,
   onSuccess,
 }) => {
+  const t = useTranslations("tournaments");
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"SELECT_MEMBERS" | "SPONSOR_IDS">(
     "SELECT_MEMBERS",
@@ -508,7 +520,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
       setOpen(true);
     } catch (err: any) {
       toast.error(
-        err.response?.data?.message || "Failed to load roster details",
+        err.response?.data?.message || t("editRoster.loadFailed"),
       );
     } finally {
       setIsLoadingRoster(false);
@@ -522,7 +534,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
         return prev.filter((id: string) => id !== memberId);
       } else {
         if (prev.length >= maxPlayers) {
-          toast.error(`You can only select up to ${maxPlayers} members`);
+          toast.error(t("editRoster.selectMaxError", { max: maxPlayers }));
           return prev;
         }
         return [...prev, memberId];
@@ -532,7 +544,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
 
   const handleContinue = () => {
     if (selectedMemberIds.length < minPlayers) {
-      toast.error(`Please select at least ${minPlayers} team members`);
+      toast.error(t("editRoster.selectMinError", { min: minPlayers }));
       return;
     }
     if (eventDetails.is_sponsored) {
@@ -569,12 +581,12 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      toast.success(res.data.message || "Registration updated successfully!");
+      toast.success(res.data.message || t("editRoster.updateSuccess"));
       setOpen(false);
       onSuccess();
     } catch (err: any) {
       toast.error(
-        err.response?.data?.message || "Failed to update registration",
+        err.response?.data?.message || t("editRoster.updateFailed"),
       );
     } finally {
       setIsSubmitting(false);
@@ -656,7 +668,11 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
         onClick={handleOpen}
         disabled={isLoadingRoster}
       >
-        {isLoadingRoster ? <Loader text="Loading..." /> : "Edit Registration"}
+        {isLoadingRoster ? (
+          <Loader text={t("common.loading")} />
+        ) : (
+          t("editRoster.trigger")
+        )}
       </Button>
 
       <Dialog open={open} onOpenChange={(o) => !o && setOpen(false)}>
@@ -664,9 +680,13 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
           {step === "SELECT_MEMBERS" && (
             <>
               <DialogHeader>
-                <DialogTitle>Edit Team Roster</DialogTitle>
+                <DialogTitle>
+                  {t("editRoster.selectMembers.title")}
+                </DialogTitle>
                 <DialogDescription>
-                  Update your players for {eventDetails.event_name}
+                  {t("editRoster.selectMembers.description", {
+                    eventName: eventDetails.event_name,
+                  })}
                 </DialogDescription>
               </DialogHeader>
 
@@ -683,20 +703,24 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                     <AlertDescription>
                       {allRejected ? (
                         <p>
-                          <strong>All players</strong> on the current roster
-                          have been rejected. Please select a new lineup.
+                          {t.rich("editRoster.selectMembers.allRejected", {
+                            bold: (chunks) => <strong>{chunks}</strong>,
+                          })}
                         </p>
                       ) : (
                         <p>
-                          <strong>
-                            {rejectedOnRoster.length}{" "}
-                            {rejectedOnRoster.length === 1
-                              ? "player"
-                              : "players"}
-                          </strong>{" "}
-                          on the current roster{" "}
-                          {rejectedOnRoster.length === 1 ? "has" : "have"} been
-                          rejected. Review and update your lineup.
+                          {t.rich("editRoster.selectMembers.someRejected", {
+                            count: rejectedOnRoster.length,
+                            playerWord:
+                              rejectedOnRoster.length === 1
+                                ? t("editRoster.selectMembers.playerSingular")
+                                : t("editRoster.selectMembers.playerPlural"),
+                            haveWord:
+                              rejectedOnRoster.length === 1
+                                ? t("editRoster.selectMembers.hasWord")
+                                : t("editRoster.selectMembers.haveWord"),
+                            bold: (chunks) => <strong>{chunks}</strong>,
+                          })}
                         </p>
                       )}
                     </AlertDescription>
@@ -706,7 +730,10 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
 
               <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md">
                 <h3 className="font-semibold mb-3">
-                  Select Players ({minPlayers}-{maxPlayers}):
+                  {t("editRoster.selectMembers.selectPlayers", {
+                    min: minPlayers,
+                    max: maxPlayers,
+                  })}
                 </h3>
                 <div className="space-y-2">
                   {/* Roster Rules (owner 2026-06-15): only PLAYING-role members
@@ -742,12 +769,12 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                         <div className="flex items-center gap-1">
                           {isCurrent && !isRejected && (
                             <Badge variant="outline" className="text-xs">
-                              Current
+                              {t("editRoster.selectMembers.current")}
                             </Badge>
                           )}
                           {isRejected && (
                             <Badge variant="destructive" className="text-xs">
-                              Rejected
+                              {t("editRoster.selectMembers.rejected")}
                             </Badge>
                           )}
                         </div>
@@ -758,12 +785,15 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
               </div>
 
               <div className="text-sm text-muted-foreground">
-                Selected: {selectedMemberIds.length} / {maxPlayers} players
+                {t("editRoster.selectMembers.selectedCount", {
+                  count: selectedMemberIds.length,
+                  max: maxPlayers,
+                })}
               </div>
 
               <DialogFooter className="flex sm:justify-between">
                 <Button variant="secondary" onClick={() => setOpen(false)}>
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button
                   onClick={handleContinue}
@@ -774,11 +804,11 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                   }
                 >
                   {isSubmitting ? (
-                    <Loader text="Saving..." />
+                    <Loader text={t("common.saving")} />
                   ) : eventDetails.is_sponsored ? (
-                    "Continue"
+                    t("editRoster.selectMembers.continue")
                   ) : (
-                    "Save Changes"
+                    t("common.saveChanges")
                   )}
                 </Button>
               </DialogFooter>
@@ -788,9 +818,15 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
           {step === "SPONSOR_IDS" && (
             <>
               <DialogHeader>
-                <DialogTitle>{eventDetails.sponsor_name} Details</DialogTitle>
+                <DialogTitle>
+                  {t("editRoster.sponsorIds.title", {
+                    sponsorName: eventDetails.sponsor_name ?? "",
+                  })}
+                </DialogTitle>
                 <DialogDescription>
-                  Update {eventDetails.sponsor_field_label} for your roster
+                  {t("editRoster.sponsorIds.description", {
+                    fieldLabel: eventDetails.sponsor_field_label ?? "",
+                  })}
                 </DialogDescription>
               </DialogHeader>
 
@@ -804,15 +840,16 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                 {/* ── NEW: loading indicator while fetching all sponsors ── */}
                 {isFetchingAllSponsors && (
                   <div className="p-3 rounded-md bg-primary/10 text-sm text-muted-foreground flex items-center gap-2">
-                    <Loader text="Validating against registered players..." />
+                    <Loader text={t("editRoster.sponsorIds.validating")} />
                   </div>
                 )}
 
                 <div className="space-y-3 px-2">
                   {(editHasDuplicates || anyExternalConflict) && (
                     <p className="text-sm text-destructive">
-                      Each {eventDetails.sponsor_field_label} must be unique and
-                      not already used by another registered participant.
+                      {t("editRoster.sponsorIds.uniqueRequired", {
+                        fieldLabel: eventDetails.sponsor_field_label ?? "",
+                      })}
                     </p>
                   )}
                   {selectedMembersData.map((member) => {
@@ -847,18 +884,20 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                           <Label>{member.username}</Label>
                           {isAccepted && !hasAnyError && (
                             <span className="text-xs font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded">
-                              Accepted
+                              {t("editRoster.sponsorIds.accepted")}
                             </span>
                           )}
                           {isRejectedSponsor && (
                             <span className="text-xs font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
-                              Rejected
+                              {t("editRoster.sponsorIds.rejected")}
                             </span>
                           )}
                         </div>
                         <Input
                           className={inputClassName}
-                          placeholder={`Enter ${eventDetails.sponsor_field_label}`}
+                          placeholder={t("editRoster.sponsorIds.placeholder", {
+                            fieldLabel: eventDetails.sponsor_field_label ?? "",
+                          })}
                           value={sponsorIds[member.id] || ""}
                           disabled={isAccepted && !hasAnyError}
                           onChange={(e) => {
@@ -877,21 +916,26 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                         {rejectedUntouched && !hasAnyError && (
                           <p className="text-xs text-destructive">
                             {rosterEntry?.reason
-                              ? `Reason: ${rosterEntry.reason}`
-                              : `This player was rejected. Update their ${eventDetails.sponsor_field_label}.`}
+                              ? t("editRoster.sponsorIds.rejectedReason", {
+                                  reason: rosterEntry.reason,
+                                })
+                              : t("editRoster.sponsorIds.rejectedUpdate", {
+                                  fieldLabel:
+                                    eventDetails.sponsor_field_label ?? "",
+                                })}
                           </p>
                         )}
                         {isTeamDuplicate && (
                           <p className="text-xs text-destructive">
-                            This value is already used by another selected
-                            member.
+                            {t("editRoster.sponsorIds.duplicateMember")}
                           </p>
                         )}
                         {/* ── NEW error ── */}
                         {!isTeamDuplicate && externalConflictUser && (
                           <p className="text-xs text-destructive">
-                            This {eventDetails.sponsor_field_label} is already
-                            registered by a player.
+                            {t("editRoster.sponsorIds.externalConflict", {
+                              fieldLabel: eventDetails.sponsor_field_label ?? "",
+                            })}
                           </p>
                         )}
                       </div>
@@ -905,7 +949,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                   variant="secondary"
                   onClick={() => setStep("SELECT_MEMBERS")}
                 >
-                  Back
+                  {t("common.back")}
                 </Button>
                 <Button
                   onClick={handleSubmit}
@@ -913,7 +957,11 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                     !canSubmitSponsor || isSubmitting || isFetchingAllSponsors
                   }
                 >
-                  {isSubmitting ? <Loader text="Saving..." /> : "Save Changes"}
+                  {isSubmitting ? (
+                    <Loader text={t("common.saving")} />
+                  ) : (
+                    t("common.saveChanges")
+                  )}
                 </Button>
               </DialogFooter>
             </>
@@ -930,6 +978,7 @@ const StageResultsTable: React.FC<{
   stage: Stage;
   participantType?: string;
 }> = ({ stage, participantType }) => {
+  const t = useTranslations("tournaments");
   // Initialize with first group's ID
   const [selectedGroupId, setSelectedGroupId] = useState<string>(
     stage?.groups?.[0]?.group_id?.toString() || "",
@@ -968,7 +1017,7 @@ const StageResultsTable: React.FC<{
     return (
       <Card className="">
         <CardContent className="p-10 text-center">
-          <p className="text-zinc-500">No groups defined for this stage yet.</p>
+          <p className="text-zinc-500">{t("stageResults.noGroups")}</p>
         </CardContent>
       </Card>
     );
@@ -980,7 +1029,7 @@ const StageResultsTable: React.FC<{
         <div className="flex flex-col md:flex-row gap-2">
           {/* Group Selector */}
           <div className="flex-1 space-y-2">
-            <Label>Select Group</Label>
+            <Label>{t("stageResults.selectGroup")}</Label>
             <Select
               value={selectedGroupId}
               onValueChange={(val) => {
@@ -989,7 +1038,7 @@ const StageResultsTable: React.FC<{
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Choose a group" />
+                <SelectValue placeholder={t("stageResults.chooseGroup")} />
               </SelectTrigger>
               <SelectContent>
                 {stage.groups.map((g) => (
@@ -1003,18 +1052,21 @@ const StageResultsTable: React.FC<{
 
           {/* Result View Selector */}
           <div className="flex-1 space-y-2">
-            <Label>View Type</Label>
+            <Label>{t("stageResults.viewType")}</Label>
             <Select value={selectedMatchId} onValueChange={setSelectedMatchId}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="overall">
-                  Consolidated Leaderboard
+                  {t("stageResults.consolidatedLeaderboard")}
                 </SelectItem>
                 {activeGroup?.matches?.map((m: any) => (
                   <SelectItem key={m.match_id} value={m.match_id?.toString()}>
-                    Match {m.match_number} ({m.match_map})
+                    {t("stageResults.match", {
+                      number: m.match_number,
+                      map: m.match_map,
+                    })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -1028,8 +1080,14 @@ const StageResultsTable: React.FC<{
           <Trophy className="size-4 text-yellow-500" />
           <h3 className="text-sm font-semibold uppercase">
             {selectedMatchId === "overall"
-              ? `${activeGroup?.group_name || "Group"} Standings`
-              : `Match ${activeMatch?.match_number}: ${activeMatch?.match_map}`}
+              ? t("stageResults.groupStandings", {
+                  group:
+                    activeGroup?.group_name || t("stageResults.groupFallback"),
+                })
+              : t("stageResults.matchHeading", {
+                  number: activeMatch?.match_number,
+                  map: activeMatch?.match_map,
+                })}
           </h3>
         </div>
 
@@ -1037,11 +1095,17 @@ const StageResultsTable: React.FC<{
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16 text-center ">Rank</TableHead>
-                <TableHead className="">Competitor</TableHead>
-                <TableHead className="text-center ">Kills</TableHead>
+                <TableHead className="w-16 text-center ">
+                  {t("stageResults.rank")}
+                </TableHead>
+                <TableHead className="">
+                  {t("stageResults.competitor")}
+                </TableHead>
+                <TableHead className="text-center ">
+                  {t("stageResults.kills")}
+                </TableHead>
                 <TableHead className="text-right text-[10px] uppercase font-semibold pr-6">
-                  Total Points
+                  {t("stageResults.totalPoints")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -1090,7 +1154,7 @@ const StageResultsTable: React.FC<{
                     colSpan={4}
                     className="h-40 text-center text-muted-foreground italic"
                   >
-                    No results available for this selection.
+                    {t("stageResults.noResults")}
                   </TableCell>
                 </TableRow>
               )}
@@ -1122,6 +1186,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
   eventDetails,
   onContinueToRules,
 }) => {
+  const t = useTranslations("tournaments");
   const minPlayers = userTeam?.min_players || 4;
   const maxPlayers = userTeam?.max_players || 6;
 
@@ -1132,7 +1197,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
         return prev.filter((id: any) => id !== memberId);
       } else {
         if (prev.length >= maxPlayers) {
-          toast.error(`You can only select up to ${maxPlayers} members`);
+          toast.error(t("teamRegister.selectMaxError", { max: maxPlayers }));
           return prev;
         }
         return [...prev, memberId];
@@ -1142,11 +1207,11 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
 
   const handleContinue = () => {
     if (selectedMembers.length < minPlayers) {
-      toast.error(`Please select at least ${minPlayers} team members`);
+      toast.error(t("teamRegister.selectMinError", { min: minPlayers }));
       return;
     }
     if (selectedMembers.length > maxPlayers) {
-      toast.error(`Please select at most ${maxPlayers} team members`);
+      toast.error(t("teamRegister.selectAtMostError", { max: maxPlayers }));
       return;
     }
     setTeamModalStep("TEAM_INFO");
@@ -1175,16 +1240,21 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-1">
-                Select Team Members
+                {t("teamRegister.selectMembers.title")}
                 <InfoTip id="tournaments.register.select_members._section" />
               </DialogTitle>
               <DialogDescription>
-                Select {minPlayers}-{maxPlayers} players from your team roster
+                {t("teamRegister.selectMembers.description", {
+                  min: minPlayers,
+                  max: maxPlayers,
+                })}
               </DialogDescription>
             </DialogHeader>
 
             <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md">
-              <h3 className="font-semibold mb-3">Available Players:</h3>
+              <h3 className="font-semibold mb-3">
+                {t("teamRegister.selectMembers.availablePlayers")}
+              </h3>
               <div className="space-y-2">
                 {/* Roster Rules (owner 2026-06-15): only PLAYING-role members
                     (team_captain/vice_captain/member) can be rostered for an event.
@@ -1219,12 +1289,15 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
             </div>
 
             <div className="text-sm text-muted-foreground">
-              Selected: {selectedMembers.length} / {maxPlayers} players
+              {t("teamRegister.selectMembers.selectedCount", {
+                count: selectedMembers.length,
+                max: maxPlayers,
+              })}
             </div>
 
             <DialogFooter className="flex sm:justify-between">
               <Button variant="secondary" onClick={closeAll}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 onClick={handleContinue}
@@ -1233,7 +1306,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                   selectedMembers.length > maxPlayers
                 }
               >
-                Continue
+                {t("teamRegister.selectMembers.continue")}
               </Button>
             </DialogFooter>
           </>
@@ -1242,33 +1315,41 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
         {teamModalStep === "TEAM_INFO" && (
           <>
             <DialogHeader>
-              <DialogTitle>Team Information</DialogTitle>
+              <DialogTitle>{t("teamRegister.teamInfo.title")}</DialogTitle>
             </DialogHeader>
 
             <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md space-y-3">
               <div>
-                <span className="font-semibold text-primary">Team Name:</span>{" "}
+                <span className="font-semibold text-primary">
+                  {t("teamRegister.teamInfo.teamName")}
+                </span>{" "}
                 {userTeam?.team_name}
               </div>
               <div>
                 <span className="font-semibold text-primary">
-                  Members Selected:
+                  {t("teamRegister.teamInfo.membersSelected")}
                 </span>{" "}
                 {selectedMembers.length}
               </div>
               <div>
-                <span className="font-semibold text-primary">Tournament:</span>{" "}
+                <span className="font-semibold text-primary">
+                  {t("teamRegister.teamInfo.tournament")}
+                </span>{" "}
                 {eventDetails.event_name}
               </div>
               <div>
-                <span className="font-semibold text-primary">Format:</span>{" "}
+                <span className="font-semibold text-primary">
+                  {t("teamRegister.teamInfo.format")}
+                </span>{" "}
                 {eventDetails.competition_type}
               </div>
 
               <Separator className="my-3" />
 
               <div>
-                <p className="font-semibold text-primary mb-2">Team Members:</p>
+                <p className="font-semibold text-primary mb-2">
+                  {t("teamRegister.teamInfo.teamMembers")}
+                </p>
                 <ul className="space-y-1">
                   {selectedMembersData.map((member, idx) => (
                     <li key={member.id} className="text-sm">
@@ -1289,39 +1370,39 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                   <AlertTriangle className="size-4 flex-shrink-0 mt-1 text-yellow-400" />
                   <div className="space-y-1">
                     <p className="font-semibold text-yellow-400">
-                      Profile Requirements
+                      {t("teamRegister.teamInfo.profileRequirements")}
                     </p>
                     {eventDetails.require_esport_images && (
                       <p className="text-xs">
-                        Every rostered player must have an esport image uploaded
-                        on their own profile, under{" "}
-                        <Link
-                          href="/profile/edit"
-                          className="text-primary underline underline-offset-2"
-                        >
-                          Edit Profile
-                        </Link>{" "}
-                        (the Free Fire UID is set on the same page).
+                        {t.rich("teamRegister.teamInfo.esportImageNote", {
+                          editProfileLink: (chunks) => (
+                            <Link
+                              href="/profile/edit"
+                              className="text-primary underline underline-offset-2"
+                            >
+                              {chunks}
+                            </Link>
+                          ),
+                        })}
                       </p>
                     )}
                     {eventDetails.require_team_logo && (
                       <p className="text-xs">
-                        Your team must have a logo uploaded
-                        {userTeam?.team_id ? (
-                          <>
-                            {" "}
-                            on{" "}
-                            <Link
-                              href={`/teams/${userTeam.team_id}/edit`}
-                              className="text-primary underline underline-offset-2"
-                            >
-                              your team&apos;s edit page
-                            </Link>
-                          </>
-                        ) : (
-                          <> on your team&apos;s edit page</>
-                        )}
-                        . Only the captain can upload it.
+                        {userTeam?.team_id
+                          ? t.rich(
+                              "teamRegister.teamInfo.teamLogoNoteWithLink",
+                              {
+                                teamEditLink: (chunks) => (
+                                  <Link
+                                    href={`/teams/${userTeam.team_id}/edit`}
+                                    className="text-primary underline underline-offset-2"
+                                  >
+                                    {chunks}
+                                  </Link>
+                                ),
+                              },
+                            )
+                          : t("teamRegister.teamInfo.teamLogoNote")}
                       </p>
                     )}
                   </div>
@@ -1334,9 +1415,11 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                 variant="secondary"
                 onClick={() => setTeamModalStep("SELECT_MEMBERS")}
               >
-                Back
+                {t("common.back")}
               </Button>
-              <Button onClick={onContinueToRules}>Continue to Rules</Button>
+              <Button onClick={onContinueToRules}>
+                {t("teamRegister.teamInfo.continueToRules")}
+              </Button>
             </DialogFooter>
           </>
         )}
@@ -1470,6 +1553,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
   onClearDraft,
   token,
 }) => {
+  const t = useTranslations("tournaments");
   const isSoloDisabled = eventDetails.participant_type === "squad";
   const isTeamDisabled = eventDetails.participant_type === "solo";
   const closeAll = () => setModalStep("CLOSED");
@@ -1572,40 +1656,46 @@ const RegistrationModals: React.FC<ModalProps> = ({
         return (
           <>
             <DialogHeader>
-              <DialogTitle>Tournament Information</DialogTitle>
+              <DialogTitle>{t("register.info.title")}</DialogTitle>
               <DialogDescription>
-                Review tournament details before proceeding.
+                {t("register.info.description")}
               </DialogDescription>
             </DialogHeader>
             <DialogContent className="p-4 rounded-md text-sm space-y-2">
               <p className="capitalize">
-                Format: {eventDetails.event_mode} /{" "}
-                {eventDetails.competition_type}
+                {t("register.info.format", {
+                  mode: eventDetails.event_mode,
+                  type: eventDetails.competition_type,
+                })}
               </p>
-              <p>Date: {formatDate(eventDetails.start_date)}</p>
+              <p>
+                {t("register.info.date", {
+                  date: formatDate(eventDetails.start_date),
+                })}
+              </p>
               {/* Format the raw prizepool string (e.g. "1750.0") with thousands
                   separators and no trailing ".0", mirroring the render at the
                   Prize Pool block further down this file. Falls back to the raw
                   value when it isn't a plain number. */}
               <p>
-                Prize Pool:{" "}
-                {/^\d+(\.\d+)?$/.test(eventDetails.prizepool)
-                  ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
-                  : eventDetails.prizepool}
+                {t("register.info.prizePool", {
+                  value: /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
+                    ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+                    : eventDetails.prizepool,
+                })}
               </p>
-              <p>
-                Location:{" "}
-                <span className="capitalize">{eventDetails.event_mode}</span>
+              <p className="capitalize">
+                {t("register.info.location", { value: eventDetails.event_mode })}
               </p>
               <Separator />
               <div className="flex items-start space-x-2 text-sm">
                 <AlertTriangle className="size-4 flex-shrink-0 mt-1 text-yellow-400" />
                 <div>
                   <p className="font-semibold text-yellow-400">
-                    Discord Requirement
+                    {t("register.info.discordRequirement")}
                   </p>
                   <p className="text-xs">
-                    A connected Discord account is required to participate.
+                    {t("register.info.discordRequirementNote")}
                   </p>
                 </div>
               </div>
@@ -1620,42 +1710,40 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   <AlertTriangle className="size-4 flex-shrink-0 mt-1 text-yellow-400" />
                   <div className="space-y-1">
                     <p className="font-semibold text-yellow-400">
-                      Profile Requirements
+                      {t("register.info.profileRequirements")}
                     </p>
                     {eventDetails.require_esport_images && (
                       <p className="text-xs">
-                        Every{" "}
-                        {eventDetails.participant_type === "solo"
-                          ? "player"
-                          : "rostered player"}{" "}
-                        must have an esport image uploaded. Add yours under{" "}
-                        <Link
-                          href="/profile/edit"
-                          className="text-primary underline underline-offset-2"
-                        >
-                          Edit Profile
-                        </Link>{" "}
-                        (your Free Fire UID is set on the same page).
+                        {t.rich("register.info.esportImageNote", {
+                          playerWord:
+                            eventDetails.participant_type === "solo"
+                              ? t("register.info.esportPlayerSolo")
+                              : t("register.info.esportPlayerTeam"),
+                          editProfileLink: (chunks) => (
+                            <Link
+                              href="/profile/edit"
+                              className="text-primary underline underline-offset-2"
+                            >
+                              {chunks}
+                            </Link>
+                          ),
+                        })}
                       </p>
                     )}
                     {eventDetails.require_team_logo && (
                       <p className="text-xs">
-                        Your team must have a logo uploaded
-                        {userTeam?.team_id ? (
-                          <>
-                            {" "}
-                            on{" "}
-                            <Link
-                              href={`/teams/${userTeam.team_id}/edit`}
-                              className="text-primary underline underline-offset-2"
-                            >
-                              your team&apos;s edit page
-                            </Link>
-                          </>
-                        ) : (
-                          <> on your team&apos;s edit page</>
-                        )}
-                        . Only the captain can upload it.
+                        {userTeam?.team_id
+                          ? t.rich("register.info.teamLogoNoteWithLink", {
+                              teamEditLink: (chunks) => (
+                                <Link
+                                  href={`/teams/${userTeam.team_id}/edit`}
+                                  className="text-primary underline underline-offset-2"
+                                >
+                                  {chunks}
+                                </Link>
+                              ),
+                            })
+                          : t("register.info.teamLogoNote")}
                       </p>
                     )}
                   </div>
@@ -1666,9 +1754,11 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   variant="secondary"
                   onClick={() => setModalStep("TYPE")}
                 >
-                  Back
+                  {t("common.back")}
                 </Button>
-                <Button onClick={handleGoToRules}>Continue</Button>
+                <Button onClick={handleGoToRules}>
+                  {t("register.info.continue")}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </>
@@ -1679,23 +1769,24 @@ const RegistrationModals: React.FC<ModalProps> = ({
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
-                AFC UID Required
+                {t("register.uidPrompt.title")}
                 <InfoTip id="tournaments.register.afc_uid" />
               </DialogTitle>
               <DialogDescription>
-                Your AFC UID is required to participate in this tournament.
+                {t("register.uidPrompt.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                You haven&apos;t set your AFC UID on your profile yet. Please
-                enter it below to continue with registration.
+                {t("register.uidPrompt.notSet")}
               </p>
               <div className="space-y-1.5">
-                <Label htmlFor="uid-input">AFC UID</Label>
+                <Label htmlFor="uid-input">
+                  {t("register.uidPrompt.label")}
+                </Label>
                 <Input
                   id="uid-input"
-                  placeholder="Enter your AFC UID"
+                  placeholder={t("register.uidPrompt.placeholder")}
                   value={uidInput}
                   maxLength={12}
                   onChange={(e) => setUidInput(e.target.value)}
@@ -1713,7 +1804,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 }
                 disabled={savingUid}
               >
-                Back
+                {t("common.back")}
               </Button>
               <Button
                 onClick={handleSaveUid}
@@ -1722,7 +1813,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {savingUid && (
                   <IconLoader2 className="size-4 animate-spin mr-2" />
                 )}
-                {savingUid ? "Saving..." : "Save & Continue"}
+                {savingUid
+                  ? t("register.uidPrompt.saving")
+                  : t("register.uidPrompt.saveContinue")}
               </Button>
             </DialogFooter>
           </>
@@ -1731,29 +1824,45 @@ const RegistrationModals: React.FC<ModalProps> = ({
       case "UID_MISSING_MEMBERS": {
         const lastMember = uidMissingMembers[uidMissingMembers.length - 1];
         const otherMembers = uidMissingMembers.slice(0, -1);
+        // Name list (e.g. "A, B and C" / "C"). The localized " and " joiner is
+        // pulled from the message file so other locales can adjust it.
         const nameList =
           otherMembers.length > 0
-            ? `${otherMembers.join(", ")} and ${lastMember}`
+            ? `${otherMembers.join(", ")}${t(
+                "register.uidMissingMembers.andJoiner",
+              )}${lastMember}`
             : lastMember;
         return (
           <>
             <DialogHeader>
-              <DialogTitle className="text-xl">Missing AFC UIDs</DialogTitle>
+              <DialogTitle className="text-xl">
+                {t("register.uidMissingMembers.title")}
+              </DialogTitle>
               <DialogDescription>
-                Some team members need to set their AFC UID before you can
-                register.
+                {t("register.uidMissingMembers.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 text-sm">
               <p>
-                <span className="font-semibold">{nameList}</span>{" "}
-                {uidMissingMembers.length === 1 ? "hasn't" : "haven't"} filled
-                their AFC UID yet. Ask them to update their profiles and come
-                back once everyone&apos;s UID is set.
+                {uidMissingMembers.length === 1
+                  ? t.rich("register.uidMissingMembers.bodySingular", {
+                      names: nameList,
+                      bold: (chunks) => (
+                        <span className="font-semibold">{chunks}</span>
+                      ),
+                    })
+                  : t.rich("register.uidMissingMembers.bodyPlural", {
+                      names: nameList,
+                      bold: (chunks) => (
+                        <span className="font-semibold">{chunks}</span>
+                      ),
+                    })}
               </p>
             </div>
             <DialogFooter>
-              <Button onClick={() => setModalStep("CLOSED")}>Close</Button>
+              <Button onClick={() => setModalStep("CLOSED")}>
+                {t("register.uidMissingMembers.close")}
+              </Button>
             </DialogFooter>
           </>
         );
@@ -1764,10 +1873,12 @@ const RegistrationModals: React.FC<ModalProps> = ({
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
-                Tournament Registration
+                {t("register.type.title")}
                 <InfoTip id="tournaments.register.type._section" />
               </DialogTitle>
-              <DialogDescription>Select registration type</DialogDescription>
+              <DialogDescription>
+                {t("register.type.description")}
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-2">
               <Card
@@ -1781,10 +1892,10 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 <CardHeader>
                   <CardTitle className="flex items-center text-primary">
                     <User className="size-4 mr-1" />
-                    Solo Registration
+                    {t("register.type.soloTitle")}
                   </CardTitle>
                   <CardDescription className="text-muted-foreground">
-                    Register as an individual player
+                    {t("register.type.soloDescription")}
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -1799,10 +1910,10 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 <CardHeader>
                   <CardTitle className="flex items-center text-primary">
                     <Users className="size-4 mr-1" />
-                    Team Registration
+                    {t("register.type.teamTitle")}
                   </CardTitle>
                   <CardDescription className="text-muted-foreground">
-                    Register as a team
+                    {t("register.type.teamDescription")}
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -1817,7 +1928,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 onClick={onClearDraft}
                 className="mx-auto mt-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-destructive transition"
               >
-                Clear saved progress and start over
+                {t("register.type.clearDraft")}
               </button>
             )}
           </>
@@ -1834,7 +1945,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
             return (
               <div className="space-y-4">
                 <div>
-                  <p className="font-medium text-primary">General Rules:</p>
+                  <p className="font-medium text-primary">
+                    {t("register.rules.generalRules")}
+                  </p>
                   <p className="whitespace-pre-wrap text-muted-foreground">
                     {textRules}
                   </p>
@@ -1842,7 +1955,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {hasDocument && (
                   <div className="pt-2">
                     <p className="font-medium text-primary">
-                      Full Rules Document:
+                      {t("register.rules.fullRulesDocument")}
                     </p>
                     <Button
                       type="button"
@@ -1850,7 +1963,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                       className="p-0 h-auto text-sm text-yellow-400 hover:text-yellow-300"
                       onClick={() => window.open(documentUrl, "_blank")}
                     >
-                      Download Official Rules Document
+                      {t("register.rules.downloadOfficialDoc")}
                     </Button>
                   </div>
                 )}
@@ -1863,18 +1976,17 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <div className="text-center space-y-4 pt-4">
                 <AlertTriangle className="w-8 h-8 text-primary mx-auto mb-2" />
                 <p className="font-semibold text-primary">
-                  Official Rules Document Available
+                  {t("register.rules.officialDocAvailable")}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Please click the button below to download and review the
-                  official document.
+                  {t("register.rules.officialDocNote")}
                 </p>
                 <Button
                   type="button"
                   onClick={() => window.open(documentUrl, "_blank")}
                   className="w-full"
                 >
-                  Download Rules Document
+                  {t("register.rules.downloadDoc")}
                 </Button>
               </div>
             );
@@ -1884,12 +1996,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <div className="text-center p-4">
               <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
               <p className="font-semibold text-yellow-400">
-                Rules Document Missing
+                {t("register.rules.rulesMissing")}
               </p>
-              <p className="text-xs">
-                Tournament rules are currently unavailable. Contact tournament
-                admins.
-              </p>
+              <p className="text-xs">{t("register.rules.rulesMissingNote")}</p>
             </div>
           );
         };
@@ -1898,7 +2007,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
-                Tournament Rules & Policies
+                {t("register.rules.title")}
                 <InfoTip id="tournaments.register.rules._section" />
               </DialogTitle>
             </DialogHeader>
@@ -1906,15 +2015,19 @@ const RegistrationModals: React.FC<ModalProps> = ({
               {renderRulesContent()}
               <Separator className="my-4 bg-gray-700" />
               <div>
-                <p className="font-medium text-primary">Conduct Policy:</p>
+                <p className="font-medium text-primary">
+                  {t("register.rules.conductPolicy")}
+                </p>
                 <p className="text-muted-foreground">
-                  Maintain professional conduct at all times.
+                  {t("register.rules.conductPolicyNote")}
                 </p>
               </div>
               <div>
-                <p className="font-medium text-primary">Device Policy:</p>
+                <p className="font-medium text-primary">
+                  {t("register.rules.devicePolicy")}
+                </p>
                 <p className="text-muted-foreground">
-                  Device must remain consistent throughout the tournament.
+                  {t("register.rules.devicePolicyNote")}
                 </p>
               </div>
             </div>
@@ -1929,21 +2042,21 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 htmlFor="rules"
                 className="text-sm font-medium text-muted-foreground"
               >
-                I agree to all tournament rules and policies.
+                {t("register.rules.agree")}
               </label>
               <InfoTip id="tournaments.register.rules_accept" />
             </div>
             <DialogFooter className="mt-2 flex sm:justify-between">
               <Button variant="secondary" onClick={() => setModalStep("INFO")}>
-                Back
+                {t("common.back")}
               </Button>
               <Button
                 onClick={handleRulesContinue} // ← plain call; useEffect above handles the fetch
                 disabled={!rulesAccepted}
               >
                 {eventDetails.is_sponsored || hasEntitySponsorships
-                  ? "Continue"
-                  : "Continue to Discord"}
+                  ? t("register.rules.continue")
+                  : t("register.rules.continueToDiscord")}
               </Button>
             </DialogFooter>
           </>
@@ -2011,13 +2124,13 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <>
               <DialogHeader>
                 <DialogTitle className="text-xl">
-                  Sponsor Requirements
+                  {t("register.sponsor.title")}
                   <InfoTip id="tournaments.register.sponsor._section" />
                 </DialogTitle>
                 <DialogDescription>
                   {isTeamEngagement
-                    ? "Every rostered player must complete each sponsor's steps to finish registration."
-                    : "Complete each sponsor's steps to finish registration."}
+                    ? t("register.sponsor.descriptionTeam")
+                    : t("register.sponsor.descriptionSolo")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -2025,8 +2138,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {/* Roster-wide duplicate banner, mirroring the legacy copy. */}
                 {engDuplicateKeys.size > 0 && (
                   <p className="text-sm text-destructive">
-                    Each sponsor ID must be unique across your roster. Fix the
-                    highlighted duplicates.
+                    {t("register.sponsor.duplicateBanner")}
                   </p>
                 )}
 
@@ -2100,7 +2212,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   variant="secondary"
                   onClick={() => setModalStep("RULES")}
                 >
-                  Back
+                  {t("common.back")}
                 </Button>
                 {/* Same routing as the legacy step: Discord next when required,
                     otherwise straight into handleJoinedServer (register / pay). */}
@@ -2112,7 +2224,11 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   }
                   disabled={!canContinueEngagements || pendingJoined}
                 >
-                  {pendingJoined ? <Loader text="Submitting..." /> : "Continue"}
+                  {pendingJoined ? (
+                    <Loader text={t("common.submitting")} />
+                  ) : (
+                    t("register.sponsor.continue")
+                  )}
                 </Button>
               </DialogFooter>
             </>
@@ -2220,11 +2336,13 @@ const RegistrationModals: React.FC<ModalProps> = ({
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
-                {eventDetails.sponsor_name} Requirement
+                {t("register.sponsor.legacyTitle", {
+                  sponsorName: eventDetails.sponsor_name ?? "",
+                })}
                 <InfoTip id="tournaments.register.sponsor._section" />
               </DialogTitle>
               <DialogDescription>
-                Complete this step to finish registration
+                {t("register.sponsor.legacyDescription")}
               </DialogDescription>
             </DialogHeader>
 
@@ -2235,7 +2353,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
               {isFetchingAllSponsors && (
                 <div className="p-3 rounded-md bg-primary/10 text-sm text-muted-foreground flex items-center gap-2">
-                  <Loader text="Validating against registered players..." />
+                  <Loader text={t("register.sponsor.legacyValidating")} />
                 </div>
               )}
 
@@ -2243,8 +2361,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 <div className="space-y-3">
                   {(hasDuplicates || anyTeamExternalConflict) && (
                     <p className="text-sm text-destructive">
-                      Each {eventDetails.sponsor_field_label} must be unique and
-                      not already registered by another participant.
+                      {t("register.sponsor.legacyUniqueRequired", {
+                        fieldLabel: eventDetails.sponsor_field_label ?? "",
+                      })}
                     </p>
                   )}
                   {teamMembers.map((member) => {
@@ -2264,7 +2383,13 @@ const RegistrationModals: React.FC<ModalProps> = ({
                               ? "border-destructive focus-visible:ring-destructive"
                               : "border-input"
                           }
-                          placeholder={`Enter ${eventDetails.sponsor_field_label}`}
+                          placeholder={t(
+                            "register.sponsor.legacyPlaceholderTeam",
+                            {
+                              fieldLabel:
+                                eventDetails.sponsor_field_label ?? "",
+                            },
+                          )}
                           value={teamSponsorUuids[member.id] || ""}
                           onChange={(e) =>
                             setTeamSponsorUuids({
@@ -2275,14 +2400,14 @@ const RegistrationModals: React.FC<ModalProps> = ({
                         />
                         {isTeamDuplicate && (
                           <p className="text-xs text-destructive">
-                            This value is already used by another selected
-                            member.
+                            {t("register.sponsor.legacyDuplicateMember")}
                           </p>
                         )}
                         {!isTeamDuplicate && externalConflictUser && (
                           <p className="text-xs text-destructive">
-                            This {eventDetails.sponsor_field_label} is already
-                            registered by a player.
+                            {t("register.sponsor.legacyExternalConflict", {
+                              fieldLabel: eventDetails.sponsor_field_label ?? "",
+                            })}
                           </p>
                         )}
                       </div>
@@ -2296,18 +2421,21 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   </label>
                   <input
                     className={`flex h-9 w-full rounded-md border ${soloExternalConflict ? "border-destructive focus-visible:ring-destructive" : "border-input"} bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring`}
-                    placeholder={`Enter your ${eventDetails.sponsor_field_label}`}
+                    placeholder={t("register.sponsor.legacyPlaceholderSolo", {
+                      fieldLabel: eventDetails.sponsor_field_label ?? "",
+                    })}
                     value={soloSponsorUuid}
                     onChange={(e) => setSoloSponsorUuid(e.target.value)}
                   />
                   {soloExternalConflict && (
                     <p className="text-xs text-destructive">
-                      This {eventDetails.sponsor_field_label} is already
-                      registered by{" "}
-                      <span className="font-semibold">
-                        {soloExternalConflict}
-                      </span>
-                      .
+                      {t.rich("register.sponsor.legacySoloConflict", {
+                        fieldLabel: eventDetails.sponsor_field_label ?? "",
+                        owner: soloExternalConflict,
+                        bold: (chunks) => (
+                          <span className="font-semibold">{chunks}</span>
+                        ),
+                      })}
                     </p>
                   )}
                 </div>
@@ -2316,7 +2444,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
             <DialogFooter className="flex sm:justify-between">
               <Button variant="secondary" onClick={() => setModalStep("RULES")}>
-                Back
+                {t("common.back")}
               </Button>
               <Button
                 onClick={() =>
@@ -2326,7 +2454,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 }
                 disabled={!canContinueSponsor || isFetchingAllSponsors}
               >
-                Continue
+                {t("register.sponsor.continue")}
               </Button>
             </DialogFooter>
           </>
@@ -2338,49 +2466,49 @@ const RegistrationModals: React.FC<ModalProps> = ({
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
-                Connect Discord Account
+                {t("register.discordLink.title")}
                 <InfoTip id="tournaments.register.discord_link._section" />
               </DialogTitle>
               <DialogDescription>
-                Required for tournament participation
+                {t("register.discordLink.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="text-center p-4 bg-primary/10 rounded-lg space-y-4">
               {isCheckingUserDiscord ? (
                 <div className="space-y-4">
-                  <Loader text="Checking Discord status..." />
+                  <Loader text={t("register.discordLink.checking")} />
                 </div>
               ) : isDiscordConnected ? (
                 <div className="space-y-4">
                   <CheckCircle className="w-8 h-8 text-primary mx-auto" />
                   <p className="font-semibold text-primary">
-                    Discord Account Connected!
+                    {t("register.discordLink.connected")}
                   </p>
                   <p className="text-sm text-gray-300">
-                    You can now proceed to the final step.
+                    {t("register.discordLink.connectedNote")}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto" />
                   <p className="text-sm text-gray-300">
-                    Click below to link your Discord account.
+                    {t("register.discordLink.connectPrompt")}
                   </p>
                   <Button onClick={handleDiscordConnect} className="w-full">
-                    Connect Discord Account
+                    {t("register.discordLink.connectButton")}
                   </Button>
                 </div>
               )}
             </div>
             <DialogFooter className="flex sm:justify-between">
               <Button variant="secondary" onClick={() => setModalStep("RULES")}>
-                Back
+                {t("common.back")}
               </Button>
               <Button
                 onClick={() => setModalStep("DISCORD_JOIN")}
                 disabled={!isDiscordConnected || isCheckingUserDiscord}
               >
-                Continue to Final Step
+                {t("register.discordLink.continueToFinal")}
               </Button>
             </DialogFooter>
           </>
@@ -2440,30 +2568,32 @@ const RegistrationModals: React.FC<ModalProps> = ({
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
-                Join AFC Discord Server
+                {t("register.discordJoin.title")}
                 <InfoTip id="tournaments.register.discord_join._section" />
               </DialogTitle>
-              <DialogDescription>Final step for registration</DialogDescription>
+              <DialogDescription>
+                {t("register.discordJoin.description")}
+              </DialogDescription>
             </DialogHeader>
             <div className="text-center p-4 bg-primary/10 rounded-lg space-y-4">
               {isCheckingUserDiscord ? (
                 <div className="space-y-4">
-                  <Loader text="Checking server membership..." />
+                  <Loader text={t("register.discordJoin.checkingMembership")} />
                 </div>
               ) : isInAfcServer ? (
                 <div className="space-y-4">
                   <CheckCircle className="w-8 h-8 text-green-500 mx-auto" />
                   <p className="font-semibold text-green-500">
-                    You're already in the AFC Discord server!
+                    {t("register.discordJoin.alreadyIn")}
                   </p>
                   <p className="text-sm text-gray-300">
-                    You can proceed with registration.
+                    {t("register.discordJoin.alreadyInNote")}
                   </p>
                 </div>
               ) : (
                 <>
                   <p className="text-sm text-muted-foreground">
-                    Join the AFC Discord server to complete registration.
+                    {t("register.discordJoin.joinPrompt")}
                   </p>
                   <Button
                     onClick={() =>
@@ -2476,7 +2606,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                     disabled={pendingJoined}
                     className="w-full bg-indigo-600 hover:bg-indigo-500"
                   >
-                    Join AFC Discord Server
+                    {t("register.discordJoin.joinButton")}
                   </Button>
                 </>
               )}
@@ -2486,7 +2616,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 variant="secondary"
                 onClick={() => setModalStep("DISCORD_LINK")}
               >
-                Back
+                {t("common.back")}
               </Button>
               {isInAfcServer ? (
                 <Button
@@ -2495,9 +2625,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   className="bg-green-600 hover:bg-green-500"
                 >
                   {pendingJoined ? (
-                    <Loader text="Completing..." />
+                    <Loader text={t("common.completing")} />
                   ) : (
-                    "Complete Registration"
+                    t("register.discordJoin.completeRegistration")
                   )}
                 </Button>
               ) : (
@@ -2507,9 +2637,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   className="bg-green-600 hover:bg-green-500"
                 >
                   {isCheckingUserDiscord ? (
-                    <Loader text="Checking..." />
+                    <Loader text={t("common.checking")} />
                   ) : (
-                    "I've Joined the Server"
+                    t("register.discordJoin.joinedServer")
                   )}
                 </Button>
               )}
@@ -2535,11 +2665,11 @@ const RegistrationModals: React.FC<ModalProps> = ({
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
-                Connect Discord - All Members
+                {t("register.discordStatus.title")}
                 <InfoTip id="tournaments.register.discord_status._section" />
               </DialogTitle>
               <DialogDescription>
-                All team members must have Discord linked and join AFC server
+                {t("register.discordStatus.description")}
               </DialogDescription>
             </DialogHeader>
 
@@ -2547,7 +2677,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <div className="flex-1 overflow-y-auto space-y-4 pr-1">
                 <div className="space-y-2">
                   <h3 className="font-semibold text-sm">
-                    Team Members Status:
+                    {t("register.discordStatus.membersStatus")}
                   </h3>
                   <div className="space-y-2">
                     {validationResults.map((result: any) => {
@@ -2599,18 +2729,20 @@ const RegistrationModals: React.FC<ModalProps> = ({
                                 )}
                                 {result.ok && !inAfcServer && (
                                   <p className="text-xs text-red-300 mt-1">
-                                    • Not in AFC Discord server
+                                    • {t("register.discordStatus.notInServer")}
                                   </p>
                                 )}
                                 {result.discord_connected &&
                                   result.discord_id && (
                                     <>
                                       <p className="text-xs text-muted-foreground mt-1">
-                                        Discord ID: {result.discord_id}
+                                        {t("register.discordStatus.discordId", {
+                                          id: result.discord_id,
+                                        })}
                                       </p>
                                       {inAfcServer && (
                                         <p className="text-xs text-green-400 mt-1">
-                                          ✓ In AFC Server
+                                          ✓ {t("register.discordStatus.inAfcServer")}
                                         </p>
                                       )}
                                     </>
@@ -2625,7 +2757,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                                 variant="secondary"
                                 onClick={copyAfcServerLink}
                               >
-                                Copy Link
+                                {t("register.discordStatus.copyLink")}
                               </Button>
                             )}
                           </div>
@@ -2638,7 +2770,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {isCheckingDiscord && (
                   <div className="p-3 bg-blue-600 border border-blue-600/50 rounded-md">
                     <p className="text-sm text-blue-100 text-center">
-                      Checking Discord and server status...
+                      {t("register.discordStatus.checkingStatus")}
                     </p>
                   </div>
                 )}
@@ -2648,8 +2780,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   validationResults.length > 0 && (
                     <div className="p-3 bg-yellow-600 border border-yellow-600/50 rounded-md">
                       <p className="text-sm text-yellow-100 text-center">
-                        Waiting for all team members to link their Discord
-                        accounts and join the AFC server...
+                        {t("register.discordStatus.waiting")}
                       </p>
                     </div>
                   )}
@@ -2657,8 +2788,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {allMembersOk && !allInAfcServer && (
                   <div className="p-3 bg-orange-600 border border-orange-600/50 rounded-md">
                     <p className="text-sm text-orange-100 text-center">
-                      Some members haven't joined the AFC Discord server yet.
-                      Share the server link with them!
+                      {t("register.discordStatus.someNotJoined")}
                     </p>
                   </div>
                 )}
@@ -2666,8 +2796,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {allMembersOk && allInAfcServer && (
                   <div className="p-3 bg-green-600 border border-green-600/50 rounded-md">
                     <p className="text-sm text-green-100 text-center font-medium">
-                      All team members are ready! You can proceed with
-                      registration.
+                      {t("register.discordStatus.allReady")}
                     </p>
                   </div>
                 )}
@@ -2685,7 +2814,9 @@ const RegistrationModals: React.FC<ModalProps> = ({
                     ) : (
                       <IconRefresh className="mr-1 size-3" />
                     )}
-                    {isCheckingDiscord ? "Checking..." : "Refresh Status"}
+                    {isCheckingDiscord
+                      ? t("register.discordStatus.checking")
+                      : t("register.discordStatus.refreshStatus")}
                   </Button>
                 </div>
               </div>
@@ -2694,14 +2825,14 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   variant="secondary"
                   onClick={() => setModalStep("RULES")}
                 >
-                  Back
+                  {t("common.back")}
                 </Button>
                 {allMembersOk && allInAfcServer && (
                   <Button onClick={handleJoinedServer} disabled={pendingJoined}>
                     {pendingJoined ? (
-                      <Loader text="Completing..." />
+                      <Loader text={t("common.completing")} />
                     ) : (
-                      "Complete Registration"
+                      t("register.discordStatus.completeRegistration")
                     )}
                   </Button>
                 )}
@@ -2727,15 +2858,18 @@ const RegistrationModals: React.FC<ModalProps> = ({
         return (
           <>
             <DialogHeader>
-              <DialogTitle className="text-xl">Complete Payment</DialogTitle>
+              <DialogTitle className="text-xl">
+                {t("register.payment.title")}
+              </DialogTitle>
               <DialogDescription>
-                This is a paid tournament. Pay the entry fee to finish your
-                registration.
+                {t("register.payment.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div className="flex items-center justify-between rounded-md bg-primary/10 p-4">
-                <span className="text-sm text-muted-foreground">Entry Fee</span>
+                <span className="text-sm text-muted-foreground">
+                  {t("register.payment.entryFee")}
+                </span>
                 <span className="text-lg font-bold text-primary">
                   {feeLabel}
                 </span>
@@ -2743,9 +2877,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <div className="flex items-start gap-2 text-sm">
                 <AlertTriangle className="size-4 flex-shrink-0 mt-0.5 text-yellow-400" />
                 <p className="text-xs text-muted-foreground">
-                  You'll be redirected to our secure checkout. After payment,
-                  you'll come back here and your registration is completed
-                  automatically. Do not close the checkout tab until it is done.
+                  {t("register.payment.note")}
                 </p>
               </div>
             </div>
@@ -2755,13 +2887,13 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 onClick={() => setModalStep("RULES")}
                 disabled={pendingJoined}
               >
-                Back
+                {t("common.back")}
               </Button>
               <Button onClick={startPaidRegistration} disabled={pendingJoined}>
                 {pendingJoined ? (
-                  <Loader text="Starting checkout..." />
+                  <Loader text={t("register.payment.startingCheckout")} />
                 ) : (
-                  `Pay ${feeLabel} to register`
+                  t("register.payment.payToRegister", { fee: feeLabel })
                 )}
               </Button>
             </DialogFooter>
@@ -2782,15 +2914,15 @@ const RegistrationModals: React.FC<ModalProps> = ({
                     pending_sponsor_approval flag (a requires_approval sponsor
                     must vet the engagement submissions first). */}
                 {wasWaitlisted
-                  ? "You're on the waitlist. We'll let you know if a spot opens up."
+                  ? t("register.success.waitlist")
                   : pendingSponsorApproval
-                    ? "Registered, waiting for sponsor approval. Your spot is confirmed once the sponsor reviews your submissions."
-                    : "Welcome to the tournament! Check Discord for match details."}
+                    ? t("register.success.pendingApproval")
+                    : t("register.success.registered")}
               </p>
             </div>
             <DialogFooter>
               <Button onClick={closeAll} className="w-full">
-                Close
+                {t("register.success.close")}
               </Button>
             </DialogFooter>
           </>
@@ -2813,6 +2945,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
 };
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
+  const t = useTranslations("tournaments");
   const { token, user, login, loading: authLoading } = useAuth();
   const { openAuthModal } = useAuthModal();
   const router = useRouter();
@@ -3022,7 +3155,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
         // An expired link can never register anyone (matches the backend gate).
         if (response.data.is_expired) {
-          toast.error("This invite link has expired.");
+          toast.error(t("register.toast.expiredInvite"));
           setHasValidInvite(false);
           return false;
         }
@@ -3030,7 +3163,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         // A shared link is the reusable first-come-first-serve link, so is_used being
         // true does NOT block it; only a consumed single-use link is rejected here.
         if (response.data.is_used && !response.data.is_shared) {
-          toast.error("This invite link has already been used.");
+          toast.error(t("register.toast.usedInvite"));
           setHasValidInvite(false);
           return false;
         }
@@ -3038,14 +3171,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         return true;
       } catch (err: any) {
         console.error("Error checking invite token:", err);
-        toast.error("Invalid or expired invite link.");
+        toast.error(t("register.toast.invalidInvite"));
         setHasValidInvite(false);
         return false;
       } finally {
         setIsCheckingInvite(false);
       }
     },
-    [token],
+    [token, t],
   );
 
   // Fetch user profile to get Discord ID
@@ -3148,22 +3281,22 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       }
 
       if (response.data.all_ok) {
-        toast.success("All team members have Discord connected!");
+        toast.success(t("register.toast.allMembersDiscord"));
       }
     } catch (err: any) {
       console.error("Error validating team Discord status:", err);
       toast.error(
-        err.response?.data?.message || "Failed to validate Discord status",
+        err.response?.data?.message || t("register.toast.discordValidateFailed"),
       );
     } finally {
       setIsCheckingDiscord(false);
     }
-  }, [eventDetails, userTeam, selectedMembers, token]);
+  }, [eventDetails, userTeam, selectedMembers, token, t]);
 
   const copyAfcServerLink = useCallback(() => {
     navigator.clipboard.writeText(AFC_DISCORD_SERVER);
-    toast.success("AFC Discord server link copied!");
-  }, []);
+    toast.success(t("register.toast.serverLinkCopied"));
+  }, [t]);
 
   // ── Roster Discord auto-verification (owner 2026-06-13) ──────────────────────
   // Calls POST events/roster-discord-status/ (backend
@@ -3247,12 +3380,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       console.error("Error checking roster Discord status:", err);
       toast.error(
         err.response?.data?.message ||
-          "Could not verify Discord status. Use the Re-check button to try again.",
+          t("register.toast.rosterDiscordFailed"),
       );
     } finally {
       setIsCheckingRosterDiscord(false);
     }
-  }, [token, regType, selectedMembers, currentUserId, eventSponsorships]);
+  }, [token, regType, selectedMembers, currentUserId, eventSponsorships, t]);
 
   // Fire the roster Discord check the moment the SPONSOR step opens, but only
   // when a sponsorship actually asks for a discord join_group. modalStep is the
@@ -3303,17 +3436,17 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         if (discordStatus === "connected") {
           setDiscordConnected(true);
           setModalStep("DISCORD_JOIN");
-          toast.success("Discord account linked successfully!");
+          toast.success(t("register.toast.discordLinked"));
         } else if (discordStatus === "already_linked") {
           setDiscordConnected(true);
           setModalStep("DISCORD_JOIN");
-          toast.info("This Discord account is already linked to your profile.");
+          toast.info(t("register.toast.discordAlreadyLinked"));
         } else {
           setDiscordConnected(false);
           toast.error(
             searchParams.get("message") ||
               fixedParams.get("message") ||
-              "Discord connection failed.",
+              t("register.toast.discordFailed"),
           );
         }
 
@@ -3329,7 +3462,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         router.replace(newUrl, { scroll: false });
       }, 50);
     }
-  }, [searchParams, router, inviteToken]);
+  }, [searchParams, router, inviteToken, t]);
 
   const fetchEventDetails = useCallback(async () => {
     setIsLoading(true);
@@ -3340,11 +3473,19 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`
         : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-not-logged-in/`;
 
+      // i18n: this uses raw fetch (not the axios instance carrying the locale interceptor), so
+      // forward the active locale (NEXT_LOCALE cookie) explicitly. The backend then localizes
+      // event_name/event_rules (cached) for fr/pt; "en" or absent stays English.
+      const locale = (typeof document !== "undefined"
+        ? document.cookie.match(/(?:^|; )NEXT_LOCALE=([^;]+)/)?.[1]
+        : undefined);
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(locale && locale !== "en" ? { "Accept-Language": locale } : {}),
         },
         body: JSON.stringify({ slug: slug }),
       });
@@ -3361,12 +3502,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         setActiveStageTab(details.stages[0].stage_name);
       }
     } catch (err) {
-      toast.error("Failed to load event details");
-      setError("Failed to load event details");
+      toast.error(t("detail.loadFailed"));
+      setError(t("detail.loadFailed"));
     } finally {
       setIsLoading(false);
     }
-  }, [slug, token]);
+  }, [slug, token, t]);
 
   const fetchUserTeam = useCallback(async () => {
     setLoadingTeam(true);
@@ -3388,15 +3529,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         );
         setUserTeam(resDetails.data.team);
       } else {
-        toast.error("You don't have a team. Please create one first.");
+        toast.error(t("detail.noTeam"));
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to load team data");
+      toast.error(err.response?.data?.message || t("detail.loadTeamFailed"));
     } finally {
       setLoadingTeam(false);
     }
-  }, [token]);
+  }, [token, t]);
 
   const fetchPageRoster = useCallback(async () => {
     if (!token || !eventDetails?.event_id) return;
@@ -3605,8 +3746,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     setSoloEngagementAnswers({});
     setTeamEngagementAnswers({});
     setTeamModalStep("CLOSED");
-    toast.info("Saved registration progress cleared");
-  }, [removeRegDraft]);
+    toast.info(t("register.toast.draftCleared"));
+  }, [removeRegDraft, t]);
 
   useEffect(() => {
     // Wait until auth has fully resolved before fetching.
@@ -3635,13 +3776,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           );
           setUserTeam(resDetails.data.team);
         } else {
-          toast.error("You don't have a team. Please create one first.");
+          toast.error(t("detail.noTeam"));
         }
       };
 
       fetchUser();
     }
-  }, [fetchEventDetails, slug, token, authLoading]);
+  }, [fetchEventDetails, slug, token, authLoading, t]);
 
   const handleRegisterClick = useCallback(async () => {
     // Check ban status before anything else
@@ -3656,9 +3797,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
     // Check if event is private and if user has a valid invite
     if (eventDetails && !eventDetails.is_public && !hasValidInvite) {
-      toast.error(
-        "This is a private event. You need an invite link to register.",
-      );
+      toast.error(t("register.toast.privateEvent"));
       return;
     }
 
@@ -3676,7 +3815,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     // silently on page load, so the step renders exactly as they left it.
     const draft = draftRef.current;
     if (draft?.resume) {
-      toast.info("Resuming your registration where you stopped");
+      toast.info(t("register.toast.resuming"));
       if (draft.resume.kind === "team") {
         // Mid member-selection: reopen the team dialog. userTeam is normally
         // fetched on mount; fetch here only if it never arrived.
@@ -3697,6 +3836,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     userTeam,
     isUserBanned,
     fetchUserTeam,
+    t,
   ]);
 
   const handleSelectType = useCallback(
@@ -3769,11 +3909,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       if (storedToken) await login(storedToken);
       setModalStep("RULES");
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to save UID");
+      toast.error(
+        error?.response?.data?.message || t("register.toast.saveUidFailed"),
+      );
     } finally {
       setSavingUid(false);
     }
-  }, [uidInput, user, token, login]);
+  }, [uidInput, user, token, login, t]);
 
   const handleTeamContinueToRules = useCallback(() => {
     // Store selected team members data
@@ -3890,15 +4032,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // /profile/edit, the team logo is on /teams/<id>/edit (captain). Any other error falls back
   // to the plain backend message. Used by BOTH register catches (free + paid already-paid path).
   const handleRegistrationGateError = useCallback(
-    (error: any, fallback = "An error occurred") => {
+    (error: any, fallback?: string) => {
       const data = error?.response?.data;
-      const message: string = data?.message || fallback;
+      const message: string =
+        data?.message || fallback || t("register.toast.genericError");
       if (data?.code === "esport_image_required") {
         toast.error(message, {
-          description:
-            "Esport images are uploaded on your profile page (Edit Profile, then the Esport Image section). Your Free Fire UID is set on the same page.",
+          description: t("register.toast.esportImageDescription"),
           action: {
-            label: "Open profile editor",
+            label: t("register.toast.esportImageAction"),
             onClick: () => router.push("/profile/edit"),
           },
           duration: 12000,
@@ -3907,12 +4049,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       }
       if (data?.code === "team_logo_required") {
         toast.error(message, {
-          description: "Your team logo is uploaded on the team's edit page.",
+          description: t("register.toast.teamLogoDescription"),
           // Only captains can edit the team, but the link helps everyone find the place.
           ...(userTeam?.team_id
             ? {
                 action: {
-                  label: "Open team editor",
+                  label: t("register.toast.teamLogoAction"),
                   onClick: () => router.push(`/teams/${userTeam.team_id}/edit`),
                 },
               }
@@ -3926,15 +4068,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       // when anything is missing or malformed. The message names what failed.
       if (data?.code === "sponsor_submission_invalid") {
         toast.error(message, {
-          description:
-            "Check the sponsor requirements step: every rostered player must complete every sponsor item.",
+          description: t("register.toast.sponsorSubmissionDescription"),
           duration: 12000,
         });
         return;
       }
       toast.error(message);
     },
-    [router, userTeam],
+    [router, userTeam, t],
   );
 
   // ── PAID PATH ──────────────────────────────────────────────────────────────
@@ -3978,7 +4119,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             payload,
             { headers: { Authorization: `Bearer ${token}` } },
           );
-          toast.success(res.data.message || "You're registered!");
+          toast.success(res.data.message || t("register.toast.registeredFallback"));
           setWasWaitlisted(!!res.data.waitlisted);
           // Sponsor redesign P3: true when a requires_approval sponsor must vet
           // the engagement submissions before the spot is confirmed.
@@ -3995,7 +4136,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         }
 
         if (!init.checkout_url) {
-          toast.error("Could not start checkout. Please try again.");
+          toast.error(t("register.toast.checkoutFailed"));
           return;
         }
 
@@ -4008,7 +4149,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         // (esport image / team logo) get the same actionable deep-link toast as the free path.
         handleRegistrationGateError(
           error,
-          "Could not start the payment. Please try again.",
+          t("register.toast.paymentStartFailed"),
         );
       }
     });
@@ -4021,6 +4162,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     fetchEventDetails,
     startJoinedTransition,
     handleRegistrationGateError,
+    t,
   ]);
 
   const handleJoinedServer = useCallback(async () => {
@@ -4120,17 +4262,17 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // M: full when active (non-waitlisted) registrations have hit the cap (backend computed).
   const isFull = !!eventDetails.is_full;
   const registrationDisabledReason = !canRegister
-    ? "Private event - invite required"
+    ? t("detail.disabledReason.privateInviteRequired")
     : eventDetails.event_status !== "upcoming"
-      ? "Registration Closed"
+      ? t("detail.disabledReason.registrationClosed")
       : isEventEnded
-        ? "Event Has Ended"
+        ? t("detail.disabledReason.eventEnded")
         : now < registrationOpenDateTime
-          ? "Registration Not Open Yet"
+          ? t("detail.disabledReason.registrationNotOpen")
           : now > registrationCloseDateTime
-            ? "Registration Closed"
+            ? t("detail.disabledReason.registrationClosed")
             : isFull && !eventDetails.is_waitlist_enabled
-              ? "Registration Full"
+              ? t("detail.disabledReason.registrationFull")
               : null;
 
   // M: when the event is full but a waitlist is open, registration stays ENABLED and
@@ -4175,7 +4317,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         <div className="p-0 space-y-2">
           <Image
             src={eventDetails.event_banner_url || DEFAULT_IMAGE}
-            alt={eventDetails.event_name || "Event Banner"}
+            alt={eventDetails.event_name || t("detail.bannerAlt")}
             width={1000}
             height={1000}
             className="aspect-video size-full object-cover rounded-md"
@@ -4199,23 +4341,28 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                     isInviteConsumed ? "text-red-400" : "text-yellow-400"
                   }`}
                 >
-                  Private Event
+                  {t("detail.privateEvent.title")}
                 </p>
                 {isCheckingInvite && (
                   <p className="text-xs text-gray-300">
-                    Validating invite link...
+                    {t("detail.privateEvent.validating")}
                   </p>
                 )}
                 {!isCheckingInvite && isInviteConsumed && (
                   <div className="text-xs text-red-300 space-y-1">
-                    <p>❌ This invite link has already been used.</p>
+                    <p>❌ {t("detail.privateEvent.alreadyUsed")}</p>
                     {inviteStatus?.used_by && (
-                      <p>Used by: {inviteStatus.used_by}</p>
+                      <p>
+                        {t("detail.privateEvent.usedBy", {
+                          name: inviteStatus.used_by,
+                        })}
+                      </p>
                     )}
                     {inviteStatus?.used_at && (
                       <p>
-                        Used at:{" "}
-                        {new Date(inviteStatus.used_at).toLocaleString()}
+                        {t("detail.privateEvent.usedAt", {
+                          time: new Date(inviteStatus.used_at).toLocaleString(),
+                        })}
                       </p>
                     )}
                   </div>
@@ -4226,12 +4373,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   hasValidInvite &&
                   inviteStatus?.is_shared && (
                     <p className="text-xs text-green-300">
-                      ✓ Shared invite link. Slots are first come, first serve.
+                      ✓ {t("detail.privateEvent.sharedLink")}
                     </p>
                   )}
                 {!isCheckingInvite && !inviteToken && (
                   <p className="text-xs text-yellow-300">
-                    You need an invite link to register for this event.
+                    {t("detail.privateEvent.needInvite")}
                   </p>
                 )}
                 {!isCheckingInvite &&
@@ -4239,7 +4386,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   !inviteStatus?.is_shared &&
                   !isInviteConsumed && (
                     <p className="text-xs text-green-300">
-                      ✓ Valid invite detected - you can register!
+                      ✓ {t("detail.privateEvent.validInvite")}
                     </p>
                   )}
               </div>
@@ -4247,17 +4394,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <p>Date: {formatDate(eventDetails.start_date)}</p>
+          <p>{t("detail.date", { date: formatDate(eventDetails.start_date) })}</p>
           <p>
-            Prize Pool:{" "}
-            {/^\d+(\.\d+)?$/.test(eventDetails.prizepool)
-              ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
-              : eventDetails.prizepool}
+            {t("detail.prizePool", {
+              value: /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
+                ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+                : eventDetails.prizepool,
+            })}
           </p>
-          <p>Location: Online</p>
-          <p>Format: {formatText}</p>
+          <p>{t("detail.locationOnline")}</p>
+          <p>{t("detail.format", { value: formatText })}</p>
         </div>
-        <p className="text-sm">Participants: {participantText}</p>
+        <p className="text-sm">
+          {t("detail.participants", { value: participantText })}
+        </p>
 
         {/* ── Paid-event badge ──
             Only rendered for a paid event (registration_type === "paid" with a positive
@@ -4270,7 +4420,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               variant="outline"
               className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
             >
-              Paid: {paidFeeLabel}
+              {t("detail.paidBadge", { fee: paidFeeLabel })}
             </Badge>
           </div>
         )}
@@ -4288,8 +4438,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 }
               >
                 <TabsList>
-                  <TabsTrigger value="results">Results</TabsTrigger>
-                  <TabsTrigger value="structure">Structure</TabsTrigger>
+                  <TabsTrigger value="results">
+                    {t("detail.viewToggle.results")}
+                  </TabsTrigger>
+                  <TabsTrigger value="structure">
+                    {t("detail.viewToggle.structure")}
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -4336,7 +4490,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             </>
           ) : (
             <div className="p-10 text-center border-2 border-dashed border-zinc-900 rounded-2xl text-zinc-500">
-              Tournament hasn't started yet. Results will appear here.
+              {t("detail.noStages")}
             </div>
           )}
         </CardContent>
@@ -4359,9 +4513,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           <Alert className="mt-4 border-destructive/50 bg-destructive/10 text-destructive">
             <XCircle className="h-4 w-4" />
             <p className="text-red-900 dark:text-red-100">
-              Your registration has been{" "}
-              <span className="font-semibold inline-block">rejected</span> for
-              this tournament.
+              {t.rich("detail.rejectionNotice.personal", {
+                bold: (chunks) => (
+                  <span className="font-semibold inline-block">{chunks}</span>
+                ),
+              })}
             </p>
           </Alert>
         );
@@ -4388,24 +4544,25 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 <AlertDescription>
                   {allRejected ? (
                     <>
-                      <strong>All players</strong> on your registered roster
-                      have been rejected. Update your roster to continue.
+                      {t.rich("detail.rejectionNotice.captainAll", {
+                        bold: (chunks) => <strong>{chunks}</strong>,
+                      })}
                     </>
                   ) : (
                     <p>
-                      <strong>
-                        {rejected.length}{" "}
-                        {rejected.length === 1 ? "player" : "players"}
-                      </strong>{" "}
-                      <span>on your roster </span>
-                      <span>
-                        {rejected.length === 1 ? "has" : "have"} been rejected
-                      </span>
-                      <span>
-                        ({rejected.map((r) => r.username).join(", ")}
-                        ). Open <em>Edit Registration</em> to update your
-                        roster.
-                      </span>
+                      {t.rich("detail.rejectionNotice.captainSome", {
+                        count: rejected.length,
+                        playerWord:
+                          rejected.length === 1
+                            ? t("detail.rejectionNotice.playerSingular")
+                            : t("detail.rejectionNotice.playerPlural"),
+                        haveWord:
+                          rejected.length === 1
+                            ? t("detail.rejectionNotice.hasWord")
+                            : t("detail.rejectionNotice.haveWord"),
+                        names: rejected.map((r) => r.username).join(", "),
+                        bold: (chunks) => <strong>{chunks}</strong>,
+                      })}
                     </p>
                   )}
                 </AlertDescription>
@@ -4416,7 +4573,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           {eventDetails.is_registered ? (
             <div className="flex flex-col md:flex-row items-start justify-center md:items-center gap-2">
               <Button disabled className="w-full md:w-auto">
-                You've registered already
+                {t("detail.registered.already")}
               </Button>
 
               {/* Show Edit and Leave buttons only if event hasn't started */}
@@ -4435,7 +4592,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                     eventName={eventDetails.event_name}
                     onSuccess={() => {
                       fetchEventDetails();
-                      toast.info("You have left the tournament");
+                      toast.info(t("detail.registered.leftToast"));
                     }}
                   />
                 </>
@@ -4457,14 +4614,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               className="w-full"
             >
               {!token
-                ? "Login to Register"
+                ? t("detail.registerButton.loginToRegister")
                 : isEventEnded
-                  ? "Event Has Ended"
+                  ? t("detail.registerButton.eventEnded")
                   : now < registrationOpenDateTime
-                    ? "Registration Not Open Yet"
+                    ? t("detail.registerButton.registrationNotOpen")
                     : now > registrationCloseDateTime || eventDetails.event_status !== "upcoming"
-                      ? "Registration Closed"
-                      : "Register (External Link)"}
+                      ? t("detail.registerButton.registrationClosed")
+                      : t("detail.registerButton.registerExternal")}
             </Button>
           ) : (
             <Button
@@ -4478,19 +4635,21 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               className="w-full"
             >
               {!token
-                ? "Login to Register"
+                ? t("detail.registerButton.loginToRegister")
                 : isCheckingInvite
-                  ? "Validating invite..."
+                  ? t("detail.registerButton.validatingInvite")
                   : isInviteConsumed && !eventDetails.is_public
-                    ? "Invite Already Used"
+                    ? t("detail.registerButton.inviteAlreadyUsed")
                     : registrationDisabledReason ||
                       (waitlistMode
-                        ? "Join Waitlist"
+                        ? t("detail.registerButton.joinWaitlist")
                         : // Paid events surface the fee on the CTA so it's clear before the
                           // user opens the register flow (which ends on the PAYMENT step).
                           isPaidEvent
-                          ? `Register (${paidFeeLabel})`
-                          : "Register for Tournament")}
+                          ? t("detail.registerButton.registerPaid", {
+                              fee: paidFeeLabel,
+                            })
+                          : t("detail.registerButton.registerForTournament"))}
             </Button>
           )}
         </div>
@@ -4526,12 +4685,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             {eventDetails.participant_type === "squad" ? (
               <>
                 <IconUsersGroup />
-                Registered Teams
+                {t("detail.registeredList.teamsTitle")}
               </>
             ) : (
               <>
                 <IconUsers />
-                Registered Participants
+                {t("detail.registeredList.participantsTitle")}
               </>
             )}
           </CardTitle>
@@ -4544,7 +4703,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   <p className="font-semibold text-lg md:text-2xl">
                     {eventDetails.tournament_teams.length || 0}
                   </p>
-                  <p className="text-xs md:text-sm">Total Teams</p>
+                  <p className="text-xs md:text-sm">
+                    {t("detail.registeredList.totalTeams")}
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -4554,7 +4715,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   <p className="font-semibold text-lg md:text-2xl">
                     {eventDetails?.registered_competitors?.length || 0}
                   </p>
-                  <p className="text-xs md:text-sm">Players</p>
+                  <p className="text-xs md:text-sm">
+                    {t("detail.registeredList.players")}
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -4568,7 +4731,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                         0),
                   )}
                 </p>
-                <p className="text-xs md:text-sm">Slot left</p>
+                <p className="text-xs md:text-sm">
+                  {t("detail.registeredList.slotLeft")}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -4638,7 +4803,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
         <Card className="gap-0">
           <CardHeader>
-            <CardTitle className="text-xl mb-3">Rules</CardTitle>
+            <CardTitle className="text-xl mb-3">
+              {t("detail.rulesCard.title")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {(() => {
@@ -4655,7 +4822,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 return (
                   <div className="flex flex-col items-start space-y-3">
                     <p className="text-sm text-muted-foreground">
-                      Official rules are provided as a downloadable document.
+                      {t("detail.rulesCard.downloadableDoc")}
                     </p>
                     <Button
                       type="button"
@@ -4663,14 +4830,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                       onClick={() => window.open(documentUrl, "_blank")}
                       className="w-full"
                     >
-                      Download Rules Document
+                      {t("detail.rulesCard.downloadButton")}
                     </Button>
                   </div>
                 );
               } else {
                 return (
                   <p className="text-sm text-gray-500">
-                    Rules document pending.
+                    {t("detail.rulesCard.pending")}
                   </p>
                 );
               }
@@ -4680,7 +4847,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
         <Card className="gap-0">
           <CardHeader>
-            <CardTitle className="text-xl mb-3">Prize Distribution</CardTitle>
+            <CardTitle className="text-xl mb-3">
+              {t("detail.prizeDistribution.title")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="text-sm space-y-1">
@@ -4712,17 +4881,19 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
               <AlertTriangle className="h-7 w-7 text-red-600" />
             </div>
-            <DialogTitle className="text-xl">Registration Blocked</DialogTitle>
+            <DialogTitle className="text-xl">
+              {t("detail.bannedModal.title")}
+            </DialogTitle>
             <DialogDescription className="mt-2 text-base">
               {eventDetails.participant_type === "squad"
-                ? "Your team is banned and cannot participate in this event."
-                : "Your account is banned and you cannot participate in this event."}
+                ? t("detail.bannedModal.team")
+                : t("detail.bannedModal.account")}
             </DialogDescription>
             <Button
               className="mt-6 w-full"
               onClick={() => setShowBannedModal(false)}
             >
-              Close
+              {t("common.close")}
             </Button>
           </div>
         </DialogContent>
@@ -4733,7 +4904,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         <Dialog open={true}>
           <DialogContent>
             <div className="flex items-center justify-center p-8">
-              <Loader text="Loading team data..." />
+              <Loader text={t("detail.loadingTeamData")} />
             </div>
           </DialogContent>
         </Dialog>

@@ -4,6 +4,10 @@ import { useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+// i18n: user-visible copy (labels, placeholders, validation messages, toasts) is
+// sourced from the `profile` namespace (messages/en/profile.json). The schema is
+// built inside the component so its validation messages can be translated too.
+import { useTranslations } from "next-intl";
 import {
   Form,
   FormControl,
@@ -30,23 +34,42 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 
-const schema = z
-  .object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your new password"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type FormValues = z.infer<typeof schema>;
+// FormValues is derived from the schema shape (which never changes, only its
+// messages do), so a static type is safe even though the schema is built per-render.
+type FormValues = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
 
 export const PasswordForm = () => {
+  const t = useTranslations("profile");
   const [pending, startTransition] = useTransition();
 
   const { token } = useAuth();
+
+  // Schema built inside the component so its validation messages can be translated.
+  // Memoized on `t` so it is only rebuilt when the locale (and thus `t`) changes.
+  const schema = useMemo(
+    () =>
+      z
+        .object({
+          currentPassword: z
+            .string()
+            .min(1, t("password.validation.currentRequired")),
+          newPassword: z
+            .string()
+            .min(8, t("password.validation.minLength")),
+          confirmPassword: z
+            .string()
+            .min(1, t("password.validation.confirmRequired")),
+        })
+        .refine((data) => data.newPassword === data.confirmPassword, {
+          message: t("password.validation.mismatch"),
+          path: ["confirmPassword"],
+        }),
+    [t],
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -71,13 +94,13 @@ export const PasswordForm = () => {
 
   const checkStrength = (pass: string) => {
     const requirements = [
-      { regex: /.{8,}/, text: "At least 8 characters" },
-      { regex: /[0-9]/, text: "At least 1 number" },
-      { regex: /[a-z]/, text: "At least 1 lowercase letter" },
-      { regex: /[A-Z]/, text: "At least 1 uppercase letter" },
+      { regex: /.{8,}/, text: t("password.requirement.minLength") },
+      { regex: /[0-9]/, text: t("password.requirement.number") },
+      { regex: /[a-z]/, text: t("password.requirement.lowercase") },
+      { regex: /[A-Z]/, text: t("password.requirement.uppercase") },
       {
         regex: /[!@#$%^&*(),.?":{}|<>]/,
-        text: "At least 1 special character",
+        text: t("password.requirement.special"),
       },
     ];
 
@@ -94,10 +117,10 @@ export const PasswordForm = () => {
   }, [strength]);
 
   const getStrengthText = (score: number) => {
-    if (score === 0) return "Enter a password";
-    if (score <= 2) return "Weak password";
-    if (score === 3) return "Medium password";
-    return "Strong password";
+    if (score === 0) return t("password.strength.enter");
+    if (score <= 2) return t("password.strength.weak");
+    if (score === 3) return t("password.strength.medium");
+    return t("password.strength.strong");
   };
 
   const onSubmit = (values: FormValues) => {
@@ -119,11 +142,11 @@ export const PasswordForm = () => {
         // axios rejects on non-2xx, so reaching here means the change succeeded.
         // Give the user explicit confirmation and clear the form (this feedback
         // was previously commented out, leaving the success path silent).
-        toast.success("Password changed successfully");
+        toast.success(t("password.changed"));
         form.reset();
       } catch (err: any) {
         const message =
-          err?.response?.data?.message ?? "Failed to change password";
+          err?.response?.data?.message ?? t("password.changeFailed");
         toast.error(Array.isArray(message) ? message[0] : message);
       }
     });
@@ -139,10 +162,10 @@ export const PasswordForm = () => {
               name="currentPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Current Password</FormLabel>
+                  <FormLabel>{t("password.currentPassword")}</FormLabel>
                   <div className="relative">
                     <Input
-                      placeholder="Current password"
+                      placeholder={t("password.currentPasswordPlaceholder")}
                       {...field}
                       type={isCurrentVisible ? "text" : "password"}
                     />
@@ -153,7 +176,9 @@ export const PasswordForm = () => {
                       type="button"
                       onClick={toggleCurrentVisibility}
                       aria-label={
-                        isCurrentVisible ? "Hide password" : "Show password"
+                        isCurrentVisible
+                          ? t("password.hidePassword")
+                          : t("password.showPassword")
                       }
                       aria-pressed={isCurrentVisible}
                       aria-controls="password"
@@ -175,12 +200,12 @@ export const PasswordForm = () => {
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New password</FormLabel>
+                  <FormLabel>{t("password.newPassword")}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         className="pe-9"
-                        placeholder="Password"
+                        placeholder={t("password.newPasswordPlaceholder")}
                         type={isVisible ? "text" : "password"}
                         {...field}
                       />
@@ -191,7 +216,9 @@ export const PasswordForm = () => {
                         type="button"
                         onClick={toggleVisibility}
                         aria-label={
-                          isVisible ? "Hide password" : "Show password"
+                          isVisible
+                            ? t("password.hidePassword")
+                            : t("password.showPassword")
                         }
                         aria-pressed={isVisible}
                         aria-controls="password"
@@ -216,13 +243,15 @@ export const PasswordForm = () => {
                     />
                     {/* Password strength description */}
                     <p className="text-foreground mb-2 text-sm font-medium">
-                      {getStrengthText(strengthScore)}. Must contain:
+                      {t("password.mustContain", {
+                        strength: getStrengthText(strengthScore),
+                      })}
                     </p>
 
                     {/* Password requirements list */}
                     <ul
                       className="space-y-1.5"
-                      aria-label="Password requirements"
+                      aria-label={t("password.requirementsLabel")}
                     >
                       {strength.map((req, index) => (
                         <li key={index} className="flex items-center gap-2">
@@ -249,8 +278,8 @@ export const PasswordForm = () => {
                             {req.text}
                             <span className="sr-only">
                               {req.met
-                                ? " - Requirement met"
-                                : " - Requirement not met"}
+                                ? t("password.requirementMet")
+                                : t("password.requirementNotMet")}
                             </span>
                           </span>
                         </li>
@@ -265,12 +294,12 @@ export const PasswordForm = () => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
+                  <FormLabel>{t("password.confirmPassword")}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={isConfirmVisible ? "text" : "password"}
-                        placeholder="Enter your password"
+                        placeholder={t("password.confirmPasswordPlaceholder")}
                         {...field}
                       />
                       <Button
@@ -281,7 +310,9 @@ export const PasswordForm = () => {
                         onClick={toggleConfirmVisibility}
                         // FIX: Use isConfirmVisible for accessibility label
                         aria-label={
-                          isConfirmVisible ? "Hide password" : "Show password"
+                          isConfirmVisible
+                            ? t("password.hidePassword")
+                            : t("password.showPassword")
                         }
                         aria-pressed={isConfirmVisible}
                         aria-controls="password"
@@ -300,7 +331,11 @@ export const PasswordForm = () => {
             />
 
             <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? <Loader text="Updating…" /> : "Update Password"}
+              {pending ? (
+                <Loader text={t("password.updating")} />
+              ) : (
+                t("password.updatePassword")
+              )}
             </Button>
           </form>
         </Form>

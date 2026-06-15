@@ -28,6 +28,7 @@ import { env } from "@/lib/env";
 import { Loader } from "@/components/Loader";
 import { OTPInput, SlotProps } from "input-otp";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface Props {
   email: string;
@@ -36,6 +37,9 @@ interface Props {
 export function ConfirmationForm({ email }: Props) {
   const router = useRouter();
 
+  // Auth namespace: messages/en/auth.json (emailConfirmation.* keys). Drives the
+  // confirm/resend buttons and the verify-code/resend toasts.
+  const t = useTranslations("auth");
   const [pending, startTransition] = useTransition();
   const [pendingResend, startResendTransition] = useTransition();
 
@@ -62,7 +66,10 @@ export function ConfirmationForm({ email }: Props) {
         toast.success(response.data.message);
         router.push(`/login`);
       } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Internal server error");
+        toast.error(
+          error?.response?.data?.error ||
+            t("emailConfirmation.internalServerError")
+        );
       }
     });
   }
@@ -77,7 +84,10 @@ export function ConfirmationForm({ email }: Props) {
 
         toast.success(response.data.message);
       } catch (error: any) {
-        toast.error(error?.response?.data?.error || "Internal server error");
+        toast.error(
+          error?.response?.data?.error ||
+            t("emailConfirmation.internalServerError")
+        );
       }
     });
   };
@@ -127,7 +137,11 @@ export function ConfirmationForm({ email }: Props) {
               type="submit"
               disabled={pending || pendingResend}
             >
-              {pending ? <Loader text="Confirming..." /> : "Confirm Email"}
+              {pending ? (
+                <Loader text={t("emailConfirmation.confirming")} />
+              ) : (
+                t("emailConfirmation.submit")
+              )}
             </Button>
             <Button
               type="button"
@@ -137,9 +151,9 @@ export function ConfirmationForm({ email }: Props) {
               disabled={pendingResend || pending}
             >
               {pendingResend ? (
-                <Loader text="Sending..." />
+                <Loader text={t("emailConfirmation.sending")} />
               ) : (
-                "Resend confirmation code"
+                t("emailConfirmation.resend")
               )}
             </Button>
           </div>

@@ -21,6 +21,9 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { Star } from "lucide-react";
+// i18n: copy lives in messages/en/tournaments.json under "review.*"
+// (useTranslations resolves the NEXT_LOCALE cookie locale, en fallback).
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -56,6 +59,7 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
   eventId,
   eventName,
 }) => {
+  const t = useTranslations("tournaments");
   const { token } = useAuth();
   const isLoggedIn = !!token;
 
@@ -95,10 +99,10 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
         prev ? { ...prev, my_score: score } : prev,
       );
       await fetchRating();
-      toast.success("Thanks for rating this event!");
+      toast.success(t("review.rateSuccess"));
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to submit your rating",
+        err?.response?.data?.message || t("review.rateFailed"),
       );
     } finally {
       setIsRating(false);
@@ -113,10 +117,10 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
     try {
       await organizersApi.commentEvent(eventId, text);
       setComment("");
-      toast.success("Sent to the organizer");
+      toast.success(t("review.commentSuccess"));
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to send your comment",
+        err?.response?.data?.message || t("review.commentFailed"),
       );
     } finally {
       setIsSendingComment(false);
@@ -131,7 +135,7 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
   return (
     <Card className="mt-4">
       <CardHeader>
-        <CardTitle className="text-xl">Rate this event</CardTitle>
+        <CardTitle className="text-xl">{t("review.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         {/* ── Stars + aggregate ── */}
@@ -150,7 +154,11 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
                   <button
                     key={value}
                     type="button"
-                    aria-label={`Rate ${value} star${value > 1 ? "s" : ""}`}
+                    aria-label={
+                      value > 1
+                        ? t("review.rateStarsAria", { count: value })
+                        : t("review.rateStarAria", { count: value })
+                    }
                     disabled={!isLoggedIn || isRating}
                     onMouseEnter={() =>
                       isLoggedIn && setHoverScore(value)
@@ -183,10 +191,14 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
                   <span className="font-semibold text-foreground">
                     {average.toFixed(1)}
                   </span>{" "}
-                  ★ ({count} {count === 1 ? "rating" : "ratings"})
+                  ★ ({count}{" "}
+                  {count === 1
+                    ? t("review.ratingSingular")
+                    : t("review.ratingPlural")}
+                  )
                 </span>
               ) : (
-                <span>No ratings yet</span>
+                <span>{t("review.noRatings")}</span>
               )}
             </div>
           </div>
@@ -196,9 +208,9 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
           <p className="text-xs text-muted-foreground">
             {isLoggedIn
               ? rating?.my_score
-                ? "You rated this event - click a star to change it."
-                : "Click a star to rate this event."
-              : "Log in to rate this event and leave feedback."}
+                ? t("review.helperEditable")
+                : t("review.helperRate")
+              : t("review.helperLogin")}
           </p>
         </div>
 
@@ -209,25 +221,29 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
               htmlFor="event-comment"
               className="text-sm font-medium text-foreground"
             >
-              Leave feedback for the organizer
+              {t("review.feedbackLabel")}
             </label>
             <Textarea
               id="event-comment"
-              placeholder={`Share your thoughts on ${eventName}…`}
+              placeholder={t("review.feedbackPlaceholder", { eventName })}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               disabled={isSendingComment}
             />
             <p className="text-xs text-muted-foreground">
-              Only the organizer (and AFC) can read this.
+              {t("review.feedbackPrivate")}
             </p>
             <div className="flex justify-end">
               <Button
                 onClick={handleComment}
                 disabled={!comment.trim() || isSendingComment}
               >
-                {isSendingComment ? <Loader text="Sending..." /> : "Send"}
+                {isSendingComment ? (
+                  <Loader text={t("review.sending")} />
+                ) : (
+                  t("review.send")
+                )}
               </Button>
             </div>
           </div>

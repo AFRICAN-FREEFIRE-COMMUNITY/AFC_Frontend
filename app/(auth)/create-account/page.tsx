@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Logo } from "@/components/Logo";
 import { CreateAccountForm } from "../_components/CreateAccountForm";
 import { generatePageMetadata } from "@/lib/seo";
@@ -18,17 +19,23 @@ export const metadata: Metadata = generatePageMetadata({
   url: "/create-account",
 });
 
-const page = () => {
+// Server Component: pulls auth.register.* copy via getTranslations. The actual
+// form (fields, validation, toasts) lives in the CreateAccountForm Client
+// Component, which translates on its own.
+const page = async () => {
+  const t = await getTranslations("auth");
   return (
     <div>
       <h1 className="text-2xl md:text-3xl font-bold text-primary mb-6 text-center">
-        Create AFC Account
+        {t("register.heading")}
       </h1>
       <CreateAccountForm />
       <div className="mt-6 text-center">
-        <p className="text-muted-foreground">Already have an account?</p>
+        <p className="text-muted-foreground">
+          {t("register.alreadyHaveAccount")}
+        </p>
         <Link href="/login" className="text-primary hover:underline">
-          Login here
+          {t("register.loginHere")}
         </Link>
       </div>
     </div>

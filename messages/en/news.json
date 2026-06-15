@@ -1,0 +1,38 @@
+{
+  "pageTitle": "News & Updates",
+  "createPost": "Create New Post",
+  "categories": {
+    "all": "All Categories",
+    "general": "General News",
+    "tournament": "Tournament Updates",
+    "bans": "Banned Player/Team Updates"
+  },
+  "search": {
+    "placeholder": "Search news by title, content, or author...",
+    "categoryPlaceholder": "Select category"
+  },
+  "empty": {
+    "title": "No articles found",
+    "withFilters": "Try adjusting your search terms or filters",
+    "noArticles": "No articles available at the moment",
+    "clearFilters": "Clear all filters"
+  },
+  "card": {
+    "readMore": "Read More",
+    "register": "Register"
+  },
+  "pagination": {
+    "showing": "Showing {from}-{to} of {total} articles"
+  },
+  "detail": {
+    "titleSuffix": "{title} Details",
+    "registerForTournament": "Register for Tournament",
+    "wasThisHelpful": "Was this helpful?"
+  },
+  "toast": {
+    "loadFailed": "Failed to load news",
+    "syncFailed": "Failed to sync news data",
+    "loginToVote": "Please login to vote",
+    "actionFailed": "Action failed"
+  }
+}

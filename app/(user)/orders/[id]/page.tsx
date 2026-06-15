@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import {
   Card,
@@ -30,6 +31,8 @@ import { formatDate, formatMoneyInput } from "@/lib/utils";
 import { InfoTip } from "@/components/ui/info-tip";
 
 export default function OrderDetailsPage() {
+  // Localized copy for the single order detail page (messages/en/shop.json -> "orderDetail").
+  const t = useTranslations("shop");
   const { id } = useParams();
   const { token } = useAuth();
   const [order, setOrder] = useState<any>(null);
@@ -71,9 +74,9 @@ export default function OrderDetailsPage() {
   if (!order) {
     return (
       <div className="text-center py-20">
-        <h2 className="text-xl font-bold">Order not found</h2>
+        <h2 className="text-xl font-bold">{t("orderDetail.notFoundTitle")}</h2>
         <Button asChild variant="link">
-          <Link href="/dashboard/orders">Back to orders</Link>
+          <Link href="/dashboard/orders">{t("orderDetail.backToOrders")}</Link>
         </Button>
       </div>
     );
@@ -83,8 +86,8 @@ export default function OrderDetailsPage() {
     <div className="space-y-4">
       <PageHeader
         back
-        title={"Order Details"}
-        description={"Manage and view your transaction history"}
+        title={t("orderDetail.title")}
+        description={t("orderDetail.description")}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -94,7 +97,7 @@ export default function OrderDetailsPage() {
             <CardHeader className="border-b [.border-b]:pb-4">
               <CardTitle className="flex items-center gap-1">
                 <IconReceipt2 className="h-5 w-5 text-primary" />
-                Items Purchased
+                {t("orderDetail.itemsPurchased")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -106,7 +109,10 @@ export default function OrderDetailsPage() {
                   <div className="space-y-1">
                     <p className="font-medium text-sm">{item.product_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Variant: {item.variant_title} | Qty: {item.quantity}
+                      {t("orderDetail.variantQty", {
+                        variant: item.variant_title,
+                        quantity: item.quantity,
+                      })}
                     </p>
                   </div>
                   <p className="font-semibold text-sm">
@@ -119,17 +125,17 @@ export default function OrderDetailsPage() {
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Subtotal</span>
+                  <span>{t("orderDetail.subtotal")}</span>
                   <span>₦{formatMoneyInput(order.subtotal)}</span>
                 </div>
                 <Separator className="my-4" />
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Tax</span>
+                  <span>{t("orderDetail.tax")}</span>
                   <span>₦{formatMoneyInput(order.tax)}</span>
                 </div>
                 <Separator className="my-4" />
                 <div className="flex justify-between font-semibold text-base">
-                  <span>Total Amount</span>
+                  <span>{t("orderDetail.totalAmount")}</span>
                   <span className="text-primary">
                     {formatPrice(order.total)}
                   </span>
@@ -145,11 +151,10 @@ export default function OrderDetailsPage() {
               </div>
               <div>
                 <p className="font-bold text-base text-green-900 dark:text-white">
-                  Payment Verified
+                  {t("orderDetail.paymentVerifiedTitle")}
                 </p>
                 <p className="text-xs text-green-700 dark:text-green-100">
-                  Your diamonds have been dispatched. Please check your
-                  registered email for the redemption codes.
+                  {t("orderDetail.paymentVerifiedBody")}
                 </p>
               </div>
             </div>
@@ -160,14 +165,14 @@ export default function OrderDetailsPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>{t("orderDetail.orderSummary")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
                 <IconHash className="h-4 w-4 text-muted-foreground" />
                 <div className="text-sm">
                   <p className="text-muted-foreground leading-none text-xs">
-                    Order ID
+                    {t("orderDetail.orderId")}
                   </p>
                   <p className="font-medium mt-1">#{order.order_id}</p>
                 </div>
@@ -177,7 +182,7 @@ export default function OrderDetailsPage() {
                 <IconCalendar className="h-4 w-4 text-muted-foreground" />
                 <div className="text-sm">
                   <p className="text-muted-foreground leading-none text-xs">
-                    Date
+                    {t("orderDetail.date")}
                   </p>
                   <p className="font-medium mt-1">
                     {formatDate(order.created_at)}
@@ -189,7 +194,7 @@ export default function OrderDetailsPage() {
                 <IconCreditCard className="h-4 w-4 text-muted-foreground" />
                 <div className="text-sm">
                   <p className="text-muted-foreground leading-none text-xs flex items-center gap-1">
-                    Status
+                    {t("orderDetail.status")}
                     <InfoTip id="shop.diamonds.order_detail_status" />
                   </p>
                   <Badge
@@ -208,7 +213,7 @@ export default function OrderDetailsPage() {
             className="w-full"
             onClick={() => window.print()}
           >
-            Print Receipt
+            {t("orderDetail.printReceipt")}
           </Button>
         </div>
       </div>

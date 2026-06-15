@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,8 @@ import { toast } from "sonner";
 import { InfoTip } from "@/components/ui/info-tip";
 
 export default function OrderSuccess() {
+  // Localized copy for the payment-verification page (messages/en/shop.json -> "success").
+  const t = useTranslations("shop");
   const searchParams = useSearchParams();
   const { token } = useAuth();
 
@@ -63,13 +66,14 @@ export default function OrderSuccess() {
           setOrderDetails({ order_id: stripeOrderId });
           setStatus("success");
           if (pollingInterval.current) clearInterval(pollingInterval.current);
-          toast.success("Payment verified!");
+          toast.success(t("success.toast.verified"));
         }
       } catch (error: any) {
         console.error("Stripe verification attempt failed", error);
         if (status !== "success") setStatus("error");
         toast.error(
-          error.response?.data?.message || "Verification failed. Try again.",
+          error.response?.data?.message ||
+            t("success.toast.verificationFailed"),
         );
       } finally {
         setIsRetrying(false);
@@ -99,7 +103,7 @@ export default function OrderSuccess() {
         setStatus("success");
         // Stop polling once successful
         if (pollingInterval.current) clearInterval(pollingInterval.current);
-        toast.success("Payment verified!");
+        toast.success(t("success.toast.verified"));
       }
     } catch (error: any) {
       console.error("Verification attempt failed", error);
@@ -109,13 +113,13 @@ export default function OrderSuccess() {
 
       // if (isManual) {
       toast.error(
-        error.response?.data?.message || "Verification failed. Try again.",
+        error.response?.data?.message || t("success.toast.verificationFailed"),
       );
       // }
     } finally {
       setIsRetrying(false);
     }
-  }, [reference, token, status, isStripe, stripeSessionId, stripeOrderId]);
+  }, [reference, token, status, isStripe, stripeSessionId, stripeOrderId, t]);
 
   // Handle Polling and Initial Load
   useEffect(() => {
@@ -143,9 +147,9 @@ export default function OrderSuccess() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <IconLoader2 className="h-12 w-12 animate-spin text-primary" />
         <div className="space-y-2 text-center">
-          <h2 className="text-lg font-semibold">Verifying your payment...</h2>
+          <h2 className="text-lg font-semibold">{t("success.verifying")}</h2>
           <p className="text-muted-foreground text-sm">
-            Please do not refresh the page.
+            {t("success.doNotRefresh")}
           </p>
         </div>
       </div>
@@ -165,8 +169,8 @@ export default function OrderSuccess() {
           </div>
           <CardTitle className="text-2xl font-bold flex items-center justify-center gap-1">
             {status === "success"
-              ? "Payment Successful!"
-              : "Pending Verification"}
+              ? t("success.paymentSuccessful")
+              : t("success.pendingVerification")}
             <InfoTip id="shop.diamonds.order_status" />
           </CardTitle>
         </CardHeader>
@@ -175,15 +179,16 @@ export default function OrderSuccess() {
           {status === "success" ? (
             <>
               <CardDescription className="text-base">
-                Your order has been confirmed. Your diamonds are being
-                delivered!
+                {t("success.confirmed")}
               </CardDescription>
               <div className="bg-muted p-4 rounded-md text-left w-full space-y-2 border">
                 {/* Paystack carries a reference; Stripe carries a session id. Show whichever exists. */}
                 {(reference || stripeSessionId) && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {reference ? "Reference:" : "Session:"}
+                      {reference
+                        ? t("success.reference")
+                        : t("success.session")}
                     </span>
                     <span className="font-mono text-xs">
                       {reference || stripeSessionId}
@@ -192,7 +197,9 @@ export default function OrderSuccess() {
                 )}
                 {orderDetails?.order_id && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Order ID:</span>
+                    <span className="text-muted-foreground">
+                      {t("success.orderId")}
+                    </span>
                     <span className="font-semibold">
                       #{orderDetails.order_id}
                     </span>
@@ -200,22 +207,24 @@ export default function OrderSuccess() {
                 )}
               </div>
               <p className="text-xs text-amber-700 bg-amber-50 rounded-md p-3 border border-amber-200">
-                Redemption codes are sent to your email. This usually takes 5-10
-                minutes.
+                {t("success.redemptionNote")}
               </p>
             </>
           ) : (
             <>
               <CardDescription>
-                We haven't received confirmation for{" "}
-                {reference ? "reference" : "session"}: <br />
+                {reference
+                  ? t("success.noConfirmationReference")
+                  : t("success.noConfirmationSession")}{" "}
+                <br />
                 <span className="font-mono text-foreground font-bold">
                   {reference || stripeSessionId || stripeOrderId}
                 </span>
               </CardDescription>
               <div className="text-sm bg-muted p-3 rounded-md border">
-                The system is automatically retrying every 30 seconds. You can
-                also click <strong>Retry Now</strong> if you have been debited.
+                {t.rich("success.autoRetry", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </div>
             </>
           )}
@@ -225,10 +234,10 @@ export default function OrderSuccess() {
           {status === "success" ? (
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Button asChild variant="outline" className="flex-1">
-                <Link href="/shop">Continue Shopping</Link>
+                <Link href="/shop">{t("success.continueShopping")}</Link>
               </Button>
               <Button asChild className="flex-1">
-                <Link href="/orders">View Orders</Link>
+                <Link href="/orders">{t("success.viewOrders")}</Link>
               </Button>
             </div>
           ) : (
@@ -244,14 +253,14 @@ export default function OrderSuccess() {
                   ) : (
                     <IconRefresh className="mr-2 h-4 w-4" />
                   )}
-                  Retry Now
+                  {t("success.retryNow")}
                 </Button>
                 <Button asChild variant="outline" className="flex-1">
-                  <Link href="/contact">Contact Support</Link>
+                  <Link href="/contact">{t("success.contactSupport")}</Link>
                 </Button>
               </div>
               <Button asChild variant="ghost" className="text-muted-foreground">
-                <Link href="/shop">Back to Shop</Link>
+                <Link href="/shop">{t("success.backToShop")}</Link>
               </Button>
             </div>
           )}

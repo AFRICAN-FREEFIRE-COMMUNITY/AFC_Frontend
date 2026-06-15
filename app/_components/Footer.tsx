@@ -1,8 +1,16 @@
+"use client";
 import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import React from "react";
+// Footer is a CLIENT component: it is rendered both by server layouts AND by client pages
+// (home, rules, invite), so it must use the client useTranslations() hook, not the server
+// getTranslations() (which throws "not supported in Client Components" when a client parent
+// renders it). Strings live in messages/en/common.json under the "common" namespace.
+import { useTranslations } from "next-intl";
 
 export const Footer = () => {
+  const t = useTranslations("common");
+
   return (
     <footer className="border-t border-border/40 bg-background/50 backdrop-blur-sm mt-8">
       <div className="container mx-auto px-4 py-8">
@@ -10,22 +18,26 @@ export const Footer = () => {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <Logo size="small" />
-              <span className="text-lg font-bold text-primary">AFC</span>
+              <span className="text-lg font-bold text-primary">
+                {t("brand.shortName")}
+              </span>
             </div>
             <p className="text-muted-foreground text-sm">
-              The premier Free Fire competitive platform for serious players.
+              {t("footer.tagline")}
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 text-primary">Platform</h4>
+            <h4 className="font-semibold mb-4 text-primary">
+              {t("footer.platform")}
+            </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link
                   href="/tournaments"
                   className="hover:text-primary transition-colors"
                 >
-                  Tournaments
+                  {t("footer.tournaments")}
                 </Link>
               </li>
               {/* <li>
@@ -41,7 +53,7 @@ export const Footer = () => {
                   href="/teams"
                   className="hover:text-primary transition-colors"
                 >
-                  Teams
+                  {t("footer.teams")}
                 </Link>
               </li>
               <li>
@@ -49,7 +61,7 @@ export const Footer = () => {
                   href="/awards"
                   className="hover:text-primary transition-colors"
                 >
-                  Awards
+                  {t("footer.awards")}
                 </Link>
               </li>
               {/* <li>
@@ -64,14 +76,16 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 text-primary">Community</h4>
+            <h4 className="font-semibold mb-4 text-primary">
+              {t("footer.community")}
+            </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link
                   href="/about"
                   className="hover:text-primary transition-colors"
                 >
-                  About us
+                  {t("footer.aboutUs")}
                 </Link>
               </li>
               <li>
@@ -79,7 +93,7 @@ export const Footer = () => {
                   href="/contact"
                   className="hover:text-primary transition-colors"
                 >
-                  Contact
+                  {t("footer.contact")}
                 </Link>
               </li>
               <li>
@@ -87,7 +101,7 @@ export const Footer = () => {
                   href="/news"
                   className="hover:text-primary transition-colors"
                 >
-                  News
+                  {t("footer.news")}
                 </Link>
               </li>
               <li>
@@ -95,7 +109,7 @@ export const Footer = () => {
                   href="/teams"
                   className="hover:text-primary transition-colors"
                 >
-                  Teams
+                  {t("footer.teams")}
                 </Link>
               </li>
               {/* <li>
@@ -110,14 +124,16 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 text-primary">Support</h4>
+            <h4 className="font-semibold mb-4 text-primary">
+              {t("footer.support")}
+            </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link
                   href="/terms-of-service"
                   className="hover:text-primary transition-colors"
                 >
-                  Terms of Service
+                  {t("footer.termsOfService")}
                 </Link>
               </li>
               <li>
@@ -125,7 +141,7 @@ export const Footer = () => {
                   href="/privacy-policy"
                   className="hover:text-primary transition-colors"
                 >
-                  Privacy Policy
+                  {t("footer.privacyPolicy")}
                 </Link>
               </li>
               <li>
@@ -133,7 +149,7 @@ export const Footer = () => {
                   href="/rules"
                   className="hover:text-primary transition-colors"
                 >
-                  Rules
+                  {t("footer.rules")}
                 </Link>
               </li>
             </ul>
@@ -141,12 +157,9 @@ export const Footer = () => {
         </div>
 
         <div className="border-t text-sm border-border/40 mt-8 pt-6 flex flex-col md:flex-row justify-between text-muted-foreground font-medium items-center">
-          <p>
-            &copy; {new Date().getFullYear()} African Freefire Community. All
-            rights reserved.
-          </p>
+          <p>{t("footer.copyright", { year: new Date().getFullYear() })}</p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <span>Powered by AFC Gaming</span>
+            <span>{t("footer.poweredBy")}</span>
           </div>
         </div>
       </div>

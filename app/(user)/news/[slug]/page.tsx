@@ -71,7 +71,7 @@ function extractNewsExcerpt(content: unknown, max = 160): string {
  */
 // Returns a DetailResult: "ok" with the article, "missing" on a backend 404
 // (unknown slug → News.DoesNotExist), or "error" on any transient failure.
-async function getNewsData(slug: string, token?: string) {
+async function getNewsData(slug: string, token?: string, locale?: string) {
   return fetchDetail(
     `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
     {
@@ -79,6 +79,9 @@ async function getNewsData(slug: string, token?: string) {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
+        // i18n: pass the user's locale so the backend translates the article
+        // (title + Tiptap body) for fr/pt readers, cached server-side.
+        ...(locale && locale !== "en" && { "Accept-Language": locale }),
       },
       body: JSON.stringify({ slug }),
       cache: "no-store",
@@ -94,8 +97,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Read token from cookies for authenticated requests
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
+  const locale = cookieStore.get("NEXT_LOCALE")?.value;
 
-  const result = await getNewsData(slug, token);
+  const result = await getNewsData(slug, token, locale);
 
   // Confirmed-gone article (backend 404) → real 404, not a soft-404.
   if (result.status === "missing") notFound();
@@ -142,8 +146,9 @@ export default async function Page({ params }: Props) {
   // Read token from cookies for authenticated requests
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
+  const locale = cookieStore.get("NEXT_LOCALE")?.value;
 
-  const result = await getNewsData(slug, token);
+  const result = await getNewsData(slug, token, locale);
 
   // Confirmed-gone article (backend 404) → real Next.js 404 page.
   if (result.status === "missing") notFound();

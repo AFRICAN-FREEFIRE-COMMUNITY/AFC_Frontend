@@ -23,6 +23,9 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+// i18n: copy lives in messages/en/tournaments.json under "sponsorRequirements.*"
+// (useTranslations resolves the NEXT_LOCALE cookie locale, en fallback).
+import { useTranslations } from "next-intl";
 
 import {
   Card,
@@ -38,12 +41,13 @@ import { Loader } from "@/components/Loader";
 import { sponsorsApi, MySubmissionRow } from "@/lib/sponsors";
 
 // Fallback row title when the engagement has no label (label is optional on
-// follow_social / join_group configs).
-const TYPE_LABELS: Record<string, string> = {
-  collect_id: "Sponsor ID",
-  follow_social: "Social follow",
-  create_account: "Account signup",
-  join_group: "Group join",
+// follow_social / join_group configs). Maps each engagement type to its i18n
+// key under sponsorRequirements.typeLabels.* (resolved at render via t()).
+const TYPE_LABEL_KEYS: Record<string, string> = {
+  collect_id: "sponsorRequirements.typeLabels.collectId",
+  follow_social: "sponsorRequirements.typeLabels.followSocial",
+  create_account: "sponsorRequirements.typeLabels.createAccount",
+  join_group: "sponsorRequirements.typeLabels.joinGroup",
 };
 
 // The payload key a resubmit edits, per engagement type. join_group payloads
@@ -68,7 +72,12 @@ const primaryPayloadKey = (row: MySubmissionRow): string => {
 
 // Human one-liner of what was submitted, shown next to the sponsor name.
 // follow_social with an empty payload means "actions confirmed, no link asked".
-const submittedValueSummary = (row: MySubmissionRow): string => {
+// `actionsConfirmedLabel` is the localized "Actions confirmed" string, passed in
+// from the component (this stays a pure helper, no hook here).
+const submittedValueSummary = (
+  row: MySubmissionRow,
+  actionsConfirmedLabel: string,
+): string => {
   const p = row.payload || {};
   if (row.engagement_type === "join_group" && p.phone) {
     return `${p.country_code ? `${p.country_code} ` : ""}${p.phone}`;
@@ -76,29 +85,31 @@ const submittedValueSummary = (row: MySubmissionRow): string => {
   const value =
     p.value ?? p.username ?? p.profile_link ?? p.discord_username ?? "";
   if (String(value).trim() !== "") return String(value);
-  return row.engagement_type === "follow_social" ? "Actions confirmed" : "";
+  return row.engagement_type === "follow_social" ? actionsConfirmedLabel : "";
 };
 
 // Status pill in the AFC tier-badge idiom (outline, rounded-full, text-xs).
 const StatusPill: React.FC<{ status: MySubmissionRow["approval_status"] }> = ({
   status,
 }) => {
+  // i18n: localized status labels under sponsorRequirements.status.*.
+  const t = useTranslations("tournaments");
   const styles: Record<string, { className: string; label: string }> = {
     pending: {
       className: "border-yellow-500/50 text-yellow-400",
-      label: "Pending",
+      label: t("sponsorRequirements.status.pending"),
     },
     approved: {
       className: "border-green-500/50 text-green-500",
-      label: "Approved",
+      label: t("sponsorRequirements.status.approved"),
     },
     rejected: {
       className: "border-destructive/50 text-destructive",
-      label: "Rejected",
+      label: t("sponsorRequirements.status.rejected"),
     },
     not_required: {
       className: "border-input text-muted-foreground",
-      label: "Submitted",
+      label: t("sponsorRequirements.status.submitted"),
     },
   };
   const s = styles[status] ?? styles.not_required;
@@ -120,6 +131,7 @@ interface SponsorRequirementsCardProps {
 export const SponsorRequirementsCard: React.FC<
   SponsorRequirementsCardProps
 > = ({ eventId }) => {
+  const t = useTranslations("tournaments");
   // null = still loading (render nothing yet); [] = loaded, nothing to show.
   const [rows, setRows] = useState<MySubmissionRow[] | null>(null);
   // Per-row resubmit drafts keyed by submission id.
@@ -154,11 +166,14 @@ export const SponsorRequirementsCard: React.FC<
         ...(row.payload || {}),
         [primaryPayloadKey(row)]: value,
       });
-      toast.success("Submitted. The sponsor will review it again.");
+      toast.success(t("sponsorRequirements.resubmitSuccess"));
       setDrafts((prev) => ({ ...prev, [row.id]: "" }));
       await fetchRows();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to resubmit");
+      toast.error(
+        err?.response?.data?.message ||
+          t("sponsorRequirements.resubmitFailed"),
+      );
     } finally {
       setResubmittingId(null);
     }
@@ -170,15 +185,19 @@ export const SponsorRequirementsCard: React.FC<
   return (
     <Card className="mt-4">
       <CardHeader>
-        <CardTitle className="text-xl">Sponsor Requirements</CardTitle>
+        <CardTitle className="text-xl">
+          {t("sponsorRequirements.title")}
+        </CardTitle>
         <CardDescription>
-          Your sponsor submissions for this event. Rejected items can be
-          corrected and resubmitted below.
+          {t("sponsorRequirements.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         {rows.map((row) => {
-          const summary = submittedValueSummary(row);
+          const summary = submittedValueSummary(
+            row,
+            t("sponsorRequirements.actionsConfirmed"),
+          );
           const isResubmitting = resubmittingId === row.id;
           return (
             <div key={row.id} className="p-3 rounded-md border space-y-2">
@@ -186,8 +205,9 @@ export const SponsorRequirementsCard: React.FC<
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">
                     {row.engagement_label ||
-                      TYPE_LABELS[row.engagement_type] ||
-                      "Sponsor requirement"}
+                      (TYPE_LABEL_KEYS[row.engagement_type]
+                        ? t(TYPE_LABEL_KEYS[row.engagement_type] as any)
+                        : t("sponsorRequirements.fallbackTitle"))}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {row.sponsor_name}
@@ -202,13 +222,13 @@ export const SponsorRequirementsCard: React.FC<
                 <div className="space-y-2">
                   {row.reason && (
                     <p className="text-xs text-destructive">
-                      Reason: {row.reason}
+                      {t("sponsorRequirements.reason", { reason: row.reason })}
                     </p>
                   )}
                   <div className="flex gap-2">
                     <Input
                       className="h-8 text-xs flex-1"
-                      placeholder="Enter the corrected value"
+                      placeholder={t("sponsorRequirements.correctedPlaceholder")}
                       value={drafts[row.id] ?? ""}
                       onChange={(e) =>
                         setDrafts((prev) => ({
@@ -225,9 +245,9 @@ export const SponsorRequirementsCard: React.FC<
                       disabled={!(drafts[row.id] ?? "").trim() || isResubmitting}
                     >
                       {isResubmitting ? (
-                        <Loader text="Sending..." />
+                        <Loader text={t("sponsorRequirements.sending")} />
                       ) : (
-                        "Resubmit"
+                        t("sponsorRequirements.resubmit")
                       )}
                     </Button>
                   </div>

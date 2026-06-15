@@ -24,8 +24,11 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { IconCreditCard, IconTrash } from "@tabler/icons-react";
+// Shared-chrome strings live in messages/en/common.json under "common".
+import { useTranslations } from "next-intl";
 
 export function CartSheet() {
+  const t = useTranslations("common");
   const {
     isCartOpen,
     setIsCartOpen,
@@ -65,7 +68,7 @@ export function CartSheet() {
       );
       fetchCart();
     } catch (error) {
-      toast.error("Failed to update quantity");
+      toast.error(t("cart.updateFailed"));
     }
   };
 
@@ -82,11 +85,11 @@ export function CartSheet() {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      toast.success("Item removed");
+      toast.success(t("cart.removed"));
       fetchCart();
     } catch (error) {
       console.error("Remove Error:", error);
-      toast.error("Failed to remove item");
+      toast.error(t("cart.removeFailed"));
     }
   };
 
@@ -103,9 +106,9 @@ export function CartSheet() {
       <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
         <SheetHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
-            <SheetTitle>Your Cart</SheetTitle>
+            <SheetTitle>{t("cart.title")}</SheetTitle>
             <p className="text-sm text-muted-foreground">
-              {items.length} item{items.length !== 1 ? "s" : ""}
+              {t("cart.itemCount", { count: items.length })}
             </p>
           </div>
 
@@ -118,7 +121,7 @@ export function CartSheet() {
               onClick={clearCart}
             >
               <IconTrash />
-              Clear All
+              {t("cart.clearAll")}
             </Button>
           )}
         </SheetHeader>
@@ -134,10 +137,10 @@ export function CartSheet() {
               <ShoppingBasket className="h-10 w-10 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground text-sm mb-4">
-              Your cart is feeling a bit light!
+              {t("cart.empty")}
             </p>
             <Button asChild onClick={() => setIsCartOpen(false)}>
-              <Link href="/shop">Go to Shop</Link>
+              <Link href="/shop">{t("cart.goToShop")}</Link>
             </Button>
           </div>
         ) : (
@@ -158,11 +161,17 @@ export function CartSheet() {
                       </p>
                       {item.coupon_code && (
                         <p className="text-xs text-green-500 font-medium mt-0.5">
-                          Coupon: {item.coupon_code}
+                          {t("cart.couponLabel", { code: item.coupon_code })}
                           {item.coupon_discount_type === "percent"
-                            ? ` (${item.coupon_discount_value}% off)`
+                            ? t("cart.couponPercentOff", {
+                                value: item.coupon_discount_value,
+                              })
                             : item.coupon_discount_value
-                              ? ` (${formatPrice(item.coupon_discount_value)} off)`
+                              ? t("cart.couponFixedOff", {
+                                  value: formatPrice(
+                                    item.coupon_discount_value,
+                                  ),
+                                })
                               : ""}
                         </p>
                       )}
@@ -232,21 +241,27 @@ export function CartSheet() {
             <div className="p-6 bg-muted/30 border-t space-y-4">
               {getOriginalSubtotal() > getSubtotal() && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Original</span>
+                  <span className="text-muted-foreground">
+                    {t("cart.original")}
+                  </span>
                   <span className="text-muted-foreground line-through">
                     {formatPrice(getOriginalSubtotal())}
                   </span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-bold">
-                <span>Estimated Total</span>
+                <span>{t("cart.estimatedTotal")}</span>
                 <span className="text-primary">
                   {formatPrice(getSubtotal())}
                 </span>
               </div>
               {getOriginalSubtotal() > getSubtotal() && (
                 <p className="text-xs text-green-500 font-medium">
-                  You save {formatPrice(getOriginalSubtotal() - getSubtotal())}!
+                  {t("cart.youSave", {
+                    amount: formatPrice(
+                      getOriginalSubtotal() - getSubtotal(),
+                    ),
+                  })}
                 </p>
               )}
 
@@ -257,7 +272,7 @@ export function CartSheet() {
               >
                 <Link href="/shop/cart">
                   <IconCreditCard />
-                  Proceed to Checkout
+                  {t("cart.proceedToCheckout")}
                 </Link>
               </Button>
             </div>

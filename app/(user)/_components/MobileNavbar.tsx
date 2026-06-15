@@ -31,12 +31,18 @@ import { useState } from "react";
 import { useTheme } from "next-themes";
 import { adminNavLinks, homeNavLinksMobile } from "@/constants/nav-links";
 import { cn } from "@/lib/utils";
+// Shared-chrome strings live in messages/en/common.json under "common"; this
+// Client Component reads them via the useTranslations() hook. Note: the nav
+// item labels themselves come from constants/nav-links.ts (shared data also
+// consumed by the admin sidebar) and are intentionally NOT translated here.
+import { useTranslations } from "next-intl";
 
 export function MobileNavbar() {
   const [open, setOpen] = useState(false);
   const handleSignout = useSignout();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const t = useTranslations("common");
 
   const { user, isAdmin, isOrganizer } = useAuth();
 
@@ -145,7 +151,7 @@ export function MobileNavbar() {
       <SheetContent className="h-screen">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
-            <span>Menu</span>
+            <span>{t("mobileNav.menu")}</span>
             <Button
               variant="ghost"
               size="icon"
@@ -154,10 +160,10 @@ export function MobileNavbar() {
             >
               <IconSun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
               <IconMoon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-              <span className="sr-only">Toggle theme</span>
+              <span className="sr-only">{t("theme.toggle")}</span>
             </Button>
           </SheetTitle>
-          <SheetDescription>Navigation menu for AFC</SheetDescription>
+          <SheetDescription>{t("mobileNav.description")}</SheetDescription>
         </SheetHeader>
         <ScrollArea className="overflow-y-auto">
           <div className="grid gap-1 container">
@@ -191,7 +197,7 @@ export function MobileNavbar() {
                         {displayLabel}
                         {comingSoon && (
                           <Badge variant="secondary" className="ml-2">
-                            Soon
+                            {t("mobileNav.badgeSoon")}
                           </Badge>
                         )}
                         {showNewBadge && !comingSoon && (
@@ -199,7 +205,7 @@ export function MobileNavbar() {
                             variant="default"
                             className="glow-new-badge text-[11px] font-bold uppercase tracking-wide text-white"
                           >
-                            New
+                            {t("mobileNav.badgeNew")}
                           </Badge>
                         )}
                       </span>
@@ -241,7 +247,7 @@ export function MobileNavbar() {
                                     variant="secondary"
                                     className="ml-auto text-[10px]"
                                   >
-                                    Soon
+                                    {t("mobileNav.badgeSoon")}
                                   </Badge>
                                 </div>
                               ) : (
@@ -253,7 +259,7 @@ export function MobileNavbar() {
                                       variant="default"
                                       className="glow-new-badge text-[10px] ml-2 text-white"
                                     >
-                                      New
+                                      {t("mobileNav.badgeNew")}
                                     </Badge>
                                   )}
                                 </Link>
@@ -276,7 +282,7 @@ export function MobileNavbar() {
                 >
                   <Icon size={20} className="mr-2" /> {displayLabel}
                   <Badge variant={"secondary"} className="ml-2">
-                    Soon
+                    {t("mobileNav.badgeSoon")}
                   </Badge>
                 </Button>
               ) : (
@@ -295,7 +301,7 @@ export function MobileNavbar() {
                         variant="default"
                         className="glow-new-badge text-[10px] ml-2 text-white"
                       >
-                        New
+                        {t("mobileNav.badgeNew")}
                       </Badge>
                     )}
                   </Link>
@@ -313,7 +319,7 @@ export function MobileNavbar() {
               <>
                 <Separator className="my-2" />
                 <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
-                  Admin
+                  {t("mobileNav.sectionAdmin")}
                 </p>
                 {adminNavLinks
                   .filter(
@@ -334,7 +340,7 @@ export function MobileNavbar() {
                         <div className="flex items-center w-full">
                           <Icon size={18} className="mr-2" /> {label}
                           <Badge variant="secondary" className="ml-auto">
-                            Soon
+                            {t("mobileNav.badgeSoon")}
                           </Badge>
                         </div>
                       ) : (
@@ -355,7 +361,7 @@ export function MobileNavbar() {
               <>
                 <Separator className="my-2" />
                 <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
-                  Sponsor
+                  {t("mobileNav.sectionSponsor")}
                 </p>
                 <Button
                   className="justify-start"
@@ -364,7 +370,8 @@ export function MobileNavbar() {
                   onClick={handleLinkClick}
                 >
                   <Link href="/a/sponsor-dashboard">
-                    <IconStar size={18} className="mr-2" /> Sponsor Dashboard
+                    <IconStar size={18} className="mr-2" />{" "}
+                    {t("mobileNav.sponsorDashboard")}
                   </Link>
                 </Button>
               </>
@@ -377,7 +384,7 @@ export function MobileNavbar() {
               <>
                 <Separator className="my-2" />
                 <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
-                  Organizer
+                  {t("mobileNav.sectionOrganizer")}
                 </p>
                 <Button
                   className="justify-start"
@@ -386,7 +393,8 @@ export function MobileNavbar() {
                   onClick={handleLinkClick}
                 >
                   <Link href="/organizer/overview">
-                    <IconBuilding size={18} className="mr-2" /> Organizer Dashboard
+                    <IconBuilding size={18} className="mr-2" />{" "}
+                    {t("mobileNav.organizerDashboard")}
                   </Link>
                 </Button>
               </>
@@ -400,7 +408,7 @@ export function MobileNavbar() {
               <>
                 <Separator className="my-2" />
                 <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
-                  Vendor
+                  {t("mobileNav.sectionVendor")}
                 </p>
                 <Button
                   className="justify-start"
@@ -409,7 +417,8 @@ export function MobileNavbar() {
                   onClick={handleLinkClick}
                 >
                   <Link href="/vendor">
-                    <IconBuildingStore size={18} className="mr-2" /> Vendor Dashboard
+                    <IconBuildingStore size={18} className="mr-2" />{" "}
+                    {t("mobileNav.vendorDashboard")}
                   </Link>
                 </Button>
               </>
@@ -421,23 +430,25 @@ export function MobileNavbar() {
             <>
               <SheetClose asChild>
                 <Button asChild variant={"secondary"}>
-                  <Link href="/login">Log in</Link>
+                  <Link href="/login">{t("header.logIn")}</Link>
                 </Button>
               </SheetClose>
               <SheetClose asChild>
                 <Button variant={"gradient"} asChild>
-                  <Link href={"/create-account"}>Join now</Link>
+                  <Link href={"/create-account"}>
+                    {t("mobileNav.joinNowLower")}
+                  </Link>
                 </Button>
               </SheetClose>
             </>
           ) : (
             <>
               <Button variant="secondary" asChild onClick={handleLinkClick}>
-                <Link href="/profile">My profile</Link>
+                <Link href="/profile">{t("mobileNav.myProfile")}</Link>
               </Button>
               <Button onClick={handleLogout} type="submit">
                 <IconLogout />
-                Logout
+                {t("mobileNav.logout")}
               </Button>
             </>
           )}

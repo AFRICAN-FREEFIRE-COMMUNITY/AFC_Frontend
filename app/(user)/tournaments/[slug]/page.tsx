@@ -2,6 +2,7 @@ import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { env } from "@/lib/env";
+import { cookies } from "next/headers";
 // Existence-aware detail fetch (lib/detailFetch.ts): distinguishes a CONFIRMED
 // backend 404 ("missing" → notFound() → a real 404, no soft-404) from a TRANSIENT
 // error ("error" → keep the 200 fallback so a live event is never deindexed).
@@ -29,14 +30,19 @@ type Props = {
 // Returns a DetailResult: "ok" with the event, "missing" on a backend 404
 // (unknown slug, or the event's org is suspended/deleted), or "error" on any
 // transient failure. Public endpoint — no auth needed.
-async function getEventData(slug: string) {
+async function getEventData(slug: string, locale?: string) {
   return fetchDetail(
     `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-not-logged-in/`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        // i18n: forward the user's locale so the backend localizes event_name/event_rules
+        // (cached server-side). Reading the cookie makes this route locale-dynamic.
+        ...(locale && locale !== "en" && { "Accept-Language": locale }),
+      },
       body: JSON.stringify({ slug: decodeURIComponent(slug) }),
-      next: { revalidate: 60 },
+      cache: "no-store",
     },
     // The endpoint returns the event under event_details (or team for the
     // legacy team shape); either present means the event loaded.
@@ -47,7 +53,8 @@ async function getEventData(slug: string) {
 // 2. Metadata Generation
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const result = await getEventData(slug);
+  const _c = await cookies();
+  const result = await getEventData(slug, _c.get("NEXT_LOCALE")?.value);
 
   // Confirmed-gone event (backend 404) → real 404, not a soft-404 with metadata.
   if (result.status === "missing") notFound();
@@ -129,7 +136,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // entirely inside the client EventDetailsWrapper below, unaffected.
 const Page = async ({ params }: Props) => {
   const { slug } = await params;
-  const result = await getEventData(slug);
+  const _c = await cookies();
+  const result = await getEventData(slug, _c.get("NEXT_LOCALE")?.value);
 
   // Confirmed-gone event (backend 404) → real 404. Transient errors fall through
   // to data=null and render the wrapper at 200 (the client retries gracefully).

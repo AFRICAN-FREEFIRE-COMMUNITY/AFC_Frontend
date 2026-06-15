@@ -33,6 +33,7 @@ import { Progress } from "@/components/ui/progress";
 // Import Checkbox component (ASSUMED PATH/COMPONENT)
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link"; // Required for linking to legal pages
+import { useTranslations } from "next-intl";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -97,6 +98,10 @@ export function CreateAccountForm() {
   const router = useRouter();
 
   const [pending, startTransition] = useTransition();
+  // Auth namespace: messages/en/auth.json. register.* drives the field labels,
+  // placeholders, terms checkbox copy, and submit button; passwordStrength.* and
+  // showHidePassword.* drive the live strength meter + password-visibility toggles.
+  const t = useTranslations("auth");
 
   const form = useForm<RegisterFormSchemaType>({
     resolver: zodResolver(RegisterFormSchema),
@@ -149,14 +154,16 @@ export function CreateAccountForm() {
 
   const checkStrength = (pass: string) => {
     // ... (rest of checkStrength logic remains the same)
+    // Each requirement carries a localized label (passwordStrength.* keys) shown
+    // in the live requirements list below the password field.
     const requirements = [
-      { regex: /.{8,}/, text: "At least 8 characters" },
-      { regex: /[0-9]/, text: "At least 1 number" },
-      { regex: /[a-z]/, text: "At least 1 lowercase letter" },
-      { regex: /[A-Z]/, text: "At least 1 uppercase letter" },
+      { regex: /.{8,}/, text: t("passwordStrength.req8Chars") },
+      { regex: /[0-9]/, text: t("passwordStrength.req1Number") },
+      { regex: /[a-z]/, text: t("passwordStrength.req1Lowercase") },
+      { regex: /[A-Z]/, text: t("passwordStrength.req1Uppercase") },
       {
         regex: /[!@#$%^&*(),.?":{}|<>]/,
-        text: "At least 1 special character",
+        text: t("passwordStrength.req1Special"),
       },
     ];
 
@@ -173,10 +180,10 @@ export function CreateAccountForm() {
   }, [strength]);
 
   const getStrengthText = (score: number) => {
-    if (score === 0) return "Enter a password";
-    if (score <= 2) return "Weak password";
-    if (score === 3) return "Medium password";
-    return "Strong password";
+    if (score === 0) return t("passwordStrength.enterPassword");
+    if (score <= 2) return t("passwordStrength.weak");
+    if (score === 3) return t("passwordStrength.medium");
+    return t("passwordStrength.strong");
   };
 
   function onSubmit(data: RegisterFormSchemaType) {
@@ -209,7 +216,7 @@ export function CreateAccountForm() {
         const backendMessage: string =
           error?.response?.data?.message ||
           error?.response?.data?.error ||
-          "Something went wrong. Please try again.";
+          t("register.genericError");
 
         // Surface the message INLINE next to the field it concerns, so the user fixes just
         // the one thing. We keep the form fully intact (no reset) so nothing they typed is
@@ -239,10 +246,10 @@ export function CreateAccountForm() {
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>{t("register.fullNameLabel")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter your full name"
+                  placeholder={t("register.fullNamePlaceholder")}
                   onPaste={preventPaste}
                   {...field}
                 />
@@ -256,10 +263,10 @@ export function CreateAccountForm() {
           name="ingameName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>In-game Name</FormLabel>
+              <FormLabel>{t("register.ingameNameLabel")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter your in-game name"
+                  placeholder={t("register.ingameNamePlaceholder")}
                   onPaste={preventPaste}
                   {...field}
                 />
@@ -290,9 +297,13 @@ export function CreateAccountForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t("register.emailLabel")}</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="Enter your email" {...field} />
+                <Input
+                  type="email"
+                  placeholder={t("register.emailPlaceholder")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -304,12 +315,12 @@ export function CreateAccountForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t("register.passwordLabel")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={isVisible ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder={t("register.passwordPlaceholder")}
                     {...field}
                   />
                   <Button
@@ -318,7 +329,11 @@ export function CreateAccountForm() {
                     size="icon"
                     type="button"
                     onClick={toggleVisibility}
-                    aria-label={isVisible ? "Hide password" : "Show password"}
+                    aria-label={
+                      isVisible
+                        ? t("showHidePassword.hide")
+                        : t("showHidePassword.show")
+                    }
                     aria-pressed={isVisible}
                     aria-controls="password"
                   >
@@ -342,11 +357,16 @@ export function CreateAccountForm() {
                 />
                 {/* Password strength description */}
                 <p className="text-foreground mb-2 text-sm font-medium">
-                  {getStrengthText(strengthScore)}. Must contain:
+                  {t("passwordStrength.mustContain", {
+                    strength: getStrengthText(strengthScore),
+                  })}
                 </p>
 
                 {/* Password requirements list */}
-                <ul className="space-y-1.5" aria-label="Password requirements">
+                <ul
+                  className="space-y-1.5"
+                  aria-label={t("passwordStrength.requirementsLabel")}
+                >
                   {strength.map((req, index) => (
                     <li key={index} className="flex items-center gap-2">
                       {req.met ? (
@@ -370,8 +390,8 @@ export function CreateAccountForm() {
                         {req.text}
                         <span className="sr-only">
                           {req.met
-                            ? " - Requirement met"
-                            : " - Requirement not met"}
+                            ? t("passwordStrength.requirementMet")
+                            : t("passwordStrength.requirementNotMet")}
                         </span>
                       </span>
                     </li>
@@ -386,12 +406,12 @@ export function CreateAccountForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm password</FormLabel>
+              <FormLabel>{t("register.confirmPasswordLabel")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={isConfirmVisible ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder={t("register.passwordPlaceholder")}
                     {...field}
                   />
                   <Button
@@ -402,7 +422,9 @@ export function CreateAccountForm() {
                     onClick={toggleConfirmVisibility}
                     // FIX: Use isConfirmVisible for accessibility label
                     aria-label={
-                      isConfirmVisible ? "Hide password" : "Show password"
+                      isConfirmVisible
+                        ? t("showHidePassword.hide")
+                        : t("showHidePassword.show")
                     }
                     aria-pressed={isConfirmVisible}
                     aria-controls="password"
@@ -437,19 +459,19 @@ export function CreateAccountForm() {
               </FormControl>
               <div className="space-y-1 leading-none">
                 <label htmlFor="terms" className="text-sm leading-relaxed">
-                  I confirm that I have read and agree to the{" "}
+                  {t("register.termsIntro")}{" "}
                   <Link
                     href="/terms-of-service"
                     className="text-primary hover:underline font-medium"
                   >
-                    Terms of Service
+                    {t("register.termsOfService")}
                   </Link>{" "}
-                  and{" "}
+                  {t("register.and")}{" "}
                   <Link
                     href="/privacy-policy"
                     className="text-primary hover:underline font-medium"
                   >
-                    Privacy Policy
+                    {t("register.privacyPolicy")}
                   </Link>
                   .
                 </label>
@@ -465,7 +487,11 @@ export function CreateAccountForm() {
           // The button is disabled if the registration process is pending OR if the terms are NOT accepted.
           disabled={pending || !acceptTerms}
         >
-          {pending ? <Loader text="Creating..." /> : "Register"}
+          {pending ? (
+            <Loader text={t("register.creating")} />
+          ) : (
+            t("register.submit")
+          )}
         </Button>
       </form>
     </Form>

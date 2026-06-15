@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -47,34 +48,22 @@ import {
 } from "@/lib/zodSchemas";
 import { InfoTip } from "@/components/ui/info-tip";
 
+// Checkout step ids. The visible labels are localized at render time via
+// t("cart.steps.<labelKey>") (messages/en/shop.json) so the wizard reads in the
+// active locale; only the stable numeric id + translation key live here.
 const steps = [
-  { id: 1, name: "Cart", label: "Cart" },
-  { id: 2, name: "Details", label: "Details" },
-  { id: 3, name: "Review", label: "Review & Pay" },
+  { id: 1, labelKey: "cart" },
+  { id: 2, labelKey: "details" },
+  { id: 3, labelKey: "review" },
 ];
 
-const faqs = [
-  {
-    id: "delivery",
-    question: "How long does it take to receive my diamonds?",
-    answer:
-      "After completing your purchase, you will receive your redemption code via email within 5-10 minutes. In rare cases, it may take up to 24 hours during high traffic periods.",
-  },
-  {
-    id: "payment",
-    question: "What payment methods are accepted?",
-    answer:
-      "We accept various payment methods including bank transfers, card payments, and mobile money. All payments are processed securely through our payment partners.",
-  },
-  {
-    id: "refund",
-    question: "Can I get a refund?",
-    answer:
-      "Refunds are not available. Please contact our support team for assistance with refund requests.",
-  },
-];
+// FAQ ids only. Question + answer copy lives in messages/en/shop.json under
+// cart.faqs.<id>.{question,answer} and is rendered via t() below.
+const faqs = [{ id: "delivery" }, { id: "payment" }, { id: "refund" }];
 
 export default function CartDetails() {
+  // Localized copy for the cart + checkout flow (messages/en/shop.json -> "cart").
+  const t = useTranslations("shop");
   const router = useRouter();
   // Stripe redirects the buyer back to /shop/cart?stripe=success&session_id=...&order_id=...
   // (see backend afc_shop/stripe_checkout.py success_url). We read those params on mount below
@@ -123,7 +112,7 @@ export default function CartDetails() {
     if (stripeNotifiedRef.current) return;
     if (searchParams.get("stripe") === "cancelled") {
       stripeNotifiedRef.current = true;
-      toast.error("Payment was cancelled. Your cart is still here, you can try again.");
+      toast.error(t("cart.toast.stripeCancelled"));
     }
   }, [searchParams]);
 
@@ -160,12 +149,12 @@ export default function CartDetails() {
 
   const handleCompleteOrder = async () => {
     if (!customerDetails) {
-      toast.error("Customer details are missing");
+      toast.error(t("cart.toast.detailsMissing"));
       return;
     }
 
     if (items.length === 0) {
-      toast.error("Your cart is empty");
+      toast.error(t("cart.toast.cartEmpty"));
       return;
     }
 
@@ -212,7 +201,7 @@ export default function CartDetails() {
         // cart intact.
         const { checkout_url } = response.data;
         if (!checkout_url) {
-          toast.error("Could not start Stripe checkout. Please try again.");
+          toast.error(t("cart.toast.stripeStartFailed"));
           return;
         }
         window.location.href = checkout_url;
@@ -224,7 +213,7 @@ export default function CartDetails() {
 
       window.open(authorization_url);
 
-      toast.success("Order placed successfully!");
+      toast.success(t("cart.toast.orderPlaced"));
       clearCart();
     } catch (error) {
       console.error("Order error:", error);
@@ -233,10 +222,10 @@ export default function CartDetails() {
         const errorMessage =
           error.response?.data?.message ||
           error.response?.data?.detail ||
-          "Failed to process order. Please try again.";
+          t("cart.toast.orderFailed");
         toast.error(errorMessage);
       } else {
-        toast.error("Failed to process order. Please try again.");
+        toast.error(t("cart.toast.orderFailed"));
       }
     } finally {
       setIsProcessing(false);
@@ -264,7 +253,7 @@ export default function CartDetails() {
                   : "text-muted-foreground"
               }`}
             >
-              {step.label}
+              {t(`cart.steps.${step.labelKey}`)}
             </span>
           </div>
           {index < steps.length - 1 && (
@@ -282,17 +271,19 @@ export default function CartDetails() {
   const renderCartStep = () => (
     <Card>
       <CardHeader>
-        <CardTitle>Review Your Cart</CardTitle>
+        <CardTitle>{t("cart.review.title")}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Please review your items before proceeding
+          {t("cart.review.subtitle")}
         </p>
       </CardHeader>
       <CardContent>
         {items.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">Your cart is empty</p>
+            <p className="text-muted-foreground mb-4">
+              {t("cart.review.empty")}
+            </p>
             <Button asChild>
-              <Link href="/shop">Continue Shopping</Link>
+              <Link href="/shop">{t("cart.review.continueShopping")}</Link>
             </Button>
           </div>
         ) : (
@@ -314,11 +305,11 @@ export default function CartDetails() {
                 <div className="flex-1">
                   <h4 className="font-medium">{item.product_name}</h4>
                   <p className="text-sm text-muted-foreground">
-                    Qty: {item.quantity}
+                    {t("cart.review.qty", { quantity: item.quantity })}
                   </p>
                   {item.coupon_code && (
                     <p className="text-xs text-green-500 font-medium mt-0.5">
-                      Coupon: {item.coupon_code}
+                      {t("cart.review.coupon", { code: item.coupon_code })}
                     </p>
                   )}
                 </div>
@@ -350,13 +341,13 @@ export default function CartDetails() {
             ))}
             <div className="flex justify-between">
               <Button variant="outline" asChild>
-                <Link href="/shop">Back to Shop</Link>
+                <Link href="/shop">{t("cart.review.backToShop")}</Link>
               </Button>
               <Button
                 onClick={() => requireAuth(handleNextStep)}
                 disabled={items.length === 0}
               >
-                Continue to Details
+                {t("cart.review.continueToDetails")}
               </Button>
             </div>
           </div>
@@ -369,11 +360,11 @@ export default function CartDetails() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-1">
-          Customer Details
+          {t("cart.details.title")}
           <InfoTip id="shop.diamonds.customer_details._section" />
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Enter your contact and delivery information
+          {t("cart.details.subtitle")}
         </p>
       </CardHeader>
       <CardContent>
@@ -385,9 +376,12 @@ export default function CartDetails() {
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>{t("cart.details.firstName")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} />
+                      <Input
+                        placeholder={t("cart.details.firstNamePlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -398,9 +392,12 @@ export default function CartDetails() {
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>{t("cart.details.lastName")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} />
+                      <Input
+                        placeholder={t("cart.details.lastNamePlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -413,11 +410,11 @@ export default function CartDetails() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email Address</FormLabel>
+                  <FormLabel>{t("cart.details.email")}</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="john@example.com"
+                      placeholder={t("cart.details.emailPlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -430,7 +427,7 @@ export default function CartDetails() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>{t("cart.details.phone")}</FormLabel>
                   <FormControl>
                     <RPNInput.default
                       className="flex rounded-md shadow-xs"
@@ -453,9 +450,12 @@ export default function CartDetails() {
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Street Address</FormLabel>
+                  <FormLabel>{t("cart.details.address")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="123 Luxury Lane" {...field} />
+                    <Input
+                      placeholder={t("cart.details.addressPlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -468,9 +468,12 @@ export default function CartDetails() {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City</FormLabel>
+                    <FormLabel>{t("cart.details.city")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Lagos" {...field} />
+                      <Input
+                        placeholder={t("cart.details.cityPlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -481,9 +484,12 @@ export default function CartDetails() {
                 name="state"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>State</FormLabel>
+                    <FormLabel>{t("cart.details.state")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Lagos State" {...field} />
+                      <Input
+                        placeholder={t("cart.details.statePlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -496,9 +502,12 @@ export default function CartDetails() {
               name="postalCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Postal Code</FormLabel>
+                  <FormLabel>{t("cart.details.postalCode")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="100001" {...field} />
+                    <Input
+                      placeholder={t("cart.details.postalCodePlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -511,9 +520,9 @@ export default function CartDetails() {
                 variant="outline"
                 onClick={handlePreviousStep}
               >
-                Back to Cart
+                {t("cart.details.backToCart")}
               </Button>
-              <Button type="submit">Continue to Review</Button>
+              <Button type="submit">{t("cart.details.continueToReview")}</Button>
             </div>
           </form>
         </Form>
@@ -524,15 +533,17 @@ export default function CartDetails() {
   const renderReviewStep = () => (
     <Card>
       <CardHeader>
-        <CardTitle>Review Your Order</CardTitle>
+        <CardTitle>{t("cart.reviewOrder.title")}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Please review your order details before completing your purchase
+          {t("cart.reviewOrder.subtitle")}
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Order Items */}
         <div>
-          <h3 className="font-medium text-sm mb-3">Order Items</h3>
+          <h3 className="font-medium text-sm mb-3">
+            {t("cart.reviewOrder.orderItems")}
+          </h3>
           <div className="space-y-2">
             {items.map((item) => (
               <div
@@ -550,11 +561,13 @@ export default function CartDetails() {
                 <div className="flex-1">
                   <h4 className="font-medium text-sm">{item.product_name}</h4>
                   <p className="text-xs text-muted-foreground">
-                    Quantity: {item.quantity}
+                    {t("cart.reviewOrder.quantity", {
+                      quantity: item.quantity,
+                    })}
                   </p>
                   {item.coupon_code && (
                     <p className="text-xs text-green-500 font-medium mt-0.5">
-                      Coupon: {item.coupon_code}
+                      {t("cart.reviewOrder.coupon", { code: item.coupon_code })}
                     </p>
                   )}
                 </div>
@@ -582,28 +595,30 @@ export default function CartDetails() {
 
         {/* Customer Details */}
         <div>
-          <h3 className="font-medium text-sm mb-3">Delivery Information</h3>
+          <h3 className="font-medium text-sm mb-3">
+            {t("cart.reviewOrder.deliveryInfo")}
+          </h3>
           <div className="space-y-2.5 text-sm">
             <div className="text-muted-foreground">
-              Name:{" "}
+              {t("cart.reviewOrder.name")}{" "}
               <span className="font-medium text-black dark:text-white">
                 {customerDetails?.firstName} {customerDetails?.lastName}
               </span>
             </div>
             <div className="text-muted-foreground">
-              Email:{" "}
+              {t("cart.reviewOrder.email")}{" "}
               <span className="font-medium text-black dark:text-white">
                 {customerDetails?.email}
               </span>
             </div>
             <div className="text-muted-foreground">
-              Phone:{" "}
+              {t("cart.reviewOrder.phone")}{" "}
               <span className="font-medium text-black dark:text-white">
                 {customerDetails?.phone}
               </span>
             </div>
             <div className="text-muted-foreground">
-              Address:{" "}
+              {t("cart.reviewOrder.address")}{" "}
               <span className="font-medium text-black dark:text-white">
                 {customerDetails?.address}, {customerDetails?.city},{" "}
                 {customerDetails?.state} {customerDetails?.postalCode}
@@ -616,12 +631,14 @@ export default function CartDetails() {
 
         {/* Order Summary */}
         <div>
-          <h3 className="font-medium text-sm mb-3">Order Summary</h3>
+          <h3 className="font-medium text-sm mb-3">
+            {t("cart.reviewOrder.orderSummary")}
+          </h3>
           <div className="space-y-3 text-sm">
             {getOriginalSubtotal() > getSubtotal() && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
-                  Original Subtotal:
+                  {t("cart.reviewOrder.originalSubtotal")}
                 </span>
                 <span className="line-through text-muted-foreground">
                   ₦{formatMoneyInput(getOriginalSubtotal())}
@@ -629,12 +646,14 @@ export default function CartDetails() {
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal:</span>
+              <span className="text-muted-foreground">
+                {t("cart.reviewOrder.subtotal")}
+              </span>
               <span>₦{formatMoneyInput(getSubtotal())}</span>
             </div>
             {getOriginalSubtotal() > getSubtotal() && (
               <div className="flex justify-between text-green-500">
-                <span>Discount:</span>
+                <span>{t("cart.reviewOrder.discount")}</span>
                 <span>
                   -₦
                   {formatMoneyInput(getOriginalSubtotal() - getSubtotal())}
@@ -643,7 +662,7 @@ export default function CartDetails() {
             )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">
-                Tax (7.5%)
+                {t("cart.reviewOrder.tax")}
                 <InfoTip id="shop.checkout.tax" className="ml-1" />:
               </span>
               <span>₦{formatMoneyInput(getTax())}</span>
@@ -651,7 +670,7 @@ export default function CartDetails() {
             <Separator className="my-2" />
             <div className="flex justify-between font-bold text-base">
               <span>
-                Total
+                {t("cart.reviewOrder.total")}
                 <InfoTip id="shop.checkout.total" className="ml-1" />:
               </span>
               <span>₦{formatMoneyInput(getTotal())}</span>
@@ -665,7 +684,9 @@ export default function CartDetails() {
             Stripe is the second option (international cards, charged in your local currency).
             Selecting Stripe routes checkout to /shop/stripe-buy-now/ on submit. */}
         <div>
-          <h3 className="font-medium text-sm mb-3">Payment Method</h3>
+          <h3 className="font-medium text-sm mb-3">
+            {t("cart.reviewOrder.paymentMethod")}
+          </h3>
           <RadioGroup
             value={paymentProvider}
             onValueChange={(value) =>
@@ -687,9 +708,11 @@ export default function CartDetails() {
                 className="mt-0.5"
               />
               <div className="space-y-0.5">
-                <p className="text-sm font-medium">Paystack</p>
+                <p className="text-sm font-medium">
+                  {t("cart.reviewOrder.paystack")}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  Pay in Naira with card, bank transfer, USSD, or mobile money.
+                  {t("cart.reviewOrder.paystackDesc")}
                 </p>
               </div>
             </Label>
@@ -707,10 +730,11 @@ export default function CartDetails() {
                 className="mt-0.5"
               />
               <div className="space-y-0.5">
-                <p className="text-sm font-medium">Stripe</p>
+                <p className="text-sm font-medium">
+                  {t("cart.reviewOrder.stripe")}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  Pay by international card. Shown and charged in your local
-                  currency.
+                  {t("cart.reviewOrder.stripeDesc")}
                 </p>
               </div>
             </Label>
@@ -721,7 +745,7 @@ export default function CartDetails() {
 
         <div className="flex justify-between">
           <Button variant="outline" onClick={handlePreviousStep}>
-            Back to Details
+            {t("cart.reviewOrder.backToDetails")}
           </Button>
           <div className="flex items-center gap-1">
             <Button
@@ -729,10 +753,10 @@ export default function CartDetails() {
               disabled={isProcessing || !customerDetails}
             >
               {isProcessing
-                ? "Processing..."
+                ? t("cart.reviewOrder.processing")
                 : paymentProvider === "stripe"
-                  ? "Pay with Stripe"
-                  : "Pay Now"}
+                  ? t("cart.reviewOrder.payWithStripe")
+                  : t("cart.reviewOrder.payNow")}
             </Button>
             <InfoTip id="shop.checkout.pay_now" />
           </div>
@@ -758,7 +782,7 @@ export default function CartDetails() {
           {/* Order Summary */}
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>{t("cart.summary.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -784,7 +808,7 @@ export default function CartDetails() {
                     </div>
                     {item.coupon_code && (
                       <p className="text-xs text-green-500">
-                        Coupon: {item.coupon_code}
+                        {t("cart.summary.coupon", { code: item.coupon_code })}
                       </p>
                     )}
                   </div>
@@ -793,7 +817,7 @@ export default function CartDetails() {
                 {getOriginalSubtotal() > getSubtotal() && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      Original Subtotal
+                      {t("cart.summary.originalSubtotal")}
                     </span>
                     <span className="line-through text-muted-foreground">
                       ₦{formatMoneyInput(getOriginalSubtotal())}
@@ -801,12 +825,12 @@ export default function CartDetails() {
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span>Subtotal</span>
+                  <span>{t("cart.summary.subtotal")}</span>
                   <span>₦{formatMoneyInput(getSubtotal())}</span>
                 </div>
                 {getOriginalSubtotal() > getSubtotal() && (
                   <div className="flex justify-between text-sm text-green-500">
-                    <span>Discount</span>
+                    <span>{t("cart.summary.discount")}</span>
                     <span>
                       -₦
                       {formatMoneyInput(getOriginalSubtotal() - getSubtotal())}
@@ -814,13 +838,13 @@ export default function CartDetails() {
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span>Tax (7.5%)</span>
+                  <span>{t("cart.summary.tax")}</span>
                   <span>₦{formatMoneyInput(getTax())}</span>
                 </div>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
-                <span>Total</span>
+                <span>{t("cart.summary.total")}</span>
                 <span>₦{formatMoneyInput(getTotal())}</span>
               </div>
             </CardContent>
@@ -829,26 +853,20 @@ export default function CartDetails() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-1">
-                How to Claim Your Diamonds
+                {t("cart.claim.title")}
                 <InfoTip id="shop.diamonds.claim._section" />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                After completing your purchase, follow these steps to claim your
-                diamonds:
+                {t("cart.claim.intro")}
               </p>
               <ol className="text-sm space-y-2 list-decimal list-inside text-muted-foreground">
-                <li>Visit the Free Fire official website</li>
-                <li>Log in with your Free Fire account</li>
-                <li>Navigate to the &quot;Redeem Code&quot; section</li>
-                <li>
-                  Enter the code that will be sent to your email after purchase
-                </li>
-                <li>
-                  Confirm the redemption and the diamonds will be added to your
-                  account
-                </li>
+                <li>{t("cart.claim.step1")}</li>
+                <li>{t("cart.claim.step2")}</li>
+                <li>{t("cart.claim.step3")}</li>
+                <li>{t("cart.claim.step4")}</li>
+                <li>{t("cart.claim.step5")}</li>
               </ol>
               <Button variant="outline" className="w-full mt-4" asChild>
                 <a
@@ -856,7 +874,7 @@ export default function CartDetails() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Visit Free Fire Website
+                  {t("cart.claim.visitFreeFire")}
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </a>
               </Button>
@@ -866,17 +884,17 @@ export default function CartDetails() {
           {/* FAQ */}
           <Card>
             <CardHeader>
-              <CardTitle>Need Help?</CardTitle>
+              <CardTitle>{t("cart.faqTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
                 {faqs.map((faq) => (
                   <AccordionItem key={faq.id} value={faq.id}>
                     <AccordionTrigger className="text-sm text-left">
-                      {faq.question}
+                      {t(`cart.faqs.${faq.id}.question`)}
                     </AccordionTrigger>
                     <AccordionContent className="text-sm text-muted-foreground">
-                      {faq.answer}
+                      {t(`cart.faqs.${faq.id}.answer`)}
                     </AccordionContent>
                   </AccordionItem>
                 ))}

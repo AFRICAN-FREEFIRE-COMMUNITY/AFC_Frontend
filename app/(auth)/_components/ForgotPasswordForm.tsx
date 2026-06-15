@@ -25,10 +25,14 @@ import {
   ForgotPasswordUidFormSchema,
   ForgotPasswordUidFormSchemaType,
 } from "@/lib/zodSchemas";
+import { useTranslations } from "next-intl";
 
 function EmailTab() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  // Auth namespace: messages/en/auth.json (forgotPassword.* keys). Drives the
+  // email field, submit button, and request-reset toasts on the Email tab.
+  const t = useTranslations("auth");
 
   const form = useForm<ForgotPasswordFormSchemaType>({
     resolver: zodResolver(ForgotPasswordFormSchema),
@@ -46,13 +50,13 @@ function EmailTab() {
           toast.success(response.data.message);
           router.push(`/verify-token?email=${encodeURIComponent(data.email)}`);
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("forgotPassword.genericError"));
         }
       } catch (error: any) {
         toast.error(
           error?.response?.data?.error ||
             error?.response?.data?.message ||
-            "Internal server error"
+            t("forgotPassword.internalServerError")
         );
       }
     });
@@ -66,12 +70,12 @@ function EmailTab() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t("forgotPassword.emailLabel")}</FormLabel>
               <FormControl>
                 <Input
                   className="bg-input border-border"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t("forgotPassword.emailPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -84,7 +88,11 @@ function EmailTab() {
           type="submit"
           disabled={pending}
         >
-          {pending ? <Loader text="Sending..." /> : "Send Reset Instructions"}
+          {pending ? (
+            <Loader text={t("forgotPassword.sending")} />
+          ) : (
+            t("forgotPassword.submit")
+          )}
         </Button>
       </form>
     </Form>
@@ -94,6 +102,9 @@ function EmailTab() {
 function UidTab() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  // Auth namespace: messages/en/auth.json (forgotPassword.* keys). Drives the
+  // UID field, submit button, and request-reset toasts on the UID tab.
+  const t = useTranslations("auth");
 
   const form = useForm<ForgotPasswordUidFormSchemaType>({
     resolver: zodResolver(ForgotPasswordUidFormSchema),
@@ -111,13 +122,13 @@ function UidTab() {
           toast.success(response.data.message);
           router.push(`/verify-token?uid=${encodeURIComponent(data.uid)}`);
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("forgotPassword.genericError"));
         }
       } catch (error: any) {
         toast.error(
           error?.response?.data?.error ||
             error?.response?.data?.message ||
-            "Internal server error"
+            t("forgotPassword.internalServerError")
         );
       }
     });
@@ -131,11 +142,11 @@ function UidTab() {
           name="uid"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>UID</FormLabel>
+              <FormLabel>{t("forgotPassword.uidLabel")}</FormLabel>
               <FormControl>
                 <Input
                   className="bg-input border-border"
-                  placeholder="Enter your UID"
+                  placeholder={t("forgotPassword.uidPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -148,7 +159,11 @@ function UidTab() {
           type="submit"
           disabled={pending}
         >
-          {pending ? <Loader text="Sending..." /> : "Send Reset Instructions"}
+          {pending ? (
+            <Loader text={t("forgotPassword.sending")} />
+          ) : (
+            t("forgotPassword.submit")
+          )}
         </Button>
       </form>
     </Form>
@@ -156,14 +171,17 @@ function UidTab() {
 }
 
 export function ForgotPasswordForm() {
+  // Auth namespace: messages/en/auth.json (forgotPassword.* keys). Labels the
+  // Email / UID tab triggers that switch between EmailTab and UidTab above.
+  const t = useTranslations("auth");
   return (
     <Tabs defaultValue="email">
       <TabsList className="w-full mb-4">
         <TabsTrigger value="email" className="flex-1">
-          Email
+          {t("forgotPassword.emailTab")}
         </TabsTrigger>
         <TabsTrigger value="uid" className="flex-1">
-          UID
+          {t("forgotPassword.uidTab")}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="email">

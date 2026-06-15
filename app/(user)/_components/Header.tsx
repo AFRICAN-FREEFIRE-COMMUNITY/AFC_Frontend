@@ -20,9 +20,13 @@ import { NotificationDropdown } from "./NotificationDropdown";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { homeNavLinks } from "@/constants/nav-links";
+// Shared-chrome strings live in messages/en/common.json under the "common"
+// namespace; this Client Component reads them via the useTranslations() hook.
+import { useTranslations } from "next-intl";
 
 export const Header = () => {
   const pathname = usePathname();
+  const t = useTranslations("common");
 
   const { getItemCount, setIsCartOpen } = useCart();
 
@@ -67,7 +71,7 @@ export const Header = () => {
           <Link href={"/home"} className="flex items-center space-x-2">
             <Logo size="small" />
             <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
-              African Freefire Community
+              {t("brand.name")}
             </span>
           </Link>
 
@@ -103,11 +107,11 @@ export const Header = () => {
               variant="ghost"
               size="icon"
               onClick={openWelcomeTour}
-              aria-label="Replay welcome tour"
-              title="Replay welcome tour"
+              aria-label={t("header.replayTour")}
+              title={t("header.replayTour")}
             >
               <IconSparkles className="h-[1.2rem] w-[1.2rem]" />
-              <span className="sr-only">Replay welcome tour</span>
+              <span className="sr-only">{t("header.replayTour")}</span>
             </Button>
             <ThemeToggle />
             {user ? (
@@ -137,7 +141,7 @@ export const Header = () => {
                   size="md"
                   className="hidden md:flex"
                 >
-                  <Link href="/login">Log in</Link>
+                  <Link href="/login">{t("header.logIn")}</Link>
                 </Button>
                 <Button
                   className="hidden md:flex"
@@ -145,7 +149,7 @@ export const Header = () => {
                   size="md"
                   variant={"gradient"}
                 >
-                  <Link href="/create-account">Join Now</Link>
+                  <Link href="/create-account">{t("header.joinNow")}</Link>
                 </Button>
                 <Button
                   asChild
@@ -153,7 +157,7 @@ export const Header = () => {
                   size="md"
                   variant={"gradient"}
                 >
-                  <Link href="/login">Login</Link>
+                  <Link href="/login">{t("header.login")}</Link>
                 </Button>
               </>
             )}

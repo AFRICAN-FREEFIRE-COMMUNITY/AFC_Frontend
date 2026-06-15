@@ -20,6 +20,10 @@
 import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+// i18n: tournament-section strings live in messages/en/tournaments.json under
+// the "structure.*" keys; useTranslations("tournaments") resolves the active
+// locale from the NEXT_LOCALE cookie (en fallback).
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, ChevronRight, ArrowUp } from "lucide-react";
 // IconArrowRight matches the LinkedEventsCard chip aesthetic (components/event-links.tsx).
@@ -80,6 +84,7 @@ const rowPoints = (row: any) => {
 const fmtLabel = (f: string) => FORMAT_LABEL[f] || f;
 
 export function TournamentStructure({ stages, participantType, eventId }: Props) {
+  const t = useTranslations("tournaments");
   const [sel, setSel] = useState(0);
 
   // ── Qualification Links (owner 2026-06-15) ──
@@ -149,7 +154,7 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
   if (!stages || stages.length === 0) {
     return (
       <div className="p-10 text-center border-2 border-dashed border-border rounded-md text-muted-foreground">
-        No stages configured for this tournament yet.
+        {t("structure.noStages")}
       </div>
     );
   }
@@ -159,7 +164,10 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
     const flagged = stages.findIndex((s) => s.is_finals_stage);
     return flagged >= 0 ? flagged : stages.length - 1;
   })();
-  const competitorWord = participantType === "solo" ? "Player" : "Team";
+  const competitorWord =
+    participantType === "solo"
+      ? t("structure.playerWord")
+      : t("structure.teamWord");
   const stage = stages[sel];
 
   return (
@@ -167,7 +175,7 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
       {/* ── 1. Stage-flow spine ── */}
       <section>
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
-          Tournament Flow
+          {t("structure.tournamentFlow")}
         </p>
         <div className="flex items-stretch overflow-x-auto pb-2">
           {stages.map((s, i) => {
@@ -187,7 +195,9 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
                       isFinals ? "text-gold" : "text-muted-foreground"
                     }`}
                   >
-                    {isFinals ? "Finals" : `Stage ${i + 1}`}
+                    {isFinals
+                      ? t("structure.finals")
+                      : t("structure.stage", { number: i + 1 })}
                   </div>
                   <div className="text-lg font-bold mt-1 mb-3 flex items-center gap-1.5">
                     {isFinals && <Trophy className="size-4 text-gold" />}
@@ -198,15 +208,21 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
                   </Badge>
                   <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground flex-wrap">
                     {isFinals ? (
-                      <span>Champion crowned</span>
+                      <span>{t("structure.championCrowned")}</span>
                     ) : (
                       <>
                         <Badge className="rounded-full gap-1 bg-primary/10 text-primary border border-primary/50">
-                          <ArrowUp className="size-3" /> Top {advancing}
+                          <ArrowUp className="size-3" />{" "}
+                          {t("structure.topAdvance", { count: advancing })}
                         </Badge>
                         <span>
-                          advance · {s.groups?.length || 0}{" "}
-                          {s.groups?.length === 1 ? "group" : "groups"}
+                          {t("structure.advanceGroups", {
+                            count: s.groups?.length || 0,
+                            groupWord:
+                              s.groups?.length === 1
+                                ? t("structure.groupSingular")
+                                : t("structure.groupPlural"),
+                          })}
                         </span>
                       </>
                     )}
@@ -217,7 +233,9 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
                   <div className="flex flex-col items-center justify-center min-w-[54px] text-muted-foreground">
                     <ChevronRight className="size-6" />
                     {!isFinals && (
-                      <span className="text-[0.6rem] mt-0.5">top {advancing}</span>
+                      <span className="text-[0.6rem] mt-0.5">
+                        {t("structure.topN", { count: advancing })}
+                      </span>
                     )}
                   </div>
                 )}
@@ -237,17 +255,23 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
       {links && (links.inbound.length > 0 || links.outbound.length > 0) && (
         <section>
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
-            Qualification Links
+            {t("structure.qualificationLinks")}
           </p>
           <div className="space-y-5">
             {/* inbound: events that feed INTO this one ("Qualifies from") */}
             {links.inbound.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground">Qualifies from</p>
+                <p className="text-xs font-semibold text-muted-foreground">
+                  {t("structure.qualifiesFrom")}
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {links.inbound.map((row) => {
                     // chip text: "Qualifies from: <event_name> - <stage> top N"
-                    const label = `${row.event_name} - ${row.stage_name} top ${row.qualify_count}`;
+                    const label = t("structure.qualifiesFromChip", {
+                      eventName: row.event_name,
+                      stageName: row.stage_name,
+                      count: row.qualify_count,
+                    });
                     // Navigate to the feeder event by its slug; if a slug is missing (older
                     // event), render a non-clickable badge rather than a broken link.
                     const chip = (
@@ -274,11 +298,17 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
             {/* outbound: events THIS one qualifies into ("Qualifies into") */}
             {links.outbound.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground">Qualifies into</p>
+                <p className="text-xs font-semibold text-muted-foreground">
+                  {t("structure.qualifiesInto")}
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {links.outbound.map((row) => {
                     // chip text: "Top N of <stage> qualifies into: <event_name>"
-                    const label = `Top ${row.qualify_count} of ${row.stage_name} qualifies into: ${row.event_name}`;
+                    const label = t("structure.qualifiesIntoChip", {
+                      count: row.qualify_count,
+                      stageName: row.stage_name,
+                      eventName: row.event_name,
+                    });
                     const chip = (
                       <Badge
                         variant="outline"
@@ -306,24 +336,26 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
       {/* ── 2. Standings & qualification for the selected stage ── */}
       <section>
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-          Standings &amp; Qualification - {stage.stage_name}
+          {t("structure.standingsHeading", { stageName: stage.stage_name })}
         </p>
         <div className="flex gap-5 flex-wrap text-sm text-muted-foreground mb-5">
           <span className="inline-flex items-center gap-2">
-            <span className="size-2.5 rounded-[3px] bg-primary" /> Qualified for next stage
+            <span className="size-2.5 rounded-[3px] bg-primary" />{" "}
+            {t("structure.qualifiedLegend")}
           </span>
           {sel !== finalsIdx && (
             <span>
-              Top{" "}
-              <b className="text-primary">{stage.teams_qualifying_from_stage}</b>{" "}
-              advance per group
+              {t.rich("structure.advancePerGroup", {
+                count: stage.teams_qualifying_from_stage,
+                b: (chunks) => <b className="text-primary">{chunks}</b>,
+              })}
             </span>
           )}
         </div>
 
         {!stage.groups || stage.groups.length === 0 ? (
           <div className="p-10 text-center border-2 border-dashed border-border rounded-md text-muted-foreground">
-            No groups defined for this stage yet.
+            {t("structure.noGroups")}
           </div>
         ) : (
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(380px,1fr))]">
@@ -337,25 +369,36 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
                   <div className="flex items-center justify-between px-5 py-3.5 border-b">
                     <span className="font-bold">{g.group_name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {g.matches?.length || 0}{" "}
-                      {g.matches?.length === 1 ? "match" : "matches"}
-                      {qN > 0 && ` · Top ${qN} advance`}
+                      {t("structure.matchCount", {
+                        count: g.matches?.length || 0,
+                        matchWord:
+                          g.matches?.length === 1
+                            ? t("structure.matchSingular")
+                            : t("structure.matchPlural"),
+                      })}
+                      {qN > 0 && t("structure.topNAdvance", { count: qN })}
                     </span>
                   </div>
                   {rows.length === 0 ? (
                     <div className="px-5 py-8 text-center text-sm text-muted-foreground italic">
-                      Results pending.
+                      {t("structure.resultsPending")}
                     </div>
                   ) : (
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-[0.68rem] uppercase tracking-wide text-muted-foreground">
-                          <th className="text-left font-semibold px-5 py-2.5 w-10">#</th>
+                          <th className="text-left font-semibold px-5 py-2.5 w-10">
+                            {t("structure.rank")}
+                          </th>
                           <th className="text-left font-semibold px-5 py-2.5">
                             {competitorWord}
                           </th>
-                          <th className="text-center font-semibold px-3 py-2.5">Kills</th>
-                          <th className="text-right font-semibold px-5 py-2.5">Pts</th>
+                          <th className="text-center font-semibold px-3 py-2.5">
+                            {t("structure.kills")}
+                          </th>
+                          <th className="text-right font-semibold px-5 py-2.5">
+                            {t("structure.points")}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -401,7 +444,7 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
                                   <td colSpan={4} className="p-0">
                                     <div className="flex items-center gap-2 px-5 py-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-primary bg-primary/[0.08]">
                                       <span className="h-px flex-1 bg-primary/30" />
-                                      Qualification line
+                                      {t("structure.qualificationLine")}
                                       <span className="h-px flex-1 bg-primary/30" />
                                     </div>
                                   </td>
@@ -421,9 +464,7 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
 
         {/* honest note: this is built from stored data, no invented brackets */}
         <p className="mt-8 text-xs text-muted-foreground bg-card border border-dashed border-border rounded-md px-4 py-3.5 leading-relaxed">
-          Built from the data this tournament already records - stages, groups, standings
-          and “top-N advance”. Stage formats (including “Knockout”) show their accurate
-          standings, since that is how results are entered.
+          {t("structure.footnote")}
         </p>
       </section>
     </div>

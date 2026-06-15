@@ -20,6 +20,7 @@
 // Renders nothing (no empty Card shells) until at least one source has data.
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
@@ -151,6 +152,9 @@ function SectionHead({
 }
 
 export function HomeLatestSections() {
+  // Strings for the home-page "Latest Tournaments" + "Player Market" blocks
+  // (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   const API = env.NEXT_PUBLIC_BACKEND_API_URL;
   const [events, setEvents] = useState<EventRow[]>([]);
   const [teamPosts, setTeamPosts] = useState<TeamPost[]>([]);
@@ -227,10 +231,10 @@ export function HomeLatestSections() {
         <Card>
           <CardHeader>
             <SectionHead
-              title="Latest Tournaments & Scrims"
-              sub="A quick look at the newest events. The full list lives on the events page."
+              title={t("latestSections.events.title")}
+              sub={t("latestSections.events.subtitle")}
               href="/tournaments"
-              cta="View all events"
+              cta={t("latestSections.events.viewAll")}
             />
           </CardHeader>
           <CardContent>
@@ -239,9 +243,21 @@ export function HomeLatestSections() {
                 value={evFilter}
                 onChange={(k) => setEvFilter(k as typeof evFilter)}
                 options={[
-                  { key: "all", label: "All", count: evCounts.all },
-                  { key: "tournament", label: "Tournaments", count: evCounts.tournament },
-                  { key: "scrims", label: "Scrims", count: evCounts.scrims },
+                  {
+                    key: "all",
+                    label: t("latestSections.filterAll"),
+                    count: evCounts.all,
+                  },
+                  {
+                    key: "tournament",
+                    label: t("latestSections.events.filterTournaments"),
+                    count: evCounts.tournament,
+                  },
+                  {
+                    key: "scrims",
+                    label: t("latestSections.events.filterScrims"),
+                    count: evCounts.scrims,
+                  },
                 ]}
               />
             </div>
@@ -258,7 +274,9 @@ export function HomeLatestSections() {
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-1">
                       <Badge variant="outline" className="rounded-full text-[10px] uppercase">
-                        {e.competition_type === "scrims" ? "Scrim" : "Tournament"}
+                        {e.competition_type === "scrims"
+                          ? t("latestSections.events.labelScrim")
+                          : t("latestSections.events.labelTournament")}
                       </Badge>
                       <span className={cn("text-xs font-medium capitalize", STATUS_TEXT[e.event_status])}>
                         {e.event_status}
@@ -272,10 +290,13 @@ export function HomeLatestSections() {
                     </p>
                     <div className="flex items-center gap-2 mt-2 text-xs">
                       <span className="font-medium text-gold">
-                        {e.prizepool && e.prizepool !== "0" ? e.prizepool : "No prize"}
+                        {e.prizepool && e.prizepool !== "0"
+                          ? e.prizepool
+                          : t("latestSections.events.noPrize")}
                       </span>
                       <Badge variant="outline" className="rounded-full text-[10px]">
-                        {e.organization_name || "AFC official"}
+                        {e.organization_name ||
+                          t("latestSections.events.officialOrg")}
                       </Badge>
                     </div>
                   </div>
@@ -291,10 +312,10 @@ export function HomeLatestSections() {
         <Card>
           <CardHeader>
             <SectionHead
-              title="From the Player Market"
-              sub="The newest posts. Open the Player Market for everyone recruiting or available."
+              title={t("latestSections.playerMarket.title")}
+              sub={t("latestSections.playerMarket.subtitle")}
               href="/player-markets"
-              cta="Open Player Market"
+              cta={t("latestSections.playerMarket.viewAll")}
             />
           </CardHeader>
           <CardContent>
@@ -303,16 +324,31 @@ export function HomeLatestSections() {
                 value={pmFilter}
                 onChange={(k) => setPmFilter(k as typeof pmFilter)}
                 options={[
-                  { key: "all", label: "All", count: pmCounts.all },
-                  { key: "teams", label: "Teams recruiting", count: pmCounts.teams },
-                  { key: "players", label: "Players open", count: pmCounts.players },
+                  {
+                    key: "all",
+                    label: t("latestSections.filterAll"),
+                    count: pmCounts.all,
+                  },
+                  {
+                    key: "teams",
+                    label: t("latestSections.playerMarket.filterTeams"),
+                    count: pmCounts.teams,
+                  },
+                  {
+                    key: "players",
+                    label: t("latestSections.playerMarket.filterPlayers"),
+                    count: pmCounts.players,
+                  },
                 ]}
               />
             </div>
 
             <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               {shownPosts.map((p) => {
-                const name = p.kind === "team" ? p.team || "Unnamed team" : p.player;
+                const name =
+                  p.kind === "team"
+                    ? p.team || t("latestSections.playerMarket.unnamedTeam")
+                    : p.player;
                 const initial = (name || "?").charAt(0).toUpperCase();
                 return (
                   <Link
@@ -338,12 +374,16 @@ export function HomeLatestSections() {
                             : "border-gold/50 text-gold",
                         )}
                       >
-                        {p.kind === "team" ? "Recruiting" : "Open to join"}
+                        {p.kind === "team"
+                          ? t("latestSections.playerMarket.recruiting")
+                          : t("latestSections.playerMarket.openToJoin")}
                       </Badge>
                       {p.kind === "team" ? (
                         <Badge variant="outline" className={cn("rounded-full text-[10px]", tierClass(p.minimum_tier_required))}>
                           <IconShield className="mr-0.5 h-2.5 w-2.5" />
-                          {p.minimum_tier_required || "Any tier"}+
+                          {p.minimum_tier_required ||
+                            t("latestSections.playerMarket.anyTier")}
+                          +
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="rounded-full text-[10px]">

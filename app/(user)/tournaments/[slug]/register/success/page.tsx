@@ -33,6 +33,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
+// i18n: copy lives in messages/en/tournaments.json under "paymentSuccess.*"
+// (useTranslations resolves the NEXT_LOCALE cookie locale, en fallback).
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -72,6 +75,7 @@ type Phase =
   | "needs_completion"; // paid, but no saved payload - offer a manual complete
 
 export default function RegisterSuccessPage() {
+  const t = useTranslations("tournaments");
   const params = useParams<{ slug: string }>();
   const slug =
     typeof params?.slug === "string"
@@ -90,7 +94,9 @@ export default function RegisterSuccessPage() {
   // saved payload and shown to the user in the failure state for support.
   const [paymentId, setPaymentId] = useState<string | undefined>(paymentIdParam);
   // A friendly event label for the success copy; falls back to "the tournament".
-  const [eventLabel, setEventLabel] = useState<string>("the tournament");
+  const [eventLabel, setEventLabel] = useState<string>(
+    t("paymentSuccess.eventLabelFallback"),
+  );
   const [isBusy, setIsBusy] = useState(false);
 
   // Guard so the verify→register chain only runs once on mount (and on manual retry).
@@ -138,13 +144,13 @@ export default function RegisterSuccessPage() {
         // user paid). Surface a clear, recoverable state with the payment_id for support.
         toast.error(
           error.response?.data?.message ||
-            "Payment received, but registration could not be completed.",
+            t("paymentSuccess.registerCompleteFailed"),
         );
         setPhase("register_failed");
         return false;
       }
     },
-    [token],
+    [token, t],
   );
 
   // Poll verify-registration-payment until "paid", then complete registration.
@@ -176,7 +182,7 @@ export default function RegisterSuccessPage() {
         if (saved) {
           // Remember a friendly label if the saved payload carried the slug.
           if (saved.slug && typeof saved.slug === "string") {
-            setEventLabel("the tournament");
+            setEventLabel(t("paymentSuccess.eventLabelFallback"));
           }
           await completeRegistration(resolvedPid, saved);
         } else {
@@ -207,6 +213,7 @@ export default function RegisterSuccessPage() {
     paymentId,
     readSavedPayload,
     completeRegistration,
+    t,
   ]);
 
   // Drive the poll loop. Runs the initial verify, then re-runs on an interval while still
@@ -249,13 +256,13 @@ export default function RegisterSuccessPage() {
     // No payload at all: we only have the slug from the route. Send a minimal solo payload.
     // (Team registrations need the roster, which we can't reconstruct here.)
     if (!slug) {
-      toast.error("Please re-open the event to finish registering.");
+      toast.error(t("paymentSuccess.reopenToFinish"));
       return;
     }
     setIsBusy(true);
     await completeRegistration(paymentId, { slug });
     setIsBusy(false);
-  }, [readSavedPayload, paymentId, completeRegistration, slug]);
+  }, [readSavedPayload, paymentId, completeRegistration, slug, t]);
 
   const tournamentHref = slug ? `/tournaments/${slug}` : "/tournaments";
 
@@ -270,11 +277,11 @@ export default function RegisterSuccessPage() {
         <div className="space-y-2 text-center">
           <h2 className="text-lg font-semibold">
             {phase === "registering"
-              ? "Finishing your registration..."
-              : "Confirming your payment..."}
+              ? t("paymentSuccess.finishing")
+              : t("paymentSuccess.confirming")}
           </h2>
           <p className="text-muted-foreground text-sm">
-            Please do not refresh or close this page.
+            {t("paymentSuccess.doNotRefresh")}
           </p>
         </div>
       </div>
@@ -294,34 +301,31 @@ export default function RegisterSuccessPage() {
           </div>
           <CardTitle className="text-2xl font-bold">
             {phase === "registered"
-              ? "You're registered!"
+              ? t("paymentSuccess.registered")
               : phase === "register_failed"
-                ? "Payment received"
+                ? t("paymentSuccess.paymentReceived")
                 : phase === "needs_completion"
-                  ? "Payment confirmed"
-                  : "Confirming your payment"}
+                  ? t("paymentSuccess.paymentConfirmed")
+                  : t("paymentSuccess.confirmingTitle")}
           </CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4 text-center">
           {phase === "registered" && (
             <CardDescription className="text-base">
-              You're registered for {eventLabel}. Check the tournament page for
-              match details and updates.
+              {t("paymentSuccess.registeredBody", { eventLabel })}
             </CardDescription>
           )}
 
           {phase === "register_failed" && (
             <>
               <CardDescription className="text-base">
-                Your payment went through, but we couldn't complete your
-                registration. This can happen if the event filled up. Please
-                contact support and quote your payment reference.
+                {t("paymentSuccess.registerFailedBody")}
               </CardDescription>
               {paymentId && (
                 <div className="bg-muted p-4 rounded-md text-left w-full space-y-1 border">
                   <span className="text-xs text-muted-foreground">
-                    Payment reference
+                    {t("paymentSuccess.paymentReference")}
                   </span>
                   <p className="font-mono text-sm font-semibold break-all">
                     {paymentId}
@@ -334,14 +338,12 @@ export default function RegisterSuccessPage() {
           {phase === "needs_completion" && (
             <>
               <CardDescription className="text-base">
-                Your payment is confirmed. We couldn't find your saved
-                registration details on this device, so tap the button below to
-                finish, or re-open the event if you registered as a team.
+                {t("paymentSuccess.needsCompletionBody")}
               </CardDescription>
               {paymentId && (
                 <div className="bg-muted p-4 rounded-md text-left w-full space-y-1 border">
                   <span className="text-xs text-muted-foreground">
-                    Payment reference
+                    {t("paymentSuccess.paymentReference")}
                   </span>
                   <p className="font-mono text-sm font-semibold break-all">
                     {paymentId}
@@ -354,12 +356,11 @@ export default function RegisterSuccessPage() {
           {phase === "payment_pending" && (
             <>
               <CardDescription>
-                We haven't confirmed your payment yet. If you've been charged,
-                it can take a moment. You can retry the check below.
+                {t("paymentSuccess.pendingBody")}
               </CardDescription>
               {paymentId && (
                 <div className="text-sm bg-muted p-3 rounded-md border break-all">
-                  Payment reference:{" "}
+                  {t("paymentSuccess.paymentReferenceInline")}
                   <span className="font-mono font-semibold">{paymentId}</span>
                 </div>
               )}
@@ -371,10 +372,14 @@ export default function RegisterSuccessPage() {
           {phase === "registered" && (
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Button asChild className="flex-1">
-                <Link href={tournamentHref}>Go to tournament</Link>
+                <Link href={tournamentHref}>
+                  {t("paymentSuccess.goToTournament")}
+                </Link>
               </Button>
               <Button asChild variant="outline" className="flex-1">
-                <Link href="/tournaments">All tournaments</Link>
+                <Link href="/tournaments">
+                  {t("paymentSuccess.allTournaments")}
+                </Link>
               </Button>
             </div>
           )}
@@ -389,10 +394,12 @@ export default function RegisterSuccessPage() {
                 {isBusy ? (
                   <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Complete registration
+                {t("paymentSuccess.completeRegistration")}
               </Button>
               <Button asChild variant="outline" className="flex-1">
-                <Link href={tournamentHref}>Re-open event</Link>
+                <Link href={tournamentHref}>
+                  {t("paymentSuccess.reopenEvent")}
+                </Link>
               </Button>
             </div>
           )}
@@ -400,10 +407,14 @@ export default function RegisterSuccessPage() {
           {phase === "register_failed" && (
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Button asChild className="flex-1">
-                <Link href="/contact">Contact support</Link>
+                <Link href="/contact">
+                  {t("paymentSuccess.contactSupport")}
+                </Link>
               </Button>
               <Button asChild variant="outline" className="flex-1">
-                <Link href={tournamentHref}>Back to event</Link>
+                <Link href={tournamentHref}>
+                  {t("paymentSuccess.backToEvent")}
+                </Link>
               </Button>
             </div>
           )}
@@ -413,14 +424,18 @@ export default function RegisterSuccessPage() {
               <div className="flex flex-col sm:flex-row gap-3 w-full">
                 <Button onClick={handleRetry} className="flex-1">
                   <IconRefresh className="mr-2 h-4 w-4" />
-                  Retry now
+                  {t("paymentSuccess.retryNow")}
                 </Button>
                 <Button asChild variant="outline" className="flex-1">
-                  <Link href="/contact">Contact support</Link>
+                  <Link href="/contact">
+                    {t("paymentSuccess.contactSupport")}
+                  </Link>
                 </Button>
               </div>
               <Button asChild variant="ghost" className="text-muted-foreground">
-                <Link href={tournamentHref}>Back to event</Link>
+                <Link href={tournamentHref}>
+                  {t("paymentSuccess.backToEvent")}
+                </Link>
               </Button>
             </div>
           )}

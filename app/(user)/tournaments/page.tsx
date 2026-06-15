@@ -33,6 +33,9 @@ import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { organizersApi } from "@/lib/organizers";
 import { toast } from "sonner";
+// i18n: copy lives in messages/en/tournaments.json under "list.*" / "organizers.*"
+// (useTranslations resolves the NEXT_LOCALE cookie locale, en fallback).
+import { useTranslations } from "next-intl";
 
 // --- Types ---
 interface Event {
@@ -93,6 +96,7 @@ type OrgVerFilter = "all" | "verified" | "afc";
 
 // --- Event Card ---
 const EventCard: React.FC<{ event: Event }> = ({ event }) => {
+  const t = useTranslations("tournaments");
   const formattedDate = formatDate(event.event_date);
 
   const statusColors: Record<string, string> = {
@@ -136,7 +140,9 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
         <CardTitle className="hover:text-primary hover:underline">
           <Link href={`/tournaments/${event.slug}`}>{event.event_name}</Link>
         </CardTitle>
-        <p className="text-sm text-muted-foreground">Date: {formattedDate}</p>
+        <p className="text-sm text-muted-foreground">
+          {t("list.card.date", { date: formattedDate })}
+        </p>
         <p
           className={`text-sm font-medium ${statusColors[event.event_status] ?? "text-muted-foreground"}`}
         >
@@ -166,14 +172,16 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
                 variant="outline"
                 className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
               >
-                Paid: {paidFeeLabel}
+                {t("list.card.paid", { fee: paidFeeLabel })}
               </Badge>
             )}
           </div>
         )}
 
         <Button className="w-full" variant={"outline"} asChild>
-          <Link href={`/tournaments/${event.slug}`}>View Details</Link>
+          <Link href={`/tournaments/${event.slug}`}>
+            {t("list.card.viewDetails")}
+          </Link>
         </Button>
       </CardContent>
     </Card>
@@ -185,6 +193,7 @@ const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
   events,
   searchQuery,
 }) => {
+  const t = useTranslations("tournaments");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -222,17 +231,19 @@ const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
         ) : (
           <p className="text-center text-muted-foreground col-span-full py-8">
             {searchQuery
-              ? `No events match "${searchQuery}"`
-              : "No events available."}
+              ? t("list.search.noMatch", { query: searchQuery })
+              : t("list.search.noEvents")}
           </p>
         )}
       </div>
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <p className="hidden md:block text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-            {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of{" "}
-            {filtered.length}
+            {t("list.showing", {
+              start: (currentPage - 1) * ITEMS_PER_PAGE + 1,
+              end: Math.min(currentPage * ITEMS_PER_PAGE, filtered.length),
+              total: filtered.length,
+            })}
           </p>
           <Pagination className="w-full md:w-auto mx-0">
             <PaginationContent>
@@ -322,6 +333,7 @@ const OrganizerCard: React.FC<{
   org: OrganizerDirectoryItem;
   onOpen: (org: OrganizerDirectoryItem) => void;
 }> = ({ org, onOpen }) => {
+  const t = useTranslations("tournaments");
   // Tier badge colour follows the AFC tier-badge idiom: outline rounded-full, with
   // a tier-specific accent (1 = gold/best, 2 = green, 3 = blue).
   const tierClass =
@@ -372,7 +384,7 @@ const OrganizerCard: React.FC<{
               {org.verified && (
                 <BadgeCheck
                   className="h-4 w-4 text-gold shrink-0"
-                  aria-label="Verified organizer"
+                  aria-label={t("organizers.card.verifiedAria")}
                 />
               )}
             </div>
@@ -381,7 +393,7 @@ const OrganizerCard: React.FC<{
 
         {/* Blurb (org description). min-h keeps card heights even across the grid. */}
         <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
-          {org.description || "No description provided yet."}
+          {org.description || t("organizers.card.noDescription")}
         </p>
 
         {/* Footer badges: event count, tier, verified/official status. All outline
@@ -391,7 +403,7 @@ const OrganizerCard: React.FC<{
             variant="outline"
             className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
           >
-            {org.event_count} events
+            {t("organizers.card.eventCount", { count: org.event_count })}
           </Badge>
           {org.tier && (
             <Badge
@@ -406,21 +418,21 @@ const OrganizerCard: React.FC<{
               variant="outline"
               className="rounded-full px-2 py-0.5 text-xs border-gold/55 text-gold"
             >
-              AFC Official
+              {t("organizers.card.afcOfficial")}
             </Badge>
           ) : org.verified ? (
             <Badge
               variant="outline"
               className="rounded-full px-2 py-0.5 text-xs border-gold/55 text-gold"
             >
-              Verified
+              {t("organizers.card.verified")}
             </Badge>
           ) : (
             <Badge
               variant="outline"
               className="rounded-full px-2 py-0.5 text-xs border-orange-500/55 text-orange-500"
             >
-              Unverified
+              {t("organizers.card.unverified")}
             </Badge>
           )}
         </div>
@@ -447,6 +459,7 @@ const OrganizerDirectory: React.FC<{
   // Status filter from the top of the page, threaded so detail counts match it.
   statusFilter: StatusFilter;
 }> = ({ events, statusFilter }) => {
+  const t = useTranslations("tournaments");
   // Directory cards from the public endpoint (real org branding + derived stats).
   const [orgs, setOrgs] = useState<OrganizerDirectoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -473,7 +486,7 @@ const OrganizerDirectory: React.FC<{
       } catch (err: any) {
         if (active) {
           toast.error(
-            err?.response?.data?.message || "Failed to load organizers",
+            err?.response?.data?.message || t("organizers.loadFailed"),
           );
         }
       } finally {
@@ -483,6 +496,9 @@ const OrganizerDirectory: React.FC<{
     return () => {
       active = false;
     };
+    // Load the directory once on mount; `t` only feeds the error toast and is
+    // stable per locale, so it is intentionally not a dependency here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── synthetic "AFC Official" card ──
@@ -495,16 +511,15 @@ const OrganizerDirectory: React.FC<{
     if (afcEvents.length === 0) return null;
     return {
       slug: null,
-      name: "AFC Official",
+      name: t("organizers.afcCard.name"),
       logo: null,
       default_banner: null, // synthetic card has no uploaded banner -> gradient fallback
-      description:
-        "Events run directly by the African Freefire Community. Flagship leagues, majors, and weekly community scrims.",
+      description: t("organizers.afcCard.description"),
       event_count: afcEvents.length,
       verified: true,
       tier: null,
     };
-  }, [events]);
+  }, [events, t]);
 
   // Full directory list = AFC card (first) + endpoint orgs.
   const allOrgs = useMemo(() => {
@@ -579,7 +594,7 @@ const OrganizerDirectory: React.FC<{
     }
   }, []);
 
-  if (isLoading) return <Loader text="Loading organizers..." />;
+  if (isLoading) return <Loader text={t("organizers.loading")} />;
 
   // ── STATE B: organizer detail ──
   if (activeOrg) {
@@ -594,7 +609,7 @@ const OrganizerDirectory: React.FC<{
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary mb-4"
         >
           <ArrowLeft className="h-4 w-4" />
-          All organizers
+          {t("organizers.detail.allOrganizers")}
         </button>
 
         {/* Organizer header: logo + name + verified + stats */}
@@ -634,7 +649,7 @@ const OrganizerDirectory: React.FC<{
                   asChild
                 >
                   <Link href={`/organizations/${activeOrg.slug}`}>
-                    View full organizer page
+                    {t("organizers.detail.viewFullPage")}
                   </Link>
                 </Button>
               )}
@@ -644,14 +659,17 @@ const OrganizerDirectory: React.FC<{
             <div className="flex flex-wrap gap-2 md:ml-auto">
               <OrgStat
                 value={headerStats.total}
-                label="Events"
+                label={t("organizers.detail.stats.events")}
                 tone="text-primary"
               />
-              <OrgStat value={headerStats.upcoming} label="Upcoming" />
+              <OrgStat
+                value={headerStats.upcoming}
+                label={t("organizers.detail.stats.upcoming")}
+              />
               {activeOrg.tier && (
                 <OrgStat
                   value={activeOrg.tier.replace("Tier ", "T")}
-                  label="Tier"
+                  label={t("organizers.detail.stats.tier")}
                   tone="text-gold"
                 />
               )}
@@ -666,10 +684,14 @@ const OrganizerDirectory: React.FC<{
         >
           <TabsList className="w-full">
             <TabsTrigger value="tournaments">
-              Tournaments ({detailTournaments.length})
+              {t("organizers.detail.tabs.tournaments", {
+                count: detailTournaments.length,
+              })}
             </TabsTrigger>
             <TabsTrigger value="scrims">
-              Scrims ({detailScrims.length})
+              {t("organizers.detail.tabs.scrims", {
+                count: detailScrims.length,
+              })}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -680,7 +702,7 @@ const OrganizerDirectory: React.FC<{
             list.map((event) => <EventCard key={event.event_id} event={event} />)
           ) : (
             <p className="text-center text-muted-foreground col-span-full py-8">
-              No {detailSubTab} from this organizer match the current filter.
+              {t("organizers.detail.empty", { type: detailSubTab })}
             </p>
           )}
         </div>
@@ -698,7 +720,7 @@ const OrganizerDirectory: React.FC<{
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search organizers by name..."
+            placeholder={t("organizers.directory.searchPlaceholder")}
             value={orgSearch}
             onChange={(e) => setOrgSearch(e.target.value)}
             className="bg-background/50 backdrop-blur-sm pl-10"
@@ -713,9 +735,15 @@ const OrganizerDirectory: React.FC<{
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All organizers</SelectItem>
-              <SelectItem value="verified">Verified only</SelectItem>
-              <SelectItem value="afc">AFC official</SelectItem>
+              <SelectItem value="all">
+                {t("organizers.directory.filter.all")}
+              </SelectItem>
+              <SelectItem value="verified">
+                {t("organizers.directory.filter.verifiedOnly")}
+              </SelectItem>
+              <SelectItem value="afc">
+                {t("organizers.directory.filter.afcOfficial")}
+              </SelectItem>
             </SelectContent>
           </Select>
 
@@ -727,8 +755,12 @@ const OrganizerDirectory: React.FC<{
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="events">Most events</SelectItem>
-              <SelectItem value="name">Name (A to Z)</SelectItem>
+              <SelectItem value="events">
+                {t("organizers.directory.sort.mostEvents")}
+              </SelectItem>
+              <SelectItem value="name">
+                {t("organizers.directory.sort.nameAZ")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -747,8 +779,8 @@ const OrganizerDirectory: React.FC<{
         ) : (
           <p className="text-center text-muted-foreground col-span-full py-8">
             {orgSearch
-              ? `No organizers match "${orgSearch}".`
-              : "No organizers to show yet."}
+              ? t("organizers.directory.noMatch", { query: orgSearch })
+              : t("organizers.directory.empty")}
           </p>
         )}
       </div>
@@ -758,6 +790,7 @@ const OrganizerDirectory: React.FC<{
 
 // --- Main Component ---
 const EventsPage = () => {
+  const t = useTranslations("tournaments");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [monthFilter, setMonthFilter] = useState<MonthFilter>("all");
@@ -780,13 +813,11 @@ const EventsPage = () => {
       const data = await response.json();
       setEvents(data.events || []);
     } catch {
-      setError(
-        "Failed to load events. Please check your connection and try again.",
-      );
+      setError(t("list.loadError"));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadEvents();
@@ -885,7 +916,7 @@ const EventsPage = () => {
 
   return (
     <div>
-      <PageHeader title="Tournaments & Scrims" />
+      <PageHeader title={t("list.pageTitle")} />
 
       {/* Search */}
       <div className="flex w-full mb-3 items-center justify-center gap-2 flex-col md:flex-row">
@@ -893,7 +924,7 @@ const EventsPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search by title, date (YYYY-MM-DD), or status..."
+            placeholder={t("list.search.placeholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-background/50 backdrop-blur-sm pl-10"
@@ -909,11 +940,15 @@ const EventsPage = () => {
             onValueChange={(v) => setOrganizerFilter(v as OrganizerFilter)}
           >
             <SelectTrigger className="w-full md:w-44 text-xs">
-              <SelectValue placeholder="All organizers" />
+              <SelectValue placeholder={t("list.filters.allOrganizers")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All organizers</SelectItem>
-              <SelectItem value="afc">AFC (official)</SelectItem>
+              <SelectItem value="all">
+                {t("list.filters.allOrganizers")}
+              </SelectItem>
+              <SelectItem value="afc">
+                {t("list.filters.afcOfficial")}
+              </SelectItem>
               {organizerOptions.map((name) => (
                 <SelectItem key={name} value={name}>
                   {name}
@@ -927,10 +962,10 @@ const EventsPage = () => {
             onValueChange={(v) => setMonthFilter(v as MonthFilter)}
           >
             <SelectTrigger className="w-full md:w-44 text-xs">
-              <SelectValue placeholder="All Dates" />
+              <SelectValue placeholder={t("list.filters.allDatesPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Dates</SelectItem>
+              <SelectItem value="all">{t("list.filters.allDates")}</SelectItem>
               {monthOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}
@@ -948,8 +983,12 @@ const EventsPage = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
+              <SelectItem value="newest">
+                {t("list.filters.newestFirst")}
+              </SelectItem>
+              <SelectItem value="oldest">
+                {t("list.filters.oldestFirst")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -968,7 +1007,7 @@ const EventsPage = () => {
                 onClick={() => setStatusFilter(s)}
                 className="capitalize text-xs"
               >
-                {s === "all" ? "All" : s}
+                {t(`list.status.${s}` as any)}
                 <span className="ml-1 text-xs opacity-70">
                   ({s === "all" ? statusCounts.all : statusCounts[s]})
                 </span>
@@ -993,9 +1032,11 @@ const EventsPage = () => {
               by guided-tour-stops.ts -> tournaments stop -> "tournaments-filter". */}
           <TabsList className="w-full" data-tour="tournaments-filter">
             <TabsTrigger value="tournaments">
-              Tournaments ({tournaments.length})
+              {t("list.tabs.tournaments", { count: tournaments.length })}
             </TabsTrigger>
-            <TabsTrigger value="scrims">Scrims ({scrims.length})</TabsTrigger>
+            <TabsTrigger value="scrims">
+              {t("list.tabs.scrims", { count: scrims.length })}
+            </TabsTrigger>
             {/* ── NEW: Organizers tab ──
                 Sits alongside the existing pill tabs (does NOT replace them). It
                 renders the organizer directory + drill-down. It is fed the full
@@ -1004,7 +1045,9 @@ const EventsPage = () => {
                 with the page's status buttons). No count is shown on the trigger
                 because the directory size is computed inside OrganizerDirectory
                 (from the public organizers endpoint), not on this page. */}
-            <TabsTrigger value="organizers">Organizers</TabsTrigger>
+            <TabsTrigger value="organizers">
+              {t("list.tabs.organizers")}
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="tournaments">
             <EventList events={tournaments} searchQuery={searchQuery} />

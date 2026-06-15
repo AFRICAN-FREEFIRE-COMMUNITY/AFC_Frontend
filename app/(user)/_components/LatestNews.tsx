@@ -11,20 +11,23 @@ import { DEFAULT_IMAGE } from "@/constants";
 import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 export const LatestNews = () => {
+  // Strings for the home-page "Latest News" teaser (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   const [pending, startTransition] = useTransition();
   const [news, setNews] = useState<any>();
 
   const categories = [
-    { value: "all", label: "All Categories" },
-    { value: "general", label: "General News" },
-    { value: "tournament", label: "Tournament Updates" },
-    { value: "bans", label: "Banned Player/Team Updates" },
+    { value: "all", label: t("latestNews.categories.all") },
+    { value: "general", label: t("latestNews.categories.general") },
+    { value: "tournament", label: t("latestNews.categories.tournament") },
+    { value: "bans", label: t("latestNews.categories.bans") },
   ];
 
   const getCategoryLabel = (category: string) => {
@@ -41,7 +44,7 @@ export const LatestNews = () => {
         if (res.statusText === "OK") {
           setNews(res.data.news.splice(0, 2));
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("latestNews.toast.error"));
         }
       } catch (error: any) {
         toast.error(error?.response?.data.message);
@@ -52,10 +55,10 @@ export const LatestNews = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Latest News & Updates</CardTitle>
+        <CardTitle>{t("latestNews.title")}</CardTitle>
       </CardHeader>
       <CardContent>
-        {pending && <Loader text="Loading news..." />}
+        {pending && <Loader text={t("latestNews.loading")} />}
         <ul className="space-y-4">
           {!pending &&
             news &&
@@ -93,7 +96,7 @@ export const LatestNews = () => {
             ))}
         </ul>
         <Button asChild className="mt-4 w-full">
-          <Link href="/news">View All News</Link>
+          <Link href="/news">{t("latestNews.viewAll")}</Link>
         </Button>
       </CardContent>
     </Card>

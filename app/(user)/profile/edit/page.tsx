@@ -3,6 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+// i18n: user-visible copy on the profile edit form is sourced from the `profile`
+// namespace (messages/en/profile.json). Locale comes from the NEXT_LOCALE cookie
+// (set on save below) and falls back to English.
+import { useTranslations } from "next-intl";
 // js-cookie: used to persist the chosen UI language to a NEXT_LOCALE cookie on save (i18n
 // Phase 0). Same library + options pattern the auth_token cookie uses in
 // contexts/AuthContext.tsx, so Phase 1 (next-intl, not built yet) can read the locale server-side.
@@ -61,6 +65,7 @@ const LOCALE_COOKIE_OPTIONS = {
 };
 
 const Page = () => {
+  const t = useTranslations("profile");
   const { user, token, login } = useAuth();
   const router = useRouter();
 
@@ -87,9 +92,11 @@ const Page = () => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setEsportPreview(res.data.esport_image_url);
-      toast.success("Esport image saved.");
+      toast.success(t("edit.esport.saved"));
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to upload the esport image.");
+      toast.error(
+        error?.response?.data?.message || t("edit.esport.uploadFailed"),
+      );
     } finally {
       setEsportUploading(false);
     }
@@ -183,12 +190,14 @@ const Page = () => {
         if (storedToken) {
           await login(storedToken);
         } else {
-          toast.error("Oops! An error occurred. Login again");
+          toast.error(t("edit.reloginError"));
           router.push("/login");
         }
         router.push(`/profile`);
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Internal server error");
+        toast.error(
+          error?.response?.data?.message || t("edit.internalError"),
+        );
         return;
       }
     });
@@ -198,11 +207,11 @@ const Page = () => {
 
   return (
     <div>
-      <PageHeader back title={`Edit Profile: ${user.full_name}`} />
+      <PageHeader back title={t("edit.title", { name: user.full_name })} />
 
       <Card>
         <CardHeader>
-          <CardTitle>Update Your Information</CardTitle>
+          <CardTitle>{t("edit.cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -211,7 +220,7 @@ const Page = () => {
                 <Avatar className="w-32 h-32 mb-4 object-cover">
                   <AvatarImage
                     src={avatar || user?.profile_pic || DEFAULT_PROFILE_PICTURE}
-                    alt={`${user.full_name}'s picture`}
+                    alt={t("edit.avatarAlt", { name: user.full_name })}
                     className="object-cover"
                   />
                   <AvatarFallback>{user.full_name.charAt(0)}</AvatarFallback>
@@ -223,7 +232,7 @@ const Page = () => {
                 name="avatar"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Profile Picture</FormLabel>
+                    <FormLabel>{t("edit.profilePicture")}</FormLabel>
                     <FormControl>
                       <Input
                         type="file"
@@ -255,10 +264,10 @@ const Page = () => {
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{t("edit.name")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter your full name"
+                        placeholder={t("edit.namePlaceholder")}
                         onPaste={preventPaste}
                         {...field}
                       />
@@ -272,11 +281,11 @@ const Page = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("edit.email")}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="Enter your email"
+                        placeholder={t("edit.emailPlaceholder")}
                         {...field}
                       />
                     </FormControl>
@@ -292,12 +301,12 @@ const Page = () => {
                   // Targeted by guided-tour-stops.ts -> profile stop -> "profile-uid".
                   <FormItem data-tour="profile-uid">
                     <FormLabel>
-                      UID <InfoTip id="profile.edit.uid" />
+                      {t("edit.uid")} <InfoTip id="profile.edit.uid" />
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Enter your FreeFire UID"
+                        placeholder={t("edit.uidPlaceholder")}
                         {...field}
                       />
                     </FormControl>
@@ -313,12 +322,13 @@ const Page = () => {
                   // Targeted by guided-tour-stops.ts -> profile stop -> "profile-ign".
                   <FormItem data-tour="profile-ign">
                     <FormLabel>
-                      In-game Name <InfoTip id="profile.edit.in_game_name" />
+                      {t("edit.inGameName")}{" "}
+                      <InfoTip id="profile.edit.in_game_name" />
                     </FormLabel>
                     <FormControl>
                       <Input
                         className="bg-input border-border"
-                        placeholder="Enter your in-game name"
+                        placeholder={t("edit.inGameNamePlaceholder")}
                         onPaste={preventPaste}
                         {...field}
                       />
@@ -339,16 +349,19 @@ const Page = () => {
                 name="language"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Language</FormLabel>
+                    <FormLabel>{t("edit.language")}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select your language" />
+                          <SelectValue
+                            placeholder={t("edit.languagePlaceholder")}
+                          />
                         </SelectTrigger>
                       </FormControl>
+                      {/* Native language names stay in their own language by design. */}
                       <SelectContent>
                         <SelectItem value="en">English</SelectItem>
                         <SelectItem value="fr">Français</SelectItem>
@@ -395,10 +408,16 @@ const Page = () => {
                   type="submit"
                   data-tour="profile-save"
                 >
-                  {pending ? <Loader text="Saving..." /> : "Save changes"}
+                  {pending ? (
+                    <Loader text={t("edit.saving")} />
+                  ) : (
+                    t("edit.saveChanges")
+                  )}
                 </Button>
                 <Button className="flex-1" variant="outline" asChild>
-                  <Link href="/profile/change-password">Change Password</Link>
+                  <Link href="/profile/change-password">
+                    {t("edit.changePassword")}
+                  </Link>
                 </Button>
               </div>
             </form>
@@ -415,9 +434,9 @@ const Page = () => {
       <Card className="mt-4" data-tour="profile-esports">
         <CardHeader>
           <CardTitle className="flex items-center">
-            Esport Image
+            {t("edit.esport.title")}
             <InfoTip
-              text="Tournament organizers use this image as your player picture in event graphics. Some events require it before you can register."
+              text={t("edit.esport.infoTip")}
               className="ml-1.5"
             />
           </CardTitle>
@@ -426,21 +445,27 @@ const Page = () => {
           {/* THE WARNING (owner, verbatim intent): own picture only, esport-style bust shot,
               no branded shirts - violations can ban the player AND their team. */}
           <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
-            <p className="font-semibold text-destructive">Read before uploading</p>
+            <p className="font-semibold text-destructive">
+              {t("edit.esport.warningTitle")}
+            </p>
             <ul className="mt-1.5 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
               <li>
-                Upload <span className="font-medium text-foreground">only your own picture</span>.
+                {t("edit.esport.warningOwnPictureLead")}{" "}
+                <span className="font-medium text-foreground">
+                  {t("edit.esport.warningOwnPictureBold")}
+                </span>
+                {t("edit.esport.warningOwnPictureTail")}
               </li>
+              <li>{t("edit.esport.warningBust")}</li>
               <li>
-                It must look like an esport image: a clear shot covering your bust, facing the
-                camera.
-              </li>
-              <li>
-                Do <span className="font-medium text-foreground">not</span> wear a branded shirt.
+                {t("edit.esport.warningNoBrandLead")}{" "}
+                <span className="font-medium text-foreground">
+                  {t("edit.esport.warningNoBrandBold")}
+                </span>{" "}
+                {t("edit.esport.warningNoBrandTail")}
               </li>
               <li className="text-destructive">
-                If you upload a picture that is not yours, or anything that is not an esport
-                picture, we can and will ban both you and your team.
+                {t("edit.esport.warningBan")}
               </li>
             </ul>
           </div>
@@ -450,7 +475,7 @@ const Page = () => {
               like before uploading their own. */}
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-foreground">
-              Examples of what your esport image should look like:
+              {t("edit.esport.samplesTitle")}
             </p>
             <div className="flex flex-wrap gap-2">
               {["sample-1.jpg", "sample-2.png", "sample-3.webp"].map((f) => (
@@ -458,7 +483,7 @@ const Page = () => {
                 <img
                   key={f}
                   src={`/esport-samples/${f}`}
-                  alt="Esport image example"
+                  alt={t("edit.esport.sampleAlt")}
                   className="h-32 w-24 rounded-md border object-cover"
                 />
               ))}
@@ -472,12 +497,12 @@ const Page = () => {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={esportPreview || user.esport_image_url || ""}
-                  alt="Your esport image"
+                  alt={t("edit.esport.currentAlt")}
                   className="h-full w-full object-cover"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
-                  No esport image yet
+                  {t("edit.esport.noImageYet")}
                 </div>
               )}
             </div>
@@ -491,10 +516,12 @@ const Page = () => {
               />
               <p className="text-xs text-muted-foreground">
                 {user.esport_image_url
-                  ? "Picking a file replaces your current esport image immediately. Esport images cannot be removed, only replaced."
-                  : "Picking a file uploads it immediately. Esport images cannot be removed, only replaced."}
+                  ? t("edit.esport.replaceNote")
+                  : t("edit.esport.uploadNote")}
               </p>
-              {esportUploading && <Loader text="Uploading esport image..." />}
+              {esportUploading && (
+                <Loader text={t("edit.esport.uploading")} />
+              )}
             </div>
           </div>
         </CardContent>

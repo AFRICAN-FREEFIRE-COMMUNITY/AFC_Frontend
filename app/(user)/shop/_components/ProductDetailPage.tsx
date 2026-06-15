@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,8 @@ interface ProductData {
 }
 
 export default function ProductDetailPage() {
+  // Localized copy for the product detail page (messages/en/shop.json -> "detail").
+  const t = useTranslations("shop");
   const params = useParams();
   const router = useRouter();
   const { fetchCartCount } = useCart();
@@ -101,12 +104,12 @@ export default function ProductDetailPage() {
           type: details.discount_type,
           value: parseFloat(details.discount_value),
         });
-        toast.success("Coupon applied successfully!");
+        toast.success(t("detail.coupon.successApplied"));
       } else {
-        toast.error("This coupon is no longer active.");
+        toast.error(t("detail.coupon.inactive"));
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Invalid coupon code");
+      toast.error(error.response?.data?.message || t("detail.coupon.invalid"));
       setAppliedCoupon(null);
     } finally {
       setIsApplyingCoupon(false);
@@ -173,7 +176,7 @@ export default function ProductDetailPage() {
         },
       );
 
-      toast.success(`${product?.name} added to cart!`);
+      toast.success(t("detail.toast.addedToCart", { name: product?.name ?? "" }));
 
       await fetchCartCount();
 
@@ -181,7 +184,8 @@ export default function ProductDetailPage() {
         router.push("/shop/cart");
       }
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || "Failed to add to cart";
+      const errorMsg =
+        error.response?.data?.message || t("detail.toast.addFailed");
       toast.error(errorMsg);
     } finally {
       setIsAdding(false);
@@ -210,9 +214,9 @@ export default function ProductDetailPage() {
   if (!product)
     return (
       <div className="text-center py-10">
-        <h2 className="text-2xl font-bold">Product Not Found</h2>
+        <h2 className="text-2xl font-bold">{t("detail.notFoundTitle")}</h2>
         <Button asChild className="mt-4">
-          <Link href="/shop">Back to Shop</Link>
+          <Link href="/shop">{t("detail.backToShop")}</Link>
         </Button>
       </div>
     );
@@ -229,7 +233,9 @@ export default function ProductDetailPage() {
       return (
         <div className="flex items-center text-sm text-primary">
           <IconDiamond className="h-3 w-3 mr-1" />{" "}
-          {formatMoneyInput(variant.diamonds_amount)} Diamonds
+          {t("detail.diamonds", {
+            amount: formatMoneyInput(variant.diamonds_amount),
+          })}
         </div>
       );
     }
@@ -277,19 +283,19 @@ export default function ProductDetailPage() {
             {isPhysical ? (
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
                 <Truck className="h-3.5 w-3.5" />
-                Physical item. A delivery address is collected at checkout.
+                {t("detail.physicalHint")}
               </p>
             ) : (
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
                 <Zap className="h-3.5 w-3.5" />
-                Digital topup. Delivered to your game UID, no shipping.
+                {t("detail.digitalHint")}
               </p>
             )}
           </div>
 
           {/* Variant Selection */}
           <div className="space-y-2.5">
-            <Label>Select Option</Label>
+            <Label>{t("detail.selectOption")}</Label>
             <div className="grid grid-cols-1 gap-3">
               {product.variants.map((variant) => (
                 <button
@@ -310,7 +316,7 @@ export default function ProductDetailPage() {
                     <p className="font-bold">{formatPrice(variant.price)}</p>
                     {!variant.in_stock && (
                       <span className="text-xs text-destructive">
-                        Out of Stock
+                        {t("detail.outOfStock")}
                       </span>
                     )}
                   </div>
@@ -345,7 +351,9 @@ export default function ProductDetailPage() {
                     </Button>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Subtotal</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("detail.subtotal")}
+                    </p>
                     {appliedCoupon && (
                       <p className="text-xs text-muted-foreground line-through">
                         {formatPrice(
@@ -364,13 +372,13 @@ export default function ProductDetailPage() {
                     htmlFor="coupon"
                     className="text-xs uppercase text-muted-foreground"
                   >
-                    Have a promo code?
+                    {t("detail.promoLabel")}
                     <InfoTip id="shop.checkout.coupon" className="ml-1" />
                   </Label>
                   <div className="flex gap-1">
                     <Input
                       id="coupon"
-                      placeholder="Enter code"
+                      placeholder={t("detail.promoPlaceholder")}
                       value={couponCode}
                       onChange={(e) =>
                         setCouponCode(e.target.value.toUpperCase())
@@ -383,19 +391,24 @@ export default function ProductDetailPage() {
                       disabled={isApplyingCoupon || !couponCode}
                     >
                       {isApplyingCoupon ? (
-                        <Loader text="Applying..." />
+                        <Loader text={t("detail.applying")} />
                       ) : (
-                        "Apply"
+                        t("detail.apply")
                       )}
                     </Button>
                   </div>
                   {appliedCoupon && (
                     <p className="text-xs text-green-500 font-medium flex items-center gap-1">
-                      ✓ Coupon {appliedCoupon.code} applied! (
+                      ✓{" "}
                       {appliedCoupon.type === "percent"
-                        ? `${appliedCoupon.value}%`
-                        : formatPrice(appliedCoupon.value)}{" "}
-                      off)
+                        ? t("detail.couponAppliedPercent", {
+                            code: appliedCoupon.code,
+                            value: appliedCoupon.value,
+                          })
+                        : t("detail.couponAppliedFixed", {
+                            code: appliedCoupon.code,
+                            value: formatPrice(appliedCoupon.value),
+                          })}
                     </p>
                   )}
                 </div>
@@ -407,11 +420,11 @@ export default function ProductDetailPage() {
                     disabled={isAdding || !selectedVariant.in_stock}
                   >
                     {isAdding ? (
-                      <Loader text="Adding..." />
+                      <Loader text={t("detail.adding")} />
                     ) : (
                       <>
                         <IconShoppingCart />
-                        Add to Cart
+                        {t("detail.addToCart")}
                       </>
                     )}
                   </Button>
@@ -425,8 +438,7 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-2 p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg text-yellow-600">
               <AlertCircle className="h-5 w-5" />
               <p className="text-sm font-medium">
-                This product is currently archived and may not be available for
-                purchase.
+                {t("detail.archivedNotice")}
               </p>
             </div>
           )}
