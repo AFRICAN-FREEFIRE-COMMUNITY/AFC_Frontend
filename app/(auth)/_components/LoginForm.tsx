@@ -46,8 +46,22 @@ function LoginFormContent() {
 
   useEffect(() => {
     if (!isAuthenticated || !user) return;
-    if (redirectUrl) {
-      router.replace(redirectUrl);
+    // Return the user to where they were. Priority: an explicit ?redirect= param, then the page
+    // stashed when their session expired (owner 2026-06-15: "take me back to where I was" after a
+    // timeout re-login — set by AuthContext.stashPostLoginRedirect, consumed + cleared here), then
+    // /home as the default.
+    let target = redirectUrl;
+    if (!target) {
+      try {
+        const stashed = sessionStorage.getItem("afc_post_login_redirect");
+        if (stashed) {
+          sessionStorage.removeItem("afc_post_login_redirect");
+          target = stashed;
+        }
+      } catch {}
+    }
+    if (target) {
+      router.replace(target);
     } else {
       router.push("/home");
     }

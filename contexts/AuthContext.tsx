@@ -133,6 +133,25 @@ const COOKIE_OPTIONS = {
 let lastCookieBumpAt = 0;
 const COOKIE_BUMP_THROTTLE_MS = 5 * 60 * 1000;
 
+// Return-to-page after a session-timeout re-login (owner 2026-06-15). When the session is lost we
+// stash the page the user was on so the login flow can send them right back — covering surfaces that
+// navigate to /login (admin/organizer guards, bare pushes) as well as the in-place AuthModal. The
+// /login page (LoginForm) reads + clears it; the AuthModal clears it on a successful in-place login
+// (no navigation needed there). Skipped for auth pages so we never bounce back to /login itself.
+export const POST_LOGIN_REDIRECT_KEY = "afc_post_login_redirect";
+function stashPostLoginRedirect() {
+  try {
+    const path = window.location.pathname + window.location.search;
+    if (
+      /^\/(login|register|forgot-password|reset-password|verify|email-confirmation)/.test(
+        path,
+      )
+    )
+      return;
+    sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, path);
+  } catch {}
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -195,6 +214,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // dead. Clear it, tell the user, and raise the event the AuthModal
             // listens for so a login modal pops in place (no navigation, so the
             // user keeps their spot and resumes right where they were).
+            // Stash the current page first so surfaces WITHOUT the in-place modal
+            // (admin/organizer) still return here after re-login.
+            stashPostLoginRedirect();
             Cookies.remove(COOKIE_NAME, { path: "/" });
             setUser(null);
             setToken(null);
@@ -358,6 +380,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [token]);
 
   const signalSessionExpired = useCallback(() => {
+    // Stash the current page so re-login returns here (see stashPostLoginRedirect).
+    stashPostLoginRedirect();
     Cookies.remove(COOKIE_NAME, { path: "/" });
     setUser(null);
     setToken(null);

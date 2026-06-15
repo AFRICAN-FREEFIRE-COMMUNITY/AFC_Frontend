@@ -120,6 +120,12 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
         sessionExpired={sessionExpired}
         onSuccess={() => {
           closeAuthModal();
+          // In-place login means we never navigated to /login, so the page stashed on session
+          // expiry won't be consumed there — clear it so a later /login visit doesn't bounce the
+          // user to a stale page. (return-to-page, owner 2026-06-15)
+          try {
+            sessionStorage.removeItem("afc_post_login_redirect");
+          } catch {}
           //   onSuccessCallback?.fn?.();
         }}
       />
