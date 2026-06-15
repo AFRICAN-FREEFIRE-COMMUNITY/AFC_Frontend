@@ -44,6 +44,11 @@ export interface User {
   country: string;
   in_game_name: string;
   uid: string;
+  // IDENTITY LOCK (owner 2026-06-15): true while the player is signed up for a LIVE event
+  // (upcoming/ongoing). The profile-edit form (app/(user)/profile/edit/page.tsx) disables +
+  // explains the in-game name and UID inputs when this is true; the backend enforces the same in
+  // edit_profile. Set by the get-user-profile payload; releases once all their events complete.
+  identity_locked?: boolean;
   team: string | null;
   role: string;
   roles: string[];
@@ -262,6 +267,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         country: dbUser.country,
         in_game_name: dbUser.in_game_name,
         uid: dbUser.uid,
+        // IDENTITY LOCK: disables the IGN/UID inputs on the profile-edit form while the player is
+        // in a live event (server also enforces it in edit_profile). Defaults false when omitted.
+        identity_locked: dbUser.identity_locked ?? false,
         team: dbUser.team,
         role: dbUser.role,
         roles: dbUser.roles || [],

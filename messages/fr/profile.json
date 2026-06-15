@@ -279,7 +279,8 @@
       "uploading": "Téléchargement de l'image esport...",
       "saved": "Image esport enregistrée.",
       "uploadFailed": "Échec du téléchargement de l'image esport."
-    }
+    },
+    "identityLocked": "Verrouillé tant que vous êtes inscrit à un événement. Vous pourrez le modifier à nouveau une fois vos événements terminés."
   },
   "password": {
     "title": "Changer le mot de passe",

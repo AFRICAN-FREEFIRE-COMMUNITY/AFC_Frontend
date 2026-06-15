@@ -279,7 +279,8 @@
       "uploading": "Carregando imagem de esport...",
       "saved": "Imagem de esport salva.",
       "uploadFailed": "Falha ao carregar a imagem de esport."
-    }
+    },
+    "identityLocked": "Bloqueado enquanto estiver registado para um evento. Pode editar isto novamente assim que os seus eventos terminarem."
   },
   "password": {
     "title": "Alterar Senha",

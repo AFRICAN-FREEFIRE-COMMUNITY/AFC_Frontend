@@ -233,6 +233,7 @@
   "edit.esport.uploading": "Uploading esport image...",
   "edit.esport.saved": "Esport image saved.",
   "edit.esport.uploadFailed": "Failed to upload the esport image.",
+  "edit.identityLocked": "Locked while you're registered for an event. You can edit this again once your events are over.",
   "password.title": "Change Password",
   "password.currentPassword": "Current Password",
   "password.currentPasswordPlaceholder": "Current password",

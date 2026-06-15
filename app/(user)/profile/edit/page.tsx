@@ -307,9 +307,18 @@ const Page = () => {
                       <Input
                         type="number"
                         placeholder={t("edit.uidPlaceholder")}
+                        // IDENTITY LOCK (owner 2026-06-15): UID can't change while the player is
+                        // signed up for a live event (backend edit_profile enforces it too). The
+                        // disabled input keeps submitting the current value, so a save still works.
+                        disabled={!!user.identity_locked}
                         {...field}
                       />
                     </FormControl>
+                    {user.identity_locked && (
+                      <p className="text-xs text-muted-foreground">
+                        {t("edit.identityLocked")}
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -330,9 +339,17 @@ const Page = () => {
                         className="bg-input border-border"
                         placeholder={t("edit.inGameNamePlaceholder")}
                         onPaste={preventPaste}
+                        // IDENTITY LOCK (owner 2026-06-15): in-game name can't change while the
+                        // player is signed up for a live event (also enforced in edit_profile).
+                        disabled={!!user.identity_locked}
                         {...field}
                       />
                     </FormControl>
+                    {user.identity_locked && (
+                      <p className="text-xs text-muted-foreground">
+                        {t("edit.identityLocked")}
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
