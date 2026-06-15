@@ -507,7 +507,15 @@ export default function EditLeaderboardPage({
               kills: sp?.kills ?? 0,
               damage: sp?.damage ?? 0,
               assists: sp?.assists ?? 0,
-              played: true,
+              // Free Fire squad allows at most 4 PLAYED players per match — the backend
+              // (edit-match-result) rejects any team with >4 played. A registered roster
+              // can hold 5-6 (substitutes), so a roster member counts as "played" by
+              // DEFAULT only when they have a saved per-player stat for THIS map (sp set).
+              // Substitutes not in the saved result default to NOT played; the admin ticks
+              // the per-player "Played" box for anyone who actually played. Before this every
+              // roster member defaulted to played=true, so every 5-6 member squad failed to
+              // save ("Team X: max 4 played players allowed"). (bug fix 2026-06-15)
+              played: sp != null,
             };
           }),
         };
@@ -597,9 +605,18 @@ export default function EditLeaderboardPage({
     setPlayerGroups((prev) => {
       const groups = (prev[matchId] ?? []).map((g, ti) => {
         if (ti !== teamIdx) return g;
-        const players = g.players.map((p, pi) =>
-          pi === playerIdx ? { ...p, [field]: value } : p,
-        );
+        const players = g.players.map((p, pi) => {
+          if (pi !== playerIdx) return p;
+          const next = { ...p, [field]: value };
+          // Entering any stat for a player implies they played (a player who did not play
+          // has no stats), so auto-tick "Played". This stops the save from silently dropping
+          // a player whose kills were typed while "Played" was left unticked — the save only
+          // sends played=true players to respect the 4-per-squad cap. (bug fix 2026-06-15)
+          if (field !== "played" && typeof value === "number" && value > 0) {
+            next.played = true;
+          }
+          return next;
+        });
         return { ...g, players };
       });
       return { ...prev, [matchId]: groups };
@@ -653,13 +670,21 @@ export default function EditLeaderboardPage({
             played: r.played,
             bonus_points: r.bonus_points,
             penalty_points: r.penalty_points,
-            players: (teamGroup?.players ?? []).map((p) => ({
-              user_id: p.player_id,
-              kills: p.kills,
-              damage: p.damage,
-              assists: p.assists,
-              played: p.played,
-            })),
+            // Send ONLY the players who actually played this map. Squad rules cap a match at
+            // 4 played players, and persisting not-played substitutes (played=false) would
+            // also make them reappear as "played" on the next load (the details API carries
+            // no per-player played flag, so a re-seeded sub looks played again). Omitting them
+            // keeps the payload within the cap and makes re-saving idempotent. The admin's
+            // per-player "Played" checkboxes drive who is included. (bug fix 2026-06-15)
+            players: (teamGroup?.players ?? [])
+              .filter((p) => p.played)
+              .map((p) => ({
+                user_id: p.player_id,
+                kills: p.kills,
+                damage: p.damage,
+                assists: p.assists,
+                played: true,
+              })),
           };
         }),
       },
@@ -751,18 +776,28 @@ export default function EditLeaderboardPage({
       const results = await Promise.allSettled(
         saveableIds.map((mid) => saveMatchById(mid)),
       );
-      const failed = results.filter((r) => r.status === "rejected").length;
-      const ok = saveableIds.length - failed;
-      if (failed > 0) {
-        toast.warning(
-          `Saved ${ok} of ${saveableIds.length} maps. ${failed} failed.`,
+      const rejected = results.filter(
+        (r): r is PromiseRejectedResult => r.status === "rejected",
+      );
+      const ok = saveableIds.length - rejected.length;
+      if (rejected.length > 0) {
+        // Surface the ACTUAL backend reason (e.g. "Team X: max 4 played players allowed")
+        // instead of a bare count so the admin knows what to fix, and DO NOT refetch on a
+        // failure: refetch reseeds the editable tables from the server and would wipe the
+        // placements / bonus / penalty the admin just typed into the maps that failed.
+        // Keeping their input lets them correct it and retry. (bug fix 2026-06-15)
+        const reason =
+          rejected[0].reason?.message || "open the failing map and try again";
+        toast.error(
+          `Saved ${ok} of ${saveableIds.length} maps. ${rejected.length} failed: ${reason}`,
         );
       } else {
         toast.success(
           `Saved all ${ok} map${ok !== 1 ? "s" : ""} in this group.`,
         );
+        // Only resync from the server when everything saved — see note above.
+        fetchData();
       }
-      fetchData();
     } catch (err: any) {
       toast.error(err.message || "Failed to save the group's maps");
     } finally {

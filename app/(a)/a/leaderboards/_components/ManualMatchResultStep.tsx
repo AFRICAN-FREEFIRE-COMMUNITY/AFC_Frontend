@@ -224,7 +224,13 @@ export function ManualMatchResultStep({
                     kills: sp?.kills ?? 0,
                     damage: sp?.damage ?? 0,
                     assists: sp?.assists ?? 0,
-                    played: sp?.played ?? true,
+                    // Squad matches allow max 4 PLAYED players (the backend rejects >4).
+                    // Registered rosters can hold 5-6 (substitutes), so a member counts as
+                    // played by DEFAULT only when they have a saved stat for this map; subs
+                    // default to NOT played and the admin ticks "Played" / enters their stats
+                    // for anyone who actually played. Before this every roster member defaulted
+                    // to played=true, so 5-6 member squads failed to save. (bug fix 2026-06-15)
+                    played: sp != null,
                   };
                 }),
               };
@@ -316,7 +322,14 @@ export function ManualMatchResultStep({
     setTeamResults((prev) => {
       const next = [...prev];
       const players = [...next[teamIdx].players];
-      players[playerIdx] = { ...players[playerIdx], [field]: value };
+      const updated = { ...players[playerIdx], [field]: value };
+      // Entering any stat for a player implies they played (a non-player has no stats), so
+      // auto-tick "Played". The submit only sends played=true players to respect the squad
+      // 4-played cap, so this stops typed kills from being silently dropped. (bug fix 2026-06-15)
+      if (field !== "played" && typeof value === "number" && value > 0) {
+        updated.played = true;
+      }
+      players[playerIdx] = updated;
       next[teamIdx] = { ...next[teamIdx], players };
       return next;
     });
@@ -441,13 +454,18 @@ export function ManualMatchResultStep({
             tournament_team_id: t.tournament_team_id,
             placement: t.placement,
             played: t.played,
-            players: t.players.map((p) => ({
-              user_id: p.user_id,
-              kills: p.kills,
-              damage: p.damage,
-              assists: p.assists,
-              played: p.played,
-            })),
+            // Only players who actually played (≤4 for squad). Omitting not-played subs keeps
+            // the payload within the cap and avoids persisting subs that would re-appear as
+            // "played" on the next load (the API carries no per-player played flag). (fix 2026-06-15)
+            players: t.players
+              .filter((p) => p.played)
+              .map((p) => ({
+                user_id: p.user_id,
+                kills: p.kills,
+                damage: p.damage,
+                assists: p.assists,
+                played: true,
+              })),
           })),
         };
       } else {
