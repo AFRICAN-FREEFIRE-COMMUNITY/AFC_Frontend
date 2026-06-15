@@ -68,6 +68,13 @@ export interface User {
   // dashboard lives" callout for any accessible dashboard whose key is missing. Set by the backend
   // get-user-profile payload and flipped via POST /auth/mark-dashboard-intro-seen/.
   seen_dashboard_intros?: Record<string, boolean>;
+  // i18n Phase 0 (preferred UI language). One of "en" | "fr" | "pt". Set by the backend
+  // get-user-profile / login / edit-profile payloads (the User.language field, default "en",
+  // auto-detected from the login country on first login only). Chosen by the user on the profile
+  // edit page (app/(user)/profile/edit/page.tsx), which also writes the same value to a NEXT_LOCALE
+  // cookie so Phase 1 (next-intl, not built yet) can pick up the locale. Read-only displayed on the
+  // profile overview (ProfileContent.tsx). Defaults to "en" below when a payload omits it.
+  language?: string;
 
   stats: UserStats;
 }
@@ -251,6 +258,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // missing field reads as "nothing dismissed yet" - the coachmark gates on access TOO,
         // so a user with no dashboards still sees nothing.
         seen_dashboard_intros: dbUser.seen_dashboard_intros ?? {},
+        // i18n Phase 0 preferred language (see the User interface note). The backend coalesces this
+        // to "en" everywhere, but we default to "en" here too so an absent field never leaves the
+        // language undefined for the profile edit selector / read-only display.
+        language: dbUser.language ?? "en",
         stats: dbUser.stats,
       };
 

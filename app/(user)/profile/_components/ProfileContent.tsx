@@ -303,6 +303,15 @@ export const ProfileContent = () => {
                 Role: <span className="capitalize">{user.role}</span>
               </Badge>
             )}
+            {/* i18n Phase 0: read-only display of the preferred UI language (user.language from
+                AuthContext, set on the profile edit page). Maps the stored code to its native name;
+                change it from "Edit Profile". Defaults to English when absent. */}
+            <p className="mb-4 text-sm">
+              Language:{" "}
+              {{ en: "English", fr: "Français", pt: "Português" }[
+                user.language ?? "en"
+              ] ?? "English"}
+            </p>
             <div className="grid w-full gap-2">
               <div className="flex items-center justify-end">
                 <InfoTip id="profile.discord_connect" />

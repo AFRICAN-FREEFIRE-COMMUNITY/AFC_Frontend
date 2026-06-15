@@ -125,6 +125,13 @@ export const EditProfileFormSchema = z.object({
   email: z.string().email().min(2, {
     message: "Email must be at least 2 characters.",
   }),
+  // i18n Phase 0: preferred UI language. Bound to the Language <Select> on the profile edit
+  // page (app/(user)/profile/edit/page.tsx) and sent to POST /auth/edit-profile/ as the
+  // `language` key. The backend accepts only "en" | "fr" | "pt" and keeps the current value on
+  // anything else, so we mirror that allow-list here as a z.enum. The page initializes it from
+  // user.language (see AuthContext.User.language) and writes the chosen value to a NEXT_LOCALE
+  // cookie on save for Phase 1 (next-intl, not built yet).
+  language: z.enum(["en", "fr", "pt"]),
   // country: z.enum(countries, { message: "Country is required" }),
 });
 

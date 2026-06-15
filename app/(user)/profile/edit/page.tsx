@@ -3,6 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+// js-cookie: used to persist the chosen UI language to a NEXT_LOCALE cookie on save (i18n
+// Phase 0). Same library + options pattern the auth_token cookie uses in
+// contexts/AuthContext.tsx, so Phase 1 (next-intl, not built yet) can read the locale server-side.
+import Cookies from "js-cookie";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +45,19 @@ import { InfoTip } from "@/components/ui/info-tip";
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
   e.preventDefault();
+};
+
+// i18n Phase 0: NEXT_LOCALE cookie config. On a successful profile save we persist the chosen UI
+// language here so Phase 1 (next-intl, not built yet) can read the locale on the server. NEXT_LOCALE
+// is the cookie name next-intl reads by convention. We mirror the auth_token COOKIE_OPTIONS from
+// contexts/AuthContext.tsx (secure in prod, sameSite strict, path "/") but give it a long lifetime
+// (1 year) because a language preference is not session-scoped and should outlive a logout.
+const LOCALE_COOKIE_NAME = "NEXT_LOCALE";
+const LOCALE_COOKIE_OPTIONS = {
+  expires: 365, // js-cookie `expires` is in DAYS; a language choice should persist long-term.
+  secure: process.env.NODE_ENV === "production", // HTTPS only in production (matches auth_token).
+  sameSite: "strict" as const,
+  path: "/",
 };
 
 const Page = () => {
@@ -87,6 +104,10 @@ const Page = () => {
       // country: "" as EditProfileFormSchemaType["country"],
       email: "",
       uid: "",
+      // i18n Phase 0: default UI language. Overwritten with the user's real choice in the
+      // form.reset below once the user object loads (user.language from AuthContext). "en" is the
+      // backend default too, so this is a safe pre-load placeholder.
+      language: "en",
     },
   });
 
@@ -102,6 +123,14 @@ const Page = () => {
         //   ("" as EditProfileFormSchemaType["country"]),
         email: user.email || "",
         uid: user.uid || "",
+        // i18n Phase 0: initialize the language selector from the current user.language
+        // (AuthContext maps + defaults this to "en"). We only accept the three known values; any
+        // unexpected value falls back to "en" so the selector never lands on an out-of-range option.
+        language: (["en", "fr", "pt"] as const).includes(
+          user.language as "en" | "fr" | "pt",
+        )
+          ? (user.language as "en" | "fr" | "pt")
+          : "en",
       });
     }
   }, [user, form]);
@@ -118,6 +147,11 @@ const Page = () => {
         formData.append("in_game_name", data.ingameName);
         formData.append("email", data.email);
         formData.append("uid", data.uid);
+        // i18n Phase 0: send the chosen UI language under the EXACT key the backend expects
+        // (`language`, see POST /auth/edit-profile/ contract). The backend accepts only
+        // "en" | "fr" | "pt" and ignores anything else (keeping the current value), so a stray
+        // value can never corrupt the field. The response echoes back "language".
+        formData.append("language", data.language);
 
         // Append profile picture file if selected
         if (selectedFile) {
@@ -135,6 +169,16 @@ const Page = () => {
         );
 
         toast.success(response.data.message);
+        // i18n Phase 0: persist the saved language to the NEXT_LOCALE cookie so Phase 1 (next-intl,
+        // not built yet) can read the locale on the server. We use the value the backend echoed back
+        // (response.data.language) when present so the cookie can never drift from the stored value;
+        // we fall back to what we submitted otherwise. js-cookie + LOCALE_COOKIE_OPTIONS mirror the
+        // auth_token cookie pattern from contexts/AuthContext.tsx.
+        const savedLanguage = response.data?.language ?? data.language;
+        Cookies.set(LOCALE_COOKIE_NAME, savedLanguage, LOCALE_COOKIE_OPTIONS);
+        // Re-fetch the profile so AuthContext.user.language reflects the saved value immediately
+        // (login() -> fetchUser() under the hood). This is the existing refresh path; the language
+        // now rides along in that same get-user-profile payload.
         const storedToken = localStorage.getItem("authToken");
         if (storedToken) {
           await login(storedToken);
@@ -279,6 +323,38 @@ const Page = () => {
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* ── Language selector (i18n Phase 0) ──
+                  Preferred UI language for the site. Bound to the `language` form field
+                  (zodSchemas EditProfileFormSchema, enum en/fr/pt), initialized from
+                  user.language in the form.reset above. On save it is sent to
+                  POST /auth/edit-profile/ as `language` and ALSO written to the NEXT_LOCALE cookie
+                  for Phase 1 (next-intl). Uses the shadcn <Select> idiom this page already uses for
+                  the (commented-out) country field. Option labels are the native language names. */}
+              <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Language</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your language" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="fr">Français</SelectItem>
+                        <SelectItem value="pt">Português</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
