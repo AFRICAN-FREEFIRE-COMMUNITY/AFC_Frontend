@@ -66,6 +66,12 @@ export const RoundRobinConfigSchema = z.object({
       source_group_indices: z.array(z.coerce.number()),
       match_count: z.coerce.number(),
       match_maps: z.array(z.string()),
+      // Per-match-day date + time (owner 2026-06-15): when each match day plays. Optional so an
+      // unscheduled day still validates; the backend (_materialise_round_robin_lobby) honours them
+      // and falls back to the stage start when blank. MUST be in the schema or zod strips them on
+      // Save and the schedule reverts to the stage default.
+      playing_date: z.string().optional(),
+      playing_time: z.string().optional(),
     }),
   ),
 });
@@ -293,6 +299,10 @@ export interface EventDetails {
           source_group_ids: number[];
           match_count?: number;
           match_maps?: string[];
+          // Per-match-day date/time echoed by the backend (owner 2026-06-15) so the edit form
+          // rehydrates the saved schedule instead of blanks.
+          playing_date?: string;
+          playing_time?: string;
         }>;
       }>;
     };

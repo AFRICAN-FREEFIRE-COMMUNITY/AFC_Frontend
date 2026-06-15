@@ -103,6 +103,10 @@ function rehydrateRoundRobin(
         .filter((i): i is number => i !== undefined),
       match_count: lobby.match_count ?? 1,
       match_maps: lobby.match_maps ?? ["Bermuda"],
+      // Per-match-day date/time (owner 2026-06-15): rehydrate what was saved so editing the stage
+      // shows the real schedule (the backend echoes these on get-event-details-for-admin).
+      playing_date: lobby.playing_date ?? "",
+      playing_time: lobby.playing_time ?? "",
     })),
   );
 
