@@ -79,6 +79,11 @@ interface ActionsTabProps {
     participant_type: string;
     is_public: boolean;
     stages: Stage[];
+    // Event end date (YYYY-MM-DD) — caps the roster-edit window picker. From get-event-details.
+    end_date?: string;
+    // Roster-edit window (owner 2026-06-15): current state for the Roster Editing card.
+    roster_edit_until?: string | null;
+    roster_edit_open?: boolean;
   };
   onStartTournament: () => void;
   onRefresh?: () => void;
@@ -111,6 +116,11 @@ export default function ActionsTab({
   const [loadingAnnouncement, setLoadingAnnouncement] = useState(false);
   const [loadingVisibility, setLoadingVisibility] = useState(false);
   const [loadingExport, setLoadingExport] = useState<"csv" | "xlsx" | null>(null);
+  // Roster-edit window (owner 2026-06-15): admin/organizer opens team roster-editing for a set
+  // period that auto-closes; the picker is capped at the event end date. Backed by
+  // POST /events/roster-edit-window/ (set_roster_edit_window) + enforced in edit_roster.
+  const [loadingRosterWindow, setLoadingRosterWindow] = useState(false);
+  const [rosterUntilInput, setRosterUntilInput] = useState("");
 
   // dialogs
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -181,6 +191,42 @@ export default function ActionsTab({
       toast.error(e.response?.data?.message || "Failed to cancel event");
     } finally {
       setLoadingCancel(false);
+    }
+  }
+
+  // Open or close the team roster-edit window. `open=true` sends the picked datetime as `until`
+  // (ISO); the backend rejects a past time or one later than the event end date, and the window
+  // auto-closes once that instant passes. `open=false` clears it. onRefresh re-pulls so the shown
+  // state + "open until" updates. (owner 2026-06-15)
+  async function handleSetRosterWindow(open: boolean) {
+    setLoadingRosterWindow(true);
+    try {
+      const body: Record<string, any> = { event_id: eventDetails.event_id };
+      if (open) {
+        if (!rosterUntilInput) {
+          toast.error("Pick the date & time the roster-edit window should close.");
+          setLoadingRosterWindow(false);
+          return;
+        }
+        body.until = new Date(rosterUntilInput).toISOString();
+      } else {
+        body.open = false;
+      }
+      const res = await axios.post(`${API}/events/roster-edit-window/`, body, {
+        headers: authHeader,
+      });
+      toast.success(
+        open
+          ? "Roster editing is now open for teams."
+          : "Roster editing closed for teams.",
+      );
+      onRefresh?.();
+    } catch (e: any) {
+      toast.error(
+        e.response?.data?.message || "Failed to update the roster-edit window",
+      );
+    } finally {
+      setLoadingRosterWindow(false);
     }
   }
 
@@ -899,6 +945,93 @@ export default function ActionsTab({
               </div>
             </>
           )}
+        </CardContent>
+      </Card>
+
+      {/* ── Roster Editing Window (owner 2026-06-15) ──────────────────────
+          Open team roster-editing for a set period that auto-closes (capped at the event end date).
+          While open, captains can edit their roster even after registration closes; the backend
+          (set_roster_edit_window + edit_roster) is the real authority. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Roster Editing</CardTitle>
+          <CardDescription>
+            Open team roster editing for a set period. It closes automatically and can&apos;t run past
+            the event end date. While open, team captains can edit their roster even after registration
+            has closed.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-sm font-medium">Status</p>
+              <p className="text-xs text-muted-foreground">
+                {(eventDetails as any).roster_edit_open ? (
+                  <>
+                    Open until{" "}
+                    <span className="font-semibold text-foreground">
+                      {(eventDetails as any).roster_edit_until
+                        ? new Date(
+                            (eventDetails as any).roster_edit_until,
+                          ).toLocaleString()
+                        : ""}
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-semibold">Closed</span>
+                )}
+              </p>
+            </div>
+            {(eventDetails as any).roster_edit_open && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleSetRosterWindow(false)}
+                disabled={loadingRosterWindow}
+              >
+                {loadingRosterWindow ? <Loader text="Saving..." /> : "Close now"}
+              </Button>
+            )}
+          </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Open until</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="datetime-local"
+                className="h-9 rounded-md border bg-background px-3 text-sm"
+                value={rosterUntilInput}
+                max={
+                  eventDetails.end_date
+                    ? `${String(eventDetails.end_date).slice(0, 10)}T23:59`
+                    : undefined
+                }
+                onChange={(e) => setRosterUntilInput(e.target.value)}
+              />
+              <Button
+                size="sm"
+                onClick={() => handleSetRosterWindow(true)}
+                disabled={loadingRosterWindow}
+              >
+                {loadingRosterWindow ? (
+                  <Loader text="Saving..." />
+                ) : (eventDetails as any).roster_edit_open ? (
+                  "Update window"
+                ) : (
+                  "Open window"
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Cannot be later than the event end date
+              {eventDetails.end_date
+                ? ` (${String(eventDetails.end_date).slice(0, 10)})`
+                : ""}
+              .
+            </p>
+          </div>
         </CardContent>
       </Card>
 
