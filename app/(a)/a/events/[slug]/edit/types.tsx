@@ -31,6 +31,10 @@ export const STAGE_FORMATS = SHARED_STAGE_FORMATS;
 
 export const GroupSchema = z.object({
   group_id: z.number().optional(),
+  // Manual display order (drag-to-reorder). Echoed from get-event-details and re-submitted on Save
+  // so a plain Save doesn't reset the dragged order to auto-by-date (zod would otherwise STRIP an
+  // unknown key). 0 = auto-arrange by date. (bug fix 2026-06-15)
+  group_order: z.coerce.number().optional(),
   group_name: z.string().min(1, "Group name required"),
   group_discord_role_id: z.string().optional(),
   room_id: z.string().optional(),
@@ -68,6 +72,10 @@ export const RoundRobinConfigSchema = z.object({
 
 export const StageSchema = z.object({
   stage_id: z.number().optional(),
+  // Manual display order (drag-to-reorder). Echoed from get-event-details and re-submitted on Save
+  // so a plain Save doesn't reset the dragged order to auto-by-date (zod strips unknown keys). 0 =
+  // auto-arrange by date. (bug fix 2026-06-15)
+  stage_order: z.coerce.number().optional(),
   stage_name: z.string().min(1, "Stage name required"),
   stage_discord_role_id: z.string().optional(),
   start_date: z.string().min(1, "Start date required"),
