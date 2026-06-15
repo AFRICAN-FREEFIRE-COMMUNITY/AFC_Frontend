@@ -77,6 +77,27 @@ export interface ChainEdge {
   status: "active" | "fired" | "cancelled";
 }
 
+// ── public tournament structure (owner 2026-06-15): both directions of an event's
+//    qualification links for the public tournament page (GET events/<id>/links/structure/) ──
+// Each row points at the OTHER event in the link (the one to navigate to):
+//   inbound  -> the SOURCE/feeder event (this event is the target)
+//   outbound -> the TARGET/destination event (this event is the source)
+// event_slug drives the chip's Link to /tournaments/<slug>; stage_name is the SOURCE stage
+// whose top `qualify_count` qualify; status is active (planned) or fired (resolved).
+export interface PublicLinkRow {
+  link_id: number;
+  event_id: number;
+  event_slug: string | null;
+  event_name: string;
+  stage_name: string;
+  qualify_count: number;
+  status: "active" | "fired";
+}
+export interface PublicLinksStructure {
+  inbound: PublicLinkRow[];
+  outbound: PublicLinkRow[];
+}
+
 // ── event merge (owner 2026-06-12): per-source import report ──
 export interface ImportReportRow {
   source_event_id: number;
@@ -115,6 +136,12 @@ export const eventLinksApi = {
     (await axios.get<{ nodes: ChainNode[]; edges: ChainEdge[] }>(
       `${BASE}/${eventId}/links/chain/`, { headers: headers() },
     )).data,
+  // Public, NO AUTH (owner 2026-06-15): both directions of this event's qualification links
+  // (inbound feeders + outbound destinations, each with a slug) for the public tournament
+  // page's "Qualification Links" chips. Hits GET events/<id>/links/structure/ ->
+  // event_links.public_structure_links. Deliberately omits the auth header (public read).
+  publicStructure: async (eventId: number) =>
+    (await axios.get<PublicLinksStructure>(`${BASE}/${eventId}/links/structure/`)).data,
   // Event MERGE: bulk-enter every confirmed competitor of the source events into eventId
   // (duplicates skipped; per-source report returned). Same-type events only.
   importCompetitors: async (eventId: number, sourceEventIds: number[]) =>

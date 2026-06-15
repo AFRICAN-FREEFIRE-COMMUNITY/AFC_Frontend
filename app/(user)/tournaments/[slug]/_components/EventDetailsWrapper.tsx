@@ -156,6 +156,21 @@ interface RegistrationDraft {
 // Set to true when Discord is required for tournament registration
 const DISCORD_REQUIRED = false;
 
+// ── Roster Rules (Feature B, owner 2026-06-15) ──────────────────────────────────
+// A team member's role lives in TeamMembers.management_role (afc_team/models.py).
+// The choices MIX playing + management; only PLAYING roles may be picked for event
+// registration. STAFF roles (coach/manager/analyst) are rejected by the backend at
+// POST /events/register-for-event/ (and POST /events/edit-roster/), so the FE must
+// not even offer them. We keep the same canonical sets the backend uses
+// (afc_team/views.py PLAYER_ROLES / STAFF_ROLES). isPlayingMember() is the predicate
+// both registration pickers below filter the team roster through.
+const PLAYER_ROLES = ["team_captain", "vice_captain", "member"] as const;
+// A member is selectable when their management_role is a PLAYING role. We default a
+// missing/unknown role to "member" (a PLAYING role) so older data without the field
+// stays selectable rather than silently disappearing from the picker.
+const isPlayingMember = (m: TeamMember): boolean =>
+  PLAYER_ROLES.includes((m.management_role ?? "member") as any);
+
 type ModalStep =
   | "CLOSED"
   | "INFO"
@@ -271,6 +286,11 @@ interface TeamMember {
   discord_connected: boolean;
   discord_id: string | null; // ✅ FIX: Change from boolean to string | null
   discord_username?: string;
+  // Team role from TeamMembers.management_role (team/get-team-details/ -> team.members[]).
+  // One of team_captain/vice_captain/member (PLAYING) or coach/manager/analyst (STAFF).
+  // Drives isPlayingMember(): STAFF members are filtered out of the registration pickers
+  // because the backend rejects them at register-for-event/ + edit-roster/. (Roster Rules)
+  management_role?: string;
 }
 
 interface UserTeam {
@@ -689,7 +709,11 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                   Select Players ({minPlayers}-{maxPlayers}):
                 </h3>
                 <div className="space-y-2">
-                  {userTeam?.members.map((member) => {
+                  {/* Roster Rules (owner 2026-06-15): only PLAYING-role members
+                      (team_captain/vice_captain/member) are selectable. STAFF
+                      (coach/manager/analyst) are filtered out here because the
+                      backend edit-roster/ endpoint rejects them with a 400. */}
+                  {userTeam?.members.filter(isPlayingMember).map((member) => {
                     const rosterEntry = currentRoster.find(
                       (r) => r.user_id.toString() === member.id,
                     );
@@ -1162,7 +1186,11 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
             <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md">
               <h3 className="font-semibold mb-3">Available Players:</h3>
               <div className="space-y-2">
-                {userTeam?.members.map((member) => (
+                {/* Roster Rules (owner 2026-06-15): only PLAYING-role members
+                    (team_captain/vice_captain/member) can be rostered for an event.
+                    STAFF (coach/manager/analyst) are filtered out so the picker never
+                    offers someone the backend register-for-event/ endpoint would reject. */}
+                {userTeam?.members.filter(isPlayingMember).map((member) => (
                   <div
                     key={member.id}
                     className="flex items-center justify-between p-3 bg-background rounded-md border hover:border-primary transition"

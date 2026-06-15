@@ -66,6 +66,21 @@ export interface DesignColumnGroup {
   start_rank: number; // the standings position the group's first row shows (1, 9, ...)
 }
 
+// One explicit PAGE of a multi-page design (afc_organizers.OrgLeaderboardDesignPage,
+// owner 2026-06-14). A design with pages.length === 0 is a legacy SINGLE-PAGE design
+// (backward compatible): the renderer reads backgrounds + column_groups straight off the
+// design row. When >= 1 page rows exist the editor (DesignFieldsEditor.tsx) shows page tabs
+// and the export endpoints return a ZIP (one PNG per page) when ?page=all is requested.
+// Each page carries its OWN backgrounds + column_groups so different pages (e.g. ranks 1-16
+// vs 17-32) can show different row counts / different artwork.
+export interface LeaderboardDesignPage {
+  id: number;
+  page_number: number; // 1-based
+  background_instagram: string | null; // media URL (or null when not uploaded for this page)
+  background_youtube: string | null; // media URL (or null when not uploaded for this page)
+  column_groups: DesignColumnGroup[]; // row tiling for THIS page's fields
+}
+
 // One placed/connected column. font_id/font_size_pct/color are optional overrides (null/"" =>
 // renderer default: built-in font, default size, design.text_color).
 export interface LeaderboardDesignField {
@@ -78,6 +93,9 @@ export interface LeaderboardDesignField {
   font_size_pct: number | null; // size as % of canvas height
   color: string; // hex, or "" for the design default
   order: number;
+  // Multi-page (owner 2026-06-14): which page this field belongs to. null = legacy / page-1
+  // (the design-level layout). The editor filters fields by this to scope each page's canvas.
+  page_id: number | null;
 }
 
 // One freeform text element (static copy placed anywhere, with its own style).
@@ -91,6 +109,8 @@ export interface LeaderboardDesignText {
   font_size_pct: number | null;
   color: string;
   order: number;
+  // Multi-page (owner 2026-06-14): which page this text belongs to. null = legacy / page-1.
+  page_id: number | null;
 }
 
 // An uploaded font (TTF/OTF) library item (afc_organizers.OrgLeaderboardDesignFont).
@@ -114,6 +134,9 @@ export interface LeaderboardDesign {
   max_rows: number; // how many standings rows the render fits (1..50)
   is_default: boolean; // the library's auto-selected design
   column_groups: DesignColumnGroup[]; // row tiling per group (field-layout path); [] = legacy table
+  // Multi-page (owner 2026-06-14): ordered list of explicit page rows. Empty array = a legacy
+  // SINGLE-PAGE design (backward compatible). >1 page => export returns a ZIP (one PNG per page).
+  pages: LeaderboardDesignPage[];
   logos: LeaderboardDesignLogo[]; // positioned logos drawn on top of the design
   fields: LeaderboardDesignField[]; // placed/connected data columns
   texts: LeaderboardDesignText[]; // freeform text elements
@@ -229,6 +252,8 @@ export const leaderboardDesignsApi = {
       font_id?: number | null;
       font_size_pct?: number | null;
       color?: string;
+      // Multi-page (owner 2026-06-14): scope this field to a page. Omit / null = design-level (page 1).
+      page_id?: number | null;
     },
   ) =>
     axios
@@ -279,6 +304,8 @@ export const leaderboardDesignsApi = {
       font_id?: number | null;
       font_size_pct?: number | null;
       color?: string;
+      // Multi-page (owner 2026-06-14): scope this text to a page. Omit / null = design-level (page 1).
+      page_id?: number | null;
     },
   ) =>
     axios
@@ -318,11 +345,87 @@ export const leaderboardDesignsApi = {
       )
       .then((r) => r.data),
 
+  // ── Page CRUD (multi-page designs, owner 2026-06-14) ────────────────────────
+  // A design with >1 page renders/exports as a ZIP (one PNG per page). These three calls manage
+  // the OrgLeaderboardDesignPage rows. The backend auto-creates page 1 IMPLICITLY on the first
+  // addPage call (copying the design-level backgrounds + column_groups), so the first new page
+  // returned by addPage is page 2 and the design-level data becomes page 1. Consumed by
+  // DesignFieldsEditor.tsx (the page tabs + "Add page" action). Multipart, so we do NOT set
+  // Content-Type (axios writes the boundary), matching the design create/update idiom above.
+
+  // POST .../pages/ -> {page, design}. Creates the next page. columnGroups rides as a JSON string.
+  // Returns the UPDATED design too so the editor can refresh its full state (incl. the implicit page 1).
+  addPage: (
+    designId: number,
+    opts?: {
+      columnGroups?: DesignColumnGroup[];
+      backgroundInstagram?: File;
+      backgroundYoutube?: File;
+    },
+  ) => {
+    const fd = new FormData();
+    if (opts?.columnGroups) {
+      fd.append("column_groups", JSON.stringify(opts.columnGroups));
+    }
+    if (opts?.backgroundInstagram)
+      fd.append("background_instagram", opts.backgroundInstagram);
+    if (opts?.backgroundYoutube)
+      fd.append("background_youtube", opts.backgroundYoutube);
+    return axios
+      .post<{ page: LeaderboardDesignPage; design: LeaderboardDesign }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/pages/`,
+        fd,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data);
+  },
+
+  // PATCH .../pages/<pageId>/ -> {page}. Update backgrounds and/or column_groups for one page.
+  // Only the keys present are changed. The editor uses this to auto-save a page's column layout.
+  updatePage: (
+    designId: number,
+    pageId: number,
+    opts: {
+      columnGroups?: DesignColumnGroup[];
+      backgroundInstagram?: File;
+      backgroundYoutube?: File;
+    },
+  ) => {
+    const fd = new FormData();
+    if (opts.columnGroups !== undefined) {
+      fd.append("column_groups", JSON.stringify(opts.columnGroups));
+    }
+    if (opts.backgroundInstagram)
+      fd.append("background_instagram", opts.backgroundInstagram);
+    if (opts.backgroundYoutube)
+      fd.append("background_youtube", opts.backgroundYoutube);
+    return axios
+      .patch<{ page: LeaderboardDesignPage }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/pages/${pageId}/`,
+        fd,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data);
+  },
+
+  // DELETE .../pages/<pageId>/ -> {message}. Deletes the page (cascading its fields + texts).
+  // The backend collapses back to single-page mode when only one page row remains.
+  deletePage: (designId: number, pageId: number) =>
+    axios
+      .delete(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/pages/${pageId}/`,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+
   // ── Export renderer (leaderboards/standalone/<id>/graphic/) ──────────────────
   // GET the rendered PNG as a Blob. design_id is optional (the backend falls back to the library
   // default, then a plain dark AFC background); size picks the canvas; title defaults to the
   // leaderboard name server-side; subtitle is the free-text stage/group line the user types.
   // Returns the raw Blob so the caller can object-URL + save it (see ExportGraphicDialog).
+  // Multi-page (owner 2026-06-14): pass page: "all" to request a ZIP of every page. The backend
+  // returns application/zip only when the chosen design actually has >1 page; otherwise it still
+  // returns a single PNG, so the caller should decide ZIP vs PNG from design.pages.length itself.
   downloadGraphic: (
     lbId: number | string,
     opts: {
@@ -330,12 +433,14 @@ export const leaderboardDesignsApi = {
       size: GraphicSize;
       title?: string;
       subtitle?: string;
+      page?: "all"; // omit for the single-PNG default; "all" for the multi-page ZIP
     },
   ): Promise<Blob> => {
     const params: Record<string, any> = { size: opts.size };
     if (opts.designId != null) params.design_id = opts.designId;
     if (opts.title) params.title = opts.title;
     if (opts.subtitle) params.subtitle = opts.subtitle;
+    if (opts.page) params.page = opts.page;
     return axios
       .get(`${BASE}/leaderboards/standalone/${lbId}/graphic/`, {
         params,
@@ -349,6 +454,8 @@ export const leaderboardDesignsApi = {
   // GET events/<eventId>/stages/<stageId>/graphic/ -> PNG Blob. Renders the stage's cumulative
   // standings onto a design (the event org's library, or AFC-native). Same blob+auth idiom as
   // downloadGraphic. Consumed by EventGroupExportGraphicDialog on the event leaderboard page.
+  // Multi-page (owner 2026-06-14): page: "all" requests a ZIP of every page (same backend rule as
+  // downloadGraphic above). Consumed by EventStageExportGraphicDialog.
   downloadEventStageGraphic: (
     eventId: number | string,
     stageId: number | string,
@@ -357,12 +464,14 @@ export const leaderboardDesignsApi = {
       size: GraphicSize;
       title?: string;
       subtitle?: string;
+      page?: "all"; // omit for the single-PNG default; "all" for the multi-page ZIP
     },
   ): Promise<Blob> => {
     const params: Record<string, any> = { size: opts.size };
     if (opts.designId != null) params.design_id = opts.designId;
     if (opts.title) params.title = opts.title;
     if (opts.subtitle) params.subtitle = opts.subtitle;
+    if (opts.page) params.page = opts.page;
     return axios
       .get(`${BASE}/events/${eventId}/stages/${stageId}/graphic/`, {
         params,

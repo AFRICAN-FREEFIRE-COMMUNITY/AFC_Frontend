@@ -44,7 +44,21 @@ import {
   IconChevronRight,
   IconUpload,
   IconCopy,
+  IconRefresh,
+  IconUserPlus,
 } from "@tabler/icons-react";
+// Redo map (owner 2026-06-15): destructive confirm before wiping one map's results.
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +75,16 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+// Add-player dialog (Roster Rules, owner 2026-06-15): per-team picker in the Player
+// Stats section that adds a PLAYING-role member to this event roster.
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
@@ -200,6 +224,20 @@ function getEntityName(e: OverallEntry) {
   return e.competitor__user__username ?? e.team_name ?? "-";
 }
 
+// ── Roster Rules (Feature B, owner 2026-06-15) ──────────────────────────────────
+// Only PLAYING-role members (team_captain/vice_captain/member) may be added to an event
+// roster; STAFF (coach/manager/analyst) are rejected by the backend. The team's roles
+// come from team/get-team-details/ -> team.members[].management_role (the event roster
+// members carry no role). These match afc_team/views.py PLAYER_ROLES.
+const PLAYER_ROLES = ["team_captain", "vice_captain", "member"];
+
+// A selectable candidate for the inline add-player dialog: a PLAYING-role team member
+// not already on the event roster (id from get-team-details/ member.id).
+interface AddPlayerCandidate {
+  id: number;
+  username: string;
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function EditLeaderboardPage({
@@ -271,8 +309,24 @@ export default function EditLeaderboardPage({
     {},
   );
   const [savingMatch, setSavingMatch] = useState(false);
+  // Redo map (owner 2026-06-15): in-flight flag for the destructive "clear this map" action.
+  const [redoingMap, setRedoingMap] = useState(false);
   // Whole-group "Save all maps" in-flight flag (fans out one save per map).
   const [savingAllMaps, setSavingAllMaps] = useState(false);
+
+  // ── Add-player dialog state (Roster Rules, owner 2026-06-15) ───────────────────
+  // The team whose "Add player" dialog is open (one of the Player Stats groups), the
+  // loaded eligible candidates (PLAYING-role members not yet rostered), and per-phase
+  // flags. Mirrors the same control in ManualMatchResultStep.
+  const [addPlayerTeam, setAddPlayerTeam] = useState<{
+    teamId: number;
+    teamName: string;
+  } | null>(null);
+  const [addPlayerCandidates, setAddPlayerCandidates] = useState<
+    AddPlayerCandidate[]
+  >([]);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [addingPlayerId, setAddingPlayerId] = useState<number | null>(null);
 
   // Total leaderboard
   const [overall, setOverall] = useState<OverallEntry[]>([]);
@@ -645,6 +699,39 @@ export default function EditLeaderboardPage({
     }
   };
 
+  // ── Redo this map (owner 2026-06-15) ────────────────────────────────────────
+  // Wipe the currently selected map's results (stats reset, result_inputted->False) so
+  // the admin can re-enter them from scratch. Other maps in the group are untouched.
+  // Hits BE POST /events/clear-match-result/ (afc_tournament_and_scrims.clear_match_result),
+  // then re-fetches so the map repaints blank. Gated behind an AlertDialog (destructive).
+  const handleRedoMap = async () => {
+    if (selectedMatchId === null) return;
+    setRedoingMap(true);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/clear-match-result/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ match_id: selectedMatchId, force: true }),
+        },
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || err.detail || "Failed to clear map results");
+      }
+      toast.success("Map cleared. You can re-enter results for this map.");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to clear map results");
+    } finally {
+      setRedoingMap(false);
+    }
+  };
+
   // ── Save ALL maps of the current group at once ───────────────────────────────
   // The user asked to edit a whole group in one go instead of map-by-map. Every map's
   // rows are already in editRows/playerGroups (loaded by the group-change effect), so
@@ -680,6 +767,96 @@ export default function EditLeaderboardPage({
       toast.error(err.message || "Failed to save the group's maps");
     } finally {
       setSavingAllMaps(false);
+    }
+  };
+
+  // ── Add player to event roster (Roster Rules, owner 2026-06-15) ──────────────
+  // Inline twin of the ManualMatchResultStep control. The Player Stats section shows
+  // each team's registered roster (rosterByTeam, derived from get-event-details/, which
+  // carries no role). To offer only PLAYING-role members who are NOT yet rostered, we
+  // fetch the team's full member list from team/get-team-details/ {team_name} ->
+  // team.members[]{id, username, management_role}, keep PLAYER_ROLES, and drop anyone
+  // already in this team's rosterByTeam members (those player_ids).
+  const openAddPlayer = async (teamId: number, teamName: string) => {
+    setAddPlayerTeam({ teamId, teamName });
+    setAddPlayerCandidates([]);
+    setLoadingCandidates(true);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ team_name: teamName }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.detail || "Failed to load team");
+      }
+      const members: any[] = data.team?.members ?? [];
+      // user_ids already on this event's roster (from the registered roster we loaded).
+      const rostered = rosterByTeam.get(teamId);
+      const rosteredIds = new Set(
+        (rostered?.members ?? []).map((m) => m.player_id),
+      );
+      const candidates: AddPlayerCandidate[] = members
+        // PLAYING roles only; default a missing role to "member" (a PLAYING role).
+        .filter((m) => PLAYER_ROLES.includes(m.management_role ?? "member"))
+        // Not already on the event roster.
+        .filter((m) => !rosteredIds.has(m.id))
+        .map((m) => ({ id: m.id, username: m.username }));
+      setAddPlayerCandidates(candidates);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to load team members");
+    } finally {
+      setLoadingCandidates(false);
+    }
+  };
+
+  // POST the chosen member to the new add-player endpoint, then re-fetch all leaderboard
+  // data + the registered roster so the Player Stats section shows the new player.
+  // Request body: { event_id, tournament_team_id, user_id } (tournament_team_id is the
+  // group's teamId, which is the TournamentTeam id sourced from get-event-details/).
+  const handleAddPlayer = async (userId: number) => {
+    if (!addPlayerTeam) return;
+    setAddingPlayerId(userId);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/add-player-to-event-roster/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            event_id: id,
+            tournament_team_id: addPlayerTeam.teamId,
+            user_id: userId,
+          }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          data.message || data.detail || "Failed to add player to roster",
+        );
+      }
+      toast.success(data.message || "Player added to the roster.");
+      setAddPlayerTeam(null);
+      // Refresh the registered roster (drives the Player Stats list) and leaderboard data.
+      if (eventSlug) await fetchRoster(eventSlug);
+      await fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to add player to roster");
+    } finally {
+      setAddingPlayerId(null);
     }
   };
 
@@ -1446,6 +1623,28 @@ export default function EditLeaderboardPage({
                                         </TableBody>
                                       </Table>
                                     )}
+
+                                    {/* ── Add player to event roster (Roster Rules,
+                                        owner 2026-06-15) ── per-team picker of PLAYING-role
+                                        members not yet rostered; adds via
+                                        /events/add-player-to-event-roster/ then refetches. */}
+                                    <div className="px-4 py-3 border-t">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-xs"
+                                        onClick={() =>
+                                          openAddPlayer(
+                                            group.teamId,
+                                            group.teamName,
+                                          )
+                                        }
+                                      >
+                                        <IconUserPlus size={14} className="mr-1" />
+                                        Add player
+                                      </Button>
+                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -1585,6 +1784,45 @@ export default function EditLeaderboardPage({
                       "Save all maps" fans out one save per map (handleSaveAllMaps). */}
                   {/* data-tour anchor (leaderboard-edit-save): admin tour "Save changes" step. */}
                   <div data-tour="leaderboard-edit-save" className="flex flex-wrap justify-end gap-2">
+                    {/* Redo this map (owner 2026-06-15): clears ONLY the selected map's
+                        results so it can be re-entered. Destructive -> AlertDialog confirm.
+                        Calls handleRedoMap -> POST /events/clear-match-result/. */}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          className="mr-auto"
+                          disabled={redoingMap || savingMatch || savingAllMaps}
+                        >
+                          {redoingMap ? (
+                            <span className="flex items-center gap-2">
+                              <IconLoader2 size={14} className="animate-spin" />
+                              Clearing…
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-2">
+                              <IconRefresh size={14} />
+                              Redo this map
+                            </span>
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Redo this map?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This clears all results for this map. Other maps are not
+                            affected. You can then re-enter the results.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleRedoMap}>
+                            Redo map
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                     <Button
                       variant="outline"
                       onClick={handleSaveAllMaps}
@@ -2180,6 +2418,74 @@ export default function EditLeaderboardPage({
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* ── Add-player dialog (Roster Rules, owner 2026-06-15) ──────────────────
+          Driven by openAddPlayer/handleAddPlayer. Lists eligible PLAYING-role team
+          members not yet on the event roster; clicking one adds them via
+          /events/add-player-to-event-roster/. Closes by clearing addPlayerTeam. */}
+      <Dialog
+        open={!!addPlayerTeam}
+        onOpenChange={(o) => !o && setAddPlayerTeam(null)}
+      >
+        <DialogContent className="flex flex-col max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle>Add player to roster</DialogTitle>
+            <DialogDescription>
+              {addPlayerTeam
+                ? `Add a player to ${addPlayerTeam.teamName} for this event.`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-2 py-1">
+            {loadingCandidates ? (
+              <div className="flex items-center justify-center py-8">
+                <IconLoader2 className="animate-spin size-6 text-primary" />
+              </div>
+            ) : addPlayerCandidates.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                No eligible players to add. Every playing member of this team is
+                already on the roster.
+              </p>
+            ) : (
+              addPlayerCandidates.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                >
+                  <span className="text-xs font-medium">{c.username}</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="text-xs"
+                    disabled={addingPlayerId !== null}
+                    onClick={() => handleAddPlayer(c.id)}
+                  >
+                    {addingPlayerId === c.id ? (
+                      <span className="flex items-center gap-2">
+                        <IconLoader2 size={14} className="animate-spin" />
+                        Adding...
+                      </span>
+                    ) : (
+                      "Add"
+                    )}
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setAddPlayerTeam(null)}
+              disabled={addingPlayerId !== null}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

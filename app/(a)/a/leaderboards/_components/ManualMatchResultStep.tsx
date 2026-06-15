@@ -12,12 +12,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { IconLoader2, IconMap } from "@tabler/icons-react";
+import { IconLoader2, IconMap, IconUserPlus } from "@tabler/icons-react";
 import { Loader } from "@/components/Loader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+// Add-player picker (Roster Rules, owner 2026-06-15): a per-team dialog that lists the
+// team's PLAYING-role members who are NOT yet on this event's roster, then POSTs the
+// chosen one to /events/add-player-to-event-roster/.
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+// ── Roster Rules (Feature B, owner 2026-06-15) ──────────────────────────────────
+// Only PLAYING-role team members (team_captain/vice_captain/member) may be added to an
+// event roster; STAFF (coach/manager/analyst) are rejected by the backend. The team's
+// roles live in TeamMembers.management_role, exposed by team/get-team-details/ ->
+// team.members[].management_role (the get-event-details roster members carry NO role,
+// so the add-player picker has to read roles from get-team-details/). These sets match
+// afc_team/views.py PLAYER_ROLES / STAFF_ROLES.
+const PLAYER_ROLES = ["team_captain", "vice_captain", "member"];
+
+// One selectable candidate for the add-player dialog: a PLAYING-role team member who is
+// not already on this event's roster. id comes from get-team-details/ member.id.
+interface AddPlayerCandidate {
+  id: number;
+  username: string;
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -100,6 +127,16 @@ export function ManualMatchResultStep({
   );
   const [teamResults, setTeamResults] = useState<TeamResult[]>([]);
   const [soloResults, setSoloResults] = useState<SoloResult[]>([]);
+
+  // ── Add-player dialog state (Roster Rules, owner 2026-06-15) ───────────────────
+  // The team whose "Add player" dialog is open (its TeamResult), the loaded list of
+  // eligible candidates (PLAYING-role members not yet rostered), and per-phase flags.
+  const [addPlayerTeam, setAddPlayerTeam] = useState<TeamResult | null>(null);
+  const [addPlayerCandidates, setAddPlayerCandidates] = useState<
+    AddPlayerCandidate[]
+  >([]);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [addingPlayerId, setAddingPlayerId] = useState<number | null>(null);
 
   const isEditing = (formData.completed_match_ids ?? []).includes(
     match.match_id,
@@ -283,6 +320,92 @@ export function ManualMatchResultStep({
       next[teamIdx] = { ...next[teamIdx], players };
       return next;
     });
+  };
+
+  // ── Add player to event roster (Roster Rules, owner 2026-06-15) ──────────────
+  // Opens the per-team dialog and loads candidates. The roster shown on this card comes
+  // from get-event-details/ (which carries no role per member), so to know which of the
+  // team's members are PLAYING-role AND not yet rostered we fetch the team's full member
+  // list from team/get-team-details/ {team_name} -> team.members[]{id, username,
+  // management_role}, keep only PLAYER_ROLES, and drop anyone whose id already appears in
+  // this team card's players[] (those user_ids are the current roster). The picked member
+  // is added via POST /events/add-player-to-event-roster/ below.
+  const openAddPlayer = async (team: TeamResult) => {
+    setAddPlayerTeam(team);
+    setAddPlayerCandidates([]);
+    setLoadingCandidates(true);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ team_name: team.team_name }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.detail || "Failed to load team");
+      }
+      const members: any[] = data.team?.members ?? [];
+      // user_ids already on this event's roster (from the card's players list).
+      const rosteredIds = new Set(team.players.map((p) => p.user_id));
+      const candidates: AddPlayerCandidate[] = members
+        // PLAYING roles only; default a missing role to "member" (a PLAYING role).
+        .filter((m) => PLAYER_ROLES.includes(m.management_role ?? "member"))
+        // Not already on the event roster.
+        .filter((m) => !rosteredIds.has(m.id))
+        .map((m) => ({ id: m.id, username: m.username }));
+      setAddPlayerCandidates(candidates);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to load team members");
+    } finally {
+      setLoadingCandidates(false);
+    }
+  };
+
+  // POST the chosen member to the new add-player endpoint, then reload this step's
+  // rosters (fetchParticipants reads get-event-details/ again) so the card shows the
+  // newly added player. Request body: { event_id, tournament_team_id, user_id }.
+  const handleAddPlayer = async (userId: number) => {
+    if (!addPlayerTeam) return;
+    setAddingPlayerId(userId);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/add-player-to-event-roster/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            event_id: formData.event_id,
+            tournament_team_id: addPlayerTeam.tournament_team_id,
+            user_id: userId,
+          }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          data.message || data.detail || "Failed to add player to roster",
+        );
+      }
+      toast.success(data.message || "Player added to the roster.");
+      setAddPlayerTeam(null);
+      // Re-pull rosters so the new player appears in this team card pre-filled.
+      await fetchParticipants();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to add player to roster");
+    } finally {
+      setAddingPlayerId(null);
+    }
   };
 
   // ── Solo helpers ───────────────────────────────────────────────────────────
@@ -555,6 +678,22 @@ export function ManualMatchResultStep({
                     </div>
                   </div>
                 )}
+
+                {/* ── Add player to event roster (Roster Rules, owner 2026-06-15) ──
+                    Opens a picker of this team's PLAYING-role members who are not yet
+                    on the event roster, then POSTs the choice to
+                    /events/add-player-to-event-roster/ and refetches. Only PLAYING
+                    roles are offered (STAFF are filtered out in openAddPlayer). */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => openAddPlayer(team)}
+                >
+                  <IconUserPlus size={14} className="mr-1" />
+                  Add player
+                </Button>
               </div>
             ))
           )
@@ -696,6 +835,71 @@ export function ManualMatchResultStep({
           </Button>
         </div>
       </CardContent>
+
+      {/* ── Add-player dialog (Roster Rules, owner 2026-06-15) ──────────────────
+          Driven by openAddPlayer/handleAddPlayer above. Lists eligible PLAYING-role
+          team members not yet on the event roster; clicking one adds them via
+          /events/add-player-to-event-roster/. Closes by clearing addPlayerTeam. */}
+      <Dialog
+        open={!!addPlayerTeam}
+        onOpenChange={(o) => !o && setAddPlayerTeam(null)}
+      >
+        <DialogContent className="flex flex-col max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle>Add player to roster</DialogTitle>
+            <DialogDescription>
+              {addPlayerTeam
+                ? `Add a player to ${addPlayerTeam.team_name} for this event.`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-2 py-1">
+            {loadingCandidates ? (
+              <div className="flex items-center justify-center py-8">
+                <IconLoader2 className="animate-spin size-6 text-primary" />
+              </div>
+            ) : addPlayerCandidates.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                No eligible players to add. Every playing member of this team is
+                already on the roster.
+              </p>
+            ) : (
+              addPlayerCandidates.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                >
+                  <span className="text-xs font-medium">{c.username}</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="text-xs"
+                    disabled={addingPlayerId !== null}
+                    onClick={() => handleAddPlayer(c.id)}
+                  >
+                    {addingPlayerId === c.id ? (
+                      <Loader text="Adding..." />
+                    ) : (
+                      "Add"
+                    )}
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setAddPlayerTeam(null)}
+              disabled={addingPlayerId !== null}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

@@ -95,6 +95,7 @@ import {
   IconCheck,
   IconAlertTriangle,
   IconRefresh,
+  IconFile, // page tab icon (multi-page support)
 } from "@tabler/icons-react";
 import {
   leaderboardDesignsApi,
@@ -104,6 +105,7 @@ import {
   type LeaderboardDesignText,
   type LeaderboardDesignFont,
   type LeaderboardDesignFont as Font,
+  type LeaderboardDesignPage, // multi-page support (owner 2026-06-14)
   type DesignColumnGroup,
   type FieldType,
   type TextAlign,
@@ -271,6 +273,16 @@ export function DesignFieldsEditor({
   const [fields, setFields] = useState<FieldDraft[]>([]);
   const [texts, setTexts] = useState<TextDraft[]>([]);
   const [groups, setGroups] = useState<DesignColumnGroup[]>([]);
+
+  // ── Multi-page state (owner 2026-06-14) ───────────────────────────────────
+  // currentPageId: null = the design-level / legacy page-1 (no explicit page rows). When the
+  // design has explicit pages this holds the active page's id. EVERY canvas/palette/column-group
+  // control is scoped to the current page: fields/texts are filtered by their page_id, column
+  // groups read/write the active page's column_groups, and the background uses the page's image.
+  // pages: the explicit page rows (empty = single-page design, so no tabs are shown).
+  const [pages, setPages] = useState<LeaderboardDesignPage[]>([]);
+  const [currentPageId, setCurrentPageId] = useState<number | null>(null);
+  const [addingPage, setAddingPage] = useState(false);
 
   // ── Auto-save plumbing ──────────────────────────────────────────────────────
   // Live mirrors of the draft state so async callbacks (drag pointerup, debounced
@@ -478,35 +490,54 @@ export function DesignFieldsEditor({
 
   useEffect(() => {
     if (!open) return;
-    // Deep-clone design data into drafts.
-    const fDrafts: FieldDraft[] = (design.fields ?? []).map((f) => ({
-      draftId: `srv-${f.id}`,
-      id: f.id,
-      field_type: f.field_type,
-      column_group: f.column_group,
-      x_pct: f.x_pct,
-      align: f.align,
-      font_id: f.font_id,
-      font_size_pct: f.font_size_pct,
-      color: f.color,
-      order: f.order,
-    }));
-    const tDrafts: TextDraft[] = (design.texts ?? []).map((t) => ({
-      draftId: `srv-${t.id}`,
-      id: t.id,
-      text: t.text,
-      x_pct: t.x_pct,
-      y_pct: t.y_pct,
-      align: t.align,
-      font_id: t.font_id,
-      font_size_pct: t.font_size_pct,
-      color: t.color,
-      order: t.order,
-    }));
+
+    // ── Multi-page: load page rows; default to the first page (null = legacy/design-level). ──
+    // The page-switch effect below then scopes fields/texts/groups to whatever page is active,
+    // so we only have to set pages + currentPageId here and let that effect build the drafts.
+    const pageRows = design.pages ?? [];
+    const initialPageId = pageRows.length > 0 ? pageRows[0].id : null;
+    setPages(pageRows);
+    setCurrentPageId(initialPageId);
+
+    // Determine the active source for the FIRST render: the first page (if any) or the design level.
+    const firstPage = pageRows[0] ?? null;
+    const sourceGroups = firstPage ? firstPage.column_groups : design.column_groups;
     const grps =
-      design.column_groups?.length
-        ? design.column_groups.map((g) => ({ ...g }))
+      sourceGroups?.length
+        ? sourceGroups.map((g) => ({ ...g }))
         : [{ ...DEFAULT_GROUP }];
+
+    // Deep-clone the design data into drafts, scoped to the active page (page_id === initialPageId).
+    // null page_id rows belong to the legacy/page-1 layout, which is exactly initialPageId when
+    // there are no explicit pages, or page-1's id once page 1 has been materialised by the backend.
+    const fDrafts: FieldDraft[] = (design.fields ?? [])
+      .filter((f) => f.page_id === initialPageId)
+      .map((f) => ({
+        draftId: `srv-${f.id}`,
+        id: f.id,
+        field_type: f.field_type,
+        column_group: f.column_group,
+        x_pct: f.x_pct,
+        align: f.align,
+        font_id: f.font_id,
+        font_size_pct: f.font_size_pct,
+        color: f.color,
+        order: f.order,
+      }));
+    const tDrafts: TextDraft[] = (design.texts ?? [])
+      .filter((t) => t.page_id === initialPageId)
+      .map((t) => ({
+        draftId: `srv-${t.id}`,
+        id: t.id,
+        text: t.text,
+        x_pct: t.x_pct,
+        y_pct: t.y_pct,
+        align: t.align,
+        font_id: t.font_id,
+        font_size_pct: t.font_size_pct,
+        color: t.color,
+        order: t.order,
+      }));
 
     setFields(fDrafts);
     setTexts(tDrafts);
@@ -520,6 +551,72 @@ export function DesignFieldsEditor({
 
     loadFonts();
   }, [open, design, loadFonts]);
+
+  // ── Page-switch effect: re-scope fields, texts, and column groups to the active page. ──
+  // Runs whenever the user clicks a different page tab. It keeps each page's canvas state isolated
+  // (filtering by page_id) without re-loading fonts or resetting auto-save status. We guard with a
+  // ref of the last-applied page id so it does NOT clobber the drafts the open effect just built
+  // (the open effect and this effect would otherwise both fire on the first open).
+  const appliedPageRef = useRef<number | null | "unset">("unset");
+  useEffect(() => {
+    if (!open) {
+      appliedPageRef.current = "unset";
+      return;
+    }
+    // Skip the very first run after open: the open effect already built drafts for the initial page.
+    if (appliedPageRef.current === "unset") {
+      appliedPageRef.current = currentPageId;
+      return;
+    }
+    if (appliedPageRef.current === currentPageId) return;
+    appliedPageRef.current = currentPageId;
+
+    // Determine the active source: a specific page or the design-level layout.
+    const activePage = pages.find((p) => p.id === currentPageId) ?? null;
+    const activeGroups = activePage
+      ? activePage.column_groups?.length
+        ? activePage.column_groups.map((g) => ({ ...g }))
+        : [{ ...DEFAULT_GROUP }]
+      : design.column_groups?.length
+      ? design.column_groups.map((g) => ({ ...g }))
+      : [{ ...DEFAULT_GROUP }];
+
+    // Filter fields/texts to only those belonging to the current page (page_id === currentPageId).
+    const fDrafts: FieldDraft[] = (design.fields ?? [])
+      .filter((f) => f.page_id === currentPageId)
+      .map((f) => ({
+        draftId: `srv-${f.id}`,
+        id: f.id,
+        field_type: f.field_type,
+        column_group: f.column_group,
+        x_pct: f.x_pct,
+        align: f.align,
+        font_id: f.font_id,
+        font_size_pct: f.font_size_pct,
+        color: f.color,
+        order: f.order,
+      }));
+    const tDrafts: TextDraft[] = (design.texts ?? [])
+      .filter((t) => t.page_id === currentPageId)
+      .map((t) => ({
+        draftId: `srv-${t.id}`,
+        id: t.id,
+        text: t.text,
+        x_pct: t.x_pct,
+        y_pct: t.y_pct,
+        align: t.align,
+        font_id: t.font_id,
+        font_size_pct: t.font_size_pct,
+        color: t.color,
+        order: t.order,
+      }));
+
+    setFields(fDrafts);
+    setTexts(tDrafts);
+    setGroups(activeGroups);
+    setSelected(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPageId, open]);
 
   // Clear any pending debounce timers when the dialog closes / component unmounts
   // so a queued PATCH never fires against a stale design after close.
@@ -553,19 +650,34 @@ export function DesignFieldsEditor({
   }, [fonts]);
 
   // ── Column group helpers (auto-save the row tiling) ─────────────────────────
-  // The column_groups live on the design itself, so they persist via a debounced design PATCH
-  // (a burst of slider moves coalesces into one request). Reads the live groupsRef.
+  // The column_groups persist via a debounced PATCH (a burst of slider moves coalesces into one
+  // request). Multi-page (owner 2026-06-14): when a page is active (currentPageId !== null) the
+  // groups belong to THAT page, so we PATCH .../pages/<pageId>/; otherwise (legacy / design-level)
+  // we PATCH the design itself, exactly as before. Reads the live groupsRef.
   const persistGroups = useCallback(() => {
     if (groupsTimer.current) clearTimeout(groupsTimer.current);
     groupsTimer.current = setTimeout(() => {
-      const fd = new FormData();
-      fd.append("column_groups", JSON.stringify(groupsRef.current));
-      persist(
-        () => leaderboardDesignsApi.update(design.id, fd),
-        "Failed to save the column group layout.",
-      );
+      const currentGroups = groupsRef.current;
+      if (currentPageId !== null) {
+        // Active page: save the column layout onto the page row.
+        persist(
+          () =>
+            leaderboardDesignsApi.updatePage(design.id, currentPageId, {
+              columnGroups: currentGroups,
+            }),
+          "Failed to save the column group layout.",
+        );
+      } else {
+        // Legacy / design-level: save the column layout onto the design (unchanged behaviour).
+        const fd = new FormData();
+        fd.append("column_groups", JSON.stringify(currentGroups));
+        persist(
+          () => leaderboardDesignsApi.update(design.id, fd),
+          "Failed to save the column group layout.",
+        );
+      }
     }, 500);
-  }, [persist, design.id]);
+  }, [persist, design.id, currentPageId]);
 
   const addGroup = () => {
     const lastGroup = groups[groups.length - 1];
@@ -615,6 +727,33 @@ export function DesignFieldsEditor({
     persistGroups();
   };
 
+  // ── Multi-page: add a new page (duplicating the current column group layout). ──
+  // POSTs .../pages/ with the active column groups so the new page starts with a matching layout.
+  // The backend auto-creates page 1 implicitly on the very first call (carrying over the
+  // design-level backgrounds + column_groups), so the response carries the full updated design.
+  // We adopt that design's pages and switch to the newly created page. onSaved() refreshes the
+  // parent list so the design's page count stays fresh.
+  const handleAddPage = async () => {
+    if (!canManage) return;
+    setAddingPage(true);
+    try {
+      const res = await leaderboardDesignsApi.addPage(design.id, {
+        columnGroups: groupsRef.current,
+      });
+      const updatedDesign = res.design;
+      const newPage = res.page;
+      setPages(updatedDesign.pages ?? []);
+      // Switch to the newly created page (the page-switch effect re-scopes the canvas to it).
+      setCurrentPageId(newPage.id);
+      onSaved(); // refresh the parent list so the design shows the updated page count
+      toast.success(`Page ${newPage.page_number} added.`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to add page.");
+    } finally {
+      setAddingPage(false);
+    }
+  };
+
   // ── Field (connected column) helpers ──────────────────────────────────────
 
   // Set of field_types currently placed in the editor.
@@ -648,6 +787,8 @@ export function DesignFieldsEditor({
         font_id: draft.font_id,
         font_size_pct: draft.font_size_pct,
         color: draft.color,
+        // Multi-page: scope to the active page (null/undefined = design-level / page 1).
+        page_id: currentPageId ?? undefined,
       });
       setFields((prev) =>
         prev.map((f) =>
@@ -727,6 +868,8 @@ export function DesignFieldsEditor({
         font_id: draft.font_id,
         font_size_pct: draft.font_size_pct,
         color: draft.color,
+        // Multi-page: scope to the active page (null/undefined = design-level / page 1).
+        page_id: currentPageId ?? undefined,
       });
       setTexts((prev) =>
         prev.map((t) =>
@@ -839,7 +982,14 @@ export function DesignFieldsEditor({
   };
 
   // Background URL: prefer YouTube (1920x1080) since the canvas uses that aspect ratio.
-  const bgUrl = design.background_youtube || design.background_instagram || "";
+  // Multi-page (owner 2026-06-14): when a page is active, use THAT page's background; otherwise
+  // (legacy / single-page) fall back to the design-level background.
+  const activePageForBg = pages.find((p) => p.id === currentPageId) ?? null;
+  const bgUrl = activePageForBg
+    ? activePageForBg.background_youtube ||
+      activePageForBg.background_instagram ||
+      ""
+    : design.background_youtube || design.background_instagram || "";
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -863,6 +1013,66 @@ export function DesignFieldsEditor({
             style in the panel on the right.
           </DialogDescription>
         </DialogHeader>
+
+        {/* ── Page tabs (multi-page designs, owner 2026-06-14) ───────────────
+            Shown only when the design has explicit page rows. Clicking a tab switches the canvas,
+            palette, and column-group controls to that page (the page-switch effect re-scopes
+            fields/texts/groups by page_id). "Add page" duplicates the current column groups into
+            a new page. When there are NO explicit pages we show a single "Add page" button so the
+            user can start a multi-page design without any visible page-1 complexity. */}
+        {pages.length > 0 && (
+          <div className="flex items-center gap-1 overflow-x-auto rounded-md border bg-muted p-1">
+            {pages.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setCurrentPageId(p.id)}
+                className={
+                  currentPageId === p.id
+                    ? "flex items-center gap-1 rounded-md border border-primary bg-background px-3 py-1.5 text-xs font-medium text-primary shadow-sm"
+                    : "flex items-center gap-1 rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:bg-background"
+                }
+              >
+                <IconFile className="size-3" />
+                Page {p.page_number}
+              </button>
+            ))}
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={!canManage || addingPage}
+              onClick={handleAddPage}
+              className="ml-auto h-7 text-xs"
+            >
+              {addingPage ? (
+                <IconLoader2 className="mr-1 size-3 animate-spin" />
+              ) : (
+                <IconPlus className="mr-1 size-3" />
+              )}
+              Add page
+            </Button>
+          </div>
+        )}
+        {pages.length === 0 && canManage && (
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={addingPage}
+              onClick={handleAddPage}
+              className="h-7 text-xs"
+            >
+              {addingPage ? (
+                <IconLoader2 className="mr-1 size-3 animate-spin" />
+              ) : (
+                <IconPlus className="mr-1 size-3" />
+              )}
+              Add page
+            </Button>
+          </div>
+        )}
 
         {/* ── Main layout: canvas (left/center) + side panel (right) ── */}
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">

@@ -1056,7 +1056,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         "prizepool_cash_value",
         (data.prizepool_cash_value ?? "").toString(),
       );
-      formData.append("number_of_stages", "2");
+      // Duplication-bug fix (owner 2026-06-15): was hardcoded "2", which wrongly reset the event's
+      // stage count on every save. Use the actual number of stages the form holds.
+      formData.append("number_of_stages", String(data.stages?.length ?? 1));
       formData.append("start_date", data.start_date);
       formData.append("end_date", data.end_date);
       formData.append("registration_open_date", data.registration_open_date);
@@ -1101,7 +1103,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           data.stream_channels?.filter((s) => s.trim() !== "") || [],
         ),
       );
-      formData.append("stages", JSON.stringify(data.stages));
+      // Settings-only save (duplication-bug fix 2026-06-15): do NOT re-send `stages`. edit_event
+      // treats a missing `stages` key as "no structure change", so the sponsor save cannot
+      // duplicate stages/groups. Full structure is saved by the main Save Changes button.
 
       // Sponsor fields from sponsorForm (the ones being saved)
       formData.append(
@@ -1183,7 +1187,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         "prizepool_cash_value",
         (data.prizepool_cash_value ?? "").toString(),
       );
-      formData.append("number_of_stages", "2");
+      // Duplication-bug fix (owner 2026-06-15): was hardcoded "2", which wrongly reset the event's
+      // stage count on every save. Use the actual number of stages the form holds.
+      formData.append("number_of_stages", String(data.stages?.length ?? 1));
       formData.append("start_date", data.start_date);
       formData.append("end_date", data.end_date);
       formData.append("registration_open_date", data.registration_open_date);
@@ -1228,7 +1234,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           data.stream_channels?.filter((s) => s.trim() !== "") || [],
         ),
       );
-      formData.append("stages", JSON.stringify(data.stages));
+      // Settings-only save (duplication-bug fix 2026-06-15): do NOT re-send `stages`. edit_event
+      // treats a missing `stages` key as "no structure change", so the waitlist save cannot
+      // duplicate stages/groups. Full structure is saved by the main Save Changes button.
 
       // Keep existing sponsor fields untouched
       formData.append(
@@ -1479,7 +1487,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
-        formData.append("number_of_stages", "2");
+        // Duplication-bug fix (owner 2026-06-15): was hardcoded "2", which wrongly reset the event's
+      // stage count on every save. Use the actual number of stages the form holds.
+      formData.append("number_of_stages", String(data.stages?.length ?? 1));
         formData.append("start_date", data.start_date);
         formData.append("end_date", data.end_date);
         formData.append("registration_open_date", data.registration_open_date);

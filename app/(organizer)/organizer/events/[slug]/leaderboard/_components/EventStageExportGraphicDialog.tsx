@@ -150,6 +150,10 @@ export function EventStageExportGraphicDialog({
   const onDownload = async () => {
     setDownloading(true);
     try {
+      // Multi-page (owner 2026-06-14): if the selected design has more than one page, request all
+      // pages (page: "all"); the backend returns a ZIP with one PNG per page, saved with a .zip name.
+      const selectedDesign = designs.find((d) => String(d.id) === designId);
+      const isMultiPage = (selectedDesign?.pages?.length ?? 0) > 1;
       const blob = await leaderboardDesignsApi.downloadEventStageGraphic(
         eventId,
         stageId,
@@ -158,6 +162,7 @@ export function EventStageExportGraphicDialog({
           size,
           title: title.trim(),
           subtitle: subtitle.trim(),
+          ...(isMultiPage ? { page: "all" as const } : {}),
         },
       );
 
@@ -170,13 +175,18 @@ export function EventStageExportGraphicDialog({
         /[^a-z0-9\-_ ]/gi,
         "",
       );
-      a.download = `${safe}-${size}.png`;
+      // ZIP for multi-page, PNG for single-page.
+      a.download = isMultiPage
+        ? `${safe}-${size}-all-pages.zip`
+        : `${safe}-${size}.png`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
 
-      toast.success("Graphic downloaded.");
+      toast.success(
+        isMultiPage ? "All pages downloaded as a ZIP." : "Graphic downloaded.",
+      );
     } catch (err: any) {
       // Blob error responses carry JSON inside the blob body, not as parsed JSON.
       // We decode the blob text manually to read the backend's message field.
@@ -253,6 +263,14 @@ export function EventStageExportGraphicDialog({
                   brand the export.
                 </p>
               ) : null}
+              {/* Note shown when the selected design has multiple pages: the export is a ZIP. */}
+              {(designs.find((d) => String(d.id) === designId)?.pages?.length ??
+                0) > 1 && (
+                <p className="text-xs text-muted-foreground">
+                  This design has multiple pages. The download will be a ZIP with
+                  one image per page.
+                </p>
+              )}
             </div>
 
             {/* ── Size picker - YouTube landscape vs Instagram portrait ─── */}

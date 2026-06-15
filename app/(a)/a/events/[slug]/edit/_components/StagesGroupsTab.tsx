@@ -374,6 +374,31 @@
 
 import React from "react";
 import { useFormContext } from "react-hook-form";
+import axios from "axios";
+// DnD (drag-to-reorder, owner 2026-06-15): mirrors the proven pattern at
+// app/(a)/a/rankings/tournament-tiers/page.tsx (DndContext + SortableContext + useSortable +
+// arrayMove + IconGripVertical). Stages reorder among themselves; groups reorder within a stage.
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { toast } from "sonner";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -386,7 +411,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
-import { IconMap, IconTrophy } from "@tabler/icons-react";
+import { IconMap, IconTrophy, IconGripVertical } from "@tabler/icons-react";
 import { Loader } from "@/components/Loader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { GroupResultModal } from "../../../_components/GroupResultModal";
@@ -427,6 +452,63 @@ interface StagesGroupsTabProps {
   onRefresh?: () => void;
 }
 
+/* ───────────────────────── drag-to-reorder plumbing (owner 2026-06-15) ─────────────────────────
+   Default stage_order / group_order = 0 means "auto-arrange by date/time" on the backend; dragging
+   here writes 1-based orders via POST /events/reorder-stages/ + /events/reorder-groups/ that
+   OVERRIDE the date sort. A SortableShell wraps each row, exposes drag-handle props through a
+   render-prop so the grip can live inside the existing card header, and applies the transform.    */
+
+interface SortableShellProps {
+  id: number;
+  disabled?: boolean;
+  // render-prop: receives the handle props (spread onto the grip button) so the existing card
+  // markup stays intact and only gains a grip handle in its header.
+  children: (handle: { attributes: any; listeners: any; disabled?: boolean }) => React.ReactNode;
+}
+
+// One sortable row (a stage OR a group). useSortable must run per item, hence its own component.
+function SortableShell({ id, disabled, children }: SortableShellProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id, disabled });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={isDragging ? "relative z-10 opacity-80" : undefined}
+    >
+      {children({ attributes, listeners, disabled })}
+    </div>
+  );
+}
+
+// The grip the user grabs. A real <button> kept OUTSIDE any other button (sibling), matching the
+// InfoTip nesting note elsewhere in this file (a button inside a button is invalid HTML).
+function DragHandle({
+  attributes,
+  listeners,
+  disabled,
+  label,
+}: {
+  attributes: any;
+  listeners: any;
+  disabled?: boolean;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      {...attributes}
+      {...listeners}
+      disabled={disabled}
+      aria-label={label}
+      title={disabled ? "Save this row first to enable reordering" : label}
+      className="cursor-grab touch-none rounded p-1 text-muted-foreground hover:text-foreground active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      <IconGripVertical className="size-4" />
+    </button>
+  );
+}
+
 export default function StagesGroupsTab({
   eventDetails,
   stageNames,
@@ -447,26 +529,119 @@ export default function StagesGroupsTab({
 }: StagesGroupsTabProps) {
   const form = useFormContext<EventFormType>();
   const stages = (form.watch("stages") || []) as any[];
+  const { token } = useAuth();
+
+  // Shared DnD sensors (mouse + touch + keyboard for mobile/accessibility), matching
+  // app/(a)/a/rankings/tournament-tiers/page.tsx.
+  const sensors = useSensors(
+    useSensor(MouseSensor, {}),
+    useSensor(TouchSensor, {}),
+    useSensor(KeyboardSensor, {}),
+  );
+
+  // STAGE reorder: optimistically reorder the form's stages array (instant UI), then persist via
+  // POST /events/reorder-stages/. On success, refetch the canonical order (onRefresh) and, if the
+  // backend flags that the manual order diverges from the schedule, toast that warning. On failure,
+  // refetch to snap back to the saved order. Stages without a saved stage_id are not draggable
+  // (the backend keys on persisted ids), so we only POST the ids that exist.
+  async function handleStageDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+
+    const from = stages.findIndex((s) => s?.stage_id === active.id);
+    const to = stages.findIndex((s) => s?.stage_id === over.id);
+    if (from < 0 || to < 0) return;
+
+    const reordered = arrayMove(stages, from, to);
+    form.setValue("stages", reordered as any, { shouldDirty: false });
+
+    const stageIds = reordered.map((s) => s?.stage_id).filter((v): v is number => !!v);
+    try {
+      // Hits afc_tournament_and_scrims.views.reorder_stages: writes 1-based stage_order that
+      // overrides the auto-by-date sort. Returns {warning} when the order differs from the dates.
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/reorder-stages/`,
+        { event_id: eventDetails.event_id, stage_ids: stageIds },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (res.data?.warning) toast.info(res.data.warning);
+      else toast.success("Stage order saved.");
+      onRefresh?.();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to save stage order.");
+      onRefresh?.(); // snap back to the canonical saved order
+    }
+  }
+
+  // GROUP reorder within ONE stage. Same flow as stages but scoped to stage.groups; persists via
+  // POST /events/reorder-groups/ (views.reorder_groups -> 1-based group_order overriding date sort).
+  async function handleGroupDragEnd(stageIndex: number, e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+
+    const groups = (stages[stageIndex]?.groups || []) as any[];
+    const from = groups.findIndex((g) => g?.group_id === active.id);
+    const to = groups.findIndex((g) => g?.group_id === over.id);
+    if (from < 0 || to < 0) return;
+
+    const reordered = arrayMove(groups, from, to);
+    form.setValue(`stages.${stageIndex}.groups` as any, reordered as any, { shouldDirty: false });
+
+    const groupIds = reordered.map((g) => g?.group_id).filter((v): v is number => !!v);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/reorder-groups/`,
+        { stage_id: stages[stageIndex]?.stage_id, group_ids: groupIds },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (res.data?.warning) toast.info(res.data.warning);
+      else toast.success("Group order saved.");
+      onRefresh?.();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to save group order.");
+      onRefresh?.(); // snap back to the canonical saved order
+    }
+  }
+
+  // Ids that DndContext sorts over. Unsaved rows (no id yet) can't be persisted, so they fall back
+  // to a synthetic negative id that is never used as a drag target (handle disabled below).
+  const stageSortIds = stages.map((s, i) => (s?.stage_id ?? -(i + 1)));
 
   return (
     <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        modifiers={[restrictToVerticalAxis]}
+        onDragEnd={handleStageDragEnd}
+      >
+        <SortableContext items={stageSortIds} strategy={verticalListSortingStrategy}>
       {stages.map((stage, sIdx) => {
+        // Sortable id: persisted stage_id, or a synthetic negative for unsaved stages (never a real
+        // drag target). Unsaved stages can't be reordered server-side, so their handle is disabled.
+        const stageSortId = stage?.stage_id ?? -(sIdx + 1);
+        const stageDragDisabled = !stage?.stage_id;
+
         if (!stage || typeof stage !== "object") {
           return (
-            <Card key={sIdx} className="bg-yellow-50 border-yellow-200">
-              <CardContent className="p-4">
-                <p className="text-yellow-800">
-                  ⚠️ Stage {sIdx + 1} is not configured.
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={() => onOpenStageModal(sIdx)}
-                  >
-                    Click here to configure
-                  </Button>
-                </p>
-              </CardContent>
-            </Card>
+            <SortableShell key={sIdx} id={stageSortId} disabled>
+              {() => (
+                <Card className="bg-yellow-50 border-yellow-200">
+                  <CardContent className="p-4">
+                    <p className="text-yellow-800">
+                      ⚠️ Stage {sIdx + 1} is not configured.
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={() => onOpenStageModal(sIdx)}
+                      >
+                        Click here to configure
+                      </Button>
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </SortableShell>
           );
         }
 
@@ -474,11 +649,17 @@ export default function StagesGroupsTab({
         const hasStagePrize = !!(stage.prizepool || stage.prizepool_cash_value);
 
         return (
-          <Card key={sIdx}>
+          <SortableShell key={sIdx} id={stageSortId} disabled={stageDragDisabled}>
+            {(handle) => (
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div className="space-y-1 w-full">
                 <CardTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-2">
-                  <div>
+                  <div className="flex items-start gap-1">
+                    {/* Stage drag handle: POSTs /events/reorder-stages/ on drop. Disabled until the
+                        stage is saved (the backend keys reordering on the persisted stage_id). */}
+                    <DragHandle {...handle} label="Drag to reorder stage" />
+                    <div>
                     <span>
                       <IconTrophy className="inline-block mr-2" />
                       {stage.stage_name}{" "}
@@ -499,6 +680,7 @@ export default function StagesGroupsTab({
                           .join(" · ")}
                       </p>
                     )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2 w-full md:w-auto flex-wrap">
@@ -556,16 +738,38 @@ export default function StagesGroupsTab({
             </CardHeader>
 
             <CardContent className="space-y-2 max-h-96 overflow-auto">
+              {/* Groups drag-to-reorder within THIS stage (nested DndContext so a group never
+                  drags out of its stage). On drop -> POST /events/reorder-groups/. */}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                modifiers={[restrictToVerticalAxis]}
+                onDragEnd={(ev) => handleGroupDragEnd(sIdx, ev)}
+              >
+                <SortableContext
+                  items={(stage.groups || []).map(
+                    (g: any, gi: number) => g?.group_id ?? -(gi + 1),
+                  )}
+                  strategy={verticalListSortingStrategy}
+                >
               {stage.groups.map((group: any, gIdx: number) => {
                 const hasGroupPrize = !!(
                   group.prizepool || group.prizepool_cash_value
                 );
+                // Sortable id + disabled flag, same rule as stages: unsaved groups can't persist.
+                const groupSortId = group?.group_id ?? -(gIdx + 1);
+                const groupDragDisabled = !group?.group_id;
 
                 return (
-                  <Card key={gIdx} className="gap-0">
+                  <SortableShell key={gIdx} id={groupSortId} disabled={groupDragDisabled}>
+                    {(groupHandle) => (
+                  <Card className="gap-0">
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
-                        <div>
+                        <div className="flex items-center gap-1">
+                          {/* Group drag handle: POSTs /events/reorder-groups/ on drop. */}
+                          <DragHandle {...groupHandle} label="Drag to reorder group" />
+                          <div>
                           {group?.group_name}
                           {/* Group prize summary */}
                           {hasGroupPrize && (
@@ -576,6 +780,7 @@ export default function StagesGroupsTab({
                                 .join(" · ")}
                             </p>
                           )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
                           {eventDetails.participant_type === "squad" &&
@@ -761,12 +966,20 @@ export default function StagesGroupsTab({
                       </div>
                     </CardContent>
                   </Card>
+                    )}
+                  </SortableShell>
                 );
               })}
+                </SortableContext>
+              </DndContext>
             </CardContent>
           </Card>
+            )}
+          </SortableShell>
         );
       })}
+        </SortableContext>
+      </DndContext>
 
       <div className="flex justify-center p-4 border-2 border-dashed rounded-lg border-primary/20 hover:border-primary/50 transition-colors">
         <Button

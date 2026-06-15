@@ -19,9 +19,13 @@
  * scalars come back 0 and the lists come back []. We render those zeros/empty states
  * truthfully and NEVER fabricate numbers. With populated data the same UI fills in.
  *
- * Player-level per-event EARNINGS are intentionally NOT in this contract (only the
- * TEAM endpoint exposes prize_earned). So the "earnings share" idea from the mockup
- * is shown as a truthful "not available" panel, not invented figures.
+ * Player-level prize EARNINGS are now part of this contract (feature "Prizepool auto-links
+ * to event winners' history/stats", 2026-06-15). When an admin records a team prize, the
+ * backend (afc_rankings.admin_prize.prize_create) splits it equally across the active roster
+ * and writes one PlayerWinning row per player; get_public_player_stats reads them back as
+ * total_earnings_ngn + tournament_winnings[] (gated behind the same stats_visible flag). The
+ * "Tournament Winnings" card below renders the lifetime total + a per-event table from those
+ * rows, or a subtle empty state when the player has none.
  */
 
 import { useState, useEffect, useMemo } from "react";
@@ -123,6 +127,18 @@ interface TierHistoryRow {
   rank: number | null;
 }
 
+// One row of the player's tournament prize history. Written backend-side by
+// afc_rankings.admin_prize.prize_create (_distribute_payout): a team prize is split equally
+// across the active roster and a PlayerWinning row saved per player. Surfaced here via
+// POST /player/get-public-player-stats/ (response.player.tournament_winnings).
+interface TournamentWinningRow {
+  event_id: number;
+  event_name: string | null;
+  amount: string; // NGN, this player's share (string keeps full Decimal precision)
+  tournament_team_name: string | null; // null for solo prizes
+  created_at: string | null;
+}
+
 interface PublicPlayer {
   username: string;
   country: string;
@@ -155,6 +171,11 @@ interface PublicPlayer {
   per_event: PerEventRow[];
   recent_matches: RecentMatchRow[];
   tier_history: TierHistoryRow[];
+  // Tournament prize winnings (lifetime total + per-event rows, newest first). Populated by
+  // afc_rankings.admin_prize.prize_create and gated behind the same stats_visible flag below.
+  // Optional so an older backend (pre-2026-06-15) that omits them degrades to "no winnings".
+  total_earnings_ngn?: string;
+  tournament_winnings?: TournamentWinningRow[];
   // PRIVACY (backend afc_player/views.py :: get_public_player_stats):
   // true only when the viewer is the player, an AFC admin, or a current teammate.
   // When false the backend ZEROES every sensitive number + empties the breakdown
@@ -186,6 +207,15 @@ type MetricId = (typeof METRICS)[number]["id"];
 // Small helper: format a placement as "#3" (hash, per AFC design), or "-" when null.
 const placeLabel = (p: number | null | undefined) =>
   p == null ? "-" : `#${p}`;
+
+// Format an NGN amount (a decimal string from the backend) as "NGN 2,500,000". No em/en
+// dashes per AFC copy rules; whole-naira display with thousands separators. Blank/invalid
+// inputs fall back to "NGN 0" so the total never renders as NaN.
+const fmtNgn = (raw: string | null | undefined): string => {
+  const n = parseFloat(raw ?? "0");
+  const safe = Number.isFinite(n) ? n : 0;
+  return "NGN " + safe.toLocaleString(undefined, { maximumFractionDigits: 0 });
+};
 
 export function PlayerClient({ username }: { username: string }) {
   // route username may be URL-encoded (spaces in IGNs); decode once for both the
@@ -1008,24 +1038,15 @@ export function PlayerClient({ username }: { username: string }) {
                   </CardContent>
                 </Card>
 
-                {/* Earnings share: the public PLAYER contract does not expose a
-                    per-player prize figure (only the TEAM endpoint does), so we
-                    show a truthful "not available" panel instead of inventing one. */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Earnings share</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col items-center justify-center text-center py-6 text-muted-foreground">
-                      <IconAward className="h-8 w-8 opacity-40 mb-2" />
-                      <p className="text-sm font-medium">Coming soon</p>
-                      <p className="text-xs mt-1">
-                        Individual prize-share figures are not published on public
-                        profiles yet.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Tournament Winnings: the player's REAL per-event prize shares, written by
+                    afc_rankings.admin_prize.prize_create (a team prize split equally across the
+                    active roster) and read back via /player/get-public-player-stats/
+                    (tournament_winnings). Shows a lifetime total + a compact per-event table, or a
+                    subtle empty state when the player has no recorded winnings. */}
+                <TournamentWinningsCard
+                  total={player.total_earnings_ngn}
+                  winnings={player.tournament_winnings}
+                />
               </div>
                 </>
               )}
@@ -1345,6 +1366,91 @@ function PrivateStats() {
         Only this player and their teammates can view them.
       </p>
     </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// TournamentWinningsCard: the player's REAL tournament prize earnings. Data comes from
+// backend afc_player.views.get_public_player_stats (total_earnings_ngn + tournament_winnings),
+// which reads PlayerWinning rows written by afc_rankings.admin_prize.prize_create (a team prize
+// split equally across the active roster, one row per player). Renders a lifetime total headline
+// plus a compact text-xs per-event table (event, team, amount, date), matching the AFC stat-card
+// density + green primary aesthetic. Shows a subtle empty state when there are no winnings.
+// ──────────────────────────────────────────────────────────────────────────────
+function TournamentWinningsCard({
+  total,
+  winnings,
+}: {
+  total: string | undefined;
+  winnings: TournamentWinningRow[] | undefined;
+}) {
+  const rows = winnings ?? [];
+  const hasWinnings = rows.length > 0;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Tournament Winnings</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {!hasWinnings ? (
+          // Truthful empty state (no fabricated figures).
+          <div className="flex flex-col items-center justify-center text-center py-6 text-muted-foreground">
+            <IconAward className="h-8 w-8 opacity-40 mb-2" />
+            <p className="text-sm font-medium">No tournament winnings yet</p>
+            <p className="text-xs mt-1">
+              Prize earnings will appear here as this player wins AFC events.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* lifetime total headline (green primary, per AFC design) */}
+            <div className="mb-4">
+              <p className="text-xs text-muted-foreground">Lifetime prize money</p>
+              <p className="text-2xl font-bold mt-1 text-primary">
+                {fmtNgn(total)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                in tournament prizes
+              </p>
+            </div>
+
+            {/* compact per-event winnings table (text-xs density) */}
+            <div className="rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Event</TableHead>
+                    <TableHead>Team</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((w, i) => (
+                    <TableRow key={`${w.event_id}-${i}`}>
+                      <TableCell className="font-medium">
+                        {w.event_name ?? "-"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {/* null team => solo prize */}
+                        {w.tournament_team_name ?? "Solo"}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold text-primary">
+                        {fmtNgn(w.amount)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {w.created_at ? formatDate(w.created_at) : "-"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

@@ -46,6 +46,10 @@ import {
   RefreshCw,
   Users,
   XCircle,
+  Undo2,
+  Shuffle,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 
 interface Group {
@@ -111,6 +115,34 @@ export default function ActionsTab({
   const [advanceStageId, setAdvanceStageId] = useState("");
   const [advanceGroupId, setAdvanceGroupId] = useState("");
   const [syncGroupId, setSyncGroupId] = useState("");
+
+  // ── Seeding management (owner 2026-06-15): undo/redo group seeding + delete group/stage
+  //    with a disposition choice. Calls events/seeding/* (afc_tournament_and_scrims.seeding_management).
+  //    Shown to admins AND organizers (this component is reused on the organizer event-edit page);
+  //    the backend gate (event admin OR can_manage_registrations) is the real authority. ──
+  const [mgmtStageId, setMgmtStageId] = useState("");        // stage for undo / reseed
+  const [reseedShuffle, setReseedShuffle] = useState(true);  // fresh shuffle on reseed
+  const [loadingUndo, setLoadingUndo] = useState(false);
+  const [loadingReseed, setLoadingReseed] = useState(false);
+
+  const [delGroupId, setDelGroupId] = useState("");
+  const [delGroupMode, setDelGroupMode] = useState<"auto" | "manual" | "delete_all">("auto");
+  const [delGroupOpen, setDelGroupOpen] = useState(false);
+  const [loadingDelGroup, setLoadingDelGroup] = useState(false);
+
+  const [delStageId, setDelStageId] = useState("");
+  const [delStageMode, setDelStageMode] = useState<"auto" | "manual" | "delete_all">("auto");
+  const [delStageTargetId, setDelStageTargetId] = useState("");
+  const [delStageOpen, setDelStageOpen] = useState(false);
+  const [loadingDelStage, setLoadingDelStage] = useState(false);
+
+  // Played-results guard: when an endpoint returns 400 {requires_force}, we surface this confirm
+  // and re-run the SAME request with force=true on confirm.
+  const [forceConfirm, setForceConfirm] = useState<{
+    open: boolean;
+    message: string;
+    onConfirm: () => void;
+  }>({ open: false, message: "", onConfirm: () => {} });
 
   // announcement form
   const [annTitle, setAnnTitle] = useState("");
@@ -201,6 +233,82 @@ export default function ActionsTab({
     } finally {
       setLoadingAdvance(false);
     }
+  }
+
+  // ── Seeding-management runner ───────────────────────────────────────────
+  // Generic POST for the events/seeding/* endpoints. On a 400 {requires_force} (a group/stage
+  // that already has entered results), opens the force-confirm dialog and re-runs with force=true.
+  async function runSeedingAction(opts: {
+    url: string;
+    body: Record<string, any>;
+    setLoading: (b: boolean) => void;
+  }) {
+    opts.setLoading(true);
+    try {
+      const res = await axios.post(opts.url, opts.body, { headers: authHeader });
+      toast.success(res.data.message || "Done");
+      onRefresh?.();
+    } catch (e: any) {
+      const data = e.response?.data;
+      if (e.response?.status === 400 && data?.requires_force) {
+        setForceConfirm({
+          open: true,
+          message: data.message,
+          onConfirm: () => {
+            setForceConfirm((s) => ({ ...s, open: false }));
+            runSeedingAction({ ...opts, body: { ...opts.body, force: true } });
+          },
+        });
+      } else {
+        toast.error(data?.message || "Action failed");
+      }
+    } finally {
+      opts.setLoading(false);
+    }
+  }
+
+  function handleUndoSeeding() {
+    if (!mgmtStageId) return toast.error("Select a stage first");
+    runSeedingAction({
+      url: `${API}/events/seeding/undo/`,
+      body: { stage_id: mgmtStageId },
+      setLoading: setLoadingUndo,
+    });
+  }
+
+  function handleReseed() {
+    if (!mgmtStageId) return toast.error("Select a stage first");
+    runSeedingAction({
+      url: `${API}/events/seeding/reseed/`,
+      body: { stage_id: mgmtStageId, shuffle: reseedShuffle, clear_existing: true },
+      setLoading: setLoadingReseed,
+    });
+  }
+
+  function handleDeleteGroup() {
+    if (!delGroupId) return toast.error("Select a group first");
+    setDelGroupOpen(false);
+    runSeedingAction({
+      url: `${API}/events/seeding/delete-group/`,
+      body: { group_id: delGroupId, mode: delGroupMode },
+      setLoading: setLoadingDelGroup,
+    });
+  }
+
+  function handleDeleteStage() {
+    if (!delStageId) return toast.error("Select a stage first");
+    if (delStageMode !== "delete_all" && !delStageTargetId)
+      return toast.error("Select a target stage to move competitors into");
+    setDelStageOpen(false);
+    runSeedingAction({
+      url: `${API}/events/seeding/delete-stage/`,
+      body: {
+        stage_id: delStageId,
+        mode: delStageMode,
+        ...(delStageMode !== "delete_all" ? { target_stage_id: delStageTargetId } : {}),
+      },
+      setLoading: setLoadingDelStage,
+    });
   }
 
   async function handleSyncDiscord() {
@@ -545,6 +653,157 @@ export default function ActionsTab({
         </CardContent>
       </Card>
 
+      {/* 2b ── Seeding Management (owner 2026-06-15) ──────────────────────
+          Undo/redo group seeding and delete a group/stage with a disposition
+          choice. Backend: events/seeding/* (seeding_management.py). */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Seeding Management</CardTitle>
+          <CardDescription>
+            Undo a seed and reseed, or delete a group or stage and reseed the
+            remaining ones.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Undo + Reseed a stage's group distribution */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Undo or reseed group seeding</p>
+            <p className="text-xs text-muted-foreground">
+              Undo clears a stage's group assignments (competitors stay
+              registered). Reseed redistributes them, optionally with a fresh
+              shuffle.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Select value={mgmtStageId} onValueChange={setMgmtStageId}>
+                <SelectTrigger className="flex-1 min-w-[140px]">
+                  <SelectValue placeholder="Select stage" />
+                </SelectTrigger>
+                <SelectContent>
+                  {eventDetails.stages.map((s) => (
+                    <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                      {s.stage_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {/* Shuffle toggle for reseed */}
+              <Button
+                size="sm"
+                variant="outline"
+                type="button"
+                onClick={() => setReseedShuffle((v) => !v)}
+                className={cn(reseedShuffle && "border-primary text-primary")}
+              >
+                <Shuffle className="h-4 w-4 mr-1" />
+                Shuffle: {reseedShuffle ? "On" : "Off"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleUndoSeeding}
+                disabled={loadingUndo || !mgmtStageId}
+              >
+                {loadingUndo ? (
+                  <Loader text="Undoing..." />
+                ) : (
+                  <>
+                    <Undo2 className="h-4 w-4 mr-1" /> Undo
+                  </>
+                )}
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleReseed}
+                disabled={loadingReseed || !mgmtStageId}
+              >
+                {loadingReseed ? (
+                  <Loader text="Reseeding..." />
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-1" /> Reseed
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Delete a group (with disposition for its competitors) */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Delete a group</p>
+            <p className="text-xs text-muted-foreground">
+              Remove a group and choose what happens to its competitors.
+            </p>
+            <div className="flex gap-2">
+              <Select value={delGroupId} onValueChange={setDelGroupId}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {eventDetails.stages.flatMap((s) =>
+                    s.groups.map((g) => (
+                      <SelectItem key={g.group_id} value={String(g.group_id)}>
+                        {s.stage_name} - {g.group_name}
+                      </SelectItem>
+                    )),
+                  )}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  if (!delGroupId) return toast.error("Select a group first");
+                  setDelGroupMode("auto");
+                  setDelGroupOpen(true);
+                }}
+                disabled={loadingDelGroup || !delGroupId}
+              >
+                <Trash2 className="h-4 w-4 mr-1" /> Delete...
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Delete a stage (with disposition for its competitors) */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Delete a stage</p>
+            <p className="text-xs text-muted-foreground">
+              Remove a stage and choose what happens to its competitors.
+            </p>
+            <div className="flex gap-2">
+              <Select value={delStageId} onValueChange={setDelStageId}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select stage" />
+                </SelectTrigger>
+                <SelectContent>
+                  {eventDetails.stages.map((s) => (
+                    <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                      {s.stage_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  if (!delStageId) return toast.error("Select a stage first");
+                  setDelStageMode("auto");
+                  setDelStageTargetId("");
+                  setDelStageOpen(true);
+                }}
+                disabled={loadingDelStage || !delStageId}
+              >
+                <Trash2 className="h-4 w-4 mr-1" /> Delete...
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* 3 ── Communication ───────────────────────────────────────────── */}
       <Card>
         <CardHeader>
@@ -864,6 +1123,189 @@ export default function ActionsTab({
                     <Radio className="h-4 w-4 mr-1" /> Send
                   </>
                 )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Delete group: disposition choice ──────────────────────────── */}
+      <Dialog open={delGroupOpen} onOpenChange={setDelGroupOpen}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogTitle>Delete this group?</DialogTitle>
+          <DialogDescription>
+            Choose what happens to the competitors in this group.
+          </DialogDescription>
+          <div className="space-y-3 mt-2">
+            {(
+              [
+                {
+                  value: "auto",
+                  label: "Auto reseed",
+                  desc: "Move its competitors into the stage's remaining groups.",
+                },
+                {
+                  value: "manual",
+                  label: "Manual",
+                  desc: "Keep them registered but unassigned. You place them yourself.",
+                },
+                {
+                  value: "delete_all",
+                  label: "Delete all",
+                  desc: "Remove the group and its competitors from the stage.",
+                },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setDelGroupMode(opt.value)}
+                className={cn(
+                  "w-full text-left border rounded-md p-3 transition-colors",
+                  delGroupMode === opt.value
+                    ? "border-primary bg-primary/10"
+                    : "hover:bg-muted",
+                )}
+              >
+                <p className="text-sm font-medium">{opt.label}</p>
+                <p className="text-xs text-muted-foreground">{opt.desc}</p>
+              </button>
+            ))}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setDelGroupOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={handleDeleteGroup}
+                disabled={loadingDelGroup}
+              >
+                {loadingDelGroup ? <Loader text="Deleting..." /> : "Delete group"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Delete stage: disposition choice (+ target for move) ───────── */}
+      <Dialog open={delStageOpen} onOpenChange={setDelStageOpen}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogTitle>Delete this stage?</DialogTitle>
+          <DialogDescription>
+            Choose what happens to the competitors in this stage.
+          </DialogDescription>
+          <div className="space-y-3 mt-2">
+            {(
+              [
+                {
+                  value: "auto",
+                  label: "Auto reseed",
+                  desc: "Move competitors to another stage and distribute into its groups.",
+                },
+                {
+                  value: "manual",
+                  label: "Manual",
+                  desc: "Move competitors to another stage; you place them later.",
+                },
+                {
+                  value: "delete_all",
+                  label: "Delete all",
+                  desc: "Remove the stage and everything in it.",
+                },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setDelStageMode(opt.value)}
+                className={cn(
+                  "w-full text-left border rounded-md p-3 transition-colors",
+                  delStageMode === opt.value
+                    ? "border-primary bg-primary/10"
+                    : "hover:bg-muted",
+                )}
+              >
+                <p className="text-sm font-medium">{opt.label}</p>
+                <p className="text-xs text-muted-foreground">{opt.desc}</p>
+              </button>
+            ))}
+            {/* Target stage is required only when MOVING competitors (auto / manual). */}
+            {delStageMode !== "delete_all" && (
+              <div className="space-y-1">
+                <Label>Move competitors to</Label>
+                <Select
+                  value={delStageTargetId}
+                  onValueChange={setDelStageTargetId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select target stage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eventDetails.stages
+                      .filter((s) => String(s.stage_id) !== delStageId)
+                      .map((s) => (
+                        <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                          {s.stage_name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setDelStageOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={handleDeleteStage}
+                disabled={loadingDelStage}
+              >
+                {loadingDelStage ? <Loader text="Deleting..." /> : "Delete stage"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Played-results force confirm (shared by all seeding actions) ─ */}
+      <Dialog
+        open={forceConfirm.open}
+        onOpenChange={(o) => setForceConfirm((s) => ({ ...s, open: o }))}
+      >
+        <DialogContent className="sm:max-w-[420px]">
+          <div className="text-center">
+            <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-orange-100 flex items-center justify-center">
+              <AlertTriangle className="h-7 w-7 text-orange-600" />
+            </div>
+            <DialogTitle className="text-xl">Entered results affected</DialogTitle>
+            <DialogDescription className="mt-2">
+              {forceConfirm.message}
+            </DialogDescription>
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setForceConfirm((s) => ({ ...s, open: false }))}
+              >
+                Back
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={forceConfirm.onConfirm}
+              >
+                Proceed anyway
               </Button>
             </div>
           </div>
