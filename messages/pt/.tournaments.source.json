@@ -348,6 +348,7 @@
   "structure.points": "Pts",
   "structure.qualificationLine": "Qualification line",
   "structure.footnote": "Built from the data this tournament already records: stages, groups, standings and \"top-N advance\". Stage formats (including \"Knockout\") show their accurate standings, since that is how results are entered.",
+  "structure.placePts": "Place Pts",
   "review.title": "Rate this event",
   "review.noRatings": "No ratings yet",
   "review.ratingSingular": "rating",

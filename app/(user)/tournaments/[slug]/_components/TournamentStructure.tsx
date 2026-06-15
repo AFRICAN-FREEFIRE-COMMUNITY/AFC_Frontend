@@ -76,6 +76,10 @@ function rowName(row: any, idx: number): string {
   );
 }
 const rowKills = (row: any) => row.total_kills ?? row.kills ?? 0;
+// Summed placement points for the row. Backend returns it as `placement_sum` on the overall
+// standings (single-map stats expose `placement_points`); always renders a number, 0 when none.
+const rowPlacementPts = (row: any) =>
+  row.placement_sum ?? row.placement_points ?? 0;
 const rowPoints = (row: any) => {
   const p = row.total_points ?? row.total_pts ?? 0;
   const n = parseFloat(p);
@@ -396,6 +400,9 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
                           <th className="text-center font-semibold px-3 py-2.5">
                             {t("structure.kills")}
                           </th>
+                          <th className="text-center font-semibold px-3 py-2.5">
+                            {t("structure.placePts")}
+                          </th>
                           <th className="text-right font-semibold px-5 py-2.5">
                             {t("structure.points")}
                           </th>
@@ -435,13 +442,16 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
                                 <td className="px-3 py-2.5 text-center border-t border-border/60">
                                   {rowKills(row)}
                                 </td>
+                                <td className="px-3 py-2.5 text-center border-t border-border/60">
+                                  {rowPlacementPts(row)}
+                                </td>
                                 <td className="px-5 py-2.5 text-right font-bold border-t border-border/60">
                                   {rowPoints(row).toFixed(1)}
                                 </td>
                               </tr>
                               {showLine && (
                                 <tr key={`${g.group_id}-qline`}>
-                                  <td colSpan={4} className="p-0">
+                                  <td colSpan={5} className="p-0">
                                     <div className="flex items-center gap-2 px-5 py-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-primary bg-primary/[0.08]">
                                       <span className="h-px flex-1 bg-primary/30" />
                                       {t("structure.qualificationLine")}

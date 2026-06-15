@@ -444,7 +444,8 @@
     "kills": "Abates",
     "points": "Pts",
     "qualificationLine": "Linha de qualificação",
-    "footnote": "Construído a partir dos dados que este torneio já registra: etapas, grupos, classificações e \"top-N avançam\". Os formatos de etapa (incluindo \"Eliminatórias\") mostram suas classificações precisas, já que é assim que os resultados são inseridos."
+    "footnote": "Construído a partir dos dados que este torneio já registra: etapas, grupos, classificações e \"top-N avançam\". Os formatos de etapa (incluindo \"Eliminatórias\") mostram suas classificações precisas, já que é assim que os resultados são inseridos.",
+    "placePts": "Pontos de Colocação"
   },
   "review": {
     "title": "Avaliar este evento",

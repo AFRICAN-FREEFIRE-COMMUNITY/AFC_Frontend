@@ -444,7 +444,8 @@
     "kills": "Kills",
     "points": "Pts",
     "qualificationLine": "Ligne de qualification",
-    "footnote": "Construit à partir des données déjà enregistrées par ce tournoi : étapes, groupes, classements et « top-N avancent ». Les formats d'étape (y compris « Élimination directe ») affichent leurs classements précis, car c'est ainsi que les résultats sont saisis."
+    "footnote": "Construit à partir des données déjà enregistrées par ce tournoi : étapes, groupes, classements et « top-N avancent ». Les formats d'étape (y compris « Élimination directe ») affichent leurs classements précis, car c'est ainsi que les résultats sont saisis.",
+    "placePts": "Pts de placement"
   },
   "review": {
     "title": "Évaluer cet événement",

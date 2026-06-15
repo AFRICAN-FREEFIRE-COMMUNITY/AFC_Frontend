@@ -158,6 +158,11 @@ interface OverallEntry {
   team_name?: string;
   total_kills: number;
   total_booyah: number;
+  // Aggregated point breakdown the backend already returns per row in overall_leaderboard
+  // (Sum of each map's placement_points / kill_points). Surfaced as their own columns so the
+  // standings always show where the points came from, not just the total. (owner 2026-06-15)
+  placement_sum?: number;
+  kill_sum?: number;
   total_points: number;
   effective_total: number;
 }
@@ -1926,6 +1931,12 @@ export default function EditLeaderboardPage({
                           </TableHead>
                           <TableHead className="text-right">Booyahs</TableHead>
                           <TableHead className="text-right">Kills</TableHead>
+                          {/* Place Pts: the summed placement points behind the total. Always shown
+                              (renders 0 when none), so organizers can see the placement contribution
+                              at a glance, not just the combined Total Pts. (owner 2026-06-15) */}
+                          <TableHead className="text-right">
+                            Place Pts
+                          </TableHead>
                           <TableHead className="text-right">
                             Total Pts
                           </TableHead>
@@ -1951,6 +1962,9 @@ export default function EditLeaderboardPage({
                               </TableCell>
                               <TableCell className="text-right">
                                 {entry.total_kills}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {entry.placement_sum ?? 0}
                               </TableCell>
                               <TableCell className="text-right font-semibold">
                                 {entry.effective_total.toFixed(1)}

@@ -444,7 +444,8 @@
     "kills": "Kills",
     "points": "Pts",
     "qualificationLine": "Qualification line",
-    "footnote": "Built from the data this tournament already records: stages, groups, standings and \"top-N advance\". Stage formats (including \"Knockout\") show their accurate standings, since that is how results are entered."
+    "footnote": "Built from the data this tournament already records: stages, groups, standings and \"top-N advance\". Stage formats (including \"Knockout\") show their accurate standings, since that is how results are entered.",
+    "placePts": "Place Pts"
   },
   "review": {
     "title": "Rate this event",
