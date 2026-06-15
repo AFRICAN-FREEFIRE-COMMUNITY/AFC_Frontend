@@ -49,8 +49,12 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+// Viewer-tz / locale-aware date helpers for the chart axis + table date cells.
+import { LocalTime } from "@/components/LocalTime";
+import { getActiveLocale, getBrowserTimeZone } from "@/lib/i18n/time";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -158,11 +162,20 @@ const fmtMoney = (n: number): string =>
   "$" + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
 // Short month label for an ISO date, e.g. "Nov 2025". Falls back to "" when null.
+// Used as a recharts axis/data label (a string, NOT JSX), so it cannot use the
+// <LocalTime> component; instead it formats in the VIEWER's locale + timezone via
+// the shared i18n/time helpers (no <LocalTime> month-year mode exists). On the
+// server getActiveLocale()/getBrowserTimeZone() return "en"/"UTC" so it degrades
+// safely; the chart only renders client-side anyway.
 const shortDate = (iso: string | null): string => {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleString("default", { month: "short", year: "numeric" });
+  return new Intl.DateTimeFormat(getActiveLocale(), {
+    month: "short",
+    year: "numeric",
+    timeZone: getBrowserTimeZone(),
+  }).format(d);
 };
 
 // Placement display: "1st", "2nd", "3rd", "4th"... null -> "-".
@@ -196,6 +209,8 @@ const tierChipClass = (tier: number | null, label: string | null): string => {
 };
 
 const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
+  // i18n: detailed team statistics tab copy (teamsplayers -> "teamStats").
+  const t = useTranslations("teamsplayers");
   const { token } = useAuth();
 
   /* ── Token-aware stats payload (the privacy boundary) ──────────────────────
@@ -403,25 +418,25 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
     }
   > = {
     placement: {
-      label: "Placement (lower is better)",
+      label: t("teamStats.placementLowerBetter"),
       dataKey: "placement",
       invert: true,
       fmt: (v) => `#${v}`,
     },
     kills: {
-      label: "Kills",
+      label: t("teamStats.killsAxis"),
       dataKey: "kills",
       invert: false,
       fmt: (v) => `${v}`,
     },
     points: {
-      label: "Points",
+      label: t("teamStats.pointsAxis"),
       dataKey: "points",
       invert: false,
       fmt: (v) => `${v}`,
     },
     earnings: {
-      label: "Earnings ($)",
+      label: t("teamStats.earningsAxis"),
       dataKey: "earnings",
       invert: false,
       fmt: (v) => fmtMoney(v),
@@ -472,19 +487,20 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
   const rangeFlag = (() => {
     switch (range) {
       case "3m":
-        return "Showing last 3 months";
+        return t("teamStats.showingLast3Months");
       case "6m":
-        return "Showing last 6 months";
+        return t("teamStats.showingLast6Months");
       case "12m":
-        return "Showing last 12 months";
+        return t("teamStats.showingLast12Months");
       case "all":
-        return "Showing all time";
+        return t("teamStats.showingAllTime");
       case "custom":
         return appliedCustom
-          ? `Showing ${appliedCustom.from || "start"} to ${
-              appliedCustom.to || "now"
-            }`
-          : "Showing custom range";
+          ? t("teamStats.showingCustom", {
+              from: appliedCustom.from || t("teamStats.customStart"),
+              to: appliedCustom.to || t("teamStats.customNow"),
+            })
+          : t("teamStats.showingCustomRange");
     }
   })();
 
@@ -523,7 +539,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
     if (resolvingStats) {
       return (
         <div className="rounded-md border bg-card px-6 py-12 text-center text-sm text-muted-foreground shadow-sm">
-          Loading team stats...
+          {t("teamStats.loading")}
         </div>
       );
     }
@@ -533,11 +549,10 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
           <IconLock className="size-6 text-muted-foreground" />
         </div>
         <p className="text-sm font-semibold text-foreground">
-          Team stats are visible to team members only.
+          {t("teamStats.membersOnlyTitle")}
         </p>
         <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-          Join this team to see its detailed performance, tournament history, and
-          match breakdowns.
+          {t("teamStats.membersOnlyDescription")}
         </p>
       </div>
     );
@@ -549,7 +564,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
       {/* ── Time-range filter: drives BOTH the cards and the curve ─────────── */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Performance over
+          {t("teamStats.performanceOver")}
         </span>
         <div className="flex flex-wrap items-center gap-3">
           {/* preset segment */}
@@ -558,31 +573,31 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
               className={segBtn(range === "3m")}
               onClick={() => setRange("3m")}
             >
-              3 months
+              {t("teamStats.months3")}
             </button>
             <button
               className={segBtn(range === "6m")}
               onClick={() => setRange("6m")}
             >
-              6 months
+              {t("teamStats.months6")}
             </button>
             <button
               className={segBtn(range === "12m")}
               onClick={() => setRange("12m")}
             >
-              12 months
+              {t("teamStats.months12")}
             </button>
             <button
               className={segBtn(range === "all")}
               onClick={() => setRange("all")}
             >
-              All time
+              {t("teamStats.allTime")}
             </button>
           </div>
           {/* custom From/To + Apply */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Label htmlFor="stat-from" className="text-xs">
-              From
+              {t("teamStats.from")}
             </Label>
             <Input
               id="stat-from"
@@ -592,7 +607,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
               className="h-8 w-[140px] text-xs [color-scheme:dark]"
             />
             <Label htmlFor="stat-to" className="text-xs">
-              to
+              {t("teamStats.to")}
             </Label>
             <Input
               id="stat-to"
@@ -602,7 +617,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
               className="h-8 w-[140px] text-xs [color-scheme:dark]"
             />
             <Button size="sm" className="h-8" onClick={applyCustom}>
-              Apply
+              {t("teamStats.apply")}
             </Button>
           </div>
         </div>
@@ -612,54 +627,54 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
       {/* ── Headline stat cards (framed "in range") ───────────────────────── */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
-          label="Tournaments"
+          label={t("teamStats.tournaments")}
           value={`${cardStats.tournaments}`}
-          sub="in range"
+          sub={t("teamStats.inRange")}
         />
         <StatCard
-          label="Total Kills"
+          label={t("teamStats.totalKills")}
           value={cardStats.totalKills.toLocaleString()}
-          sub="in range"
+          sub={t("teamStats.inRange")}
           valueClass="text-primary"
         />
         <StatCard
-          label="Wins (1st)"
+          label={t("teamStats.wins1st")}
           value={`${cardStats.wins}`}
-          sub="1st-place finishes"
+          sub={t("teamStats.firstPlaceFinishes")}
           valueClass="text-gold"
         />
         <StatCard
-          label="Earnings"
+          label={t("teamStats.earnings")}
           value={fmtMoney(lifetimeEarnings)}
-          sub="total prize money"
+          sub={t("teamStats.totalPrizeMoney")}
         />
         <StatCard
-          label="Avg Placement"
+          label={t("teamStats.avgPlacement")}
           value={
             cardStats.avgPlacement != null
               ? `#${cardStats.avgPlacement.toFixed(1)}`
               : "-"
           }
-          sub="lower is better"
+          sub={t("teamStats.lowerIsBetter")}
         />
         <StatCard
-          label="Win Rate"
+          label={t("teamStats.winRate")}
           value={`${cardStats.winRate.toFixed(0)}%`}
-          sub="1st-place share"
+          sub={t("teamStats.firstPlaceShare")}
         />
         <StatCard
-          label="Current Tier"
-          value={team?.team_tier || "Unranked"}
-          sub="current grade"
+          label={t("teamStats.currentTier")}
+          value={team?.team_tier || t("teamStats.unranked")}
+          sub={t("teamStats.currentGrade")}
           valueClass="text-gold"
         />
         <StatCard
-          label="Ranking"
-          value={latestRanked?.rank != null ? `#${latestRanked.rank}` : "Unranked"}
+          label={t("teamStats.ranking")}
+          value={latestRanked?.rank != null ? `#${latestRanked.rank}` : t("teamStats.unranked")}
           sub={
             latestRanked?.season_name
               ? latestRanked.season_name
-              : "not yet ranked"
+              : t("teamStats.notYetRanked")
           }
           valueClass={latestRanked?.rank != null ? "text-primary" : undefined}
         />
@@ -671,25 +686,25 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
         <Card>
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <CardTitle className="text-base">Performance curve</CardTitle>
+              <CardTitle className="text-base">{t("teamStats.performanceCurve")}</CardTitle>
               <div className="inline-flex gap-0.5 rounded-md bg-muted p-0.5">
                 <button
                   className={segBtn(metric === "placement")}
                   onClick={() => setMetric("placement")}
                 >
-                  Placement
+                  {t("teamStats.placement")}
                 </button>
                 <button
                   className={segBtn(metric === "kills")}
                   onClick={() => setMetric("kills")}
                 >
-                  Kills
+                  {t("teamStats.kills")}
                 </button>
                 <button
                   className={segBtn(metric === "points")}
                   onClick={() => setMetric("points")}
                 >
-                  Points
+                  {t("teamStats.points")}
                 </button>
                 {/* Earnings metric only offered when per-event prizes exist */}
                 {hasPerEventEarnings && (
@@ -697,7 +712,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                     className={segBtn(metric === "earnings")}
                     onClick={() => setMetric("earnings")}
                   >
-                    Earnings
+                    {t("teamStats.earnings")}
                   </button>
                 )}
               </div>
@@ -707,7 +722,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
             {curveData.length < 2 ? (
               // Need at least two datable events to draw a meaningful line.
               <div className="flex h-[260px] items-center justify-center text-center text-sm text-muted-foreground">
-                Not enough dated tournaments in this range to plot a curve.
+                {t("teamStats.notEnoughCurve")}
               </div>
             ) : (
               <>
@@ -794,14 +809,14 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                         variant="outline"
                         className="border-primary/40 text-primary"
                       >
-                        <IconTrendingUp className="size-3" /> improving
+                        <IconTrendingUp className="size-3" /> {t("teamStats.improving")}
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
                         className="border-red-500/40 text-red-400"
                       >
-                        <IconTrendingDown className="size-3" /> declining
+                        <IconTrendingDown className="size-3" /> {t("teamStats.declining")}
                       </Badge>
                     )}
                   </div>
@@ -814,7 +829,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
         {/* Ranking & tier history (timeline OR honest empty state) */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Ranking &amp; tier history</CardTitle>
+            <CardTitle className="text-base">{t("teamStats.rankingTierHistory")}</CardTitle>
           </CardHeader>
           <CardContent>
             {tierHistory.length === 0 ? (
@@ -823,18 +838,17 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">
-                    Current tier
+                    {t("teamStats.currentTierLabel")}
                   </span>
                   <Badge
                     variant="outline"
                     className="border-gold/55 text-gold"
                   >
-                    {team?.team_tier || "Unranked"}
+                    {team?.team_tier || t("teamStats.unranked")}
                   </Badge>
                 </div>
                 <p className="text-xs italic text-muted-foreground">
-                  Season by season ranking history is coming soon. It appears
-                  here once seasonal tiers and rankings are published.
+                  {t("teamStats.historyComingSoon")}
                 </p>
               </div>
             ) : (
@@ -850,19 +864,19 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                     if (diff > 0)
                       deltaNode = (
                         <span className="font-bold text-primary">
-                          (up {diff})
+                          {t("teamStats.up", { count: diff })}
                         </span>
                       );
                     else if (diff < 0)
                       deltaNode = (
                         <span className="font-bold text-red-400">
-                          (down {Math.abs(diff)})
+                          {t("teamStats.down", { count: Math.abs(diff) })}
                         </span>
                       );
                   } else if (h.rank != null && (!prev || prev.rank == null)) {
                     deltaNode = (
                       <span className="text-xs text-muted-foreground">
-                        (new)
+                        {t("teamStats.new")}
                       </span>
                     );
                   }
@@ -879,7 +893,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                           variant="outline"
                           className={tierChipClass(h.tier, h.tier_label)}
                         >
-                          {h.tier_label || `Tier ${h.tier ?? "-"}`}
+                          {h.tier_label || t("teamStats.tierFallback", { tier: h.tier ?? "-" })}
                         </Badge>
                       </span>
                       <span className="text-right text-sm font-semibold">
@@ -900,10 +914,10 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              Earnings by event
+              {t("teamStats.earningsByEvent")}
             </span>
             <span className="text-sm text-muted-foreground">
-              Total{" "}
+              {t("teamStats.totalWithAmount")}{" "}
               <b className="text-gold">{fmtMoney(lifetimeEarnings)}</b>
             </span>
           </div>
@@ -936,17 +950,16 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              Earnings
+              {t("teamStats.earnings")}
             </span>
             <span className="text-sm text-muted-foreground">
-              Total <b className="text-gold">{fmtMoney(lifetimeEarnings)}</b>
+              {t("teamStats.totalWithAmount")} <b className="text-gold">{fmtMoney(lifetimeEarnings)}</b>
             </span>
           </div>
           <Card>
             <CardContent>
               <p className="text-xs italic text-muted-foreground">
-                A per event prize breakdown appears here once event payouts are
-                recorded.
+                {t("teamStats.earningsBreakdownSoon")}
               </p>
             </CardContent>
           </Card>
@@ -957,16 +970,16 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-            All tournaments played (tap a row for details)
+            {t("teamStats.allTournamentsPlayed")}
           </span>
           <span className="text-sm text-muted-foreground">
-            {allPerf.length} {allPerf.length === 1 ? "event" : "events"}
+            {t("teamStats.eventCount", { count: allPerf.length })}
           </span>
         </div>
         <Card className="overflow-hidden p-0">
           {allPerf.length === 0 ? (
             <div className="p-6">
-              <NothingFound text="No tournaments played yet." />
+              <NothingFound text={t("teamStats.noTournamentsPlayed")} />
             </div>
           ) : (
             <Table>
@@ -974,39 +987,39 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                 <TableRow>
                   <TableHead className="h-10 w-8 p-2" />
                   <TableHead className="h-10 p-2 text-foreground">
-                    Event
+                    {t("teamStats.event")}
                   </TableHead>
                   <TableHead className="h-10 p-2 text-foreground">
-                    Date
+                    {t("teamStats.date")}
                   </TableHead>
                   <TableHead className="h-10 p-2 text-foreground">
-                    Type
+                    {t("teamStats.type")}
                   </TableHead>
                   <TableHead className="h-10 p-2 text-center text-foreground">
-                    Placement
+                    {t("teamStats.placement")}
                   </TableHead>
                   <TableHead className="h-10 p-2 text-center text-foreground">
-                    Kills
+                    {t("teamStats.kills")}
                   </TableHead>
                   <TableHead className="h-10 p-2 text-center text-foreground">
-                    Points
+                    {t("teamStats.points")}
                   </TableHead>
                   <TableHead className="h-10 p-2 text-right text-foreground">
-                    Prize
+                    {t("teamStats.prize")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {allPerf.map((t) => {
-                  const isOpen = openRow === t.event_id;
-                  const isWin = t.best_placement === 1;
-                  const prize = toMoney(t.prize_earned);
-                  const matches = matchesByEvent.get(t.name) ?? [];
+                {allPerf.map((perf) => {
+                  const isOpen = openRow === perf.event_id;
+                  const isWin = perf.best_placement === 1;
+                  const prize = toMoney(perf.prize_earned);
+                  const matches = matchesByEvent.get(perf.name) ?? [];
                   return (
-                    <React.Fragment key={t.event_id}>
+                    <React.Fragment key={perf.event_id}>
                       <TableRow
                         className="cursor-pointer text-xs"
-                        onClick={() => setOpenRow(isOpen ? null : t.event_id)}
+                        onClick={() => setOpenRow(isOpen ? null : perf.event_id)}
                       >
                         <TableCell className="p-2">
                           <IconChevronRight
@@ -1016,17 +1029,22 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                           />
                         </TableCell>
                         <TableCell className="p-2 font-semibold">
-                          {t.name}
+                          {perf.name}
                         </TableCell>
                         <TableCell className="p-2 text-muted-foreground">
-                          {shortDate(t.event_date) || "-"}
+                          {/* Event date in the viewer's timezone + language, or "-". */}
+                          {perf.event_date ? (
+                            <LocalTime value={perf.event_date} mode="date" />
+                          ) : (
+                            "-"
+                          )}
                         </TableCell>
                         <TableCell className="p-2">
                           <Badge
                             variant="outline"
                             className="text-muted-foreground capitalize"
                           >
-                            {t.competition_type}
+                            {perf.competition_type}
                           </Badge>
                         </TableCell>
                         <TableCell
@@ -1037,13 +1055,13 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                           {isWin && (
                             <IconTrophy className="mr-1 inline size-3.5" />
                           )}
-                          {ordinalPlacement(t.best_placement)}
+                          {ordinalPlacement(perf.best_placement)}
                         </TableCell>
                         <TableCell className="p-2 text-center">
-                          {t.total_kills}
+                          {perf.total_kills}
                         </TableCell>
                         <TableCell className="p-2 text-center">
-                          {t.total_points}
+                          {perf.total_points}
                         </TableCell>
                         <TableCell className="p-2 text-right">
                           {prize > 0 ? fmtMoney(prize) : "-"}
@@ -1058,58 +1076,58 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                               {/* summary boxes */}
                               <div className="mb-2 grid grid-cols-2 gap-2.5 md:grid-cols-4">
                                 <SummaryBox
-                                  label="Final placement"
-                                  value={ordinalPlacement(t.best_placement)}
+                                  label={t("teamStats.finalPlacement")}
+                                  value={ordinalPlacement(perf.best_placement)}
                                 />
                                 <SummaryBox
-                                  label="Total kills"
-                                  value={`${t.total_kills}`}
+                                  label={t("teamStats.totalKills")}
+                                  value={`${perf.total_kills}`}
                                 />
                                 <SummaryBox
-                                  label="Total points"
-                                  value={`${t.total_points}`}
+                                  label={t("teamStats.totalPoints")}
+                                  value={`${perf.total_points}`}
                                 />
                                 <SummaryBox
-                                  label="Prize won"
+                                  label={t("teamStats.prizeWon")}
                                   value={prize > 0 ? fmtMoney(prize) : "-"}
                                 />
                               </div>
                               <h4 className="mb-2 mt-3 text-[0.68rem] uppercase tracking-wide text-muted-foreground">
-                                Per-match breakdown
+                                {t("teamStats.perMatchBreakdown")}
                               </h4>
                               {matches.length === 0 ? (
                                 <p className="text-xs italic text-muted-foreground">
-                                  No per-match records available for this event.
+                                  {t("teamStats.noPerMatchRecords")}
                                 </p>
                               ) : (
                                 <Table>
                                   <TableHeader>
                                     <TableRow>
                                       <TableHead className="h-9 p-2 text-foreground">
-                                        Match
+                                        {t("teamStats.match")}
                                       </TableHead>
                                       <TableHead className="h-9 p-2 text-foreground">
-                                        Map
+                                        {t("teamStats.map")}
                                       </TableHead>
                                       <TableHead className="h-9 p-2 text-center text-foreground">
-                                        Placement
+                                        {t("teamStats.placement")}
                                       </TableHead>
                                       <TableHead className="h-9 p-2 text-center text-foreground">
-                                        Kills
+                                        {t("teamStats.kills")}
                                       </TableHead>
                                       <TableHead className="h-9 p-2 text-right text-foreground">
-                                        Points
+                                        {t("teamStats.points")}
                                       </TableHead>
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
                                     {matches.map((m, mi) => (
                                       <TableRow
-                                        key={`${t.event_id}-${m.match_number}-${mi}`}
+                                        key={`${perf.event_id}-${m.match_number}-${mi}`}
                                         className="text-xs"
                                       >
                                         <TableCell className="p-2">
-                                          {`Match ${m.match_number}`}
+                                          {t("teamStats.matchNumber", { number: m.match_number })}
                                         </TableCell>
                                         <TableCell className="p-2">
                                           {m.match_map || "-"}

@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,8 @@ const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
 };
 
 export default function CreateTeamForm() {
+  // i18n: create-team form copy (messages/en/teamsplayers.json -> "teamCreate").
+  const t = useTranslations("teamsplayers");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const { user, token } = useAuth();
@@ -172,13 +175,13 @@ export default function CreateTeamForm() {
         );
 
         if (response.statusText === "Created") {
-          toast.success(`Team created successfully!`);
+          toast.success(t("teamCreate.createdSuccess"));
           router.push("/teams");
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("errors.generic"));
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Internal server error");
+        toast.error(error?.response?.data?.message || t("errors.internalServer"));
 
         return;
       }
@@ -187,7 +190,7 @@ export default function CreateTeamForm() {
 
   return (
     <ProtectedRoute>
-      <PageHeader title={`Create a New Team`} back />
+      <PageHeader title={t("teamCreate.pageTitle")} back />
       <Card>
         <CardContent>
           <Form {...form}>
@@ -197,10 +200,10 @@ export default function CreateTeamForm() {
                 name="team_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team name</FormLabel>
+                    <FormLabel>{t("teamCreate.teamName")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter your team name"
+                        placeholder={t("teamCreate.teamNamePlaceholder")}
                         onPaste={preventPaste}
                         {...field}
                       />
@@ -215,12 +218,12 @@ export default function CreateTeamForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Team tag (Optional)
+                      {t("teamCreate.teamTagOptional")}
                       <InfoTip id="teams.create.team_tag" className="ml-1" />
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter your team tag"
+                        placeholder={t("teamCreate.teamTagPlaceholder")}
                         onPaste={preventPaste}
                         {...field}
                       />
@@ -234,7 +237,7 @@ export default function CreateTeamForm() {
                 name="team_logo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team logo</FormLabel>
+                    <FormLabel>{t("teamCreate.teamLogo")}</FormLabel>
                     <FormControl>
                       <div className="space-y-4">
                         {!previewUrl ? (
@@ -260,9 +263,7 @@ export default function CreateTeamForm() {
                                     "image/webp",
                                   ].includes(file.type)
                                 ) {
-                                  toast.error(
-                                    "Only PNG, JPG, JPEG, or WEBP files are supported.",
-                                  );
+                                  toast.error(t("errors.imageType"));
                                   return;
                                 }
                                 setSelectedFile(file);
@@ -284,13 +285,13 @@ export default function CreateTeamForm() {
                                 />
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                Drop your image here, or{" "}
+                                {t("teamCreate.dropImage")}{" "}
                                 <span className="text-primary font-medium hover:underline">
-                                  browse
+                                  {t("teamCreate.browse")}
                                 </span>
                               </p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                Supports: PNG, JPG, JPEG, WEBP
+                                {t("teamCreate.supports")}
                               </p>
                             </div>
                           </div>
@@ -301,7 +302,7 @@ export default function CreateTeamForm() {
                                 width={1000}
                                 height={1000}
                                 src={previewUrl}
-                                alt="Featured image"
+                                alt={t("teamCreate.featuredImageAlt")}
                                 className="aspect-video size-full object-cover"
                               />
                             </div>
@@ -321,7 +322,7 @@ export default function CreateTeamForm() {
                                 }}
                               >
                                 <IconX size={16} className="mr-2" />
-                                Remove
+                                {t("teamCreate.remove")}
                               </Button>
 
                               <Button
@@ -331,7 +332,7 @@ export default function CreateTeamForm() {
                                 onClick={() => fileInputRef.current?.click()}
                               >
                                 <IconUpload size={16} className="mr-2" />
-                                Replace
+                                {t("teamCreate.replace")}
                               </Button>
                             </div>
                           </div>
@@ -354,9 +355,7 @@ export default function CreateTeamForm() {
                                 "image/webp",
                               ].includes(file.type)
                             ) {
-                              toast.error(
-                                "Only PNG, JPG, JPEG, or WEBP files are supported.",
-                              );
+                              toast.error(t("errors.imageType"));
                               return;
                             }
 
@@ -375,10 +374,10 @@ export default function CreateTeamForm() {
                 name="team_description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team description</FormLabel>
+                    <FormLabel>{t("teamCreate.teamDescription")}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Enter a brief description about your team"
+                        placeholder={t("teamCreate.teamDescriptionPlaceholder")}
                         className="resize-none"
                         {...field}
                       />
@@ -420,7 +419,7 @@ export default function CreateTeamForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Join settings
+                      {t("teamCreate.joinSettings")}
                       <InfoTip id="teams.create.join_settings" className="ml-1" />
                     </FormLabel>
                     <Select
@@ -429,12 +428,12 @@ export default function CreateTeamForm() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select your settings" />
+                          <SelectValue placeholder={t("teamCreate.selectSettings")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value={"open"}>Open</SelectItem>
-                        <SelectItem value={"by_request"}>By request</SelectItem>
+                        <SelectItem value={"open"}>{t("teamCreate.open")}</SelectItem>
+                        <SelectItem value={"by_request"}>{t("teamCreate.byRequest")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -443,7 +442,7 @@ export default function CreateTeamForm() {
               />
               <div className="space-y-2">
                 <FormLabel>
-                  Invite Members (Email or Username)
+                  {t("teamCreate.inviteMembers")}
                   <InfoTip id="teams.create.invite_members" className="ml-1" />
                 </FormLabel>
                 {fields.map((field, index) => (
@@ -462,7 +461,7 @@ export default function CreateTeamForm() {
                               <UserSearchSelect
                                 value={formField.value || null}
                                 onChange={(u) => formField.onChange(u ?? "")}
-                                placeholder="Search a player to invite..."
+                                placeholder={t("teamCreate.invitePlaceholder")}
                               />
                             </div>
                             {fields.length > 1 && (
@@ -485,11 +484,11 @@ export default function CreateTeamForm() {
                 ))}
                 <Button type="button" onClick={addInvite} disabled={pending}>
                   <Plus className="size-4 mr-1" />
-                  New invite
+                  {t("teamCreate.newInvite")}
                 </Button>
               </div>
               <div className="space-y-2.5">
-                <FormLabel>Social Media Links (Optional)</FormLabel>
+                <FormLabel>{t("teamCreate.socialLinksOptional")}</FormLabel>
                 <div className="space-y-1.5">
                   <FormField
                     control={form.control}
@@ -497,7 +496,7 @@ export default function CreateTeamForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Facebook URL" {...field} />
+                          <Input placeholder={t("teamCreate.facebookUrl")} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -509,7 +508,7 @@ export default function CreateTeamForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Twitter URL" {...field} />
+                          <Input placeholder={t("teamCreate.twitterUrl")} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -521,7 +520,7 @@ export default function CreateTeamForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Instagram URL" {...field} />
+                          <Input placeholder={t("teamCreate.instagramUrl")} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -533,7 +532,7 @@ export default function CreateTeamForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Youtube URL" {...field} />
+                          <Input placeholder={t("teamCreate.youtubeUrl")} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -545,7 +544,7 @@ export default function CreateTeamForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Twitch URL" {...field} />
+                          <Input placeholder={t("teamCreate.twitchUrl")} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -555,10 +554,10 @@ export default function CreateTeamForm() {
               </div>
               <div className="flex items-center justify-between gap-4">
                 <Button className="flex-1" asChild variant={"outline"}>
-                  <Link href="/teams">Cancel</Link>
+                  <Link href="/teams">{t("teamCreate.cancel")}</Link>
                 </Button>
                 <Button className="flex-1" disabled={pending} type="submit">
-                  {pending ? <Loader text="Creating..." /> : "Create Team"}
+                  {pending ? <Loader text={t("teamCreate.creating")} /> : t("teamCreate.createTeam")}
                 </Button>
               </div>
             </form>

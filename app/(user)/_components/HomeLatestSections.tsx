@@ -24,6 +24,10 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
+// Renders the event date in the VIEWER's own timezone + language (replaces the
+// old toLocaleDateString("en-US", ...) which hardcoded the locale and rendered
+// in UTC). See components/LocalTime.tsx for the hydration-safe contract.
+import { LocalTime } from "@/components/LocalTime";
 import {
   Card,
   CardContent,
@@ -212,17 +216,10 @@ export function HomeLatestSections() {
   // Nothing to show anywhere -> render nothing (no empty Card shells on the page).
   if (events.length === 0 && allPosts.length === 0) return null;
 
-  const fmtDate = (d: string) => {
-    if (!d) return "";
-    const date = new Date(d);
-    return isNaN(date.getTime())
-      ? d
-      : date.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        });
-  };
+  // Maps the raw backend event_status enum to a localized, capitalized label.
+  // Keys live in messages/en/home.json under latestSections.events.status.*.
+  const statusLabel = (s: EventRow["event_status"]) =>
+    t(`latestSections.events.status.${s}`);
 
   return (
     <div className="space-y-2 mb-4">
@@ -278,15 +275,16 @@ export function HomeLatestSections() {
                           ? t("latestSections.events.labelScrim")
                           : t("latestSections.events.labelTournament")}
                       </Badge>
-                      <span className={cn("text-xs font-medium capitalize", STATUS_TEXT[e.event_status])}>
-                        {e.event_status}
+                      <span className={cn("text-xs font-medium", STATUS_TEXT[e.event_status])}>
+                        {statusLabel(e.event_status)}
                       </span>
                     </div>
                     <h3 className="font-semibold text-sm leading-tight group-hover:text-primary line-clamp-1">
                       {e.event_name}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {fmtDate(e.event_date)}
+                      {/* Event date in the viewer's local timezone + language. */}
+                      <LocalTime value={e.event_date} mode="date" />
                     </p>
                     <div className="flex items-center gap-2 mt-2 text-xs">
                       <span className="font-medium text-gold">

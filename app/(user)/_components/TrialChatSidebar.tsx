@@ -20,10 +20,13 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import axios from "axios";
+import { useTranslations, useLocale } from "next-intl";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
-import { formatDate } from "@/lib/utils";
+// Absolute-date fallback for the chat timestamp, rendered in the VIEWER's own
+// timezone + language (replaces formatDate(), which used the machine's local clock).
+import { formatLocalTime } from "@/lib/i18n/time";
 // Subtle clickable names -> public team / player profiles.
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 
@@ -62,24 +65,32 @@ interface Props {
   initialChatId?: number;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatTime(dateString: string) {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h`;
-  return formatDate(dateString);
-}
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
+  // Strings for the trial-chat sidebar (namespace == messages/en/home.json).
+  const t = useTranslations("home");
+  // Active UI locale, passed to formatLocalTime so the absolute-date fallback
+  // localizes its month names without re-reading the cookie.
+  const locale = useLocale();
   const { token, user } = useAuth();
+
+  // Compact chat timestamp: "just now" / "5m" / "3h" for recent messages, then an
+  // absolute viewer-local date once older than a day. Defined inside the component so
+  // it can read the translated unit strings + the active locale. The "m"/"h" suffixes
+  // are localized (some languages need a different short unit / spacing).
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return t("trialChat.time.justNow");
+    if (diffMins < 60) return t("trialChat.time.minutes", { count: diffMins });
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return t("trialChat.time.hours", { count: diffHours });
+    // Older than a day: an absolute date in the viewer's own timezone + language.
+    return formatLocalTime(dateString, "date", locale);
+  };
 
   const [view, setView] = useState<"list" | "conversation">("list");
   const [chats, setChats] = useState<ChatListItem[]>([]);
@@ -114,7 +125,7 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
           if (match) openConversation(initialChatId);
         }
       })
-      .catch(() => toast.error("Failed to load chats."))
+      .catch(() => toast.error(t("trialChat.toast.loadChatsFailed")))
       .finally(() => setLoadingChats(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, token]);
@@ -156,7 +167,7 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
         { headers: { Authorization: `Bearer ${token}` } },
       )
       .then((res) => setSelectedChat(res.data))
-      .catch(() => toast.error("Failed to load messages."))
+      .catch(() => toast.error(t("trialChat.toast.loadMessagesFailed")))
       .finally(() => setLoadingMessages(false));
   };
 
@@ -175,7 +186,7 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
         prev ? { ...prev, messages: [...prev.messages, res.data] } : prev,
       );
     } catch {
-      toast.error("Failed to send message.");
+      toast.error(t("trialChat.toast.sendFailed"));
       setMessageText(text);
     } finally {
       setSending(false);
@@ -226,13 +237,14 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                 <IconShieldLock className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-base font-semibold text-foreground">Before you chat</h3>
+              <h3 className="text-base font-semibold text-foreground">
+                {t("trialChat.disclaimer.title")}
+              </h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                Trial chats may be reviewed by AFC moderators for safety, fairness, and dispute
-                resolution. Please keep it respectful. By continuing, you acknowledge this.
+                {t("trialChat.disclaimer.body")}
               </p>
               <Button className="mt-4 w-full" onClick={acknowledgeDisclaimer}>
-                I understand
+                {t("trialChat.disclaimer.acknowledge")}
               </Button>
             </div>
           </div>
@@ -253,18 +265,21 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
             <div className="flex-1 min-w-0">
               <SheetTitle className="text-base break-words">
                 {view === "list" ? (
-                  "Trial Chats"
+                  t("trialChat.listTitle")
                 ) : selectedChat ? (
                   // Team name links to the public team page.
                   <TeamLink name={selectedChat.team} />
                 ) : (
-                  "Chat"
+                  t("trialChat.chatTitle")
                 )}
               </SheetTitle>
               {view === "conversation" && selectedChat && (
                 <p className="text-xs text-muted-foreground break-words">
-                  {/* Player name links to their public player profile. */}
-                  with <PlayerLink name={selectedChat.player} />
+                  {/* "with <player>" - player name links to their public profile.
+                      t.rich keeps the word order localizable around the link chunk. */}
+                  {t.rich("trialChat.withPlayer", {
+                    player: () => <PlayerLink name={selectedChat.player} />,
+                  })}
                 </p>
               )}
             </div>
@@ -277,15 +292,13 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
             {loadingChats ? (
               <div className="flex items-center justify-center h-36 gap-2 text-muted-foreground text-sm">
                 <IconLoader2 className="h-4 w-4 animate-spin" />
-                Loading chats...
+                {t("trialChat.loadingChats")}
               </div>
             ) : chats.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-48 gap-2 text-muted-foreground px-6 text-center">
                 <IconMessage className="h-10 w-10 opacity-30" />
-                <p className="text-sm font-medium">No trial chats yet</p>
-                <p className="text-xs">
-                  Chats become available once a trial is started
-                </p>
+                <p className="text-sm font-medium">{t("trialChat.emptyChats.title")}</p>
+                <p className="text-xs">{t("trialChat.emptyChats.subtitle")}</p>
               </div>
             ) : (
               <div className="divide-y">
@@ -303,7 +316,7 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm break-words">{chat.team}</p>
                       <p className="text-xs text-muted-foreground break-words">
-                        with {chat.player}
+                        {t("trialChat.withName", { name: chat.player })}
                       </p>
                     </div>
                     <IconChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -322,13 +335,13 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
               {loadingMessages ? (
                 <div className="flex items-center justify-center h-36 gap-2 text-muted-foreground text-sm">
                   <IconLoader2 className="h-4 w-4 animate-spin" />
-                  Loading messages...
+                  {t("trialChat.loadingMessages")}
                 </div>
               ) : !selectedChat || selectedChat.messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
                   <IconMessage className="h-10 w-10 opacity-30" />
-                  <p className="text-sm font-medium">No messages yet</p>
-                  <p className="text-xs">Send the first message below</p>
+                  <p className="text-sm font-medium">{t("trialChat.emptyMessages.title")}</p>
+                  <p className="text-xs">{t("trialChat.emptyMessages.subtitle")}</p>
                 </div>
               ) : (
                 selectedChat.messages.map((msg) => {
@@ -378,7 +391,7 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
               >
                 <Input
                   ref={inputRef}
-                  placeholder="Type a message..."
+                  placeholder={t("trialChat.inputPlaceholder")}
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   disabled={sending}

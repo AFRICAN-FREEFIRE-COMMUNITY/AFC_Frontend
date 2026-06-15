@@ -28,6 +28,7 @@
 
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,9 @@ import {
 type Filter = "All" | GlossaryCategory;
 
 export default function GlossaryPage() {
+  // i18n: user-facing chrome strings for /glossary (messages/en/teamsplayers.json
+  // -> "glossary"). Term content itself lives in lib/glossary-data.ts (data, not UI copy).
+  const t = useTranslations("teamsplayers");
   // Live search text (matched against term name, alias `also`, and definition).
   const [query, setQuery] = useState("");
   // Active category pill. "All" renders every category as a labeled section.
@@ -85,8 +89,8 @@ export default function GlossaryPage() {
     <div>
       {/* Green primary title + cheerful, beginner-friendly subtitle (no em dashes). */}
       <PageHeader
-        title="Glossary"
-        description="Plain-language definitions for esports and Free Fire terms. New here? Start with Getting Started."
+        title={t("glossary.pageTitle")}
+        description={t("glossary.pageDescription")}
       />
 
       {/* ── Controls: live search + category pill filter ─────────────────────── */}
@@ -98,9 +102,9 @@ export default function GlossaryPage() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search terms..."
+            placeholder={t("glossary.searchPlaceholder")}
             className="h-9 pl-8"
-            aria-label="Search glossary terms"
+            aria-label={t("glossary.searchAriaLabel")}
           />
         </div>
 
@@ -111,7 +115,7 @@ export default function GlossaryPage() {
           <div className="-mx-1 overflow-x-auto px-1 pb-1">
             <TabsList className="h-9 w-max">
               <TabsTrigger value="All" className="px-3">
-                All
+                {t("glossary.all")}
               </TabsTrigger>
               {GLOSSARY_CATEGORIES.map((cat) => (
                 <TabsTrigger key={cat} value={cat} className="px-3">
@@ -128,9 +132,9 @@ export default function GlossaryPage() {
         // Empty state when the search/filter combination matches nothing.
         <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
           <IconMoodEmpty className="size-10 text-muted-foreground" />
-          <p className="font-semibold">No terms match your search.</p>
+          <p className="font-semibold">{t("glossary.noTermsTitle")}</p>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Try a different word, or switch the category back to All.
+            {t("glossary.noTermsBody")}
           </p>
         </div>
       ) : filter === "All" ? (
@@ -171,6 +175,8 @@ function TermGrid({ terms }: { terms: GlossaryTerm[] }) {
 // AFC card idiom: rounded-md border bg-card. Light, tasteful fade-up entrance
 // via framer-motion; the stagger is capped so a full category never feels slow.
 function TermCard({ term, index }: { term: GlossaryTerm; index: number }) {
+  // Local namespace handle for the one piece of chrome copy in the card ("also:").
+  const t = useTranslations("teamsplayers");
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -193,7 +199,7 @@ function TermCard({ term, index }: { term: GlossaryTerm; index: number }) {
           {/* Optional alias / short form line. */}
           {term.also && (
             <p className="text-xs text-muted-foreground/80">
-              also: {term.also}
+              {t("glossary.also", { alias: term.also })}
             </p>
           )}
         </div>

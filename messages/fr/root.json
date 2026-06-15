@@ -1,0 +1,61 @@
+{
+  "rules": {
+    "title": "Manuel de l'AFC",
+    "description": "Le cadre réglementaire officiel pour toutes les compétitions de la communauté africaine Freefire.",
+    "searchPlaceholder": "Rechercher des règles (ex: 'triche', 'salaire', 'tier')...",
+    "noResults": "Aucune règle spécifique trouvée pour \"{query}\".",
+    "supportTitle": "Divergences sur les règles ?",
+    "supportDescription": "Les administrateurs de l'AFC ont un droit de veto final concernant l'interprétation et les modifications des règles. Contactez-nous via Discord pour une clarification immédiate.",
+    "supportButton": "Contacter le support admin"
+  },
+  "privacyPolicy": {
+    "title": "Accord de politique de confidentialité de l'AFC"
+  },
+  "termsOfService": {
+    "title": "Conditions d'utilisation de l'AFC"
+  },
+  "unauthorized": {
+    "title": "Accès refusé",
+    "description": "Vous n'avez pas les permissions administratives requises pour accéder à cette section du tableau de bord de l'AFC.",
+    "goToDashboard": "Aller au tableau de bord utilisateur",
+    "requestAccess": "Demander l'accès"
+  },
+  "invite": {
+    "loginToAccept": "Veuillez vous connecter pour accepter cette invitation",
+    "loginToDecline": "Veuillez vous connecter pour refuser cette invitation",
+    "fetchFailed": "Échec de la récupération des détails de l'équipe",
+    "joinSuccess": "Équipe rejointe avec succès !",
+    "acceptFailed": "Échec de l'acceptation de l'invitation",
+    "declineSuccess": "Invitation refusée",
+    "declineFailed": "Échec du refus de l'invitation",
+    "invalidTitle": "Invitation invalide",
+    "invalidDescription": "Ce lien d'invitation est invalide ou a expiré.",
+    "browseTeams": "Parcourir les équipes",
+    "heading": "Invitation d'équipe",
+    "invitedAs": "Vous avez été invité à rejoindre cette équipe en tant que",
+    "bannedTitle": "Cette équipe est actuellement bannie",
+    "bannedDescription": "Vous ne pouvez pas rejoindre une équipe bannie. Le lien d'invitation n'est plus valide.",
+    "bannedReason": "Raison : {reason}",
+    "aboutTeam": "À propos de l'équipe",
+    "statMembers": "Membres",
+    "statWins": "Victoires",
+    "statTier": "Tier",
+    "statCountry": "Pays",
+    "countryGlobal": "Global",
+    "currentMembers": "Membres actuels",
+    "browseOtherTeams": "Parcourir d'autres équipes",
+    "decline": "Refuser",
+    "declining": "Refus en cours...",
+    "accept": "Accepter et rejoindre",
+    "joining": "Rejoindre...",
+    "authRequiredTitle": "Authentification requise",
+    "authRequiredPrefix": "Vous devez vous",
+    "authRequiredLink": "connecter",
+    "authRequiredSuffix": "pour accepter ou refuser cette invitation."
+  },
+  "common": {
+    "loading": "Chargement...",
+    "redirecting": "Redirection",
+    "invalidEmail": "Veuillez saisir une adresse e-mail valide"
+  }
+}

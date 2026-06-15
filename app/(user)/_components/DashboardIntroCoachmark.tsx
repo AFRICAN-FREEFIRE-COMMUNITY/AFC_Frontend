@@ -26,6 +26,7 @@
 // DESIGN: AFC constants - bg-card rounded-md border, text-xs/sm, primary accents. No em dashes.
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { IconMenu2, IconSparkles, IconX } from "@tabler/icons-react";
@@ -36,10 +37,11 @@ import { env } from "@/lib/env";
 import { useAuth, type User } from "@/contexts/AuthContext";
 
 // One dashboard the callout can introduce: how access is detected + where the menu entry lives.
+// The user-visible label + section text are NOT stored here anymore; they are resolved at render
+// from messages/en/home.json keyed by `key` (dashboardIntro.labels.<key> / .sections.<key>), so
+// they translate. The `key` stays the stable identifier used for logic + the seen-flag persistence.
 interface DashboardIntro {
   key: "admin" | "sponsor" | "organizer" | "vendor";
-  label: string; // the EXACT menu entry text the user should look for
-  section: string; // which part of the menu it sits in
   hasAccess: (user: User, isAdmin: boolean) => boolean;
 }
 
@@ -48,30 +50,20 @@ interface DashboardIntro {
 const DASHBOARDS: DashboardIntro[] = [
   {
     key: "sponsor",
-    label: "Sponsor Dashboard",
-    // The hamburger's dedicated Sponsor section (owner 2026-06-12: dashboards live in their
-    // own bottom sections, not the Admin list - see MobileNavbar).
-    section: "in the Sponsor section",
     // Same trigger the old SponsorRedirectModal used, plus the sponsor base role.
     hasAccess: (user) =>
       user.roles?.includes("sponsor_admin") || user.role === "sponsor",
   },
   {
     key: "organizer",
-    label: "Organizer Dashboard",
-    section: "in the Organizer section",
     hasAccess: (user) => user.roles?.includes("organizer") ?? false,
   },
   {
     key: "vendor",
-    label: "Vendor Dashboard",
-    section: "in the Vendor section",
     hasAccess: (user) => user.is_vendor === true,
   },
   {
     key: "admin",
-    label: "Dashboard",
-    section: "in the Admin section",
     // Platform admins (base role or any granular admin role) - mirrors MobileNavbar's isAdmin
     // gate; sponsors are excluded here because their entry is the Sponsor Dashboard above.
     hasAccess: (user, isAdmin) => isAdmin && user.role !== "sponsor",
@@ -84,6 +76,8 @@ const DASHBOARDS: DashboardIntro[] = [
 const dismissedThisSession = new Set<string>();
 
 export function DashboardIntroCoachmark() {
+  // Strings for the new-dashboard-access callout (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   const { user, isAdmin } = useAuth();
   const [active, setActive] = useState<DashboardIntro | null>(null);
   const [visible, setVisible] = useState(false);
@@ -112,6 +106,16 @@ export function DashboardIntroCoachmark() {
   }, [user, isAdmin]);
 
   if (!user || !active || !visible) return null;
+
+  // Resolved, translated label + section for the active dashboard. `key` is the stable id
+  // ("admin" | "sponsor" | "organizer" | "vendor"); the en strings live under
+  // home.dashboardIntro.labels.* and .sections.* in messages/en/home.json.
+  const label = t(`dashboardIntro.labels.${active.key}`);
+  const section = t(`dashboardIntro.sections.${active.key}`);
+  // The headline uses the friendlier "Admin Dashboard" wording for the admin portal (whose
+  // menu entry is just "Dashboard"); every other portal uses its own label.
+  const headlineLabel =
+    active.key === "admin" ? t("dashboardIntro.adminHeadline") : label;
 
   const dismiss = () => {
     // Optimistic: hide now, remember locally, persist best-effort (a failed POST just means the
@@ -142,11 +146,11 @@ export function DashboardIntroCoachmark() {
             className="rounded-full border-primary px-2 py-0.5 text-xs text-primary"
           >
             <IconSparkles size={12} className="mr-1" />
-            New access
+            {t("dashboardIntro.badge")}
           </Badge>
           <button
             type="button"
-            aria-label="Dismiss"
+            aria-label={t("dashboardIntro.dismiss")}
             className="rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={dismiss}
           >
@@ -154,21 +158,29 @@ export function DashboardIntroCoachmark() {
           </button>
         </div>
         <p className="mt-2 text-sm font-semibold">
-          You now have the {active.label === "Dashboard" ? "Admin Dashboard" : active.label}
+          {t("dashboardIntro.headline", { dashboard: headlineLabel })}
         </p>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          Open the{" "}
-          <span className="inline-flex items-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 align-middle font-medium text-foreground">
-            <IconMenu2 size={12} />
-            menu
-          </span>{" "}
-          at the top right, then pick{" "}
-          <span className="font-medium text-foreground">{active.label}</span>{" "}
-          {active.section}. It will be there whenever you need it.
+          {/* Rich body: the <menu> tag renders the menu pill, <bold>{label}</bold> bolds the
+              entry name, and {section} is the plain section text - all fed by next-intl so the
+              sentence order stays correct in every language. */}
+          {t.rich("dashboardIntro.body", {
+            label,
+            section,
+            menu: () => (
+              <span className="inline-flex items-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 align-middle font-medium text-foreground">
+                <IconMenu2 size={12} />
+                {t("dashboardIntro.menuWord")}
+              </span>
+            ),
+            bold: (chunks) => (
+              <span className="font-medium text-foreground">{chunks}</span>
+            ),
+          })}
         </p>
         <div className="mt-3 flex justify-end">
           <Button type="button" size="sm" onClick={dismiss}>
-            Got it
+            {t("dashboardIntro.gotIt")}
           </Button>
         </div>
       </div>

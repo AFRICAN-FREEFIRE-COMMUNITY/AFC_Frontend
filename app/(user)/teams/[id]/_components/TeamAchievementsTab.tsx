@@ -34,6 +34,7 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import {
   IconTrophy,
@@ -69,6 +70,10 @@ type TeamAchievementsTabProps = {
 // TeamAchievementsTab: top-level panel (mirrors player AchievementsPanel).
 // ──────────────────────────────────────────────────────────────────────────────
 const TeamAchievementsTab = ({ team }: TeamAchievementsTabProps) => {
+  // i18n: achievements tab chrome (messages/en/teamsplayers.json -> "teamAchievements").
+  // Catalog content (titles / descriptions / section + group labels) stays as data
+  // in teamAchievements.ts, mirroring how lib/glossary-data.ts is handled.
+  const t = useTranslations("teamsplayers");
   // Which section is showing (lifetime is the substantive, computable one first).
   const [section, setSection] = useState<TeamAchievementCategory>("lifetime");
 
@@ -90,17 +95,16 @@ const TeamAchievementsTab = ({ team }: TeamAchievementsTabProps) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <p className="text-sm text-muted-foreground">
-            Team achievement points earned
+            {t("teamAchievements.pointsEarned")}
           </p>
           <p className="text-2xl font-bold text-primary">
             {earnedPoints}
             <span className="text-sm font-normal text-muted-foreground">
-              {" "}
-              / {TOTAL_POINTS_AVAILABLE} pts
+              {t("teamAchievements.ptsSuffix", { total: TOTAL_POINTS_AVAILABLE })}
             </span>
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {earnedCount} of {TEAM_ACHIEVEMENTS.length} achievements unlocked
+            {t("teamAchievements.unlockedCount", { earned: earnedCount, total: TEAM_ACHIEVEMENTS.length })}
           </p>
         </div>
         {/* Trophy badge mirrors the gold accent used across AFC stat surfaces. */}
@@ -109,15 +113,14 @@ const TeamAchievementsTab = ({ team }: TeamAchievementsTabProps) => {
           className="border-gold/60 text-gold self-start sm:self-auto"
         >
           <IconTrophy className="h-4 w-4 mr-1" />
-          {earnedPoints} pts
+          {t("teamAchievements.pts", { count: earnedPoints })}
         </Badge>
       </div>
 
       {/* Honest note: the boost itself is a FUTURE feature, so we only promise it is
           coming, we do not apply it. Same copy stance as the player version. */}
       <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-2 mb-4">
-        Team achievement points will be usable to boost your team rankings and
-        tiers. Coming soon.
+        {t("teamAchievements.comingSoonNote")}
       </p>
 
       {/* ── section tabs (AFC pill segment style) ── */}
@@ -142,9 +145,9 @@ const TeamAchievementsTab = ({ team }: TeamAchievementsTabProps) => {
       {section !== "lifetime" && (
         <p className="text-xs text-muted-foreground mb-4 flex items-center gap-1">
           <IconClock className="h-3.5 w-3.5" />
-          {section === "monthly" ? "Monthly" : "Daily"} goals are not tracked
-          yet. They will light up automatically once time based team stats are
-          recorded.
+          {section === "monthly"
+            ? t("teamAchievements.monthlyGoals")
+            : t("teamAchievements.dailyGoals")}
         </p>
       )}
 
@@ -228,6 +231,7 @@ function TeamAchievementCard({
   ctx: TeamAchievementContext;
   isNext?: boolean;
 }) {
+  const t = useTranslations("teamsplayers");
   const Icon = achievement.icon;
   const earned = isEarned(achievement, ctx);
   const goal = isGoal(achievement);
@@ -293,7 +297,7 @@ function TeamAchievementCard({
               earned ? "border-gold/60 text-gold" : "text-muted-foreground"
             }`}
           >
-            {achievement.points} pts
+            {t("teamAchievements.pts", { count: achievement.points })}
           </Badge>
         </div>
 
@@ -312,8 +316,11 @@ function TeamAchievementCard({
               />
             </div>
             <p className="text-xs text-primary font-medium mt-1">
-              {(value as number).toLocaleString()} /{" "}
-              {achievement.threshold!.toLocaleString()} {progressUnit}
+              {t("teamAchievements.progressLabel", {
+                value: (value as number).toLocaleString(),
+                threshold: achievement.threshold!.toLocaleString(),
+                unit: progressUnit,
+              })}
             </p>
           </div>
         )}
@@ -323,22 +330,22 @@ function TeamAchievementCard({
           {earned ? (
             <span className="inline-flex items-center gap-1 text-primary font-medium">
               <IconCircleCheckFilled className="h-3.5 w-3.5" />
-              Unlocked
+              {t("teamAchievements.unlocked")}
             </span>
           ) : goal ? (
             <span className="inline-flex items-center gap-1 text-muted-foreground">
               <IconClock className="h-3.5 w-3.5" />
-              Not tracked yet
+              {t("teamAchievements.notTracked")}
             </span>
           ) : isNext ? (
             <span className="inline-flex items-center gap-1 text-primary font-medium">
               <IconShieldCheck className="h-3.5 w-3.5" />
-              Up next
+              {t("teamAchievements.upNext")}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-muted-foreground">
               <IconLock className="h-3.5 w-3.5" />
-              Locked
+              {t("teamAchievements.locked")}
             </span>
           )}
         </div>

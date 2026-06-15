@@ -1,4 +1,7 @@
 {
+  "common": {
+    "loading": "Chargement..."
+  },
   "list": {
     "pageTitle": "Boutique AFC",
     "cart": "Panier",

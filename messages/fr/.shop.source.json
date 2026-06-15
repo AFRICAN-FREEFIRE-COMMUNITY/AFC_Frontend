@@ -1,4 +1,5 @@
 {
+  "common.loading": "Loading...",
   "list.pageTitle": "AFC Shop",
   "list.cart": "Cart",
   "list.searchPlaceholder": "Search {category}...",

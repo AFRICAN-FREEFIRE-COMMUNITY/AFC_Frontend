@@ -23,7 +23,11 @@ import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { matchesSearch } from "@/lib/search";
-import { cn, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+// LocalTime: renders the stored UTC created_at in the VIEWER's own timezone +
+// language (components/LocalTime.tsx). Replaces formatDate(), which rendered in
+// the server's clock with a hardcoded English ordinal format.
+import { LocalTime } from "@/components/LocalTime";
 import {
   IconCalendar,
   IconCirclePlus,
@@ -352,7 +356,7 @@ const page = () => {
                     </Avatar>
                     <span>{newsDetails.author}</span>
                     <span>•</span>
-                    <span>{formatDate(newsDetails.created_at)}</span>
+                    <LocalTime value={newsDetails.created_at} mode="date" />
                   </div>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-3 break-words overflow-hidden flex-grow">
                     {truncateText(extractTiptapText(newsDetails.content), 150)}

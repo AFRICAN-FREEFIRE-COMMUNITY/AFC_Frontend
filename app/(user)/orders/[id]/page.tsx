@@ -25,10 +25,12 @@ import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
-import { formatDate, formatMoneyInput } from "@/lib/utils";
+import { formatMoneyInput } from "@/lib/utils";
 import { InfoTip } from "@/components/ui/info-tip";
+// i18n time: render the order date in the VIEWER's own timezone + language instead
+// of the old formatDate() helper (UTC at SSR + hardcoded English month). Hydration-safe.
+import { LocalTime } from "@/components/LocalTime";
 
 export default function OrderDetailsPage() {
   // Localized copy for the single order detail page (messages/en/shop.json -> "orderDetail").
@@ -185,7 +187,7 @@ export default function OrderDetailsPage() {
                     {t("orderDetail.date")}
                   </p>
                   <p className="font-medium mt-1">
-                    {formatDate(order.created_at)}
+                    <LocalTime value={order.created_at} mode="date" />
                   </p>
                 </div>
               </div>

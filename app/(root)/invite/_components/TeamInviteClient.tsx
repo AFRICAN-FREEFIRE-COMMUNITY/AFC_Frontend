@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { Footer } from "@/app/_components/Footer";
 import { Header } from "@/app/(user)/_components/Header";
+import { useTranslations } from "next-intl";
 
 type TeamInviteClientProps = {
   inviteId: string;
@@ -28,6 +29,12 @@ export function TeamInviteClient({
 }: TeamInviteClientProps) {
   const router = useRouter();
   const { user, token } = useAuth();
+  // Root namespace (messages/en/root.json, invite.* keys): every user-visible
+  // string on the public team-invite page, including the accept/decline toasts,
+  // the invalid/banned states, the team stat labels, and the action buttons.
+  // The team data itself (name, tag, members) comes from the backend endpoint
+  // /team/get-team-details-based-on-invite/<inviteId> and is not localized.
+  const t = useTranslations("root");
 
   const [teamDetails, setTeamDetails] = useState(initialData || null);
   const [loading, setLoading] = useState(!initialData);
@@ -67,14 +74,14 @@ export function TeamInviteClient({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch team details");
+        throw new Error(t("invite.fetchFailed"));
       }
 
       const data = await response.json();
       setTeamDetails(data.team);
     } catch (error: any) {
       console.error("Error fetching team details:", error);
-      toast.error(error?.message || "Failed to fetch team details");
+      toast.error(error?.message || t("invite.fetchFailed"));
     } finally {
       setLoading(false);
     }
@@ -82,7 +89,7 @@ export function TeamInviteClient({
 
   const handleAcceptInvite = () => {
     if (!user) {
-      toast.error("Please log in to accept this invite");
+      toast.error(t("invite.loginToAccept"));
       router.push(`/login?redirect=/invite/${inviteId}`);
       return;
     }
@@ -96,11 +103,11 @@ export function TeamInviteClient({
             headers: { Authorization: `Bearer ${token}` },
           },
         );
-        toast.success(response.data.message || "Successfully joined the team!");
+        toast.success(response.data.message || t("invite.joinSuccess"));
         router.push(`/teams/${teamDetails?.team_name}`);
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Failed to accept invite",
+          error?.response?.data?.message || t("invite.acceptFailed"),
         );
       }
     });
@@ -108,7 +115,7 @@ export function TeamInviteClient({
 
   const handleRejectInvite = () => {
     if (!user) {
-      toast.error("Please log in to decline this invite");
+      toast.error(t("invite.loginToDecline"));
       router.push(`/login?redirect=/invite/${inviteId}`);
       return;
     }
@@ -123,11 +130,11 @@ export function TeamInviteClient({
           },
         );
 
-        toast.success(response.data.message || "Invite declined");
+        toast.success(response.data.message || t("invite.declineSuccess"));
         router.push("/teams");
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Failed to decline invite",
+          error?.response?.data?.message || t("invite.declineFailed"),
         );
       }
     });
@@ -144,12 +151,14 @@ export function TeamInviteClient({
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="py-12 text-center">
-              <h2 className="text-2xl font-bold mb-4">Invalid Invite</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                {t("invite.invalidTitle")}
+              </h2>
               <p className="text-muted-foreground mb-6">
-                This invite link is invalid or has expired.
+                {t("invite.invalidDescription")}
               </p>
               <Button asChild>
-                <Link href="/teams">Browse Teams</Link>
+                <Link href="/teams">{t("invite.browseTeams")}</Link>
               </Button>
             </CardContent>
           </Card>
@@ -165,7 +174,7 @@ export function TeamInviteClient({
       <Card className="container my-20 mx-auto">
         <CardHeader>
           <CardTitle className="text-center text-2xl">
-            Team Invitation
+            {t("invite.heading")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -192,7 +201,7 @@ export function TeamInviteClient({
                   </Badge>
                 )}
                 <p className="text-muted-foreground">
-                  You have been invited to join this team as a{" "}
+                  {t("invite.invitedAs")}{" "}
                   <strong>{teamDetails?.role}</strong>!
                 </p>
               </div>
@@ -202,14 +211,15 @@ export function TeamInviteClient({
             {teamDetails?.is_banned && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>This team is currently banned</AlertTitle>
+                <AlertTitle>{t("invite.bannedTitle")}</AlertTitle>
                 <AlertDescription>
-                  You cannot join a banned team. The invite link is no longer
-                  valid.
+                  {t("invite.bannedDescription")}
                   {teamDetails?.ban_reason && (
                     <>
                       <br />
-                      Reason: {teamDetails.ban_reason}
+                      {t("invite.bannedReason", {
+                        reason: teamDetails.ban_reason,
+                      })}
                     </>
                   )}
                 </AlertDescription>
@@ -219,7 +229,7 @@ export function TeamInviteClient({
             {/* Team Description */}
             {teamDetails?.team_description && (
               <div className="bg-muted p-4 rounded-md">
-                <h3 className="font-semibold mb-2">About the Team</h3>
+                <h3 className="font-semibold mb-2">{t("invite.aboutTeam")}</h3>
                 <p className="text-sm text-muted-foreground">
                   {teamDetails?.team_description}
                 </p>
@@ -233,14 +243,18 @@ export function TeamInviteClient({
                 <p className="text-2xl font-bold">
                   {teamDetails?.members?.length || 0}/6
                 </p>
-                <p className="text-xs text-muted-foreground">Members</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("invite.statMembers")}
+                </p>
               </div>
               <div className="text-center p-4 bg-muted rounded-md">
                 <Trophy className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                 <p className="text-2xl font-bold">
                   {teamDetails?.stats?.tournament_wins || 0}
                 </p>
-                <p className="text-xs text-muted-foreground">Wins</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("invite.statWins")}
+                </p>
               </div>
               <div className="text-center p-4 bg-muted rounded-md">
                 <Badge
@@ -252,21 +266,27 @@ export function TeamInviteClient({
                 <p className="text-2xl font-bold">
                   {teamDetails?.team_tier || 1}
                 </p>
-                <p className="text-xs text-muted-foreground">Tier</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("invite.statTier")}
+                </p>
               </div>
               <div className="text-center p-4 bg-muted rounded-md">
                 <Calendar className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                 <p className="text-2xl font-bold">
-                  {teamDetails?.country || "Global"}
+                  {teamDetails?.country || t("invite.countryGlobal")}
                 </p>
-                <p className="text-xs text-muted-foreground">Country</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("invite.statCountry")}
+                </p>
               </div>
             </div>
 
             {/* Current Members */}
             {teamDetails?.members && teamDetails?.members.length > 0 && (
               <div>
-                <h3 className="font-semibold mb-3">Current Members</h3>
+                <h3 className="font-semibold mb-3">
+                  {t("invite.currentMembers")}
+                </h3>
                 <div className="space-y-2">
                   {teamDetails?.members.map((member: any, index: number) => (
                     <div
@@ -306,7 +326,7 @@ export function TeamInviteClient({
             {teamDetails?.is_banned ? (
               <div className="pt-4">
                 <Button asChild className="w-full">
-                  <Link href="/teams">Browse Other Teams</Link>
+                  <Link href="/teams">{t("invite.browseOtherTeams")}</Link>
                 </Button>
               </div>
             ) : (
@@ -318,11 +338,11 @@ export function TeamInviteClient({
                   disabled={pendingAccept || pendingReject || !user}
                 >
                   {pendingReject ? (
-                    <Loader text="Declining..." />
+                    <Loader text={t("invite.declining")} />
                   ) : (
                     <>
                       <X className="mr-2 h-4 w-4" />
-                      Decline
+                      {t("invite.decline")}
                     </>
                   )}
                 </Button>
@@ -332,11 +352,11 @@ export function TeamInviteClient({
                   disabled={pendingAccept || pendingReject || !user}
                 >
                   {pendingAccept ? (
-                    <Loader text="Joining..." />
+                    <Loader text={t("invite.joining")} />
                   ) : (
                     <>
                       <Check className="mr-2 h-4 w-4" />
-                      Accept & Join
+                      {t("invite.accept")}
                     </>
                   )}
                 </Button>
@@ -347,16 +367,16 @@ export function TeamInviteClient({
             {!user && (
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Authentication Required</AlertTitle>
+                <AlertTitle>{t("invite.authRequiredTitle")}</AlertTitle>
                 <AlertDescription className="flex items-center">
-                  You need to{" "}
+                  {t("invite.authRequiredPrefix")}{" "}
                   <Link
                     href={`/login?redirect=/invite/${inviteId}`}
                     className="text-primary underline inline font-medium"
                   >
-                    log in
+                    {t("invite.authRequiredLink")}
                   </Link>{" "}
-                  to accept or decline this invite.
+                  {t("invite.authRequiredSuffix")}
                 </AlertDescription>
               </Alert>
             )}

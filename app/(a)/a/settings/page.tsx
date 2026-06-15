@@ -29,6 +29,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuditLogPanel } from "@/app/(a)/a/_components/AuditLogPanel";
 // Search-as-you-type user picker (replaces the comma-separated username box on bulk notifications).
 import { UserSearchSelect } from "@/components/ui/user-search-select";
+// Shared "what is this about?" deep-link picker for the bulk notification.
+// send-notification-to-multiple-users accepts target_type + target_id directly.
+import {
+  NotificationTargetSelector,
+  EMPTY_TARGET,
+  type NotificationTarget,
+} from "@/app/(a)/a/_components/NotificationTargetSelector";
 // Parses a stored user_agent into a readable device label for the Login History tab.
 import { parseUserAgent } from "@/lib/user-agent";
 // Shared search matcher: punctuation/space/accent-insensitive and folds stylized "fancy font" unicode,
@@ -671,6 +678,9 @@ const page = () => {
   // comma-separated string. We still resolve usernames -> recipient_ids against the loaded user list.
   const [bulkNotifRecipients, setBulkNotifRecipients] = useState<string[]>([]);
   const [sendingBulkNotif, setSendingBulkNotif] = useState(false);
+  // Optional deep link so recipients get a "Take me there" button. Default none.
+  const [bulkNotifTarget, setBulkNotifTarget] =
+    useState<NotificationTarget>(EMPTY_TARGET);
 
   const handleSendBulkNotification = async () => {
     const usernames = bulkNotifRecipients;
@@ -689,12 +699,24 @@ const page = () => {
     try {
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/send-notification-to-multiple-users/`,
-        { recipient_ids: recipientIds, message: bulkNotifMessage.trim() },
+        {
+          recipient_ids: recipientIds,
+          message: bulkNotifMessage.trim(),
+          // Optional deep link (only when picked) -> recipients get a
+          // "Take me there" button on the notification.
+          ...(bulkNotifTarget.target_type !== "none"
+            ? {
+                target_type: bulkNotifTarget.target_type,
+                target_id: bulkNotifTarget.target_id.trim(),
+              }
+            : {}),
+        },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       toast.success(`Notification sent to ${recipientIds.length} user(s).`);
       setBulkNotifMessage("");
       setBulkNotifRecipients([]);
+      setBulkNotifTarget(EMPTY_TARGET);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to send notification.");
     } finally {
@@ -1969,6 +1991,11 @@ const page = () => {
                   onChange={(e) => setBulkNotifMessage(e.target.value)}
                 />
               </div>
+              {/* Optional deep link: gives recipients a "Take me there" button. */}
+              <NotificationTargetSelector
+                value={bulkNotifTarget}
+                onChange={setBulkNotifTarget}
+              />
               <Button
                 onClick={handleSendBulkNotification}
                 disabled={sendingBulkNotif}

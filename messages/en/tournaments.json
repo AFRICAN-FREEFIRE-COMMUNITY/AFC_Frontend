@@ -15,7 +15,7 @@
   "list": {
     "pageTitle": "Tournaments & Scrims",
     "card": {
-      "date": "Date: {date}",
+      "date": "Date: <date></date>",
       "paid": "Paid: {fee}",
       "viewDetails": "View Details"
     },
@@ -92,7 +92,7 @@
   },
   "detail": {
     "bannerAlt": "Event Banner",
-    "date": "Date: {date}",
+    "date": "Date: <date></date>",
     "prizePool": "Prize Pool: {value}",
     "locationOnline": "Location: Online",
     "format": "Format: {value}",
@@ -262,7 +262,7 @@
       "title": "Tournament Information",
       "description": "Review tournament details before proceeding.",
       "format": "Format: {mode} / {type}",
-      "date": "Date: {date}",
+      "date": "Date: <date></date>",
       "prizePool": "Prize Pool: {value}",
       "location": "Location: {value}",
       "discordRequirement": "Discord Requirement",

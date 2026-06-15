@@ -46,7 +46,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatDate, formatMoneyInput } from "@/lib/utils";
+import { formatMoneyInput } from "@/lib/utils";
+// i18n time: <LocalTime/> renders a stored UTC instant in the VIEWER's own
+// timezone + language (replaces formatDate, which hardcodes the locale and renders
+// in UTC). formatLocalTime is its string form for non-JSX needs (here: the
+// interpolated "Used at: {time}" invite message). See components/LocalTime.tsx.
+import { LocalTime } from "@/components/LocalTime";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -1669,8 +1675,13 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 })}
               </p>
               <p>
-                {t("register.info.date", {
-                  date: formatDate(eventDetails.start_date),
+                {/* i18n time: the start date renders in the viewer's own timezone +
+                    language via <LocalTime mode="date"/>, injected as the <date> tag of
+                    the "Date: <date>" string (t.rich). */}
+                {t.rich("register.info.date", {
+                  date: () => (
+                    <LocalTime value={eventDetails.start_date} mode="date" />
+                  ),
                 })}
               </p>
               {/* Format the raw prizepool string (e.g. "1750.0") with thousands
@@ -2509,55 +2520,6 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 disabled={!isDiscordConnected || isCheckingUserDiscord}
               >
                 {t("register.discordLink.continueToFinal")}
-              </Button>
-            </DialogFooter>
-          </>
-        );
-
-        // case "DISCORD_JOIN":
-        return (
-          <>
-            <DialogHeader>
-              <DialogTitle className="text-xl">
-                Join AFC Discord Server
-              </DialogTitle>
-              <DialogDescription>Final step for registration</DialogDescription>
-            </DialogHeader>
-            <div className="text-center p-4 bg-primary/10 rounded-lg space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Join the AFC Discord server to complete registration.
-              </p>
-              <Button
-                onClick={() =>
-                  window.open(
-                    AFC_DISCORD_SERVER,
-                    "_blank",
-                    "noopener,noreferrer",
-                  )
-                }
-                disabled={pendingJoined}
-                className="w-full bg-indigo-600 hover:bg-indigo-500"
-              >
-                Join AFC Discord Server
-              </Button>
-            </div>
-            <DialogFooter className="mt-4 flex sm:justify-between">
-              <Button
-                variant="secondary"
-                onClick={() => setModalStep("DISCORD_LINK")}
-              >
-                Back
-              </Button>
-              <Button
-                onClick={handleJoinedServer}
-                disabled={pendingJoined}
-                className="bg-green-600 hover:bg-green-500"
-              >
-                {pendingJoined ? (
-                  <Loader text="Completing..." />
-                ) : (
-                  "I've Joined the Server"
-                )}
               </Button>
             </DialogFooter>
           </>
@@ -4360,8 +4322,16 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                     )}
                     {inviteStatus?.used_at && (
                       <p>
+                        {/* i18n time: the invite's used-at moment in the viewer's own
+                            timezone + language. formatLocalTime (string form) is used
+                            because it is interpolated into the "Used at: {time}" string.
+                            This block only appears after the post-mount invite check
+                            resolves, so the client-only helper has a browser timezone. */}
                         {t("detail.privateEvent.usedAt", {
-                          time: new Date(inviteStatus.used_at).toLocaleString(),
+                          time: formatLocalTime(
+                            inviteStatus.used_at,
+                            "datetime",
+                          ),
                         })}
                       </p>
                     )}
@@ -4394,7 +4364,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <p>{t("detail.date", { date: formatDate(eventDetails.start_date) })}</p>
+          {/* i18n time: event start date in the viewer's timezone + language,
+              injected as the <date> tag of the "Date: <date>" string (t.rich). */}
+          <p>
+            {t.rich("detail.date", {
+              date: () => (
+                <LocalTime value={eventDetails.start_date} mode="date" />
+              ),
+            })}
+          </p>
           <p>
             {t("detail.prizePool", {
               value: /^\d+(\.\d+)?$/.test(eventDetails.prizepool)

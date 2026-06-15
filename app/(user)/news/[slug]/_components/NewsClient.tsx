@@ -5,7 +5,11 @@ import { FullLoader } from "@/components/Loader";
 import { toast } from "sonner";
 import axios from "axios";
 import { env } from "@/lib/env";
-import { cn, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+// LocalTime: renders the stored UTC created_at in the VIEWER's own timezone +
+// language (components/LocalTime.tsx). Replaces formatDate(), which rendered in
+// the server's clock with a hardcoded English ordinal format.
+import { LocalTime } from "@/components/LocalTime";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { RenderDescription } from "@/components/text-editor/RenderDescription";
@@ -145,7 +149,7 @@ export function NewsClient({
       <PageHeader
         description={
           <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-2">
-            <span>{formatDate(newsDetails.created_at)}</span>
+            <LocalTime value={newsDetails.created_at} mode="date" />
             <span>•</span>
             <Badge variant="secondary" className="capitalize">
               {newsDetails.category}

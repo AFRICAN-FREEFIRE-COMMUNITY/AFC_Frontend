@@ -29,8 +29,11 @@ import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/Loader";
 import { useTranslations } from "next-intl";
 
+// Schema shape (the validation MESSAGE is localized at runtime inside the
+// component below, where the translator is available). z.infer needs a concrete
+// schema, so we build a placeholder here purely for the type.
 const FormSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  email: z.string().email(),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -41,9 +44,18 @@ export default function EnterEmailPage() {
   // Auth namespace: messages/en/auth.json (enterEmail.* keys). Drives the
   // heading, description, email field, submit button, and resend-code toasts.
   const t = useTranslations("auth");
+  // Root namespace (messages/en/root.json, common.invalidEmail): the inline
+  // "invalid email" validation message shown under the field by <FormMessage/>.
+  const tRoot = useTranslations("root");
+
+  // Build the resolver schema with the localized validation message. Defined in
+  // the component (not at module scope) so the translator is in scope.
+  const localizedSchema = z.object({
+    email: z.string().email({ message: tRoot("common.invalidEmail") }),
+  });
 
   const form = useForm<FormSchemaType>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(localizedSchema),
     defaultValues: {
       email: "",
     },

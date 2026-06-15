@@ -82,7 +82,8 @@
     "title": "Notifications",
     "unreadCount": "{count} unread",
     "empty": "No notifications yet",
-    "singular": "Notification"
+    "singular": "Notification",
+    "takeMeThere": "Take me there"
   },
   "cart": {
     "title": "Your Cart",

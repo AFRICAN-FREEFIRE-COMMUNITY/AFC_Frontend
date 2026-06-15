@@ -15,7 +15,7 @@
   "list": {
     "pageTitle": "Tournois et Scrims",
     "card": {
-      "date": "Date : {date}",
+      "date": "Date: <date></date>",
       "paid": "Payé : {fee}",
       "viewDetails": "Voir les détails"
     },
@@ -92,7 +92,7 @@
   },
   "detail": {
     "bannerAlt": "Bannière de l'événement",
-    "date": "Date : {date}",
+    "date": "Date: <date></date>",
     "prizePool": "Cagnotte : {value}",
     "locationOnline": "Lieu : En ligne",
     "format": "Format : {value}",
@@ -262,7 +262,7 @@
       "title": "Informations sur le tournoi",
       "description": "Veuillez consulter les détails du tournoi avant de continuer.",
       "format": "Format : {mode} / {type}",
-      "date": "Date : {date}",
+      "date": "Date: <date></date>",
       "prizePool": "Cagnotte : {value}",
       "location": "Lieu : {value}",
       "discordRequirement": "Exigence Discord",

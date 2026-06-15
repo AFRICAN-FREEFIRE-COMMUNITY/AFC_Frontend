@@ -121,7 +121,12 @@
       "labelScrim": "Scrim",
       "labelTournament": "Torneio",
       "noPrize": "Sem prêmio",
-      "officialOrg": "Oficial AFC"
+      "officialOrg": "Oficial AFC",
+      "status": {
+        "upcoming": "Próximos",
+        "ongoing": "Em andamento",
+        "completed": "Concluídos"
+      }
     },
     "playerMarket": {
       "title": "Do Mercado de Jogadores",
@@ -133,6 +138,261 @@
       "recruiting": "Recrutando",
       "openToJoin": "Disponível para entrar",
       "anyTier": "Qualquer nível"
+    }
+  },
+  "protectedRoute": {
+    "loading": "Carregando",
+    "verifying": "Verificando Permissões..."
+  },
+  "dashboardIntro": {
+    "badge": "Novo acesso",
+    "dismiss": "Dispensar",
+    "gotIt": "Entendi",
+    "menuWord": "menu",
+    "adminHeadline": "Painel de Administração",
+    "headline": "Agora você tem o {dashboard}",
+    "body": "Abra o <menu></menu> no canto superior direito e selecione <bold>{label}</bold> {section}. Ele estará lá sempre que precisar.",
+    "labels": {
+      "admin": "Painel",
+      "sponsor": "Painel do Patrocinador",
+      "organizer": "Painel do Organizador",
+      "vendor": "Painel do Fornecedor"
+    },
+    "sections": {
+      "admin": "na seção de Administração",
+      "sponsor": "na seção de Patrocinadores",
+      "organizer": "na seção de Organizadores",
+      "vendor": "na seção de Fornecedores"
+    }
+  },
+  "contactForm": {
+    "title": "Entre em Contato",
+    "name": "Nome",
+    "namePlaceholder": "Seu nome",
+    "email": "E-mail",
+    "emailPlaceholder": "Seu e-mail",
+    "message": "Mensagem",
+    "messagePlaceholder": "Sua mensagem",
+    "sending": "Enviando...",
+    "send": "Enviar mensagem",
+    "toast": {
+      "error": "Ops! Ocorreu um erro",
+      "serverError": "Erro interno do servidor"
+    },
+    "success": {
+      "title": "Mensagem enviada!",
+      "body": "Obrigado por entrar em contato. Retornaremos em breve.",
+      "close": "Fechar"
+    }
+  },
+  "trialChat": {
+    "listTitle": "Chats de Teste",
+    "chatTitle": "Chat",
+    "withPlayer": "com <player></player>",
+    "withName": "com {name}",
+    "loadingChats": "Carregando chats...",
+    "loadingMessages": "Carregando mensagens...",
+    "inputPlaceholder": "Digite uma mensagem...",
+    "emptyChats": {
+      "title": "Nenhum chat de teste ainda",
+      "subtitle": "Os chats ficam disponíveis assim que um teste é iniciado"
+    },
+    "emptyMessages": {
+      "title": "Nenhuma mensagem ainda",
+      "subtitle": "Envie a primeira mensagem abaixo"
+    },
+    "disclaimer": {
+      "title": "Antes de conversar",
+      "body": "Os chats de teste podem ser revisados por moderadores da AFC para segurança, justiça e resolução de disputas. Por favor, mantenha o respeito. Ao continuar, você reconhece isso.",
+      "acknowledge": "Eu entendo"
+    },
+    "time": {
+      "justNow": "agora mesmo",
+      "minutes": "{count}m",
+      "hours": "{count}h"
+    },
+    "toast": {
+      "loadChatsFailed": "Falha ao carregar chats.",
+      "loadMessagesFailed": "Falha ao carregar mensagens.",
+      "sendFailed": "Falha ao enviar mensagem."
+    }
+  },
+  "tour": {
+    "driver": {
+      "progress": "Passo '{{'current'}}' de '{{'total'}}'",
+      "next": "Próximo",
+      "back": "Voltar",
+      "done": "Concluído"
+    },
+    "hub": {
+      "skip": "Pular",
+      "skipAria": "Pular o tour de boas-vindas",
+      "skipTour": "Pular tour",
+      "start": "Iniciar o tour",
+      "continue": "Continuar",
+      "finish": "Concluir",
+      "showMeFallback": "Mostrar-me na página",
+      "returnHeadline": "Bom trabalho!",
+      "returnBody": "Uma etapa concluída. Pronto para a próxima?",
+      "continuingIn": "Continuando em {count}s",
+      "stopCounter": "Etapa {current} de {total}"
+    },
+    "stops": {
+      "welcome": {
+        "title": "Bem-vindo(a) à AFC!",
+        "body": "Esports significa apenas jogos competitivos organizados, com jogadores e equipes competindo de verdade. A AFC é o lar da competição de Free Fire na África. Vamos guiá-lo(a) pelo site, uma etapa de cada vez. Basta clicar para avançar, você não precisa fazer nada em cada página. Nós o(a) levaremos até o fim."
+      },
+      "profile": {
+        "title": "Configure seu perfil",
+        "body": "Adicione seu UID de Free Fire, nome no jogo e imagem de esport para que equipes e torneios possam encontrá-lo(a). Um perfil completo é seu ingresso para a ação.",
+        "launchLabel": "Mostrar-me no meu perfil",
+        "steps": {
+          "uid": {
+            "title": "Adicione seu UID de Free Fire",
+            "description": "Insira seu UID no jogo aqui para que equipes e torneios possam encontrá-lo(a) e verificá-lo(a)."
+          },
+          "ign": {
+            "title": "Defina seu nome no jogo",
+            "description": "Este é o nome que as pessoas verão em toda a AFC. Faça-o corresponder à sua conta de Free Fire."
+          },
+          "save": {
+            "title": "Salve seu perfil",
+            "description": "Salvar alterações fica aqui quando você estiver pronto(a). Não precisa preencher nada agora, basta clicar em Próximo para continuar o tour."
+          },
+          "esports": {
+            "title": "Adicione sua imagem de esport",
+            "description": "Esta é a foto que os organizadores usam como sua imagem de jogador(a) nos gráficos do evento, e ela alimenta seu cartão de perfil compartilhável. Alguns eventos a exigem. Você pode adicioná-la mais tarde, basta clicar em Próximo."
+          }
+        }
+      },
+      "teams": {
+        "title": "Encontre sua equipe",
+        "body": "Crie sua própria equipe ou junte-se a uma. As equipes competem juntas, sobem no ranking juntas e vencem juntas. Vai sozinho(a)? Você também pode fazer isso.",
+        "launchLabel": "Mostrar-me nas equipes",
+        "steps": {
+          "create": {
+            "title": "Crie sua própria equipe",
+            "description": "Comece uma equipe aqui, dê um nome, configure-a e convide seus jogadores."
+          },
+          "browse": {
+            "title": "Ou navegue e junte-se a uma equipe",
+            "description": "Role as equipes aqui e toque em Aplicar para Entrar para pedir a uma equipe existente para aceitá-lo(a). Você pode fazer isso mais tarde, basta clicar em Próximo por enquanto."
+          }
+        }
+      },
+      "market": {
+        "title": "Mercado de Jogadores",
+        "body": "Recrute jogadores para sua equipe, ou publique-se para que as equipes possam recrutá-lo(a). Pense nisso como a janela de transferências, aberta o ano todo.",
+        "launchLabel": "Mostrar-me o mercado",
+        "steps": {
+          "create": {
+            "title": "Criar uma publicação",
+            "description": "Publique aqui para recrutar jogadores para sua equipe, ou para se colocar à disposição para que as equipes possam recrutá-lo(a)."
+          },
+          "tabs": {
+            "title": "Alternar entre os lados",
+            "description": "Vire estas abas para ver as equipes que estão recrutando, ou jogadores que estão abertos a se juntar. Dê uma olhada a qualquer momento, nada a fazer aqui agora, basta clicar em Próximo."
+          }
+        }
+      },
+      "tournaments": {
+        "title": "Torneios e Scrims",
+        "body": "Torneios são competições oficiais com prêmios e pontos de ranking. Scrims são partidas de treino para sua equipe. Participe de qualquer um quando estiver pronto(a).",
+        "launchLabel": "Mostrar-me os eventos",
+        "steps": {
+          "filter": {
+            "title": "Torneios versus scrims",
+            "description": "Torneios são competições oficiais com prêmios. Scrims são partidas de treino. Alterne estas abas para ver cada um."
+          },
+          "list": {
+            "title": "Navegue e abra um evento",
+            "description": "Todo evento vive aqui. Abra um para ler os detalhes e registrar sua equipe quando quiser. Por enquanto, basta clicar em Concluído para finalizar o tour."
+          }
+        }
+      },
+      "done": {
+        "title": "Tudo pronto!",
+        "body": "Novo(a) na gíria? O Glossário explica cada termo de esports em palavras simples, sempre que precisar. Agora vá se divertir e boa sorte.",
+        "ctaLabel": "Abrir glossário"
+      }
+    }
+  },
+  "marketReport": {
+    "title": "Denunciar esta publicação",
+    "description": "Denunciando <subject></subject>. Sua denúncia é privada e vai apenas para os moderadores da AFC.",
+    "reasonLabel": "Motivo",
+    "detailsLabel": "O que aconteceu",
+    "detailsPlaceholder": "Descreva o que aconteceu. Inclua datas, nomes no jogo e tudo o que um moderador precisa para entender a situação.",
+    "evidenceLabel": "Evidência",
+    "evidenceHint": "(captura de tela obrigatória)",
+    "evidenceAttached": "Anexado: {name}",
+    "evidenceNote": "Anexe uma captura de tela como prova. Uma denúncia não pode ser enviada sem evidência.",
+    "honestyNote": "<strong>Denuncie com honestidade.</strong> Enviar uma denúncia falsa, de brincadeira ou inverídica pode resultar no seu banimento, como denunciante, do mercado. Denuncie apenas problemas reais e anexe provas.",
+    "cancel": "Cancelar",
+    "submit": "Enviar denúncia",
+    "submitting": "Enviando...",
+    "reasons": {
+      "bad_tryout": {
+        "title": "Experiência negativa em teste",
+        "desc": "Eles se comportaram mal durante um teste (não compareceu, tóxico, injusto)."
+      },
+      "scam": {
+        "title": "Golpe ou fraude",
+        "desc": "Pediu dinheiro, detalhes da conta ou tentou me enganar."
+      },
+      "abusive": {
+        "title": "Conduta abusiva",
+        "desc": "Assédio, ameaças ou discurso de ódio no chat."
+      },
+      "fake_post": {
+        "title": "Publicação falsa ou enganosa",
+        "desc": "Falsificação de identidade, lista falsa ou alegações falsas."
+      },
+      "other": {
+        "title": "Outro",
+        "desc": "Algo mais que valha a pena sinalizar aos moderadores."
+      }
+    },
+    "toast": {
+      "detailsRequired": "Por favor, descreva o que aconteceu.",
+      "evidenceRequired": "Evidência é necessária. Anexe uma captura de tela antes de enviar.",
+      "success": "Relatório enviado. Os moderadores da AFC irão revisá-lo.",
+      "failed": "Falha ao enviar relatório."
+    }
+  },
+  "reviewApplication": {
+    "appliedOn": "Candidatou-se em <date></date>",
+    "overview": "Visão Geral do Jogador",
+    "ign": "IGN",
+    "uid": "UID",
+    "discord": "Discord",
+    "discordLocked": "Desbloqueia após convite para teste",
+    "country": "País",
+    "primaryRole": "Função Principal",
+    "secondaryRole": "Função Secundária",
+    "performance": "Resumo de Desempenho",
+    "tournamentWins": "Vitórias em Torneios",
+    "tournamentKills": "Abates em Torneios",
+    "finalsAppearances": "Participações em Finais",
+    "scrimKills": "Abates em Scrims",
+    "scrimWins": "Vitórias em Scrims",
+    "eligibility": "Elegibilidade e Conformidade",
+    "banStatus": "Status de Banimento",
+    "banned": "Banido",
+    "clear": "Limpar",
+    "message": "Mensagem da Candidatura",
+    "shortlist": "Pré-selecionar",
+    "shortlisting": "Pré-selecionando...",
+    "invite": "Convidar para Teste",
+    "inviting": "Convidando...",
+    "viewChat": "Ver e Conversar",
+    "reject": "Rejeitar",
+    "rejecting": "Rejeitando...",
+    "toast": {
+      "shortlisted": "Pré-selecionado com sucesso!",
+      "invited": "Convidado para teste com sucesso!",
+      "rejected": "Rejeitado com sucesso!",
+      "updateFailed": "Falha ao atualizar status."
     }
   }
 }

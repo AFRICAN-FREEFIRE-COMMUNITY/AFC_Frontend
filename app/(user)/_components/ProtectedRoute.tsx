@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslations } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { FullLoader } from "@/components/Loader";
@@ -18,6 +19,8 @@ export function ProtectedRoute({
   adminOnly = false,
 }: ProtectedRouteProps) {
   const { isAuthenticated, loading, user, isAdmin } = useAuth();
+  // Loader copy shown while auth resolves / permissions verify (namespace == home.json).
+  const t = useTranslations("home");
   const router = useRouter();
   const pathname = usePathname();
 
@@ -82,7 +85,7 @@ export function ProtectedRoute({
   }, [isAuthenticated, loading, pathname, adminOnly, isAdmin]);
 
   if (loading) {
-    return <FullLoader text="Loading" />;
+    return <FullLoader text={t("protectedRoute.loading")} />;
   }
 
   if (isPublicRoute) {
@@ -91,7 +94,7 @@ export function ProtectedRoute({
 
   // Final check to prevent content flash while redirecting
   if (!hasAccess) {
-    return <FullLoader text="Verifying Permissions..." />;
+    return <FullLoader text={t("protectedRoute.verifying")} />;
   }
 
   return <>{children}</>;

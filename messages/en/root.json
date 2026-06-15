@@ -1,0 +1,61 @@
+{
+  "rules": {
+    "title": "AFC Handbook",
+    "description": "The official governing framework for all African Freefire Community competitions.",
+    "searchPlaceholder": "Search rules (e.g. 'cheating', 'salary', 'tier')...",
+    "noResults": "No specific rule found for \"{query}\".",
+    "supportTitle": "Rule Discrepancies?",
+    "supportDescription": "AFC admins have final veto rights regarding rule interpretation and alterations. Contact us via Discord for immediate clarification.",
+    "supportButton": "Contact Admin Support"
+  },
+  "privacyPolicy": {
+    "title": "AFC Privacy Policy Agreement"
+  },
+  "termsOfService": {
+    "title": "AFC Terms of Service"
+  },
+  "unauthorized": {
+    "title": "Access Denied",
+    "description": "You do not have the administrative permissions required to access this section of the AFC dashboard.",
+    "goToDashboard": "Go to User Dashboard",
+    "requestAccess": "Request Access"
+  },
+  "invite": {
+    "loginToAccept": "Please log in to accept this invite",
+    "loginToDecline": "Please log in to decline this invite",
+    "fetchFailed": "Failed to fetch team details",
+    "joinSuccess": "Successfully joined the team!",
+    "acceptFailed": "Failed to accept invite",
+    "declineSuccess": "Invite declined",
+    "declineFailed": "Failed to decline invite",
+    "invalidTitle": "Invalid Invite",
+    "invalidDescription": "This invite link is invalid or has expired.",
+    "browseTeams": "Browse Teams",
+    "heading": "Team Invitation",
+    "invitedAs": "You have been invited to join this team as a",
+    "bannedTitle": "This team is currently banned",
+    "bannedDescription": "You cannot join a banned team. The invite link is no longer valid.",
+    "bannedReason": "Reason: {reason}",
+    "aboutTeam": "About the Team",
+    "statMembers": "Members",
+    "statWins": "Wins",
+    "statTier": "Tier",
+    "statCountry": "Country",
+    "countryGlobal": "Global",
+    "currentMembers": "Current Members",
+    "browseOtherTeams": "Browse Other Teams",
+    "decline": "Decline",
+    "declining": "Declining...",
+    "accept": "Accept & Join",
+    "joining": "Joining...",
+    "authRequiredTitle": "Authentication Required",
+    "authRequiredPrefix": "You need to",
+    "authRequiredLink": "log in",
+    "authRequiredSuffix": "to accept or decline this invite."
+  },
+  "common": {
+    "loading": "Loading...",
+    "redirecting": "Redirecting",
+    "invalidEmail": "Please enter a valid email address"
+  }
+}

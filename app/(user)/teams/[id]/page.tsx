@@ -66,6 +66,9 @@ import { env } from "@/lib/env";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+// LocalTime renders a stored UTC timestamp in the viewer's own timezone + language.
+import { LocalTime } from "@/components/LocalTime";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -77,7 +80,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { formatDate, formatWord } from "@/lib/utils";
+import { formatWord } from "@/lib/utils";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -125,6 +128,8 @@ type Params = Promise<{
 
 const Page = ({ params }: { params: Params }) => {
   const { id } = use(params);
+  // i18n: team detail page copy (messages/en/teamsplayers.json -> "teamDetail").
+  const t = useTranslations("teamsplayers");
   const router = useRouter();
   const { openAuthModal } = useAuthModal();
   const [inviteLink, setInviteLink] = useState("");
@@ -279,10 +284,10 @@ const Page = ({ params }: { params: Params }) => {
           },
         );
         setInviteLink(response.data.invite_link);
-        toast.success("Invite link generated successfully!");
+        toast.success(t("teamDetail.inviteLinkGenerated"));
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Failed to generate invite link",
+          error?.response?.data?.message || t("teamDetail.inviteLinkGenerateFailed"),
         );
       }
     });
@@ -290,7 +295,7 @@ const Page = ({ params }: { params: Params }) => {
 
   const handleCopyInviteLink = () => {
     navigator.clipboard.writeText(inviteLink);
-    toast.success("Invite link copied to your clipboard. ");
+    toast.success(t("teamDetail.inviteLinkCopied"));
   };
 
   const handleApproveJoinRequest = (requestId: string) => {
@@ -317,7 +322,7 @@ const Page = ({ params }: { params: Params }) => {
         refreshTeamDetails();
       } catch (error: any) {
         toast.error(
-          error.response?.data?.message || "Failed to approve request",
+          error.response?.data?.message || t("teamDetail.approveFailed"),
         );
       }
     });
@@ -339,15 +344,15 @@ const Page = ({ params }: { params: Params }) => {
           prev.filter((req: any) => req.request_id !== requestId),
         );
       } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to deny request");
+        toast.error(error.response?.data?.message || t("teamDetail.denyFailed"));
       }
     });
   };
   const handleAddNewMember = () => {
     if (!newMemberSearch)
-      return toast.error("Please enter UID or in-game-name or email");
+      return toast.error(t("teamDetail.enterUidIgnEmail"));
     if (teamDetails.members.length >= 6) {
-      toast.error("Team is full");
+      toast.error(t("teamDetail.teamFullToast"));
     }
 
     startInviteTransition(async () => {
@@ -386,7 +391,7 @@ const Page = ({ params }: { params: Params }) => {
           toast.success(response.data.message);
           router.push("/teams");
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("errors.generic"));
         }
       } catch (error: any) {
         toast.error(error?.response?.data?.message);
@@ -407,11 +412,11 @@ const Page = ({ params }: { params: Params }) => {
           },
         );
         toast.success(
-          response.data.message || "You have left the team successfully",
+          response.data.message || t("teamDetail.leftTeamSuccess"),
         );
         router.push("/teams");
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Failed to exit team");
+        toast.error(error?.response?.data?.message || t("teamDetail.exitTeamFailed"));
       }
     });
   };
@@ -431,15 +436,15 @@ const Page = ({ params }: { params: Params }) => {
 
         if (response.statusText === "OK") {
           toast.success(
-            response.data.message || "Ownership transferred successfully!",
+            response.data.message || t("teamDetail.transferSuccess"),
           );
           router.push("/teams");
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("errors.generic"));
         }
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Failed to transfer ownership",
+          error?.response?.data?.message || t("teamDetail.transferFailed"),
         );
       }
     });
@@ -494,7 +499,7 @@ const Page = ({ params }: { params: Params }) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setPlayerMarketApplications(res.data))
-      .catch(() => toast.error("Failed to load player market applications."))
+      .catch(() => toast.error(t("teamDetail.loadApplicationsFailed")))
       .finally(() => setLoadingApplications(false));
   }, [hasFullAccess, token]);
 
@@ -541,11 +546,11 @@ const Page = ({ params }: { params: Params }) => {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Country: {teamDetails?.country}
+                    {t("teamDetail.country", { country: teamDetails?.country })}
                   </p>
                   {teamDetails?.is_banned && (
                     <Badge variant="destructive" className="mt-2">
-                      BANNED
+                      {t("teamDetail.banned")}
                     </Badge>
                   )}
                 </div>
@@ -565,11 +570,11 @@ const Page = ({ params }: { params: Params }) => {
                       onClick={() => requireAuth(handleJoinTeam)}
                     >
                       {pendingRequest ? (
-                        <Loader text="Sending..." />
+                        <Loader text={t("teamDetail.sending")} />
                       ) : (
                         <>
                           <UserPlus />
-                          Request to Join
+                          {t("teamDetail.requestToJoin")}
                         </>
                       )}
                     </Button>
@@ -584,11 +589,11 @@ const Page = ({ params }: { params: Params }) => {
                       onClick={() => requireAuth(handleJoinTeam)}
                     >
                       {pendingRequest ? (
-                        <Loader text="Sending..." />
+                        <Loader text={t("teamDetail.sending")} />
                       ) : (
                         <>
                           <UserPlus />
-                          Join now
+                          {t("teamDetail.joinNow")}
                         </>
                       )}
                     </Button>
@@ -598,7 +603,7 @@ const Page = ({ params }: { params: Params }) => {
                   <Button variant={"secondary"} asChild>
                     <Link href={`/teams/${teamDetails?.team_name}/edit`}>
                       <Edit />
-                      Edit Team
+                      {t("teamDetail.editTeam")}
                     </Link>
                   </Button>
                 )}
@@ -607,7 +612,7 @@ const Page = ({ params }: { params: Params }) => {
                   <Button asChild>
                     <Link href={`/teams/${teamDetails?.team_name}/roster`}>
                       <Users />
-                      Manage Roster
+                      {t("teamDetail.manageRoster")}
                     </Link>
                   </Button>
                 )}
@@ -619,21 +624,19 @@ const Page = ({ params }: { params: Params }) => {
                         className="w-full md:w-auto"
                       >
                         <IconLogout />
-                        Exit Team
+                        {t("teamDetail.exitTeam")}
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Exit Team</DialogTitle>
+                        <DialogTitle>{t("teamDetail.exitTeam")}</DialogTitle>
                         <DialogDescription>
-                          Are you sure you want to leave{" "}
-                          {teamDetails?.team_name}? This action cannot be
-                          undone.
+                          {t("teamDetail.exitTeamConfirm", { team: teamDetails?.team_name })}
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter>
                         <DialogClose asChild>
-                          <Button variant="outline">Cancel</Button>
+                          <Button variant="outline">{t("teamDetail.cancel")}</Button>
                         </DialogClose>
                         <Button
                           variant="destructive"
@@ -641,9 +644,9 @@ const Page = ({ params }: { params: Params }) => {
                           disabled={pendingExit}
                         >
                           {pendingExit ? (
-                            <Loader text="Leaving..." />
+                            <Loader text={t("teamDetail.leaving")} />
                           ) : (
-                            "Yes, Exit Team"
+                            t("teamDetail.yesExitTeam")
                           )}
                         </Button>
                       </DialogFooter>
@@ -657,13 +660,11 @@ const Page = ({ params }: { params: Params }) => {
             {teamDetails?.is_banned && (
               <Alert variant="destructive" className="mb-6">
                 <IconAlertTriangle className="h-4 w-4" />
-                <AlertTitle>This team is currently banned</AlertTitle>
+                <AlertTitle>{t("teamDetail.bannedTitle")}</AlertTitle>
                 <AlertDescription>
-                  Reason: {teamDetails?.ban_reason}
+                  {t("teamDetail.bannedReason", { reason: teamDetails?.ban_reason })}
                   <br />
-                  Team members are restricted from certain activities, including
-                  leaving the team, registering for tournaments, or changing
-                  in-game names.
+                  {t("teamDetail.bannedRestrictions")}
                 </AlertDescription>
               </Alert>
             )}
@@ -671,19 +672,19 @@ const Page = ({ params }: { params: Params }) => {
             <Tabs defaultValue="overview">
               <ScrollArea>
                 <TabsList className="w-full">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="members">Members</TabsTrigger>
+                  <TabsTrigger value="overview">{t("teamDetail.tabOverview")}</TabsTrigger>
+                  <TabsTrigger value="members">{t("teamDetail.tabMembers")}</TabsTrigger>
                   {/* Statistics tab is hidden entirely from outsiders: it only renders
                       when the backend says this viewer may see the detailed stats
                       (team member, owner, or AFC admin). stats_visible comes from
                       get-team-details, which the page fetches WITH the viewer's token. */}
                   {teamDetails?.stats_visible && (
-                    <TabsTrigger value="statistics">Statistics</TabsTrigger>
+                    <TabsTrigger value="statistics">{t("teamDetail.tabStatistics")}</TabsTrigger>
                   )}
-                  <TabsTrigger value="achievements">Achievements</TabsTrigger>
-                  <TabsTrigger value="social">Social Media</TabsTrigger>
+                  <TabsTrigger value="achievements">{t("teamDetail.tabAchievements")}</TabsTrigger>
+                  <TabsTrigger value="social">{t("teamDetail.tabSocial")}</TabsTrigger>
                   {hasFullAccess && (
-                    <TabsTrigger value="requests">Requests & Applications</TabsTrigger>
+                    <TabsTrigger value="requests">{t("teamDetail.tabRequests")}</TabsTrigger>
                   )}
                 </TabsList>
                 <ScrollBar orientation="horizontal" />
@@ -692,19 +693,19 @@ const Page = ({ params }: { params: Params }) => {
               <TabsContent value="overview">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Team Overview</CardTitle>
+                    <CardTitle>{t("teamDetail.teamOverview")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Country</p>
+                        <p className="text-sm text-muted-foreground">{t("teamDetail.countryLabel")}</p>
                         <p className="text-lg md:text-xl font-semibold">
                           {teamDetails?.country}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Total Kills
+                          {t("teamDetail.totalKills")}
                         </p>
                         <p className="text-lg md:text-xl font-semibold">
                           {teamDetails?.stats?.total_kills
@@ -714,7 +715,7 @@ const Page = ({ params }: { params: Params }) => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Total Wins
+                          {t("teamDetail.totalWins")}
                         </p>
                         <p className="text-lg md:text-xl font-semibold">
                           {teamDetails?.stats?.scrim_wins &&
@@ -725,14 +726,14 @@ const Page = ({ params }: { params: Params }) => {
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Tier</p>
+                        <p className="text-sm text-muted-foreground">{t("teamDetail.tierLabel")}</p>
                         <p className="text-lg md:text-xl font-semibold">
                           {teamDetails?.team_tier}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Tournaments Played
+                          {t("teamDetail.tournamentsPlayed")}
                         </p>
                         <p className="text-lg md:text-xl font-semibold">
                           {teamDetails?.stats?.tournaments_played
@@ -742,7 +743,7 @@ const Page = ({ params }: { params: Params }) => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Scrims Played
+                          {t("teamDetail.scrimsPlayed")}
                         </p>
                         <p className="text-lg md:text-xl font-semibold">
                           {teamDetails?.stats?.scrims_played
@@ -752,10 +753,11 @@ const Page = ({ params }: { params: Params }) => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Creation Date
+                          {t("teamDetail.creationDate")}
                         </p>
                         <p className="text-lg md:text-xl font-semibold">
-                          {formatDate(teamDetails?.creation_date)}
+                          {/* Team creation date in the viewer's timezone + language. */}
+                          <LocalTime value={teamDetails?.creation_date} mode="date" />
                         </p>
                       </div>
                     </div>
@@ -781,20 +783,20 @@ const Page = ({ params }: { params: Params }) => {
               <TabsContent value="members">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Team Members</CardTitle>
+                    <CardTitle>{t("teamDetail.teamMembers")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="truncate">Name</TableHead>
+                          <TableHead className="truncate">{t("teamDetail.name")}</TableHead>
                           <TableHead className="truncate">
-                            In Game Role
+                            {t("teamDetail.inGameRole")}
                           </TableHead>
                           <TableHead className="truncate">
-                            Management Role
+                            {t("teamDetail.managementRole")}
                           </TableHead>
-                          <TableHead className="truncate">Action</TableHead>
+                          <TableHead className="truncate">{t("teamDetail.action")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -811,7 +813,7 @@ const Page = ({ params }: { params: Params }) => {
                               </TableCell>
                               <TableCell>
                                 {formatWord(member.in_game_role) || (
-                                  <span className="italic">Not selected</span>
+                                  <span className="italic">{t("teamDetail.notSelected")}</span>
                                 )}
                               </TableCell>
                               <TableCell>
@@ -820,7 +822,7 @@ const Page = ({ params }: { params: Params }) => {
                               <TableCell>
                                 <Button size="sm" variant="outline" asChild>
                                   <Link href={`/players/${member.username}`}>
-                                    View
+                                    {t("teamDetail.view")}
                                   </Link>
                                 </Button>
                               </TableCell>
@@ -829,7 +831,7 @@ const Page = ({ params }: { params: Params }) => {
                       </TableBody>
                       {teamDetails?.members === undefined && (
                         <p className="italic text-sm text-center py-4 w-full">
-                          There are no members yet
+                          {t("teamDetail.noMembersYet")}
                         </p>
                       )}
                     </Table>
@@ -838,12 +840,11 @@ const Page = ({ params }: { params: Params }) => {
                     ) > 1 && (
                       <div className="flex items-center justify-between mt-4">
                         <p className="hidden md:block text-sm text-muted-foreground">
-                          Showing {(membersPage - 1) * ITEMS_PER_PAGE + 1}-
-                          {Math.min(
-                            membersPage * ITEMS_PER_PAGE,
-                            teamDetails?.members?.length ?? 0,
-                          )}{" "}
-                          of {teamDetails?.members?.length ?? 0}
+                          {t("teamDetail.showing", {
+                            start: (membersPage - 1) * ITEMS_PER_PAGE + 1,
+                            end: Math.min(membersPage * ITEMS_PER_PAGE, teamDetails?.members?.length ?? 0),
+                            total: teamDetails?.members?.length ?? 0,
+                          })}
                         </p>
                         <Pagination className="w-full md:w-auto mx-0">
                           <PaginationContent>
@@ -936,17 +937,17 @@ const Page = ({ params }: { params: Params }) => {
                       (teamDetails?.members?.length ?? 0) < 8 && (
                         <div className="mt-4">
                           <h4 className="text-lg font-semibold mb-2">
-                            Add New Member
+                            {t("teamDetail.addNewMember")}
                           </h4>
                           <p className="text-xs text-muted-foreground mb-2">
-                            A roster can field at most{" "}
-                            <span className="font-medium text-foreground">
-                              6 players
-                            </span>
-                            . You can have up to 8 members in total. Anyone beyond
-                            the 6 players must be set as staff (coach, manager or
-                            analyst) on the Manage Roster page. Staff don&apos;t take
-                            a player slot.
+                            {/* t.rich keeps "6 players" emphasized inside the roster rule note. */}
+                            {t.rich("teamDetail.rosterRuleNote", {
+                              players: () => (
+                                <span className="font-medium text-foreground">
+                                  {t("teamDetail.rosterRulePlayers")}
+                                </span>
+                              ),
+                            })}
                           </p>
                           <div className="flex items-start space-x-2">
                             {/* Search-as-you-type user picker (replaces the raw email input).
@@ -956,7 +957,7 @@ const Page = ({ params }: { params: Params }) => {
                               <UserSearchSelect
                                 value={newMemberSearch || null}
                                 onChange={(u) => setNewMemberSearch(u ?? "")}
-                                placeholder="Search a player to invite..."
+                                placeholder={t("teamDetail.searchPlayerInvite")}
                               />
                             </div>
                             <Button
@@ -967,7 +968,7 @@ const Page = ({ params }: { params: Params }) => {
                               ) : (
                                 <>
                                   <IconSearch />
-                                  Invite
+                                  {t("teamDetail.invite")}
                                 </>
                               )}
                             </Button>
@@ -977,9 +978,7 @@ const Page = ({ params }: { params: Params }) => {
                     {hasFullAccess &&
                       (teamDetails?.members?.length ?? 0) >= 8 && (
                         <div className="mt-4 rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
-                          Your team is full (8 members maximum). A roster fields at
-                          most 6 players; the rest are staff (coach, manager,
-                          analyst). Remove a member before adding someone new.
+                          {t("teamDetail.teamFull")}
                         </div>
                       )}
                   </CardContent>
@@ -1020,13 +1019,13 @@ const Page = ({ params }: { params: Params }) => {
               <TabsContent value="social">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Social Media</CardTitle>
+                    <CardTitle>{t("teamDetail.socialMedia")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       {teamDetails?.social_media_links.length === 0 && (
                         <div className="text-center py-14 text-sm text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
-                          No link found
+                          {t("teamDetail.noLinkFound")}
                         </div>
                       )}
                       {teamDetails?.social_media_links?.map(
@@ -1062,7 +1061,7 @@ const Page = ({ params }: { params: Params }) => {
                       )}
                       {teamDetails?.social_media_links === undefined && (
                         <p className="text-sm text-center italic">
-                          No social media links
+                          {t("teamDetail.noSocialLinks")}
                         </p>
                       )}
                     </div>
@@ -1079,16 +1078,16 @@ const Page = ({ params }: { params: Params }) => {
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                           <div>
                             <CardTitle className="text-base">
-                              Player Market Applications
+                              {t("teamDetail.playerMarketApplications")}
                             </CardTitle>
                             <p className="text-sm text-muted-foreground mt-1">
-                              Applications from players via your recruitment post
+                              {t("teamDetail.applicationsFromPosts")}
                             </p>
                           </div>
                           <Button variant="outline" size="sm" className="shrink-0" asChild>
                             <Link href={`/teams/${teamDetails?.team_name}/applications`}>
                               <IconExternalLink className="h-4 w-4 mr-1.5" />
-                              View All Applications
+                              {t("teamDetail.viewAllApplications")}
                             </Link>
                           </Button>
                         </div>
@@ -1096,20 +1095,20 @@ const Page = ({ params }: { params: Params }) => {
                       <CardContent>
                         {loadingApplications ? (
                           <div className="text-center py-8 text-sm text-muted-foreground">
-                            Loading...
+                            {t("teamDetail.loading")}
                           </div>
                         ) : playerMarketApplications.length === 0 ? (
-                          <NothingFound text="No applications received yet." />
+                          <NothingFound text={t("teamDetail.noApplicationsReceived")} />
                         ) : (
                           <>
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>Player</TableHead>
-                                  <TableHead>Applied</TableHead>
-                                  <TableHead>Status</TableHead>
-                                  <TableHead>Contact</TableHead>
-                                  <TableHead>Action</TableHead>
+                                  <TableHead>{t("teamDetail.player")}</TableHead>
+                                  <TableHead>{t("teamDetail.applied")}</TableHead>
+                                  <TableHead>{t("teamDetail.status")}</TableHead>
+                                  <TableHead>{t("teamDetail.contact")}</TableHead>
+                                  <TableHead>{t("teamDetail.action")}</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -1120,7 +1119,8 @@ const Page = ({ params }: { params: Params }) => {
                                       <PlayerLink name={app.player} />
                                     </TableCell>
                                     <TableCell className="text-muted-foreground text-sm">
-                                      {formatDate(app.applied_at)}
+                                      {/* Application date in the viewer's timezone + language. */}
+                                      <LocalTime value={app.applied_at} mode="date" />
                                     </TableCell>
                                     <TableCell>
                                       {getStatusBadge(app.status)}
@@ -1128,11 +1128,11 @@ const Page = ({ params }: { params: Params }) => {
                                     <TableCell>
                                       {app.contact_unlocked ? (
                                         <Badge variant="outline" className="text-green-400 border-green-800 text-xs">
-                                          Unlocked
+                                          {t("teamDetail.unlocked")}
                                         </Badge>
                                       ) : (
                                         <Badge variant="outline" className="text-muted-foreground text-xs">
-                                          Locked
+                                          {t("teamDetail.locked")}
                                         </Badge>
                                       )}
                                     </TableCell>
@@ -1142,7 +1142,7 @@ const Page = ({ params }: { params: Params }) => {
                                         variant="outline"
                                         onClick={() => setReviewApp(app)}
                                       >
-                                        Review
+                                        {t("teamDetail.review")}
                                       </Button>
                                     </TableCell>
                                   </TableRow>
@@ -1154,19 +1154,19 @@ const Page = ({ params }: { params: Params }) => {
                             <div className="flex items-center gap-6 pt-4 mt-2 border-t">
                               <div>
                                 <p className="text-xl font-bold">{appStats.total}</p>
-                                <p className="text-xs text-muted-foreground">Total</p>
+                                <p className="text-xs text-muted-foreground">{t("teamDetail.total")}</p>
                               </div>
                               <div>
                                 <p className="text-xl font-bold text-yellow-400">{appStats.pending}</p>
-                                <p className="text-xs text-muted-foreground">Pending</p>
+                                <p className="text-xs text-muted-foreground">{t("teamDetail.pending")}</p>
                               </div>
                               <div>
                                 <p className="text-xl font-bold text-cyan-400">{appStats.shortlisted}</p>
-                                <p className="text-xs text-muted-foreground">Shortlisted</p>
+                                <p className="text-xs text-muted-foreground">{t("teamDetail.shortlisted")}</p>
                               </div>
                               <div>
                                 <p className="text-xl font-bold text-green-400">{appStats.invited}</p>
-                                <p className="text-xs text-muted-foreground">Invited</p>
+                                <p className="text-xs text-muted-foreground">{t("teamDetail.invited")}</p>
                               </div>
                             </div>
                           </>
@@ -1179,23 +1179,23 @@ const Page = ({ params }: { params: Params }) => {
                     {/* ── Direct Join Requests ──────────────────────── */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-base">Direct Join Requests</CardTitle>
+                        <CardTitle className="text-base">{t("teamDetail.directJoinRequests")}</CardTitle>
                         <p className="text-sm text-muted-foreground">
-                          Players who requested to join directly from your team page
+                          {t("teamDetail.directJoinRequestsDescription")}
                         </p>
                       </CardHeader>
                       <CardContent>
                       {joinRequests?.length === 0 ? (
-                        <NothingFound text="No pending join requests." />
+                        <NothingFound text={t("teamDetail.noPendingJoinRequests")} />
                       ) : (
                         <>
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="truncate">Name</TableHead>
-                                <TableHead className="truncate">UID</TableHead>
+                                <TableHead className="truncate">{t("teamDetail.name")}</TableHead>
+                                <TableHead className="truncate">{t("teamDetail.uid")}</TableHead>
                                 <TableHead className="truncate">
-                                  Actions
+                                  {t("teamDetail.actions")}
                                 </TableHead>
                               </TableRow>
                             </TableHeader>
@@ -1237,7 +1237,7 @@ const Page = ({ params }: { params: Params }) => {
                                           {pendingApproveRequest ? (
                                             <Loader text="" />
                                           ) : (
-                                            "Approve"
+                                            t("teamDetail.approve")
                                           )}
                                         </Button>
 
@@ -1260,7 +1260,7 @@ const Page = ({ params }: { params: Params }) => {
                                           {pendingDenyRequest ? (
                                             <Loader text="" />
                                           ) : (
-                                            "Deny"
+                                            t("teamDetail.deny")
                                           )}
                                         </Button>
 
@@ -1272,7 +1272,7 @@ const Page = ({ params }: { params: Params }) => {
                                           <Link
                                             href={`/players/${request.requester}`}
                                           >
-                                            View Profile
+                                            {t("teamDetail.viewProfile")}
                                           </Link>
                                         </Button>
                                       </div>
@@ -1286,13 +1286,11 @@ const Page = ({ params }: { params: Params }) => {
                           ) > 1 && (
                             <div className="flex items-center justify-between mt-4">
                               <p className="hidden md:block text-sm text-muted-foreground">
-                                Showing{" "}
-                                {(joinRequestsPage - 1) * ITEMS_PER_PAGE + 1}-
-                                {Math.min(
-                                  joinRequestsPage * ITEMS_PER_PAGE,
-                                  joinRequests?.length ?? 0,
-                                )}{" "}
-                                of {joinRequests?.length ?? 0}
+                                {t("teamDetail.showing", {
+                                  start: (joinRequestsPage - 1) * ITEMS_PER_PAGE + 1,
+                                  end: Math.min(joinRequestsPage * ITEMS_PER_PAGE, joinRequests?.length ?? 0),
+                                  total: joinRequests?.length ?? 0,
+                                })}
                               </p>
                               <Pagination className="w-full md:w-auto mx-0">
                                 <PaginationContent>
@@ -1390,7 +1388,7 @@ const Page = ({ params }: { params: Params }) => {
             {hasFullAccess && !teamDetails?.is_banned && (
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle>Team Owner Controls</CardTitle>
+                  <CardTitle>{t("teamDetail.teamOwnerControls")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -1400,9 +1398,9 @@ const Page = ({ params }: { params: Params }) => {
                       disabled={pendingGenerateLink}
                     >
                       {pendingGenerateLink ? (
-                        <Loader text="Generating..." />
+                        <Loader text={t("teamDetail.generating")} />
                       ) : (
-                        "Generate Invite Link"
+                        t("teamDetail.generateInviteLink")
                       )}
                     </Button>
                     {inviteLink && (
@@ -1417,20 +1415,19 @@ const Page = ({ params }: { params: Params }) => {
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="destructive" className="flex-1">
-                            Disband Team
+                            {t("teamDetail.disbandTeam")}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Disband Team</DialogTitle>
+                            <DialogTitle>{t("teamDetail.disbandTeam")}</DialogTitle>
                             <DialogDescription>
-                              Are you sure you want to disband this team? This
-                              action cannot be undone.
+                              {t("teamDetail.disbandConfirm")}
                             </DialogDescription>
                           </DialogHeader>
                           <DialogFooter>
                             <Button variant="outline" onClick={() => {}}>
-                              Cancel
+                              {t("teamDetail.cancel")}
                             </Button>
                             <Button
                               variant="destructive"
@@ -1438,9 +1435,9 @@ const Page = ({ params }: { params: Params }) => {
                               disabled={pendingDisbanded}
                             >
                               {pendingDisbanded ? (
-                                <Loader text="Disbanding..." />
+                                <Loader text={t("teamDetail.disbanding")} />
                               ) : (
-                                "Disband"
+                                t("teamDetail.disband")
                               )}
                             </Button>
                           </DialogFooter>
@@ -1449,14 +1446,14 @@ const Page = ({ params }: { params: Params }) => {
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button className="flex-1" variant={"secondary"}>
-                            Transfer Ownership
+                            {t("teamDetail.transferOwnership")}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Transfer Team Ownership</DialogTitle>
+                            <DialogTitle>{t("teamDetail.transferOwnershipTitle")}</DialogTitle>
                             <DialogDescription>
-                              Select a team member to transfer ownership to.
+                              {t("teamDetail.transferOwnershipDescription")}
                             </DialogDescription>
                           </DialogHeader>
                           <Form {...form}>
@@ -1477,7 +1474,7 @@ const Page = ({ params }: { params: Params }) => {
                                     >
                                       <FormControl>
                                         <SelectTrigger>
-                                          <SelectValue placeholder="Select new owner" />
+                                          <SelectValue placeholder={t("teamDetail.selectNewOwner")} />
                                         </SelectTrigger>
                                       </FormControl>
                                       <SelectContent>
@@ -1504,7 +1501,7 @@ const Page = ({ params }: { params: Params }) => {
                               <DialogFooter className="flex gap-4">
                                 <DialogClose asChild>
                                   <Button variant="outline" type="button">
-                                    Cancel
+                                    {t("teamDetail.cancel")}
                                   </Button>
                                 </DialogClose>
                                 <Button
@@ -1512,9 +1509,9 @@ const Page = ({ params }: { params: Params }) => {
                                   disabled={pendingTransfer}
                                 >
                                   {pendingTransfer ? (
-                                    <Loader text="Transferring..." />
+                                    <Loader text={t("teamDetail.transferring")} />
                                   ) : (
-                                    "Transfer"
+                                    t("teamDetail.transfer")
                                   )}
                                 </Button>
                               </DialogFooter>
@@ -1530,7 +1527,7 @@ const Page = ({ params }: { params: Params }) => {
             {isAdmin && (
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle>Admin Controls</CardTitle>
+                  <CardTitle>{t("teamDetail.adminControls")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -1564,9 +1561,9 @@ const Page = ({ params }: { params: Params }) => {
       <Dialog open={rolePickerOpen} onOpenChange={setRolePickerOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Generate Invite Link</DialogTitle>
+            <DialogTitle>{t("teamDetail.generateInviteLink")}</DialogTitle>
             <DialogDescription>
-              Select the role this invite link is for.
+              {t("teamDetail.generateInviteLinkDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-2 py-2">
@@ -1583,13 +1580,13 @@ const Page = ({ params }: { params: Params }) => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRolePickerOpen(false)}>
-              Cancel
+              {t("teamDetail.cancel")}
             </Button>
             <Button
               disabled={!inviteRole}
               onClick={() => handleGenerateInviteLink(inviteRole)}
             >
-              Generate
+              {t("teamDetail.generate")}
             </Button>
           </DialogFooter>
         </DialogContent>

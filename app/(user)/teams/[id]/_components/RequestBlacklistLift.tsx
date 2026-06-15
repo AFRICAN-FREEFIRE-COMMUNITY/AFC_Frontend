@@ -63,7 +63,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { IconLoader2, IconShieldOff } from "@tabler/icons-react";
-import { cn, formatDate } from "@/lib/utils";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+// LocalTime renders a stored UTC timestamp in the viewer's own timezone + language.
+import { LocalTime } from "@/components/LocalTime";
 import { organizersApi } from "@/lib/organizers";
 
 // One blacklist affecting the caller, exactly as GET /organizers/blacklists/mine/
@@ -104,6 +107,8 @@ export function RequestBlacklistLift({
   currentUserId,
   canManageTeam,
 }: Props) {
+  // i18n: blacklist-lift surface copy (messages/en/teamsplayers.json -> "blacklistLift").
+  const t = useTranslations("teamsplayers");
   const [blacklists, setBlacklists] = useState<MyBlacklist[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -122,7 +127,7 @@ export function RequestBlacklistLift({
       setBlacklists(res?.results ?? []);
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to check for blacklists.",
+        err?.response?.data?.message || t("blacklistLift.checkFailed"),
       );
       setBlacklists([]);
     } finally {
@@ -147,12 +152,12 @@ export function RequestBlacklistLift({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <IconShieldOff className="size-4 text-muted-foreground" />
-            Organizer blacklist
+            {t("blacklistLift.organizerBlacklist")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            No active blacklists affect this team.
+            {t("blacklistLift.noActiveBlacklists")}
           </p>
         </CardContent>
       </Card>
@@ -165,13 +170,12 @@ export function RequestBlacklistLift({
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <IconShieldOff className="size-4 text-muted-foreground" />
-          Organizer blacklist
+          {t("blacklistLift.organizerBlacklist")}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <p className="text-sm text-muted-foreground">
-          An organizer has blacklisted this team. You can ask them to lift it; the
-          organizer reviews and decides.
+          {t("blacklistLift.intro")}
         </p>
         {blacklists.map((bl) => (
           <BlacklistRow
@@ -199,6 +203,8 @@ function BlacklistRow({
   currentUserId: number | undefined;
   onRequested: () => void;
 }) {
+  // i18n: per-blacklist row + lift dialog copy (teamsplayers -> "blacklistLift").
+  const t = useTranslations("teamsplayers");
   // Which lift kinds the backend says the caller may raise on THIS blacklist.
   const canTeam = bl.can_request_team_lift;
   const canSelf = bl.can_request_self_lift;
@@ -225,7 +231,7 @@ function BlacklistRow({
       scope = "player";
       target = currentUserId;
       if (!target) {
-        toast.error("Could not resolve your account. Try reloading.");
+        toast.error(t("blacklistLift.resolveAccountError"));
         return;
       }
     }
@@ -240,13 +246,13 @@ function BlacklistRow({
         target_user_id: target,
         reason: reason.trim(),
       });
-      toast.success(res?.message || "Lift request submitted.");
+      toast.success(res?.message || t("blacklistLift.submitSuccess"));
       setOpen(false);
       reset();
       onRequested();
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to submit the lift request.",
+        err?.response?.data?.message || t("blacklistLift.submitFailed"),
       );
     } finally {
       setSubmitting(false);
@@ -258,7 +264,7 @@ function BlacklistRow({
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium">
-            {bl.organization_name ?? `Organization #${bl.organization_id}`}
+            {bl.organization_name ?? t("blacklistLift.organizationFallback", { id: bl.organization_id })}
           </span>
           <Badge
             variant="outline"
@@ -278,7 +284,14 @@ function BlacklistRow({
           </p>
         )}
         <p className="text-xs text-muted-foreground">
-          {bl.end_date ? `Until ${formatDate(bl.end_date)}` : "No end date"}
+          {/* "Until <date>" rendered in the viewer's timezone + language, or "No end date". */}
+          {bl.end_date ? (
+            t.rich("blacklistLift.until", {
+              date: () => <LocalTime value={bl.end_date} mode="date" />,
+            })
+          ) : (
+            t("blacklistLift.noEndDate")
+          )}
         </p>
       </div>
 
@@ -289,7 +302,7 @@ function BlacklistRow({
             variant="outline"
             className="rounded-full border-amber-500 px-2 py-0.5 text-xs text-amber-600"
           >
-            Lift request pending
+            {t("blacklistLift.liftPending")}
           </Badge>
         ) : hasAnyAction ? (
           <Dialog
@@ -302,31 +315,31 @@ function BlacklistRow({
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1.5">
                 <IconShieldOff className="size-4" />
-                Request lift
+                {t("blacklistLift.requestLift")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Request a blacklist lift</DialogTitle>
+                <DialogTitle>{t("blacklistLift.requestLiftTitle")}</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col gap-4 py-2">
                 {/* Only render the scope picker when BOTH kinds are available; if just
                     one is allowed the kind is already fixed, so we skip the chooser. */}
                 {canTeam && canSelf && (
                   <div className="flex flex-col gap-2">
-                    <Label>Request</Label>
+                    <Label>{t("blacklistLift.requestLabel")}</Label>
                     <Select
                       value={kind}
                       onValueChange={(v) => setKind(v as LiftKind)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="What do you want lifted?" />
+                        <SelectValue placeholder={t("blacklistLift.whatToLift")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="team">
-                          Lift for the whole team
+                          {t("blacklistLift.liftWholeTeam")}
                         </SelectItem>
-                        <SelectItem value="self">Lift for me only</SelectItem>
+                        <SelectItem value="self">{t("blacklistLift.liftMeOnly")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -334,12 +347,12 @@ function BlacklistRow({
 
                 {/* Reason for the organizer (optional but encouraged). */}
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor={`lift-reason-${bl.id}`}>Reason</Label>
+                  <Label htmlFor={`lift-reason-${bl.id}`}>{t("blacklistLift.reason")}</Label>
                   <Textarea
                     id={`lift-reason-${bl.id}`}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="Explain why the organizer should lift the blacklist."
+                    placeholder={t("blacklistLift.reasonPlaceholder")}
                     rows={3}
                   />
                 </div>
@@ -353,16 +366,16 @@ function BlacklistRow({
                   }}
                   disabled={submitting}
                 >
-                  Cancel
+                  {t("blacklistLift.cancel")}
                 </Button>
                 <Button onClick={handleSubmit} disabled={submitting}>
                   {submitting ? (
                     <span className="flex items-center gap-1.5">
                       <IconLoader2 className="size-4 animate-spin" />
-                      Submitting...
+                      {t("blacklistLift.submitting")}
                     </span>
                   ) : (
-                    "Submit request"
+                    t("blacklistLift.submitRequest")
                   )}
                 </Button>
               </DialogFooter>

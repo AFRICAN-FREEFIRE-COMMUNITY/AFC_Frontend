@@ -82,7 +82,8 @@
     "title": "Notifications",
     "unreadCount": "{count} non lues",
     "empty": "Aucune notification pour l'instant",
-    "singular": "Notification"
+    "singular": "Notification",
+    "takeMeThere": "M'y rendre"
   },
   "cart": {
     "title": "Votre panier",

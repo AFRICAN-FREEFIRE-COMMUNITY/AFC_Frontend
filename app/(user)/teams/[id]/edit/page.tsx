@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,8 @@ type Params = Promise<{
 }>;
 
 export default function page({ params }: { params: Params }) {
+  // i18n: edit-team form copy (messages/en/teamsplayers.json -> "teamEdit").
+  const t = useTranslations("teamsplayers");
   const { id } = use(params);
   const decodedId = decodeURIComponent(id);
   const [pending, startTransition] = useTransition();
@@ -135,7 +138,7 @@ export default function page({ params }: { params: Params }) {
         );
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Error fetching team details",
+          error?.response?.data?.message || t("teamEdit.fetchError"),
         );
       }
     });
@@ -218,13 +221,13 @@ export default function page({ params }: { params: Params }) {
         );
 
         if (response.status === 200) {
-          toast.success("Team updated successfully!");
+          toast.success(t("teamEdit.updatedSuccess"));
           router.push(`/teams/${data.team_name}`);
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("errors.generic"));
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Internal server error");
+        toast.error(error?.response?.data?.message || t("errors.internalServer"));
       }
     });
   }
@@ -233,7 +236,7 @@ export default function page({ params }: { params: Params }) {
 
   return (
     <div>
-      <PageHeader title={`Edit Team: ${decodedId}`} back />
+      <PageHeader title={t("teamEdit.pageTitle", { team: decodedId })} back />
       <Card>
         <CardContent>
           <Form {...form}>
@@ -247,10 +250,10 @@ export default function page({ params }: { params: Params }) {
                 name="team_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team name</FormLabel>
+                    <FormLabel>{t("teamEdit.teamName")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter your team name"
+                        placeholder={t("teamEdit.teamNamePlaceholder")}
                         onPaste={preventPaste}
                         {...field}
                       />
@@ -267,10 +270,10 @@ export default function page({ params }: { params: Params }) {
                 name="team_tag"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team tag</FormLabel>
+                    <FormLabel>{t("teamEdit.teamTag")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g. AFC"
+                        placeholder={t("teamEdit.teamTagPlaceholder")}
                         maxLength={5}
                         onPaste={preventPaste}
                         {...field}
@@ -282,8 +285,7 @@ export default function page({ params }: { params: Params }) {
                       />
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
-                      Short team handle (up to 5 letters), e.g. AFC. Shown on your
-                      players and used in search.
+                      {t("teamEdit.teamTagHint")}
                     </p>
                     <FormMessage />
                   </FormItem>
@@ -295,7 +297,7 @@ export default function page({ params }: { params: Params }) {
                 name="team_logo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team logo</FormLabel>
+                    <FormLabel>{t("teamEdit.teamLogo")}</FormLabel>
                     <FormControl>
                       <div className="space-y-4">
                         {!previewUrl ? (
@@ -321,9 +323,7 @@ export default function page({ params }: { params: Params }) {
                                     "image/webp",
                                   ].includes(file.type)
                                 ) {
-                                  toast.error(
-                                    "Only PNG, JPG, JPEG, or WEBP files are supported.",
-                                  );
+                                  toast.error(t("errors.imageType"));
                                   return;
                                 }
                                 setSelectedFile(file);
@@ -345,13 +345,13 @@ export default function page({ params }: { params: Params }) {
                                 />
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                Drop your image here, or{" "}
+                                {t("teamEdit.dropImage")}{" "}
                                 <span className="text-primary font-medium hover:underline">
-                                  browse
+                                  {t("teamEdit.browse")}
                                 </span>
                               </p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                Supports: PNG, JPG, JPEG, WEBP
+                                {t("teamEdit.supports")}
                               </p>
                             </div>
                           </div>
@@ -362,7 +362,7 @@ export default function page({ params }: { params: Params }) {
                                 width={1000}
                                 height={1000}
                                 src={previewUrl}
-                                alt="Featured image"
+                                alt={t("teamEdit.featuredImageAlt")}
                                 className="aspect-video size-full object-cover"
                               />
                             </div>
@@ -382,7 +382,7 @@ export default function page({ params }: { params: Params }) {
                                 }}
                               >
                                 <IconX size={16} className="mr-2" />
-                                Remove
+                                {t("teamEdit.remove")}
                               </Button>
 
                               <Button
@@ -392,7 +392,7 @@ export default function page({ params }: { params: Params }) {
                                 onClick={() => fileInputRef.current?.click()}
                               >
                                 <IconUpload size={16} className="mr-2" />
-                                Replace
+                                {t("teamEdit.replace")}
                               </Button>
                             </div>
                           </div>
@@ -415,9 +415,7 @@ export default function page({ params }: { params: Params }) {
                                 "image/webp",
                               ].includes(file.type)
                             ) {
-                              toast.error(
-                                "Only PNG, JPG, JPEG, or WEBP files are supported.",
-                              );
+                              toast.error(t("errors.imageType"));
                               return;
                             }
 
@@ -438,16 +436,16 @@ export default function page({ params }: { params: Params }) {
                 name="join_settings"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Join settings</FormLabel>
+                    <FormLabel>{t("teamEdit.joinSettings")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select your settings" />
+                          <SelectValue placeholder={t("teamEdit.selectSettings")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="by_request">By request</SelectItem>
+                        <SelectItem value="open">{t("teamEdit.open")}</SelectItem>
+                        <SelectItem value="by_request">{t("teamEdit.byRequest")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -457,7 +455,7 @@ export default function page({ params }: { params: Params }) {
 
               {/* Social links */}
               <div className="space-y-2.5">
-                <FormLabel>Social Media Links (Optional)</FormLabel>
+                <FormLabel>{t("teamEdit.socialLinksOptional")}</FormLabel>
                 {[
                   "facebook_url",
                   "twitter_url",
@@ -473,7 +471,7 @@ export default function page({ params }: { params: Params }) {
                       <FormItem>
                         <FormControl>
                           <Input
-                            placeholder={fieldName.replace("_url", "") + " URL"}
+                            placeholder={fieldName.replace("_url", "") + t("teamEdit.urlSuffix")}
                             {...field}
                           />
                         </FormControl>
@@ -487,7 +485,7 @@ export default function page({ params }: { params: Params }) {
               {/* Actions */}
               <div className="flex items-center justify-between gap-4">
                 <Button className="flex-1" asChild variant="outline">
-                  <Link href={`/teams/${id}`}>Back</Link>
+                  <Link href={`/teams/${id}`}>{t("teamEdit.back")}</Link>
                 </Button>
                 <Button
                   className="flex-1"
@@ -495,9 +493,9 @@ export default function page({ params }: { params: Params }) {
                   type="submit"
                 >
                   {submitPending ? (
-                    <Loader text="Updating..." />
+                    <Loader text={t("teamEdit.updating")} />
                   ) : (
-                    "Update Team"
+                    t("teamEdit.updateTeam")
                   )}
                 </Button>
               </div>

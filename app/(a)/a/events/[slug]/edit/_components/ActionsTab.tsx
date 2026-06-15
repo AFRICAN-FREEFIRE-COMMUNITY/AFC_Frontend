@@ -33,6 +33,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader } from "@/components/Loader";
 import { InfoTip } from "@/components/ui/info-tip";
+// Shared "what is this about?" deep-link picker. broadcast-announcement accepts
+// target_type + target_id, so we pass the selector's value straight through.
+import {
+  NotificationTargetSelector,
+  EMPTY_TARGET,
+  type NotificationTarget,
+} from "@/app/(a)/a/_components/NotificationTargetSelector";
 import {
   CheckCircle2,
   ChevronRight,
@@ -149,6 +156,9 @@ export default function ActionsTab({
   const [annMessage, setAnnMessage] = useState("");
   // Delivery channel (owner 2026-06-13): app push / email (branded) / both. Default both.
   const [annDelivery, setAnnDelivery] = useState<"both" | "push" | "email">("both");
+  // Optional deep link for the broadcast's "Take me there" button. Defaults to
+  // "none" so an unset link never breaks the existing broadcast behavior.
+  const [annTarget, setAnnTarget] = useState<NotificationTarget>(EMPTY_TARGET);
 
   const advanceStage = eventDetails.stages.find(
     (s) => s.stage_id === Number(advanceStageId),
@@ -364,6 +374,14 @@ export default function ActionsTab({
           title: annTitle,
           message: annMessage,
           delivery: annDelivery,
+          // Optional deep link (only when the admin picked one), so recipients
+          // get a "Take me there" button on the notification.
+          ...(annTarget.target_type !== "none"
+            ? {
+                target_type: annTarget.target_type,
+                target_id: annTarget.target_id.trim(),
+              }
+            : {}),
         },
         { headers: authHeader },
       );
@@ -372,6 +390,7 @@ export default function ActionsTab({
       setAnnTitle("");
       setAnnMessage("");
       setAnnDelivery("both");
+      setAnnTarget(EMPTY_TARGET);
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Broadcast failed");
     } finally {
@@ -1102,6 +1121,12 @@ export default function ActionsTab({
                 Emails are sent in the standard AFC branded design.
               </p>
             </div>
+            {/* Optional deep link: adds a "Take me there" button on the
+                recipient's notification. Defaults to no link. */}
+            <NotificationTargetSelector
+              value={annTarget}
+              onChange={setAnnTarget}
+            />
             <div className="flex gap-3">
               <Button
                 variant="outline"

@@ -5,7 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -38,6 +40,9 @@ export function VerifyTokenForm({ identifier, method }: Props) {
   const [pending, startTransition] = useTransition();
   const [pendingResend, startResendTransition] = useTransition();
   const [resendCooldown, setResendCooldown] = useState(0);
+  // How many times the user has resent the token. After >= 1, we surface the
+  // "maybe your email/UID is wrong" hint with a way to go back and re-enter it.
+  const [resendCount, setResendCount] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -74,6 +79,8 @@ export function VerifyTokenForm({ identifier, method }: Props) {
         if (response.statusText === "OK") {
           toast.success(response.data.message);
           setResendCooldown(300);
+          // Count this resend so the "wrong email/UID?" hint can appear.
+          setResendCount((c) => c + 1);
         } else {
           toast.error(t("verifyToken.genericError"));
         }
@@ -183,6 +190,30 @@ export function VerifyTokenForm({ identifier, method }: Props) {
               t("verifyToken.resend")
             )}
           </Button>
+
+          {/* Wrong-email hint: shown once the user has resent at least once.
+              If the token still hasn't arrived, the email/UID they entered may
+              be wrong, so we echo it back and offer a way to re-enter it. The
+              "Go back" link routes to /forgot-password (the email/UID entry
+              step that feeds this verify screen). */}
+          {resendCount >= 1 && (
+            <Alert>
+              <AlertDescription className="flex flex-col gap-2">
+                <span>
+                  {t("verifyToken.wrongEmailHint")}{" "}
+                  <span className="font-medium text-foreground">
+                    {identifier}
+                  </span>
+                </span>
+                <Link
+                  href="/forgot-password"
+                  className="font-medium text-primary underline underline-offset-4 hover:no-underline"
+                >
+                  {t("verifyToken.changeEmail")}
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
       </form>
     </Form>

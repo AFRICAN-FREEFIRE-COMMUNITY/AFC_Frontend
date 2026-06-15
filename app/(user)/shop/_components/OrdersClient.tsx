@@ -35,9 +35,12 @@ import { PageHeader } from "@/components/PageHeader";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns"; // Optional: for cleaner date formatting
 import { IconShoppingBag } from "@tabler/icons-react";
-import { formatDate, formatMoneyInput } from "@/lib/utils";
+import { formatMoneyInput } from "@/lib/utils";
+// i18n time: render the order date in the VIEWER's own timezone + language instead
+// of the old formatDate() helper (which built the string from the local-process
+// clock = UTC at SSR and a hardcoded month name). LocalTime is hydration-safe.
+import { LocalTime } from "@/components/LocalTime";
 import {
   Tooltip,
   TooltipContent,
@@ -241,7 +244,9 @@ export default function OrdersClient() {
                       <TableCell className="font-semibold">
                         ₦{formatMoneyInput(order.total)}
                       </TableCell>
-                      <TableCell>{formatDate(order.created_at)}</TableCell>
+                      <TableCell>
+                        <LocalTime value={order.created_at} mode="date" />
+                      </TableCell>
                       <TableCell className="capitalize">
                         <Badge variant={getStatusBadgeVariant(order.status)}>
                           {order.status}

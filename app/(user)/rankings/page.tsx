@@ -29,6 +29,9 @@ import {
 import { cn } from "@/lib/utils";
 import { matchesSearch } from "@/lib/search";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+// LocalTime / formatLocalTime helpers: render a stored instant in the viewer's tz + language.
+import { getActiveLocale, getBrowserTimeZone } from "@/lib/i18n/time";
 import {
   TransferWindowBanner,
 } from "@/components/rankings/TransferWindowBanner";
@@ -55,13 +58,19 @@ type SeasonFlags = Season & {
 
 // Empty state shown when a season's rankings/tiers haven't been published yet (Phase 2c gating).
 function NotPublished({ seasonName, what }: { seasonName?: string; what: string }) {
+  const t = useTranslations("teamsplayers");
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
       <IconClock className="size-10 text-muted-foreground" />
-      <p className="font-semibold">Not published yet</p>
+      <p className="font-semibold">{t("rankings.notPublishedTitle")}</p>
       <p className="max-w-sm text-sm text-muted-foreground">
-        {what} for {seasonName ? <span className="text-foreground">{seasonName}</span> : "this season"} haven&apos;t
-        been published yet - check back soon.
+        {/* t.rich keeps the highlighted season name (or the "this season" fallback) inline. */}
+        {t.rich("rankings.notPublishedBody", {
+          what,
+          season: seasonName ?? t("rankings.thisSeason"),
+          highlight: (chunks) =>
+            seasonName ? <span className="text-foreground">{chunks}</span> : <>{chunks}</>,
+        })}
       </p>
     </div>
   );
@@ -78,6 +87,9 @@ function SearchBar({ value, onChange, placeholder }: { value: string; onChange: 
 
 // ─── How-it-works explainer (rankings vs tiers) ──────────────────────────────
 function HowItWorks() {
+  const t = useTranslations("teamsplayers");
+  // Shared rich-text tag map: <b>bold</b> chunks used across the explainer bodies.
+  const bold = (chunks: React.ReactNode) => <b>{chunks}</b>;
   const Section = ({ icon, title, children }: any) => (
     <div className="flex gap-3">
       <div className="mt-0.5 text-primary">{icon}</div>
@@ -91,45 +103,45 @@ function HowItWorks() {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          <IconInfoCircle className="mr-1 size-4" /> How it works
+          <IconInfoCircle className="mr-1 size-4" /> {t("rankings.howItWorks")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-primary">How Rankings & Tiers work</DialogTitle>
-          <DialogDescription>Two different things, built from the same match data.</DialogDescription>
+          <DialogTitle className="text-primary">{t("rankings.howItWorksTitle")}</DialogTitle>
+          <DialogDescription>{t("rankings.howItWorksDescription")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <Section icon={<IconChartBar className="size-5" />} title="Rankings = standings">
-            A live leaderboard for <b>teams and players</b>, ordered by score. Monthly rankings reset on the
-            1st. It answers “who&apos;s #1 right now.”
+          <Section icon={<IconChartBar className="size-5" />} title={t("rankings.rankingsStandings")}>
+            {t.rich("rankings.rankingsStandingsBody", { b: bold })}
           </Section>
-          <Section icon={<IconStairsUp className="size-5" />} title="Tiers = your team's grade">
-            Each quarter, <b>teams</b> are graded into four tiers (players aren&apos;t tiered). It answers
-            “which league is my team in.” A team&apos;s tier holds for the whole next quarter.
+          <Section icon={<IconStairsUp className="size-5" />} title={t("rankings.tiersGrade")}>
+            {t.rich("rankings.tiersGradeBody", { b: bold })}
           </Section>
           <Separator />
           <div>
-            <p className="mb-2 text-sm font-semibold">The four team tiers</p>
+            <p className="mb-2 text-sm font-semibold">{t("rankings.fourTeamTiers")}</p>
             <div className="space-y-1.5">
-              {[0, 1, 2, 3].map((t) => (
-                <div key={t} className="flex items-center gap-2 text-sm">
-                  <TierBadge tier={t as 0 | 1 | 2 | 3} />
-                  <span className="text-muted-foreground">{tierMeta[t].min}+ points</span>
+              {[0, 1, 2, 3].map((tier) => (
+                <div key={tier} className="flex items-center gap-2 text-sm">
+                  <TierBadge tier={tier as 0 | 1 | 2 | 3} />
+                  <span className="text-muted-foreground">
+                    {t("rankings.tierMinPoints", { min: tierMeta[tier].min })}
+                  </span>
                 </div>
               ))}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              A team must play at least <b>2 tournaments</b> in the quarter to rank above Entry.
+              {t.rich("rankings.participationFloor", { b: bold })}
             </p>
           </div>
           <Separator />
           <div className="space-y-1.5 text-sm text-muted-foreground">
-            <p className="text-sm font-semibold text-foreground">How points are earned</p>
-            <p>• Kills and placements from every match (compressed, so more isn&apos;t infinitely better).</p>
-            <p>• Bigger tournaments multiply your points (Tier 1 ×2, Tier 2 ×1.5, Tier 3 ×1).</p>
-            <p>• Bonuses for tournament wins and reaching finals.</p>
-            <p>• Quarterly only: prize money + social following (capped).</p>
+            <p className="text-sm font-semibold text-foreground">{t("rankings.howPointsEarned")}</p>
+            <p>{"•"} {t("rankings.pointsKills")}</p>
+            <p>{"•"} {t("rankings.pointsTournaments")}</p>
+            <p>{"•"} {t("rankings.pointsBonuses")}</p>
+            <p>{"•"} {t("rankings.pointsQuarterly")}</p>
           </div>
         </div>
       </DialogContent>
@@ -147,11 +159,12 @@ function StatTile({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 function NoMatch({ q }: { q: string }) {
+  const t = useTranslations("teamsplayers");
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
       <IconSearch className="size-9 text-muted-foreground" />
-      <p className="font-semibold">No matches for “{q}”</p>
-      <p className="text-sm text-muted-foreground">Try a different name.</p>
+      <p className="font-semibold">{t("rankings.noMatchesFor", { query: q })}</p>
+      <p className="text-sm text-muted-foreground">{t("rankings.tryDifferentName")}</p>
     </div>
   );
 }
@@ -160,6 +173,8 @@ function NoMatch({ q }: { q: string }) {
 // Reads rankingsApi.teamsMonthly() / playersMonthly() → /rankings/teams|players/monthly/;
 // rankings_published gates the empty-vs-NotPublished branch (false → "Not published yet").
 function RankingsView() {
+  // i18n: live-standings view copy (messages/en/teamsplayers.json -> "rankings").
+  const t = useTranslations("teamsplayers");
   // isAuthenticated gates the "Claim" button on ghost rows (only logged-in users can request a claim).
   const { isAuthenticated } = useAuth();
   const [subject, setSubject] = useState<Subject>("teams");
@@ -198,20 +213,29 @@ function RankingsView() {
   // (typing "ve" finds "V-E"). The searched field is the team_name or username for the active tab.
   const rows = all.filter((r) =>
     matchesSearch(subject === "teams" ? r.team_name : r.username, q));
-  const monthLabel = month ? new Date(month).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "This month";
+  // Month label ("June 2026"): no <LocalTime> month-year mode exists, so format inline
+  // but in the VIEWER's locale (month names follow the language) + their timezone,
+  // instead of the old hardcoded "en-US" / UTC. Falls back to "This month" when unset.
+  const monthLabel = month
+    ? new Intl.DateTimeFormat(getActiveLocale(), {
+        month: "long",
+        year: "numeric",
+        timeZone: getBrowserTimeZone(),
+      }).format(new Date(month))
+    : t("rankings.thisMonth");
 
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p className="text-sm text-muted-foreground">
-          Live monthly standings, ordered by score <InfoTip id="rankings.public.monthly_standings" /> · <span className="text-foreground">{monthLabel}</span>
+          {t("rankings.liveStandings")} <InfoTip id="rankings.public.monthly_standings" /> · <span className="text-foreground">{monthLabel}</span>
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <SearchBar value={q} onChange={setQ} placeholder={subject === "teams" ? "Search teams" : "Search players"} />
+          <SearchBar value={q} onChange={setQ} placeholder={subject === "teams" ? t("rankings.searchTeams") : t("rankings.searchPlayers")} />
           <Tabs value={subject} onValueChange={(v) => { setSubject(v as Subject); setQ(""); }}>
             <TabsList>
-              <TabsTrigger value="teams"><IconUsers className="mr-1 size-3.5" /> Teams</TabsTrigger>
-              <TabsTrigger value="players"><IconTrophy className="mr-1 size-3.5" /> Players</TabsTrigger>
+              <TabsTrigger value="teams"><IconUsers className="mr-1 size-3.5" /> {t("rankings.teams")}</TabsTrigger>
+              <TabsTrigger value="players"><IconTrophy className="mr-1 size-3.5" /> {t("rankings.players")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -220,9 +244,9 @@ function RankingsView() {
       <Card>
         <CardContent>
           {loading ? (
-            <div className="py-16"><FullLoader text="Loading standings" /></div>
+            <div className="py-16"><FullLoader text={t("rankings.loadingStandings")} /></div>
           ) : all.length === 0 && season && season.rankings_published === false ? (
-            <NotPublished seasonName={season.name} what="Rankings" />
+            <NotPublished seasonName={season.name} what={t("rankings.rankingsLabel")} />
           ) : all.length === 0 ? (
             <Empty period="monthly" />
           ) : rows.length === 0 ? (
@@ -231,20 +255,20 @@ function RankingsView() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">Rank</TableHead>
-                  <TableHead>{subject === "teams" ? "Team" : "Player"}</TableHead>
+                  <TableHead className="w-12">{t("rankings.rank")}</TableHead>
+                  <TableHead>{subject === "teams" ? t("rankings.team") : t("rankings.player")}</TableHead>
                   {subject === "teams" ? (
                     <>
-                      <TableHead className="text-right">Wins</TableHead>
-                      <TableHead className="text-right">Kills</TableHead>
+                      <TableHead className="text-right">{t("rankings.wins")}</TableHead>
+                      <TableHead className="text-right">{t("rankings.kills")}</TableHead>
                     </>
                   ) : (
                     <>
-                      <TableHead className="text-right">Kills</TableHead>
-                      <TableHead className="text-right">MVPs</TableHead>
+                      <TableHead className="text-right">{t("rankings.kills")}</TableHead>
+                      <TableHead className="text-right">{t("rankings.mvps")}</TableHead>
                     </>
                   )}
-                  <TableHead className="text-right">Score <InfoTip id="rankings.public.score_column" /></TableHead>
+                  <TableHead className="text-right">{t("rankings.score")} <InfoTip id="rankings.public.score_column" /></TableHead>
                   <TableHead className="w-8" />
                 </TableRow>
               </TableHeader>
@@ -272,7 +296,7 @@ function RankingsView() {
                             <span className="inline-flex items-center gap-1.5">
                               {name}
                               <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
-                                Ghost
+                                {t("rankings.ghost")}
                               </Badge>
                               {/* Claim action, logged-in users only. We can only target the request
                                   endpoint when the ladder row carries the ghost's own id (ghost_team_id
@@ -297,7 +321,7 @@ function RankingsView() {
                                       );
                                     }}
                                   >
-                                    Claim
+                                    {t("rankings.claim")}
                                   </Button>
                                 )}
                               {/* A ghost already awaiting review shows a small status pill instead of Claim. */}
@@ -306,7 +330,7 @@ function RankingsView() {
                                   variant="outline"
                                   className="rounded-full px-2 py-0.5 text-[10px] border-orange-500/40 text-orange-400"
                                 >
-                                  Claim pending
+                                  {t("rankings.claimPending")}
                                 </Badge>
                               )}
                             </span>
@@ -338,18 +362,18 @@ function RankingsView() {
                             <div className="grid grid-cols-2 gap-2 py-1 sm:grid-cols-3 md:grid-cols-4">
                               {subject === "teams" ? (
                                 <>
-                                  <StatTile label="Tournament" value={(r.tournament_pts ?? 0).toFixed(1)} />
-                                  <StatTile label="Scrims" value={(r.scrim_pts ?? 0).toFixed(1)} />
-                                  <StatTile label="Tournaments" value={r.tournaments_played ?? 0} />
+                                  <StatTile label={t("rankings.tournament")} value={(r.tournament_pts ?? 0).toFixed(1)} />
+                                  <StatTile label={t("rankings.scrims")} value={(r.scrim_pts ?? 0).toFixed(1)} />
+                                  <StatTile label={t("rankings.tournaments")} value={r.tournaments_played ?? 0} />
                                 </>
                               ) : (
                                 <>
-                                  <StatTile label="Kills" value={(r.kill_pts ?? 0).toFixed(1)} />
-                                  <StatTile label="MVP" value={(r.mvp_pts ?? 0).toFixed(1)} />
-                                  <StatTile label="Finals" value={(r.finals_pts ?? 0).toFixed(1)} />
-                                  <StatTile label="Team Win" value={(r.team_win_pts ?? 0).toFixed(1)} />
-                                  <StatTile label="Participation" value={(r.participation_pts ?? 0).toFixed(1)} />
-                                  <StatTile label="Scrims" value={(r.scrim_pts ?? 0).toFixed(1)} />
+                                  <StatTile label={t("rankings.kills")} value={(r.kill_pts ?? 0).toFixed(1)} />
+                                  <StatTile label={t("rankings.mvp")} value={(r.mvp_pts ?? 0).toFixed(1)} />
+                                  <StatTile label={t("rankings.finals")} value={(r.finals_pts ?? 0).toFixed(1)} />
+                                  <StatTile label={t("rankings.teamWin")} value={(r.team_win_pts ?? 0).toFixed(1)} />
+                                  <StatTile label={t("rankings.participation")} value={(r.participation_pts ?? 0).toFixed(1)} />
+                                  <StatTile label={t("rankings.scrims")} value={(r.scrim_pts ?? 0).toFixed(1)} />
                                 </>
                               )}
                             </div>
@@ -379,6 +403,7 @@ function RankingsView() {
 
 // ─── Tiers view - teams only, expandable per-tier bands ──────────────────────
 function TierTeamRow({ row, elite }: { row: any; elite?: boolean }) {
+  const t = useTranslations("teamsplayers");
   const [open, setOpen] = useState(false);
   return (
     <div className={cn("border-t first:border-t-0", elite && "border-amber-500/20")}>
@@ -396,12 +421,12 @@ function TierTeamRow({ row, elite }: { row: any; elite?: boolean }) {
             only ADD a small outline Ghost badge to mark the row. No double-prefix. */}
         {row.is_ghost && (
           <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
-            Ghost
+            {t("rankings.ghost")}
           </Badge>
         )}
         {!row.meets_participation_floor && (
           <Badge variant="outline" className="rounded-full text-[10px] text-muted-foreground">
-            {row.tournaments_played ?? 0}/2 tournaments
+            {t("rankings.tournamentsPlayed", { count: row.tournaments_played ?? 0 })}
           </Badge>
         )}
         <span className={cn("font-bold tabular-nums", elite ? "text-2xl text-amber-300" : "text-primary")}>
@@ -412,14 +437,14 @@ function TierTeamRow({ row, elite }: { row: any; elite?: boolean }) {
       </button>
       {open && (
         <div className="grid grid-cols-2 gap-2 px-4 pb-3 sm:grid-cols-3 md:grid-cols-4">
-          <StatTile label="Total kills" value={row.kills ?? 0} />
-          <StatTile label="Tournament pts" value={(row.tournament_pts ?? 0).toFixed(1)} />
-          <StatTile label="Scrim pts" value={(row.scrim_pts ?? 0).toFixed(1)} />
-          <StatTile label="Prize pts" value={(row.prize_money_pts ?? 0).toFixed(1)} />
-          <StatTile label="Social pts" value={(row.social_media_pts ?? 0).toFixed(1)} />
-          <StatTile label="Wins" value={row.wins ?? 0} />
-          <StatTile label="Tournaments" value={row.tournaments_played ?? 0} />
-          <StatTile label="Total score" value={(row.total_score ?? 0).toFixed(1)} />
+          <StatTile label={t("rankings.totalKills")} value={row.kills ?? 0} />
+          <StatTile label={t("rankings.tournamentPts")} value={(row.tournament_pts ?? 0).toFixed(1)} />
+          <StatTile label={t("rankings.scrimPts")} value={(row.scrim_pts ?? 0).toFixed(1)} />
+          <StatTile label={t("rankings.prizePts")} value={(row.prize_money_pts ?? 0).toFixed(1)} />
+          <StatTile label={t("rankings.socialPts")} value={(row.social_media_pts ?? 0).toFixed(1)} />
+          <StatTile label={t("rankings.wins")} value={row.wins ?? 0} />
+          <StatTile label={t("rankings.tournaments")} value={row.tournaments_played ?? 0} />
+          <StatTile label={t("rankings.totalScore")} value={(row.total_score ?? 0).toFixed(1)} />
         </div>
       )}
     </div>
@@ -427,6 +452,7 @@ function TierTeamRow({ row, elite }: { row: any; elite?: boolean }) {
 }
 
 function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any[]; searching: boolean }) {
+  const t = useTranslations("teamsplayers");
   const elite = tier === 0;
   if (!rows.length && (tier !== 0 || searching)) return null;
   return (
@@ -434,13 +460,13 @@ function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any
       <div className="mb-2 flex items-center gap-2">
         {elite && <IconCrown className="size-4 text-amber-400" />}
         <TierBadge tier={tier} />
-        <span className="text-xs text-muted-foreground">{rows.length} {rows.length === 1 ? "team" : "teams"}</span>
-        <span className="ml-auto text-[11px] text-muted-foreground">{tierMeta[tier].min}+ pts</span>
+        <span className="text-xs text-muted-foreground">{t("rankings.teamCount", { count: rows.length })}</span>
+        <span className="ml-auto text-[11px] text-muted-foreground">{t("rankings.minPts", { min: tierMeta[tier].min })}</span>
       </div>
       {rows.length === 0 ? (
         <Card className={cn(elite && "border-amber-500/40")}>
           <CardContent className="py-6 text-center text-sm text-muted-foreground">
-            No teams have reached Elite this season yet.
+            {t("rankings.noEliteYet")}
           </CardContent>
         </Card>
       ) : (
@@ -459,6 +485,8 @@ function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any
 // rankings_published is true (backend returns tier null), so we show the tiers-coming-soon
 // notice instead of dropping teams; grouping into bands uses TierBadge.
 function TiersView() {
+  // i18n: seasonal tiers view copy (messages/en/teamsplayers.json -> "rankings").
+  const t = useTranslations("teamsplayers");
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState<number | undefined>(undefined);
   const [q, setQ] = useState("");
@@ -472,7 +500,7 @@ function TiersView() {
       setSeasons(r.results);
       const active = r.results.find((s) => s.is_active) ?? r.results[0];
       setSeasonId(active?.season_id);
-    }).catch((error) => toast.error(error?.response?.data?.message || "Failed to load rankings"));
+    }).catch((error) => toast.error(error?.response?.data?.message || t("rankings.loadFailed")));
   }, []);
 
   useEffect(() => {
@@ -502,17 +530,17 @@ function TiersView() {
     <div>
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p className="max-w-xl text-sm text-muted-foreground">
-          Team grade for the season. Only teams are tiered. <InfoTip id="rankings.public.tiers_intro" /> Reach the top to become{" "}
-          <span className="font-semibold text-amber-400">Elite</span>. Tap a team for its full breakdown.
+          {t("rankings.tiersIntro")} <InfoTip id="rankings.public.tiers_intro" /> {t("rankings.tiersIntroElite")}{" "}
+          <span className="font-semibold text-amber-400">{t("rankings.elite")}</span>. {t("rankings.tiersIntroTap")}
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <SearchBar value={q} onChange={setQ} placeholder="Search teams" />
+          <SearchBar value={q} onChange={setQ} placeholder={t("rankings.searchTeams")} />
           <Select value={seasonId ? String(seasonId) : undefined} onValueChange={(v) => setSeasonId(Number(v))}>
-            <SelectTrigger className="h-9 w-[170px]"><SelectValue placeholder="Season" /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[170px]"><SelectValue placeholder={t("rankings.season")} /></SelectTrigger>
             <SelectContent>
               {seasons.map((s) => (
                 <SelectItem key={s.season_id} value={String(s.season_id)}>
-                  {s.name}{s.is_active ? " · current" : ""}
+                  {s.name}{s.is_active ? t("rankings.seasonCurrent") : ""}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -525,16 +553,15 @@ function TiersView() {
         // dropping every (null-tier) team and showing a misleading empty state.
         <div className="mb-4 flex items-center gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
           <IconClock className="size-4 shrink-0" />
-          Tiers coming soon - team grades for{" "}
-          <span className="font-medium text-foreground">{season?.name ?? "this season"}</span> haven&apos;t been
-          published yet.
+          {t("rankings.tiersComingSoon")}{" "}
+          <span className="font-medium text-foreground">{season?.name ?? t("rankings.thisSeason")}</span> {t("rankings.tiersComingSoonNotPublished")}
         </div>
       )}
 
       {loading ? (
-        <Card><CardContent><div className="py-16"><FullLoader text="Loading tiers" /></div></CardContent></Card>
+        <Card><CardContent><div className="py-16"><FullLoader text={t("rankings.loadingTiers")} /></div></CardContent></Card>
       ) : teams.length === 0 && season?.rankings_published === false ? (
-        <Card><CardContent><NotPublished seasonName={season?.name} what="Rankings" /></CardContent></Card>
+        <Card><CardContent><NotPublished seasonName={season?.name} what={t("rankings.rankingsLabel")} /></CardContent></Card>
       ) : teams.length === 0 ? (
         <Card><CardContent><Empty period="quarterly" /></CardContent></Card>
       ) : tiersHidden ? null : searching && filteredTotal === 0 ? (
@@ -552,24 +579,31 @@ function TiersView() {
 }
 
 function Empty({ period }: { period: string }) {
+  const t = useTranslations("teamsplayers");
+  // period is a code value ("monthly" / "quarterly") from the caller; localize the
+  // word itself so the sentence reads in the active language.
+  const periodLabel =
+    period === "quarterly" ? t("rankings.periodQuarterly") : t("rankings.periodMonthly");
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
       <IconMoodEmpty className="size-10 text-muted-foreground" />
-      <p className="font-semibold">Nothing here yet</p>
-      <p className="text-sm text-muted-foreground">Standings appear once {period} results are recorded.</p>
+      <p className="font-semibold">{t("rankings.nothingHereYet")}</p>
+      <p className="text-sm text-muted-foreground">{t("rankings.standingsAppear", { period: periodLabel })}</p>
     </div>
   );
 }
 
 // ─── Page - header + transfer-window banner + Rankings/Tiers tabs ────────────
 export default function RankingsPage() {
+  // i18n: page header + top-level tabs (messages/en/teamsplayers.json -> "rankings").
+  const t = useTranslations("teamsplayers");
   // The transfer-window banner self-fetches the current season (Phase 2c flags); the
   // per-view RankingsView/TiersView fetch their own standings data independently.
   return (
     <div>
       <PageHeader
-        title="Rankings & Tiers"
-        description="Two views of AFC performance: live standings, and seasonal team tiers."
+        title={t("rankings.pageTitle")}
+        description={t("rankings.pageDescription")}
         action={<HowItWorks />}
       />
 
@@ -578,10 +612,10 @@ export default function RankingsPage() {
       <Tabs defaultValue="rankings">
         <TabsList className="mb-5 h-10">
           <TabsTrigger value="rankings" className="text-sm">
-            <IconChartBar className="mr-1.5 size-4" /> Rankings
+            <IconChartBar className="mr-1.5 size-4" /> {t("rankings.rankingsTabLabel")}
           </TabsTrigger>
           <TabsTrigger value="tiers" className="text-sm">
-            <IconStairsUp className="mr-1.5 size-4" /> Tiers
+            <IconStairsUp className="mr-1.5 size-4" /> {t("rankings.tiersTabLabel")}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="rankings"><RankingsView /></TabsContent>

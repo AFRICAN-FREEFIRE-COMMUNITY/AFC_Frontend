@@ -49,6 +49,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { driver, type Driver, type DriveStep } from "driver.js";
 import "driver.js/dist/driver.css";
@@ -77,15 +78,21 @@ function safeQuery(selector: string): HTMLElement | null {
 // target is not currently in the DOM so driver.js never highlights nothing. (Mirrors
 // AdminTour.buildSteps(), minus the admin-only lazy/tab-switch behaviour the user
 // pages do not need.)
-function buildSteps(steps: GuidedTourStep[]): DriveStep[] {
+//
+// step.title / step.description are i18n KEYS (see guided-tour-stops.ts), so we resolve
+// them through the passed `t` (the "home" next-intl translator) into display strings.
+function buildSteps(
+  steps: GuidedTourStep[],
+  t: (key: string) => string,
+): DriveStep[] {
   if (typeof document === "undefined") return [];
   return steps
     .filter((s) => !!safeQuery(s.element))
     .map((s) => ({
       element: s.element,
       popover: {
-        title: s.title,
-        description: s.description,
+        title: t(s.title),
+        description: t(s.description),
         side: s.side,
         align: s.align,
       },
@@ -93,6 +100,9 @@ function buildSteps(steps: GuidedTourStep[]): DriveStep[] {
 }
 
 export function PageGuide() {
+  // driver.js popover chrome (Next / Back / Done / "Step X of Y"); namespace == home.json.
+  // The per-stop title + description come from guided-tour-stops.ts (already localized there).
+  const t = useTranslations("home");
   const { active, phase, currentStop, finishPageGuide } = useGuidedTour();
   const pathname = usePathname();
   const driverRef = React.useRef<Driver | null>(null);
@@ -138,7 +148,7 @@ export function PageGuide() {
     const timer = window.setTimeout(() => {
       if (cancelled) return;
 
-      const steps = buildSteps(currentStop.steps ?? []);
+      const steps = buildSteps(currentStop.steps ?? [], t);
 
       // No resolvable steps on this page -> return to the hub immediately, with no
       // empty overlay (edge case in the design doc).
@@ -158,10 +168,13 @@ export function PageGuide() {
         stageRadius: 8,
         allowClose: true, // Escape / overlay click can dismiss
         showProgress: true,
-        progressText: "Step {{current}} of {{total}}",
-        nextBtnText: "Next",
-        prevBtnText: "Back",
-        doneBtnText: "Done",
+        // progressText keeps driver.js's own {{current}}/{{total}} mustache tokens. In the
+        // JSON value they are ICU-escaped ('{{current}}') so next-intl emits them literally
+        // for driver.js to substitute at runtime.
+        progressText: t("tour.driver.progress"),
+        nextBtnText: t("tour.driver.next"),
+        prevBtnText: t("tour.driver.back"),
+        doneBtnText: t("tour.driver.done"),
         popoverClass: "afc-tour", // themed in <PageGuideStyles/> below
         steps,
         // ── Idle fallback (refinement 1c) ──
@@ -204,7 +217,7 @@ export function PageGuide() {
       clearIdleTimer();
     };
     // Re-evaluate when any of these change (a new stop, a navigation, phase flip).
-  }, [active, phase, currentStop, pathname, finishPageGuide, clearIdleTimer]);
+  }, [active, phase, currentStop, pathname, finishPageGuide, clearIdleTimer, t]);
 
   // When we leave the on-page phase (hub took over, or the tour ended), tear down any
   // live driver, clear the idle timer, and clear the run guard so a future visit can

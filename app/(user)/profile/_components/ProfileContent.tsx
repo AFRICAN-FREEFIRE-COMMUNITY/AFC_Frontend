@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 // i18n: user-visible copy on the owner's own profile page is sourced from the
 // `profile` namespace (messages/en/profile.json). The active locale comes from the
 // NEXT_LOCALE cookie (set on the profile edit page) and falls back to English.
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 // import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,7 +32,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
-import { formatDate, formatWord } from "@/lib/utils";
+import { formatWord } from "@/lib/utils";
+// LocalTime: renders a stored UTC timestamp in the VIEWER's own timezone + language
+// (components/LocalTime.tsx). Replaces the old formatDate() calls, which rendered in
+// UTC with a hardcoded "en-US" locale. Used here for the team-history join date.
+import { LocalTime } from "@/components/LocalTime";
+// formatLocalTime: the string-form sibling of <LocalTime/> (lib/i18n/time.ts), for
+// the (rare) places a plain string is needed instead of JSX. Used here to localize
+// the "Applied {date}" line whose date is passed as a t() parameter.
+import { formatLocalTime } from "@/lib/i18n/time";
 import {
   IconTrophy,
   IconCrosshair,
@@ -76,8 +84,32 @@ import {
 // in full because we identify as the owner (stats_visible). See OwnStatsTab.tsx.
 import { OwnStatsTab } from "./OwnStatsTab";
 
+// ── i18n: achievement-group display string -> message key ─────────────────────
+// The achievements CATALOG (achievements.ts) stores group/title/description in
+// English as the data + fallback source; the UI renders the TRANSLATED text from
+// the `achievementsCatalog` block of messages/en/profile.json. This maps a group's
+// English display string (e.g. "Monthly Kills") to its message key ("monthlyKills")
+// so group headers, ladder units, and ladder descriptions can be localized without
+// changing the data module. Unknown groups fall back to the raw string.
+const ACHIEVEMENT_GROUP_KEY: Record<string, string> = {
+  Kills: "kills",
+  Wins: "wins",
+  Tournaments: "tournaments",
+  Scrims: "scrims",
+  MVPs: "mvps",
+  Booyahs: "booyahs",
+  Profile: "profile",
+  "Monthly Kills": "monthlyKills",
+  "Monthly Wins": "monthlyWins",
+  "Monthly Activity": "monthlyActivity",
+  Daily: "daily",
+};
+
 export const ProfileContent = () => {
   const t = useTranslations("profile");
+  // Active UI locale, passed to formatLocalTime so the "Applied {date}" string
+  // localizes month names to the chosen language (and skips the cookie read).
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -587,9 +619,14 @@ export const ProfileContent = () => {
                             : "-"}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {richProfile.join_date
-                            ? formatDate(richProfile.join_date)
-                            : "-"}
+                          {/* Join date rendered in the viewer's own timezone +
+                              language via <LocalTime/> (was formatDate, which used
+                              UTC + a hardcoded en-US locale). */}
+                          {richProfile.join_date ? (
+                            <LocalTime value={richProfile.join_date} mode="date" />
+                          ) : (
+                            "-"
+                          )}
                         </TableCell>
                         <TableCell>{t("history.present")}</TableCell>
                       </TableRow>
@@ -672,8 +709,15 @@ export const ProfileContent = () => {
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold truncate">{app.team}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">
+                              {/* applied_at localized to the viewer's timezone +
+                                  language. formatLocalTime is the string form (the
+                                  date is a t() parameter, not standalone JSX). */}
                               {t("applications.applied", {
-                                date: formatDate(app.applied_at),
+                                date: formatLocalTime(
+                                  app.applied_at,
+                                  "date",
+                                  locale,
+                                ),
                               })}
                             </p>
                           </div>
@@ -815,7 +859,9 @@ function AchievementsPanel({ ctx }: { ctx: AchievementContext }) {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {s.label}
+            {/* Section label localized by id (Lifetime / Monthly / Daily). The
+                catalog's English s.label is the fallback source only. */}
+            {t(`achievementsPanel.sectionLabel.${s.id}`)}
           </button>
         ))}
       </div>
@@ -858,6 +904,7 @@ function AchievementGroup({
   items: Achievement[];
   ctx: AchievementContext;
 }) {
+  const t = useTranslations("profile");
   // The id of the next tier to chase: the first NOT-earned tier in catalog order.
   // For metric ladders this is the next threshold; once all are earned it is null.
   const nextLockedId = items.find((a) => !isEarned(a, ctx))?.id ?? null;
@@ -865,11 +912,19 @@ function AchievementGroup({
   // How many of this group's tiers are earned (small "x / y" group progress).
   const earnedInGroup = items.filter((a) => isEarned(a, ctx)).length;
 
+  // Localized group header (Kills / Wins / Monthly Activity ...). The catalog's
+  // English `group` string is mapped to its message key; unknown groups fall back
+  // to the raw string so nothing ever renders blank.
+  const groupKey = ACHIEVEMENT_GROUP_KEY[group];
+  const groupLabel = groupKey
+    ? t(`achievementsCatalog.group.${groupKey}`)
+    : group;
+
   return (
     <div>
       {/* group header: label + earned count for the ladder */}
       <div className="flex items-center justify-between mb-2">
-        <h4 className="text-sm font-semibold text-foreground">{group}</h4>
+        <h4 className="text-sm font-semibold text-foreground">{groupLabel}</h4>
         <span className="text-xs text-muted-foreground">
           {earnedInGroup} / {items.length}
         </span>
@@ -911,6 +966,26 @@ function AchievementCard({
   const Icon = achievement.icon;
   const earned = isEarned(achievement, ctx);
   const goal = isGoal(achievement);
+
+  // ── Localized title + description for this catalog entry ──────────────────────
+  // The catalog (achievements.ts) holds the English strings as the data + fallback
+  // source; the UI renders the TRANSLATED text from the `achievementsCatalog` block.
+  // Title is keyed by the entry id. Description is either a parameterized ladder
+  // phrase ("Reach 1,000 kills.") for metric ladders, or a per-id sentence for
+  // milestones/goals. A ladder is identified by having a metric + threshold.
+  const isLadder =
+    achievement.metric != null && achievement.threshold != null;
+  const groupKey = ACHIEVEMENT_GROUP_KEY[achievement.group];
+  const achTitle = t(`achievementsCatalog.title.${achievement.id}`);
+  const achDescription = isLadder
+    ? t("achievementsCatalog.ladderDesc", {
+        count: achievement.threshold!.toLocaleString(),
+        // Ladder groups all have a unit key; fall back to the lowercased group.
+        unit: groupKey
+          ? t(`achievementsCatalog.unit.${groupKey}`)
+          : achievement.group.toLowerCase(),
+      })
+    : t(`achievementsCatalog.desc.${achievement.id}`);
 
   // Progress numbers for the next locked tier of a metric ladder. metricValue is
   // null for milestones/goals (no numeric progress), so the bar only shows on the
@@ -956,7 +1031,7 @@ function AchievementCard({
               earned || isNext ? "text-foreground" : "text-muted-foreground"
             }`}
           >
-            {achievement.title}
+            {achTitle}
           </p>
           {/* point value badge (gold when earned, outline-muted otherwise) */}
           <Badge
@@ -971,7 +1046,7 @@ function AchievementCard({
 
         {/* how-to-earn text (always shown so the catalog explains itself) */}
         <p className="text-xs text-muted-foreground mt-0.5">
-          {achievement.description}
+          {achDescription}
         </p>
 
         {/* progress toward the next locked tier's threshold (metric ladders only) */}
@@ -989,7 +1064,11 @@ function AchievementCard({
               {t("achievementsPanel.progressLabel", {
                 value: (value as number).toLocaleString(),
                 threshold: achievement.threshold!.toLocaleString(),
-                unit: achievement.group.toLowerCase(),
+                // Localized unit (e.g. "kills") for the ladder group; falls back
+                // to the lowercased English group when no key is mapped.
+                unit: groupKey
+                  ? t(`achievementsCatalog.unit.${groupKey}`)
+                  : achievement.group.toLowerCase(),
               })}
             </p>
           </div>

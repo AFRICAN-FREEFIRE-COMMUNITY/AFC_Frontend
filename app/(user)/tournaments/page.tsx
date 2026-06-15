@@ -15,7 +15,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { env } from "@/lib/env";
 import { matchesSearch } from "@/lib/search";
-import { formatDate } from "@/lib/utils";
+// i18n time: <LocalTime/> renders the event date in the viewer's own timezone +
+// language (replaces formatDate, which hardcoded the locale and rendered in UTC).
+import { LocalTime } from "@/components/LocalTime";
+// getActiveLocale resolves the NEXT_LOCALE cookie locale for the month-filter labels.
+import { getActiveLocale } from "@/lib/i18n/time";
 import Link from "next/link";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
@@ -97,7 +101,6 @@ type OrgVerFilter = "all" | "verified" | "afc";
 // --- Event Card ---
 const EventCard: React.FC<{ event: Event }> = ({ event }) => {
   const t = useTranslations("tournaments");
-  const formattedDate = formatDate(event.event_date);
 
   const statusColors: Record<string, string> = {
     upcoming: "text-blue-500",
@@ -140,8 +143,14 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
         <CardTitle className="hover:text-primary hover:underline">
           <Link href={`/tournaments/${event.slug}`}>{event.event_name}</Link>
         </CardTitle>
+        {/* i18n time: the event date renders in the viewer's own timezone +
+            language via <LocalTime mode="date"/>, injected as the <date> tag of
+            the "Date: <date>" string (t.rich). Replaces formatDate, which hardcoded
+            the locale and rendered in UTC. */}
         <p className="text-sm text-muted-foreground">
-          {t("list.card.date", { date: formattedDate })}
+          {t.rich("list.card.date", {
+            date: () => <LocalTime value={event.event_date} mode="date" />,
+          })}
         </p>
         <p
           className={`text-sm font-medium ${statusColors[event.event_status] ?? "text-muted-foreground"}`}
@@ -834,10 +843,17 @@ const EventsPage = () => {
         if (!seen.has(ym)) {
           seen.add(ym);
           const [year, month] = ym.split("-");
+          // i18n: month/year label follows the active UI language ("June 2026" ->
+          // "juin 2026" / "junho de 2026"). This is a plain calendar month (local
+          // midnight), not a stored UTC instant, so no timezone conversion is needed;
+          // only the locale matters, so we pass the active locale instead of "default".
           const label = new Date(
             Number(year),
             Number(month) - 1,
-          ).toLocaleString("default", { month: "long", year: "numeric" });
+          ).toLocaleString(getActiveLocale(), {
+            month: "long",
+            year: "numeric",
+          });
           months.push({ value: ym, label });
         }
       });

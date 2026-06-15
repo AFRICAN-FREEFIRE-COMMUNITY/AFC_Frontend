@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEFAULT_IMAGE } from "@/constants";
 import { env } from "@/lib/env";
-import { formatDate } from "@/lib/utils";
+// Renders the article's created_at in the VIEWER's own timezone + language
+// (replaces formatDate(), which built the string in the machine's local clock).
+import { LocalTime } from "@/components/LocalTime";
 import axios from "axios";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
@@ -88,9 +90,11 @@ export const LatestNews = () => {
                   <p className="text-sm mt-2 text-muted-foreground mb-1 line-clamp-2 break-words overflow-hidden">
                     {truncateText(extractTiptapText(newsDetails.content), 400)}
                   </p>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(newsDetails.created_at)}
-                  </span>
+                  <LocalTime
+                    value={newsDetails.created_at}
+                    mode="date"
+                    className="text-xs text-muted-foreground"
+                  />
                 </CardContent>
               </Card>
             ))}

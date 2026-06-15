@@ -31,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserX, AlertTriangle, Shield } from "lucide-react";
@@ -54,6 +55,8 @@ type Params = Promise<{
 export default function page({ params }: { params: Params }) {
   const { id } = use(params);
 
+  // i18n: manage-roster page copy (messages/en/teamsplayers.json -> "roster").
+  const t = useTranslations("teamsplayers");
   const router = useRouter();
   const { token, user } = useAuth();
 
@@ -82,7 +85,7 @@ export default function page({ params }: { params: Params }) {
         // Optional-chain the error body: a bodyless/network/500 failure has no
         // response.data, so the old `error.response.data.message` threw a
         // TypeError and white-screened the page instead of showing a toast.
-        toast.error(error?.response?.data?.message || "Failed to load team");
+        toast.error(error?.response?.data?.message || t("roster.loadFailed"));
       }
     });
   }, [id]);
@@ -148,7 +151,7 @@ export default function page({ params }: { params: Params }) {
         );
 
         toast.success(
-          `${memberToKick.username} has been removed from the team`
+          t("roster.memberRemoved", { name: memberToKick.username })
         );
         setKickModalOpen(false);
         setMemberToKick(null);
@@ -167,7 +170,7 @@ export default function page({ params }: { params: Params }) {
         toast.error(
           error?.response?.data?.error ||
             error?.response?.data?.message ||
-            "Failed to kick member"
+            t("roster.kickFailed")
         );
       }
     });
@@ -188,7 +191,7 @@ export default function page({ params }: { params: Params }) {
 
   const handleSave = async () => {
     if (roleChanges.size === 0) {
-      toast.info("No changes to save");
+      toast.info(t("roster.noChanges"));
       return;
     }
 
@@ -205,7 +208,7 @@ export default function page({ params }: { params: Params }) {
         const { results = [], has_errors } = res.data;
 
         if (!has_errors) {
-          toast.success("Team roster updated successfully!");
+          toast.success(t("roster.rosterUpdated"));
           setRoleChanges(new Map());
           router.push(`/teams/${id}`);
         } else {
@@ -220,7 +223,7 @@ export default function page({ params }: { params: Params }) {
 
           const succeeded = results.filter((r: any) => r.status === "success").length;
           if (succeeded > 0) {
-            toast.success(`${succeeded} update(s) saved successfully.`);
+            toast.success(t("roster.updatesSaved", { count: succeeded }));
             // Refresh so saved changes reflect immediately
             const refresh = await axios.post(
               `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
@@ -244,7 +247,7 @@ export default function page({ params }: { params: Params }) {
           });
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Failed to update roster");
+        toast.error(error?.response?.data?.message || t("roster.updateRosterFailed"));
       }
     });
   };
@@ -254,21 +257,21 @@ export default function page({ params }: { params: Params }) {
   if (teamDetails)
     return (
       <div>
-        <PageHeader title={`Manage Roster: ${teamDetails.team_name}`} back />
+        <PageHeader title={t("roster.pageTitle", { team: teamDetails.team_name })} back />
         <Card>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>{t("roster.name")}</TableHead>
                   <TableHead>
-                    In-game Role <InfoTip id="teams.roster.in_game_role" />
+                    {t("roster.inGameRole")} <InfoTip id="teams.roster.in_game_role" />
                   </TableHead>
                   <TableHead>
-                    Management Role{" "}
+                    {t("roster.managementRole")}{" "}
                     <InfoTip id="teams.roster.management_role" />
                   </TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t("roster.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -303,14 +306,14 @@ export default function page({ params }: { params: Params }) {
                           }
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="No role" />
+                            <SelectValue placeholder={t("roster.noRole")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">- No role -</SelectItem>
-                            <SelectItem value="rusher">Rusher</SelectItem>
-                            <SelectItem value="support">Support</SelectItem>
-                            <SelectItem value="grenader">Grenader</SelectItem>
-                            <SelectItem value="sniper">Sniper</SelectItem>
+                            <SelectItem value="none">{t("roster.noRoleOption")}</SelectItem>
+                            <SelectItem value="rusher">{t("roster.rusher")}</SelectItem>
+                            <SelectItem value="support">{t("roster.support")}</SelectItem>
+                            <SelectItem value="grenader">{t("roster.grenader")}</SelectItem>
+                            <SelectItem value="sniper">{t("roster.sniper")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -326,16 +329,16 @@ export default function page({ params }: { params: Params }) {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="member">Member</SelectItem>
+                            <SelectItem value="member">{t("roster.member")}</SelectItem>
                             <SelectItem value="team_captain">
-                              Team Captain
+                              {t("roster.teamCaptain")}
                             </SelectItem>
                             <SelectItem value="vice_captain">
-                              Vice Captain
+                              {t("roster.viceCaptain")}
                             </SelectItem>
-                            <SelectItem value="coach">Coach</SelectItem>
-                            <SelectItem value="manager">Manager</SelectItem>
-                            <SelectItem value="analyst">Analyst</SelectItem>
+                            <SelectItem value="coach">{t("roster.coach")}</SelectItem>
+                            <SelectItem value="manager">{t("roster.manager")}</SelectItem>
+                            <SelectItem value="analyst">{t("roster.analyst")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -344,15 +347,15 @@ export default function page({ params }: { params: Params }) {
                           <Badge variant="secondary" className="gap-1">
                             <Shield className="h-3 w-3" />
                             {member.username === teamDetails?.team_owner
-                              ? "Owner"
-                              : "Creator"}
+                              ? t("roster.owner")
+                              : t("roster.creator")}
                           </Badge>
                         ) : isSelf(member) ? (
                           <Badge
                             variant="outline"
                             className="text-muted-foreground"
                           >
-                            You
+                            {t("roster.you")}
                           </Badge>
                         ) : (
                           <Button
@@ -361,7 +364,7 @@ export default function page({ params }: { params: Params }) {
                             onClick={() => openKickModal(member)}
                           >
                             <UserX className="h-4 w-4 mr-1" />
-                            Kick
+                            {t("roster.kick")}
                           </Button>
                         )}
                       </TableCell>
@@ -377,14 +380,14 @@ export default function page({ params }: { params: Params }) {
                 onClick={() => router.push(`/teams/${id}`)}
                 disabled={savePending}
               >
-                Back
+                {t("roster.back")}
               </Button>
               <Button
                 className="flex-1"
                 onClick={handleSave}
                 disabled={savePending}
               >
-                {savePending ? "Saving..." : "Save Changes"}
+                {savePending ? t("roster.saving") : t("roster.saveChanges")}
                 {roleChanges.size > 0 && ` (${roleChanges.size})`}
               </Button>
             </div>
@@ -399,9 +402,9 @@ export default function page({ params }: { params: Params }) {
                   <UserX className="h-6 w-6 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl">Remove Member</DialogTitle>
+                  <DialogTitle className="text-xl">{t("roster.removeMember")}</DialogTitle>
                   <DialogDescription>
-                    This action cannot be undone
+                    {t("roster.cannotBeUndone")}
                   </DialogDescription>
                 </div>
               </div>
@@ -436,11 +439,14 @@ export default function page({ params }: { params: Params }) {
                 <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
                   <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-amber-800 dark:text-amber-200">
-                    <p className="font-medium">Are you sure?</p>
+                    <p className="font-medium">{t("roster.areYouSure")}</p>
                     <p className="text-amber-700 dark:text-amber-300 mt-1">
-                      {memberToKick.username} will be removed from{" "}
-                      <strong>{teamDetails?.team_name}</strong> and will need to
-                      request to join again or receive a new invite.
+                      {/* t.rich keeps the bolded team name inline within the warning. */}
+                      {t.rich("roster.kickWarning", {
+                        name: memberToKick.username,
+                        team: teamDetails?.team_name,
+                        strong: (chunks) => <strong>{chunks}</strong>,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -456,7 +462,7 @@ export default function page({ params }: { params: Params }) {
                 }}
                 disabled={kickPending}
               >
-                Cancel
+                {t("roster.cancel")}
               </Button>
               <Button
                 variant="destructive"
@@ -464,11 +470,11 @@ export default function page({ params }: { params: Params }) {
                 disabled={kickPending}
               >
                 {kickPending ? (
-                  <Loader text="Removing..." />
+                  <Loader text={t("roster.removing")} />
                 ) : (
                   <>
                     <UserX className="h-4 w-4 mr-2" />
-                    Remove from Team
+                    {t("roster.removeFromTeam")}
                   </>
                 )}
               </Button>

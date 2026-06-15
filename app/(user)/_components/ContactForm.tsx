@@ -21,6 +21,7 @@ import { ContactFormSchema, ContactFormSchemaType } from "@/lib/zodSchemas";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
 import { Loader } from "@/components/Loader";
 
@@ -36,6 +37,9 @@ import {
 } from "@/components/ui/dialog";
 
 export const ContactForm = () => {
+  // Strings for the shared "Get in Touch" contact card + its success dialog
+  // (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   const [openModal, setOpenModal] = useState<boolean>(false);
 
   const [pending, startTransition] = useTransition();
@@ -60,10 +64,12 @@ export const ContactForm = () => {
           toast.success(response.data.message);
           setOpenModal(true);
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("contactForm.toast.error"));
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Internal server error");
+        toast.error(
+          error?.response?.data?.message || t("contactForm.toast.serverError"),
+        );
         return;
       }
     });
@@ -72,7 +78,7 @@ export const ContactForm = () => {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Get in Touch</CardTitle>
+          <CardTitle>{t("contactForm.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -82,9 +88,9 @@ export const ContactForm = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{t("contactForm.name")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your name" {...field} />
+                      <Input placeholder={t("contactForm.namePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -95,9 +101,13 @@ export const ContactForm = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("contactForm.email")}</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Your email" {...field} />
+                      <Input
+                        type="email"
+                        placeholder={t("contactForm.emailPlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -108,10 +118,10 @@ export const ContactForm = () => {
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Message</FormLabel>
+                    <FormLabel>{t("contactForm.message")}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Your message"
+                        placeholder={t("contactForm.messagePlaceholder")}
                         className="resize-none"
                         {...field}
                       />
@@ -121,7 +131,11 @@ export const ContactForm = () => {
                 )}
               />
               <Button disabled={pending} type="submit" className="w-full">
-                {pending ? <Loader text="Sending..." /> : "Send message"}
+                {pending ? (
+                  <Loader text={t("contactForm.sending")} />
+                ) : (
+                  t("contactForm.send")
+                )}
               </Button>
             </form>
           </Form>
@@ -131,23 +145,21 @@ export const ContactForm = () => {
         <DialogContent className="flex flex-col gap-0 p-0 sm:max-h-[min(640px,80vh)] sm:max-w-lg [&>button:last-child]:top-3.5">
           <DialogHeader className="contents space-y-0 text-left">
             <DialogTitle className="border-b px-6 py-4 text-base">
-              Message sent!
+              {t("contactForm.success.title")}
             </DialogTitle>
             <div className="overflow-y-auto">
               <DialogDescription asChild>
                 <div className="px-6 py-4">
                   <div className="[&_strong]:text-foreground space-y-4 [&_strong]:font-semibold">
                     <div className="space-y-1">
-                      <p>
-                        Thank you for reaching out. We’ll get back to you soon.
-                      </p>
+                      <p>{t("contactForm.success.body")}</p>
                     </div>
                   </div>
                 </div>
               </DialogDescription>
               <DialogFooter className="px-6 pb-6 sm:justify-start">
                 <DialogClose asChild>
-                  <Button type="button">Close</Button>
+                  <Button type="button">{t("contactForm.success.close")}</Button>
                 </DialogClose>
               </DialogFooter>
             </div>

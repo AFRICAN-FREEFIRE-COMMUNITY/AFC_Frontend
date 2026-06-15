@@ -4,6 +4,7 @@ import { Footer } from "@/app/_components/Footer";
 import { PageHeader } from "@/components/PageHeader";
 import React from "react";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { siteConfig } from "@/lib/seo";
 
 // SEO: this public page had no metadata (audit 2026-06-14). Give it a real title + canonical so it
@@ -15,12 +16,19 @@ export const metadata: Metadata = {
   alternates: { canonical: `${siteConfig.url}/privacy-policy` },
 };
 
-const page = () => {
+// Server Component. Only the page heading is localized via getTranslations
+// (root.privacyPolicy.title, in messages/en/root.json). The legal policy BODY
+// below is left as canonical English on purpose: it is binding legal text that
+// must not be machine-translated by the automated fr/pt translate script, which
+// would produce legally unreliable copy. English falls back cleanly for all
+// locales through i18n/request.ts deep-merge.
+const page = async () => {
+  const t = await getTranslations("root");
   return (
     <div>
       <Header />
       <div className="container py-10">
-        <PageHeader title="AFC Privacy Policy Agreement" />
+        <PageHeader title={t("privacyPolicy.title")} />
 
         {/* --- START OF PRIVACY POLICY CONTENT --- */}
         {/* Use space-y-8 to create large gaps between major sections (H2s) */}

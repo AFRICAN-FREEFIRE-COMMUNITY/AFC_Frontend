@@ -63,6 +63,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   AnimatePresence,
@@ -307,6 +308,10 @@ function useAutoAdvance(
 // the "Continue?" return prompt, or the outro. Handles focus trap + Escape (Escape
 // counts as Skip / ending the whole tour).
 function HubOverlay() {
+  // Hub-modal chrome strings (Skip / Start / Continue / Finish / counters / countdown);
+  // namespace == messages/en/home.json. The per-stop title/body/launchLabel come from
+  // guided-tour-stops.ts (localized there).
+  const t = useTranslations("home");
   const {
     index,
     stops,
@@ -421,17 +426,17 @@ function HubOverlay() {
   const motionKey = `${stop.id}-${returnMode ? "return" : "main"}`;
 
   // For the return prompt we override the headline + body to the celebratory copy.
+  // Otherwise the stop's title/body fields are i18n KEYS (see guided-tour-stops.ts),
+  // so they are resolved through t(...) here.
   const headline =
-    isGuide && returnMode ? "Nice work!" : stop.title;
+    isGuide && returnMode ? t("tour.hub.returnHeadline") : t(stop.title);
   const bodyText =
-    isGuide && returnMode
-      ? "That is one stop done. Ready for the next one?"
-      : stop.body;
+    isGuide && returnMode ? t("tour.hub.returnBody") : t(stop.body);
 
   // The countdown line shown under the primary button while a timer is ticking.
   const countdownText =
     remaining !== null && remaining > 0
-      ? `Continuing in ${remaining}s`
+      ? t("tour.hub.continuingIn", { count: remaining })
       : null;
 
   return (
@@ -476,10 +481,10 @@ function HubOverlay() {
         <button
           type="button"
           onClick={endTour}
-          aria-label="Skip the welcome tour"
+          aria-label={t("tour.hub.skipAria")}
           className="absolute right-3 top-3 z-20 flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
-          Skip
+          {t("tour.hub.skip")}
           <IconX className="h-3.5 w-3.5" />
         </button>
 
@@ -564,7 +569,7 @@ function HubOverlay() {
                   onClick={continueTour}
                 >
                   <IconPlayerPlay className="h-4 w-4" />
-                  Start the tour
+                  {t("tour.hub.start")}
                 </Button>
               )}
 
@@ -578,7 +583,10 @@ function HubOverlay() {
                   onClick={() => goToPageGuide(stop.route!)}
                 >
                   <IconSparkles className="h-4 w-4" />
-                  {stop.launchLabel ?? "Show me on the page"}
+                  {/* launchLabel is an i18n key (guided-tour-stops.ts); resolve it. */}
+                  {stop.launchLabel
+                    ? t(stop.launchLabel)
+                    : t("tour.hub.showMeFallback")}
                 </Button>
               )}
 
@@ -591,7 +599,7 @@ function HubOverlay() {
                   className="mt-5"
                   onClick={continueTour}
                 >
-                  Continue
+                  {t("tour.hub.continue")}
                   <IconArrowRight className="h-4 w-4" />
                 </Button>
               )}
@@ -611,7 +619,8 @@ function HubOverlay() {
                         router.push(href);
                       }}
                     >
-                      {stop.outroCta.label}
+                      {/* outroCta.label is an i18n key (guided-tour-stops.ts). */}
+                      {t(stop.outroCta.label)}
                     </Button>
                   )}
                   <Button
@@ -620,7 +629,7 @@ function HubOverlay() {
                     size="md"
                     onClick={finish}
                   >
-                    Finish
+                    {t("tour.hub.finish")}
                     <IconConfetti className="h-4 w-4" />
                   </Button>
                 </div>
@@ -669,10 +678,13 @@ function HubOverlay() {
         {/* ── Footer: stop counter + Skip the whole tour ── */}
         <div className="relative mt-6 flex items-center justify-between gap-3 px-6">
           <span className="text-xs font-medium text-muted-foreground">
-            Stop {index + 1} of {stops.length}
+            {t("tour.hub.stopCounter", {
+              current: index + 1,
+              total: stops.length,
+            })}
           </span>
           <Button type="button" variant="ghost" size="sm" onClick={endTour}>
-            Skip tour
+            {t("tour.hub.skipTour")}
           </Button>
         </div>
       </motion.div>

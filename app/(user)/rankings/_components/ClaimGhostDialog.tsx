@@ -45,6 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { IconGhost2, IconUsersGroup, IconUser, IconAlertTriangle } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { rankingsClaimApi, MyTeam } from "@/lib/rankings";
 
 // What the caller hands in. `kind` decides team-vs-player; `ghostId` is the UUID (team) or int
@@ -65,6 +66,8 @@ export function ClaimGhostDialog({
   onOpenChange: (open: boolean) => void; // close handler (parent owns the target state)
   onSubmitted?: () => void;              // optional refetch hook after a successful request
 }) {
+  // i18n: ghost-claim dialog copy (messages/en/teamsplayers.json -> "claimGhost").
+  const t = useTranslations("teamsplayers");
   const open = target !== null;
   const isTeam = target?.kind === "team";
 
@@ -116,12 +119,12 @@ export function ClaimGhostDialog({
         // POST ghost-players/<int>/request-claim/ { evidence }
         await rankingsClaimApi.requestPlayerClaim(Number(target.ghostId), evidence.trim() || undefined);
       }
-      toast.success("Claim submitted for admin review");
+      toast.success(t("claimGhost.submitSuccess"));
       onOpenChange(false);
       onSubmitted?.();
     } catch (err: any) {
       // 403 (not your team) / 400 (not unclaimed / conflict) come back with a `message`. Relay it.
-      toast.error(err?.response?.data?.message || "Failed to submit the claim. Please try again.");
+      toast.error(err?.response?.data?.message || t("claimGhost.submitFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -133,22 +136,26 @@ export function ClaimGhostDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconGhost2 className="size-5 text-primary" />
-            {isTeam ? "Claim this ghost team" : "Claim this ghost player"}
+            {isTeam ? t("claimGhost.claimTeamTitle") : t("claimGhost.claimPlayerTitle")}
           </DialogTitle>
           <DialogDescription>
-            {isTeam ? (
-              <>
-                Ask an admin to map{" "}
-                <span className="font-medium text-foreground">{target?.ghostName}</span> onto one of
-                your teams. If approved, its history and points transfer to your team.
-              </>
-            ) : (
-              <>
-                Confirm that{" "}
-                <span className="font-medium text-foreground">{target?.ghostName}</span> is you. If an
-                admin approves, its history and points transfer to your account.
-              </>
-            )}
+            {/* t.rich embeds the highlighted ghost name inline so the sentence stays
+                translatable as one unit (the {name} chunk renders the styled span). */}
+            {isTeam
+              ? t.rich("claimGhost.teamDescription", {
+                  name: () => (
+                    <span className="font-medium text-foreground">
+                      {target?.ghostName}
+                    </span>
+                  ),
+                })
+              : t.rich("claimGhost.playerDescription", {
+                  name: () => (
+                    <span className="font-medium text-foreground">
+                      {target?.ghostName}
+                    </span>
+                  ),
+                })}
           </DialogDescription>
         </DialogHeader>
 
@@ -157,23 +164,20 @@ export function ClaimGhostDialog({
             // ── team claim: pick one of the user's teams ──
             <div className="space-y-2">
               <Label htmlFor="claim-team" className="flex items-center gap-1.5">
-                <IconUsersGroup className="size-4" /> Claim for team
+                <IconUsersGroup className="size-4" /> {t("claimGhost.claimForTeam")}
               </Label>
               {teamsLoading ? (
-                <p className="text-sm text-muted-foreground">Loading your teams...</p>
+                <p className="text-sm text-muted-foreground">{t("claimGhost.loadingTeams")}</p>
               ) : teams.length === 0 ? (
                 // No team = nothing to claim for. The backend would 403, so block here with a clear note.
                 <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-300">
                   <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
-                  <span>
-                    You are not the owner, captain, or a manager of any team. Only a team&apos;s manager
-                    can claim a ghost on its behalf.
-                  </span>
+                  <span>{t("claimGhost.noTeamWarning")}</span>
                 </div>
               ) : (
                 <Select value={selectedTeamId || undefined} onValueChange={setSelectedTeamId}>
                   <SelectTrigger id="claim-team" className="w-full">
-                    <SelectValue placeholder="Select your team" />
+                    <SelectValue placeholder={t("claimGhost.selectTeam")} />
                   </SelectTrigger>
                   <SelectContent>
                     {teams.map((t) => (
@@ -191,9 +195,12 @@ export function ClaimGhostDialog({
             <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-sm">
               <IconUser className="mt-0.5 size-4 shrink-0 text-primary" />
               <span className="text-muted-foreground">
-                You are claiming this ghost player as{" "}
-                <span className="font-medium text-foreground">yourself</span>. An admin will verify
-                before any history moves.
+                {/* t.rich embeds the emphasized "yourself" inline. */}
+                {t.rich("claimGhost.selfClaimNote", {
+                  self: (chunks) => (
+                    <span className="font-medium text-foreground">{chunks}</span>
+                  ),
+                })}
               </span>
             </div>
           )}
@@ -201,27 +208,30 @@ export function ClaimGhostDialog({
           {/* optional evidence the admin reads when reviewing (stored as claim_note) */}
           <div className="space-y-2">
             <Label htmlFor="claim-evidence">
-              Evidence <span className="font-normal text-muted-foreground">(optional)</span>
+              {t("claimGhost.evidence")}{" "}
+              <span className="font-normal text-muted-foreground">
+                {t("claimGhost.evidenceOptional")}
+              </span>
             </Label>
             <Textarea
               id="claim-evidence"
               value={evidence}
               onChange={(e) => setEvidence(e.target.value)}
-              placeholder="Links, screenshots, or anything that helps an admin confirm this is you / your team."
+              placeholder={t("claimGhost.evidencePlaceholder")}
               className="min-h-24"
             />
             <p className="text-[11px] text-muted-foreground">
-              An admin reviews every claim before any results are transferred.
+              {t("claimGhost.evidenceNote")}
             </p>
           </div>
         </div>
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            {t("claimGhost.cancel")}
           </Button>
           <Button onClick={submit} disabled={!canSubmit || submitting}>
-            {submitting ? "Submitting..." : "Submit claim"}
+            {submitting ? t("claimGhost.submitting") : t("claimGhost.submitClaim")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -232,9 +242,10 @@ export function ClaimGhostDialog({
 // Small reusable "Ghost" pill kept here so the ladder + this dialog share one badge style.
 // (The ladder already renders its own inline badge; this is exported for any future co-located use.)
 export function GhostBadge() {
+  const t = useTranslations("teamsplayers");
   return (
     <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
-      Ghost
+      {t("claimGhost.ghost")}
     </Badge>
   );
 }

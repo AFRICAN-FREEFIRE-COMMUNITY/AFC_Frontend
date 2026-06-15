@@ -27,6 +27,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader } from "@/components/Loader";
 import { cn } from "@/lib/utils";
 import { Bell, Mail, MessageSquare, Send } from "lucide-react";
+// Shared "what is this about?" deep-link picker. Here the message's recipient is
+// already chosen by target_type/target_id (player vs team), so the LINK target
+// rides on link_target_type + link_target_id per the admin_send_message contract.
+import {
+  NotificationTargetSelector,
+  EMPTY_TARGET,
+  type NotificationTarget,
+} from "./NotificationTargetSelector";
 
 type Delivery = "both" | "push" | "email";
 
@@ -53,11 +61,14 @@ export const SendMessageModal = ({
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [delivery, setDelivery] = useState<Delivery>("both");
+  // Optional deep link for the "Take me there" button on the recipient's side.
+  const [linkTarget, setLinkTarget] = useState<NotificationTarget>(EMPTY_TARGET);
 
   const reset = () => {
     setTitle("");
     setMessage("");
     setDelivery("both");
+    setLinkTarget(EMPTY_TARGET);
   };
 
   const handleSend = () => {
@@ -75,6 +86,15 @@ export const SendMessageModal = ({
             title: title.trim(),
             message: message.trim(),
             delivery,
+            // Deep-link target (only when the admin picked one). The recipient
+            // is already keyed by target_type/target_id above, so the link rides
+            // on the separate link_target_* pair.
+            ...(linkTarget.target_type !== "none"
+              ? {
+                  link_target_type: linkTarget.target_type,
+                  link_target_id: linkTarget.target_id.trim(),
+                }
+              : {}),
           },
           { headers: { Authorization: `Bearer ${token}` } },
         );
@@ -156,6 +176,12 @@ export const SendMessageModal = ({
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>
+
+          {/* Optional deep link: gives the recipient a "Take me there" button. */}
+          <NotificationTargetSelector
+            value={linkTarget}
+            onChange={setLinkTarget}
+          />
 
           <div className="flex gap-3">
             <Button

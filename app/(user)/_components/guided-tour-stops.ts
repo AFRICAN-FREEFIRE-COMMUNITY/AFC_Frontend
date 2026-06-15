@@ -46,6 +46,15 @@
 //   NO em dashes or en dashes in any user-facing string below (titles, bodies,
 //   button labels, step copy). Use commas, periods, parentheses or a spaced hyphen.
 //   Box-drawing dashes in these comments never render to the user.
+//
+// i18n NOTE
+//   This is a plain .ts module, so it cannot call next-intl hooks. Every user-facing
+//   string field below therefore holds a TRANSLATION KEY (relative to the "home"
+//   namespace), not English text. The consumers resolve them: WelcomeTour.tsx runs
+//   t(stop.title) / t(stop.body) / t(stop.launchLabel) / t(stop.outroCta.label) and
+//   PageGuide.tsx runs t(step.title) / t(step.description). The English values for
+//   these keys live in messages/en/home.json under tour.stops.*. Keys, not strings,
+//   keep the catalogue declarative while staying fully translatable.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -73,6 +82,7 @@ export type StopAccent = "primary" | "gold";
 // align position the popover around the target (driver.js terms).
 export interface GuidedTourStep {
   element: string;
+  // i18n keys (home namespace), resolved by PageGuide.tsx via t(...).
   title: string;
   description: string;
   side?: "top" | "right" | "bottom" | "left" | "over";
@@ -86,6 +96,7 @@ export interface GuidedStop {
   icon: TablerIconComponent;
   idle: StopIdle;
   accent: StopAccent;
+  // i18n keys (home namespace), resolved by WelcomeTour.tsx via t(...).
   title: string;
   body: string;
   // ── Stop kind ──
@@ -94,14 +105,19 @@ export interface GuidedStop {
   kind: "intro" | "guide" | "outro";
   // The page the "Show me" launcher navigates to (guide stops only).
   route?: string;
-  // The launcher button label (guide stops only). Outro carries its own CTA below.
+  // The launcher button label (guide stops only) - i18n key, resolved in WelcomeTour.
+  // Outro carries its own CTA below.
   launchLabel?: string;
   // The on-page driver.js steps for this stop (guide stops only).
   steps?: GuidedTourStep[];
   // Outro CTA: navigates to the glossary (handled by the hub, not driver.js).
+  // `label` is an i18n key, resolved in WelcomeTour; `href` is a real route.
   outroCta?: { label: string; href: string };
 }
 
+// NOTE: every title/body/launchLabel/step.title/step.description/outroCta.label below
+// is an i18n KEY under the "home" namespace (resolved by the consumers via t(...)).
+// The English copy for each key lives in messages/en/home.json -> tour.stops.*.
 export const GUIDED_STOPS: GuidedStop[] = [
   // ── 0. Intro (modal only) ──
   {
@@ -109,8 +125,8 @@ export const GUIDED_STOPS: GuidedStop[] = [
     icon: IconConfetti,
     idle: "party",
     accent: "primary",
-    title: "Welcome to AFC!",
-    body: "Esports just means organized competitive gaming, players and teams competing for real. AFC is the home of Free Fire competition in Africa. We will walk you through the site one stop at a time. Just click through, you do not have to do anything on each page. We will carry you all the way to the end.",
+    title: "tour.stops.welcome.title",
+    body: "tour.stops.welcome.body",
     kind: "intro",
   },
 
@@ -120,33 +136,30 @@ export const GUIDED_STOPS: GuidedStop[] = [
     icon: IconUserCircle,
     idle: "bounce",
     accent: "gold",
-    title: "Set up your profile",
-    body: "Add your Free Fire UID, in-game name, and esport image so teams and tournaments can find you. A complete profile is your ticket into the action.",
+    title: "tour.stops.profile.title",
+    body: "tour.stops.profile.body",
     kind: "guide",
     route: "/profile/edit",
-    launchLabel: "Show me on my profile",
+    launchLabel: "tour.stops.profile.launchLabel",
     steps: [
       {
         element: '[data-tour="profile-uid"]',
-        title: "Add your Free Fire UID",
-        description:
-          "Enter your in-game UID here so teams and tournaments can find and verify you.",
+        title: "tour.stops.profile.steps.uid.title",
+        description: "tour.stops.profile.steps.uid.description",
         side: "bottom",
         align: "start",
       },
       {
         element: '[data-tour="profile-ign"]',
-        title: "Set your in-game name",
-        description:
-          "This is the name people will see across AFC. Make it match your Free Fire account.",
+        title: "tour.stops.profile.steps.ign.title",
+        description: "tour.stops.profile.steps.ign.description",
         side: "bottom",
         align: "start",
       },
       {
         element: '[data-tour="profile-save"]',
-        title: "Save your profile",
-        description:
-          "Save changes lives here when you are ready. No need to fill anything in right now, just click Next to keep the tour going.",
+        title: "tour.stops.profile.steps.save.title",
+        description: "tour.stops.profile.steps.save.description",
         side: "top",
         align: "start",
       },
@@ -156,9 +169,8 @@ export const GUIDED_STOPS: GuidedStop[] = [
         // shareable profile card. Anchored on the esport-image Card in
         // profile/edit/page.tsx ([data-tour="profile-esports"]).
         element: '[data-tour="profile-esports"]',
-        title: "Add your esport image",
-        description:
-          "This is the photo organizers use as your player picture in event graphics, and it powers your shareable profile card. Some events require it. You can add it later, just click Next.",
+        title: "tour.stops.profile.steps.esports.title",
+        description: "tour.stops.profile.steps.esports.description",
         side: "top",
         align: "center",
       },
@@ -171,25 +183,23 @@ export const GUIDED_STOPS: GuidedStop[] = [
     icon: IconUsersGroup,
     idle: "pop",
     accent: "primary",
-    title: "Find your squad",
-    body: "Create your own team or join one. Squads compete together, climb the rankings together, and win together. Going solo? You can do that too.",
+    title: "tour.stops.teams.title",
+    body: "tour.stops.teams.body",
     kind: "guide",
     route: "/teams",
-    launchLabel: "Show me on teams",
+    launchLabel: "tour.stops.teams.launchLabel",
     steps: [
       {
         element: '[data-tour="teams-create"]',
-        title: "Create your own team",
-        description:
-          "Start a squad here, name it, set it up, and invite your players.",
+        title: "tour.stops.teams.steps.create.title",
+        description: "tour.stops.teams.steps.create.description",
         side: "bottom",
         align: "end",
       },
       {
         element: '[data-tour="teams-list"]',
-        title: "Or browse and join a team",
-        description:
-          "Scroll the teams here and tap Apply to Join to ask an existing squad to take you on. You can do this later, just click Next for now.",
+        title: "tour.stops.teams.steps.browse.title",
+        description: "tour.stops.teams.steps.browse.description",
         side: "top",
         align: "center",
       },
@@ -202,25 +212,23 @@ export const GUIDED_STOPS: GuidedStop[] = [
     icon: IconUserSearch,
     idle: "pulse",
     accent: "gold",
-    title: "Player Market",
-    body: "Recruit players for your team, or post yourself so teams can recruit you. Think of it as the transfer window, open all year.",
+    title: "tour.stops.market.title",
+    body: "tour.stops.market.body",
     kind: "guide",
     route: "/player-markets",
-    launchLabel: "Show me the market",
+    launchLabel: "tour.stops.market.launchLabel",
     steps: [
       {
         element: '[data-tour="market-create"]',
-        title: "Create a post",
-        description:
-          "Post here to recruit players for your team, or to put yourself up so teams can recruit you.",
+        title: "tour.stops.market.steps.create.title",
+        description: "tour.stops.market.steps.create.description",
         side: "bottom",
         align: "end",
       },
       {
         element: '[data-tour="market-tabs"]',
-        title: "Switch between sides",
-        description:
-          "Flip these tabs to see teams that are recruiting, or players who are open to join. Have a look any time, nothing to do here now, just click Next.",
+        title: "tour.stops.market.steps.tabs.title",
+        description: "tour.stops.market.steps.tabs.description",
         side: "bottom",
         align: "start",
       },
@@ -233,25 +241,23 @@ export const GUIDED_STOPS: GuidedStop[] = [
     icon: IconTrophy,
     idle: "bounce",
     accent: "primary",
-    title: "Tournaments and Scrims",
-    body: "Tournaments are official competitions with prizes and ranking points. Scrims are practice matches to train your team. Jump into either when you are ready.",
+    title: "tour.stops.tournaments.title",
+    body: "tour.stops.tournaments.body",
     kind: "guide",
     route: "/tournaments",
-    launchLabel: "Show me the events",
+    launchLabel: "tour.stops.tournaments.launchLabel",
     steps: [
       {
         element: '[data-tour="tournaments-filter"]',
-        title: "Tournaments versus scrims",
-        description:
-          "Tournaments are official competitions with prizes. Scrims are practice matches to train. Switch these tabs to see each.",
+        title: "tour.stops.tournaments.steps.filter.title",
+        description: "tour.stops.tournaments.steps.filter.description",
         side: "bottom",
         align: "start",
       },
       {
         element: '[data-tour="tournaments-list"]',
-        title: "Browse and open an event",
-        description:
-          "Every event lives here. Open one to read the details and register your team whenever you like. For now, just click Done to wrap up the tour.",
+        title: "tour.stops.tournaments.steps.list.title",
+        description: "tour.stops.tournaments.steps.list.description",
         side: "top",
         align: "center",
       },
@@ -264,9 +270,9 @@ export const GUIDED_STOPS: GuidedStop[] = [
     icon: IconBook2,
     idle: "spin",
     accent: "gold",
-    title: "You are all set!",
-    body: "New to the lingo? The Glossary explains every esports term in plain words, anytime you need it. Now go have fun and good luck out there.",
+    title: "tour.stops.done.title",
+    body: "tour.stops.done.body",
     kind: "outro",
-    outroCta: { label: "Open glossary", href: "/glossary" },
+    outroCta: { label: "tour.stops.done.ctaLabel", href: "/glossary" },
   },
 ];

@@ -1,0 +1,61 @@
+{
+  "rules": {
+    "title": "Regulamento da AFC",
+    "description": "A estrutura oficial de governança para todas as competições da Comunidade Africana de Freefire.",
+    "searchPlaceholder": "Pesquisar regras (ex: 'fraude', 'salário', 'nível')...",
+    "noResults": "Nenhuma regra específica encontrada para \"{query}\".",
+    "supportTitle": "Discrepâncias nas Regras?",
+    "supportDescription": "Os administradores da AFC têm direitos de veto final sobre a interpretação e alterações das regras. Contacte-nos via Discord para esclarecimentos imediatos.",
+    "supportButton": "Contactar Suporte Administrativo"
+  },
+  "privacyPolicy": {
+    "title": "Acordo de Política de Privacidade da AFC"
+  },
+  "termsOfService": {
+    "title": "Termos de Serviço da AFC"
+  },
+  "unauthorized": {
+    "title": "Acesso Negado",
+    "description": "Você não possui as permissões administrativas necessárias para aceder a esta seção do painel da AFC.",
+    "goToDashboard": "Ir para o Painel do Utilizador",
+    "requestAccess": "Solicitar Acesso"
+  },
+  "invite": {
+    "loginToAccept": "Por favor, faça login para aceitar este convite",
+    "loginToDecline": "Por favor, faça login para recusar este convite",
+    "fetchFailed": "Falha ao buscar detalhes da equipa",
+    "joinSuccess": "Entrou na equipa com sucesso!",
+    "acceptFailed": "Falha ao aceitar convite",
+    "declineSuccess": "Convite recusado",
+    "declineFailed": "Falha ao recusar convite",
+    "invalidTitle": "Convite Inválido",
+    "invalidDescription": "Este link de convite é inválido ou expirou.",
+    "browseTeams": "Procurar Equipas",
+    "heading": "Convite para Equipa",
+    "invitedAs": "Você foi convidado para se juntar a esta equipa como um(a)",
+    "bannedTitle": "Esta equipa está atualmente banida",
+    "bannedDescription": "Você não pode entrar numa equipa banida. O link de convite não é mais válido.",
+    "bannedReason": "Razão: {reason}",
+    "aboutTeam": "Sobre a Equipa",
+    "statMembers": "Membros",
+    "statWins": "Vitórias",
+    "statTier": "Nível",
+    "statCountry": "País",
+    "countryGlobal": "Global",
+    "currentMembers": "Membros Atuais",
+    "browseOtherTeams": "Procurar Outras Equipas",
+    "decline": "Recusar",
+    "declining": "A recusar...",
+    "accept": "Aceitar e Entrar",
+    "joining": "A entrar...",
+    "authRequiredTitle": "Autenticação Necessária",
+    "authRequiredPrefix": "Você precisa",
+    "authRequiredLink": "fazer login",
+    "authRequiredSuffix": "para aceitar ou recusar este convite."
+  },
+  "common": {
+    "loading": "A carregar...",
+    "redirecting": "A redirecionar",
+    "invalidEmail": "Por favor, insira um endereço de e-mail válido"
+  }
+}

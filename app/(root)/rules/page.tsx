@@ -35,9 +35,16 @@ import Link from "next/link";
 import { Header } from "@/app/(user)/_components/Header";
 import { AFC_RULES_DATA } from "@/constants/rules";
 import { matchesSearch } from "@/lib/search";
+import { useTranslations } from "next-intl";
 
 const RulesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  // Root namespace (messages/en/root.json, rules.* keys): page title +
+  // description, the search box placeholder, the no-match empty state, and the
+  // "Rule Discrepancies?" support card. The rule CONTENT itself comes from the
+  // shared AFC_RULES_DATA constant (constants/rules.ts), which is outside this
+  // page and not localized here.
+  const t = useTranslations("root");
 
   // Use the shared matchesSearch helper (punctuation/space/accent-insensitive, folds stylized
   // fancy-font unicode) so the rules search behaves like every other "Search ..." box on the site.
@@ -55,15 +62,15 @@ const RulesPage = () => {
       <Header />
       <div className="container py-10 space-y-8 max-w-5xl">
         <PageHeader
-          title="AFC Handbook"
-          description="The official governing framework for all African Freefire Community competitions."
+          title={t("rules.title")}
+          description={t("rules.description")}
         />
 
         {/* Search Bar */}
         <div className="relative">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4" />
           <Input
-            placeholder="Search rules (e.g. 'cheating', 'salary', 'tier')..."
+            placeholder={t("rules.searchPlaceholder")}
             className="pl-10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -112,7 +119,7 @@ const RulesPage = () => {
             ))
           ) : (
             <div className="text-center py-20 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
-              No specific rule found for "{searchQuery}".
+              {t("rules.noResults", { query: searchQuery })}
             </div>
           )}
         </div>
@@ -123,17 +130,15 @@ const RulesPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IconMessageExclamation className="text-primary" />
-              Rule Discrepancies?
+              {t("rules.supportTitle")}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              AFC admins have final veto rights regarding rule interpretation
-              and alterations. Contact us via Discord for immediate
-              clarification.
+              {t("rules.supportDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button className="w-full" asChild>
-              <Link href={"/contact"}>Contact Admin Support</Link>
+              <Link href={"/contact"}>{t("rules.supportButton")}</Link>
             </Button>
             {/* <Button
               variant="outline"

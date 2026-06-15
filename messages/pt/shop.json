@@ -1,4 +1,7 @@
 {
+  "common": {
+    "loading": "Carregando..."
+  },
   "list": {
     "pageTitle": "Loja AFC",
     "cart": "Carrinho",

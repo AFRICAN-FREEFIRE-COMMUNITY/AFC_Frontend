@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   Dialog,
@@ -27,7 +28,9 @@ import {
 import { toast } from "sonner";
 import { Loader } from "@/components/Loader";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
-import { formatDate } from "@/lib/utils";
+// "Applied on <date>" in the VIEWER's own timezone + language (replaces formatDate,
+// which built the string in the machine's local clock). See components/LocalTime.tsx.
+import { LocalTime } from "@/components/LocalTime";
 import { env } from "@/lib/env";
 import axios from "axios";
 // Subtle clickable player name -> public player profile.
@@ -70,6 +73,10 @@ const STATUS_COLORS: Record<string, string> = {
   REJECTED: "bg-red-900/20 text-red-400 border-red-800",
 };
 
+// Shared application-status badge, also imported by the player-markets + teams pages
+// (their own i18n namespaces). It renders the raw backend status enum (underscores ->
+// spaces), which is a non-localized identifier; localizing it would have to be done in
+// each consuming namespace, so this shared helper is intentionally left as-is here.
 export function getStatusBadge(status: string) {
   return (
     <Badge
@@ -96,6 +103,8 @@ export function ReviewApplicationDialog({
   onClose,
   onStatusUpdated,
 }: Props) {
+  // Strings for the application-review dialog (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   const [pending, startTransition] = useTransition();
 
   const handleUpdateStatus = (action: "SHORTLIST" | "INVITE" | "REJECT") => {
@@ -107,13 +116,14 @@ export function ReviewApplicationDialog({
           { application_id: app.id, action },
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        const label =
+        // Success toast keyed by the action taken (each carries its own past-tense copy).
+        const successKey =
           action === "SHORTLIST"
-            ? "Shortlisted"
+            ? "reviewApplication.toast.shortlisted"
             : action === "INVITE"
-              ? "Invited to trial"
-              : "Rejected";
-        toast.success(`${label} successfully!`);
+              ? "reviewApplication.toast.invited"
+              : "reviewApplication.toast.rejected";
+        toast.success(t(successKey));
         // Pass back the updated record (use API response if available, else patch locally)
         const updated: ApplicationRecord = res.data?.application ?? {
           ...app,
@@ -128,7 +138,8 @@ export function ReviewApplicationDialog({
         onClose();
       } catch (error: any) {
         toast.error(
-          error?.response?.data?.message || "Failed to update status.",
+          error?.response?.data?.message ||
+            t("reviewApplication.toast.updateFailed"),
         );
       }
     });
@@ -161,7 +172,11 @@ export function ReviewApplicationDialog({
                   {getStatusBadge(app.status)}
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Applied on {formatDate(app.applied_at)}
+                  {/* "Applied on <date>" - the date is rendered in the viewer's own
+                      timezone + language via t.rich + the LocalTime component. */}
+                  {t.rich("reviewApplication.appliedOn", {
+                    date: () => <LocalTime value={app.applied_at} mode="date" />,
+                  })}
                 </p>
               </div>
             </div>
@@ -170,41 +185,52 @@ export function ReviewApplicationDialog({
           <div className="space-y-5">
             {/* ── Player Overview ── */}
             <div>
-              <h4 className="text-sm font-semibold mb-3">Player Overview</h4>
+              <h4 className="text-sm font-semibold mb-3">
+                {t("reviewApplication.overview")}
+              </h4>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                 <div>
-                  <p className="text-xs text-muted-foreground">IGN</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("reviewApplication.ign")}
+                  </p>
                   <p className="font-medium">{app.player}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">UID</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("reviewApplication.uid")}
+                  </p>
                   <p className="font-medium font-mono text-xs">{app.uid}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <IconBrandDiscord className="h-3 w-3" /> Discord
+                    <IconBrandDiscord className="h-3 w-3" />{" "}
+                    {t("reviewApplication.discord")}
                   </p>
                   <p className="font-medium text-xs">
                     {app.contact_unlocked ? (
                       app.discord_username || "-"
                     ) : (
                       <span className="italic text-muted-foreground">
-                        Unlocks after trial invite
+                        {t("reviewApplication.discordLocked")}
                       </span>
                     )}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Country</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("reviewApplication.country")}
+                  </p>
                   <p className="font-medium">{app.country || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Primary Role</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("reviewApplication.primaryRole")}
+                  </p>
                   <p className="font-medium">{app.primary_role || "-"}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    Secondary Role
+                    {t("reviewApplication.secondaryRole")}
                   </p>
                   <p className="font-medium">{app.secondary_role || "-"}</p>
                 </div>
@@ -216,14 +242,14 @@ export function ReviewApplicationDialog({
             {/* ── Performance Snapshot ── */}
             <div>
               <h4 className="text-sm font-semibold mb-3">
-                Performance Snapshot
+                {t("reviewApplication.performance")}
               </h4>
               <div className="grid grid-cols-3 gap-2 mb-2">
                 <div className="bg-muted/40 rounded-lg p-3 text-center">
                   <IconTrophy className="h-4 w-4 mx-auto mb-1 text-yellow-400" />
                   <p className="text-xl font-bold">{app.tournament_wins}</p>
                   <p className="text-xs text-muted-foreground leading-tight">
-                    Tournament Wins
+                    {t("reviewApplication.tournamentWins")}
                   </p>
                 </div>
                 <div className="bg-muted/40 rounded-lg p-3 text-center">
@@ -232,7 +258,7 @@ export function ReviewApplicationDialog({
                     {app.total_tournament_kills}
                   </p>
                   <p className="text-xs text-muted-foreground leading-tight">
-                    Tournament Kills
+                    {t("reviewApplication.tournamentKills")}
                   </p>
                 </div>
                 <div className="bg-muted/40 rounded-lg p-3 text-center">
@@ -241,17 +267,21 @@ export function ReviewApplicationDialog({
                     {app.tournament_finals_appearances}
                   </p>
                   <p className="text-xs text-muted-foreground leading-tight">
-                    Finals Appearances
+                    {t("reviewApplication.finalsAppearances")}
                   </p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-muted/40 rounded-lg p-3">
-                  <p className="text-xs text-muted-foreground">Scrim Kills</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("reviewApplication.scrimKills")}
+                  </p>
                   <p className="text-xl font-bold">{app.scrims_kills}</p>
                 </div>
                 <div className="bg-muted/40 rounded-lg p-3">
-                  <p className="text-xs text-muted-foreground">Scrim Wins</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("reviewApplication.scrimWins")}
+                  </p>
                   <p className="text-xl font-bold">{app.scrims_wins}</p>
                 </div>
               </div>
@@ -263,11 +293,11 @@ export function ReviewApplicationDialog({
             <div>
               <h4 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
                 <IconShieldCheck className="h-4 w-4" />
-                Eligibility & Compliance
+                {t("reviewApplication.eligibility")}
               </h4>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">
-                  Ban Status
+                  {t("reviewApplication.banStatus")}
                 </p>
                 <Badge
                   variant="outline"
@@ -277,7 +307,9 @@ export function ReviewApplicationDialog({
                       : "text-green-400 border-green-800"
                   }
                 >
-                  {app.is_banned ? "Banned" : "Clear"}
+                  {app.is_banned
+                    ? t("reviewApplication.banned")
+                    : t("reviewApplication.clear")}
                 </Badge>
               </div>
             </div>
@@ -288,7 +320,7 @@ export function ReviewApplicationDialog({
                 <Separator />
                 <div>
                   <h4 className="text-sm font-semibold mb-2">
-                    Application Message
+                    {t("reviewApplication.message")}
                   </h4>
                   <p className="text-sm text-muted-foreground italic">
                     &ldquo;{app.application_message}&rdquo;
@@ -309,11 +341,11 @@ export function ReviewApplicationDialog({
                 onClick={() => handleUpdateStatus("SHORTLIST")}
               >
                 {pending ? (
-                  <Loader text="Shortlisting..." />
+                  <Loader text={t("reviewApplication.shortlisting")} />
                 ) : (
                   <>
                     <IconStar className="h-4 w-4 mr-1.5" />
-                    Shortlist
+                    {t("reviewApplication.shortlist")}
                   </>
                 )}
               </Button>
@@ -323,7 +355,7 @@ export function ReviewApplicationDialog({
               <Button size="sm" className="flex-1" asChild>
                 <Link href={`/player-markets/applications/${app.id}`}>
                   <IconMessage className="h-4 w-4 mr-1.5" />
-                  View & Chat
+                  {t("reviewApplication.viewChat")}
                 </Link>
               </Button>
             ) : (
@@ -334,11 +366,11 @@ export function ReviewApplicationDialog({
                 onClick={() => handleUpdateStatus("INVITE")}
               >
                 {pending ? (
-                  <Loader text="Inviting..." />
+                  <Loader text={t("reviewApplication.inviting")} />
                 ) : (
                   <>
                     <IconUserCheck className="h-4 w-4 mr-1.5" />
-                    Invite to Trial
+                    {t("reviewApplication.invite")}
                   </>
                 )}
               </Button>
@@ -352,11 +384,11 @@ export function ReviewApplicationDialog({
               onClick={() => handleUpdateStatus("REJECT")}
             >
               {pending ? (
-                <Loader text="Rejecting..." />
+                <Loader text={t("reviewApplication.rejecting")} />
               ) : (
                 <>
                   <IconX className="h-4 w-4 mr-1.5" />
-                  Reject
+                  {t("reviewApplication.reject")}
                 </>
               )}
             </Button>

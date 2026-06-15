@@ -23,6 +23,7 @@
 // target keeps the dialog closed.
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -47,35 +48,17 @@ export interface ReportTarget {
   subjectName: string;
 }
 
-// Reason options - match MarketReport.CATEGORY_CHOICES exactly (value === backend key).
-// Each carries a short description, mirroring the mockup's radio cards.
-const REASONS: { value: string; title: string; desc: string }[] = [
-  {
-    value: "bad_tryout",
-    title: "Negative tryout experience",
-    desc: "They behaved badly during a trial (no-show, toxic, unfair).",
-  },
-  {
-    value: "scam",
-    title: "Scam or fraud",
-    desc: "Asked for money, account details, or tried to deceive me.",
-  },
-  {
-    value: "abusive",
-    title: "Abusive conduct",
-    desc: "Harassment, threats, or hate speech in chat.",
-  },
-  {
-    value: "fake_post",
-    title: "Fake or misleading post",
-    desc: "Impersonation, fake roster, or false claims.",
-  },
-  {
-    value: "other",
-    title: "Other",
-    desc: "Something else worth flagging to moderators.",
-  },
-];
+// Reason options - the `value` must match MarketReport.CATEGORY_CHOICES exactly (value
+// === backend key). The user-visible title + description are NOT stored here: they are
+// resolved at render from messages/en/home.json (marketReport.reasons.<value>.title /
+// .desc) so they translate. Order here is the display order of the radio cards.
+const REASON_VALUES = [
+  "bad_tryout",
+  "scam",
+  "abusive",
+  "fake_post",
+  "other",
+] as const;
 
 export function MarketReportDialog({
   target,
@@ -84,6 +67,8 @@ export function MarketReportDialog({
   target: ReportTarget | null;
   onClose: () => void;
 }) {
+  // Strings for the "Report this post" dialog (namespace == messages/en/home.json).
+  const t = useTranslations("home");
   const [reason, setReason] = useState("bad_tryout");
   const [details, setDetails] = useState("");
   const [evidence, setEvidence] = useState<File | null>(null);
@@ -102,14 +87,14 @@ export function MarketReportDialog({
     if (!target || submitting) return;
     // details are required - matches the backend 400 when details are empty.
     if (!details.trim()) {
-      toast.error("Please describe what happened.");
+      toast.error(t("marketReport.toast.detailsRequired"));
       return;
     }
     // J4: evidence is now COMPULSORY. The submit button is already disabled until an
     // image is attached, but we guard here too so the rule holds even if the button
     // state is bypassed. Matches the backend 400 "Evidence is required to file a report."
     if (!evidence) {
-      toast.error("Evidence is required. Attach a screenshot before submitting.");
+      toast.error(t("marketReport.toast.evidenceRequired"));
       return;
     }
     setSubmitting(true);
@@ -122,10 +107,10 @@ export function MarketReportDialog({
       if (evidence) form.append("evidence", evidence);
 
       const res = await playerMarketApi.fileReport(form);
-      toast.success(res?.message || "Report submitted. AFC moderators will review it.");
+      toast.success(res?.message || t("marketReport.toast.success"));
       onClose();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to submit report.");
+      toast.error(err?.response?.data?.message || t("marketReport.toast.failed"));
     } finally {
       setSubmitting(false);
     }
@@ -137,14 +122,18 @@ export function MarketReportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconFlag className="h-5 w-5 text-red-500" />
-            Report this post
+            {t("marketReport.title")}
           </DialogTitle>
           <DialogDescription>
-            Flagging{" "}
-            <span className="font-medium text-foreground">
-              {target?.subjectName}
-            </span>
-            . Your report is private and goes to AFC moderators only.
+            {/* "Flagging <subject>. Your report is private..." - t.rich keeps the
+                bolded subject name inside the sentence and lets the order vary. */}
+            {t.rich("marketReport.description", {
+              subject: () => (
+                <span className="font-medium text-foreground">
+                  {target?.subjectName}
+                </span>
+              ),
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,16 +141,17 @@ export function MarketReportDialog({
           {/* Reason category (radio-style cards). */}
           <div className="space-y-2">
             <Label>
-              Reason <span className="text-red-500">*</span>
+              {t("marketReport.reasonLabel")}{" "}
+              <span className="text-red-500">*</span>
             </Label>
             <div className="flex flex-col gap-2">
-              {REASONS.map((r) => {
-                const on = reason === r.value;
+              {REASON_VALUES.map((value) => {
+                const on = reason === value;
                 return (
                   <button
                     type="button"
-                    key={r.value}
-                    onClick={() => setReason(r.value)}
+                    key={value}
+                    onClick={() => setReason(value)}
                     className={`flex items-start gap-3 rounded-md border p-3 text-left transition-colors ${
                       on
                         ? "border-primary bg-primary/5"
@@ -180,10 +170,10 @@ export function MarketReportDialog({
                     </span>
                     <span>
                       <span className="block text-sm font-medium">
-                        {r.title}
+                        {t(`marketReport.reasons.${value}.title`)}
                       </span>
                       <span className="block text-xs text-muted-foreground">
-                        {r.desc}
+                        {t(`marketReport.reasons.${value}.desc`)}
                       </span>
                     </span>
                   </button>
@@ -195,13 +185,14 @@ export function MarketReportDialog({
           {/* Free-text details (required). */}
           <div className="space-y-2">
             <Label htmlFor="report-details">
-              What happened <span className="text-red-500">*</span>
+              {t("marketReport.detailsLabel")}{" "}
+              <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="report-details"
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              placeholder="Describe what happened. Include dates, in-game names, and anything a moderator needs to understand the situation."
+              placeholder={t("marketReport.detailsPlaceholder")}
               rows={4}
             />
           </div>
@@ -211,8 +202,11 @@ export function MarketReportDialog({
               and the backend rejects an evidence-less report with 400. */}
           <div className="space-y-2">
             <Label htmlFor="report-evidence">
-              Evidence <span className="text-red-500">*</span>{" "}
-              <span className="text-muted-foreground">(screenshot required)</span>
+              {t("marketReport.evidenceLabel")}{" "}
+              <span className="text-red-500">*</span>{" "}
+              <span className="text-muted-foreground">
+                {t("marketReport.evidenceHint")}
+              </span>
             </Label>
             <Input
               id="report-evidence"
@@ -222,8 +216,8 @@ export function MarketReportDialog({
             />
             <p className="text-xs text-muted-foreground">
               {evidence
-                ? `Attached: ${evidence.name}`
-                : "Attach a screenshot as proof. A report cannot be filed without evidence."}
+                ? t("marketReport.evidenceAttached", { name: evidence.name })
+                : t("marketReport.evidenceNote")}
             </p>
           </div>
 
@@ -232,18 +226,22 @@ export function MarketReportDialog({
           <div className="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/5 p-2.5 text-xs text-muted-foreground">
             <IconFlag className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
             <p>
-              <span className="font-medium text-yellow-600 dark:text-yellow-400">
-                Report honestly.
-              </span>{" "}
-              Filing a false, joke, or untrue report can get you, the reporter,
-              banned from the market. Only report real issues, and attach proof.
+              {/* "Report honestly." is bolded; the rest follows. t.rich keeps the
+                  emphasis + sentence order localizable. */}
+              {t.rich("marketReport.honestyNote", {
+                strong: (chunks) => (
+                  <span className="font-medium text-yellow-600 dark:text-yellow-400">
+                    {chunks}
+                  </span>
+                ),
+              })}
             </p>
           </div>
         </div>
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose} disabled={submitting}>
-            Cancel
+            {t("marketReport.cancel")}
           </Button>
           {/* destructive fill to match the mockup's red Submit report button. J4:
               disabled until an evidence image is attached (and while submitting). */}
@@ -253,7 +251,9 @@ export function MarketReportDialog({
             disabled={submitting || !evidence || !details.trim()}
           >
             <IconFlag className="h-4 w-4 mr-1" />
-            {submitting ? "Submitting..." : "Submit report"}
+            {submitting
+              ? t("marketReport.submitting")
+              : t("marketReport.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

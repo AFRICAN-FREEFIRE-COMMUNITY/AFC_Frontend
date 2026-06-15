@@ -66,6 +66,7 @@
   "notifications.unreadCount": "{count} unread",
   "notifications.empty": "No notifications yet",
   "notifications.singular": "Notification",
+  "notifications.takeMeThere": "Take me there",
   "cart.title": "Your Cart",
   "cart.itemCount": "{count, plural, one {# item} other {# items}}",
   "cart.clearAll": "Clear All",

@@ -32,6 +32,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   LineChart,
   Line,
@@ -74,7 +75,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { formatDate, formatWord } from "@/lib/utils";
+import { formatWord } from "@/lib/utils";
+// LocalTime renders a stored UTC timestamp in the viewer's own timezone + language;
+// the i18n/time helpers cover the chart axis label (a string, not JSX).
+import { LocalTime } from "@/components/LocalTime";
+import { getActiveLocale, getBrowserTimeZone } from "@/lib/i18n/time";
 import {
   IconChevronRight,
   IconAward,
@@ -218,6 +223,8 @@ const fmtNgn = (raw: string | null | undefined): string => {
 };
 
 export function PlayerClient({ username }: { username: string }) {
+  // i18n: public player profile copy (messages/en/teamsplayers.json -> "player").
+  const t = useTranslations("teamsplayers");
   // route username may be URL-encoded (spaces in IGNs); decode once for both the
   // request body and the own-profile comparison.
   const ign = useMemo(() => decodeURIComponent(username), [username]);
@@ -282,7 +289,7 @@ export function PlayerClient({ username }: { username: string }) {
           setNotFound(true);
         } else {
           toast.error(
-            error?.response?.data?.message || "Failed to load player profile.",
+            error?.response?.data?.message || t("player.loadFailed"),
           );
           setNotFound(true);
         }
@@ -320,9 +327,9 @@ export function PlayerClient({ username }: { username: string }) {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setDiscordConnected(false);
-      toast.success("Discord account disconnected.");
+      toast.success(t("player.discordDisconnected"));
     } catch {
-      toast.error("Failed to disconnect Discord. Please try again.");
+      toast.error(t("player.discordDisconnectFailed"));
     } finally {
       setDiscordPending(false);
     }
@@ -417,10 +424,14 @@ export function PlayerClient({ username }: { username: string }) {
       );
     return rows.map((e) => {
       const kd = e.matches_played > 0 ? e.kills / e.matches_played : 0;
-      const label = new Date(e.event_date as string).toLocaleDateString(
-        "en-US",
-        { month: "short", year: "2-digit" },
-      );
+      // Chart axis label is a string fed to recharts (not JSX), so it can't use
+      // <LocalTime>; format in the viewer's locale + timezone instead of the old
+      // hardcoded "en-US" / UTC. Server-safe ("en"/"UTC" during SSR).
+      const label = new Intl.DateTimeFormat(getActiveLocale(), {
+        month: "short",
+        year: "2-digit",
+        timeZone: getBrowserTimeZone(),
+      }).format(new Date(e.event_date as string));
       return {
         label,
         event: e.event_name,
@@ -434,13 +445,24 @@ export function PlayerClient({ username }: { username: string }) {
 
   const activeMetric = METRICS.find((m) => m.id === metric)!;
 
+  // Localized label for a metric id (the METRICS array holds English data labels
+  // used as switcher buttons + chart legends; map them to translation keys here).
+  const metricLabel = (id: MetricId) =>
+    id === "kills"
+      ? t("player.metricKills")
+      : id === "placement"
+        ? t("player.metricPlacement")
+        : id === "points"
+          ? t("player.metricPoints")
+          : t("player.metricKd");
+
   // Y-axis label per metric (placement is inverted-meaning, flag it for the reader).
   const yAxisLabel =
     metric === "placement"
-      ? "Placement (lower is better)"
+      ? t("player.placementLowerBetter")
       : metric === "kd"
-        ? "K-D ratio"
-        : activeMetric.label;
+        ? t("player.kdRatio")
+        : metricLabel(activeMetric.id);
 
   // Solo-vs-team split, straight from the real scalar fields (no math invented).
   const split = player
@@ -463,10 +485,10 @@ export function PlayerClient({ username }: { username: string }) {
   if (notFound || !player) {
     return (
       <div>
-        <PageHeader back title="Player Not Found" />
+        <PageHeader back title={t("player.notFoundTitle")} />
         <Card>
           <CardContent className="py-10">
-            <NothingFound text="We couldn't find a player with that name." />
+            <NothingFound text={t("player.notFoundBody")} />
           </CardContent>
         </Card>
       </div>
@@ -519,7 +541,7 @@ export function PlayerClient({ username }: { username: string }) {
                   {player.uid ? (
                     <>
                       {" "}
-                      <span className="mx-1">·</span> UID: {player.uid}
+                      <span className="mx-1">·</span> {t("player.uidPrefix", { uid: player.uid })}
                     </>
                   ) : null}
                 </p>
@@ -564,7 +586,7 @@ export function PlayerClient({ username }: { username: string }) {
             {isOwnProfile && (
               <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                 <Button className="w-full sm:w-auto" asChild>
-                  <Link href="/profile/edit">Edit Profile</Link>
+                  <Link href="/profile/edit">{t("player.editProfile")}</Link>
                 </Button>
                 {discordConnected && (
                   <AlertDialog>
@@ -575,28 +597,26 @@ export function PlayerClient({ username }: { username: string }) {
                         disabled={discordPending}
                       >
                         {discordPending ? (
-                          <Loader text="Disconnecting..." />
+                          <Loader text={t("player.disconnecting")} />
                         ) : (
-                          "Disconnect"
+                          t("player.disconnect")
                         )}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("player.disconnectConfirmTitle")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This disconnects your Discord account from your player
-                          profile. You will lose access to Discord-linked
-                          features until you reconnect.
+                          {t("player.disconnectConfirmBody")}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t("player.cancel")}</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={handleDiscordDisconnect}
                           className="bg-destructive text-white hover:bg-destructive/90"
                         >
-                          Disconnect
+                          {t("player.disconnect")}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -612,13 +632,13 @@ export function PlayerClient({ username }: { username: string }) {
           <Tabs defaultValue="overview">
             <ScrollArea>
               <TabsList className="w-full mb-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="statistics">Statistics</TabsTrigger>
-                <TabsTrigger value="events">Events Played</TabsTrigger>
+                <TabsTrigger value="overview">{t("player.tabOverview")}</TabsTrigger>
+                <TabsTrigger value="statistics">{t("player.tabStatistics")}</TabsTrigger>
+                <TabsTrigger value="events">{t("player.tabEvents")}</TabsTrigger>
                 <TabsTrigger value="performance">
-                  Performance History
+                  {t("player.tabPerformance")}
                 </TabsTrigger>
-                <TabsTrigger value="team">Team History</TabsTrigger>
+                <TabsTrigger value="team">{t("player.tabTeam")}</TabsTrigger>
               </TabsList>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
@@ -628,15 +648,15 @@ export function PlayerClient({ username }: { username: string }) {
               {/* identity facts grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
                 <div>
-                  <p className="text-xs text-muted-foreground">Country</p>
+                  <p className="text-xs text-muted-foreground">{t("player.country")}</p>
                   <p className="text-sm mt-0.5">{player.country || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">UID</p>
+                  <p className="text-xs text-muted-foreground">{t("player.uid")}</p>
                   <p className="text-sm mt-0.5">{player.uid ?? "-"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">In-Game Role</p>
+                  <p className="text-xs text-muted-foreground">{t("player.inGameRole")}</p>
                   <p className="text-sm mt-0.5 capitalize">
                     {player.in_game_role
                       ? formatWord(player.in_game_role)
@@ -644,7 +664,7 @@ export function PlayerClient({ username }: { username: string }) {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Team</p>
+                  <p className="text-xs text-muted-foreground">{t("player.team")}</p>
                   <p className="text-sm mt-0.5">
                     {player.team ? (
                       <Link
@@ -654,18 +674,23 @@ export function PlayerClient({ username }: { username: string }) {
                         {player.team.team_name}
                       </Link>
                     ) : (
-                      "Free agent"
+                      t("player.freeAgent")
                     )}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Joined Team</p>
+                  <p className="text-xs text-muted-foreground">{t("player.joinedTeam")}</p>
                   <p className="text-sm mt-0.5">
-                    {player.join_date ? formatDate(player.join_date) : "-"}
+                    {/* Joined-team date in the viewer's timezone + language. */}
+                    {player.join_date ? (
+                      <LocalTime value={player.join_date} mode="date" />
+                    ) : (
+                      "-"
+                    )}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Discord</p>
+                  <p className="text-xs text-muted-foreground">{t("player.discord")}</p>
                   <p className="text-sm mt-0.5">
                     {player.discord_username ?? "-"}
                   </p>
@@ -674,45 +699,44 @@ export function PlayerClient({ username }: { username: string }) {
 
               {/* career snapshot (all-time scalars straight from the endpoint) */}
               <div className="mt-6 mb-3 text-xs font-medium text-muted-foreground">
-                Career snapshot
+                {t("player.careerSnapshot")}
               </div>
               {statsVisible ? (
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <StatBox
-                      label="Total Matches"
+                      label={t("player.totalMatches")}
                       value={player.total_matches}
                     />
                     <StatBox
-                      label="Total Kills"
+                      label={t("player.totalKills")}
                       value={player.total_kills}
                       accent="green"
                     />
-                    <StatBox label="Wins" value={player.total_wins} />
+                    <StatBox label={t("player.wins")} value={player.total_wins} />
                     <StatBox
-                      label="MVP Awards"
+                      label={t("player.mvpAwards")}
                       value={player.total_mvps}
                       accent="gold"
                     />
-                    <StatBox label="KDR" value={player.kdr.toFixed(2)} />
+                    <StatBox label={t("player.kdr")} value={player.kdr.toFixed(2)} />
                     <StatBox
-                      label="Win Rate"
+                      label={t("player.winRate")}
                       value={`${player.win_rate.toFixed(1)}%`}
                     />
                     <StatBox
-                      label="Avg Damage"
+                      label={t("player.avgDamage")}
                       value={Math.round(player.avg_damage)}
                     />
                     <StatBox
-                      label="Current Tier"
-                      value={currentTier?.tier_label ?? "Unranked"}
+                      label={t("player.currentTier")}
+                      value={currentTier?.tier_label ?? t("player.unranked")}
                     />
                   </div>
 
                   {!hasAnyStats && (
                     <p className="text-xs text-muted-foreground mt-4">
-                      This player has no recorded matches yet. Stats will populate
-                      as they compete in AFC events.
+                      {t("player.noMatchesYet")}
                     </p>
                   )}
                 </>
@@ -736,12 +760,12 @@ export function PlayerClient({ username }: { username: string }) {
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-base">
-                        Ranking &amp; tier history
+                        {t("player.rankingTierHistory")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       {player.tier_history.length === 0 ? (
-                        <NothingFound text="No tier history published yet." />
+                        <NothingFound text={t("player.noTierHistory")} />
                       ) : (
                         <div className="space-y-3">
                           {[...player.tier_history].reverse().map((h) => (
@@ -752,7 +776,7 @@ export function PlayerClient({ username }: { username: string }) {
                               <div>
                                 <p className="font-medium">{h.season_name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  Q{h.quarter} {h.year}
+                                  {t("player.quarterYear", { quarter: h.quarter, year: h.year })}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
@@ -792,48 +816,48 @@ export function PlayerClient({ username }: { username: string }) {
               {/* headline career cards (recompute from the filtered slice) */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <StatBox
-                  label="Tournaments"
+                  label={t("player.tournaments")}
                   value={headline.tournaments}
-                  sub="in range"
+                  sub={t("player.inRange")}
                 />
                 <StatBox
-                  label="Kills"
+                  label={t("player.kills")}
                   value={headline.kills}
-                  sub="in range"
+                  sub={t("player.inRange")}
                   accent="green"
                 />
                 <StatBox
-                  label="Kills / Match"
+                  label={t("player.killsPerMatch")}
                   value={headline.killsPerMatch.toFixed(1)}
                 />
                 <StatBox
-                  label="MVP Awards"
+                  label={t("player.mvpAwards")}
                   value={headline.mvps}
                   accent="gold"
                 />
                 <StatBox
-                  label="Avg Placement"
+                  label={t("player.avgPlacement")}
                   value={
                     headline.avgPlacement != null
                       ? `#${headline.avgPlacement.toFixed(1)}`
                       : "-"
                   }
-                  sub="lower is better"
+                  sub={t("player.lowerIsBetter")}
                 />
                 <StatBox
-                  label="Wins"
+                  label={t("player.wins")}
                   value={headline.wins}
-                  sub="1st-place finishes"
+                  sub={t("player.firstPlaceFinishes")}
                 />
                 <StatBox
-                  label="Win Rate"
+                  label={t("player.winRate")}
                   value={`${headline.winRate.toFixed(0)}%`}
-                  sub="1st-place share"
+                  sub={t("player.firstPlaceShare")}
                 />
                 <StatBox
-                  label="Total Points"
+                  label={t("player.totalPoints")}
                   value={headline.points}
-                  sub="in range"
+                  sub={t("player.inRange")}
                 />
               </div>
 
@@ -844,7 +868,7 @@ export function PlayerClient({ username }: { username: string }) {
                   <CardHeader>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <CardTitle className="text-base">
-                        Performance curve
+                        {t("player.performanceCurve")}
                       </CardTitle>
                       {/* metric switcher (pill segment) */}
                       <div className="inline-flex gap-1 bg-muted rounded-lg p-[3px] w-fit">
@@ -859,7 +883,7 @@ export function PlayerClient({ username }: { username: string }) {
                                 : "text-muted-foreground hover:text-foreground"
                             }`}
                           >
-                            {m.label}
+                            {metricLabel(m.id)}
                           </button>
                         ))}
                       </div>
@@ -882,7 +906,7 @@ export function PlayerClient({ username }: { username: string }) {
                             fontSize={11}
                             tickMargin={8}
                             label={{
-                              value: "Event date",
+                              value: t("player.eventDate"),
                               position: "insideBottom",
                               offset: -14,
                               fill: "var(--muted-foreground)",
@@ -917,7 +941,7 @@ export function PlayerClient({ username }: { username: string }) {
                               metric === "placement" && value != null
                                 ? `#${value}`
                                 : value,
-                              activeMetric.label,
+                              metricLabel(activeMetric.id),
                             ]}
                             labelFormatter={(_label, payload) =>
                               payload?.[0]?.payload?.event ?? _label
@@ -936,7 +960,7 @@ export function PlayerClient({ username }: { username: string }) {
                       </ResponsiveContainer>
                     ) : (
                       <div className="py-10">
-                        <NothingFound text="Not enough events in this range to plot a curve." />
+                        <NothingFound text={t("player.notEnoughCurve")} />
                       </div>
                     )}
                   </CardContent>
@@ -946,12 +970,12 @@ export function PlayerClient({ username }: { username: string }) {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">
-                      Ranking & tier history
+                      {t("player.rankingTierHistory")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {player.tier_history.length === 0 ? (
-                      <NothingFound text="No tier history published yet." />
+                      <NothingFound text={t("player.noTierHistory")} />
                     ) : (
                       <div className="space-y-3">
                         {[...player.tier_history]
@@ -964,7 +988,7 @@ export function PlayerClient({ username }: { username: string }) {
                               <div>
                                 <p className="font-medium">{h.season_name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  Q{h.quarter} {h.year}
+                                  {t("player.quarterYear", { quarter: h.quarter, year: h.year })}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
@@ -996,7 +1020,7 @@ export function PlayerClient({ username }: { username: string }) {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">
-                      Solo vs Team split
+                      {t("player.soloVsTeamSplit")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -1004,13 +1028,13 @@ export function PlayerClient({ username }: { username: string }) {
                       <div className="grid grid-cols-3 gap-y-3 text-sm items-center">
                         <span className="text-muted-foreground text-xs" />
                         <span className="text-center text-xs font-medium text-muted-foreground">
-                          Scrims
+                          {t("player.scrimsLabel")}
                         </span>
                         <span className="text-center text-xs font-medium text-muted-foreground">
-                          Tournaments
+                          {t("player.tournamentsLabel")}
                         </span>
 
-                        <span className="text-muted-foreground">Kills</span>
+                        <span className="text-muted-foreground">{t("player.kills")}</span>
                         <span className="text-center font-semibold">
                           {split.soloKills}
                         </span>
@@ -1018,7 +1042,7 @@ export function PlayerClient({ username }: { username: string }) {
                           {split.teamKills}
                         </span>
 
-                        <span className="text-muted-foreground">Wins</span>
+                        <span className="text-muted-foreground">{t("player.wins")}</span>
                         <span className="text-center font-semibold">
                           {split.soloWins}
                         </span>
@@ -1026,7 +1050,7 @@ export function PlayerClient({ username }: { username: string }) {
                           {split.teamWins}
                         </span>
 
-                        <span className="text-muted-foreground">Booyahs</span>
+                        <span className="text-muted-foreground">{t("player.booyahs")}</span>
                         <span className="text-center font-semibold">
                           {split.soloBooyah}
                         </span>
@@ -1062,25 +1086,23 @@ export function PlayerClient({ username }: { username: string }) {
               ) : (
                 <>
               <div className="mb-3 text-xs font-medium text-muted-foreground">
-                {player.per_event.length} event
-                {player.per_event.length === 1 ? "" : "s"} (tap a row for
-                per-match stats)
+                {t("player.eventsCount", { count: player.per_event.length })}
               </div>
               {player.per_event.length === 0 ? (
-                <NothingFound text="No events played yet." />
+                <NothingFound text={t("player.noEventsPlayed")} />
               ) : (
                 <div className="rounded-md border overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-8" />
-                        <TableHead>Event</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-center">Best place</TableHead>
-                        <TableHead className="text-center">My kills</TableHead>
-                        <TableHead className="text-center">My points</TableHead>
-                        <TableHead className="text-center">MVPs</TableHead>
+                        <TableHead>{t("player.event")}</TableHead>
+                        <TableHead>{t("player.type")}</TableHead>
+                        <TableHead>{t("player.date")}</TableHead>
+                        <TableHead className="text-center">{t("player.bestPlace")}</TableHead>
+                        <TableHead className="text-center">{t("player.myKills")}</TableHead>
+                        <TableHead className="text-center">{t("player.myPoints")}</TableHead>
+                        <TableHead className="text-center">{t("player.mvps")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1128,7 +1150,7 @@ export function PlayerClient({ username }: { username: string }) {
                 <CardHeader>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <CardTitle className="text-base">
-                      Performance over time
+                      {t("player.performanceOverTime")}
                     </CardTitle>
                     <div className="inline-flex gap-1 bg-muted rounded-lg p-[3px] w-fit">
                       {METRICS.map((m) => (
@@ -1142,7 +1164,7 @@ export function PlayerClient({ username }: { username: string }) {
                               : "text-muted-foreground hover:text-foreground"
                           }`}
                         >
-                          {m.label}
+                          {metricLabel(m.id)}
                         </button>
                       ))}
                     </div>
@@ -1225,23 +1247,23 @@ export function PlayerClient({ username }: { username: string }) {
 
               {/* recent matches list (the player's last 25 individual lines) */}
               <div className="mt-6 mb-3 text-xs font-medium text-muted-foreground">
-                Recent matches
+                {t("player.recentMatches")}
               </div>
               {player.recent_matches.length === 0 ? (
-                <NothingFound text="No recent matches yet." />
+                <NothingFound text={t("player.noRecentMatches")} />
               ) : (
                 <div className="rounded-md border overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Event</TableHead>
-                        <TableHead>Map</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-center">Placement</TableHead>
-                        <TableHead className="text-center">Kills</TableHead>
-                        <TableHead className="text-center">Damage</TableHead>
-                        <TableHead className="text-center">Points</TableHead>
-                        <TableHead className="text-center">MVP</TableHead>
+                        <TableHead>{t("player.event")}</TableHead>
+                        <TableHead>{t("player.map")}</TableHead>
+                        <TableHead>{t("player.date")}</TableHead>
+                        <TableHead className="text-center">{t("player.placement")}</TableHead>
+                        <TableHead className="text-center">{t("player.kills")}</TableHead>
+                        <TableHead className="text-center">{t("player.damage")}</TableHead>
+                        <TableHead className="text-center">{t("player.points")}</TableHead>
+                        <TableHead className="text-center">{t("player.mvp")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1252,9 +1274,12 @@ export function PlayerClient({ username }: { username: string }) {
                           </TableCell>
                           <TableCell>{m.match_map ?? "-"}</TableCell>
                           <TableCell className="text-muted-foreground">
-                            {m.match_date
-                              ? formatDate(m.match_date)
-                              : "-"}
+                            {/* Match date in the viewer's timezone + language. */}
+                            {m.match_date ? (
+                              <LocalTime value={m.match_date} mode="date" />
+                            ) : (
+                              "-"
+                            )}
                           </TableCell>
                           <TableCell
                             className={`text-center font-semibold ${
@@ -1294,10 +1319,10 @@ export function PlayerClient({ username }: { username: string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Team</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>From</TableHead>
-                    <TableHead>To</TableHead>
+                    <TableHead>{t("player.team")}</TableHead>
+                    <TableHead>{t("player.role")}</TableHead>
+                    <TableHead>{t("player.from")}</TableHead>
+                    <TableHead>{t("player.to")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1318,9 +1343,14 @@ export function PlayerClient({ username }: { username: string }) {
                           : "-"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {player.join_date ? formatDate(player.join_date) : "-"}
+                        {/* Join date in the viewer's timezone + language. */}
+                        {player.join_date ? (
+                          <LocalTime value={player.join_date} mode="date" />
+                        ) : (
+                          "-"
+                        )}
                       </TableCell>
-                      <TableCell>Present</TableCell>
+                      <TableCell>{t("player.present")}</TableCell>
                     </TableRow>
                   ) : (
                     <TableRow>
@@ -1328,15 +1358,14 @@ export function PlayerClient({ username }: { username: string }) {
                         colSpan={4}
                         className="text-center text-muted-foreground py-8"
                       >
-                        This player is not on a team right now.
+                        {t("player.notOnTeam")}
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
               <p className="text-xs text-muted-foreground mt-3">
-                Full past-team history will appear here once roster movement is
-                tracked. Only the current team is shown for now.
+                {t("player.teamHistoryNote")}
               </p>
             </TabsContent>
           </Tabs>
@@ -1354,16 +1383,17 @@ export function PlayerClient({ username }: { username: string }) {
 // and tier history remain visible elsewhere on the page. AFC card idiom + lock icon.
 // ──────────────────────────────────────────────────────────────────────────────
 function PrivateStats() {
+  const t = useTranslations("teamsplayers");
   return (
     <div className="bg-card rounded-md border py-10 px-6 shadow-sm flex flex-col items-center justify-center text-center">
       <div className="rounded-full bg-muted p-3 mb-3">
         <IconLock className="h-6 w-6 text-muted-foreground" />
       </div>
       <p className="text-sm font-semibold text-foreground">
-        These stats are private
+        {t("player.privateTitle")}
       </p>
       <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-        Only this player and their teammates can view them.
+        {t("player.privateBody")}
       </p>
     </div>
   );
@@ -1384,34 +1414,35 @@ function TournamentWinningsCard({
   total: string | undefined;
   winnings: TournamentWinningRow[] | undefined;
 }) {
+  const t = useTranslations("teamsplayers");
   const rows = winnings ?? [];
   const hasWinnings = rows.length > 0;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Tournament Winnings</CardTitle>
+        <CardTitle className="text-base">{t("player.tournamentWinnings")}</CardTitle>
       </CardHeader>
       <CardContent>
         {!hasWinnings ? (
           // Truthful empty state (no fabricated figures).
           <div className="flex flex-col items-center justify-center text-center py-6 text-muted-foreground">
             <IconAward className="h-8 w-8 opacity-40 mb-2" />
-            <p className="text-sm font-medium">No tournament winnings yet</p>
+            <p className="text-sm font-medium">{t("player.noWinningsTitle")}</p>
             <p className="text-xs mt-1">
-              Prize earnings will appear here as this player wins AFC events.
+              {t("player.noWinningsBody")}
             </p>
           </div>
         ) : (
           <>
             {/* lifetime total headline (green primary, per AFC design) */}
             <div className="mb-4">
-              <p className="text-xs text-muted-foreground">Lifetime prize money</p>
+              <p className="text-xs text-muted-foreground">{t("player.lifetimePrize")}</p>
               <p className="text-2xl font-bold mt-1 text-primary">
                 {fmtNgn(total)}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                in tournament prizes
+                {t("player.inTournamentPrizes")}
               </p>
             </div>
 
@@ -1420,10 +1451,10 @@ function TournamentWinningsCard({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>{t("player.event")}</TableHead>
+                    <TableHead>{t("player.team")}</TableHead>
+                    <TableHead className="text-right">{t("player.amount")}</TableHead>
+                    <TableHead>{t("player.date")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1434,13 +1465,18 @@ function TournamentWinningsCard({
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {/* null team => solo prize */}
-                        {w.tournament_team_name ?? "Solo"}
+                        {w.tournament_team_name ?? t("player.solo")}
                       </TableCell>
                       <TableCell className="text-right font-semibold text-primary">
                         {fmtNgn(w.amount)}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {w.created_at ? formatDate(w.created_at) : "-"}
+                        {/* Winning date in the viewer's timezone + language. */}
+                        {w.created_at ? (
+                          <LocalTime value={w.created_at} mode="date" />
+                        ) : (
+                          "-"
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1504,6 +1540,17 @@ function RangeFilter({
   customTo: string;
   setCustomTo: (v: string) => void;
 }) {
+  // Local namespace handle for the range filter chrome (teamsplayers -> "player").
+  const t = useTranslations("teamsplayers");
+  // Localized preset label (RANGE_PRESETS holds English data labels).
+  const presetLabel = (id: (typeof RANGE_PRESETS)[number]["id"]) =>
+    id === "3m"
+      ? t("player.range3m")
+      : id === "6m"
+        ? t("player.range6m")
+        : id === "12m"
+          ? t("player.range12m")
+          : t("player.rangeAll");
   return (
     <div className="flex flex-wrap items-center gap-3 mb-5">
       {/* preset segment */}
@@ -1519,14 +1566,14 @@ function RangeFilter({
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {p.label}
+            {presetLabel(p.id)}
           </button>
         ))}
       </div>
 
       {/* custom From / To */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span>From</span>
+        <span>{t("player.rangeFrom")}</span>
         <Input
           type="date"
           value={customFrom}
@@ -1536,7 +1583,7 @@ function RangeFilter({
           }}
           className="h-8 w-auto text-xs"
         />
-        <span>to</span>
+        <span>{t("player.rangeTo")}</span>
         <Input
           type="date"
           value={customTo}
@@ -1550,7 +1597,7 @@ function RangeFilter({
 
       {range === "custom" && (customFrom || customTo) && (
         <span className="text-xs text-primary font-medium">
-          Showing custom range
+          {t("player.showingCustomRange")}
         </span>
       )}
     </div>
@@ -1573,6 +1620,7 @@ function PerEventRowGroup({
   matches: RecentMatchRow[];
   onToggle: () => void;
 }) {
+  const t = useTranslations("teamsplayers");
   return (
     <>
       <TableRow
@@ -1591,7 +1639,12 @@ function PerEventRowGroup({
           {formatWord(ev.competition_type)}
         </TableCell>
         <TableCell className="text-muted-foreground">
-          {ev.event_date ? formatDate(ev.event_date) : "-"}
+          {/* Event date in the viewer's timezone + language. */}
+          {ev.event_date ? (
+            <LocalTime value={ev.event_date} mode="date" />
+          ) : (
+            "-"
+          )}
         </TableCell>
         <TableCell
           className={`text-center font-semibold ${
@@ -1611,33 +1664,33 @@ function PerEventRowGroup({
             <div className="px-4 py-4 pl-10">
               {/* event summary boxes */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                <MiniBox label="My kills" value={ev.kills} />
-                <MiniBox label="My points" value={ev.total_points} />
+                <MiniBox label={t("player.myKills")} value={ev.kills} />
+                <MiniBox label={t("player.myPoints")} value={ev.total_points} />
                 <MiniBox
-                  label="Best placement"
+                  label={t("player.bestPlacement")}
                   value={placeLabel(ev.best_placement)}
                 />
-                <MiniBox label="Matches" value={ev.matches_played} />
+                <MiniBox label={t("player.matches")} value={ev.matches_played} />
               </div>
 
               <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                My per-match stats
+                {t("player.myPerMatchStats")}
               </p>
               {matches.length === 0 ? (
                 <p className="text-xs text-muted-foreground italic py-2">
-                  Per-match breakdown not available for this event.
+                  {t("player.noPerMatchBreakdown")}
                 </p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Match</TableHead>
-                      <TableHead>Map</TableHead>
-                      <TableHead className="text-center">Placement</TableHead>
-                      <TableHead className="text-center">Kills</TableHead>
-                      <TableHead className="text-center">Damage</TableHead>
-                      <TableHead className="text-center">Assists</TableHead>
-                      <TableHead className="text-center">MVP</TableHead>
+                      <TableHead>{t("player.match")}</TableHead>
+                      <TableHead>{t("player.map")}</TableHead>
+                      <TableHead className="text-center">{t("player.placement")}</TableHead>
+                      <TableHead className="text-center">{t("player.kills")}</TableHead>
+                      <TableHead className="text-center">{t("player.damage")}</TableHead>
+                      <TableHead className="text-center">{t("player.assists")}</TableHead>
+                      <TableHead className="text-center">{t("player.mvp")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1645,7 +1698,7 @@ function PerEventRowGroup({
                       <TableRow key={`${m.match_number}-${i}`}>
                         <TableCell>
                           {m.match_number != null
-                            ? `Match ${m.match_number}`
+                            ? t("player.matchNumber", { number: m.match_number })
                             : "-"}
                         </TableCell>
                         <TableCell>{m.match_map ?? "-"}</TableCell>

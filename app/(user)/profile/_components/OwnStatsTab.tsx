@@ -30,7 +30,7 @@
 import { useMemo, useState } from "react";
 // i18n: user-visible copy (stat labels, table headers, empty states, chart axis
 // labels) is sourced from the `profile` namespace (messages/en/profile.json).
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   LineChart,
   Line,
@@ -50,7 +50,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { NothingFound } from "@/components/NothingFound";
-import { formatDate, formatWord } from "@/lib/utils";
+import { formatWord } from "@/lib/utils";
+// LocalTime / formatLocalTime: render stored UTC timestamps in the VIEWER's own
+// timezone + language (components/LocalTime.tsx, lib/i18n/time.ts). They replace
+// formatDate(), which rendered in UTC with a hardcoded "en-US" locale. LocalTime is
+// used for the per-event / recent-match table date cells (visible JSX); the string
+// form formatLocalTime is used for the performance-curve x-axis tick (a plain string
+// fed to recharts, not standalone JSX).
+import { LocalTime } from "@/components/LocalTime";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { IconMedal } from "@tabler/icons-react";
 
 // ── Row types: a subset of the get-public-player-stats `player` payload. Only the
@@ -111,6 +119,9 @@ const placeLabel = (p: number | null | undefined) => (p == null ? "-" : `#${p}`)
 
 export function OwnStatsTab({ player }: { player: RichStats | null }) {
   const t = useTranslations("profile");
+  // Active UI locale, passed to formatLocalTime so the curve x-axis month label
+  // localizes ("Jun" / "juin" / "jun.") and skips the cookie read.
+  const locale = useLocale();
   // Translated label for a metric id (used by the switcher, axis and tooltip).
   const metricLabel = (id: MetricId) => t(`ownStats.metric.${id}`);
   // Which metric the curve plots. Self-contained state (no coupling to the parent).
@@ -131,10 +142,10 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
       );
     return rows.map((e) => {
       const kd = e.matches_played > 0 ? e.kills / e.matches_played : 0;
-      const label = new Date(e.event_date as string).toLocaleDateString("en-US", {
-        month: "short",
-        year: "2-digit",
-      });
+      // x-axis tick: the event date in the viewer's own timezone + language (was a
+      // hardcoded "en-US" UTC toLocaleDateString). formatLocalTime is the string
+      // form (recharts needs a plain string here, not a <LocalTime/> element).
+      const label = formatLocalTime(e.event_date as string, "date", locale);
       return {
         label,
         event: e.event_name,
@@ -144,7 +155,7 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
         kd: Number(kd.toFixed(2)),
       };
     });
-  }, [perEvent]);
+  }, [perEvent, locale]);
 
   const activeMetric = METRICS.find((m) => m.id === metric)!;
   const yAxisLabel =
@@ -336,7 +347,12 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
                       {formatWord(ev.competition_type)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {ev.event_date ? formatDate(ev.event_date) : "-"}
+                      {/* event date in the viewer's timezone + language. */}
+                      {ev.event_date ? (
+                        <LocalTime value={ev.event_date} mode="date" />
+                      ) : (
+                        "-"
+                      )}
                     </TableCell>
                     <TableCell
                       className={`text-center font-semibold ${
@@ -401,7 +417,12 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
                     </TableCell>
                     <TableCell>{m.match_map ?? "-"}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {m.match_date ? formatDate(m.match_date) : "-"}
+                      {/* match date in the viewer's timezone + language. */}
+                      {m.match_date ? (
+                        <LocalTime value={m.match_date} mode="date" />
+                      ) : (
+                        "-"
+                      )}
                     </TableCell>
                     <TableCell
                       className={`text-center font-semibold ${

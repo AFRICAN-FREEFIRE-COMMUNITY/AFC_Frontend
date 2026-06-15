@@ -37,6 +37,9 @@ import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+// LocalTime renders a stored UTC timestamp in the viewer's own timezone + language.
+import { LocalTime } from "@/components/LocalTime";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,6 +51,8 @@ import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 import { matchesSearch } from "@/lib/search";
 
 function page() {
+  // i18n: teams browse list copy (messages/en/teamsplayers.json -> "teamsList").
+  const t = useTranslations("teamsplayers");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [applicationMessage, setApplicationMessage] = useState("");
@@ -87,7 +92,7 @@ function page() {
         if (res.statusText === "OK") {
           setTeams(res.data.teams);
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("errors.generic"));
         }
 
         const resCurrent = await axios.post(
@@ -103,11 +108,11 @@ function page() {
         if (resCurrent.statusText === "OK") {
           setMyTeam(resCurrent.data.team);
         } else {
-          toast.error("Oops! An error occurred");
+          toast.error(t("errors.generic"));
         }
       } catch (error: any) {
         toast.error(
-          error?.response?.data.message || "Oops! Failed to load teams",
+          error?.response?.data.message || t("teamsList.loadError"),
         );
       }
     });
@@ -148,13 +153,13 @@ function page() {
     <div>
       <div className="flex items-start mb-4 md:items-center justify-between gap-2 flex-col md:flex-row">
         <PageHeader
-          title="Teams"
-          description="Explore and manage Freefire teams"
+          title={t("teamsList.pageTitle")}
+          description={t("teamsList.pageDescription")}
         />
         {/* data-tour anchor (guided welcome tour): Create Team button. Targeted by
             guided-tour-stops.ts -> teams stop -> "teams-create". */}
         <Button className="w-full md:w-auto" asChild data-tour="teams-create">
-          <Link href="/teams/create">Create Team</Link>
+          <Link href="/teams/create">{t("teamsList.createTeam")}</Link>
         </Button>
       </div>
 
@@ -165,7 +170,7 @@ function page() {
 
       <div className="mb-4">
         <Input
-          placeholder="Search teams..."
+          placeholder={t("teamsList.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full"
@@ -176,16 +181,16 @@ function page() {
           Targeted by guided-tour-stops.ts -> teams stop -> "teams-list". */}
       <Tabs defaultValue="all-teams" className="space-y-4" data-tour="teams-list">
         <TabsList className="w-full">
-          <TabsTrigger value="all-teams">All Teams</TabsTrigger>
-          <TabsTrigger value="my-team">My Team</TabsTrigger>
+          <TabsTrigger value="all-teams">{t("teamsList.tabAllTeams")}</TabsTrigger>
+          <TabsTrigger value="my-team">{t("teamsList.tabMyTeam")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all-teams" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>All Teams</CardTitle>
+              <CardTitle>{t("teamsList.allTeamsTitle")}</CardTitle>
               <CardDescription>
-                View and manage all teams in the system
+                {t("teamsList.allTeamsDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -214,15 +219,15 @@ function page() {
                             className="uppercase text-lg md:text-xl"
                           />
                           {team.is_banned && (
-                            <Badge variant="destructive">BANNED</Badge>
+                            <Badge variant="destructive">{t("teamsList.banned")}</Badge>
                           )}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="text-sm md:text-base">
                         <p>
-                          Members: {team.member_count ? team.member_count : 0}
+                          {t("teamsList.members", { count: team.member_count ? team.member_count : 0 })}
                         </p>
-                        <p>Tier: {team.team_tier}</p>
+                        <p>{t("teamsList.tier", { tier: team.team_tier })}</p>
                         <div className="flex gap-2 justify-between mt-6">
                           <Button
                             variant={"gradient"}
@@ -230,7 +235,7 @@ function page() {
                             asChild
                           >
                             <Link href={`/teams/${team.team_name}`}>
-                              View Team
+                              {t("teamsList.viewTeam")}
                             </Link>
                           </Button>
                           {team.team_owner !== user?.in_game_name && (
@@ -262,18 +267,17 @@ function page() {
                                   }
                                 >
                                   {appliedTeams.has(team.team_id)
-                                    ? "Applied"
-                                    : "Apply to Join"}
+                                    ? t("teamsList.applied")
+                                    : t("teamsList.applyToJoin")}
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
                                   <DialogTitle>
-                                    Apply to Join {selectedTeam?.team_name}
+                                    {t("teamsList.applyDialogTitle", { team: selectedTeam?.team_name })}
                                   </DialogTitle>
                                   <DialogDescription>
-                                    Send a message to the team owner with your
-                                    application.
+                                    {t("teamsList.applyDialogDescription")}
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
@@ -282,7 +286,7 @@ function page() {
                                       htmlFor="application-message"
                                       className="mb-2.5"
                                     >
-                                      Message
+                                      {t("teamsList.messageLabel")}
                                     </Label>
                                     <Textarea
                                       id="application-message"
@@ -290,7 +294,7 @@ function page() {
                                       onChange={(e) =>
                                         setApplicationMessage(e.target.value)
                                       }
-                                      placeholder="Tell the team owner why you want to join..."
+                                      placeholder={t("teamsList.messagePlaceholder")}
                                     />
                                   </div>
                                 </div>
@@ -305,7 +309,7 @@ function page() {
                                     {pendingRequest ? (
                                       <Loader />
                                     ) : (
-                                      "Send Application"
+                                      t("teamsList.sendApplication")
                                     )}
                                   </Button>
                                 </DialogFooter>
@@ -319,20 +323,19 @@ function page() {
                 ) : (
                   <div className="col-span-full text-center text-muted-foreground py-8">
                     {search
-                      ? "No teams found matching your search."
-                      : "No teams available."}
+                      ? t("teamsList.noTeamsMatch")
+                      : t("teamsList.noTeamsAvailable")}
                   </div>
                 )}
               </div>
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="hidden md:block text-sm text-muted-foreground">
-                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                    {Math.min(
-                      currentPage * ITEMS_PER_PAGE,
-                      filteredTeams.length,
-                    )}{" "}
-                    of {filteredTeams.length}
+                    {t("teamsList.showing", {
+                      start: (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                      end: Math.min(currentPage * ITEMS_PER_PAGE, filteredTeams.length),
+                      total: filteredTeams.length,
+                    })}
                   </p>
                   <Pagination className="w-full md:w-auto mx-0">
                     <PaginationContent>
@@ -420,30 +423,30 @@ function page() {
                         </Badge>
                       )}
                       <Badge variant="outline" className="text-xs shrink-0">
-                        Tier {myTeam.team_tier}
+                        {t("teamsList.tierLabel", { tier: myTeam.team_tier })}
                       </Badge>
                       {myTeam.is_banned && (
                         <Badge
                           variant="destructive"
                           className="text-xs shrink-0"
                         >
-                          Banned
+                          {t("teamsList.banned")}
                         </Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
                       {myTeam.country && <span>{myTeam.country}</span>}
                       <span>
-                        {myTeam.member_count ?? 0} member
-                        {myTeam.member_count !== 1 ? "s" : ""}
+                        {t("teamsList.memberCount", { count: myTeam.member_count ?? 0 })}
                       </span>
                       {myTeam.creation_date && (
                         <span>
-                          Founded{" "}
-                          {new Date(myTeam.creation_date).toLocaleDateString(
-                            "en-GB",
-                            { month: "short", year: "numeric" },
-                          )}
+                          {/* "Founded <month year>" in the viewer's timezone + language. */}
+                          {t.rich("teamsList.founded", {
+                            date: () => (
+                              <LocalTime value={myTeam.creation_date} mode="date" />
+                            ),
+                          })}
                         </span>
                       )}
                     </div>
@@ -460,15 +463,15 @@ function page() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div className="rounded-lg border bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      Your Role
+                      {t("teamsList.yourRole")}
                     </p>
                     <p className="text-sm font-medium mt-0.5 capitalize">
-                      {myTeam.user_role_in_team?.replace(/_/g, " ") ?? "Member"}
+                      {myTeam.user_role_in_team?.replace(/_/g, " ") ?? t("teamsList.roleMember")}
                     </p>
                   </div>
                   <div className="rounded-lg border bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      Owner
+                      {t("teamsList.owner")}
                     </p>
                     <p className="text-sm font-medium mt-0.5 truncate">
                       {/* Owner IGN links to the owner's public player profile. */}
@@ -477,20 +480,20 @@ function page() {
                   </div>
                   <div className="rounded-lg border bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      Joined
+                      {t("teamsList.joined")}
                     </p>
                     <p className="text-sm font-medium mt-0.5">
-                      {myTeam.join_date
-                        ? new Date(myTeam.join_date).toLocaleDateString(
-                            "en-GB",
-                            { day: "numeric", month: "short", year: "numeric" },
-                          )
-                        : "-"}
+                      {/* Join date in the viewer's timezone + language. */}
+                      {myTeam.join_date ? (
+                        <LocalTime value={myTeam.join_date} mode="date" />
+                      ) : (
+                        "-"
+                      )}
                     </p>
                   </div>
                   <div className="rounded-lg border bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      Join Policy
+                      {t("teamsList.joinPolicy")}
                     </p>
                     <p className="text-sm font-medium mt-0.5 capitalize">
                       {myTeam.join_settings?.replace(/_/g, " ") ?? "-"}
@@ -499,7 +502,7 @@ function page() {
                   {myTeam.in_game_role && (
                     <div className="rounded-lg border bg-muted/30 p-3">
                       <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                        In-Game Role
+                        {t("teamsList.inGameRole")}
                       </p>
                       <p className="text-sm font-medium mt-0.5">
                         {myTeam.in_game_role}
@@ -515,7 +518,7 @@ function page() {
                     asChild
                   >
                     <Link href={`/teams/${myTeam.team_name}`}>
-                      View Full Team
+                      {t("teamsList.viewFullTeam")}
                     </Link>
                   </Button>
                 </div>
@@ -524,7 +527,7 @@ function page() {
           ) : (
             <Card>
               <CardContent className="text-center text-muted-foreground py-12">
-                You are not currently part of any team.
+                {t("teamsList.notInTeam")}
               </CardContent>
             </Card>
           )}

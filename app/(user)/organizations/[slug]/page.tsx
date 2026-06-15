@@ -58,11 +58,13 @@ import { Input } from "@/components/ui/input";
 import { FullLoader, Loader } from "@/components/Loader";
 import { NothingFound } from "@/components/NothingFound";
 import { organizersApi } from "@/lib/organizers";
-import { formatDate } from "@/lib/utils";
+// LocalTime renders a stored UTC timestamp in the viewer's own timezone + language.
+import { LocalTime } from "@/components/LocalTime";
 import { DEFAULT_IMAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 // ── Types - the public-endpoint payload (lib/organizers.ts getOrganizationPublic) ──
 // Only the org's own events[] entries are listed here; rating is null until
@@ -95,7 +97,8 @@ interface PublicOrganization {
 // org event shape (event_name / slug / banner / status / start_date). Each card
 // links to the existing tournament details route, /tournaments/<slug>.
 const EventCard: React.FC<{ event: PublicOrgEvent }> = ({ event }) => {
-  const formattedDate = formatDate(event.start_date);
+  // i18n: org event card copy (messages/en/teamsplayers.json -> "organization").
+  const t = useTranslations("teamsplayers");
 
   const statusColors: Record<string, string> = {
     upcoming: "text-blue-500",
@@ -122,7 +125,12 @@ const EventCard: React.FC<{ event: PublicOrgEvent }> = ({ event }) => {
         <CardTitle className="hover:text-primary hover:underline">
           <Link href={`/tournaments/${event.slug}`}>{event.event_name}</Link>
         </CardTitle>
-        <p className="text-sm text-muted-foreground">Date: {formattedDate}</p>
+        <p className="text-sm text-muted-foreground">
+          {/* Event start date in the viewer's timezone + language. */}
+          {t.rich("organization.date", {
+            date: () => <LocalTime value={event.start_date} mode="date" />,
+          })}
+        </p>
         <p
           className={`text-sm font-medium ${
             statusColors[event.status] ?? "text-muted-foreground"
@@ -131,7 +139,7 @@ const EventCard: React.FC<{ event: PublicOrgEvent }> = ({ event }) => {
           {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
         </p>
         <Button className="w-full" variant={"outline"} asChild>
-          <Link href={`/tournaments/${event.slug}`}>View Details</Link>
+          <Link href={`/tournaments/${event.slug}`}>{t("organization.viewDetails")}</Link>
         </Button>
       </CardContent>
     </Card>
@@ -211,17 +219,21 @@ const SocialLinks: React.FC<{ socials: PublicOrganization["socials"] }> = ({
 // evidence image rides along (same FormData idiom the rest of the app uses for
 // uploads). Anonymous visitors are prompted to log in (useAuthModal) instead of
 // opening the dialog. Category mirrors the backend's allowed values.
+// Report categories. The label is a translation KEY (resolved at render) so the
+// dropdown follows the active language; value is the backend's allowed code.
 const REPORT_CATEGORIES = [
-  { value: "rankings_manipulation", label: "Rankings manipulation" },
-  { value: "fake_results", label: "Fake results" },
-  { value: "unfair_conduct", label: "Unfair conduct" },
-  { value: "other", label: "Other" },
+  { value: "rankings_manipulation", labelKey: "organization.reasonRankingsManipulation" },
+  { value: "fake_results", labelKey: "organization.reasonFakeResults" },
+  { value: "unfair_conduct", labelKey: "organization.reasonUnfairConduct" },
+  { value: "other", labelKey: "organization.reasonOther" },
 ] as const;
 
 const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
   slug,
   orgName,
 }) => {
+  // i18n: report-organization dialog copy (teamsplayers -> "organization").
+  const t = useTranslations("teamsplayers");
   const { token } = useAuth();
   const { openAuthModal } = useAuthModal();
 
@@ -249,11 +261,11 @@ const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
 
   const handleSubmit = async () => {
     if (!category) {
-      toast.error("Please choose a reason");
+      toast.error(t("organization.chooseReasonError"));
       return;
     }
     if (!details.trim()) {
-      toast.error("Please describe the issue");
+      toast.error(t("organization.describeIssueError"));
       return;
     }
     setIsSubmitting(true);
@@ -265,12 +277,12 @@ const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
       if (evidence) formData.append("evidence", evidence);
 
       await organizersApi.reportOrganization(slug, formData);
-      toast.success("Report submitted. AFC will review it.");
+      toast.success(t("organization.reportSuccess"));
       setOpen(false);
       resetForm();
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to submit your report",
+        err?.response?.data?.message || t("organization.reportFailed"),
       );
     } finally {
       setIsSubmitting(false);
@@ -301,31 +313,30 @@ const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
           }}
         >
           <IconFlag className="size-4" />
-          Report
+          {t("organization.report")}
         </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Report {orgName}</DialogTitle>
+          <DialogTitle>{t("organization.reportTitle", { name: orgName })}</DialogTitle>
           <DialogDescription>
-            Tell AFC what's wrong. Reports are reviewed by the AFC team and kept
-            confidential.
+            {t("organization.reportDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           {/* Reason */}
           <div className="space-y-1.5">
-            <Label>Reason</Label>
+            <Label>{t("organization.reason")}</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose a reason" />
+                <SelectValue placeholder={t("organization.chooseReason")} />
               </SelectTrigger>
               <SelectContent>
                 {REPORT_CATEGORIES.map((c) => (
                   <SelectItem key={c.value} value={c.value}>
-                    {c.label}
+                    {t(c.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -334,10 +345,10 @@ const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
 
           {/* Details */}
           <div className="space-y-1.5">
-            <Label htmlFor="report-details">Details</Label>
+            <Label htmlFor="report-details">{t("organization.details")}</Label>
             <Textarea
               id="report-details"
-              placeholder="Describe what happened…"
+              placeholder={t("organization.detailsPlaceholder")}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               rows={4}
@@ -347,7 +358,7 @@ const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
 
           {/* Optional evidence image */}
           <div className="space-y-1.5">
-            <Label htmlFor="report-evidence">Evidence (optional)</Label>
+            <Label htmlFor="report-evidence">{t("organization.evidenceOptional")}</Label>
             <Input
               id="report-evidence"
               type="file"
@@ -356,7 +367,7 @@ const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
               onChange={(e) => setEvidence(e.target.files?.[0] ?? null)}
             />
             <p className="text-xs text-muted-foreground">
-              Attach a screenshot if it helps explain the issue.
+              {t("organization.evidenceHint")}
             </p>
           </div>
         </div>
@@ -367,13 +378,13 @@ const ReportOrganizationDialog: React.FC<{ slug: string; orgName: string }> = ({
             onClick={() => setOpen(false)}
             disabled={isSubmitting}
           >
-            Cancel
+            {t("organization.cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!category || !details.trim() || isSubmitting}
           >
-            {isSubmitting ? <Loader text="Submitting..." /> : "Submit report"}
+            {isSubmitting ? <Loader text={t("organization.submitting")} /> : t("organization.submitReport")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -387,6 +398,8 @@ type Params = Promise<{ slug: string }>;
 const Page = ({ params }: { params: Params }) => {
   const { slug } = use(params);
 
+  // i18n: public org page chrome (messages/en/teamsplayers.json -> "organization").
+  const t = useTranslations("teamsplayers");
   const [org, setOrg] = useState<PublicOrganization | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   // notFound flips true when the backend returns 404 (org missing / suspended /
@@ -412,7 +425,7 @@ const Page = ({ params }: { params: Params }) => {
           setNotFound(true);
         } else {
           toast.error(
-            err?.response?.data?.message || "Failed to load organization",
+            err?.response?.data?.message || t("organization.loadFailed"),
           );
         }
       } finally {
@@ -429,7 +442,7 @@ const Page = ({ params }: { params: Params }) => {
 
   // Missing / suspended / deleted org → clean not-found surface.
   if (notFound || !org) {
-    return <NothingFound text="Organization not found." />;
+    return <NothingFound text={t("organization.notFound")} />;
   }
 
   return (
@@ -440,7 +453,7 @@ const Page = ({ params }: { params: Params }) => {
         <div className="relative aspect-[3/1] w-full bg-muted">
           <Image
             src={org.default_banner || DEFAULT_IMAGE}
-            alt={`${org.name} banner`}
+            alt={t("organization.bannerAlt", { name: org.name })}
             fill
             className="object-cover"
             priority
@@ -466,7 +479,7 @@ const Page = ({ params }: { params: Params }) => {
             </h1>
             {/* Rating is null until Phase 4 adds the aggregate - subtle placeholder. */}
             <p className="mt-1 text-sm text-muted-foreground">
-              Rating coming soon
+              {t("organization.ratingComingSoon")}
             </p>
           </div>
 
@@ -493,7 +506,7 @@ const Page = ({ params }: { params: Params }) => {
       {presentSocials(org.socials).length > 0 && (
         <Card>
           <CardContent>
-            <CardTitle className="mb-3 text-base">Connect</CardTitle>
+            <CardTitle className="mb-3 text-base">{t("organization.connect")}</CardTitle>
             <SocialLinks socials={org.socials} />
           </CardContent>
         </Card>
@@ -501,7 +514,7 @@ const Page = ({ params }: { params: Params }) => {
 
       {/* ── Events ── */}
       <div>
-        <CardTitle className="mb-4 text-xl md:text-2xl">Events</CardTitle>
+        <CardTitle className="mb-4 text-xl md:text-2xl">{t("organization.events")}</CardTitle>
         {org.events && org.events.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {org.events.map((event) => (
@@ -509,7 +522,7 @@ const Page = ({ params }: { params: Params }) => {
             ))}
           </div>
         ) : (
-          <NothingFound text="This organization has no events yet." />
+          <NothingFound text={t("organization.noEvents")} />
         )}
       </div>
     </div>

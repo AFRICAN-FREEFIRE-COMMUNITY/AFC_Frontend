@@ -164,11 +164,15 @@ function LoginFormContent() {
 }
 
 export function LoginForm() {
+  // Suspense fallback: this boundary renders before LoginFormContent mounts, so
+  // useTranslations is not available here. We use the shared Loader without an
+  // explicit label (it falls back to its built-in default); the localized form
+  // copy appears the instant the content mounts.
   return (
     <Suspense
       fallback={
         <div className="flex justify-center py-8">
-          <Loader text="Loading..." />
+          <Loader />
         </div>
       }
     >
