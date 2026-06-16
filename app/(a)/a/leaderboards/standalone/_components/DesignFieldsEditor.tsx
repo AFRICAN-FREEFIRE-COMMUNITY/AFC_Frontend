@@ -859,6 +859,21 @@ export function DesignFieldsEditor({
       });
       const updatedDesign = res.design;
       const newPage = res.page;
+      // First add-page on a previously single-page design (currentPageId === null): the backend just
+      // materialised page 1 and re-homed the design-level (page_id=NULL) fields/texts onto it (see
+      // design_pages in views_leaderboard_design.py). The OPEN editor still holds the pre-materialise
+      // `design` prop, so once we leave the implicit page its drafts get cached under key `null` while
+      // page 1 now carries a real id — a server-prop filter by that id would miss them and page 1 would
+      // render EMPTY until a reload. Seed page 1's live cache with the current drafts so switching back
+      // to page 1 restores them instantly. (Groups resolve via groupsFromProp from the updated pages,
+      // which the backend copied both IG + YT column_groups onto, so only fields/texts need seeding.)
+      if (currentPageId === null) {
+        const page1 = (updatedDesign.pages ?? []).find((p) => p.page_number === 1);
+        if (page1) {
+          liveFieldsByPage.current.set(page1.id, fieldsRef.current);
+          liveTextsByPage.current.set(page1.id, textsRef.current);
+        }
+      }
       setPages(updatedDesign.pages ?? []);
       // Switch to the newly created page (the page-switch effect re-scopes the canvas to it).
       setCurrentPageId(newPage.id);
