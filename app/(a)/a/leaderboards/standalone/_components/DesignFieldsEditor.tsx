@@ -294,6 +294,17 @@ export function DesignFieldsEditor({
   useEffect(() => { textsRef.current = texts; }, [texts]);
   useEffect(() => { groupsRef.current = groups; }, [groups]);
 
+  // ── Per-page LIVE store (page-switch data-loss fix, owner 2026-06-15) ──────────
+  // Edits auto-save to the server but the parent `design` prop is NOT refreshed mid-session, so
+  // rebuilding a page from `design.fields/texts/column_groups` on every switch showed the STALE
+  // prop and the user's work "disappeared" when they changed pages. These maps hold the LIVE
+  // (edits-included) drafts per page id (null = the legacy design-level page): we flush the page
+  // we're leaving into them and rebuild the page we're entering from them (falling back to the prop
+  // only the first time a page is visited). Keyed by currentPageId.
+  const liveFieldsByPage = useRef<Map<number | null, FieldDraft[]>>(new Map());
+  const liveTextsByPage = useRef<Map<number | null, TextDraft[]>>(new Map());
+  const liveGroupsByPage = useRef<Map<number | null, DesignColumnGroup[]>>(new Map());
+
   // Save status: a count of in-flight requests drives "saving"; the last result
   // drives "saved" vs "error". The status indicator in the footer reads this.
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -561,6 +572,10 @@ export function DesignFieldsEditor({
   useEffect(() => {
     if (!open) {
       appliedPageRef.current = "unset";
+      // Drop the live per-page store so the NEXT open starts from fresh server data.
+      liveFieldsByPage.current.clear();
+      liveTextsByPage.current.clear();
+      liveGroupsByPage.current.clear();
       return;
     }
     // Skip the very first run after open: the open effect already built drafts for the initial page.
@@ -569,20 +584,33 @@ export function DesignFieldsEditor({
       return;
     }
     if (appliedPageRef.current === currentPageId) return;
+    // The page we are navigating AWAY from — flush its live (edits-included) drafts so returning to
+    // it later restores the work instead of the stale `design` prop. (page-switch data-loss fix)
+    // `leaving` is a real page id here (number | null) — the "unset" first-run returned above.
+    const leaving = appliedPageRef.current;
     appliedPageRef.current = currentPageId;
+    liveFieldsByPage.current.set(leaving, fieldsRef.current);
+    liveTextsByPage.current.set(leaving, textsRef.current);
+    liveGroupsByPage.current.set(leaving, groupsRef.current);
+
+    // Rebuild the page we're ENTERING from the LIVE store when we've already visited/edited it this
+    // session; only fall back to the server prop on the FIRST visit to a page.
+    const cachedF = liveFieldsByPage.current.get(currentPageId);
+    const cachedT = liveTextsByPage.current.get(currentPageId);
+    const cachedG = liveGroupsByPage.current.get(currentPageId);
 
     // Determine the active source: a specific page or the design-level layout.
     const activePage = pages.find((p) => p.id === currentPageId) ?? null;
-    const activeGroups = activePage
+    const activeGroups = cachedG ?? (activePage
       ? activePage.column_groups?.length
         ? activePage.column_groups.map((g) => ({ ...g }))
         : [{ ...DEFAULT_GROUP }]
       : design.column_groups?.length
       ? design.column_groups.map((g) => ({ ...g }))
-      : [{ ...DEFAULT_GROUP }];
+      : [{ ...DEFAULT_GROUP }]);
 
     // Filter fields/texts to only those belonging to the current page (page_id === currentPageId).
-    const fDrafts: FieldDraft[] = (design.fields ?? [])
+    const fDrafts: FieldDraft[] = cachedF ?? (design.fields ?? [])
       .filter((f) => f.page_id === currentPageId)
       .map((f) => ({
         draftId: `srv-${f.id}`,
@@ -596,7 +624,7 @@ export function DesignFieldsEditor({
         color: f.color,
         order: f.order,
       }));
-    const tDrafts: TextDraft[] = (design.texts ?? [])
+    const tDrafts: TextDraft[] = cachedT ?? (design.texts ?? [])
       .filter((t) => t.page_id === currentPageId)
       .map((t) => ({
         draftId: `srv-${t.id}`,
