@@ -67,6 +67,9 @@ import {
 // Sentinel Select value meaning "let the backend use the library default design".
 // A real design id is a stringified number; this distinguishes "none chosen" from id=0.
 const AUTO = "auto";
+// Sentinel Select value for the Group dropdown meaning "the WHOLE stage (all groups combined)",
+// as opposed to a single group's id. Sent to the backend as no group_id (stage-wide standings).
+const ALL_GROUPS = "all_groups";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface EventStageExportGraphicDialogProps {
@@ -74,10 +77,18 @@ interface EventStageExportGraphicDialogProps {
   eventId: number | string;
   // The numeric (or string) stage_id for the stage whose standings to render.
   stageId: number | string;
-  // The selected group_id (owner 2026-06-16): when set, the export renders THAT group's standings
-  // (matching the per-group "Overall Leaderboard" the user sees) instead of the whole stage. Omit
-  // for a stage-wide export.
+  // The selected group_id (owner 2026-06-16): the DEFAULT group selection. The dialog also lets the
+  // user re-pick stage/group (see `stages`), so this is just the initial value; null = whole stage.
   groupId?: number | string | null;
+  // The event's stages + their groups (owner 2026-06-16): lets the admin/organizer choose EXACTLY
+  // which stage and group of the event to render on the export, instead of being locked to the page's
+  // current view. Shape: [{ stage_id, stage_name, groups: [{ group_id, group_name }] }]. When
+  // omitted or single, the dialog just uses the passed stageId/groupId.
+  stages?: Array<{
+    stage_id: number | string;
+    stage_name?: string;
+    groups?: Array<{ group_id: number | string; group_name?: string }>;
+  }>;
   // The organization that owns this event. Used to scope the design library call
   // (leaderboardDesignsApi.list(organizationId)). Pass null/undefined to use the
   // AFC-native library (organization_id omitted from the query string).
@@ -96,6 +107,7 @@ export function EventStageExportGraphicDialog({
   eventId,
   stageId,
   groupId,
+  stages = [],
   organizationId,
   defaultTitle = "",
   defaultSubtitle = "",
@@ -107,12 +119,20 @@ export function EventStageExportGraphicDialog({
 
   // ── Form state ────────────────────────────────────────────────────────────
   const [designId, setDesignId] = useState<string>(AUTO);
+  // Which stage + group of the event to render (owner 2026-06-16). selGroup === ALL_GROUPS means
+  // the WHOLE stage (all groups combined); otherwise a single group's "Overall Leaderboard".
+  const [selStage, setSelStage] = useState<string>(String(stageId ?? ""));
+  const [selGroup, setSelGroup] = useState<string>(groupId != null ? String(groupId) : ALL_GROUPS);
   // Events default to YouTube (landscape, 1920x1080) - better for broadcast/stream
   // graphics than standalone leaderboards which default to Instagram portrait.
   const [size, setSize] = useState<GraphicSize>("youtube");
   const [title, setTitle] = useState(defaultTitle);
   const [subtitle, setSubtitle] = useState(defaultSubtitle);
   const [downloading, setDownloading] = useState(false);
+
+  // Groups available for the currently-selected stage (drives the Group dropdown).
+  const stageGroups =
+    stages.find((s) => String(s.stage_id) === selStage)?.groups ?? [];
 
   // ── Load the org's design library when the dialog opens ───────────────────
   // Pre-selects the library-default design so the common case is one click.
@@ -143,10 +163,15 @@ export function EventStageExportGraphicDialog({
       setTitle(defaultTitle);
       setSubtitle(defaultSubtitle);
       setSize("youtube");
+      // Default the stage/group pickers to the page's current view (the passed stageId/groupId).
+      setSelStage(String(stageId ?? stages[0]?.stage_id ?? ""));
+      setSelGroup(groupId != null ? String(groupId) : ALL_GROUPS);
       loadDesigns();
     }
     prevOpenRef.current = open;
-  }, [open, defaultTitle, defaultSubtitle, loadDesigns]);
+    // stageId/groupId are primitives; `stages` is only read at open so it is intentionally not a dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, defaultTitle, defaultSubtitle, loadDesigns, stageId, groupId]);
 
   // ── Download: fetch PNG blob via auth-gated axios call + save ─────────────
   // downloadEventStageGraphic hits GET events/<eventId>/stages/<stageId>/graphic/
@@ -161,13 +186,14 @@ export function EventStageExportGraphicDialog({
       const isMultiPage = (selectedDesign?.pages?.length ?? 0) > 1;
       const blob = await leaderboardDesignsApi.downloadEventStageGraphic(
         eventId,
-        stageId,
+        // Use the USER-CHOSEN stage + group (owner 2026-06-16), not just the page's current view.
+        selStage || stageId,
         {
           designId: designId === AUTO ? null : Number(designId),
           size,
           title: title.trim(),
           subtitle: subtitle.trim(),
-          groupId: groupId ?? null,
+          groupId: selGroup === ALL_GROUPS ? null : selGroup,
           ...(isMultiPage ? { page: "all" as const } : {}),
         },
       );
@@ -233,12 +259,63 @@ export function EventStageExportGraphicDialog({
           <DialogHeader>
             <DialogTitle>Export leaderboard graphic</DialogTitle>
             <DialogDescription>
-              Render the current stage standings onto a branded design and
-              download it as an image.
+              Pick the stage and group to show, render those standings onto a
+              branded design, and download it as an image.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* ── Stage + Group pickers (owner 2026-06-16) ──────────────────
+                Choose EXACTLY which stage + group of the event to render, instead of
+                being locked to whatever the page is currently showing. "Whole stage"
+                renders every group combined; a specific group renders just that group's
+                Overall Leaderboard (the backend's group_id vs stage-wide path). */}
+            {stages.length > 0 && (
+              <>
+                <div className="space-y-2">
+                  <Label>Stage</Label>
+                  <Select
+                    value={selStage}
+                    onValueChange={(v) => {
+                      setSelStage(v);
+                      setSelGroup(ALL_GROUPS); // groups are stage-specific; reset to whole-stage
+                      const st = stages.find((s) => String(s.stage_id) === v);
+                      if (st?.stage_name) setSubtitle(st.stage_name); // keep subtitle in sync
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a stage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map((s) => (
+                        <SelectItem key={String(s.stage_id)} value={String(s.stage_id)}>
+                          {s.stage_name || `Stage ${s.stage_id}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {stageGroups.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Group</Label>
+                    <Select value={selGroup} onValueChange={setSelGroup}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={ALL_GROUPS}>Whole stage (all groups)</SelectItem>
+                        {stageGroups.map((g) => (
+                          <SelectItem key={String(g.group_id)} value={String(g.group_id)}>
+                            {g.group_name || `Group ${g.group_id}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </>
+            )}
+
             {/* ── Design picker ────────────────────────────────────────────
                 Lists the org's design library. "Default / plain background"
                 lets the backend choose the library default (or plain dark). */}

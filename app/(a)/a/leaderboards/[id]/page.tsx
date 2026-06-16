@@ -352,10 +352,11 @@ export default function IndividualLeaderboardPage({
               <EventStageExportGraphicDialog
                 eventId={id}
                 stageId={selectedStageId}
-                // Export the GROUP the user is viewing so the image matches the on-screen
-                // "Overall Leaderboard" exactly (owner 2026-06-16). Falls back to the whole stage
-                // server-side when no group is set.
+                // Default to the GROUP the user is viewing so the image matches the on-screen
+                // "Overall Leaderboard" (owner 2026-06-16); the dialog also lets them re-pick any
+                // stage/group via `stages`. Falls back to the whole stage when no group is set.
                 groupId={selectedGroupId}
+                stages={eventData?.stages ?? []}
                 organizationId={eventData?.organization_id ?? null}
                 defaultTitle={eventData.event_name}
                 defaultSubtitle={

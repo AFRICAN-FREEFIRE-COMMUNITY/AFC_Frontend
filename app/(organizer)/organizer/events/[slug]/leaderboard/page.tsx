@@ -1045,8 +1045,10 @@ export default function OrganizerEventLeaderboardPage({
                 <EventStageExportGraphicDialog
                   eventId={eventId}
                   stageId={selectedStageId}
-                  // Match the on-screen per-group "Overall Leaderboard" (owner 2026-06-16).
+                  // Default to the on-screen per-group "Overall Leaderboard" (owner 2026-06-16);
+                  // the dialog lets the organizer re-pick any stage/group via `stages`.
                   groupId={selectedGroupId}
+                  stages={eventData?.stages ?? []}
                   organizationId={organizationId}
                   defaultTitle={eventData.event_name || eventNameFromList}
                   defaultSubtitle={currentStage?.stage_name ?? ""}
