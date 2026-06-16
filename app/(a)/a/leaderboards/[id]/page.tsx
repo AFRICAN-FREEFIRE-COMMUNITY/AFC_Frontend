@@ -22,6 +22,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // Flagged-kill controls (owner 2026-06-16): manage "ringer" kills (UIDs that played for a team
 // they're not on) for this TEAM event. Backend: events/flagged-kills/* (lib/flaggedKills).
 import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
+// Design-based export (owner 2026-06-16): the existing DownloadLeaderboardButton renders onto the
+// FIXED AFC template; this dialog lets the admin pick a CUSTOM design + size and render via the
+// backend renderer (events/<id>/stages/<sid>/graphic/). Shared with the organizer leaderboard.
+import { EventStageExportGraphicDialog } from "@/app/(organizer)/organizer/events/[slug]/leaderboard/_components/EventStageExportGraphicDialog";
 import {
   IconTrophy,
   IconUsers,
@@ -340,6 +344,22 @@ export default function IndividualLeaderboardPage({
               participantType={detailsParticipantType}
               killPoint={Number(currentGroup?.leaderboard?.kill_point ?? 1)}
             />
+            </span>
+            {/* Design-based export (owner 2026-06-16): pick a CUSTOM design + size and render the
+                selected stage's standings onto it (the Download button above uses the fixed AFC
+                template, which is why a freshly-edited design never showed up there). */}
+            <span className="inline-flex flex-1">
+              <EventStageExportGraphicDialog
+                eventId={id}
+                stageId={selectedStageId}
+                organizationId={eventData?.organization_id ?? null}
+                defaultTitle={eventData.event_name}
+                defaultSubtitle={
+                  eventData.stages.find(
+                    (s: any) => s.stage_id.toString() === selectedStageId,
+                  )?.stage_name ?? ""
+                }
+              />
             </span>
             <Button asChild variant="outline" size="sm" className="flex-1">
               <Link href={`/a/leaderboards/${id}/edit`}>
