@@ -78,7 +78,8 @@ export interface LeaderboardDesignPage {
   page_number: number; // 1-based
   background_instagram: string | null; // media URL (or null when not uploaded for this page)
   background_youtube: string | null; // media URL (or null when not uploaded for this page)
-  column_groups: DesignColumnGroup[]; // row tiling for THIS page's fields
+  column_groups: DesignColumnGroup[]; // row tiling for THIS page's fields (Instagram, canonical)
+  column_groups_youtube?: DesignColumnGroup[]; // independent YT geometry; empty => fall back to IG
 }
 
 // One placed/connected column. font_id/font_size_pct/color are optional overrides (null/"" =>
@@ -87,7 +88,8 @@ export interface LeaderboardDesignField {
   id: number;
   field_type: FieldType;
   column_group: number; // index into design.column_groups
-  x_pct: number; // centre X, 0..100
+  x_pct: number; // centre X, 0..100 (Instagram, canonical)
+  x_pct_youtube: number | null; // independent YT X; null => fall back to x_pct
   align: TextAlign;
   font_id: number | null;
   font_size_pct: number | null; // size as % of canvas height
@@ -102,8 +104,10 @@ export interface LeaderboardDesignField {
 export interface LeaderboardDesignText {
   id: number;
   text: string;
-  x_pct: number;
+  x_pct: number; // Instagram (canonical)
   y_pct: number;
+  x_pct_youtube: number | null; // independent YT position; null => fall back to x_pct/y_pct
+  y_pct_youtube: number | null;
   align: TextAlign;
   font_id: number | null;
   font_size_pct: number | null;
@@ -133,7 +137,8 @@ export interface LeaderboardDesign {
   show_subtitle: boolean;
   max_rows: number; // how many standings rows the render fits (1..50)
   is_default: boolean; // the library's auto-selected design
-  column_groups: DesignColumnGroup[]; // row tiling per group (field-layout path); [] = legacy table
+  column_groups: DesignColumnGroup[]; // row tiling per group (Instagram, canonical); [] = legacy table
+  column_groups_youtube?: DesignColumnGroup[]; // independent YT geometry; empty => fall back to IG
   // Multi-page (owner 2026-06-14): ordered list of explicit page rows. Empty array = a legacy
   // SINGLE-PAGE design (backward compatible). >1 page => export returns a ZIP (one PNG per page).
   pages: LeaderboardDesignPage[];
@@ -274,6 +279,9 @@ export const leaderboardDesignsApi = {
       font_id: number | null;
       font_size_pct: number | null;
       color: string;
+      // Which size's layout this edit targets (owner 2026-06-15): "youtube" writes x_pct_youtube,
+      // else the canonical Instagram x_pct. Omit = instagram.
+      size: "instagram" | "youtube";
     }>,
   ) =>
     axios
@@ -327,6 +335,9 @@ export const leaderboardDesignsApi = {
       font_id: number | null;
       font_size_pct: number | null;
       color: string;
+      // Which size's layout this edit targets (owner 2026-06-15): "youtube" writes the *_youtube
+      // position, else the canonical Instagram one. Omit = instagram.
+      size: "instagram" | "youtube";
     }>,
   ) =>
     axios
@@ -389,12 +400,15 @@ export const leaderboardDesignsApi = {
       columnGroups?: DesignColumnGroup[];
       backgroundInstagram?: File;
       backgroundYoutube?: File;
+      // Which size's column_groups this writes (owner 2026-06-15): "youtube" -> column_groups_youtube.
+      size?: "instagram" | "youtube";
     },
   ) => {
     const fd = new FormData();
     if (opts.columnGroups !== undefined) {
       fd.append("column_groups", JSON.stringify(opts.columnGroups));
     }
+    if (opts.size) fd.append("size", opts.size);
     if (opts.backgroundInstagram)
       fd.append("background_instagram", opts.backgroundInstagram);
     if (opts.backgroundYoutube)

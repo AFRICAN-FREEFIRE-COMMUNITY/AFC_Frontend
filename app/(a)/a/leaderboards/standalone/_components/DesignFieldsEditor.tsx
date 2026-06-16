@@ -113,9 +113,15 @@ import {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-// Canvas aspect ratio for the YT background (1920x1080). All position percentages are
-// relative to this canvas regardless of the display size.
-const CANVAS_RATIO = 1920 / 1080;
+// Canvas aspect ratio PER EXPORT SIZE (owner 2026-06-15): Instagram is portrait 1080x1350,
+// YouTube is landscape 1920x1080. The editor canvas flips to the size being edited so the admin
+// positions fields against the SAME aspect the export will use. Positions are percentages relative
+// to whichever canvas/size is active.
+const CANVAS_RATIO_BY_SIZE: Record<"instagram" | "youtube", number> = {
+  instagram: 1080 / 1350,
+  youtube: 1920 / 1080,
+};
+type EditSize = "instagram" | "youtube";
 
 // Maximum pixel height for the editor canvas so it never overflows the dialog.
 const MAX_CANVAS_H = 520;
@@ -211,7 +217,9 @@ interface FieldDraft {
   pending?: boolean; // true while addField() is in flight (no server id yet)
   field_type: FieldType;
   column_group: number;
-  x_pct: number;
+  x_pct: number; // Instagram X (canonical)
+  // Independent YouTube X (owner 2026-06-15). null => falls back to x_pct for the YT layout.
+  x_pct_youtube: number | null;
   align: TextAlign;
   font_id: number | null;
   font_size_pct: number | null;
@@ -225,8 +233,11 @@ interface TextDraft {
   id?: number;
   pending?: boolean; // true while addText() is in flight
   text: string;
-  x_pct: number;
+  x_pct: number; // Instagram position (canonical)
   y_pct: number;
+  // Independent YouTube position (owner 2026-06-15). null => falls back to x_pct/y_pct for YT.
+  x_pct_youtube: number | null;
+  y_pct_youtube: number | null;
   align: TextAlign;
   font_id: number | null;
   font_size_pct: number | null;
@@ -284,6 +295,22 @@ export function DesignFieldsEditor({
   const [currentPageId, setCurrentPageId] = useState<number | null>(null);
   const [addingPage, setAddingPage] = useState(false);
 
+  // ── Editing size (owner 2026-06-15: independent IG/YT layouts) ───────────────
+  // Which export size's layout is being edited. Drives the canvas aspect + background + which
+  // position each field/text reads & writes (x_pct vs x_pct_youtube; column_groups vs
+  // column_groups_youtube). Default Instagram = the canonical layout YouTube falls back to.
+  const [editSize, setEditSize] = useState<EditSize>("instagram");
+  const editSizeRef = useRef<EditSize>("instagram");
+  useEffect(() => { editSizeRef.current = editSize; }, [editSize]);
+  const isYT = editSize === "youtube";
+  // Active-size position pickers (fall back to the Instagram value when the YT value is unset).
+  const fieldX = (f: FieldDraft) =>
+    isYT ? (f.x_pct_youtube ?? f.x_pct) : f.x_pct;
+  const textX = (t: TextDraft) =>
+    isYT ? (t.x_pct_youtube ?? t.x_pct) : t.x_pct;
+  const textY = (t: TextDraft) =>
+    isYT ? (t.y_pct_youtube ?? t.y_pct) : t.y_pct;
+
   // ── Auto-save plumbing ──────────────────────────────────────────────────────
   // Live mirrors of the draft state so async callbacks (drag pointerup, debounced
   // timers) always read the latest values without stale closures.
@@ -303,7 +330,22 @@ export function DesignFieldsEditor({
   // only the first time a page is visited). Keyed by currentPageId.
   const liveFieldsByPage = useRef<Map<number | null, FieldDraft[]>>(new Map());
   const liveTextsByPage = useRef<Map<number | null, TextDraft[]>>(new Map());
-  const liveGroupsByPage = useRef<Map<number | null, DesignColumnGroup[]>>(new Map());
+  // Column groups are kept per (page, SIZE) — IG and YT have independent row geometry (owner
+  // 2026-06-15). Keyed by `${pageId}|${size}`. Fields/texts stay per-page (they carry both sizes
+  // in one draft, so the canvas reads the active size; only the column-group arrays are size-split).
+  const liveGroupsByPageSize = useRef<Map<string, DesignColumnGroup[]>>(new Map());
+  const gKey = (pageId: number | null, size: EditSize) => `${pageId}|${size}`;
+  // Build a page/design's column groups for a given size from the server prop (YT falls back to IG).
+  const groupsFromProp = (pageId: number | null, yt: boolean): DesignColumnGroup[] => {
+    const ap = pages.find((p) => p.id === pageId) ?? null;
+    const src = ap ? ap : design;
+    const ytCg = src.column_groups_youtube;
+    const igCg = src.column_groups;
+    const chosen = yt ? (ytCg && ytCg.length ? ytCg : igCg) : igCg;
+    return chosen && chosen.length
+      ? chosen.map((g) => ({ ...g }))
+      : [{ ...DEFAULT_GROUP }];
+  };
 
   // Save status: a count of in-flight requests drives "saving"; the last result
   // drives "saved" vs "error". The status indicator in the footer reads this.
@@ -338,12 +380,14 @@ export function DesignFieldsEditor({
     return () => ro.disconnect();
   }, [open]);
 
-  // Canvas pixel dims: fit the wrapper width, cap at MAX_CANVAS_H, preserve 1920/1080.
+  // Canvas pixel dims: fit the wrapper width, cap at MAX_CANVAS_H, preserve the ASPECT OF THE SIZE
+  // BEING EDITED (IG portrait 1080x1350 vs YT landscape 1920x1080) so positions match the export.
+  const ratio = CANVAS_RATIO_BY_SIZE[editSize];
   let canvasW = availW || 700;
-  let canvasH = canvasW / CANVAS_RATIO;
+  let canvasH = canvasW / ratio;
   if (canvasH > MAX_CANVAS_H) {
     canvasH = MAX_CANVAS_H;
-    canvasW = canvasH * CANVAS_RATIO;
+    canvasW = canvasH * ratio;
   }
   const canvasDims = { w: Math.round(canvasW), h: Math.round(canvasH) };
 
@@ -403,16 +447,28 @@ export function DesignFieldsEditor({
       const r = el.getBoundingClientRect();
       const xPct = Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100));
       const yPct = Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100));
+      // Write the position for the SIZE being edited (read from a ref so this []-deps callback is
+      // never stale). YouTube edits the *_youtube fields; Instagram edits the canonical ones.
+      const yt = editSizeRef.current === "youtube";
       if (drag.type === "field") {
         setFields((prev) =>
           prev.map((f) =>
-            f.draftId === drag.draftId ? { ...f, x_pct: xPct } : f,
+            f.draftId === drag.draftId
+              ? { ...f, ...(yt ? { x_pct_youtube: xPct } : { x_pct: xPct }) }
+              : f,
           ),
         );
       } else {
         setTexts((prev) =>
           prev.map((t) =>
-            t.draftId === drag.draftId ? { ...t, x_pct: xPct, y_pct: yPct } : t,
+            t.draftId === drag.draftId
+              ? {
+                  ...t,
+                  ...(yt
+                    ? { x_pct_youtube: xPct, y_pct_youtube: yPct }
+                    : { x_pct: xPct, y_pct: yPct }),
+                }
+              : t,
           ),
         );
       }
@@ -431,14 +487,16 @@ export function DesignFieldsEditor({
     window.removeEventListener("pointerup", onPointerUp);
     if (!drag) return;
 
+    const sz = editSizeRef.current;
+    const yt = sz === "youtube";
     if (drag.type === "field") {
       const f = fieldsRef.current.find((x) => x.draftId === drag.draftId);
       if (f && f.id != null && !f.pending) {
         const did = design.id;
         const fid = f.id;
-        const x = roundPct(f.x_pct);
+        const x = roundPct(yt ? (f.x_pct_youtube ?? f.x_pct) : f.x_pct);
         persist(
-          () => leaderboardDesignsApi.updateField(did, fid, { x_pct: x }),
+          () => leaderboardDesignsApi.updateField(did, fid, { x_pct: x, size: sz }),
           `Failed to save the ${FIELD_LABELS[f.field_type]} column position.`,
         );
       }
@@ -447,10 +505,10 @@ export function DesignFieldsEditor({
       if (t && t.id != null && !t.pending) {
         const did = design.id;
         const tid = t.id;
-        const x = roundPct(t.x_pct);
-        const y = roundPct(t.y_pct);
+        const x = roundPct(yt ? (t.x_pct_youtube ?? t.x_pct) : t.x_pct);
+        const y = roundPct(yt ? (t.y_pct_youtube ?? t.y_pct) : t.y_pct);
         persist(
-          () => leaderboardDesignsApi.updateText(did, tid, { x_pct: x, y_pct: y }),
+          () => leaderboardDesignsApi.updateText(did, tid, { x_pct: x, y_pct: y, size: sz }),
           "Failed to save the text position.",
         );
       }
@@ -529,6 +587,7 @@ export function DesignFieldsEditor({
         field_type: f.field_type,
         column_group: f.column_group,
         x_pct: f.x_pct,
+        x_pct_youtube: f.x_pct_youtube ?? null,
         align: f.align,
         font_id: f.font_id,
         font_size_pct: f.font_size_pct,
@@ -543,6 +602,8 @@ export function DesignFieldsEditor({
         text: t.text,
         x_pct: t.x_pct,
         y_pct: t.y_pct,
+        x_pct_youtube: t.x_pct_youtube ?? null,
+        y_pct_youtube: t.y_pct_youtube ?? null,
         align: t.align,
         font_id: t.font_id,
         font_size_pct: t.font_size_pct,
@@ -554,6 +615,9 @@ export function DesignFieldsEditor({
     setTexts(tDrafts);
     setGroups(grps);
     setSelected(null);
+    // Start each open on the canonical Instagram layout (the open effect built IG groups above).
+    setEditSize("instagram");
+    appliedSizeRef.current = "instagram";
 
     // Fresh auto-save state for this open: nothing has changed yet.
     setSaveStatus("idle");
@@ -575,7 +639,7 @@ export function DesignFieldsEditor({
       // Drop the live per-page store so the NEXT open starts from fresh server data.
       liveFieldsByPage.current.clear();
       liveTextsByPage.current.clear();
-      liveGroupsByPage.current.clear();
+      liveGroupsByPageSize.current.clear();
       return;
     }
     // Skip the very first run after open: the open effect already built drafts for the initial page.
@@ -589,25 +653,18 @@ export function DesignFieldsEditor({
     // `leaving` is a real page id here (number | null) — the "unset" first-run returned above.
     const leaving = appliedPageRef.current;
     appliedPageRef.current = currentPageId;
+    const sz = editSizeRef.current;
     liveFieldsByPage.current.set(leaving, fieldsRef.current);
     liveTextsByPage.current.set(leaving, textsRef.current);
-    liveGroupsByPage.current.set(leaving, groupsRef.current);
+    // Groups are per (page, size): stash the leaving page's groups under the ACTIVE size.
+    liveGroupsByPageSize.current.set(gKey(leaving, sz), groupsRef.current);
 
     // Rebuild the page we're ENTERING from the LIVE store when we've already visited/edited it this
     // session; only fall back to the server prop on the FIRST visit to a page.
     const cachedF = liveFieldsByPage.current.get(currentPageId);
     const cachedT = liveTextsByPage.current.get(currentPageId);
-    const cachedG = liveGroupsByPage.current.get(currentPageId);
-
-    // Determine the active source: a specific page or the design-level layout.
-    const activePage = pages.find((p) => p.id === currentPageId) ?? null;
-    const activeGroups = cachedG ?? (activePage
-      ? activePage.column_groups?.length
-        ? activePage.column_groups.map((g) => ({ ...g }))
-        : [{ ...DEFAULT_GROUP }]
-      : design.column_groups?.length
-      ? design.column_groups.map((g) => ({ ...g }))
-      : [{ ...DEFAULT_GROUP }]);
+    const cachedG = liveGroupsByPageSize.current.get(gKey(currentPageId, sz));
+    const activeGroups = cachedG ?? groupsFromProp(currentPageId, sz === "youtube");
 
     // Filter fields/texts to only those belonging to the current page (page_id === currentPageId).
     const fDrafts: FieldDraft[] = cachedF ?? (design.fields ?? [])
@@ -618,6 +675,7 @@ export function DesignFieldsEditor({
         field_type: f.field_type,
         column_group: f.column_group,
         x_pct: f.x_pct,
+        x_pct_youtube: f.x_pct_youtube ?? null,
         align: f.align,
         font_id: f.font_id,
         font_size_pct: f.font_size_pct,
@@ -632,6 +690,8 @@ export function DesignFieldsEditor({
         text: t.text,
         x_pct: t.x_pct,
         y_pct: t.y_pct,
+        x_pct_youtube: t.x_pct_youtube ?? null,
+        y_pct_youtube: t.y_pct_youtube ?? null,
         align: t.align,
         font_id: t.font_id,
         font_size_pct: t.font_size_pct,
@@ -645,6 +705,31 @@ export function DesignFieldsEditor({
     setSelected(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPageId, open]);
+
+  // ── Size-switch effect (owner 2026-06-15): swap the column groups when toggling IG <-> YT. ──
+  // Fields/texts don't reload on a size change (each draft carries both sizes; the canvas reads the
+  // active one via fieldX/textX/textY). Only the column-group arrays are size-split, so we stash the
+  // leaving size's groups (per current page) and load the entering size's (from the live store or the
+  // server prop, YT falling back to IG on first edit).
+  const appliedSizeRef = useRef<EditSize | "unset">("unset");
+  useEffect(() => {
+    if (!open) {
+      appliedSizeRef.current = "unset";
+      return;
+    }
+    if (appliedSizeRef.current === "unset") {
+      appliedSizeRef.current = editSize;
+      return;
+    }
+    if (appliedSizeRef.current === editSize) return;
+    const leavingSize = appliedSizeRef.current;
+    appliedSizeRef.current = editSize;
+    liveGroupsByPageSize.current.set(gKey(currentPageId, leavingSize), groupsRef.current);
+    const cached = liveGroupsByPageSize.current.get(gKey(currentPageId, editSize));
+    setGroups(cached ?? groupsFromProp(currentPageId, editSize === "youtube"));
+    setSelected(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editSize, open]);
 
   // Clear any pending debounce timers when the dialog closes / component unmounts
   // so a queued PATCH never fires against a stale design after close.
@@ -686,19 +771,23 @@ export function DesignFieldsEditor({
     if (groupsTimer.current) clearTimeout(groupsTimer.current);
     groupsTimer.current = setTimeout(() => {
       const currentGroups = groupsRef.current;
+      // Route to the SIZE being edited (owner 2026-06-15): YT writes column_groups_youtube.
+      const sz = editSizeRef.current;
       if (currentPageId !== null) {
         // Active page: save the column layout onto the page row.
         persist(
           () =>
             leaderboardDesignsApi.updatePage(design.id, currentPageId, {
               columnGroups: currentGroups,
+              size: sz,
             }),
           "Failed to save the column group layout.",
         );
       } else {
-        // Legacy / design-level: save the column layout onto the design (unchanged behaviour).
+        // Legacy / design-level: save the column layout onto the design.
         const fd = new FormData();
         fd.append("column_groups", JSON.stringify(currentGroups));
+        fd.append("size", sz);
         persist(
           () => leaderboardDesignsApi.update(design.id, fd),
           "Failed to save the column group layout.",
@@ -804,6 +893,9 @@ export function DesignFieldsEditor({
       // group 0 (the top palette); each extra group's card passes its own index.
       column_group: targetGroup,
       x_pct: DEFAULT_X[fieldType] ?? 45,
+      // YT position starts unset -> falls back to the IG x_pct until the admin drags it on the YT
+      // canvas (which sets x_pct_youtube via a size=youtube PATCH).
+      x_pct_youtube: null,
       align: DEFAULT_ALIGN[fieldType] ?? "center",
       font_id: null,
       font_size_pct: null,
@@ -849,15 +941,27 @@ export function DesignFieldsEditor({
   // Local merge + persist the changed keys (PATCH). The size slider is debounced so a drag of the
   // slider does not fire a request per pixel; everything else persists at once.
   const updateField = (draftId: string, patch: Partial<FieldDraft>) => {
+    // A position (x_pct) edit while editing the YT layout targets x_pct_youtube, not x_pct.
+    const ytPos = "x_pct" in patch && editSizeRef.current === "youtube";
     setFields((prev) =>
-      prev.map((f) => (f.draftId === draftId ? { ...f, ...patch } : f)),
+      prev.map((f) => {
+        if (f.draftId !== draftId) return f;
+        if (ytPos) {
+          const { x_pct, ...rest } = patch;
+          return { ...f, ...rest, x_pct_youtube: x_pct as number };
+        }
+        return { ...f, ...patch };
+      }),
     );
     const f = fieldsRef.current.find((x) => x.draftId === draftId);
     if (!f || f.id == null || f.pending) return; // pending: create carries current values
     const fid = f.id;
     const body: Record<string, unknown> = {};
     if ("column_group" in patch) body.column_group = patch.column_group;
-    if ("x_pct" in patch) body.x_pct = roundPct(patch.x_pct as number);
+    if ("x_pct" in patch) {
+      body.x_pct = roundPct(patch.x_pct as number);
+      body.size = editSizeRef.current; // backend routes to x_pct vs x_pct_youtube
+    }
     if ("align" in patch) body.align = patch.align;
     if ("font_id" in patch) body.font_id = patch.font_id;
     if ("font_size_pct" in patch) body.font_size_pct = patch.font_size_pct;
@@ -885,6 +989,9 @@ export function DesignFieldsEditor({
       text: "TEXT",
       x_pct: 50,
       y_pct: 14,
+      // YT position unset -> falls back to IG until dragged on the YT canvas.
+      x_pct_youtube: null,
+      y_pct_youtube: null,
       align: "center",
       font_id: null,
       font_size_pct: 5,
@@ -928,8 +1035,23 @@ export function DesignFieldsEditor({
   };
 
   const updateText = (draftId: string, patch: Partial<TextDraft>) => {
+    // Position (x_pct/y_pct) edits while editing the YT layout target the *_youtube fields.
+    const yt = editSizeRef.current === "youtube";
+    const posPatch = yt && ("x_pct" in patch || "y_pct" in patch);
     setTexts((prev) =>
-      prev.map((t) => (t.draftId === draftId ? { ...t, ...patch } : t)),
+      prev.map((t) => {
+        if (t.draftId !== draftId) return t;
+        if (posPatch) {
+          const { x_pct, y_pct, ...rest } = patch;
+          return {
+            ...t,
+            ...rest,
+            ...(x_pct !== undefined ? { x_pct_youtube: x_pct } : {}),
+            ...(y_pct !== undefined ? { y_pct_youtube: y_pct } : {}),
+          };
+        }
+        return { ...t, ...patch };
+      }),
     );
     const t = textsRef.current.find((x) => x.draftId === draftId);
     if (!t || t.id == null || t.pending) return;
@@ -938,6 +1060,7 @@ export function DesignFieldsEditor({
     if ("text" in patch) body.text = patch.text;
     if ("x_pct" in patch) body.x_pct = roundPct(patch.x_pct as number);
     if ("y_pct" in patch) body.y_pct = roundPct(patch.y_pct as number);
+    if ("x_pct" in patch || "y_pct" in patch) body.size = editSizeRef.current;
     if ("align" in patch) body.align = patch.align;
     if ("font_id" in patch) body.font_id = patch.font_id;
     if ("font_size_pct" in patch) body.font_size_pct = patch.font_size_pct;
@@ -1016,15 +1139,15 @@ export function DesignFieldsEditor({
     return f ? `"${f.name}", DM Sans, sans-serif` : "DM Sans, sans-serif";
   };
 
-  // Background URL: prefer YouTube (1920x1080) since the canvas uses that aspect ratio.
-  // Multi-page (owner 2026-06-14): when a page is active, use THAT page's background; otherwise
-  // (legacy / single-page) fall back to the design-level background.
+  // Background URL: use the background for the SIZE being edited (owner 2026-06-15) so the canvas
+  // shows the IG portrait bg when editing IG and the YT landscape bg when editing YT. Falls back to
+  // the other size's bg if the active one is missing. Multi-page: use the active page's bg, else the
+  // design-level bg.
   const activePageForBg = pages.find((p) => p.id === currentPageId) ?? null;
-  const bgUrl = activePageForBg
-    ? activePageForBg.background_youtube ||
-      activePageForBg.background_instagram ||
-      ""
-    : design.background_youtube || design.background_instagram || "";
+  const bgSrc = activePageForBg ?? design;
+  const bgUrl = isYT
+    ? bgSrc.background_youtube || bgSrc.background_instagram || ""
+    : bgSrc.background_instagram || bgSrc.background_youtube || "";
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -1048,6 +1171,35 @@ export function DesignFieldsEditor({
             style in the panel on the right.
           </DialogDescription>
         </DialogHeader>
+
+        {/* ── Edit-size toggle (owner 2026-06-15): Instagram and YouTube are INDEPENDENT layouts.
+            Switching flips the canvas aspect (IG portrait 1080x1350 vs YT landscape 1920x1080) + the
+            background, and changes which size's field/text positions + column-group geometry are
+            edited & saved. Instagram is canonical; YouTube falls back to it until a YT layout is set. */}
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-medium text-foreground">Editing layout:</span>
+          <div className="inline-flex rounded-md border bg-muted p-0.5">
+            {(["instagram", "youtube"] as EditSize[]).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setEditSize(s)}
+                className={
+                  editSize === s
+                    ? "rounded px-3 py-1 font-medium bg-background text-foreground shadow-sm"
+                    : "rounded px-3 py-1 text-muted-foreground hover:text-foreground"
+                }
+              >
+                {s === "instagram" ? "Instagram (1080×1350)" : "YouTube (1920×1080)"}
+              </button>
+            ))}
+          </div>
+          <span className="text-[11px] text-muted-foreground">
+            {isYT
+              ? "YouTube positions are independent of Instagram (unset = falls back to Instagram)."
+              : "The canonical layout — YouTube falls back to this until you give it its own."}
+          </span>
+        </div>
 
         {/* ── Page tabs (multi-page designs, owner 2026-06-14) ───────────────
             Shown only when the design has explicit page rows. Clicking a tab switches the canvas,
@@ -1235,7 +1387,7 @@ export function DesignFieldsEditor({
                           }}
                           className="absolute top-0 h-full cursor-ew-resize"
                           style={{
-                            left: `${field.x_pct}%`,
+                            left: `${fieldX(field)}%`,
                             width: 2,
                             backgroundColor: isSelected
                               ? handleColor
@@ -1276,7 +1428,7 @@ export function DesignFieldsEditor({
                               key={`${field.draftId}-r${ri}`}
                               className="pointer-events-none absolute leading-none"
                               style={{
-                                left: `${field.x_pct}%`,
+                                left: `${fieldX(field)}%`,
                                 top: `${topPct}%`,
                                 fontSize: fSizePx,
                                 fontFamily: fontName(field.font_id),
@@ -1310,8 +1462,8 @@ export function DesignFieldsEditor({
                       }}
                       className="absolute cursor-move leading-none"
                       style={{
-                        left: `${txt.x_pct}%`,
-                        top: `${txt.y_pct}%`,
+                        left: `${textX(txt)}%`,
+                        top: `${textY(txt)}%`,
                         fontSize: tSizePx,
                         fontFamily: fontName(txt.font_id),
                         fontWeight: 800,
@@ -1697,7 +1849,7 @@ export function DesignFieldsEditor({
                       min={0}
                       max={100}
                       step={0.1}
-                      value={roundPct(selectedField.x_pct)}
+                      value={roundPct(fieldX(selectedField))}
                       disabled={!canManage}
                       onChange={(e) =>
                         updateField(selectedField.draftId, {
@@ -1837,7 +1989,7 @@ export function DesignFieldsEditor({
                         min={0}
                         max={100}
                         step={0.1}
-                        value={roundPct(selectedText.x_pct)}
+                        value={roundPct(textX(selectedText))}
                         disabled={!canManage}
                         onChange={(e) =>
                           updateText(selectedText.draftId, {
@@ -1854,7 +2006,7 @@ export function DesignFieldsEditor({
                         min={0}
                         max={100}
                         step={0.1}
-                        value={roundPct(selectedText.y_pct)}
+                        value={roundPct(textY(selectedText))}
                         disabled={!canManage}
                         onChange={(e) =>
                           updateText(selectedText.draftId, {
