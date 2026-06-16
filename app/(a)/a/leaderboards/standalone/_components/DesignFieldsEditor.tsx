@@ -784,18 +784,25 @@ export function DesignFieldsEditor({
 
   // ── Field (connected column) helpers ──────────────────────────────────────
 
-  // Set of field_types currently placed in the editor.
-  const placedTypes = new Set(fields.map((f) => f.field_type));
+  // Per-group placed field types (owner 2026-06-15): each column group has its OWN set of placed
+  // columns, so the same stat (POS / TEAM / BOOYAH …) can be added AGAIN for a newly-added group.
+  // The top palette manages group 0 (Group 1); each extra group card manages its own group index.
+  const placedTypesInGroup = (gi: number) =>
+    new Set(fields.filter((f) => f.column_group === gi).map((f) => f.field_type));
+  // Top palette = Group 1 (column group 0).
+  const placedTypes = placedTypesInGroup(0);
 
   // AUTO-SAVE: every connected-column change persists immediately (no Save button). The element
   // carries a local draftId always + a server id once created; edits/moves PATCH by id, and a
   // pending element (POST still in flight, no id yet) only updates locally until its id lands.
-  const addField = (fieldType: FieldType) => {
+  const addField = (fieldType: FieldType, targetGroup = 0) => {
     const draftId = newDraftId();
     const draft: FieldDraft = {
       draftId,
       field_type: fieldType,
-      column_group: 0, // default to the first/left group; user drags + re-groups after
+      // Add into the requested column group (owner 2026-06-15: re-add fields per group). Defaults to
+      // group 0 (the top palette); each extra group's card passes its own index.
+      column_group: targetGroup,
       x_pct: DEFAULT_X[fieldType] ?? 45,
       align: DEFAULT_ALIGN[fieldType] ?? "center",
       font_id: null,
@@ -1143,7 +1150,10 @@ export function DesignFieldsEditor({
                         <button
                           type="button"
                           onClick={() => {
-                            const f = fields.find((f) => f.field_type === ft);
+                            // Top palette manages Group 1 (column group 0) only.
+                            const f = fields.find(
+                              (f) => f.field_type === ft && f.column_group === 0,
+                            );
                             if (f) removeField(f.draftId);
                           }}
                           disabled={!canManage}
@@ -1381,6 +1391,64 @@ export function DesignFieldsEditor({
                           </button>
                         )}
                       </div>
+                      {/* Per-group column palette (owner 2026-06-15): add the SAME stats again for
+                          this group so a second/third group renders its own POS/TEAM/BOOYAH… columns
+                          (the export already draws each group from its start rank). Group 1 (gi 0)
+                          uses the top "Connected columns" palette; extra groups manage theirs here. */}
+                      {gi >= 1 && (
+                        <div className="mb-2">
+                          <p className="mb-1 text-[11px] text-muted-foreground">
+                            Columns in this group
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {FIELD_ORDER.map((ft) => {
+                              const placed = placedTypesInGroup(gi).has(ft);
+                              return (
+                                <span
+                                  key={ft}
+                                  className={
+                                    placed
+                                      ? "inline-flex items-center gap-1 rounded-full border border-primary bg-primary/10 px-2 py-0.5 text-[11px]"
+                                      : "inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground"
+                                  }
+                                >
+                                  <span className="font-medium">
+                                    {FIELD_LABELS[ft]}
+                                  </span>
+                                  {placed ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const f = fields.find(
+                                          (f) =>
+                                            f.field_type === ft &&
+                                            f.column_group === gi,
+                                        );
+                                        if (f) removeField(f.draftId);
+                                      }}
+                                      disabled={!canManage}
+                                      className="flex size-3.5 items-center justify-center rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground"
+                                      aria-label={`Remove ${FIELD_LABELS[ft]} from group ${gi + 1}`}
+                                    >
+                                      <IconX className="size-2.5" />
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => addField(ft, gi)}
+                                      disabled={!canManage}
+                                      className="font-bold text-primary hover:text-primary/80"
+                                      aria-label={`Add ${FIELD_LABELS[ft]} to group ${gi + 1}`}
+                                    >
+                                      +
+                                    </button>
+                                  )}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
                         {/* Start rank */}
                         <div>
