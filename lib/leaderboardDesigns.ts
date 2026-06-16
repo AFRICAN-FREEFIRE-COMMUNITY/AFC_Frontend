@@ -479,6 +479,9 @@ export const leaderboardDesignsApi = {
       title?: string;
       subtitle?: string;
       page?: "all"; // omit for the single-PNG default; "all" for the multi-page ZIP
+      // The selected group (owner 2026-06-16): scope the export to ONE group's standings so the
+      // image matches the per-group "Overall Leaderboard" shown on the page. Omit for stage-wide.
+      groupId?: number | string | null;
     },
   ): Promise<Blob> => {
     const params: Record<string, any> = { size: opts.size };
@@ -486,6 +489,7 @@ export const leaderboardDesignsApi = {
     if (opts.title) params.title = opts.title;
     if (opts.subtitle) params.subtitle = opts.subtitle;
     if (opts.page) params.page = opts.page;
+    if (opts.groupId != null && opts.groupId !== "") params.group_id = opts.groupId;
     return axios
       .get(`${BASE}/events/${eventId}/stages/${stageId}/graphic/`, {
         params,

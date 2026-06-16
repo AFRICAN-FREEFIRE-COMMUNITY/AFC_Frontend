@@ -1045,6 +1045,8 @@ export default function OrganizerEventLeaderboardPage({
                 <EventStageExportGraphicDialog
                   eventId={eventId}
                   stageId={selectedStageId}
+                  // Match the on-screen per-group "Overall Leaderboard" (owner 2026-06-16).
+                  groupId={selectedGroupId}
                   organizationId={organizationId}
                   defaultTitle={eventData.event_name || eventNameFromList}
                   defaultSubtitle={currentStage?.stage_name ?? ""}

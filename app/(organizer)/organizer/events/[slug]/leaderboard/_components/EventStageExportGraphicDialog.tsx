@@ -74,6 +74,10 @@ interface EventStageExportGraphicDialogProps {
   eventId: number | string;
   // The numeric (or string) stage_id for the stage whose standings to render.
   stageId: number | string;
+  // The selected group_id (owner 2026-06-16): when set, the export renders THAT group's standings
+  // (matching the per-group "Overall Leaderboard" the user sees) instead of the whole stage. Omit
+  // for a stage-wide export.
+  groupId?: number | string | null;
   // The organization that owns this event. Used to scope the design library call
   // (leaderboardDesignsApi.list(organizationId)). Pass null/undefined to use the
   // AFC-native library (organization_id omitted from the query string).
@@ -91,6 +95,7 @@ interface EventStageExportGraphicDialogProps {
 export function EventStageExportGraphicDialog({
   eventId,
   stageId,
+  groupId,
   organizationId,
   defaultTitle = "",
   defaultSubtitle = "",
@@ -162,6 +167,7 @@ export function EventStageExportGraphicDialog({
           size,
           title: title.trim(),
           subtitle: subtitle.trim(),
+          groupId: groupId ?? null,
           ...(isMultiPage ? { page: "all" as const } : {}),
         },
       );
