@@ -835,6 +835,16 @@ export function DesignFieldsEditor({
     persistGroups();
   };
 
+  // Bulk-set the colour of EVERY field in a column group at once (owner 2026-06-16), on top of the
+  // per-field colour in the Style panel. `color` "" clears each field back to the design default.
+  // Reuses updateField per field (one PATCH each), so it round-trips exactly like editing colours
+  // one by one. Reads fieldsRef (live) so it catches every field currently in the group.
+  const setGroupColor = (gi: number, color: string) => {
+    fieldsRef.current
+      .filter((f) => f.column_group === gi)
+      .forEach((f) => updateField(f.draftId, { color }));
+  };
+
   // Quick preset: two groups at the Dynasty Cup layout (ranks 1-8 and 9-16).
   const applyTwoGroupPreset = () => {
     setGroups([
@@ -1558,6 +1568,34 @@ export function DesignFieldsEditor({
                           </button>
                         )}
                       </div>
+                      {/* Bulk colour for ALL columns in this group (owner 2026-06-16): set every
+                          field's colour at once, in addition to the per-field Colour in the Style
+                          panel. Blank (Reset) = each field falls back to the design default. */}
+                      {canManage && (
+                        <div className="mb-2 flex items-center gap-2">
+                          <span className="text-[11px] text-muted-foreground">
+                            All columns colour
+                          </span>
+                          <input
+                            type="color"
+                            value={
+                              fields.find((f) => f.column_group === gi)?.color ||
+                              design.text_color ||
+                              "#ffffff"
+                            }
+                            onChange={(e) => setGroupColor(gi, e.target.value)}
+                            className="h-7 w-9 cursor-pointer rounded-md border bg-transparent p-1"
+                            aria-label={`Set colour for all columns in group ${gi + 1}`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setGroupColor(gi, "")}
+                            className="text-[11px] text-muted-foreground hover:text-foreground"
+                          >
+                            Reset
+                          </button>
+                        </div>
+                      )}
                       {/* Per-group column palette (owner 2026-06-15): add the SAME stats again for
                           this group so a second/third group renders its own POS/TEAM/BOOYAH… columns
                           (the export already draws each group from its start rank). Group 1 (gi 0)
