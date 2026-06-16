@@ -121,6 +121,9 @@ import { EditLeaderboardStep } from "@/app/(a)/a/leaderboards/_components/EditLe
 // Whole-group editor (manual edit + bulk upload, all per group) - shared with the
 // AFC admin editor. The bulk-upload panel is embedded INSIDE this editor.
 import { GroupResultsEditor } from "@/app/(a)/a/leaderboards/_components/GroupResultsEditor";
+// Flagged-kill controls (owner 2026-06-16): manage "ringer" kills for this TEAM event. Gated to
+// organizers with can_upload_results (same as result entry). Backend: events/flagged-kills/*.
+import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
 import { InfoTip } from "@/components/ui/info-tip";
 // Export graphic dialog (event-stage variant) - see _components/EventStageExportGraphicDialog.tsx.
 // Calls leaderboardDesignsApi.downloadEventStageGraphic, which hits
@@ -1101,6 +1104,14 @@ export default function OrganizerEventLeaderboardPage({
           onNext={handleEditComplete}
           onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
         />
+      )}
+
+      {/* Flagged-kill controls (owner 2026-06-16): TEAM events only (ringer flags come from the
+          team match-log file upload). Organizer can count/exclude flagged players' kills. */}
+      {!editingMatch && !groupEditOpen && eventData && detailsParticipantType !== "solo" && (
+        <div className="mt-4">
+          <FlaggedKillsPanel eventId={eventId} token={token} canManage={canUploadResults} onChanged={fetchLeaderboard} />
+        </div>
       )}
 
       {/* ── Whole-group editor: upload (bulk) + manual edit + Save all, per group ── */}

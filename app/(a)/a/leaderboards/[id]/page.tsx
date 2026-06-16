@@ -19,6 +19,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+// Flagged-kill controls (owner 2026-06-16): manage "ringer" kills (UIDs that played for a team
+// they're not on) for this TEAM event. Backend: events/flagged-kills/* (lib/flaggedKills).
+import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
 import {
   IconTrophy,
   IconUsers,
@@ -623,6 +626,14 @@ export default function IndividualLeaderboardPage({
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Flagged-kill controls (owner 2026-06-16): only TEAM events have ringer flags (they come
+          from the team match-log file upload). Lets the admin count/exclude flagged players' kills. */}
+      {eventData && detailsParticipantType !== "solo" && (
+        <div className="mt-4">
+          <FlaggedKillsPanel eventId={id} token={token} canManage onChanged={fetchLeaderboard} />
+        </div>
       )}
 
       {/* ── Whole-group editor: upload (bulk) + manual edit + Save all, per group ── */}
