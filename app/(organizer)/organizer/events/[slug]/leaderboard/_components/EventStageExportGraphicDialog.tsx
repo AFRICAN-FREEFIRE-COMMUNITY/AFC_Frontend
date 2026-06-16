@@ -180,45 +180,54 @@ export function EventStageExportGraphicDialog({
   const onDownload = async () => {
     setDownloading(true);
     try {
-      // Multi-page (owner 2026-06-14): if the selected design has more than one page, request all
-      // pages (page: "all"); the backend returns a ZIP with one PNG per page, saved with a .zip name.
       const selectedDesign = designs.find((d) => String(d.id) === designId);
-      const isMultiPage = (selectedDesign?.pages?.length ?? 0) > 1;
-      const blob = await leaderboardDesignsApi.downloadEventStageGraphic(
-        eventId,
-        // Use the USER-CHOSEN stage + group (owner 2026-06-16), not just the page's current view.
-        selStage || stageId,
-        {
-          designId: designId === AUTO ? null : Number(designId),
-          size,
-          title: title.trim(),
-          subtitle: subtitle.trim(),
-          groupId: selGroup === ALL_GROUPS ? null : selGroup,
-          ...(isMultiPage ? { page: "all" as const } : {}),
-        },
-      );
-
-      // Object-URL the blob and trigger a save-as via a transient anchor element.
-      // Revoke the URL immediately after the click to avoid memory leaks.
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
+      const pageCount = selectedDesign?.pages?.length ?? 0;
       const safe = (title.trim() || defaultTitle || "leaderboard").replace(
         /[^a-z0-9\-_ ]/gi,
         "",
       );
-      // ZIP for multi-page, PNG for single-page.
-      a.download = isMultiPage
-        ? `${safe}-${size}-all-pages.zip`
-        : `${safe}-${size}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      // Save one blob to disk via a transient <a download>.
+      const saveBlob = (blob: Blob, filename: string) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      };
+      // Shared params; the USER-CHOSEN stage + group (owner 2026-06-16), not just the page's view.
+      const baseOpts = {
+        designId: designId === AUTO ? null : Number(designId),
+        size,
+        title: title.trim(),
+        subtitle: subtitle.trim(),
+        groupId: selGroup === ALL_GROUPS ? null : selGroup,
+      };
 
-      toast.success(
-        isMultiPage ? "All pages downloaded as a ZIP." : "Graphic downloaded.",
-      );
+      if (pageCount > 1) {
+        // Multi-page (owner 2026-06-16): download each page as a SEPARATE image, not a ZIP. We fetch
+        // ?page=N per page and save each PNG, with a short gap so the browser queues every download.
+        for (let p = 1; p <= pageCount; p++) {
+          const blob = await leaderboardDesignsApi.downloadEventStageGraphic(
+            eventId,
+            selStage || stageId,
+            { ...baseOpts, page: p },
+          );
+          saveBlob(blob, `${safe}-${size}-page${p}.png`);
+          if (p < pageCount) await new Promise((r) => setTimeout(r, 400));
+        }
+        toast.success(`Downloaded ${pageCount} images.`);
+      } else {
+        const blob = await leaderboardDesignsApi.downloadEventStageGraphic(
+          eventId,
+          selStage || stageId,
+          baseOpts,
+        );
+        saveBlob(blob, `${safe}-${size}.png`);
+        toast.success("Graphic downloaded.");
+      }
     } catch (err: any) {
       // Blob error responses carry JSON inside the blob body, not as parsed JSON.
       // We decode the blob text manually to read the backend's message field.
@@ -346,12 +355,12 @@ export function EventStageExportGraphicDialog({
                   brand the export.
                 </p>
               ) : null}
-              {/* Note shown when the selected design has multiple pages: the export is a ZIP. */}
+              {/* Note shown when the selected design has multiple pages: one image per page. */}
               {(designs.find((d) => String(d.id) === designId)?.pages?.length ??
                 0) > 1 && (
                 <p className="text-xs text-muted-foreground">
-                  This design has multiple pages. The download will be a ZIP with
-                  one image per page.
+                  This design has multiple pages. Each page downloads as its own
+                  image.
                 </p>
               )}
             </div>

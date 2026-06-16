@@ -115,34 +115,46 @@ export function ExportGraphicButton({
     setDownloading(true);
     try {
       const selectedDesign = designs.find((d) => String(d.id) === designId);
-      const isMultiPage = (selectedDesign?.pages?.length ?? 0) > 1;
-      const blob = await leaderboardDesignsApi.downloadGraphic(lbId, {
-        designId: designId === AUTO ? null : Number(designId),
-        size,
-        title: title.trim(),
-        subtitle: subtitle.trim(),
-        ...(isMultiPage ? { page: "all" as const } : {}),
-      });
-      // Object-URL the blob and click a transient <a download> to save it. We control the
-      // filename here (the endpoint also sets Content-Disposition, but a blob fetch ignores it).
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
+      const pageCount = selectedDesign?.pages?.length ?? 0;
       const safe = (title.trim() || defaultTitle || "leaderboard").replace(
         /[^a-z0-9-_ ]/gi,
         "",
       );
-      // ZIP for multi-page, PNG for single-page.
-      a.download = isMultiPage
-        ? `${safe}-${size}-all-pages.zip`
-        : `${safe}-${size}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      toast.success(
-        isMultiPage ? "All pages downloaded as a ZIP." : "Graphic downloaded.",
-      );
+      // Save one blob via a transient <a download> (the blob fetch ignores Content-Disposition,
+      // so we set the filename here).
+      const saveBlob = (blob: Blob, filename: string) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      };
+      const baseOpts = {
+        designId: designId === AUTO ? null : Number(designId),
+        size,
+        title: title.trim(),
+        subtitle: subtitle.trim(),
+      };
+
+      if (pageCount > 1) {
+        // Multi-page (owner 2026-06-16): download each page as a SEPARATE image, not a ZIP.
+        for (let p = 1; p <= pageCount; p++) {
+          const blob = await leaderboardDesignsApi.downloadGraphic(lbId, {
+            ...baseOpts,
+            page: p,
+          });
+          saveBlob(blob, `${safe}-${size}-page${p}.png`);
+          if (p < pageCount) await new Promise((r) => setTimeout(r, 400));
+        }
+        toast.success(`Downloaded ${pageCount} images.`);
+      } else {
+        const blob = await leaderboardDesignsApi.downloadGraphic(lbId, baseOpts);
+        saveBlob(blob, `${safe}-${size}.png`);
+        toast.success("Graphic downloaded.");
+      }
     } catch (err: any) {
       // A blob error response needs decoding to read the message the API put in JSON.
       let message = "Failed to export the graphic.";
@@ -213,8 +225,8 @@ export function ExportGraphicButton({
               {(designs.find((d) => String(d.id) === designId)?.pages?.length ?? 0) >
                 1 && (
                 <p className="text-xs text-muted-foreground">
-                  This design has multiple pages. The download will be a ZIP with
-                  one image per page.
+                  This design has multiple pages. Each page downloads as its own
+                  image.
                 </p>
               )}
             </div>

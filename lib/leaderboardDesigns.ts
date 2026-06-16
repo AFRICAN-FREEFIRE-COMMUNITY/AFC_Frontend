@@ -447,7 +447,7 @@ export const leaderboardDesignsApi = {
       size: GraphicSize;
       title?: string;
       subtitle?: string;
-      page?: "all"; // omit for the single-PNG default; "all" for the multi-page ZIP
+      page?: number | "all"; // omit = single PNG; a page number = just that page; "all" = ZIP of all
     },
   ): Promise<Blob> => {
     const params: Record<string, any> = { size: opts.size };
@@ -478,7 +478,7 @@ export const leaderboardDesignsApi = {
       size: GraphicSize;
       title?: string;
       subtitle?: string;
-      page?: "all"; // omit for the single-PNG default; "all" for the multi-page ZIP
+      page?: number | "all"; // omit = single PNG; a page number = just that page; "all" = ZIP of all
       // The selected group (owner 2026-06-16): scope the export to ONE group's standings so the
       // image matches the per-group "Overall Leaderboard" shown on the page. Omit for stage-wide.
       groupId?: number | string | null;
