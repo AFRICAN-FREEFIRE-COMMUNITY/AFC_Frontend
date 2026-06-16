@@ -845,6 +845,16 @@ export function DesignFieldsEditor({
       .forEach((f) => updateField(f.draftId, { color }));
   };
 
+  // Bulk-set the FONT of every field in a column group at once (owner 2026-06-16), alongside the
+  // per-field Font in the Style panel. font_id null = Default (DM Sans). Different groups (and
+  // individual fields) can still use different fonts; this just applies one font to the whole group
+  // in a single action. Persists via updateField per field, same as an individual font change.
+  const setGroupFont = (gi: number, fontId: number | null) => {
+    fieldsRef.current
+      .filter((f) => f.column_group === gi)
+      .forEach((f) => updateField(f.draftId, { font_id: fontId }));
+  };
+
   // Quick preset: two groups at the Dynasty Cup layout (ranks 1-8 and 9-16).
   const applyTwoGroupPreset = () => {
     setGroups([
@@ -1568,32 +1578,65 @@ export function DesignFieldsEditor({
                           </button>
                         )}
                       </div>
-                      {/* Bulk colour for ALL columns in this group (owner 2026-06-16): set every
-                          field's colour at once, in addition to the per-field Colour in the Style
-                          panel. Blank (Reset) = each field falls back to the design default. */}
+                      {/* Bulk colour + font for ALL columns in this group (owner 2026-06-16): set
+                          every field's colour/font at once, on top of the per-field controls in the
+                          Style panel. Colour Reset = design default; Font Default = DM Sans. Fields
+                          (and other groups) can still each use their own colour/font. */}
                       {canManage && (
-                        <div className="mb-2 flex items-center gap-2">
-                          <span className="text-[11px] text-muted-foreground">
-                            All columns colour
-                          </span>
-                          <input
-                            type="color"
-                            value={
-                              fields.find((f) => f.column_group === gi)?.color ||
-                              design.text_color ||
-                              "#ffffff"
-                            }
-                            onChange={(e) => setGroupColor(gi, e.target.value)}
-                            className="h-7 w-9 cursor-pointer rounded-md border bg-transparent p-1"
-                            aria-label={`Set colour for all columns in group ${gi + 1}`}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setGroupColor(gi, "")}
-                            className="text-[11px] text-muted-foreground hover:text-foreground"
-                          >
-                            Reset
-                          </button>
+                        <div className="mb-2 space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-28 text-[11px] text-muted-foreground">
+                              All columns colour
+                            </span>
+                            <input
+                              type="color"
+                              value={
+                                fields.find((f) => f.column_group === gi)?.color ||
+                                design.text_color ||
+                                "#ffffff"
+                              }
+                              onChange={(e) => setGroupColor(gi, e.target.value)}
+                              className="h-7 w-9 cursor-pointer rounded-md border bg-transparent p-1"
+                              aria-label={`Set colour for all columns in group ${gi + 1}`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setGroupColor(gi, "")}
+                              className="text-[11px] text-muted-foreground hover:text-foreground"
+                            >
+                              Reset
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-28 text-[11px] text-muted-foreground">
+                              All columns font
+                            </span>
+                            <Select
+                              value={(() => {
+                                const gf = fields.find((f) => f.column_group === gi);
+                                return gf?.font_id != null ? String(gf.font_id) : "__default__";
+                              })()}
+                              disabled={fontsLoading}
+                              onValueChange={(v) =>
+                                setGroupFont(gi, v === "__default__" ? null : Number(v))
+                              }
+                            >
+                              <SelectTrigger
+                                className="h-7 w-40 text-[11px]"
+                                aria-label={`Set font for all columns in group ${gi + 1}`}
+                              >
+                                <SelectValue placeholder="Default" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__default__">Default</SelectItem>
+                                {fonts.map((ft) => (
+                                  <SelectItem key={ft.id} value={String(ft.id)}>
+                                    {ft.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       )}
                       {/* Per-group column palette (owner 2026-06-15): add the SAME stats again for
