@@ -261,6 +261,8 @@ export const EventFormSchema = z
     is_waitlist_enabled: z.boolean().default(false),
     waitlist_capacity: z.coerce.number().optional(),
     waitlist_discord_role_id: z.string().optional(),
+    // Slot-assignment mode (owner 2026-06-17): how a no-show's slot is filled.
+    waitlist_mode: z.string().optional(),
     event_start_time: z.string().optional(),
     event_end_time: z.string().optional(),
     registration_start_time: z.string().optional(),

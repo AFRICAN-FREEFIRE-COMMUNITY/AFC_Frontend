@@ -82,8 +82,22 @@
     "title": "Notifications",
     "unreadCount": "{count} unread",
     "empty": "No notifications yet",
+    "emptyHint": "Updates about your tournaments, teams and orders show up here.",
     "singular": "Notification",
-    "takeMeThere": "Take me there"
+    "takeMeThere": "Take me there",
+    "view": "View",
+    "markRead": "Mark as read",
+    "types": {
+      "event": "Tournament",
+      "news": "News",
+      "team": "Team",
+      "player": "Player",
+      "shop": "Shop",
+      "organizer": "Organization",
+      "custom": "Update",
+      "none": "Update",
+      "message": "Message"
+    }
   },
   "cart": {
     "title": "Your Cart",

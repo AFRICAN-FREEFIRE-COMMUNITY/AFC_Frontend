@@ -137,6 +137,7 @@ export default function CreateEventPage() {
       is_waitlist_enabled: false,
       waitlist_capacity: undefined,
       waitlist_discord_role_id: "",
+      waitlist_mode: "first_registered",
       event_start_time: "",
       event_end_time: "",
       registration_start_time: "",
@@ -821,6 +822,8 @@ export default function CreateEventPage() {
           formData.append("waitlist_capacity", (data.waitlist_capacity ?? "").toString());
           // @ts-ignore
           formData.append("waitlist_discord_role_id", data.waitlist_discord_role_id || "");
+          // @ts-ignore - slot-assignment mode (owner 2026-06-17)
+          formData.append("waitlist_mode", data.waitlist_mode || "first_registered");
         }
 
         // Media registration criteria (owner 2026-06-12). Read straight off the form (NOT the

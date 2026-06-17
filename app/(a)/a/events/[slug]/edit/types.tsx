@@ -256,6 +256,15 @@ export interface EventDetails {
   is_waitlist_enabled?: boolean;
   waitlist_capacity?: number | null;
   waitlist_discord_role_id?: string | null;
+  // Waitlist slot-assignment mode + roster (owner 2026-06-17).
+  waitlist_mode?: string;
+  waitlist_competitors?: Array<{
+    position?: number;
+    name?: string;
+    registration_date?: string | null;
+    registered_competitor_id?: number;
+    tournament_team_id?: number;
+  }>;
   event_start_time?: string | null;
   event_end_time?: string | null;
   registration_start_time?: string | null;
@@ -285,6 +294,10 @@ export interface EventDetails {
     // carry the materialised lobbies. Rehydrated into the form's round_robin
     // config in edit/page.tsx (lobbies → source_group_indices via a group lookup).
     round_robin?: {
+      // Stage-level mode echoed by the backend (owner 2026-06-17) so the editor rehydrates the
+      // toggle + per-meeting match count from the saved stage instead of guessing from lobby 1.
+      generate_schedule?: boolean;
+      games_per_day?: number;
       round_robin_groups: Array<{
         group_id: number;
         label: string;

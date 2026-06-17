@@ -446,7 +446,13 @@
     "points": "Pts",
     "qualificationLine": "Ligne de qualification",
     "footnote": "Construit à partir des données déjà enregistrées par ce tournoi : étapes, groupes, classements et « top-N avancent ». Les formats d'étape (y compris « Élimination directe ») affichent leurs classements précis, car c'est ainsi que les résultats sont saisis.",
-    "placePts": "Pts de placement"
+    "placePts": "Pts de placement",
+    "roomDetails": "Détails de la salle",
+    "roomId": "ID de la salle",
+    "roomName": "Nom de la salle",
+    "roomPassword": "Mot de passe",
+    "roomMatch": "Match {n}",
+    "roomReleasedNote": "Les détails de la salle seront partagés ici une fois que l'organisateur les aura publiés."
   },
   "review": {
     "title": "Évaluer cet événement",
@@ -569,5 +575,15 @@
     "retryNow": "Réessayer maintenant",
     "reopenToFinish": "Veuillez rouvrir l'événement pour finaliser votre inscription.",
     "registerCompleteFailed": "Paiement reçu, mais l'inscription n'a pas pu être finalisée."
+  },
+  "waitlist": {
+    "title": "Liste d'attente",
+    "count": "{count} en attente",
+    "empty": "Personne n'est encore sur la liste d'attente.",
+    "howFilled": "Comment les places vacantes sont pourvues",
+    "mode_first_registered": "Si une équipe ne se présente pas, l'équipe la plus anciennement inscrite sur la liste d'attente prend la place vacante.",
+    "mode_fcfs_room": "Si une équipe ne se présente pas, toutes les équipes de la liste d'attente reçoivent l'ID et le mot de passe de la salle. La première à rejoindre la salle prend la place vacante.",
+    "mode_manual_admin": "Si une équipe ne se présente pas, l'organisateur choisit quelle équipe de la liste d'attente prend la place vacante.",
+    "position": "#{n}"
   }
 }

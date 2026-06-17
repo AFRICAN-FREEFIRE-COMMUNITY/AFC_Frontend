@@ -158,6 +158,10 @@ function rehydrateRoundRobin(
         .filter((i): i is number => i !== undefined),
       match_count: lobby.match_count ?? 1,
       match_maps: lobby.match_maps ?? ["Bermuda"],
+      // Per-match-day date/time (owner 2026-06-15): rehydrate the saved schedule so the organizer
+      // editor shows real per-meeting dates instead of blanks (parity with the admin edit flow).
+      playing_date: lobby.playing_date ?? "",
+      playing_time: lobby.playing_time ?? "",
     })),
   );
 
@@ -167,8 +171,10 @@ function rehydrateRoundRobin(
       order: g.order,
       team_ids: g.team_ids || [],
     })),
-    generate_schedule: gameDays.length === 0,
-    games_per_day: gameDays[0]?.match_count ?? 1,
+    // Prefer the backend's explicit stage-level mode (owner 2026-06-17); fall back to the old
+    // derivation for events saved before the echo carried it. Keeps "matches per meeting" stable.
+    generate_schedule: rr.generate_schedule ?? gameDays.length === 0,
+    games_per_day: rr.games_per_day ?? gameDays[0]?.match_count ?? 1,
     game_days: gameDays,
   };
 }
@@ -312,6 +318,7 @@ export default function OrganizerEditEventPage({
     is_waitlist_enabled: false,
     waitlist_capacity: 0,
     waitlist_discord_role_id: "",
+    waitlist_mode: "first_registered",
   });
   const [savingWaitlist, setSavingWaitlist] = useState(false);
 
@@ -664,6 +671,7 @@ export default function OrganizerEditEventPage({
           waitlist_capacity:
             ed.waitlist_capacity != null ? Number(ed.waitlist_capacity) : "",
           waitlist_discord_role_id: ed.waitlist_discord_role_id ?? "",
+          waitlist_mode: ed.waitlist_mode ?? "first_registered",
         });
       }
 
@@ -1331,6 +1339,10 @@ export default function OrganizerEditEventPage({
         "waitlist_discord_role_id",
         waitlistForm.waitlist_discord_role_id || "",
       );
+      formData.append(
+        "waitlist_mode",
+        waitlistForm.waitlist_mode || "first_registered",
+      );
 
       await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
         method: "POST",
@@ -1626,6 +1638,10 @@ export default function OrganizerEditEventPage({
         formData.append(
           "waitlist_discord_role_id",
           waitlistForm.waitlist_discord_role_id || "",
+        );
+        formData.append(
+          "waitlist_mode",
+          waitlistForm.waitlist_mode || "first_registered",
         );
 
         const response = await fetch(
@@ -1936,6 +1952,8 @@ export default function OrganizerEditEventPage({
                 onSave={saveWaitlistSettings}
                 saving={savingWaitlist}
                 eventDetails={eventDetails}
+                eventId={eventDetails.event_id}
+                onRefresh={fetchEventDetails}
                 hideDiscord
               />
             </TabsContent>

@@ -383,6 +383,52 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
                       {qN > 0 && t("structure.topNAdvance", { count: qN })}
                     </span>
                   </div>
+
+                  {/* Room details (owner 2026-06-17): the backend only fills room_id/name/password on
+                      these match rows for the group's registered competitors AND only after the
+                      organizer posts them, so this block simply renders whatever creds arrived. Anon
+                      viewers / non-members / pre-release get nulls -> nothing shows. */}
+                  {(() => {
+                    const withRoom = (g.matches || []).filter((m: any) => m.room_id || m.room_name || m.room_password);
+                    if (withRoom.length === 0) return null;
+                    return (
+                      <div className="border-b bg-primary/[0.05] px-5 py-3">
+                        <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-wide text-primary">
+                          {t("structure.roomDetails")}
+                        </p>
+                        <div className="space-y-2">
+                          {withRoom.map((m: any) => (
+                            <div key={m.match_id} className="rounded-md border bg-card px-3 py-2 text-xs">
+                              <span className="font-medium">
+                                {t("structure.roomMatch", { n: m.match_number })}
+                                {m.match_map ? ` · ${m.match_map}` : ""}
+                              </span>
+                              <div className="mt-1 grid gap-1 sm:grid-cols-3">
+                                {m.room_id && (
+                                  <span>
+                                    <span className="text-muted-foreground">{t("structure.roomId")}: </span>
+                                    <span className="font-mono font-semibold">{m.room_id}</span>
+                                  </span>
+                                )}
+                                {m.room_name && (
+                                  <span>
+                                    <span className="text-muted-foreground">{t("structure.roomName")}: </span>
+                                    <span className="font-semibold">{m.room_name}</span>
+                                  </span>
+                                )}
+                                {m.room_password && (
+                                  <span>
+                                    <span className="text-muted-foreground">{t("structure.roomPassword")}: </span>
+                                    <span className="font-mono font-semibold">{m.room_password}</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {rows.length === 0 ? (
                     <div className="px-5 py-8 text-center text-sm text-muted-foreground italic">
                       {t("structure.resultsPending")}

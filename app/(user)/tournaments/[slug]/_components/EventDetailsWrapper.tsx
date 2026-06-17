@@ -266,6 +266,14 @@ interface EventDetails {
   waitlist_capacity?: number | null;
   registered_count?: number;
   is_full?: boolean;
+  // Waitlist slot-assignment mode + roster (owner 2026-06-17): shown to players so they know how a
+  // no-show's slot is filled, and who is waiting (with queue position).
+  waitlist_mode?: string;
+  waitlist_competitors?: Array<{
+    position?: number;
+    name?: string;
+    registration_date?: string | null;
+  }>;
   // ── Paid registration (Phase 1, Stripe) ──
   // registration_type flips the whole register flow: "free" keeps the existing direct
   // register-for-event path; "paid" routes the final step through Stripe Checkout (see the
@@ -4417,6 +4425,60 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         <CardContent style={{ padding: 0 }} className="space-y-4">
           {eventDetails.stages?.length > 0 ? (
             <>
+              {/* Waitlist (owner 2026-06-17): when the event has a waitlist, show players HOW open
+                  slots are filled (the active mode) + who is waiting, with queue position. Backed by
+                  eventDetails.waitlist_mode + waitlist_competitors from get-event-details. */}
+              {eventDetails.is_waitlist_enabled && (
+                <div className="mb-6 rounded-md border bg-card p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-base font-bold text-primary">
+                      {t("waitlist.title")}
+                    </h3>
+                    <span className="text-xs text-muted-foreground">
+                      {t("waitlist.count", {
+                        count: eventDetails.waitlist_competitors?.length ?? 0,
+                      })}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("waitlist.howFilled")}
+                  </p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {t(
+                      `waitlist.mode_${eventDetails.waitlist_mode || "first_registered"}` as any,
+                    )}
+                  </p>
+                  {(eventDetails.waitlist_competitors?.length ?? 0) > 0 ? (
+                    <ul className="mt-3 divide-y rounded-md border">
+                      {eventDetails.waitlist_competitors!.map((w, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center gap-3 px-3 py-2 text-sm"
+                        >
+                          <span className="w-8 shrink-0 font-bold text-primary">
+                            {t("waitlist.position", { n: w.position ?? i + 1 })}
+                          </span>
+                          <span className="flex-1 truncate font-medium capitalize">
+                            {w.name}
+                          </span>
+                          {w.registration_date && (
+                            <LocalTime
+                              value={w.registration_date}
+                              mode="date"
+                              className="shrink-0 text-xs text-muted-foreground"
+                            />
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-3 text-sm italic text-muted-foreground">
+                      {t("waitlist.empty")}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Results ⇄ Structure toggle. "Structure" renders the new graphical
                   TournamentStructure view (stage flow + group standings); "Results"
                   keeps the existing per-stage results tables. */}

@@ -446,7 +446,13 @@
     "points": "Pts",
     "qualificationLine": "Linha de qualificação",
     "footnote": "Construído a partir dos dados que este torneio já registra: etapas, grupos, classificações e \"top-N avançam\". Os formatos de etapa (incluindo \"Eliminatórias\") mostram suas classificações precisas, já que é assim que os resultados são inseridos.",
-    "placePts": "Pontos de Colocação"
+    "placePts": "Pontos de Colocação",
+    "roomDetails": "Detalhes da sala",
+    "roomId": "ID da sala",
+    "roomName": "Nome da sala",
+    "roomPassword": "Senha",
+    "roomMatch": "Partida {n}",
+    "roomReleasedNote": "Os detalhes da sala são compartilhados aqui assim que o organizador os publica."
   },
   "review": {
     "title": "Avaliar este evento",
@@ -569,5 +575,15 @@
     "retryNow": "Tentar novamente agora",
     "reopenToFinish": "Por favor, reabra o evento para finalizar o registro.",
     "registerCompleteFailed": "Pagamento recebido, mas o registro não pôde ser concluído."
+  },
+  "waitlist": {
+    "title": "Lista de espera",
+    "count": "{count} em espera",
+    "empty": "Ninguém está na lista de espera ainda.",
+    "howFilled": "Como as vagas abertas são preenchidas",
+    "mode_first_registered": "Se uma equipe não aparecer, a equipe com o registro mais antigo na lista de espera ocupa a vaga aberta.",
+    "mode_fcfs_room": "Se uma equipe não aparecer, todas as equipes da lista de espera recebem o ID e a senha da sala. A primeira a entrar na sala ocupa a vaga aberta.",
+    "mode_manual_admin": "Se uma equipe não aparecer, o organizador escolhe qual equipe da lista de espera ocupa a vaga aberta.",
+    "position": "#{n}"
   }
 }

@@ -1,5 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,22 +18,59 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { IconLoader2 } from "@tabler/icons-react";
 
 export interface WaitlistForm {
   is_waitlist_enabled: boolean;
   waitlist_capacity: string;
   waitlist_discord_role_id: string;
+  // Slot-assignment mode (owner 2026-06-17): how a no-show's slot is filled.
+  waitlist_mode: string;
 }
+
+// One waitlist roster row from get_event_details.waitlist_competitors (owner 2026-06-17).
+interface WaitlistEntry {
+  position?: number;
+  name?: string;
+  registration_date?: string | null;
+  // ids used to promote: solo carries registered_competitor_id, squad carries tournament_team_id
+  registered_competitor_id?: number;
+  tournament_team_id?: number;
+}
+
+// The 3 modes, with short admin-facing copy. Admin surface = English (i18n-exempt).
+const MODE_OPTIONS: { value: string; label: string; help: string }[] = [
+  {
+    value: "first_registered",
+    label: "Earliest registered",
+    help: "The team/player who joined the waitlist first gets the open slot.",
+  },
+  {
+    value: "fcfs_room",
+    label: "First to join room",
+    help: "All waitlist teams get the room ID + password; first to join the room claims the slot. You confirm who got in.",
+  },
+  {
+    value: "manual_admin",
+    label: "You pick",
+    help: "You manually choose which waitlist team/player takes each open slot.",
+  },
+];
 
 interface WaitlistTabProps {
   waitlistForm: WaitlistForm;
   setWaitlistForm: React.Dispatch<React.SetStateAction<WaitlistForm>>;
   onSave: () => void;
   saving: boolean;
+  // event id + a refetch callback so the promote actions can refresh the roster.
+  eventId?: number;
+  onRefresh?: () => void;
   eventDetails?: {
     participant_type: string;
+    // The waitlist roster (positions + ids) the backend now returns. Falls back to deriving from
+    // registered_competitors / tournament_teams for older payloads.
+    waitlist_competitors?: WaitlistEntry[];
     registered_competitors: Array<{
       player_id: number;
       username: string;
@@ -37,11 +79,6 @@ interface WaitlistTabProps {
     }>;
     tournament_teams: any[];
   };
-  // ── Discord omission (organizer reuse) ──────────────────────────────────────
-  // When true, the "Waitlist Discord Role ID" input is hidden. The organizer edit
-  // page passes this so organizers never touch AFC's Discord automation; the admin
-  // edit page leaves it undefined (defaults false), so its behaviour is unchanged.
-  // The empty waitlist_discord_role_id still rides in the save payload.
   hideDiscord?: boolean;
 }
 
@@ -50,20 +87,62 @@ export default function WaitlistTab({
   setWaitlistForm,
   onSave,
   saving,
+  eventId,
+  onRefresh,
   eventDetails,
   hideDiscord = false,
 }: WaitlistTabProps) {
-  const waitlistedSolo =
-    eventDetails?.participant_type === "solo"
-      ? (eventDetails.registered_competitors?.filter(
-          (c) => c.is_waitlisted,
-        ) ?? [])
-      : [];
-  const waitlistedTeams =
-    eventDetails?.participant_type === "squad"
-      ? (eventDetails.tournament_teams?.filter((t: any) => t.is_waitlisted) ??
-        [])
-      : [];
+  const { token } = useAuth();
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const mode = waitlistForm.waitlist_mode || "first_registered";
+  const roster: WaitlistEntry[] = eventDetails?.waitlist_competitors ?? [];
+  const isSquad = eventDetails?.participant_type === "squad";
+
+  // Promote a specific waitlist entry (manual_admin pick + fcfs_room confirm).
+  const promote = async (entry: WaitlistEntry) => {
+    if (!eventId || !token) return;
+    const key = String(entry.tournament_team_id ?? entry.registered_competitor_id);
+    setBusyId(key);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/promote-from-waitlist/`,
+        {
+          event_id: eventId,
+          ...(entry.tournament_team_id
+            ? { tournament_team_id: entry.tournament_team_id }
+            : { competitor_id: entry.registered_competitor_id }),
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(`${entry.name ?? "Competitor"} promoted into the event.`);
+      onRefresh?.();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to promote.");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  // Promote the earliest-registered waitlist entry (first_registered convenience).
+  const promoteNext = async () => {
+    if (!eventId || !token) return;
+    setBusyId("next");
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/promote-next-waitlist/`,
+        { event_id: eventId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(res.data?.message || "Next waitlist entry promoted.");
+      onRefresh?.();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to promote next.");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -71,7 +150,7 @@ export default function WaitlistTab({
           <CardTitle>Waitlist</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
             Allow players to join a waitlist when the event reaches max
-            capacity.
+            capacity, so a no-show's slot can be filled by a backup.
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -115,9 +194,35 @@ export default function WaitlistTab({
                 </p>
               </div>
 
-              {/* Waitlist Discord Role ID — hidden in the organizer flow
-                  (hideDiscord). The empty waitlist_discord_role_id still rides in
-                  the save payload, keeping the request shape identical. */}
+              {/* Slot-assignment MODE (owner 2026-06-17): how a no-show's slot is filled. Shown to
+                  players on the event page so they know the rule. */}
+              <div className="space-y-2">
+                <Label>How open slots are filled</Label>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {MODE_OPTIONS.map((opt) => (
+                    <button
+                      type="button"
+                      key={opt.value}
+                      onClick={() =>
+                        setWaitlistForm((p) => ({ ...p, waitlist_mode: opt.value }))
+                      }
+                      className={cn(
+                        "rounded-md border p-3 text-left text-xs transition-colors",
+                        mode === opt.value
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "hover:bg-muted",
+                      )}
+                    >
+                      <span className="block font-medium">{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {MODE_OPTIONS.find((o) => o.value === mode)?.help}
+                </p>
+              </div>
+
+              {/* Waitlist Discord Role ID — hidden in the organizer flow (hideDiscord). */}
               {!hideDiscord && (
                 <div className="space-y-1.5">
                   <Label htmlFor="waitlist-discord-role">
@@ -153,61 +258,80 @@ export default function WaitlistTab({
 
       {eventDetails && (
         <Card>
-          <CardHeader>
-            <CardTitle>
-              People on Waitlist (
-              {eventDetails.participant_type === "squad"
-                ? waitlistedTeams.length
-                : waitlistedSolo.length}
-              )
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <CardTitle>People on Waitlist ({roster.length})</CardTitle>
+            {/* first_registered convenience: promote the earliest-registered in one click. */}
+            {eventId && roster.length > 0 && mode === "first_registered" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={promoteNext}
+                disabled={busyId === "next"}
+              >
+                {busyId === "next" && (
+                  <IconLoader2 className="size-4 animate-spin mr-1" />
+                )}
+                Promote next
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+            {mode === "fcfs_room" && roster.length > 0 && (
+              <p className="mb-3 rounded-md border border-dashed p-2 text-xs text-muted-foreground">
+                Release room details to the group (Event Actions {">"} Broadcast {">"} room details)
+                so the waitlist can see them, then Promote whoever joined the room first.
+              </p>
+            )}
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>
-                    {eventDetails.participant_type === "squad"
-                      ? "Team"
-                      : "Player"}
-                  </TableHead>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>{isSquad ? "Team" : "Player"}</TableHead>
                   <TableHead>Registered At</TableHead>
+                  {eventId && <TableHead className="text-right">Action</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {eventDetails.participant_type === "solo" &&
-                  waitlistedSolo.map((comp) => (
-                    <TableRow key={comp.player_id}>
-                      <TableCell className="font-medium">
-                        {comp.username}
+                {roster.map((entry, i) => {
+                  const key = String(
+                    entry.tournament_team_id ?? entry.registered_competitor_id ?? i,
+                  );
+                  return (
+                    <TableRow key={key}>
+                      <TableCell className="text-muted-foreground">
+                        {entry.position ?? i + 1}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {comp.registered_at
-                          ? formatDate(comp.registered_at)
-                          : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-
-                {eventDetails.participant_type === "squad" &&
-                  waitlistedTeams.map((team: any) => (
-                    <TableRow key={team.team_id || team.player_id}>
                       <TableCell className="font-medium capitalize">
-                        {team.team_name}
+                        {entry.name}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {team.registered_at
-                          ? formatDate(team.registered_at)
+                        {entry.registration_date
+                          ? formatDate(entry.registration_date)
                           : "-"}
                       </TableCell>
+                      {eventId && (
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => promote(entry)}
+                            disabled={busyId === key}
+                          >
+                            {busyId === key && (
+                              <IconLoader2 className="size-4 animate-spin mr-1" />
+                            )}
+                            Promote
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
-                  ))}
+                  );
+                })}
 
-                {(waitlistedSolo.length === 0 &&
-                  waitlistedTeams.length === 0) && (
+                {roster.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={2}
+                      colSpan={eventId ? 4 : 3}
                       className="text-center text-muted-foreground py-8"
                     >
                       No one on the waitlist yet.

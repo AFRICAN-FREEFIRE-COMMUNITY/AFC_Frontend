@@ -35,7 +35,10 @@ import {
   NotificationTargetSelector,
   EMPTY_TARGET,
   type NotificationTarget,
+  type EventOption,
 } from "@/app/(a)/a/_components/NotificationTargetSelector";
+// General broadcast history (scope general/direct) shown under the Notifications tab.
+import { BroadcastHistory } from "@/app/(a)/a/_components/BroadcastHistory";
 // Parses a stored user_agent into a readable device label for the Login History tab.
 import { parseUserAgent } from "@/lib/user-agent";
 // Shared search matcher: punctuation/space/accent-insensitive and folds stylized "fancy font" unicode,
@@ -681,6 +684,9 @@ const page = () => {
   // Optional deep link so recipients get a "Take me there" button. Default none.
   const [bulkNotifTarget, setBulkNotifTarget] =
     useState<NotificationTarget>(EMPTY_TARGET);
+  // Multi-event link selection (owner 2026-06-17): when the link type is "event", search + pick
+  // several events; they become the broadcast `targets` array.
+  const [bulkNotifEvents, setBulkNotifEvents] = useState<EventOption[]>([]);
 
   const handleSendBulkNotification = async () => {
     const usernames = bulkNotifRecipients;
@@ -697,19 +703,24 @@ const page = () => {
     }
     setSendingBulkNotif(true);
     try {
+      // Deep link: for the "event" type the admin may have picked several events (multi) -> send a
+      // `targets` array; otherwise the single target_type/target_id pair. "none" sends nothing.
+      const linkPayload: Record<string, unknown> = {};
+      if (bulkNotifTarget.target_type === "event" && bulkNotifEvents.length > 0) {
+        linkPayload.targets = bulkNotifEvents.map((e) => ({
+          target_type: "event",
+          target_id: e.slug,
+        }));
+      } else if (bulkNotifTarget.target_type !== "none") {
+        linkPayload.target_type = bulkNotifTarget.target_type;
+        linkPayload.target_id = bulkNotifTarget.target_id.trim();
+      }
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/send-notification-to-multiple-users/`,
         {
           recipient_ids: recipientIds,
           message: bulkNotifMessage.trim(),
-          // Optional deep link (only when picked) -> recipients get a
-          // "Take me there" button on the notification.
-          ...(bulkNotifTarget.target_type !== "none"
-            ? {
-                target_type: bulkNotifTarget.target_type,
-                target_id: bulkNotifTarget.target_id.trim(),
-              }
-            : {}),
+          ...linkPayload,
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -717,6 +728,7 @@ const page = () => {
       setBulkNotifMessage("");
       setBulkNotifRecipients([]);
       setBulkNotifTarget(EMPTY_TARGET);
+      setBulkNotifEvents([]);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to send notification.");
     } finally {
@@ -1991,10 +2003,17 @@ const page = () => {
                   onChange={(e) => setBulkNotifMessage(e.target.value)}
                 />
               </div>
-              {/* Optional deep link: gives recipients a "Take me there" button. */}
+              {/* Optional deep link: gives recipients a "Take me there" button. For the "event"
+                  type the admin can search + select multiple events (owner 2026-06-17). */}
               <NotificationTargetSelector
                 value={bulkNotifTarget}
-                onChange={setBulkNotifTarget}
+                onChange={(t) => {
+                  setBulkNotifTarget(t);
+                  if (t.target_type !== "event") setBulkNotifEvents([]);
+                }}
+                enableEventSearch
+                selectedEvents={bulkNotifEvents}
+                onSelectedEventsChange={setBulkNotifEvents}
               />
               <Button
                 onClick={handleSendBulkNotification}
@@ -2003,6 +2022,12 @@ const page = () => {
                 {sendingBulkNotif ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 {sendingBulkNotif ? "Sending..." : "Send Notification"}
               </Button>
+
+              {/* Broadcast history: the general + direct sends (owner 2026-06-17). */}
+              <div className="mt-6 border-t pt-4">
+                <p className="mb-3 text-sm font-medium">Sent broadcasts</p>
+                <BroadcastHistory scope="general" />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

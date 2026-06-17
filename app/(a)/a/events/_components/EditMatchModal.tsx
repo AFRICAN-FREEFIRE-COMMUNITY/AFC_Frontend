@@ -65,6 +65,18 @@ export const EditMatchModal = ({
     },
   });
 
+  // Re-seed the form from THIS match's props every time the modal opens (owner 2026-06-17 bug:
+  // "default room ID/PASS on a different event"). useForm reads defaultValues only once at mount,
+  // so a reused modal instance — same list slot after a refetch, or client-side navigation between
+  // events — kept the previous match's roomId and could save it onto the wrong match. Resetting on
+  // open guarantees the fields show the current match's room id (and blank, re-entered secrets).
+  useEffect(() => {
+    if (open) {
+      form.reset({ roomId: roomId || "", roomName: "", roomPassword: "" });
+    }
+    // matchId/roomId in deps so opening the modal for a different match always re-seeds.
+  }, [open, matchId, roomId]);
+
   const onSubmit = (data: EditMatchFormSchemaType) => {
     startTransition(async () => {
       try {

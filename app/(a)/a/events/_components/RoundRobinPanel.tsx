@@ -113,13 +113,33 @@ export function RoundRobinPanel({
   // ── Base-group helpers ───────────────────────────────────────────────────────
 
   const addGroup = () => {
-    onChange({
-      ...config,
-      round_robin_groups: [
-        ...groups,
-        { label: nextGroupLabel(groups.length), order: groups.length, team_ids: [] },
-      ],
-    });
+    const newIndex = groups.length;
+    const nextGroups = [
+      ...groups,
+      { label: nextGroupLabel(newIndex), order: newIndex, team_ids: [] },
+    ];
+    // In MANUAL mode, also append the new group's fixtures (new group vs every existing group) as
+    // fresh meetings, so adding a base group actually PRODUCES its match days. Owner 2026-06-17:
+    // a manually-added group used to persist server-side but had no lobby, so it looked like it
+    // "didn't save". Auto mode needs nothing here — the backend regenerates every C(n,2) pairing
+    // on save. Existing customised meetings are left untouched (we only append).
+    let nextGameDays = config.game_days;
+    if (!config.generate_schedule) {
+      const added: RoundRobinGameDayInput[] = [];
+      for (let i = 0; i < newIndex; i++) {
+        added.push({
+          game_day: config.game_days.length + added.length + 1,
+          source_group_indices: [i, newIndex],
+          // One match per map; the admin sets the real maps/date/time on the new meeting below.
+          match_count: 1,
+          match_maps: ["Bermuda"],
+          playing_date: "",
+          playing_time: "",
+        });
+      }
+      nextGameDays = [...config.game_days, ...added];
+    }
+    onChange({ ...config, round_robin_groups: nextGroups, game_days: nextGameDays });
   };
 
   const removeGroup = (index: number) => {
@@ -276,7 +296,16 @@ export function RoundRobinPanel({
   };
   const removeMapFromGameDay = (gdIndex: number, map: string) => {
     const current = config.game_days[gdIndex].match_maps;
-    const last = current.lastIndexOf(map);
+    // Case-insensitive (owner 2026-06-17): auto-generated stages store lowercase maps ("bermuda")
+    // while the stepper labels are capitalized ("Bermuda"), so a strict match never found them and
+    // the "3 matches" meeting showed 0 maps. Remove the last entry that matches ignoring case.
+    let last = -1;
+    for (let i = current.length - 1; i >= 0; i--) {
+      if (current[i].toLowerCase() === map.toLowerCase()) {
+        last = i;
+        break;
+      }
+    }
     if (last === -1) return;
     const maps = current.filter((_, i) => i !== last);
     updateGameDay(gdIndex, { match_maps: maps, match_count: maps.length });
@@ -483,7 +512,15 @@ export function RoundRobinPanel({
               <div key={gdIndex} className="space-y-2 rounded-md border p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold">
-                    Game Day {gd.game_day}
+                    Match Day {gd.game_day}
+                    {/* Show the pairing (e.g. "A vs B") so the admin sees who plays each day. */}
+                    {gd.source_group_indices.length > 0 && (
+                      <span className="ml-1.5 text-primary">
+                        {gd.source_group_indices
+                          .map((gi) => groups[gi]?.label || `G${gi + 1}`)
+                          .join(" vs ")}
+                      </span>
+                    )}
                   </span>
                   <Button
                     type="button"
@@ -563,8 +600,10 @@ export function RoundRobinPanel({
                   </Label>
                   <div className="flex flex-wrap gap-2">
                     {AVAILABLE_MAPS.map((map) => {
+                      // Count case-insensitively so legacy/auto lowercase maps ("bermuda") show
+                      // under their capitalized stepper label ("Bermuda") — owner 2026-06-17.
                       const count = gd.match_maps.filter(
-                        (m) => m === map,
+                        (m) => m.toLowerCase() === map.toLowerCase(),
                       ).length;
                       return (
                         <div

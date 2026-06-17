@@ -82,8 +82,22 @@
     "title": "Notificações",
     "unreadCount": "{count} não lidas",
     "empty": "Nenhuma notificação ainda",
+    "emptyHint": "Atualizações sobre seus torneios, equipes e pedidos aparecem aqui.",
     "singular": "Notificação",
-    "takeMeThere": "Leve-me lá"
+    "takeMeThere": "Leve-me lá",
+    "view": "Ver",
+    "markRead": "Marcar como lido",
+    "types": {
+      "event": "Torneio",
+      "news": "Notícias",
+      "team": "Equipe",
+      "player": "Jogador",
+      "shop": "Loja",
+      "organizer": "Organização",
+      "custom": "Atualização",
+      "none": "Atualização",
+      "message": "Mensagem"
+    }
   },
   "cart": {
     "title": "Seu Carrinho",

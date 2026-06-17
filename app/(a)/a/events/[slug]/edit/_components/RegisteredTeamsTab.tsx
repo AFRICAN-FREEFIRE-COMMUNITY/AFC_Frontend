@@ -1,6 +1,11 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
+import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -73,6 +78,36 @@ export default function RegisteredTeamsTab({
   );
   const toggleTeam = (key: number) =>
     setExpandedTeams((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  // No-show toggle (owner 2026-06-17): mark an active competitor absent so a waitlist team can take
+  // the slot (Promote on the Waitlist tab). value flips the current is_no_show. Refreshes after.
+  const { token } = useAuth();
+  const [noShowBusy, setNoShowBusy] = useState<number | null>(null);
+  const markNoShow = async (
+    opts: { competitorId?: number; tournamentTeamId?: number; current?: boolean; key: number },
+  ) => {
+    if (!token) return;
+    setNoShowBusy(opts.key);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/mark-no-show/`,
+        {
+          event_id: eventDetails.event_id,
+          value: !opts.current,
+          ...(opts.tournamentTeamId
+            ? { tournament_team_id: opts.tournamentTeamId }
+            : { competitor_id: opts.competitorId }),
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(opts.current ? "No-show cleared." : "Marked as no-show.");
+      onRefresh?.();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to update no-show.");
+    } finally {
+      setNoShowBusy(null);
+    }
+  };
   const teamCount =
     eventDetails.participant_type === "squad"
       ? eventDetails.tournament_teams.filter((t: any) => !t.is_waitlisted)
@@ -146,30 +181,47 @@ export default function RegisteredTeamsTab({
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      {comp.status === "registered" ? (
-                        <DisqualifyModal
-                          competitor_id={comp.player_id}
-                          event_id={eventDetails.event_id}
-                          name={comp.username}
-                          showLabel
-                          onSuccess={() =>
-                            updateCompetitorStatus(
-                              comp.player_id,
-                              "disqualified",
-                            )
+                      <div className="inline-flex items-center gap-1.5">
+                        {/* No-show toggle (owner 2026-06-17): frees the slot for a waitlist promote. */}
+                        <Button
+                          size="sm"
+                          variant={(comp as any).is_no_show ? "secondary" : "outline"}
+                          disabled={noShowBusy === comp.player_id}
+                          onClick={() =>
+                            markNoShow({
+                              competitorId: comp.player_id,
+                              current: !!(comp as any).is_no_show,
+                              key: comp.player_id,
+                            })
                           }
-                        />
-                      ) : (
-                        <ReactivateModal
-                          competitor_id={comp.player_id}
-                          event_id={eventDetails.event_id}
-                          name={comp.username}
-                          showLabel
-                          onSuccess={() =>
-                            updateCompetitorStatus(comp.player_id, "registered")
-                          }
-                        />
-                      )}
+                        >
+                          {(comp as any).is_no_show ? "No-show ✓" : "No-show"}
+                        </Button>
+                        {comp.status === "registered" ? (
+                          <DisqualifyModal
+                            competitor_id={comp.player_id}
+                            event_id={eventDetails.event_id}
+                            name={comp.username}
+                            showLabel
+                            onSuccess={() =>
+                              updateCompetitorStatus(
+                                comp.player_id,
+                                "disqualified",
+                              )
+                            }
+                          />
+                        ) : (
+                          <ReactivateModal
+                            competitor_id={comp.player_id}
+                            event_id={eventDetails.event_id}
+                            name={comp.username}
+                            showLabel
+                            onSuccess={() =>
+                              updateCompetitorStatus(comp.player_id, "registered")
+                            }
+                          />
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -231,6 +283,21 @@ export default function RegisteredTeamsTab({
                           reactivate. EditRosterModal POSTs /events/edit-roster/ for THIS
                           team and reopens it for sponsor re-approval on change. */}
                       <div className="flex items-center justify-end gap-2">
+                        {/* No-show toggle (owner 2026-06-17): frees the slot for a waitlist promote. */}
+                        <Button
+                          size="sm"
+                          variant={team.is_no_show ? "secondary" : "outline"}
+                          disabled={noShowBusy === key}
+                          onClick={() =>
+                            markNoShow({
+                              tournamentTeamId: team.tournament_team_id,
+                              current: !!team.is_no_show,
+                              key,
+                            })
+                          }
+                        >
+                          {team.is_no_show ? "No-show ✓" : "No-show"}
+                        </Button>
                         <EditRosterModal
                           event_id={eventDetails.event_id}
                           team_id={team.team_id || team.player_id}

@@ -116,10 +116,13 @@ function rehydrateRoundRobin(
       order: g.order,
       team_ids: g.team_ids || [],
     })),
-    // If the backend already materialised game days, default the toggle to MANUAL so
-    // the admin sees the real schedule; otherwise leave auto-generate on.
-    generate_schedule: gameDays.length === 0,
-    games_per_day: gameDays[0]?.match_count ?? 1,
+    // Prefer the backend's explicit stage-level mode (owner 2026-06-17). Fall back to the old
+    // derivation only for events saved before the echo carried these: if lobbies were
+    // materialised, show the MANUAL meeting list so the admin edits each match day; otherwise
+    // leave auto-generate on. games_per_day now mirrors a lobby's match_count (== len(maps)),
+    // so the "matches per meeting" value survives a save/reload instead of collapsing to 1.
+    generate_schedule: rr.generate_schedule ?? gameDays.length === 0,
+    games_per_day: rr.games_per_day ?? gameDays[0]?.match_count ?? 1,
     game_days: gameDays,
   };
 }
@@ -255,6 +258,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     is_waitlist_enabled: false,
     waitlist_capacity: 0,
     waitlist_discord_role_id: "",
+    // Slot-assignment mode (owner 2026-06-17). Default earliest-registered.
+    waitlist_mode: "first_registered",
   });
   const [savingWaitlist, setSavingWaitlist] = useState(false);
 
@@ -580,6 +585,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           waitlist_capacity:
             ed.waitlist_capacity != null ? Number(ed.waitlist_capacity) : "",
           waitlist_discord_role_id: ed.waitlist_discord_role_id ?? "",
+          waitlist_mode: ed.waitlist_mode ?? "first_registered",
         });
       }
 
@@ -1271,6 +1277,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         "waitlist_discord_role_id",
         waitlistForm.waitlist_discord_role_id || "",
       );
+      formData.append(
+        "waitlist_mode",
+        waitlistForm.waitlist_mode || "first_registered",
+      );
 
       await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
         method: "POST",
@@ -1288,6 +1298,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 ? Number(waitlistForm.waitlist_capacity)
                 : null,
               waitlist_discord_role_id: waitlistForm.waitlist_discord_role_id,
+              waitlist_mode: waitlistForm.waitlist_mode,
             }
           : prev,
       );
@@ -1569,6 +1580,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append(
           "waitlist_discord_role_id",
           waitlistForm.waitlist_discord_role_id || "",
+        );
+        formData.append(
+          "waitlist_mode",
+          waitlistForm.waitlist_mode || "first_registered",
         );
 
         const response = await fetch(
@@ -1866,6 +1881,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 onSave={saveWaitlistSettings}
                 saving={savingWaitlist}
                 eventDetails={eventDetails}
+                eventId={eventDetails.event_id}
+                onRefresh={fetchEventDetails}
               />
             </TabsContent>
           </Tabs>

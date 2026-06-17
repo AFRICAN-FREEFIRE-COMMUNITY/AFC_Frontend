@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -12,7 +11,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { IconBell, IconArrowRight } from "@tabler/icons-react";
+import {
+  IconBell,
+  IconArrowRight,
+  IconTrophy,
+  IconNews,
+  IconUsers,
+  IconUser,
+  IconShoppingBag,
+  IconBuilding,
+} from "@tabler/icons-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,23 +32,28 @@ import { useTranslations } from "next-intl";
 
 // ── Notification shape ────────────────────────────────────────────────────────
 // Mirrors what GET /auth/get-notifications/ returns (fetched in Header.tsx and
-// passed down as the `notifications` prop). `message` is already localized to the
-// viewer's locale by the backend (translate-on-read). `created_at` is a UTC ISO
-// instant we render in the viewer's own timezone via <LocalTime>. `link` is the
-// backend-computed deep link (a relative URL like "/tournaments/<slug>",
-// "/news/<slug>", "/teams/<id>", "/players/<username>", "/shop",
-// "/organizations/<slug>", a custom "/path", or null). target_type/target_id are
-// the raw target the link is derived from; we only need `link` to drive the
-// "Take me there" affordance, but the type carries them for completeness with the
-// backend contract.
+// passed down). `title` + `message` are already localized to the viewer's locale by
+// the backend (translate-on-read). `created_at` is a UTC instant rendered in the
+// viewer's timezone via <LocalTime>. `links` is the multi deep-link array (owner
+// 2026-06-17): one entry per linked entity, each with a computed relative `link`
+// plus its target_type/target_id; `link` (singular) is kept for back-compat and
+// equals the first link. We render one "View" button per links[] entry (so a
+// broadcast tied to several events shows several View buttons).
+interface NotificationLink {
+  link: string;
+  target_type?: string | null;
+  target_id?: string | number | null;
+}
 interface AppNotification {
   id: number | string;
+  title?: string | null;
   message: string;
   is_read: boolean;
   created_at?: string | null;
   target_type?: string | null;
   target_id?: string | number | null;
   link?: string | null;
+  links?: NotificationLink[];
   [key: string]: any;
 }
 
@@ -48,6 +61,36 @@ interface NotificationDropdownProps {
   notifications: AppNotification[];
   unreadCount: number;
   onNotificationUpdate: () => void;
+}
+
+// Icon per target type — gives each notification an at-a-glance source. Default bell
+// for general/unknown types. Tabler icons (same set the rest of the chrome uses).
+const TYPE_ICON: Record<string, typeof IconBell> = {
+  event: IconTrophy,
+  news: IconNews,
+  team: IconUsers,
+  player: IconUser,
+  shop: IconShoppingBag,
+  organizer: IconBuilding,
+};
+
+// Known type keys that have an i18n label under notifications.types.*; everything
+// else falls back to the neutral "none"/Update label.
+const KNOWN_TYPES = [
+  "event",
+  "news",
+  "team",
+  "player",
+  "shop",
+  "organizer",
+  "custom",
+  "none",
+  "message",
+];
+
+// Turn a slug/username into a readable button label (e.g. "dynasty-cup" -> "Dynasty Cup").
+function humanizeSlug(s: string) {
+  return s.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export function NotificationDropdown({
@@ -58,14 +101,12 @@ export function NotificationDropdown({
   const { token } = useAuth();
   const router = useRouter();
   const t = useTranslations("common");
-  // Controlled Sheet so a "Take me there" tap can close the panel before routing
-  // (App Router navigation keeps the Header mounted, so the Sheet would otherwise
-  // stay open over the destination page).
+  // Controlled Sheet so a "View" tap can close the panel before routing (App Router
+  // navigation keeps the Header mounted, so the Sheet would otherwise stay open).
   const [open, setOpen] = useState(false);
 
-  // Mark a notification read on the backend (idempotent) and refresh the list so
-  // the unread dot + count update. Safe to call on an already-read row; we just
-  // skip the POST. Returns once the request settles so callers can navigate after.
+  // Mark a notification read on the backend (idempotent) and refresh the list so the
+  // unread accent + count update. Safe on an already-read row (skips the POST).
   const markRead = async (notification: AppNotification) => {
     if (notification.is_read || !token) return;
     try {
@@ -83,17 +124,37 @@ export function NotificationDropdown({
     } catch (error) {}
   };
 
-  // Tapping a row marks it read and, when the backend gave it a deep link, closes
-  // the panel and routes the user straight to the related entity. With the full
-  // message now rendered inline there is nothing more to "open", so a link-less
-  // notification simply clears its unread state.
-  const handleRowClick = async (notification: AppNotification) => {
+  // A "View" button marks the notification read, closes the panel, then routes to the
+  // linked entity. stopPropagation so the card's own (mark-read) click doesn't double-fire.
+  const openLink = async (notification: AppNotification, url: string) => {
     await markRead(notification);
-    if (notification.link) {
-      setOpen(false);
-      router.push(notification.link);
-    }
+    setOpen(false);
+    router.push(url);
   };
+
+  // Resolve the link list: prefer the multi `links[]`, fall back to the single `link`.
+  const linksFor = (n: AppNotification): NotificationLink[] => {
+    if (Array.isArray(n.links) && n.links.length > 0) return n.links;
+    if (n.link) return [{ link: n.link, target_type: n.target_type, target_id: n.target_id }];
+    return [];
+  };
+
+  // Per-link button label: humanized slug for slug-based types, @username for players,
+  // otherwise the generic "View".
+  const linkLabel = (l: NotificationLink) => {
+    const id = String(l.target_id ?? "");
+    if (["event", "news", "organizer"].includes(l.target_type || "") && id) {
+      return humanizeSlug(id);
+    }
+    if (l.target_type === "player" && id) return `@${id}`;
+    return t("notifications.view");
+  };
+
+  // The type used for the icon + the small category label on a card.
+  const typeOf = (n: AppNotification) =>
+    (n.target_type || n.links?.[0]?.target_type || "none") as string;
+  const typeLabel = (tt: string) =>
+    t(`notifications.types.${KNOWN_TYPES.includes(tt) ? tt : "none"}`);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -129,57 +190,102 @@ export function NotificationDropdown({
 
         <ScrollArea className="flex-1 min-h-0">
           {notifications.length === 0 ? (
-            <p className="italic text-sm text-muted-foreground text-center py-10 px-4">
-              {t("notifications.empty")}
-            </p>
+            // Richer empty state: icon + headline + hint (replaces the bare italic line).
+            <div className="flex flex-col items-center justify-center gap-2 px-6 py-12 text-center">
+              <div className="rounded-full bg-muted p-3">
+                <IconBell className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium">{t("notifications.empty")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("notifications.emptyHint")}
+              </p>
+            </div>
           ) : (
-            <div className="flex flex-col">
-              {notifications.map((notification: AppNotification, index) => (
-                <div key={index}>
-                  {/* Whole row is the click target: marks read + (if linked) navigates.
-                      It is a <button> so it must NOT contain another interactive
-                      element - the "Take me there" cue below is a plain span, and the
-                      parent handler performs the navigation. */}
-                  <button
+            <div className="flex flex-col gap-2 p-3">
+              {notifications.map((notification: AppNotification, index) => {
+                const unread = !notification.is_read;
+                const tt = typeOf(notification);
+                const Icon = TYPE_ICON[tt] || IconBell;
+                const links = linksFor(notification);
+                return (
+                  // The card itself is the (subtle) mark-read target; the View buttons
+                  // stopPropagation and handle navigation. A div (not a button) so it can
+                  // legally contain the action buttons.
+                  <div
+                    key={index}
+                    onClick={() => unread && markRead(notification)}
                     className={cn(
-                      "flex items-start gap-3 px-4 py-3 w-full text-left transition-colors hover:bg-muted/70 cursor-pointer",
-                      !notification.is_read && "bg-muted/50",
+                      "rounded-md border p-3 shadow-sm transition-colors",
+                      unread
+                        ? "cursor-pointer border-l-2 border-l-primary bg-muted/40 hover:bg-muted/60"
+                        : "bg-card",
                     )}
-                    onClick={() => handleRowClick(notification)}
                   >
-                    <div
-                      className={cn(
-                        "h-2 w-2 rounded-full shrink-0 mt-1.5",
-                        !notification.is_read && "bg-primary",
-                      )}
-                    />
-                    <div className="flex-1 min-w-0 space-y-1">
-                      {/* Full message, untruncated. whitespace-pre-line keeps any
-                          line breaks the admin typed; break-words stops long
-                          unbroken strings (URLs) from overflowing the panel. */}
-                      <p className="text-sm leading-relaxed whitespace-pre-line break-words">
-                        {notification.message}
-                      </p>
-                      <div className="flex items-center justify-between gap-2">
-                        {notification.created_at && (
-                          <LocalTime
-                            value={notification.created_at}
-                            mode="relative"
-                            className="text-xs text-muted-foreground"
-                          />
-                        )}
-                        {notification.link && (
-                          <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-primary">
-                            {t("notifications.takeMeThere")}
-                            <IconArrowRight className="h-3.5 w-3.5" />
+                    <div className="flex items-start gap-3">
+                      {/* Type icon chip */}
+                      <div className="mt-0.5 shrink-0 rounded-full bg-muted p-1.5 text-primary">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                            {typeLabel(tt)}
                           </span>
+                          {notification.created_at && (
+                            <LocalTime
+                              value={notification.created_at}
+                              mode="relative"
+                              className="shrink-0 text-[11px] text-muted-foreground"
+                            />
+                          )}
+                        </div>
+
+                        {notification.title && (
+                          <p className="mt-0.5 text-sm font-semibold leading-snug break-words">
+                            {notification.title}
+                          </p>
+                        )}
+                        <p className="mt-0.5 whitespace-pre-line break-words text-sm text-muted-foreground">
+                          {notification.message}
+                        </p>
+
+                        {(links.length > 0 || unread) && (
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                            {links.map((l, i) => (
+                              <Button
+                                key={i}
+                                size="sm"
+                                variant="outline"
+                                className="h-7 rounded-full px-3 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openLink(notification, l.link);
+                                }}
+                              >
+                                {linkLabel(l)}
+                                <IconArrowRight className="ml-1 h-3 w-3" />
+                              </Button>
+                            ))}
+                            {unread && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 text-xs text-muted-foreground"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markRead(notification);
+                                }}
+                              >
+                                {t("notifications.markRead")}
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
-                  </button>
-                  {index < notifications.length - 1 && <Separator />}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </ScrollArea>

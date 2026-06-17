@@ -446,7 +446,13 @@
     "points": "Pts",
     "qualificationLine": "Qualification line",
     "footnote": "Built from the data this tournament already records: stages, groups, standings and \"top-N advance\". Stage formats (including \"Knockout\") show their accurate standings, since that is how results are entered.",
-    "placePts": "Place Pts"
+    "placePts": "Place Pts",
+    "roomDetails": "Room details",
+    "roomId": "Room ID",
+    "roomName": "Room name",
+    "roomPassword": "Password",
+    "roomMatch": "Match {n}",
+    "roomReleasedNote": "Room details are shared here once the organizer posts them."
   },
   "review": {
     "title": "Rate this event",
@@ -569,5 +575,15 @@
     "retryNow": "Retry now",
     "reopenToFinish": "Please re-open the event to finish registering.",
     "registerCompleteFailed": "Payment received, but registration could not be completed."
+  },
+  "waitlist": {
+    "title": "Waitlist",
+    "count": "{count} waiting",
+    "empty": "No one is on the waitlist yet.",
+    "howFilled": "How open slots are filled",
+    "mode_first_registered": "If a team does not show up, the earliest-registered team on the waitlist takes the open slot.",
+    "mode_fcfs_room": "If a team does not show up, all waitlist teams get the room ID and password. The first to join the room takes the open slot.",
+    "mode_manual_admin": "If a team does not show up, the organizer chooses which waitlist team takes the open slot.",
+    "position": "#{n}"
   }
 }

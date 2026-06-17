@@ -39,7 +39,10 @@ import {
   NotificationTargetSelector,
   EMPTY_TARGET,
   type NotificationTarget,
+  type EventOption,
 } from "@/app/(a)/a/_components/NotificationTargetSelector";
+// Broadcast history list (event-scoped). Shown in a dialog from the Communication card.
+import { BroadcastHistory } from "@/app/(a)/a/_components/BroadcastHistory";
 import {
   CheckCircle2,
   ChevronRight,
@@ -169,6 +172,16 @@ export default function ActionsTab({
   // Optional deep link for the broadcast's "Take me there" button. Defaults to
   // "none" so an unset link never breaks the existing broadcast behavior.
   const [annTarget, setAnnTarget] = useState<NotificationTarget>(EMPTY_TARGET);
+  // Multi-event link selection (owner 2026-06-17): when the link type is "event", the admin can
+  // search + pick several events; these become the broadcast `targets` array.
+  const [annEvents, setAnnEvents] = useState<EventOption[]>([]);
+  // Broadcast SCOPE (owner 2026-06-17): whole event / a stage / a group. Drives which endpoint the
+  // send hits (broadcast-announcement / broadcast-to-stage / broadcast-to-group).
+  const [annScope, setAnnScope] = useState<"event" | "stage" | "group">("event");
+  const [annStageId, setAnnStageId] = useState<string>("");
+  const [annGroupId, setAnnGroupId] = useState<string>("");
+  // Broadcast history dialog (event-scoped SentBroadcast list).
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const advanceStage = eventDetails.stages.find(
     (s) => s.stage_id === Number(advanceStageId),
@@ -411,32 +424,56 @@ export default function ActionsTab({
   async function handleBroadcast() {
     if (!annTitle.trim() || !annMessage.trim())
       return toast.error("Title and message are required");
+    if (annScope === "stage" && !annStageId)
+      return toast.error("Pick a stage to broadcast to");
+    if (annScope === "group" && !annGroupId)
+      return toast.error("Pick a group to broadcast to");
     setLoadingAnnouncement(true);
     try {
-      const res = await axios.post(
-        `${API}/events/broadcast-announcement/`,
-        {
-          event_id: eventDetails.event_id,
-          title: annTitle,
-          message: annMessage,
-          delivery: annDelivery,
-          // Optional deep link (only when the admin picked one), so recipients
-          // get a "Take me there" button on the notification.
-          ...(annTarget.target_type !== "none"
-            ? {
-                target_type: annTarget.target_type,
-                target_id: annTarget.target_id.trim(),
-              }
-            : {}),
-        },
-        { headers: authHeader },
-      );
+      // Build the deep-link target(s): for the "event" link type the admin may have selected
+      // several events (multi) -> send a `targets` array; for any other single type send the
+      // legacy target_type/target_id. "none" sends nothing.
+      const linkPayload: Record<string, unknown> = {};
+      if (annTarget.target_type === "event" && annEvents.length > 0) {
+        linkPayload.targets = annEvents.map((e) => ({
+          target_type: "event",
+          target_id: e.slug,
+        }));
+      } else if (annTarget.target_type !== "none") {
+        linkPayload.target_type = annTarget.target_type;
+        linkPayload.target_id = annTarget.target_id.trim();
+      }
+
+      // Route by scope: whole event / one stage / one group.
+      let url = `${API}/events/broadcast-announcement/`;
+      const body: Record<string, unknown> = {
+        event_id: eventDetails.event_id,
+        title: annTitle,
+        message: annMessage,
+        delivery: annDelivery,
+        ...linkPayload,
+      };
+      if (annScope === "stage") {
+        url = `${API}/events/broadcast-to-stage/`;
+        body.stage_id = annStageId;
+        body.mode = "custom";
+      } else if (annScope === "group") {
+        url = `${API}/events/broadcast-to-group/`;
+        body.group_id = annGroupId;
+        body.mode = "custom";
+      }
+
+      const res = await axios.post(url, body, { headers: authHeader });
       toast.success(res.data.message);
       setAnnouncementOpen(false);
       setAnnTitle("");
       setAnnMessage("");
       setAnnDelivery("both");
       setAnnTarget(EMPTY_TARGET);
+      setAnnEvents([]);
+      setAnnScope("event");
+      setAnnStageId("");
+      setAnnGroupId("");
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Broadcast failed");
     } finally {
@@ -885,13 +922,22 @@ export default function ActionsTab({
                 Send an in-app notification to all registered players.
               </p>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setAnnouncementOpen(true)}
-            >
-              <Megaphone className="h-4 w-4 mr-1" /> Broadcast
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setHistoryOpen(true)}
+              >
+                History
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setAnnouncementOpen(true)}
+              >
+                <Megaphone className="h-4 w-4 mr-1" /> Broadcast
+              </Button>
+            </div>
           </div>
 
           {/* Sync Discord Roles — hidden in the organizer flow (hideDiscord), since
@@ -1205,6 +1251,70 @@ export default function ActionsTab({
             <b>{eventDetails.event_name}</b>.
           </DialogDescription>
           <div className="space-y-4 mt-2">
+            {/* Scope (owner 2026-06-17): whole event, a stage, or a single group. */}
+            <div className="space-y-2">
+              <Label>Send to</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    { value: "event", label: "Whole event" },
+                    { value: "stage", label: "A stage" },
+                    { value: "group", label: "A group" },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => {
+                      setAnnScope(opt.value);
+                      setAnnStageId("");
+                      setAnnGroupId("");
+                    }}
+                    className={cn(
+                      "border rounded-md p-2.5 text-xs text-center transition-colors",
+                      annScope === opt.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "hover:bg-muted",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {annScope === "stage" && (
+                <Select value={annStageId} onValueChange={setAnnStageId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a stage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eventDetails.stages.map((s: any) => (
+                      <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                        {s.stage_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {annScope === "group" && (
+                <Select value={annGroupId} onValueChange={setAnnGroupId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eventDetails.stages.flatMap((s: any) =>
+                      (s.groups || []).map((g: any) => (
+                        <SelectItem
+                          key={g.group_id}
+                          value={String(g.group_id)}
+                        >
+                          {s.stage_name} {">"} {g.group_name}
+                        </SelectItem>
+                      )),
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
             <div className="space-y-1">
               <Label htmlFor="ann-title">Title</Label>
               <Input
@@ -1258,7 +1368,14 @@ export default function ActionsTab({
                 recipient's notification. Defaults to no link. */}
             <NotificationTargetSelector
               value={annTarget}
-              onChange={setAnnTarget}
+              onChange={(t) => {
+                setAnnTarget(t);
+                // Clear the multi-event selection when switching away from the event type.
+                if (t.target_type !== "event") setAnnEvents([]);
+              }}
+              enableEventSearch
+              selectedEvents={annEvents}
+              onSelectedEventsChange={setAnnEvents}
             />
             <div className="flex gap-3">
               <Button
@@ -1283,6 +1400,22 @@ export default function ActionsTab({
                 )}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Broadcast history (event-scoped) ──────────────────────────── */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogTitle>Broadcast history</DialogTitle>
+          <DialogDescription>
+            Every announcement, stage/group message and room-details push sent for{" "}
+            <b>{eventDetails.event_name}</b>.
+          </DialogDescription>
+          <div className="mt-2 max-h-[60vh] overflow-auto pr-1">
+            {historyOpen && (
+              <BroadcastHistory scope="event" eventId={eventDetails.event_id} />
+            )}
           </div>
         </DialogContent>
       </Dialog>

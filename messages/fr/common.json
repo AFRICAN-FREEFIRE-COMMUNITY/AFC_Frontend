@@ -82,8 +82,22 @@
     "title": "Notifications",
     "unreadCount": "{count} non lues",
     "empty": "Aucune notification pour l'instant",
+    "emptyHint": "Les mises à jour concernant vos tournois, équipes et commandes s'affichent ici.",
     "singular": "Notification",
-    "takeMeThere": "M'y rendre"
+    "takeMeThere": "M'y rendre",
+    "view": "Voir",
+    "markRead": "Marquer comme lu",
+    "types": {
+      "event": "Tournoi",
+      "news": "Actualités",
+      "team": "Équipe",
+      "player": "Joueur",
+      "shop": "Boutique",
+      "organizer": "Organisation",
+      "custom": "Mise à jour",
+      "none": "Mise à jour",
+      "message": "Message"
+    }
   },
   "cart": {
     "title": "Votre panier",

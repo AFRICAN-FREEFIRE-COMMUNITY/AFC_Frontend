@@ -146,6 +146,42 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
 
         {waitlistEnabled && (
           <div className="space-y-4">
+            {/* Slot-assignment MODE (owner 2026-06-17): how a no-show's slot is filled. Shown to
+                players on the event page so they know the rule. */}
+            <div className="space-y-2">
+              <Label>How open slots are filled</Label>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {(
+                  [
+                    { value: "first_registered", label: "Earliest registered", help: "The team/player who joined the waitlist first gets the open slot." },
+                    { value: "fcfs_room", label: "First to join room", help: "All waitlist teams get the room ID + password; first to join the room claims the slot." },
+                    { value: "manual_admin", label: "You pick", help: "You manually choose which waitlist team/player takes each open slot." },
+                  ] as const
+                ).map((opt) => {
+                  // @ts-ignore - optional field, mirrors the toggle idiom
+                  const selected = (form.watch("waitlist_mode") || "first_registered") === opt.value;
+                  return (
+                    <button
+                      type="button"
+                      key={opt.value}
+                      // @ts-ignore
+                      onClick={() => form.setValue("waitlist_mode", opt.value)}
+                      className={
+                        "rounded-md border p-3 text-left text-xs transition-colors " +
+                        (selected ? "border-primary bg-primary/10 text-primary" : "hover:bg-muted")
+                      }
+                    >
+                      <span className="block font-medium">{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {/* @ts-ignore */}
+                {{ first_registered: "The team/player who joined the waitlist first gets the open slot.", fcfs_room: "All waitlist teams get the room ID + password; first to join the room claims the slot. You confirm who got in.", manual_admin: "You manually choose which waitlist team/player takes each open slot." }[(form.watch("waitlist_mode") as string) || "first_registered"]}
+              </p>
+            </div>
+
             <FormField
               // @ts-ignore
               control={form.control}
