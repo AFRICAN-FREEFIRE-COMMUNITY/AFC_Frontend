@@ -913,7 +913,10 @@ export default function StagesGroupsTab({
                                         <TableCell className="py-2 text-right space-x-1">
                                           <EditMatchModal
                                             matchId={match.match_id}
-                                            onSuccess={() => {}}
+                                            // Refetch after saving so the new room details persist
+                                            // in view (owner 2026-06-17: was a no-op, so edits looked
+                                            // like they reverted to the old value on reopen).
+                                            onSuccess={() => onRefresh?.()}
                                             roomId={match.room_id}
                                             roomPassword={match.room_password}
                                             roomName={match.room_name}

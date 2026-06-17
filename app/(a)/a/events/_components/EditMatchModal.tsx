@@ -55,27 +55,26 @@ export const EditMatchModal = ({
   const form = useForm<EditMatchFormSchemaType>({
     resolver: zodResolver(EditMatchFormSchema),
     defaultValues: {
-      roomId: roomId || "",
-      // Room name + password deliberately start EMPTY (owner 2026-06-12): room
-      // credentials are per-session secrets, so the admin types fresh values each
-      // time instead of silently re-saving (or leaking on screen) the old ones.
-      // What is typed here is exactly what gets saved.
+      // ALL three room fields start EMPTY (owner 2026-06-17): there must be NO pre-existing
+      // "default" room id/name/password — the admin/organizer enters fresh details each time and
+      // exactly what is typed is what gets saved. Previously roomId was pre-filled from the match,
+      // so a saved value kept reappearing and edits looked like they "changed back to the default".
+      roomId: "",
       roomName: "",
       roomPassword: "",
     },
   });
 
-  // Re-seed the form from THIS match's props every time the modal opens (owner 2026-06-17 bug:
-  // "default room ID/PASS on a different event"). useForm reads defaultValues only once at mount,
-  // so a reused modal instance — same list slot after a refetch, or client-side navigation between
-  // events — kept the previous match's roomId and could save it onto the wrong match. Resetting on
-  // open guarantees the fields show the current match's room id (and blank, re-entered secrets).
+  // Blank the form every time the modal opens — never seed from the match's stored values. This
+  // (a) guarantees no leftover "default" room id/name/password is shown, and (b) kills the
+  // cross-match leak (a reused modal instance can't carry a previous match's room id). What the
+  // user types is saved via edit-match-details, and the parent refetches (onSuccess) so the new
+  // details surface where they're displayed (user event page / broadcast).
   useEffect(() => {
     if (open) {
-      form.reset({ roomId: roomId || "", roomName: "", roomPassword: "" });
+      form.reset({ roomId: "", roomName: "", roomPassword: "" });
     }
-    // matchId/roomId in deps so opening the modal for a different match always re-seeds.
-  }, [open, matchId, roomId]);
+  }, [open, matchId]);
 
   const onSubmit = (data: EditMatchFormSchemaType) => {
     startTransition(async () => {
