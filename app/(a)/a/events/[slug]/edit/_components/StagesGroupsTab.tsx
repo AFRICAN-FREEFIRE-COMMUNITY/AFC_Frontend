@@ -920,6 +920,7 @@ export default function StagesGroupsTab({
                                             roomId={match.room_id}
                                             roomPassword={match.room_password}
                                             roomName={match.room_name}
+                                            matchLabel={`Match ${match.match_number}${match.match_map ? ` - ${match.match_map}` : ""}`}
                                           />
                                           <DeleteMatchModal
                                             matchId={match.match_id}

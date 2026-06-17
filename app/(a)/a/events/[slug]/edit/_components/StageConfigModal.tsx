@@ -874,7 +874,9 @@ export function StageConfigModal({
                   )}
                 </div>
 
-                {/* Room fields */}
+                {/* Room fields. autoComplete off / new-password stops Chrome's password manager
+                    from autofilling the saved login EMAIL into Room ID and the saved PASSWORD into
+                    Room password (owner 2026-06-18 "default keeps coming back" = browser autofill). */}
                 <div>
                   <Label className="mb-2.5">Room ID</Label>
                   <Input
@@ -883,6 +885,7 @@ export function StageConfigModal({
                       updateGroupDetailLogic(index, "room_id", e.target.value)
                     }
                     placeholder={`Room ${index + 1}`}
+                    autoComplete="off"
                   />
                 </div>
 
@@ -894,6 +897,7 @@ export function StageConfigModal({
                       updateGroupDetailLogic(index, "room_name", e.target.value)
                     }
                     placeholder="Room name"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -912,6 +916,7 @@ export function StageConfigModal({
                       }
                       className="pr-10"
                       placeholder="Enter room password"
+                      autoComplete="new-password"
                     />
                     <Button
                       className="absolute top-[50%] translate-y-[-50%] end-1 text-muted-foreground/80"

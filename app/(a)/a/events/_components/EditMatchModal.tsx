@@ -1,36 +1,32 @@
 "use client";
 
-import React, { Suspense, useEffect, useState, useTransition } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+// Per-MATCH (per-map) room details editor (owner 2026-06-18).
+// Behaviour the owner asked for:
+//   • Room ID / Room name / Room password start EMPTY when nothing is set for that map (NO browser
+//     autofill of the saved login email/password — blocked via autoComplete + off-screen decoys).
+//   • On reopen the SAVED values show (we seed from the match's stored room fields).
+//   • AUTO-SAVE: typing persists after a short debounce (no Save button); a "Saved" hint confirms it.
+//   • "Send to players" broadcasts THIS map's room details to the group (per-map, not whole-group),
+//     flushing any pending edit first so the latest values go out.
+// Backs POST /events/edit-match-details/ (save) and POST /events/broadcast-match-room-details/ (send).
+// Rendered per match row in StagesGroupsTab (admin + organizer event edit pages).
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Loader } from "@/components/Loader";
-import { Trash2, AlertTriangle, EyeOffIcon, EyeIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { IconPencil, IconPencilDiscount } from "@tabler/icons-react";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { EditMatchFormSchema, EditMatchFormSchemaType } from "@/lib/zodSchemas";
+import { EyeOffIcon, EyeIcon, Check, Loader2, Send } from "lucide-react";
+import { IconPencil } from "@tabler/icons-react";
 
 export const EditMatchModal = ({
   matchId,
@@ -38,76 +34,124 @@ export const EditMatchModal = ({
   roomId,
   roomName,
   roomPassword,
+  matchLabel,
 }: {
   matchId: string;
   onSuccess?: () => void;
   roomId: string | null;
   roomName: string | null;
   roomPassword: string | null;
+  // Optional map/match label for the dialog title (e.g. "Match 1 - Bermuda").
+  matchLabel?: string;
 }) => {
   const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
   const { token } = useAuth();
+  const [isVisible, setIsVisible] = useState(false);
 
-  const [isVisible, setIsVisible] = useState<boolean>(false);
-  const toggleVisibility = () => setIsVisible((prevState) => !prevState);
+  const [rId, setRId] = useState("");
+  const [rName, setRName] = useState("");
+  const [rPass, setRPass] = useState("");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [broadcasting, setBroadcasting] = useState(false);
 
-  const form = useForm<EditMatchFormSchemaType>({
-    resolver: zodResolver(EditMatchFormSchema),
-    defaultValues: {
-      // ALL three room fields start EMPTY (owner 2026-06-17): there must be NO pre-existing
-      // "default" room id/name/password — the admin/organizer enters fresh details each time and
-      // exactly what is typed is what gets saved. Previously roomId was pre-filled from the match,
-      // so a saved value kept reappearing and edits looked like they "changed back to the default".
-      roomId: "",
-      roomName: "",
-      roomPassword: "",
-    },
-  });
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dirty = useRef(false); // only auto-save after the user actually edits (not on the seed)
+  // Always POST the latest values (avoids stale closure inside the debounce timer).
+  const latest = useRef({ rId: "", rName: "", rPass: "" });
+  latest.current = { rId, rName, rPass };
 
-  // Blank the form every time the modal opens — never seed from the match's stored values. This
-  // (a) guarantees no leftover "default" room id/name/password is shown, and (b) kills the
-  // cross-match leak (a reused modal instance can't carry a previous match's room id). What the
-  // user types is saved via edit-match-details, and the parent refetches (onSuccess) so the new
-  // details surface where they're displayed (user event page / broadcast).
+  // Seed from the match's SAVED values when the modal opens (owner 2026-06-18: reopen shows what was
+  // saved; blank when unset). Deliberately NOT keyed on the room props, so a refetch mid-typing can't
+  // clobber the field the user is editing — fresh props are only read on the next open.
   useEffect(() => {
     if (open) {
-      form.reset({ roomId: "", roomName: "", roomPassword: "" });
+      setRId(roomId || "");
+      setRName(roomName || "");
+      setRPass(roomPassword || "");
+      setSaveState("idle");
+      dirty.current = false;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, matchId]);
 
-  const onSubmit = (data: EditMatchFormSchemaType) => {
-    startTransition(async () => {
-      try {
-        const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-details/`,
-          {
-            room_id: data.roomId,
-            room_name: data.roomName,
-            room_password: data.roomPassword,
-            match_id: matchId,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        // if(res.statusText === 'OK')
-
-        toast.success(res.data.message || "Match edit successfully");
-        setOpen(false);
-
-        onSuccess?.();
-      } catch (e: any) {
-        toast.error(e.response?.data?.message || "Failed to edited match");
-      }
-    });
+  // POST the current values to edit-match-details. Returns true on success.
+  const persist = async () => {
+    const { rId, rName, rPass } = latest.current;
+    const res = await axios.post(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-details/`,
+      { match_id: matchId, room_id: rId, room_name: rName, room_password: rPass },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return res;
   };
 
+  // Debounced AUTO-SAVE: 700ms after the last keystroke once the user has edited.
+  useEffect(() => {
+    if (!open || !dirty.current) return;
+    setSaveState("saving");
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      try {
+        await persist();
+        setSaveState("saved");
+        // NOTE: do NOT refetch here — a full event refetch re-renders the match list and would
+        // close this modal mid-edit. We sync the parent on CLOSE instead (onOpenChange below), so
+        // the next open seeds from the freshly-saved values.
+      } catch (e: any) {
+        setSaveState("idle");
+        toast.error(e.response?.data?.message || "Failed to save room details");
+      }
+    }, 700);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rId, rName, rPass]);
+
+  const edit = (setter: (v: string) => void) => (v: string) => {
+    dirty.current = true;
+    setter(v);
+  };
+
+  // Broadcast THIS map's room details to the group. Flush any pending edit first so the values that
+  // go out match what's on screen, then call the per-match broadcast endpoint.
+  const broadcastThisMap = async () => {
+    setBroadcasting(true);
+    try {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (dirty.current) {
+        await persist(); // make sure the latest typed values are saved before sending
+        setSaveState("saved");
+        dirty.current = false;
+      }
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/broadcast-match-room-details/`,
+        { match_id: matchId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(res.data?.message || "Room details sent to players.");
+      // No refetch here either (keeps the modal open after sending); parent syncs on close.
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to send room details");
+    } finally {
+      setBroadcasting(false);
+    }
+  };
+
+  // Sync the parent when the modal closes so the next open seeds from the just-saved values
+  // (the per-keystroke save deliberately skips the refetch to avoid closing the modal mid-edit).
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      onSuccess?.();
+    }
+  };
+
+  const nothingEntered = !rId.trim() && !rName.trim() && !rPass.trim();
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
           <IconPencil className="size-3" />
@@ -115,94 +159,112 @@ export const EditMatchModal = ({
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[400px]">
-        <div className="text-center">
-          <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
-            <IconPencil className="h-7 w-7 text-blue-600" />
+        <DialogTitle>
+          Room details{matchLabel ? ` — ${matchLabel}` : ""}
+        </DialogTitle>
+
+        {/* autoComplete="off" + the off-screen decoys stop Chrome's password manager treating this as
+            a LOGIN form and injecting the saved email into Room ID + the saved password into Room
+            password (owner 2026-06-18: that browser autofill was the "default that kept coming back"). */}
+        <form
+          autoComplete="off"
+          onSubmit={(e) => e.preventDefault()}
+          className="space-y-4 mt-2"
+        >
+          <input
+            type="text"
+            name="afc_decoy_username"
+            autoComplete="username"
+            tabIndex={-1}
+            aria-hidden="true"
+            className="absolute h-0 w-0 opacity-0 -z-10 pointer-events-none"
+          />
+          <input
+            type="password"
+            name="afc_decoy_password"
+            autoComplete="new-password"
+            tabIndex={-1}
+            aria-hidden="true"
+            className="absolute h-0 w-0 opacity-0 -z-10 pointer-events-none"
+          />
+
+          <div className="space-y-1.5">
+            <Label>Room ID</Label>
+            <Input
+              value={rId}
+              onChange={(e) => edit(setRId)(e.target.value)}
+              placeholder="Enter room ID"
+              autoComplete="off"
+            />
           </div>
 
-          <DialogTitle>Edit Match Details</DialogTitle>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="roomId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Room ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter room ID" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <div className="space-y-1.5">
+            <Label>Room name</Label>
+            <Input
+              value={rName}
+              onChange={(e) => edit(setRName)(e.target.value)}
+              placeholder="Enter room name"
+              autoComplete="off"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Room password</Label>
+            <div className="relative">
+              <Input
+                type={isVisible ? "text" : "password"}
+                value={rPass}
+                onChange={(e) => edit(setRPass)(e.target.value)}
+                placeholder="Enter room password"
+                autoComplete="new-password"
+                className="pr-10"
               />
-              <FormField
-                control={form.control}
-                name="roomName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Room Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter room name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute top-1/2 -translate-y-1/2 end-1 text-muted-foreground/80"
+                onClick={() => setIsVisible((v) => !v)}
+                aria-label={isVisible ? "Hide password" : "Show password"}
+              >
+                {isVisible ? (
+                  <EyeOffIcon className="size-4" />
+                ) : (
+                  <EyeIcon className="size-4" />
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="roomPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Room password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={isVisible ? "text" : "password"}
-                          className="bg-input border-border"
-                          placeholder="Enter your password"
-                          {...field}
-                        />
-                        <Button
-                          className="absolute top-[50%] translate-y-[-50%] end-1 text-muted-foreground/80"
-                          variant={"ghost"}
-                          size="icon"
-                          type="button"
-                          onClick={toggleVisibility}
-                          aria-label={
-                            isVisible ? "Hide password" : "Show password"
-                          }
-                          aria-pressed={isVisible}
-                          aria-controls="password"
-                        >
-                          {isVisible ? (
-                            <EyeOffIcon className="size-4" aria-hidden="true" />
-                          ) : (
-                            <EyeIcon className="size-4" aria-hidden="true" />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex gap-2 mt-6">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  disabled={pending}
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button className="flex-1" type="submit" disabled={pending}>
-                  {pending ? <Loader text="Saving..." /> : "Save"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
+              </Button>
+            </div>
+          </div>
+
+          {/* Auto-save hint + per-map broadcast. */}
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              {saveState === "saving" && (
+                <>
+                  <Loader2 className="size-3 animate-spin" /> Saving...
+                </>
+              )}
+              {saveState === "saved" && (
+                <>
+                  <Check className="size-3 text-primary" /> Saved automatically
+                </>
+              )}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              onClick={broadcastThisMap}
+              disabled={broadcasting || nothingEntered}
+            >
+              {broadcasting ? (
+                <Loader2 className="size-4 animate-spin mr-1" />
+              ) : (
+                <Send className="size-4 mr-1" />
+              )}
+              Send to players
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
