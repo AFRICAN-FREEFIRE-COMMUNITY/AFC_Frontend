@@ -59,6 +59,9 @@ interface Event {
   organization_id?: number | null;
   organization_name?: string | null;
   organization_slug?: string | null;
+  // organization_logo (F4): absolute URL of the org's logo (null when native AFC / no logo);
+  // shown as a small avatar inside the organizer badge on the card.
+  organization_logo?: string | null;
   // ── Paid registration (Phase 1, Stripe) ──
   // Present when the list endpoint includes the paid-event fields. "paid" + a positive
   // registration_fee shows the "Paid: <currency> <fee>" badge on the card. Optional so the
@@ -168,12 +171,36 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
             {event.organization_name &&
               (event.organization_slug ? (
                 <Badge variant="outline" asChild>
-                  <Link href={`/organizations/${event.organization_slug}`}>
+                  <Link
+                    href={`/organizations/${event.organization_slug}`}
+                    className="flex items-center gap-1"
+                  >
+                    {/* org logo avatar (F4); falls back to just the name when no logo */}
+                    {event.organization_logo && (
+                      <Image
+                        src={event.organization_logo}
+                        alt={event.organization_name}
+                        width={16}
+                        height={16}
+                        className="size-4 rounded-full object-cover"
+                      />
+                    )}
                     {event.organization_name}
                   </Link>
                 </Badge>
               ) : (
-                <Badge variant="outline">{event.organization_name}</Badge>
+                <Badge variant="outline" className="flex items-center gap-1">
+                  {event.organization_logo && (
+                    <Image
+                      src={event.organization_logo}
+                      alt={event.organization_name}
+                      width={16}
+                      height={16}
+                      className="size-4 rounded-full object-cover"
+                    />
+                  )}
+                  {event.organization_name}
+                </Badge>
               ))}
             {/* Paid-event badge in the AFC tier-badge idiom (rounded-full, green accent). */}
             {isPaid && (

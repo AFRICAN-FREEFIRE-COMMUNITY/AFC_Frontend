@@ -27,7 +27,42 @@ export interface WaitlistForm {
   waitlist_discord_role_id: string;
   // Slot-assignment mode (owner 2026-06-17): how a no-show's slot is filled.
   waitlist_mode: string;
+  // F3 registration requirements (owner 2026-06-19): per-event gates enforced at registration.
+  require_team_logo?: boolean;
+  require_esport_images?: boolean;
+  require_player_uid?: boolean;
+  require_player_profile_image?: boolean;
 }
+
+// F3: the four registration-requirement toggles, rendered in their own card so an event can be
+// EDITED to add/remove a gate (create has the same set in StepWaitlist). Each blocks registration
+// until satisfied; the register flow points players at exactly what they're missing.
+const REQUIREMENT_TOGGLES: {
+  key: keyof WaitlistForm;
+  label: string;
+  help: string;
+}[] = [
+  {
+    key: "require_team_logo",
+    label: "Require team logo",
+    help: "Teams cannot register until their team logo is uploaded.",
+  },
+  {
+    key: "require_esport_images",
+    label: "Require player esport images",
+    help: "Every registering player must have their esport image uploaded on their profile.",
+  },
+  {
+    key: "require_player_profile_image",
+    label: "Require player profile image",
+    help: "Every registering player must have a profile image uploaded.",
+  },
+  {
+    key: "require_player_uid",
+    label: "Require player Free Fire UID",
+    help: "Every registering player must have their Free Fire UID set on their profile.",
+  },
+];
 
 // One waitlist roster row from get_event_details.waitlist_competitors (owner 2026-06-17).
 interface WaitlistEntry {
@@ -145,6 +180,44 @@ export default function WaitlistTab({
 
   return (
     <div className="space-y-4">
+      {/* ── Registration requirements (F3, owner 2026-06-19) ── per-event gates enforced at
+          registration; editable here so an existing event can add/remove a requirement. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Registration requirements</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Block registration until competitors have provided what you need. The register flow
+            points each player at exactly what they are missing.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {REQUIREMENT_TOGGLES.map((req) => (
+            <div
+              key={req.key as string}
+              className="flex items-center justify-between rounded-lg border p-4"
+            >
+              <div className="space-y-0.5">
+                <Label htmlFor={`req-${req.key as string}`}>{req.label}</Label>
+                <p className="text-xs text-muted-foreground">{req.help}</p>
+              </div>
+              <Switch
+                id={`req-${req.key as string}`}
+                checked={Boolean(waitlistForm[req.key])}
+                onCheckedChange={(v) =>
+                  setWaitlistForm((p) => ({ ...p, [req.key]: v }))
+                }
+              />
+            </div>
+          ))}
+          <div className="flex justify-end pt-1">
+            <Button onClick={onSave} disabled={saving} variant="outline" size="sm">
+              {saving && <IconLoader2 className="size-4 animate-spin mr-2" />}
+              {saving ? "Saving..." : "Save requirements"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Waitlist</CardTitle>

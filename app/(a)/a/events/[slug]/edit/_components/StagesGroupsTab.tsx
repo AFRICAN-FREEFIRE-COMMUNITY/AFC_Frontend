@@ -421,6 +421,9 @@ import { SendNotificationModal } from "../../../_components/SendNotificationModa
 import { AddTeamsModal } from "../../../_components/AddTeamsModal";
 import { EditMatchModal } from "../../../_components/EditMatchModal";
 import { DeleteMatchModal } from "../../../_components/DeleteMatchModal";
+// F2 (owner 2026-06-19): drag-and-drop a team between groups. Self-contained DnD (its own context),
+// fed by the group-rosters endpoint, so it never collides with the stage/group reorder DnD here.
+import GroupTeamMover from "./GroupTeamMover";
 import { formatDate } from "@/lib/utils";
 import {
   type EventFormType,
@@ -609,6 +612,13 @@ export default function StagesGroupsTab({
 
   return (
     <>
+      {/* F2: drag-and-drop teams between groups (team events only). Self-contained DnD, reads team
+          ids from the group-rosters endpoint, persists via /events/seeding/move-team/. */}
+      {eventDetails.participant_type !== "solo" && (
+        <div className="mb-4">
+          <GroupTeamMover eventId={eventDetails.event_id} />
+        </div>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

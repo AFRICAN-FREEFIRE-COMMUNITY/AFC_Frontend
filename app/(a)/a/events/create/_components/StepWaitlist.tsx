@@ -142,6 +142,58 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
               )}
             />
           </div>
+          {/* F3 (owner 2026-06-19): two more per-player gates. Profile image is distinct from the
+              esport image above; UID is the player's Free Fire UID. When on, registration is
+              blocked until every registering player satisfies them (per-player pointer on the
+              register flow). */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-player-profile-image">Require player profile image</Label>
+              <p className="text-xs text-muted-foreground">
+                Every registering player must have a profile image uploaded.
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field, mirrors the toggle idiom above.
+              control={form.control}
+              name={"require_player_profile_image" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-player-profile-image"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-player-uid">Require player Free Fire UID</Label>
+              <p className="text-xs text-muted-foreground">
+                Every registering player must have their Free Fire UID set on their profile.
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field, mirrors the toggle idiom above.
+              control={form.control}
+              name={"require_player_uid" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-player-uid"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         {waitlistEnabled && (

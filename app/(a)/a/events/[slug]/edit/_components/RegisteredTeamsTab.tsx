@@ -1,12 +1,23 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { IconAlertTriangle, IconLoader2 } from "@tabler/icons-react";
 import {
   Table,
   TableBody,
@@ -108,8 +119,133 @@ export default function RegisteredTeamsTab({
       setNoShowBusy(null);
     }
   };
+
+  // ── F1 no-show reputation (owner 2026-06-19) ──
+  // Pull the repeat-no-show warning status for every visible team/player so a "⚠ Repeat no-show"
+  // badge can flag teams that no-showed >= 2 times in the last 7 days (across ALL events). Bulk
+  // call mirrors the blacklist-counts pattern.
+  type Warn = { recent_count: number; total: number; is_warning: boolean };
+  const [warnings, setWarnings] = useState<{
+    teams: Record<number, Warn>;
+    users: Record<number, Warn>;
+  }>({ teams: {}, users: {} });
+  // Pending no-show MARK awaiting confirmation (clearing a no-show skips the dialog).
+  const [confirmTarget, setConfirmTarget] = useState<{
+    competitorId?: number;
+    tournamentTeamId?: number;
+    key: number;
+    name: string;
+  } | null>(null);
+  const [detectBusy, setDetectBusy] = useState(false);
+
+  // A "team event" is anything that registers TEAMS (tournament_teams): both squad AND duo. The old
+  // `=== "squad"` checks left duo events rendering an empty table and built warning ids from the wrong
+  // collection. get_event_details populates tournament_teams for duo + squad alike. (Adversarial-review
+  // fix, owner 2026-06-19.)
+  const isTeamEvent = eventDetails.participant_type !== "solo";
+
+  const fetchWarnings = useCallback(async () => {
+    if (!token) return;
+    const team_ids = isTeamEvent
+      ? eventDetails.tournament_teams.map((t: any) => t.team_id).filter(Boolean)
+      : [];
+    const user_ids = !isTeamEvent
+      ? (eventDetails.registered_competitors ?? []).map((c) => c.player_id)
+      : [];
+    if (team_ids.length === 0 && user_ids.length === 0) return;
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/no-show-warnings/`,
+        { team_ids, user_ids },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setWarnings({ teams: res.data?.teams ?? {}, users: res.data?.users ?? {} });
+    } catch {
+      /* badges are best-effort; ignore */
+    }
+  }, [token, isTeamEvent, eventDetails]);
+
+  useEffect(() => {
+    fetchWarnings();
+  }, [fetchWarnings]);
+
+  // Warning lookup for a row. Squad rows key on team_id; solo rows on the user id (player_id).
+  const teamWarning = (teamId?: number) =>
+    teamId != null ? warnings.teams[teamId] : undefined;
+  const userWarning = (userId?: number) =>
+    userId != null ? warnings.users[userId] : undefined;
+  // Amber "⚠ Repeat no-show (N)" chip shown next to a flagged team/player (>=2 no-shows / 7 days).
+  const warnBadge = (w?: Warn) =>
+    w?.is_warning ? (
+      <Badge
+        variant="outline"
+        className="rounded-full px-2 py-0.5 text-[10px] border-amber-500/60 text-amber-500 inline-flex items-center gap-1"
+        title={`${w.recent_count} no-show(s) in the last 7 days (${w.total} total)`}
+      >
+        <IconAlertTriangle size={11} /> Repeat no-show ({w.recent_count})
+      </Badge>
+    ) : null;
+
+  // Mark requires confirmation (it counts against the team's reputation + frees their slot);
+  // clearing is reversible/safe so it fires straight away.
+  const requestNoShow = (opts: {
+    competitorId?: number;
+    tournamentTeamId?: number;
+    current?: boolean;
+    key: number;
+    name: string;
+  }) => {
+    if (opts.current) {
+      markNoShow(opts);
+      return;
+    }
+    setConfirmTarget({
+      competitorId: opts.competitorId,
+      tournamentTeamId: opts.tournamentTeamId,
+      key: opts.key,
+      name: opts.name,
+    });
+  };
+
+  const confirmAndMark = async () => {
+    if (!confirmTarget) return;
+    await markNoShow({ ...confirmTarget, current: false });
+    setConfirmTarget(null);
+    fetchWarnings();
+  };
+
+  // Suggest-only detection: ask the backend which registered competitors have NO results entered
+  // (look like no-shows). We surface the names; the admin confirms each via the row's No-show button.
+  const runDetect = async () => {
+    if (!token) return;
+    setDetectBusy(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/detect-no-shows/`,
+        { event_id: eventDetails.event_id },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const names = (res.data?.suggestions ?? []).map((s: any) => s.name);
+      if (names.length === 0) {
+        toast.success("No likely no-shows: every registered competitor has results entered.");
+      } else {
+        toast.warning(
+          `${names.length} registered ${isTeamEvent ? "team" : "player"}(s) have no results entered`,
+          {
+            description: `${names.join(", ")}. Review and mark any that didn't show using the No-show button.`,
+            duration: 15000,
+          },
+        );
+      }
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to check for no-shows.");
+    } finally {
+      setDetectBusy(false);
+    }
+  };
+
   const teamCount =
-    eventDetails.participant_type === "squad"
+    isTeamEvent
       ? eventDetails.tournament_teams.filter((t: any) => !t.is_waitlisted)
           .length
       : eventDetails?.registered_competitors?.filter((c) => !c.is_waitlisted)
@@ -121,25 +257,37 @@ export default function RegisteredTeamsTab({
         <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
           <span>
             Registered{" "}
-            {eventDetails.participant_type === "squad" ? "Teams" : "Players"} (
+            {isTeamEvent ? "Teams" : "Players"} (
             {teamCount})
           </span>
-          {eventDetails.participant_type === "squad" && (
-            <span className="inline-flex items-center gap-1">
-              <AddTeamsModal
-                mode="event"
-                targetId={eventDetails.event_id}
-                targetName={eventDetails.event_name}
-                existingTeamIds={eventDetails.tournament_teams.map(
-                  (t: any) => t.team_id,
-                )}
-                // Re-pull + re-render in place after teams are added (no reload).
-                onSuccess={() => onRefresh?.()}
-              />
-              {/* Edit-only: manually placing teams into the event. */}
-              <InfoTip id="events.edit.add_teams" />
-            </span>
-          )}
+          <span className="inline-flex items-center gap-2 flex-wrap">
+            {/* F1 suggest-only no-show detection: lists registered competitors with no results entered. */}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={runDetect}
+              disabled={detectBusy}
+            >
+              {detectBusy && <IconLoader2 className="size-4 animate-spin mr-1" />}
+              Check for no-shows
+            </Button>
+            {isTeamEvent && (
+              <span className="inline-flex items-center gap-1">
+                <AddTeamsModal
+                  mode="event"
+                  targetId={eventDetails.event_id}
+                  targetName={eventDetails.event_name}
+                  existingTeamIds={eventDetails.tournament_teams.map(
+                    (t: any) => t.team_id,
+                  )}
+                  // Re-pull + re-render in place after teams are added (no reload).
+                  onSuccess={() => onRefresh?.()}
+                />
+                {/* Edit-only: manually placing teams into the event. */}
+                <InfoTip id="events.edit.add_teams" />
+              </span>
+            )}
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="relative">
@@ -148,9 +296,7 @@ export default function RegisteredTeamsTab({
             <TableHeader>
               <TableRow>
                 <TableHead>
-                  {eventDetails.participant_type === "squad"
-                    ? "Teams"
-                    : "Players"}
+                  {isTeamEvent ? "Teams" : "Players"}
                 </TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead></TableHead>
@@ -164,7 +310,10 @@ export default function RegisteredTeamsTab({
                   .map((comp) => (
                   <TableRow key={comp.player_id}>
                     <TableCell className="capitalize font-medium">
-                      {comp.username}
+                      <span className="inline-flex items-center gap-2 flex-wrap">
+                        {comp.username}
+                        {warnBadge(userWarning(comp.player_id))}
+                      </span>
                     </TableCell>
                     <TableCell className="capitalize">
                       <span
@@ -188,10 +337,11 @@ export default function RegisteredTeamsTab({
                           variant={(comp as any).is_no_show ? "secondary" : "outline"}
                           disabled={noShowBusy === comp.player_id}
                           onClick={() =>
-                            markNoShow({
+                            requestNoShow({
                               competitorId: comp.player_id,
                               current: !!(comp as any).is_no_show,
                               key: comp.player_id,
+                              name: comp.username,
                             })
                           }
                         >
@@ -230,7 +380,7 @@ export default function RegisteredTeamsTab({
                   team name (or its chevron) reveals a sub-row listing the team's PLAYERS
                   (in-game name, UID, status) from team.members, so an admin can see who
                   is on each registered team without leaving this tab. */}
-              {eventDetails.participant_type === "squad" &&
+              {isTeamEvent &&
                 eventDetails?.tournament_teams
                   ?.filter((t: any) => !t.is_waitlisted)
                   .map((team) => {
@@ -263,6 +413,11 @@ export default function RegisteredTeamsTab({
                           {members.length} player{members.length === 1 ? "" : "s"}
                         </Badge>
                       </button>
+                      {warnBadge(teamWarning(team.team_id)) && (
+                        <span className="ml-2 inline-flex">
+                          {warnBadge(teamWarning(team.team_id))}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="capitalize">
                       <span
@@ -289,10 +444,11 @@ export default function RegisteredTeamsTab({
                           variant={team.is_no_show ? "secondary" : "outline"}
                           disabled={noShowBusy === key}
                           onClick={() =>
-                            markNoShow({
+                            requestNoShow({
                               tournamentTeamId: team.tournament_team_id,
                               current: !!team.is_no_show,
                               key,
+                              name: team.team_name,
                             })
                           }
                         >
@@ -391,6 +547,44 @@ export default function RegisteredTeamsTab({
           </Table>
         </div>
       </CardContent>
+
+      {/* F1: confirm marking a no-show (it counts against the team's reputation + frees their slot
+          for the waitlist). Clearing a no-show skips this and fires immediately. */}
+      <AlertDialog
+        open={!!confirmTarget}
+        onOpenChange={(o) => !o && setConfirmTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Mark {confirmTarget?.name} as a no-show?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This frees their slot for a waitlisted{" "}
+              {isTeamEvent ? "team" : "player"} and counts toward their no-show
+              record. Two or more no-shows in a week flags them with a warning
+              other organizers can see. You can undo this later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={noShowBusy !== null}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmAndMark();
+              }}
+              disabled={noShowBusy !== null}
+            >
+              {noShowBusy !== null && (
+                <IconLoader2 className="size-4 animate-spin mr-1" />
+              )}
+              Mark no-show
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

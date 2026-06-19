@@ -836,6 +836,15 @@ export default function CreateEventPage() {
           "require_esport_images",
           String((form.getValues("require_esport_images" as never) as unknown as boolean) ?? false),
         );
+        // F3 (owner 2026-06-19): two more per-player registration gates, same hand-append pattern.
+        formData.append(
+          "require_player_profile_image",
+          String((form.getValues("require_player_profile_image" as never) as unknown as boolean) ?? false),
+        );
+        formData.append(
+          "require_player_uid",
+          String((form.getValues("require_player_uid" as never) as unknown as boolean) ?? false),
+        );
 
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`,

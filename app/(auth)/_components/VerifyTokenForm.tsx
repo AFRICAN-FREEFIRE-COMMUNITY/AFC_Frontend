@@ -59,11 +59,12 @@ export function VerifyTokenForm({ identifier, method }: Props) {
     return () => clearInterval(timerRef.current!);
   }, [resendCooldown > 0]);
 
+  // Token is the only form field. The identifier (email/uid) comes from props and
+  // is used directly in onSubmit's payload, so it is intentionally not in the form.
   const form = useForm<VerifyTokenFormSchemaType>({
     resolver: zodResolver(VerifyTokenFormSchema),
     defaultValues: {
       token: "",
-      email: method === "email" ? identifier : "",
     },
   });
 

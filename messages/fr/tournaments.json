@@ -92,6 +92,8 @@
   },
   "detail": {
     "bannerAlt": "Bannière de l'événement",
+    "organizedBy": "Organisé par {name}",
+    "afcOfficial": "African Freefire Community",
     "date": "Date: <date></date>",
     "prizePool": "Cagnotte : {value}",
     "locationOnline": "Lieu : En ligne",
@@ -411,7 +413,14 @@
       "esportImageAction": "Ouvrir l'éditeur de profil",
       "teamLogoDescription": "Le logo de votre équipe est téléchargé sur la page de modification de l'équipe.",
       "teamLogoAction": "Ouvrir l'éditeur d'équipe",
-      "sponsorSubmissionDescription": "Vérifiez l'étape des exigences des sponsors : chaque joueur inscrit doit compléter chaque élément de sponsor."
+      "sponsorSubmissionDescription": "Vérifiez l'étape des exigences des sponsors : chaque joueur inscrit doit compléter chaque élément de sponsor.",
+      "requirementsTitle": "Certains joueurs doivent d'abord compléter leur profil",
+      "req": {
+        "uid": "UID Free Fire",
+        "esportsImage": "Image esport",
+        "profileImage": "Image de profil",
+        "teamLogo": "Logo d'équipe (à télécharger sur la page de modification de l'équipe)"
+      }
     }
   },
   "structure": {

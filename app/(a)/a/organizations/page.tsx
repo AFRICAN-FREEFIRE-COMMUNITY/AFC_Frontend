@@ -84,6 +84,13 @@ function StatusBadge({ status }: { status: string }) {
         Suspended
       </Badge>
     );
+  // F5: soft-deleted orgs stay in the admin list (red badge) so an admin can open + Restore them.
+  if (status === "deleted")
+    return (
+      <Badge variant="outline" className="border-red-600/50 text-red-400">
+        Deleted
+      </Badge>
+    );
   return (
     <Badge variant="outline" className="capitalize">
       {status || "-"}
@@ -247,6 +254,10 @@ export default function OrganizationsAdminPage() {
         />
         {/* ⓘ sits beside the create button (sibling, not nested). */}
         <div className="flex w-full items-center gap-1 md:w-auto">
+          {/* F6-P4: organizer payout ledger (release/mark-paid org earnings). */}
+          <Button variant="outline" className="w-full md:w-auto" asChild>
+            <a href="/a/organizations/payouts">Payouts</a>
+          </Button>
           {/* data-tour="orgs-misc-create-org-button": admin-tour anchor (orgs-misc area). */}
           <Button
             data-tour="orgs-misc-create-org-button"

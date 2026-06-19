@@ -100,6 +100,8 @@ const NAV_ITEMS = [
   // "Metrics" - the org's aggregate stats (events / teams / players / kills / rating),
   // gated per-page on can_view_metrics (or owner).
   { label: "Metrics", href: "/organizer/metrics" },
+  // "Payouts" (F6-P4) - the org's share of paid-event revenue + bank details (owner sets the bank).
+  { label: "Payouts", href: "/organizer/payouts" },
   // "Reviews" - the org's per-event ratings + ANONYMOUS comments,
   // gated per-page on can_view_reviews (or owner).
   { label: "Reviews", href: "/organizer/reviews" },

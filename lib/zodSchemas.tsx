@@ -105,6 +105,12 @@ export const ForgotPasswordUidFormSchema = z.object({
   uid: z.string().min(1, { message: "UID is required." }),
 });
 
+// Only the 6-char token is entered on the verify-token screen. The identifier
+// (email OR uid) is carried in via the page query string and passed to the form
+// as a prop, then read straight from that prop in onSubmit, so it is NOT a form
+// field here. The schema previously also required a valid `email`, which made the
+// form invalid (so the submit/verify button silently did nothing through
+// handleSubmit) on the UID reset path, where no email exists. Token-only fixes both paths.
 export const VerifyTokenFormSchema = z.object({
   token: z
     .string()
@@ -112,9 +118,6 @@ export const VerifyTokenFormSchema = z.object({
       message: "Token must be 6 characters.",
     })
     .max(6, { message: "Token must be 6 characters" }),
-  email: z.string().email().min(2, {
-    message: "Email must be at least 2 characters.",
-  }),
 });
 
 export const EditProfileFormSchema = z.object({

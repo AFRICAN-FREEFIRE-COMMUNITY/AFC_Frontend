@@ -20,6 +20,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -142,6 +143,56 @@ export default function OrganizerMembersPage() {
   // The caller may manage members if they own the org or hold can_manage_members.
   const canManageMembers =
     isOwner || membership.permissions.can_manage_members === true;
+
+  // ── F5 org lifecycle (owner 2026-06-19) ──
+  // A sub-organizer can LEAVE; the OWNER can SUSPEND / UNSUSPEND / DELETE (soft) their own org.
+  const router = useRouter();
+  const [lifecycleBusy, setLifecycleBusy] = useState(false);
+  const [orgStatus, setOrgStatus] = useState<string>("active");
+  useEffect(() => {
+    organizersApi
+      .getOrganization(slug)
+      .then((res: any) => setOrgStatus(res?.organization?.status ?? res?.status ?? "active"))
+      .catch(() => {});
+  }, [slug]);
+  const orgSuspended = orgStatus === "suspended";
+
+  const handleLeave = async () => {
+    setLifecycleBusy(true);
+    try {
+      await organizersApi.leaveOrganization(slug);
+      toast.success("You have left the organization.");
+      router.push("/organizer");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to leave the organization.");
+    } finally {
+      setLifecycleBusy(false);
+    }
+  };
+  const handleSuspendToggle = async () => {
+    setLifecycleBusy(true);
+    try {
+      await organizersApi.suspendMyOrganization(slug, !orgSuspended);
+      setOrgStatus(orgSuspended ? "active" : "suspended");
+      toast.success(orgSuspended ? "Organization reactivated." : "Organization suspended.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to update the organization.");
+    } finally {
+      setLifecycleBusy(false);
+    }
+  };
+  const handleDeleteOrg = async () => {
+    setLifecycleBusy(true);
+    try {
+      await organizersApi.deleteMyOrganization(slug);
+      toast.success("Organization deleted. An AFC admin can restore it if needed.");
+      router.push("/organizer");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to delete the organization.");
+    } finally {
+      setLifecycleBusy(false);
+    }
+  };
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -486,6 +537,91 @@ export default function OrganizerMembersPage() {
               </TableBody>
             </Table>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ── F5 danger zone (owner 2026-06-19) ──
+          Sub-organizers can leave; the owner can suspend/unsuspend or soft-delete the org. */}
+      <Card>
+        <CardContent className="pt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          {isOwner ? (
+            <>
+              <div>
+                <p className="text-sm font-medium">Organization controls</p>
+                <p className="text-xs text-muted-foreground">
+                  {orgSuspended
+                    ? "Your organization is suspended and hidden from the public site."
+                    : "Suspend hides your org + its events from the public site. Delete is reversible by an AFC admin."}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleSuspendToggle}
+                  disabled={lifecycleBusy}
+                >
+                  {lifecycleBusy && <IconLoader2 className="size-4 animate-spin mr-1" />}
+                  {orgSuspended ? "Reactivate" : "Suspend"}
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" disabled={lifecycleBusy}>
+                      Delete organization
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this organization?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Your organization and its events will be hidden from the site. This is a
+                        soft delete: an AFC admin can restore everything intact. Your events and
+                        results are always retained.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-white hover:bg-destructive/90"
+                        onClick={handleDeleteOrg}
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <p className="text-sm font-medium">Leave organization</p>
+                <p className="text-xs text-muted-foreground">
+                  Remove yourself from this organization. You will lose access to its dashboard.
+                </p>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" disabled={lifecycleBusy}>
+                    {lifecycleBusy && <IconLoader2 className="size-4 animate-spin mr-1" />}
+                    Leave organization
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Leave this organization?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You will be removed from this organization and lose access to its dashboard.
+                      An owner can re-invite you later.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleLeave}>Leave</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

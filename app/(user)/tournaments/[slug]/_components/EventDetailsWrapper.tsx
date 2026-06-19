@@ -290,6 +290,25 @@ interface EventDetails {
   // and WHERE, before the backend gates reject them.
   require_team_logo?: boolean;
   require_esport_images?: boolean;
+  // F3 (owner 2026-06-19): two more per-player registration gates. require_player_uid blocks until
+  // every registering player has their Free Fire UID set; require_player_profile_image until each
+  // has a profile image. Shown in the INFO-step requirements callout + enforced server-side.
+  require_player_uid?: boolean;
+  require_player_profile_image?: boolean;
+  // ── Owning organization (F4, owner 2026-06-19) ── rendered as an "Organized by [logo] name"
+  // attribution in the event header, linking to /organizations/<slug>. All null for native AFC
+  // events (the header then falls back to AFC branding). organization_logo is an absolute URL
+  // (or null when the org has no logo). These come straight off the event-details endpoints.
+  organization_id?: number | null;
+  organization_name?: string | null;
+  organization_slug?: string | null;
+  organization_logo?: string | null;
+  // F6 co-ownership (owner 2026-06-19): accepted co-organizing orgs → "Organized by A & B".
+  co_organizers?: Array<{
+    name: string;
+    slug: string | null;
+    logo: string | null;
+  }>;
 }
 
 interface ApiResponse {
@@ -4044,6 +4063,32 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         });
         return;
       }
+      // F3 (owner 2026-06-19): the per-player registration gates (esports image / profile image /
+      // Free Fire UID, + team logo) reject with this structured code, listing EXACTLY which player
+      // is missing which field. We surface a toast that NAMES each offending player + what they
+      // must add, with a jump to /profile/edit. fields are stable keys mapped to localized labels.
+      if (data?.code === "registration_requirements_unmet") {
+        const fieldLabel = (f: string) =>
+          ({
+            uid: t("register.toast.req.uid"),
+            esports_image: t("register.toast.req.esportsImage"),
+            profile_image: t("register.toast.req.profileImage"),
+          })[f] ?? f;
+        const lines: string[] = (data.missing ?? []).map(
+          (m: { username: string; fields: string[] }) =>
+            `${m.username}: ${(m.fields ?? []).map(fieldLabel).join(", ")}`,
+        );
+        if (data.team_logo_missing) lines.unshift(t("register.toast.req.teamLogo"));
+        toast.error(t("register.toast.requirementsTitle"), {
+          description: lines.join("  •  ") || message,
+          action: {
+            label: t("register.toast.esportImageAction"),
+            onClick: () => router.push("/profile/edit"),
+          },
+          duration: 15000,
+        });
+        return;
+      }
       // Sponsor redesign P3: the server re-validates every engagement answer for
       // every rostered player and rejects the whole registration with this code
       // when anything is missing or malformed. The message names what failed.
@@ -4382,6 +4427,79 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             </div>
           )}
         </div>
+        {/* ── Organized by (F4, owner 2026-06-19) ── attribution to the owning organization.
+            Links to the org's public page (/organizations/<slug>) when present; for native AFC
+            events (no organization) it falls back to AFC branding and is not a link. Logo avatar
+            when the org has one, else an "AFC"/initials chip. Mirrors the org badge on the event
+            cards (tournaments list + home). Backend keys: organization_{name,slug,logo}. */}
+        {(() => {
+          const orgName =
+            eventDetails.organization_name || t("detail.afcOfficial");
+          const orgSlug = eventDetails.organization_slug;
+          const orgLogo = eventDetails.organization_logo;
+          const inner = (
+            <>
+              {orgLogo ? (
+                <Image
+                  src={orgLogo}
+                  alt={orgName}
+                  width={24}
+                  height={24}
+                  className="size-6 rounded-full object-cover border border-border"
+                />
+              ) : (
+                <span className="size-6 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary">
+                  AFC
+                </span>
+              )}
+              <span className="text-sm text-muted-foreground">
+                {t("detail.organizedBy", { name: orgName })}
+              </span>
+            </>
+          );
+          const primary = orgSlug ? (
+            <Link
+              href={`/organizations/${orgSlug}`}
+              className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              {inner}
+            </Link>
+          ) : (
+            <div className="inline-flex items-center gap-2">{inner}</div>
+          );
+          // F6: append accepted co-organizers → "Organized by A & B".
+          const coOrgs = eventDetails.co_organizers ?? [];
+          if (coOrgs.length === 0) return primary;
+          return (
+            <div className="flex flex-wrap items-center gap-2">
+              {primary}
+              {coOrgs.map((co, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground"
+                >
+                  <span className="text-muted-foreground/60">&amp;</span>
+                  {co.logo && (
+                    <Image
+                      src={co.logo}
+                      alt={co.name}
+                      width={20}
+                      height={20}
+                      className="size-5 rounded-full object-cover border border-border"
+                    />
+                  )}
+                  {co.slug ? (
+                    <Link href={`/organizations/${co.slug}`} className="hover:opacity-80">
+                      {co.name}
+                    </Link>
+                  ) : (
+                    <span>{co.name}</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          );
+        })()}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           {/* i18n time: event start date in the viewer's timezone + language,
               injected as the <date> tag of the "Date: <date>" string (t.rich). */}

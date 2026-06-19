@@ -59,6 +59,8 @@ export const organizersApi = {
   adminEditOrganization: (slug: string, body: any) => aPatch(`admin/edit-organization/${slug}/`, body),
   adminSuspendOrganization: (slug: string, body: any) => aPost(`admin/suspend-organization/${slug}/`, body),
   adminDeleteOrganization: (slug: string) => aDelete(`admin/delete-organization/${slug}/`),
+  // F5 (owner 2026-06-19): admin restores a soft-deleted org (clean delete kept everything intact).
+  adminRestoreOrganization: (slug: string) => aPost(`admin/restore-organization/${slug}/`),
   adminManageMember: (slug: string, body: any) => aPost(`admin/manage-organization-member/${slug}/`, body),
 
   // (The "request a design" API was removed 2026-06-13 in favour of the self-serve design library,
@@ -79,6 +81,42 @@ export const organizersApi = {
     aPatch(`edit-organization-member/${slug}/${userId}/`, body),
   removeOrganizationMember: (slug: string, userId: number | string) =>
     aDelete(`remove-organization-member/${slug}/${userId}/`),
+  // F6 (owner 2026-06-19): multi-org event co-ownership. invite (creator-owner only) → respond
+  // (invited-owner accept/decline) → optional revoke. listEventCoOrganizers backs the panel + branding.
+  listEventCoOrganizers: (eventId: number | string) =>
+    aGet("co-organizers/", { event_id: eventId }),
+  inviteCoOrganizer: (body: {
+    event_id: number;
+    organization_slug?: string;
+    organization_id?: number;
+    permissions?: Record<string, boolean>;
+    payout_percent?: number;
+  }) => aPost("co-organizers/invite/", body),
+  respondCoOrganizer: (coOrganizerId: number, action: "accept" | "decline") =>
+    aPost("co-organizers/respond/", { co_organizer_id: coOrganizerId, action }),
+  revokeCoOrganizer: (coOrganizerId: number) =>
+    aPost("co-organizers/revoke/", { co_organizer_id: coOrganizerId }),
+
+  // F6-P4 (owner 2026-06-19): organizer payouts + co-owner auto-split.
+  savePayoutAccount: (slug: string, body: {
+    payout_provider?: string;
+    bank_code?: string;
+    account_number?: string;
+    account_name?: string;
+  }) => aPost(`${slug}/payout-account/`, body),
+  getMyOrgEarnings: (slug: string) => aGet(`${slug}/earnings/`),
+  adminListOrgPayouts: (params?: { status?: string; organization_id?: number }) =>
+    aGet("admin/payouts/", params),
+  adminReleaseOrgPayout: (earningId: number) =>
+    aPost("admin/payouts/release/", { earning_id: earningId }),
+  adminMarkOrgPayoutPaid: (earningId: number, transferRef?: string) =>
+    aPost("admin/payouts/mark-paid/", { earning_id: earningId, transfer_ref: transferRef }),
+
+  // F5 (owner 2026-06-19): a SUB-organizer leaves; the OWNER suspends/soft-deletes their own org.
+  leaveOrganization: (slug: string) => aPost(`leave-organization/${slug}/`),
+  suspendMyOrganization: (slug: string, suspend: boolean) =>
+    aPost(`organization/${slug}/suspend/`, { suspend }),
+  deleteMyOrganization: (slug: string) => aPost(`organization/${slug}/delete/`),
 
   // ── REVIEWS - event ratings + comments (Phase 4) ─────────────────────────
   // rateEvent upserts the caller's 1-5 rating (one per event+user); returns the new aggregate.

@@ -814,6 +814,15 @@ export default function OrganizerCreateEventPage() {
           "require_esport_images",
           String((form.getValues("require_esport_images" as never) as unknown as boolean) ?? false),
         );
+        // F3 (owner 2026-06-19): two more per-player registration gates, same hand-append pattern.
+        formData.append(
+          "require_player_profile_image",
+          String((form.getValues("require_player_profile_image" as never) as unknown as boolean) ?? false),
+        );
+        formData.append(
+          "require_player_uid",
+          String((form.getValues("require_player_uid" as never) as unknown as boolean) ?? false),
+        );
 
         // ── ORGANIZER-SPECIFIC: home the event to the selected organization. ──
         // The backend's create_event reads this, verifies org_can(user,

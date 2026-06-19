@@ -92,6 +92,8 @@
   },
   "detail": {
     "bannerAlt": "Event Banner",
+    "organizedBy": "Organized by {name}",
+    "afcOfficial": "African Freefire Community",
     "date": "Date: <date></date>",
     "prizePool": "Prize Pool: {value}",
     "locationOnline": "Location: Online",
@@ -411,7 +413,14 @@
       "esportImageAction": "Open profile editor",
       "teamLogoDescription": "Your team logo is uploaded on the team's edit page.",
       "teamLogoAction": "Open team editor",
-      "sponsorSubmissionDescription": "Check the sponsor requirements step: every rostered player must complete every sponsor item."
+      "sponsorSubmissionDescription": "Check the sponsor requirements step: every rostered player must complete every sponsor item.",
+      "requirementsTitle": "Some players need to complete their profile first",
+      "req": {
+        "uid": "Free Fire UID",
+        "esportsImage": "Esport image",
+        "profileImage": "Profile image",
+        "teamLogo": "Team logo (upload on the team's edit page)"
+      }
     }
   },
   "structure": {

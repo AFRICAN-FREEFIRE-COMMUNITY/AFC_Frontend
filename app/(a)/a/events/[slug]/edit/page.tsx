@@ -37,6 +37,8 @@ import BasicInfoTab from "./_components/BasicInfoTab";
 import RegisteredTeamsTab from "./_components/RegisteredTeamsTab";
 import PrizeRulesTab from "./_components/PrizeRulesTab";
 import ActionsTab from "./_components/ActionsTab";
+// F6 (owner 2026-06-19): manage co-organizing orgs (invite / accept / revoke) for this event.
+import CoOrganizersPanel from "./_components/CoOrganizersPanel";
 import { StageConfigModal } from "./_components/StageConfigModal";
 import { RemoveStageModal } from "./_components/RemoveStageModal";
 // Shared Round-Robin config types + default (sub-project B).
@@ -260,6 +262,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     waitlist_discord_role_id: "",
     // Slot-assignment mode (owner 2026-06-17). Default earliest-registered.
     waitlist_mode: "first_registered",
+    // F3 registration requirements (owner 2026-06-19) — edited + saved via the Waitlist tab,
+    // which is the shared home for registration-behavior toggles in the edit form.
+    require_team_logo: false,
+    require_esport_images: false,
+    require_player_uid: false,
+    require_player_profile_image: false,
   });
   const [savingWaitlist, setSavingWaitlist] = useState(false);
 
@@ -586,6 +594,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             ed.waitlist_capacity != null ? Number(ed.waitlist_capacity) : "",
           waitlist_discord_role_id: ed.waitlist_discord_role_id ?? "",
           waitlist_mode: ed.waitlist_mode ?? "first_registered",
+          // F3: prefill the registration-requirement toggles from the event.
+          require_team_logo: ed.require_team_logo ?? false,
+          require_esport_images: ed.require_esport_images ?? false,
+          require_player_uid: ed.require_player_uid ?? false,
+          require_player_profile_image: ed.require_player_profile_image ?? false,
         });
       }
 
@@ -1282,11 +1295,28 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         waitlistForm.waitlist_mode || "first_registered",
       );
 
-      await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
+      // F3 registration requirements (owner 2026-06-19) — saved alongside the waitlist config.
+      formData.append("require_team_logo", waitlistForm.require_team_logo ? "True" : "False");
+      formData.append("require_esport_images", waitlistForm.require_esport_images ? "True" : "False");
+      formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
+      formData.append(
+        "require_player_profile_image",
+        waitlistForm.require_player_profile_image ? "True" : "False",
+      );
+
+      // fetch() only rejects on a NETWORK failure, not on HTTP 4xx/5xx — so check res.ok before
+      // reporting success. Without this a 403/400/500 (e.g. not authorized to edit) still showed
+      // "saved!" and optimistically flipped the toggles while the backend persisted nothing.
+      // (Adversarial-review fix, owner 2026-06-19.)
+      const res = await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.message || "Failed to save waitlist settings");
+      }
 
       toast.success("Waitlist settings saved!");
       setEventDetails((prev) =>
@@ -1299,12 +1329,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 : null,
               waitlist_discord_role_id: waitlistForm.waitlist_discord_role_id,
               waitlist_mode: waitlistForm.waitlist_mode,
+              require_team_logo: waitlistForm.require_team_logo,
+              require_esport_images: waitlistForm.require_esport_images,
+              require_player_uid: waitlistForm.require_player_uid,
+              require_player_profile_image: waitlistForm.require_player_profile_image,
             }
           : prev,
       );
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || "Failed to save waitlist settings",
+        error?.response?.data?.message || error?.message || "Failed to save waitlist settings",
       );
     } finally {
       setSavingWaitlist(false);
@@ -1850,13 +1884,19 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               />
             </TabsContent>
 
-            <TabsContent value="actions">
+            <TabsContent value="actions" className="space-y-4">
               <ActionsTab
                 eventDetails={eventDetails}
                 onStartTournament={() =>
                   setOpenConfirmStartTournamentModal(true)
                 }
                 onRefresh={fetchEventDetails}
+              />
+              {/* F6: manage co-organizing organizations for this event. Pass the primary org slug so
+                  it's excluded from the invite picker (it already owns the event). */}
+              <CoOrganizersPanel
+                eventId={eventDetails.event_id}
+                primaryOrgSlug={(eventDetails as any).organization_slug}
               />
             </TabsContent>
 

@@ -298,7 +298,8 @@ export default function OrganizationDetailPage({
     }
   };
 
-  // ── Delete (soft-delete; events re-home to AFC) ───────────────────────────
+  // ── Delete (clean soft-delete: events + members stay intact, just hidden) ──
+  const isDeleted = detail?.organization.status === "deleted";
   const handleDelete = async () => {
     if (deleting) return;
     setDeleting(true);
@@ -310,6 +311,24 @@ export default function OrganizationDetailPage({
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message || "Failed to delete organization.",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // ── Restore (F5, owner 2026-06-19): reverse a soft-delete; the org + its events + members
+  // all reappear because the clean delete kept everything intact and only hid it. ──
+  const handleRestore = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await organizersApi.adminRestoreOrganization(slug);
+      toast.success("Organization restored.");
+      fetchDetail(true);
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to restore organization.",
       );
     } finally {
       setDeleting(false);
@@ -589,40 +608,58 @@ export default function OrganizationDetailPage({
               <CardTitle>Danger zone</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium">
-                  {isSuspended ? "Unsuspend organization" : "Suspend organization"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {isSuspended
-                    ? "Restore the organization and its access."
-                    : "Temporarily block the organization's access."}
-                </p>
-              </div>
-              {/* Each danger-zone ⓘ is a SIBLING of its button (not nested). */}
-              <div className="flex items-center gap-2">
-                {/* data-tour="orgs-misc-org-detail-suspend": admin-tour anchor (orgs-misc area). */}
-                <Button
-                  data-tour="orgs-misc-org-detail-suspend"
-                  variant="outline"
-                  onClick={handleToggleSuspend}
-                  disabled={suspending}
-                >
-                  {suspending
-                    ? "Working..."
-                    : isSuspended
-                      ? "Unsuspend"
-                      : "Suspend"}
-                </Button>
-                <InfoTip id="organizations.suspend" />
-                <Button
-                  variant="destructive"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  Delete
-                </Button>
-                <InfoTip id="organizations.delete" />
-              </div>
+              {isDeleted ? (
+                <>
+                  {/* F5: a soft-deleted org. Restore brings it (+ events + members) back intact. */}
+                  <div>
+                    <p className="text-sm font-medium">Restore organization</p>
+                    <p className="text-xs text-muted-foreground">
+                      This organization is deleted (hidden from the public site). Restoring brings
+                      it, its events, and its members back exactly as they were.
+                    </p>
+                  </div>
+                  <Button onClick={handleRestore} disabled={deleting}>
+                    {deleting ? "Working..." : "Restore"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {isSuspended ? "Unsuspend organization" : "Suspend organization"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {isSuspended
+                        ? "Restore the organization and its access."
+                        : "Temporarily block the organization's access."}
+                    </p>
+                  </div>
+                  {/* Each danger-zone ⓘ is a SIBLING of its button (not nested). */}
+                  <div className="flex items-center gap-2">
+                    {/* data-tour="orgs-misc-org-detail-suspend": admin-tour anchor (orgs-misc area). */}
+                    <Button
+                      data-tour="orgs-misc-org-detail-suspend"
+                      variant="outline"
+                      onClick={handleToggleSuspend}
+                      disabled={suspending}
+                    >
+                      {suspending
+                        ? "Working..."
+                        : isSuspended
+                          ? "Unsuspend"
+                          : "Suspend"}
+                    </Button>
+                    <InfoTip id="organizations.suspend" />
+                    <Button
+                      variant="destructive"
+                      onClick={() => setDeleteOpen(true)}
+                    >
+                      Delete
+                    </Button>
+                    <InfoTip id="organizations.delete" />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -956,7 +993,7 @@ export default function OrganizationDetailPage({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── Delete org confirm - soft-delete; events re-home to AFC ── */}
+      {/* ── Delete org confirm - clean soft-delete (org + events kept, hidden, restorable) ── */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -964,11 +1001,15 @@ export default function OrganizationDetailPage({
               Delete organization?
             </AlertDialogTitle>
             <AlertDialogDescription>
+              {/* Copy fixed 2026-06-19 (adversarial review): the F5 soft-delete does NOT re-home
+                  events and IS reversible via the Restore button on this page — the old "re-home to
+                  AFC / cannot be undone" wording was the opposite of the real behavior. */}
               This soft-deletes{" "}
               <span className="font-semibold text-foreground">
                 {organization.name}
               </span>
-              . Its events re-home to AFC. This action cannot be undone.
+              . The organization and its events are hidden from the public site but kept intact, and an
+              AFC admin can restore everything from this page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
