@@ -483,6 +483,17 @@
     "commentSuccess": "Sent to the organizer",
     "commentFailed": "Failed to send your comment"
   },
+  "requirements": {
+    "title": "Requirements to register",
+    "intro": "Before you register for this event, make sure you have:",
+    "teamLogo": "A team logo uploaded",
+    "esportImage": "An esports image on each player's profile",
+    "uid": "Each player's Free Fire UID set",
+    "profileImage": "A profile picture on each player's profile",
+    "sponsorTitle": "Sponsor requirement",
+    "sponsorTitleNamed": "Sponsor requirement ({sponsor})",
+    "sponsorField": "You will be asked to provide: {field}"
+  },
   "sponsorRequirements": {
     "title": "Sponsor Requirements",
     "description": "Your sponsor submissions for this event. Rejected items can be corrected and resubmitted below.",

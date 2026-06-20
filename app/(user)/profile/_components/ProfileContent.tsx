@@ -83,6 +83,8 @@ import {
 // matches). Renders from the same richProfile payload, which the backend returns
 // in full because we identify as the owner (stats_visible). See OwnStatsTab.tsx.
 import { OwnStatsTab } from "./OwnStatsTab";
+// "My reports" tab body (owner 2026-06-20): reports this user filed + admin answers.
+import { MyPlayerReports } from "./MyPlayerReports";
 
 // ── i18n: achievement-group display string -> message key ─────────────────────
 // The achievements CATALOG (achievements.ts) stores group/title/description in
@@ -118,6 +120,15 @@ export const ProfileContent = () => {
   const [myApplications, setMyApplications] = useState<any[]>([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
   const { user, token } = useAuth();
+
+  // Active tab is controlled so the "Your report was reviewed" notification can deep
+  // link to /profile?tab=reports and land directly on the My-reports tab (owner
+  // 2026-06-20). Seeded once from the ?tab= query param, defaulting to "overview".
+  const [activeTab, setActiveTab] = useState<string>(
+    searchParams.get("tab") || "overview",
+  );
+  // Report-feature copy (messages/en/playerReports.json) for the My-reports tab label.
+  const tReports = useTranslations("playerReports");
 
   // ── Rich public-profile payload for THIS user ──────────────────────────────
   // The user/stats object from AuthContext (contexts/AuthContext.tsx) has the
@@ -470,7 +481,7 @@ export const ProfileContent = () => {
 
         <Card className="md:col-span-2">
           <CardContent>
-            <Tabs defaultValue="overview">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <ScrollArea>
                 <TabsList className="w-full mb-4">
                   <TabsTrigger value="overview">
@@ -484,6 +495,10 @@ export const ProfileContent = () => {
                   </TabsTrigger>
                   <TabsTrigger value="applications">
                     {t("tabs.applications")}
+                  </TabsTrigger>
+                  {/* Player reports the user filed + the admin's answers. */}
+                  <TabsTrigger value="reports">
+                    {tReports("mine.tabLabel")}
                   </TabsTrigger>
                   {user.role === "admin" && (
                     <TabsTrigger value="admin">{t("tabs.admin")}</TabsTrigger>
@@ -797,6 +812,13 @@ export const ProfileContent = () => {
                     })}
                   </div>
                 )}
+              </TabsContent>
+
+              {/* My player reports (owner 2026-06-20): the reports this user filed
+                  against other players + each admin's answer. Lazy-loads on tab open
+                  (the component fetches /auth/my-player-reports/ on mount). */}
+              <TabsContent value="reports">
+                <MyPlayerReports />
               </TabsContent>
             </Tabs>
           </CardContent>

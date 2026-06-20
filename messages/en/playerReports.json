@@ -1,0 +1,56 @@
+{
+  "report": {
+    "trigger": "Report player",
+    "triggerTeam": "Report team",
+    "title": "Report player",
+    "titleTeam": "Report team",
+    "description": "Flagging <subject></subject>. Your report is private and goes to AFC admins only.",
+    "reasonLabel": "Reason",
+    "reasons": {
+      "cheating": { "title": "Cheating / hacking", "desc": "Aimbot, scripts, or other unfair tools." },
+      "toxicity": { "title": "Toxic / abusive behaviour", "desc": "Insults, slurs, or abusive conduct." },
+      "harassment": { "title": "Harassment", "desc": "Targeted or repeated harassment." },
+      "impersonation": { "title": "Impersonation / fake identity", "desc": "Pretending to be someone they are not." },
+      "scam": { "title": "Scam / fraud", "desc": "Tried to scam or defraud players." },
+      "other": { "title": "Other", "desc": "Something else not listed above." }
+    },
+    "detailsLabel": "What happened",
+    "detailsPlaceholder": "Describe what happened. Add match names, dates, or links if you can.",
+    "proofLabel": "Proof",
+    "proofHint": "(optional)",
+    "proofNote": "Attach a screenshot if you have one. It helps admins review faster.",
+    "proofAttached": "Attached: {name}",
+    "honestyNote": "<strong>Report honestly.</strong> Filing a false or joke report can get you, the reporter, sanctioned. Only report real issues.",
+    "cancel": "Cancel",
+    "submit": "Submit report",
+    "submitting": "Submitting...",
+    "success": "Report submitted. Thank you, AFC admins will review it.",
+    "failed": "Could not submit your report. Please try again.",
+    "loginRequired": "Please log in to report a player."
+  },
+  "mine": {
+    "tabLabel": "My reports",
+    "title": "Reports you filed",
+    "empty": "You have not filed any reports.",
+    "filedOn": "Filed {date}",
+    "reportedLabel": "Reported player",
+    "deletedPlayer": "(account removed)",
+    "yourNotes": "Your notes",
+    "adminAnswer": "AFC admin response",
+    "noAnswerYet": "No response yet. An admin will review your report.",
+    "status": {
+      "open": "Open",
+      "reviewing": "Under review",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "category": {
+      "cheating": "Cheating / hacking",
+      "toxicity": "Toxic / abusive behaviour",
+      "harassment": "Harassment",
+      "impersonation": "Impersonation / fake identity",
+      "scam": "Scam / fraud",
+      "other": "Other"
+    }
+  }
+}

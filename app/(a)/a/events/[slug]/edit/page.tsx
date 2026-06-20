@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { useAuth } from "@/contexts/AuthContext";
@@ -137,9 +137,23 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const resolvedParams = use(params);
   const { slug } = resolvedParams;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // ── Core loading/UI state ──────────────────────────────────────────────────
-  const [currentTab, setCurrentTab] = useState("basic_info");
+  // Active edit tab persists in the URL (?tab=) so a RELOAD keeps you on the same
+  // step instead of jumping back to Basic Info (owner 2026-06-20). setCurrentTab is
+  // wrapped (selectTab) to mirror the change into the URL; the raw setter is still
+  // used for the programmatic jumps to a tab that has validation errors.
+  const [currentTab, setCurrentTab] = useState(
+    searchParams.get("tab") || "basic_info",
+  );
+  const selectTab = (v: string) => {
+    setCurrentTab(v);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", v);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   const [eventTitle, setEventTitle] = useState("Loading Event...");
@@ -1644,6 +1658,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             `Event "${data.event_name}" saved as ${data.save_to_drafts ? "Draft" : "Published"} successfully!`,
             { duration: 4000 },
           );
+          // Live-update (owner 2026-06-20): re-pull the saved event so the form +
+          // displays reflect the changes immediately, without a manual page reload.
+          await fetchEventDetails();
         } else {
           const errorMessage = res.message || res.detail || res.error;
           if (response.status === 400) {
@@ -1710,7 +1727,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
       <Form {...form}>
         <form className="space-y-6">
-          <Tabs value={currentTab} onValueChange={setCurrentTab}>
+          <Tabs value={currentTab} onValueChange={selectTab}>
             <TabsList className="w-full justify-start overflow-x-auto mb-2">
               {/*
                 Each tab carries a section-level ⓘ explaining what that area does.

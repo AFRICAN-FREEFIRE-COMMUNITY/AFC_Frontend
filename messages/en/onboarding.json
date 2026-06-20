@@ -1,0 +1,38 @@
+{
+  "title": "Welcome to AFC",
+  "subtitle": "Let's get your profile ready. You can skip any step and finish these later from your profile.",
+  "skipAll": "Skip for now",
+  "stepLabel": "Step {n} of {total}",
+  "back": "Back",
+  "next": "Next",
+  "skipStep": "Skip this step",
+  "finish": "Finish",
+  "doneBadge": "Done",
+  "saved": "Saved.",
+  "failed": "Could not save. Please try again.",
+  "finished": "You're all set. Welcome aboard!",
+  "steps": {
+    "esports": {
+      "title": "Add your esports image",
+      "desc": "A clear photo of you (a bust shot). Organizers use it in event graphics. It must be a real picture of you.",
+      "choose": "Choose image",
+      "save": "Upload image",
+      "have": "You already have an esports image. You can replace it."
+    },
+    "uid": {
+      "title": "Add your Free Fire UID",
+      "desc": "Your in-game UID lets organizers verify you for tournaments.",
+      "label": "Free Fire UID",
+      "placeholder": "e.g. 1234567890",
+      "save": "Save UID",
+      "have": "Your UID is set. You can update it."
+    },
+    "photo": {
+      "title": "Add a profile picture",
+      "desc": "Your avatar across the site.",
+      "choose": "Choose photo",
+      "save": "Save photo",
+      "have": "You already have a profile picture. You can replace it."
+    }
+  }
+}

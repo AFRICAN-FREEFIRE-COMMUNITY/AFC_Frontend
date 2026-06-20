@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/Logo";
 import {
   Trophy,
@@ -17,7 +16,6 @@ import {
   Award,
   GamepadIcon,
   Crown,
-  Flame,
 } from "lucide-react";
 import { formatMoneyInput } from "@/lib/utils";
 import axios from "axios";
@@ -121,10 +119,14 @@ const page = () => {
                 : "opacity-0 translate-y-10"
             }`}
           >
-            <Badge className="mb-6 bg-primary/20 text-primary border-primary/30 hover:bg-primary/30">
-              <Flame className="w-4 h-4 mr-2" />
-              {t("landing.hero.seasonBadge")}
-            </Badge>
+            {/* Animated glowing season tagline (owner 2026-06-20): no border, no icon,
+                just glowing text. animate-pulse + a primary text-shadow gives the soft
+                breathing glow. */}
+            <div className="mb-6 flex justify-center">
+              <span className="text-sm md:text-base font-semibold uppercase tracking-[0.2em] text-primary animate-pulse [text-shadow:0_0_14px_rgba(52,210,123,0.75)]">
+                {t("landing.hero.seasonBadge")}
+              </span>
+            </div>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-4">
               <span className="bg-gradient-to-r from-primary via-gold to-primary bg-clip-text text-transparent">

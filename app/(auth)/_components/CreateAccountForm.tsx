@@ -34,6 +34,10 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link"; // Required for linking to legal pages
 import { useTranslations } from "next-intl";
+// "Continue with Google" for sign up (owner 2026-06-20). Same component as the
+// login page; Google sign-in creates the account on first use. Hidden unless
+// NEXT_PUBLIC_GOOGLE_CLIENT_ID is set.
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -494,6 +498,7 @@ export function CreateAccountForm() {
           )}
         </Button>
       </form>
+      <GoogleSignInButton />
     </Form>
   );
 }

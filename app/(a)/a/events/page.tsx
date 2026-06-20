@@ -22,7 +22,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { IconCalendar, IconPalette, IconTrophy } from "@tabler/icons-react";
 import { EventsAdminContent } from "../_components/EventsAdminContent";
@@ -31,6 +31,8 @@ import { DesignsAdminContent } from "../_components/DesignsAdminContent";
 
 export default function EventsAndLeaderboardsPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   // /a/leaderboards redirects here as ?tab=leaderboards; everything else opens on Events.
   const tabParam = searchParams.get("tab");
   const initialTab =
@@ -41,9 +43,18 @@ export default function EventsAndLeaderboardsPage() {
         : "events";
   const [tab, setTab] = useState<string>(initialTab);
 
+  // Keep the active tab in the URL so a RELOAD restores it (owner 2026-06-20: reloading
+  // used to bounce back to Events). router.replace + scroll:false, same as /a/teams.
+  const onTabChange = (v: string) => {
+    setTab(v);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", v);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <Tabs value={tab} onValueChange={setTab} className="gap-4">
+      <Tabs value={tab} onValueChange={onTabChange} className="gap-4">
         {/* shadcn pill/segment tabs (matches the rest of the admin area).
             data-tour anchor: first content step of the events tour. */}
         <TabsList data-tour="events-tabs">

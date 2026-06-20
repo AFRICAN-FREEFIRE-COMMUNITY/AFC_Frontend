@@ -11,6 +11,14 @@
     "locked": "Bloqueado",
     "review": "Revisar"
   },
+  "sentiment": {
+    "fan": "Sou fã",
+    "hater": "Sou um detractor",
+    "fans": "{número, plural, um {# fan} outro {# fans}}",
+    "haters": "{número, plural, um {# hater} outro {# haters}}",
+    "loginRequired": "Por favor, inicie sessão para comentar.",
+    "failed": "Não foi possível guardar a sua reação. Por favor, tente novamente."
+  },
   "errors": {
     "generic": "Ops! Ocorreu um erro",
     "internalServer": "Erro interno do servidor",
@@ -135,6 +143,7 @@
     "tabRequests": "Pedidos e Candidaturas",
     "teamOverview": "Visão Geral da Equipe",
     "countryLabel": "País",
+    "countryAutoExplain": "É definido automaticamente com base na origem dos jogadores da equipa: o país de onde provêm a maioria dos jogadores. Em caso de empate, é utilizado o país do proprietário da equipa.",
     "totalKills": "Total de Abates",
     "totalWins": "Total de Vitórias",
     "tierLabel": "Nível",

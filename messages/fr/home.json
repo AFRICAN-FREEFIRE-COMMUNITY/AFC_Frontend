@@ -17,7 +17,7 @@
     },
     "features": {
       "headingHighlight": "Pourquoi choisir",
-      "headingRest": "AFC Esports ?",
+      "headingRest": "le Hub de l'AFC ?",
       "subtitle": "Découvrez la plateforme compétitive Free Fire la plus complète avec des fonctionnalités conçues pour les joueurs sérieux.",
       "tournaments": {
         "title": "Tournois compétitifs",
@@ -43,6 +43,12 @@
         "title": "Réalisations",
         "description": "Débloquez des badges, des titres et des récompenses en gravissant les échelons de la compétition."
       }
+    },
+    "about": {
+      "heading": "Qu'est-ce que l'AFC Hub ?",
+      "body": "L'African Free Fire Community (AFC) Hub est une plateforme dédiée à l'e-sport compétitif de Free Fire. Les joueurs peuvent y créer un profil, constituer et gérer des équipes, s'inscrire à des tournois et à des matchs d'entraînement, gravir les échelons du classement mensuel et suivre leurs statistiques de match ainsi que leurs succès, le tout depuis un seul et même endroit.",
+      "googleData": "La connexion via Google est facultative. Si vous optez pour cette option, AFC utilise uniquement votre nom et votre adresse e-mail pour créer votre compte AFC et vous y connecter. Nous ne publions jamais rien sur votre compte Google et n'accédons à aucune autre donnée.",
+      "privacyLink": "Consultez notre politique de confidentialité"
     },
     "cta": {
       "headingPrefix": "Prêt à",

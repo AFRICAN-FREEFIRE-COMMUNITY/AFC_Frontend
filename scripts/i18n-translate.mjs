@@ -1,9 +1,15 @@
 // scripts/i18n-translate.mjs
 //
 // Purpose: machine-translate the English source message catalog into the other
-// supported locales (fr, pt) using the Gemini REST API. For every namespace
-// file under messages/en/*.json it produces messages/<locale>/*.json with the
-// same keys and the same {placeholder} tokens, only the string VALUES change.
+// supported locales (fr, pt) using the DeepL REST API. For every namespace file
+// under messages/en/*.json it produces messages/<locale>/*.json with the same
+// keys and the same {placeholder} tokens + <rich> tags, only the string VALUES
+// change.
+//
+// Why DeepL (owner 2026-06-20): the site moved off Gemini for translations after
+// an expired Gemini key stalled the backend. Gemini is now OCR-only; ALL
+// translation (this build-time script AND the backend translate-on-read layer)
+// goes through DeepL. See backend/afc_auth/translation.py for the runtime side.
 //
 // How it connects to the rest of the system:
 //  - Reads the locale list (LOCALES, DEFAULT_LOCALE) from i18n/config.ts so the
@@ -11,8 +17,20 @@
 //  - Writes files that i18n/request.ts reads + deep-merges at request time. Any
 //    key it leaves untranslated (or any whole missing file) falls back to the
 //    English base there, so a partial run never breaks the UI.
-//  - GEMINI_API_KEY is read from process.env first, then from ../backend/.env
-//    (same key the backend OCR teacher uses). Never hardcoded.
+//  - DEEPL_API_KEY is read from process.env first, then from ../backend/.env
+//    (the same key the backend translation layer uses). Never hardcoded. A free
+//    key ends in ":fx" and is auto-routed to the free host.
+//
+// Placeholder / rich-tag safety:
+//  next-intl strings carry two kinds of non-translatable tokens that MUST survive
+//  verbatim: ICU placeholders like {name}/{count} and rich-text tags like
+//  <bold>..</bold> or <player></player>. Before sending a string to DeepL every
+//  such token is masked into a uniform self-closing XML sentinel <m id="N"/> and
+//  the request uses tag_handling=xml, so DeepL keeps the sentinels (repositioning
+//  them grammatically) and only translates the human text. The sentinels are then
+//  restored to the EXACT original tokens. If any sentinel goes missing in DeepL's
+//  output we keep the English source for that one key (safe fallback) rather than
+//  writing a corrupted string.
 //
 // Idempotent: an existing target value is only (re)written when the English
 // source for that key has CHANGED or the target is missing. Run it again after
@@ -21,7 +39,7 @@
 // Run it with:
 //   pnpm i18n:translate            # all non-English locales (fr, pt)
 //   pnpm i18n:translate -- fr      # only the listed locale(s)
-//   GEMINI_API_KEY=... pnpm i18n:translate
+//   DEEPL_API_KEY=... pnpm i18n:translate
 //
 // Flags:
 //   --force   re-translate every key, ignoring the change cache.
@@ -35,15 +53,26 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FRONTEND_ROOT = path.join(__dirname, "..");
 const MESSAGES_DIR = path.join(FRONTEND_ROOT, "messages");
 
-// Gemini model: matches the backend OCR teacher (gemini-2.5-flash). Override
-// with GEMINI_MODEL if needed.
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// ── DeepL language codes (target) keyed by our locale code ───────────────────
+// DeepL wants region-qualified Portuguese; FR is fine unqualified.
+const DEEPL_LANG = {
+  fr: "FR",
+  pt: "PT-PT",
+  es: "ES",
+  de: "DE",
+};
+
+// DeepL native batch limit is 50 texts per request.
+const DEEPL_MAX_BATCH = Number(process.env.I18N_CHUNK_SIZE) || 50;
+// How many times to retry a single batch on a transient failure (429/5xx/network).
+const MAX_RETRIES = 4;
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ── locale config: imported from the single source of truth ──────────────────
 async function loadLocaleConfig() {
-  // i18n/config.ts is TypeScript; import it as a URL. Node 22+ can import .ts
-  // via --experimental-strip-types, but to stay portable we parse the small
-  // constant arrays out of the file directly instead of importing it.
+  // i18n/config.ts is TypeScript; parse the small constant arrays out of it
+  // directly instead of importing (keeps the script dependency-free).
   const cfgPath = path.join(FRONTEND_ROOT, "i18n", "config.ts");
   const src = await readFile(cfgPath, "utf8");
   const localesMatch = src.match(/LOCALES\s*=\s*\[([^\]]*)\]/);
@@ -57,33 +86,30 @@ async function loadLocaleConfig() {
   return { locales, defaultLocale };
 }
 
-// ── GEMINI_API_KEY resolution: env first, then backend/.env ──────────────────
+// ── DEEPL_API_KEY resolution: env first, then backend/.env ───────────────────
 async function resolveApiKey() {
-  if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY;
+  if (process.env.DEEPL_API_KEY) return process.env.DEEPL_API_KEY.trim();
   const envPath = path.join(FRONTEND_ROOT, "..", "backend", ".env");
   if (existsSync(envPath)) {
     const raw = await readFile(envPath, "utf8");
     for (const line of raw.split(/\r?\n/)) {
-      const m = line.match(/^\s*GEMINI_API_KEY\s*=\s*(.+?)\s*$/);
-      if (m) return m[1].replace(/^["']|["']$/g, "");
+      const m = line.match(/^\s*DEEPL_API_KEY\s*=\s*(.+?)\s*$/);
+      if (m) return m[1].replace(/^["']|["']$/g, "").trim();
     }
   }
   throw new Error(
-    "GEMINI_API_KEY not found in process.env or ../backend/.env. Set it and retry.",
+    "DEEPL_API_KEY not found in process.env or ../backend/.env. Set it and retry.",
   );
 }
 
-// Human-readable language names for the prompt (keyed by locale code).
-const LANGUAGE_NAMES = {
-  fr: "French",
-  pt: "Portuguese",
-  es: "Spanish",
-  de: "German",
-};
+// A DeepL Free key ends in ":fx" and must hit the free host.
+function deeplHost(apiKey) {
+  return apiKey.endsWith(":fx")
+    ? "https://api-free.deepl.com/v2/translate"
+    : "https://api.deepl.com/v2/translate";
+}
 
 // ── deep walk: collect every leaf string with its dotted path ────────────────
-// Returns a flat map { "actions.save": "Save", "nav.home": "Home", ... } so we
-// can diff against a cache and batch all strings of a file into one API call.
 function flatten(obj, prefix = "", out = {}) {
   for (const [key, value] of Object.entries(obj)) {
     const full = prefix ? `${prefix}.${key}` : key;
@@ -111,122 +137,127 @@ function unflatten(flat) {
   return root;
 }
 
-// Max strings sent to Gemini in a single request. Large namespaces (e.g.
-// tournaments has ~440 strings) overflow the response and surface as a generic
-// "fetch failed", so we split into chunks of this size and merge the results.
-const CHUNK_SIZE = Number(process.env.I18N_CHUNK_SIZE) || 60;
-// How many times to retry a single chunk on a transient network failure
-// (e.g. "fetch failed", 429, 503) with exponential backoff.
-const MAX_RETRIES = 3;
+// ── token masking: protect placeholders + positional markers from translation ─
+// Two classes of non-translatable token are masked into uniform self-closing
+// sentinels <m id="N"/> so DeepL keeps them inline and in place:
+//   1. ICU placeholders:        {name}, {count}, ...
+//   2. EMPTY / self-closing tags that are positional MARKERS with no inner text:
+//      <player></player>, <menu></menu>, <date></date>, <subject></subject>, <x/>
+// NON-empty paired rich tags (<bold>{x}</bold>, <strong>text</strong>) are LEFT
+// as real XML so DeepL's tag_handling=xml keeps each pair around its translated
+// inner text. (Masking a content pair as two independent sentinels - or leaving
+// an empty marker as a real empty tag - both let DeepL reorder/corrupt it; tested
+// 2026-06-20.)
+const MASK_RE = /\{[^{}]*\}|<([a-zA-Z][\w-]*)\s*>\s*<\/\1\s*>|<[a-zA-Z][^<>]*\/>/g;
 
-// Sleep helper for retry backoff.
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Escape only & in the bare text so the rich tags stay valid XML for DeepL.
+// We deliberately do NOT escape < / > because every one of them is a legitimate
+// rich tag in our source strings; escaping would turn tags into literal text.
+function escapeAmp(s) {
+  return s.replace(/&/g, "&amp;");
+}
+function unescapeXml(s) {
+  return s
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
 
-// ── Gemini REST call: translate a batch of strings, chunked ──────────────────
-// Input: { "actions.save": "Save", ... }. Output: same keys, translated values.
-// Splits into CHUNK_SIZE-sized requests so big namespaces don't overflow a
-// single call, retries transient failures, and merges every chunk back.
-async function translateBatch(apiKey, languageName, entries) {
-  const keys = Object.keys(entries);
-  if (keys.length === 0) return {};
-
-  // Split the flat entry map into CHUNK_SIZE-key slices.
-  const chunks = [];
-  for (let i = 0; i < keys.length; i += CHUNK_SIZE) {
-    const slice = {};
-    for (const k of keys.slice(i, i + CHUNK_SIZE)) slice[k] = entries[k];
-    chunks.push(slice);
+// Replace each {placeholder} with a uniform self-closing sentinel and remember
+// the originals in order. Returns { masked, tokens }.
+function maskTokens(text) {
+  const tokens = [];
+  let last = 0;
+  let masked = "";
+  for (const m of text.matchAll(MASK_RE)) {
+    masked += escapeAmp(text.slice(last, m.index));
+    masked += `<m id="${tokens.length}"/>`;
+    tokens.push(m[0]);
+    last = m.index + m[0].length;
   }
+  masked += escapeAmp(text.slice(last));
+  return { masked, tokens };
+}
 
-  const merged = {};
-  for (let c = 0; c < chunks.length; c++) {
-    if (chunks.length > 1) {
-      console.log(`    chunk ${c + 1}/${chunks.length} (${Object.keys(chunks[c]).length} keys)`);
-    }
+// Restore the original tokens. DeepL may emit the sentinel as <m id="0"/>,
+// <m id="0" />, <m id='0'/> or even the paired <m id="0"></m>; match all.
+// Returns null if any sentinel is missing (caller falls back to English).
+function restoreTokens(translated, tokens) {
+  const seen = new Set();
+  const out = translated.replace(
+    /<m\s+id=["']?(\d+)["']?\s*\/?>(?:<\/m>)?/g,
+    (_full, idx) => {
+      const i = Number(idx);
+      seen.add(i);
+      return tokens[i] ?? "";
+    },
+  );
+  if (seen.size !== tokens.length) return null; // a token was dropped -> unsafe
+  return unescapeXml(out);
+}
+
+// ── DeepL REST call: translate an ordered array of texts ─────────────────────
+// Input: string[] (English). Output: string[] (translated, same order). Splits
+// into DEEPL_MAX_BATCH slices, retries transient failures, merges in order.
+async function translateTexts(apiKey, host, targetLang, texts) {
+  if (texts.length === 0) return [];
+  const result = new Array(texts.length);
+
+  for (let start = 0; start < texts.length; start += DEEPL_MAX_BATCH) {
+    const slice = texts.slice(start, start + DEEPL_MAX_BATCH);
+    const masks = slice.map(maskTokens);
+
     let lastErr;
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        Object.assign(merged, await translateChunk(apiKey, languageName, chunks[c]));
+        const body = {
+          text: masks.map((m) => m.masked),
+          source_lang: "EN",
+          target_lang: targetLang,
+          tag_handling: "xml",
+          // Our sentinels carry no inner text, but be explicit that <m> is
+          // structural and must never be translated or split on.
+          ignore_tags: ["m"],
+          preserve_formatting: true,
+        };
+        const res = await fetch(host, {
+          method: "POST",
+          headers: {
+            Authorization: `DeepL-Auth-Key ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const t = await res.text();
+          // 456 = quota exhausted: fatal, do not retry.
+          if (res.status === 456) {
+            throw Object.assign(new Error(`DeepL quota exhausted (456): ${t.slice(0, 200)}`), { fatal: true });
+          }
+          throw new Error(`DeepL ${res.status}: ${t.slice(0, 300)}`);
+        }
+        const json = await res.json();
+        const translations = json?.translations ?? [];
+        for (let i = 0; i < slice.length; i++) {
+          const raw = translations[i]?.text ?? "";
+          const restored = restoreTokens(raw, masks[i].tokens);
+          // null restore -> a token was lost; keep the English source for safety.
+          result[start + i] = restored ?? slice[i];
+        }
         lastErr = null;
         break;
       } catch (e) {
         lastErr = e;
-        if (attempt < MAX_RETRIES) {
-          const backoff = 1000 * 2 ** (attempt - 1);
-          console.log(`    chunk ${c + 1} attempt ${attempt} failed (${e.message}); retrying in ${backoff}ms`);
-          await sleep(backoff);
-        }
+        if (e.fatal || attempt === MAX_RETRIES) break;
+        const backoff = 1000 * 2 ** (attempt - 1);
+        console.log(`    batch @${start} attempt ${attempt} failed (${e.message}); retrying in ${backoff}ms`);
+        await sleep(backoff);
       }
     }
     if (lastErr) throw lastErr;
-  }
-  return merged;
-}
-
-// ── single Gemini REST request for one chunk of strings ──────────────────────
-// The model is instructed to keep keys + {placeholders} verbatim and return JSON.
-async function translateChunk(apiKey, languageName, entries) {
-  const keys = Object.keys(entries);
-  if (keys.length === 0) return {};
-
-  const prompt = [
-    `You are a professional UI localizer for a gaming/esports web app.`,
-    `Translate the VALUES of the following JSON object from English into ${languageName}.`,
-    `STRICT RULES:`,
-    `1. Keep every JSON key EXACTLY as given. Do not add, remove, or reorder keys.`,
-    `2. Preserve ALL placeholder tokens like {name}, {count}, {date} verbatim, including the braces.`,
-    `3. Preserve HTML-like tags and markup if present.`,
-    `4. Do NOT translate brand names, product names, or proper nouns.`,
-    `5. Keep the tone concise and natural for buttons, labels, and short UI copy.`,
-    `6. Return ONLY a valid JSON object, no markdown fences, no commentary.`,
-    ``,
-    `JSON to translate:`,
-    JSON.stringify(entries, null, 2),
-  ].join("\n");
-
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/` +
-    `${GEMINI_MODEL}:generateContent?key=${apiKey}`;
-
-  const body = {
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.2,
-      responseMimeType: "application/json",
-    },
-  };
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${text.slice(0, 500)}`);
-  }
-
-  const json = await res.json();
-  const text =
-    json?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ?? "";
-
-  let parsed;
-  try {
-    // responseMimeType=application/json should give clean JSON, but strip any
-    // stray code fence just in case the model wraps it.
-    const cleaned = text.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
-    parsed = JSON.parse(cleaned);
-  } catch (e) {
-    throw new Error(
-      `Failed to parse Gemini JSON response: ${e.message}\nRaw: ${text.slice(0, 500)}`,
-    );
-  }
-
-  // Only keep keys we asked for; ignore anything the model hallucinated.
-  const result = {};
-  for (const k of keys) {
-    if (typeof parsed[k] === "string") result[k] = parsed[k];
   }
   return result;
 }
@@ -235,6 +266,8 @@ async function translateChunk(apiKey, languageName, entries) {
 async function run() {
   const { locales, defaultLocale } = await loadLocaleConfig();
   const apiKey = await resolveApiKey();
+  const host = deeplHost(apiKey);
+  console.log(`DeepL host: ${host} (${apiKey.endsWith(":fx") ? "free" : "pro"} key)`);
 
   // Optional CLI args: explicit locales to run, and --force.
   const args = process.argv.slice(2).filter((a) => a !== "--");
@@ -251,7 +284,11 @@ async function run() {
   let totalSkipped = 0;
 
   for (const locale of targetLocales) {
-    const languageName = LANGUAGE_NAMES[locale] || locale;
+    const targetLang = DEEPL_LANG[locale];
+    if (!targetLang) {
+      console.warn(`[${locale}] no DeepL language mapping; skipping.`);
+      continue;
+    }
     const outDir = path.join(MESSAGES_DIR, locale);
     await mkdir(outDir, { recursive: true });
 
@@ -271,8 +308,7 @@ async function run() {
       }
 
       // Sidecar cache records which English source produced each existing value,
-      // so we only re-translate keys whose English text changed. Stored as a
-      // hidden ._source.json next to the locale file.
+      // so we only re-translate keys whose English text changed.
       const cachePath = path.join(outDir, `.${ns}.source.json`);
       let sourceCache = {};
       if (!force && existsSync(cachePath)) {
@@ -284,16 +320,18 @@ async function run() {
       }
 
       // Decide which keys need (re)translation.
-      const toTranslate = {};
+      const toTranslateKeys = [];
       for (const [key, enValue] of Object.entries(enFlat)) {
         const haveTarget = typeof existingFlat[key] === "string";
         const sourceChanged = sourceCache[key] !== enValue;
-        if (force || !haveTarget || sourceChanged) {
-          toTranslate[key] = enValue;
+        // Only translate non-empty string leaves; copy through empties/non-strings.
+        const translatable = typeof enValue === "string" && enValue.trim() !== "";
+        if (translatable && (force || !haveTarget || sourceChanged)) {
+          toTranslateKeys.push(key);
         }
       }
 
-      const needed = Object.keys(toTranslate).length;
+      const needed = toTranslateKeys.length;
       if (needed === 0) {
         totalSkipped += Object.keys(enFlat).length;
         console.log(`[${locale}/${ns}] up to date (${Object.keys(enFlat).length} keys).`);
@@ -301,15 +339,17 @@ async function run() {
       }
 
       console.log(`[${locale}/${ns}] translating ${needed} key(s)...`);
-      const translated = await translateBatch(apiKey, languageName, toTranslate);
+      const texts = toTranslateKeys.map((k) => enFlat[k]);
+      const translatedArr = await translateTexts(apiKey, host, targetLang, texts);
+      const translated = {};
+      toTranslateKeys.forEach((k, i) => (translated[k] = translatedArr[i]));
 
-      // Merge: start from existing, overlay new translations. Drop any keys that
-      // no longer exist in English so stale entries do not linger.
+      // Merge: start from existing, overlay new translations, fall back to the
+      // English source. Drop any keys that no longer exist in English.
       const mergedFlat = {};
       const newCache = {};
       for (const key of Object.keys(enFlat)) {
-        mergedFlat[key] =
-          translated[key] ?? existingFlat[key] ?? enFlat[key];
+        mergedFlat[key] = translated[key] ?? existingFlat[key] ?? enFlat[key];
         newCache[key] = enFlat[key];
       }
 

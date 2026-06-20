@@ -1,0 +1,38 @@
+{
+  "title": "Bienvenue à l'AFC",
+  "subtitle": "Préparons votre profil. Vous pouvez sauter certaines étapes et les compléter plus tard depuis votre profil.",
+  "skipAll": "Passer pour l'instant",
+  "stepLabel": "Étape n°{n}, tirée de {total}",
+  "back": "Retour",
+  "next": "Suivant",
+  "skipStep": "Ignorer cette étape",
+  "finish": "Terminer",
+  "doneBadge": "Terminé",
+  "saved": "Enregistré.",
+  "failed": "Impossible d'enregistrer. Veuillez réessayer.",
+  "finished": "Tout est prêt. Bienvenue à bord !",
+  "steps": {
+    "esports": {
+      "title": "Ajoutez votre image e-sport",
+      "desc": "Une photo nette de vous (portrait). Les organisateurs l'utilisent dans les visuels de l'événement. Il doit s'agir d'une photo de vous en chair et en os.",
+      "choose": "Choisissez une image",
+      "save": "Télécharger une image",
+      "have": "Vous avez déjà une image liée à l'e-sport. Vous pouvez la remplacer."
+    },
+    "uid": {
+      "title": "Ajoutez votre identifiant UID Free Fire",
+      "desc": "Votre identifiant unique (UID) dans le jeu permet aux organisateurs de vérifier votre identité pour les tournois.",
+      "label": "UID Free Fire",
+      "placeholder": "par exemple : 1234567890",
+      "save": "Enregistrer l'UID",
+      "have": "Votre identifiant unique (UID) a été défini. Vous pouvez le modifier."
+    },
+    "photo": {
+      "title": "Ajouter une photo de profil",
+      "desc": "Votre avatar sur l'ensemble du site.",
+      "choose": "Choisissez une photo",
+      "save": "Enregistrer la photo",
+      "have": "Vous avez déjà une photo de profil. Vous pouvez la remplacer."
+    }
+  }
+}

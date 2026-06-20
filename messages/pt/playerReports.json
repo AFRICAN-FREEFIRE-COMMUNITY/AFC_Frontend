@@ -1,0 +1,74 @@
+{
+  "report": {
+    "trigger": "Denunciar jogador",
+    "triggerTeam": "Equipa de relatórios",
+    "title": "Denunciar jogador",
+    "titleTeam": "Equipa de relatórios",
+    "description": "Denunciar <subject></subject>. A sua denúncia é privada e será enviada apenas aos administradores da AFC.",
+    "reasonLabel": "Motivo",
+    "reasons": {
+      "cheating": {
+        "title": "Trapaça / pirataria informática",
+        "desc": "Aimbots, scripts ou outras ferramentas desleais."
+      },
+      "toxicity": {
+        "title": "Comportamento tóxico/abusivo",
+        "desc": "Insultos, ofensas ou conduta abusiva."
+      },
+      "harassment": {
+        "title": "Assédio",
+        "desc": "Assédio direcionado ou repetido."
+      },
+      "impersonation": {
+        "title": "Falsificação de identidade / identidade falsa",
+        "desc": "Fingirem ser quem não são."
+      },
+      "scam": {
+        "title": "Golpe / fraude",
+        "desc": "Tentou enganar ou defraudar os jogadores."
+      },
+      "other": {
+        "title": "Outros",
+        "desc": "Outra coisa que não foi mencionada acima."
+      }
+    },
+    "detailsLabel": "O que aconteceu",
+    "detailsPlaceholder": "Descreve o que aconteceu. Se possível, indica os nomes dos jogos, as datas ou os links.",
+    "proofLabel": "Prova",
+    "proofHint": "(opcional)",
+    "proofNote": "Anexa uma captura de ecrã, se tiveres uma. Isso ajuda os administradores a analisarem mais rapidamente.",
+    "proofAttached": "Em anexo: {name}",
+    "honestyNote": "<strong>Denuncie com sinceridade.</strong> A apresentação de uma denúncia falsa ou por brincadeira pode resultar em sanções contra si, o denunciante. Denuncie apenas problemas reais.",
+    "cancel": "Cancelar",
+    "submit": "Enviar relatório",
+    "submitting": "A enviar...",
+    "success": "Relatório enviado. Obrigado, os administradores da AFC irão analisá-lo.",
+    "failed": "Não foi possível enviar o seu relatório. Por favor, tente novamente.",
+    "loginRequired": "Por favor, inicie sessão para denunciar um jogador."
+  },
+  "mine": {
+    "tabLabel": "Os meus relatórios",
+    "title": "Relatórios que apresentou",
+    "empty": "Ainda não apresentou nenhum relatório.",
+    "filedOn": "Arquivado em{date}",
+    "reportedLabel": "Jogador denunciado",
+    "deletedPlayer": "(conta eliminada)",
+    "yourNotes": "As tuas notas",
+    "adminAnswer": "Resposta da administração da AFC",
+    "noAnswerYet": "Ainda não há resposta. Um administrador irá analisar a sua denúncia.",
+    "status": {
+      "open": "Abrir",
+      "reviewing": "Em análise",
+      "resolved": "Resolvido",
+      "dismissed": "Rejeitado"
+    },
+    "category": {
+      "cheating": "Trapaça / pirataria informática",
+      "toxicity": "Comportamento tóxico/abusivo",
+      "harassment": "Assédio",
+      "impersonation": "Falsificação de identidade / identidade falsa",
+      "scam": "Golpe / fraude",
+      "other": "Outros"
+    }
+  }
+}

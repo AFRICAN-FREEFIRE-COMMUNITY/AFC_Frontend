@@ -28,32 +28,50 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { IconBan, IconDownload, IconUsersGroup, IconUsers } from "@tabler/icons-react";
+import { IconBan, IconDownload, IconUsersGroup, IconUsers, IconShield } from "@tabler/icons-react";
 import { TeamsAdminContent } from "../_components/TeamsAdminContent";
 import { PlayersAdminContent } from "../_components/PlayersAdminContent";
+// Player + team reports triage (owner 2026-06-20): moved under this page from the old
+// standalone /a/player-reports sidebar entry (which now redirects to ?tab=reports).
+import { ReportsAdminContent } from "../_components/ReportsAdminContent";
 // The same blacklist oversight surface the /a/blacklists dashboard renders
 // (stat cards + filters + table) - shared so the two stay identical.
 import { BlacklistsTable } from "../blacklists/_components/BlacklistsTable";
 // ZIP export of team logos + player esport images for any picked set (owner 2026-06-12).
 import { DownloadEsportMediaDialog } from "@/components/esport-media";
 
+const VALID_TABS = ["teams", "players", "blacklists", "reports"] as const;
+
 export default function TeamsAndPlayersPage() {
   const searchParams = useSearchParams();
-  // /a/players redirects here as ?tab=players; ?tab=blacklists deep-links the
-  // new Blacklists tab; everything else opens on Teams.
+  const router = useRouter();
+  const pathname = usePathname();
+  // /a/players redirects here as ?tab=players; ?tab=blacklists / ?tab=reports deep-link
+  // those tabs; everything else opens on Teams.
   const tabParam = searchParams.get("tab");
-  const initialTab =
-    tabParam === "players" || tabParam === "blacklists" ? tabParam : "teams";
+  const initialTab = (VALID_TABS as readonly string[]).includes(tabParam || "")
+    ? (tabParam as string)
+    : "teams";
   const [tab, setTab] = useState<string>(initialTab);
   // The "Download media" dialog (pick teams/players -> one ZIP of logos + esport images).
   const [mediaOpen, setMediaOpen] = useState(false);
 
+  // Keep the active tab in the URL so a RELOAD restores it (owner 2026-06-20: reloading
+  // used to bounce back to Teams). router.replace (not push) so the back button isn't
+  // spammed with tab switches; scroll:false keeps the viewport put.
+  const onTabChange = (v: string) => {
+    setTab(v);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", v);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <Tabs value={tab} onValueChange={setTab} className="gap-4">
+      <Tabs value={tab} onValueChange={onTabChange} className="gap-4">
         {/* shadcn pill/segment tabs (matches the rest of the admin area).
             data-tour anchor: first content step of the teams tour. */}
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -67,6 +85,10 @@ export default function TeamsAndPlayersPage() {
             {/* Owner ask 2026-06-13: the blacklist oversight dashboard as a tab. */}
             <TabsTrigger value="blacklists">
               <IconBan className="h-4 w-4" /> Blacklists
+            </TabsTrigger>
+            {/* Owner ask 2026-06-20: player + team reports triage, moved here. */}
+            <TabsTrigger value="reports">
+              <IconShield className="h-4 w-4" /> Reports
             </TabsTrigger>
           </TabsList>
           {/* Bulk media export: any set of teams (logos) + players (esport images). */}
@@ -89,6 +111,10 @@ export default function TeamsAndPlayersPage() {
             behind it is platform-admin gated server-side. */}
         <TabsContent value="blacklists">
           <BlacklistsTable />
+        </TabsContent>
+        {/* Player + team reports triage (own stat cards + filters + table). */}
+        <TabsContent value="reports">
+          <ReportsAdminContent />
         </TabsContent>
       </Tabs>
     </div>

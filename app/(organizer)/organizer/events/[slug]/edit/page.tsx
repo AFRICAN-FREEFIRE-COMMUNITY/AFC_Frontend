@@ -67,7 +67,7 @@ import { Form } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { IconLock, IconCalendarOff } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -198,8 +198,21 @@ export default function OrganizerEditEventPage({
   // Same shape the backend edit_event already authorises: owner OR can_edit_events.
   const canEditEvents = membership.permissions.can_edit_events || isOwner;
 
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   // ── Core loading/UI state ──────────────────────────────────────────────────
-  const [currentTab, setCurrentTab] = useState("basic_info");
+  // Active edit tab persists in the URL (?tab=) so a RELOAD keeps the step (owner
+  // 2026-06-20), same as the admin edit page. selectTab mirrors the change into the URL.
+  const [currentTab, setCurrentTab] = useState(
+    searchParams.get("tab") || "basic_info",
+  );
+  const selectTab = (v: string) => {
+    setCurrentTab(v);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", v);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   const [eventTitle, setEventTitle] = useState("Loading Event...");
@@ -1676,6 +1689,9 @@ export default function OrganizerEditEventPage({
             `Event "${data.event_name}" saved as ${data.save_to_drafts ? "Draft" : "Published"} successfully!`,
             { duration: 4000 },
           );
+          // Live-update (owner 2026-06-20): re-pull the saved event so changes show
+          // immediately without a manual reload (same as the admin edit page).
+          await fetchEventDetails();
         } else {
           const errorMessage = res.message || res.detail || res.error;
           if (response.status === 400) {
@@ -1785,7 +1801,7 @@ export default function OrganizerEditEventPage({
 
       <Form {...form}>
         <form className="space-y-6">
-          <Tabs value={currentTab} onValueChange={setCurrentTab}>
+          <Tabs value={currentTab} onValueChange={selectTab}>
             <TabsList className="w-full justify-start overflow-x-auto mb-2">
               {/* Each trigger keeps the error-dot anchor pattern from the admin edit
                   page (the InfoTip ⓘ buttons are dropped here — the organizer surface

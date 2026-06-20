@@ -335,7 +335,7 @@ function RankingsView() {
                               )}
                             </span>
                           ) : subject === "teams" ? (
-                            <TeamLink name={name} stopPropagation />
+                            <TeamLink name={name} country={r.country} stopPropagation />
                           ) : (
                             <PlayerLink name={name} stopPropagation />
                           )}

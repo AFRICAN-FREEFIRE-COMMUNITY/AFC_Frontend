@@ -13,6 +13,9 @@ import { WelcomeTour } from "./_components/WelcomeTour";
 import { PageGuide } from "./_components/PageGuide";
 // Gentle, dismissible nudge for players with no esports image / team owners with no logo (owner 2026-06-20).
 import { CompletionReminder } from "./_components/CompletionReminder";
+// First-login onboarding redirect (owner 2026-06-20): sends a brand-new user to the
+// skippable /onboarding flow once (has_completed_onboarding === false).
+import { OnboardingGate } from "./_components/OnboardingGate";
 
 import type { Metadata } from "next";
 
@@ -30,6 +33,8 @@ const layout = ({ children }: { children: ReactNode }) => {
       <div className="min-h-screen">
         <div className="relative z-10">
           <Header />
+          {/* First-login onboarding: redirect a brand-new user to /onboarding once. Renders nothing. */}
+          <OnboardingGate />
           {/* Quiet, dismissible profile-completion nudge (esports image / team logo). Non-blocking. */}
           <CompletionReminder />
           <div className="py-10 container min-h-[60vh]">{children}</div>

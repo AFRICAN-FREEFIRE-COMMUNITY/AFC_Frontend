@@ -22,6 +22,9 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader } from "@/components/Loader";
 import { useTranslations } from "next-intl";
+// "Continue with Google" (owner 2026-06-20). Renders nothing unless
+// NEXT_PUBLIC_GOOGLE_CLIENT_ID is configured, so password login is unaffected.
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 function LoginFormContent() {
   const router = useRouter();
@@ -173,6 +176,7 @@ function LoginFormContent() {
           {pending ? <Loader text={t("login.loading")} /> : t("login.submit")}
         </Button>
       </form>
+      <GoogleSignInButton />
     </Form>
   );
 }

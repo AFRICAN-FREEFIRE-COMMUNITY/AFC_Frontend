@@ -1,4 +1,7 @@
 {
+  "google.or": "or",
+  "google.success": "Signed in with Google.",
+  "google.failed": "Google sign-in failed. Please try again.",
   "login.heading": "Login to AFC",
   "login.identifierLabel": "In-game Name, UID, or Email",
   "login.identifierPlaceholder": "Enter your in-game name, UID, or email",

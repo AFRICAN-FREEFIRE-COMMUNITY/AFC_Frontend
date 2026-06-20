@@ -86,7 +86,13 @@ import {
   IconMedal,
   IconShieldCheck,
   IconLock,
+  IconFlag,
 } from "@tabler/icons-react";
+// Report dialog (owner 2026-06-20). Generic player/team reporter; here used for a
+// player. Shown to logged-in viewers on someone else's profile; posts to /auth/report-player/.
+import { ReportDialog } from "@/components/player/ReportDialog";
+// Public fan/hater reactions (owner 2026-06-20): counts visible to all, tap to react.
+import { FanHater } from "@/components/profile/FanHater";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types: mirror the public endpoint response exactly (do not add fields the
@@ -145,6 +151,7 @@ interface TournamentWinningRow {
 }
 
 interface PublicPlayer {
+  user_id: number;
   username: string;
   country: string;
   uid: string | null;
@@ -225,6 +232,8 @@ const fmtNgn = (raw: string | null | undefined): string => {
 export function PlayerClient({ username }: { username: string }) {
   // i18n: public player profile copy (messages/en/teamsplayers.json -> "player").
   const t = useTranslations("teamsplayers");
+  // Report-dialog copy (separate namespace, messages/en/playerReports.json).
+  const tReport = useTranslations("playerReports");
   // route username may be URL-encoded (spaces in IGNs); decode once for both the
   // request body and the own-profile comparison.
   const ign = useMemo(() => decodeURIComponent(username), [username]);
@@ -238,6 +247,8 @@ export function PlayerClient({ username }: { username: string }) {
   // Discord disconnect is an own-profile-only action (mirrors ProfileContent).
   const [discordPending, setDiscordPending] = useState(false);
   const [discordConnected, setDiscordConnected] = useState(false);
+  // Player-to-player report dialog open state (non-owner, logged-in viewers).
+  const [reportOpen, setReportOpen] = useState(false);
 
   // ── filter + chart controls ──
   const [range, setRange] = useState<RangeId>("12m");
@@ -516,6 +527,16 @@ export function PlayerClient({ username }: { username: string }) {
       {/* Green PageHeader title (AFC design constant) */}
       <PageHeader back title={player.username} />
 
+      {/* Player report dialog (controlled). Mounted once; opened by the Report
+          button in the identity card for logged-in, non-owner viewers. */}
+      <ReportDialog
+        subjectType="player"
+        subjectName={player.username}
+        subjectId={player.user_id}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+      />
+
       {/* ── IDENTITY CARD (mirrors own-profile + admin player card) ─────────── */}
       <Card>
         <CardHeader>
@@ -579,6 +600,16 @@ export function PlayerClient({ username }: { username: string }) {
                     </Badge>
                   )}
                 </div>
+                {/* Public fan/hater reactions (owner 2026-06-20): counts shown to all;
+                    tapping requires login. Hidden on the owner's own profile (you can't
+                    react to yourself - backend also blocks it). */}
+                {!isOwnProfile && (
+                  <FanHater
+                    subjectType="player"
+                    targetId={player.user_id}
+                    className="mt-3"
+                  />
+                )}
               </div>
             </div>
 
@@ -622,6 +653,23 @@ export function PlayerClient({ username }: { username: string }) {
                     </AlertDialogContent>
                   </AlertDialog>
                 )}
+              </div>
+            )}
+
+            {/* Report action: shown to LOGGED-IN viewers looking at SOMEONE ELSE's
+                profile (owner 2026-06-20). Hidden for the owner (they have the edit
+                actions above) and for logged-out visitors (reporting needs a session).
+                Opens ReportDialog (subjectType="player"), POST /auth/report-player/. */}
+            {!isOwnProfile && !!token && (
+              <div className="w-full md:w-auto">
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto text-red-500 border-red-500/40 hover:bg-red-500/10 hover:text-red-500"
+                  onClick={() => setReportOpen(true)}
+                >
+                  <IconFlag className="h-4 w-4 mr-1" />
+                  {tReport("report.trigger")}
+                </Button>
               </div>
             )}
           </div>

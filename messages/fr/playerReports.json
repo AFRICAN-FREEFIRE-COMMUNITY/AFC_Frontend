@@ -1,0 +1,74 @@
+{
+  "report": {
+    "trigger": "Signaler un joueur",
+    "triggerTeam": "Équipe chargée du rapport",
+    "title": "Signaler un joueur",
+    "titleTeam": "Équipe chargée du rapport",
+    "description": "Signaler <subject></subject>. Votre signalement est confidentiel et ne sera transmis qu'aux administrateurs de l'AFC.",
+    "reasonLabel": "Raison",
+    "reasons": {
+      "cheating": {
+        "title": "Tricherie / piratage",
+        "desc": "Aimbot, scripts ou autres outils déloyaux."
+      },
+      "toxicity": {
+        "title": "Comportement toxique / abusif",
+        "desc": "Insultes, propos diffamatoires ou comportements abusifs."
+      },
+      "harassment": {
+        "title": "Harcèlement",
+        "desc": "Harcèlement ciblé ou répété."
+      },
+      "impersonation": {
+        "title": "Usurpation d'identité / fausse identité",
+        "desc": "Se faire passer pour quelqu'un qu'ils ne sont pas."
+      },
+      "scam": {
+        "title": "Arnaque / fraude",
+        "desc": "A tenté d'escroquer ou de frauder des joueurs."
+      },
+      "other": {
+        "title": "Autres",
+        "desc": "Autre chose qui ne figure pas dans la liste ci-dessus."
+      }
+    },
+    "detailsLabel": "Que s'est-il passé ?",
+    "detailsPlaceholder": "Décrivez ce qui s'est passé. Indiquez les noms des matchs, les dates ou ajoutez des liens si possible.",
+    "proofLabel": "Démonstration",
+    "proofHint": "(facultatif)",
+    "proofNote": "Si vous en avez une, joignez une capture d'écran. Cela permettra aux administrateurs d'examiner votre demande plus rapidement.",
+    "proofAttached": "Pièce jointe : {name}",
+    "honestyNote": "<strong>Signalez les faits avec honnêteté.</strong> Le fait de signaler un incident faux ou à titre de plaisanterie peut vous valoir, à vous qui effectuez le signalement, des sanctions. Ne signalez que des problèmes réels.",
+    "cancel": "Annuler",
+    "submit": "Envoyer le rapport",
+    "submitting": "Envoi en cours...",
+    "success": "Le rapport a été envoyé. Merci, les administrateurs de l'AFC vont l'examiner.",
+    "failed": "Nous n'avons pas pu envoyer votre rapport. Veuillez réessayer.",
+    "loginRequired": "Veuillez vous connecter pour signaler un joueur."
+  },
+  "mine": {
+    "tabLabel": "Mes rapports",
+    "title": "Déclarations que vous avez déposées",
+    "empty": "Vous n'avez soumis aucun rapport.",
+    "filedOn": "Classé dans {date}",
+    "reportedLabel": "Joueur signalé",
+    "deletedPlayer": "(compte supprimé)",
+    "yourNotes": "Vos notes",
+    "adminAnswer": "Réponse de l'administration de l'AFC",
+    "noAnswerYet": "Pas encore de réponse. Un administrateur examinera votre signalement.",
+    "status": {
+      "open": "Ouvrir",
+      "reviewing": "En cours d'examen",
+      "resolved": "Résolu",
+      "dismissed": "Rejeté"
+    },
+    "category": {
+      "cheating": "Tricherie / piratage",
+      "toxicity": "Comportement toxique / abusif",
+      "harassment": "Harcèlement",
+      "impersonation": "Usurpation d'identité / fausse identité",
+      "scam": "Arnaque / fraude",
+      "other": "Autres"
+    }
+  }
+}

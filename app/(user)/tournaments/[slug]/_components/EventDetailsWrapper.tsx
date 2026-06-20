@@ -117,6 +117,8 @@ import {
 // Post-registration status board: the player's own sponsor submissions with
 // pending/approved/rejected pills and the rejected-row resubmit loop.
 import { SponsorRequirementsCard } from "./SponsorRequirementsCard";
+// Pre-register requirements heads-up (asset + sponsor requirements), shown to all viewers (owner 2026-06-20).
+import { EventRequirementsCard } from "./EventRequirementsCard";
 // Public "Qualified field" provenance banner (event linking P2): who entered this
 // event through fired qualification links. Self-hides when there are none.
 import { QualifiedFromBanner } from "@/components/qualified-from-banner";
@@ -4596,6 +4598,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   )}
                 </div>
               )}
+
+              {/* Requirements heads-up (owner 2026-06-20): what this event asks of registrants - the
+                  asset requirements toggled on + the sponsor ask - shown to ALL viewers BEFORE they
+                  register so they know the bar up front. Renders nothing when there are none. */}
+              <EventRequirementsCard
+                requireTeamLogo={eventDetails.require_team_logo}
+                requireEsportImages={eventDetails.require_esport_images}
+                requirePlayerUid={eventDetails.require_player_uid}
+                requirePlayerProfileImage={eventDetails.require_player_profile_image}
+                isSponsored={eventDetails.is_sponsored}
+                sponsorName={eventDetails.sponsor_name}
+                sponsorRequirementDescription={eventDetails.sponsor_requirement_description}
+                sponsorFieldLabel={eventDetails.sponsor_field_label}
+              />
 
               {/* Results ⇄ Structure toggle. "Structure" renders the new graphical
                   TournamentStructure view (stage flow + group standings); "Results"

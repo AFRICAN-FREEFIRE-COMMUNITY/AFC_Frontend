@@ -11,6 +11,14 @@
     "locked": "Locked",
     "review": "Review"
   },
+  "sentiment": {
+    "fan": "I'm a fan",
+    "hater": "I'm a hater",
+    "fans": "{count, plural, one {# fan} other {# fans}}",
+    "haters": "{count, plural, one {# hater} other {# haters}}",
+    "loginRequired": "Please log in to react.",
+    "failed": "Could not save your reaction. Please try again."
+  },
   "errors": {
     "generic": "Oops! An error occurred",
     "internalServer": "Internal server error",

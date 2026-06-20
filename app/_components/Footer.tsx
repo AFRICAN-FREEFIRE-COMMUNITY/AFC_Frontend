@@ -14,7 +14,10 @@ export const Footer = () => {
   return (
     <footer className="border-t border-border/40 bg-background/50 backdrop-blur-sm mt-8">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-4 gap-8">
+        {/* Brand column wider (2fr) so the three link columns (Platform / Community /
+            Support) are equal width AND sit further right - the Support column then lines
+            up under the right-aligned "Powered by" text in the bottom bar (owner 2026-06-20). */}
+        <div className="grid gap-8 md:grid-cols-[2fr_1fr_1fr_1fr]">
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <Logo size="small" />

@@ -47,7 +47,13 @@ import {
   Twitch,
   AlertTriangle,
   Search,
+  Flag,
 } from "lucide-react";
+// Generic report dialog (owner 2026-06-20): used here with subjectType="team" so a
+// logged-in viewer can report a whole team. Posts to /auth/report-team/.
+import { ReportDialog } from "@/components/player/ReportDialog";
+// Public fan/hater reactions for the team (owner 2026-06-20).
+import { FanHater } from "@/components/profile/FanHater";
 import Link from "next/link";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -131,6 +137,8 @@ const Page = ({ params }: { params: Params }) => {
   const { id } = use(params);
   // i18n: team detail page copy (messages/en/teamsplayers.json -> "teamDetail").
   const t = useTranslations("teamsplayers");
+  // Report-dialog copy (separate namespace, messages/en/playerReports.json).
+  const tReport = useTranslations("playerReports");
   const router = useRouter();
   const { openAuthModal } = useAuthModal();
   const [inviteLink, setInviteLink] = useState("");
@@ -156,6 +164,8 @@ const Page = ({ params }: { params: Params }) => {
   const [playerMarketApplications, setPlayerMarketApplications] = useState<any[]>([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
   const [reviewApp, setReviewApp] = useState<ApplicationRecord | null>(null);
+  // Team report dialog (owner 2026-06-20): logged-in viewers can report this team.
+  const [reportOpen, setReportOpen] = useState(false);
 
   const { user, token } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -519,6 +529,15 @@ const Page = ({ params }: { params: Params }) => {
     return (
       <div>
         <PageHeader back title={teamDetails?.team_name} />
+
+        {/* Team report dialog (controlled). Opened by the Report button in the header. */}
+        <ReportDialog
+          subjectType="team"
+          subjectName={teamDetails?.team_name ?? ""}
+          subjectId={teamDetails?.team_id}
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+        />
         <Card className={teamDetails.is_banned ? "border-red-500" : ""}>
           <CardHeader>
             <div className="flex flex-col md:flex-row items-start gap-4 md:gap-0 md:items-center justify-between">
@@ -555,9 +574,28 @@ const Page = ({ params }: { params: Params }) => {
                       {t("teamDetail.banned")}
                     </Badge>
                   )}
+                  {/* Public fan/hater reactions for this team (owner 2026-06-20). */}
+                  <FanHater
+                    subjectType="team"
+                    targetId={teamDetails?.team_id}
+                    className="mt-3"
+                  />
                 </div>
               </div>
               <div className="space-x-2 w-full md:w-auto">
+                {/* Report this team (owner 2026-06-20): shown to LOGGED-IN viewers who do
+                    not run the team (no full access). Opens the generic ReportDialog with
+                    subjectType="team" -> POST /auth/report-team/. */}
+                {!!token && !hasFullAccess && (
+                  <Button
+                    variant="outline"
+                    className="w-full md:w-auto text-red-500 border-red-500/40 hover:bg-red-500/10 hover:text-red-500"
+                    onClick={() => setReportOpen(true)}
+                  >
+                    <Flag className="h-4 w-4" />
+                    {tReport("report.triggerTeam")}
+                  </Button>
+                )}
                 {!hasFullAccess &&
                   !teamDetails?.is_banned &&
                   !isMember &&

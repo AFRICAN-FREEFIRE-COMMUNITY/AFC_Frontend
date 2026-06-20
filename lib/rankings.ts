@@ -30,6 +30,9 @@ export interface TeamRow {
   rank: number | null;
   team_id: number | null;
   team_name: string;
+  // Team country (Team.country) for the flag beside the name; null for ghost rows. From the
+  // team_monthly/team_quarterly serializer. (owner 2026-06-20)
+  country?: string | null;
   is_ghost: boolean;
   // Ghost-claim hints (NULL on real rows). ghost_team_id is the UUID the public claim-request
   // endpoint is keyed on; claim_status gates the "Claim" button on /rankings. Both are emitted by

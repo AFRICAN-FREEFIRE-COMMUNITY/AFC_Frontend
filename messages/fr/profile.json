@@ -16,7 +16,11 @@
     "connectDiscord": "Se connecter à Discord",
     "connecting": "Connexion en cours...",
     "disconnecting": "Déconnexion en cours...",
-    "disconnect": "Déconnexion - {username}"
+    "disconnect": "Déconnexion - {username}",
+    "esportsImageLabel": "Image e-sport",
+    "esportsImageAlt": "{name}",
+    "esportsImageEmpty": "Il n'y a pas encore d'image relative à l'e-sport",
+    "esportsImageHint": "Ajouter un élément depuis « Modifier le profil »"
   },
   "discord": {
     "disconnectTitle": "Êtes-vous absolument sûr ?",

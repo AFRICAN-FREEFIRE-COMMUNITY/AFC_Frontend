@@ -50,6 +50,40 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
+        {/* What the platform does + how Google sign-in uses data (owner 2026-06-20).
+            This page is the homepage URL set on the Google OAuth consent screen, so it
+            must state the app's purpose AND what Google user data is used and why. */}
+        <Card className="gap-1.5">
+          <CardHeader>
+            <CardTitle>What the AFC Hub does</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm md:text-base text-muted-foreground">
+            <p>
+              The AFC Hub is a competitive Free Fire esports platform. Players create a
+              profile, build and manage teams, register for tournaments and scrims, climb
+              the monthly rankings, and track their match stats and achievements, all in
+              one place.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="gap-1.5">
+          <CardHeader>
+            <CardTitle>Signing in with Google</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm md:text-base text-muted-foreground">
+            <p>
+              Signing in with Google is optional. If you choose it, AFC only uses your
+              name and email address to create and sign you into your AFC account. We
+              never post to your Google account or access any other Google data. See our{" "}
+              <a href="/privacy-policy" className="text-primary hover:underline">
+                Privacy Policy
+              </a>{" "}
+              for how your data is handled.
+            </p>
+          </CardContent>
+        </Card>
+
         <Card className="gap-1.5">
           <CardHeader>
             <CardTitle>Our Values</CardTitle>

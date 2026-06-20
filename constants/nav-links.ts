@@ -154,6 +154,9 @@ export const adminNavLinks: AdminNavLink[] = [
     allowedRoles: ["head_admin"],
     icon: IconUsers,
   },
+  // Player + team reports triage now lives UNDER "Teams & Players" as a Reports tab
+  // (owner 2026-06-20), so there is no standalone sidebar entry. /a/player-reports
+  // redirects to /a/teams?tab=reports for old links.
   {
     // Events + Leaderboards are now ONE combined page (owner request 2026-06-09): the two
     // standalone admin pages were merged into a single two-tab page at /a/events

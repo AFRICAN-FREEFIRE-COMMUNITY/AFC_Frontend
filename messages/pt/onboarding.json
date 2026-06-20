@@ -1,0 +1,38 @@
+{
+  "title": "Bem-vindo à AFC",
+  "subtitle": "Vamos preparar o teu perfil. Podes saltar qualquer passo e concluí-los mais tarde a partir do teu perfil.",
+  "skipAll": "Por enquanto, ignorar",
+  "stepLabel": "Passo {n} de {total}",
+  "back": "Voltar",
+  "next": "Seguinte",
+  "skipStep": "Ignorar este passo",
+  "finish": "Concluir",
+  "doneBadge": "Concluído",
+  "saved": "Guardado.",
+  "failed": "Não foi possível guardar. Por favor, tente novamente.",
+  "finished": "Está tudo pronto. Bem-vindo a bordo!",
+  "steps": {
+    "esports": {
+      "title": "Adicione a sua imagem de eSports",
+      "desc": "Uma fotografia nítida tua (um retrato do tronco). Os organizadores utilizam-na nos materiais gráficos do evento. Tem de ser uma fotografia tua real.",
+      "choose": "Escolha uma imagem",
+      "save": "Carregar imagem",
+      "have": "Já tens uma imagem relacionada com os eSports. Podes substituí-la."
+    },
+    "uid": {
+      "title": "Introduza o seu UID do Free Fire",
+      "desc": "O teu UID no jogo permite que os organizadores verifiquem a tua identidade para os torneios.",
+      "label": "UID do Free Fire",
+      "placeholder": "por exemplo, 1234567890",
+      "save": "Guardar UID",
+      "have": "O seu UID já está definido. Pode atualizá-lo."
+    },
+    "photo": {
+      "title": "Adicionar uma foto de perfil",
+      "desc": "O teu avatar em todo o site.",
+      "choose": "Escolher foto",
+      "save": "Guardar foto",
+      "have": "Já tens uma foto de perfil. Podes substituí-la."
+    }
+  }
+}

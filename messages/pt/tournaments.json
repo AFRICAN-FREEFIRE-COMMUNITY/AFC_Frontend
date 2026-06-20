@@ -483,6 +483,17 @@
     "commentSuccess": "Enviado ao organizador",
     "commentFailed": "Falha ao enviar seu comentário"
   },
+  "requirements": {
+    "title": "Requisitos para a inscrição",
+    "intro": "Antes de se inscrever neste evento, certifique-se de que tem:",
+    "teamLogo": "Um logótipo da equipa foi carregado",
+    "esportImage": "Uma imagem relacionada com os eSports no perfil de cada jogador",
+    "uid": "Conjunto de UIDs do Free Fire de cada jogador",
+    "profileImage": "Uma foto de perfil no perfil de cada jogador",
+    "sponsorTitle": "Requisitos para os patrocinadores",
+    "sponsorTitleNamed": "Requisitos para patrocinadores ({sponsor})",
+    "sponsorField": "Ser-lhe-á pedido que forneça: {field}"
+  },
   "sponsorRequirements": {
     "title": "Requisitos do Patrocinador",
     "description": "Suas submissões de patrocinador para este evento. Itens rejeitados podem ser corrigidos e reenviados abaixo.",

@@ -71,6 +71,9 @@ export interface User {
   // app/(user)/_components/WelcomeTour.tsx: the tour auto-shows only while this is false. Set by
   // the backend get-user-profile payload and flipped via POST /auth/mark-welcome-seen/.
   has_seen_welcome?: boolean;
+  // First-login onboarding flag (owner 2026-06-20). False for a brand-new account;
+  // OnboardingGate redirects such users to /onboarding once. Set True on Finish/Skip.
+  has_completed_onboarding?: boolean;
   // One-time dashboard intro callouts: {"sponsor": true, ...} once each is dismissed. Consumed by
   // app/(user)/_components/DashboardIntroCoachmark.tsx, which shows a "here is where your new
   // dashboard lives" callout for any accessible dashboard whose key is missing. Set by the backend
@@ -333,6 +336,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // tour) so a missing field never silences a new user; the explicit POST
         // /auth/mark-welcome-seen/ is what permanently turns it off once they finish or skip.
         has_seen_welcome: dbUser.has_seen_welcome ?? false,
+        has_completed_onboarding: dbUser.has_completed_onboarding ?? false,
         // Dismissed one-time dashboard intros (see the User interface note). Default {} so a
         // missing field reads as "nothing dismissed yet" - the coachmark gates on access TOO,
         // so a user with no dashboards still sees nothing.

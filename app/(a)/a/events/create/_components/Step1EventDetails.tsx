@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -719,6 +720,117 @@ export function Step1EventDetails({
             </FormItem>
           )}
         />
+        {/* ── Registration requirements (owner 2026-06-20: moved to STEP 1 so creators see them
+            first). Per-event criteria the backend enforces at registration (register_for_event):
+            teams need a logo, and every registering player needs the toggled assets (esport image /
+            profile image / Free Fire UID). This is a shared step-1 field set, so BOTH the admin and
+            organizer create wizards get them here. (Previously lived in the later waitlist step.) */}
+        <div className="space-y-3 rounded-lg border p-4">
+          <div>
+            <Label>Registration requirements</Label>
+            <p className="text-xs text-muted-foreground">
+              Block registration until competitors have uploaded the media you need for
+              graphics and broadcasts.
+            </p>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-team-logo">Require team logo</Label>
+              <p className="text-xs text-muted-foreground">
+                Teams cannot register until their team logo is uploaded.
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field
+              control={form.control}
+              name={"require_team_logo" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-team-logo"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-esport-images">Require player esport images</Label>
+              <p className="text-xs text-muted-foreground">
+                Every registering player must have their esport image uploaded on their
+                profile.
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field
+              control={form.control}
+              name={"require_esport_images" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-esport-images"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-player-profile-image">Require player profile image</Label>
+              <p className="text-xs text-muted-foreground">
+                Every registering player must have a profile image uploaded.
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field
+              control={form.control}
+              name={"require_player_profile_image" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-player-profile-image"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-player-uid">Require player Free Fire UID</Label>
+              <p className="text-xs text-muted-foreground">
+                Every registering player must have their Free Fire UID set on their profile.
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field
+              control={form.control}
+              name={"require_player_uid" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-player-uid"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
