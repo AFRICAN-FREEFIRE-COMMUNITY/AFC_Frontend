@@ -20,6 +20,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+// Country flag shown beside team names sitewide (owner 2026-06-20). TeamLink renders it when a `country`
+// is supplied; callers that have the team's country (lists, rankings, team page) pass it, and any caller
+// that doesn't simply renders the name as before (no flag, nothing breaks).
+import { CountryFlag, countryToIso2 } from "@/lib/countryFlag";
 
 // Subtle, shared link styling. Kept in one place so the whole sweep is uniform.
 const SUBTLE_LINK = "hover:underline hover:text-primary transition-colors";
@@ -72,7 +76,19 @@ export function PlayerLink(props: EntityLinkProps) {
   return buildLink("players", props);
 }
 
-// Team name -> public team page (/teams/<team_name>).
-export function TeamLink(props: EntityLinkProps) {
-  return buildLink("teams", props);
+// Team name -> public team page (/teams/<team_name>). When `country` is supplied (an ISO-2 code OR a
+// full name; the team's auto-derived country), a small flag is shown before the name. Omit `country`
+// (or pass an unresolvable value) and it renders exactly as before, with no flag.
+export function TeamLink({
+  country,
+  ...props
+}: EntityLinkProps & { country?: string | null }) {
+  const link = buildLink("teams", props);
+  if (!countryToIso2(country)) return link;
+  return (
+    <span className="inline-flex items-center gap-1">
+      <CountryFlag country={country} />
+      {link}
+    </span>
+  );
 }

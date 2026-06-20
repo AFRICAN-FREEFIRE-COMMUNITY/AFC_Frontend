@@ -216,6 +216,7 @@ function page() {
                           {/* Team name links to the public team page. */}
                           <TeamLink
                             name={team.team_name}
+                            country={team.country}
                             className="uppercase text-lg md:text-xl"
                           />
                           {team.is_banned && (
@@ -414,8 +415,8 @@ function page() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h2 className="text-lg font-semibold leading-tight truncate uppercase">
-                        {/* Team name links to the public team page. */}
-                        <TeamLink name={myTeam.team_name} />
+                        {/* Team name links to the public team page; flag = team's auto-derived country. */}
+                        <TeamLink name={myTeam.team_name} country={myTeam.country} />
                       </h2>
                       {myTeam.team_tag && (
                         <Badge variant="outline" className="text-xs shrink-0">

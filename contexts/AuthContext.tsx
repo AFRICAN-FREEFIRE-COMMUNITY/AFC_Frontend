@@ -50,6 +50,9 @@ export interface User {
   // edit_profile. Set by the get-user-profile payload; releases once all their events complete.
   identity_locked?: boolean;
   team: string | null;
+  // Profile-completion reminder (owner 2026-06-20): the name of a team this user OWNS that has no logo
+  // (or null), so a gentle nudge can ask the owner to add one. From get-user-profile.
+  team_without_logo?: string | null;
   role: string;
   roles: string[];
   email: string;
@@ -310,6 +313,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // in a live event (server also enforces it in edit_profile). Defaults false when omitted.
         identity_locked: dbUser.identity_locked ?? false,
         team: dbUser.team,
+        team_without_logo: dbUser.team_without_logo ?? null,
         role: dbUser.role,
         roles: dbUser.roles || [],
         email: dbUser.email,

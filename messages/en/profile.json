@@ -16,7 +16,11 @@
     "connectDiscord": "Connect to Discord",
     "connecting": "Connecting...",
     "disconnecting": "Disconnecting...",
-    "disconnect": "Disconnect - {username}"
+    "disconnect": "Disconnect - {username}",
+    "esportsImageLabel": "Esports Image",
+    "esportsImageAlt": "{name}'s esports image",
+    "esportsImageEmpty": "No esports image yet",
+    "esportsImageHint": "Add one from Edit Profile"
   },
   "discord": {
     "disconnectTitle": "Are you absolutely sure?",

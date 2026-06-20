@@ -1864,10 +1864,9 @@ export default function OrganizerEditEventPage({
                 loadingEvent={loadingEvent}
                 pendingSubmit={pendingSubmit}
                 // Internal/External Event Type is AFC-only; hide it for organizers.
-                // The existing event_type value is kept and re-sent on save.
                 hideEventType
-                // Registration link is an AFC-only concern; hide it for organizers.
-                // The existing value (if any) is kept and re-sent on save.
+                // Registration link is an AFC-only concern; NOT applied to organizer events at all
+                // (owner reverted 2026-06-20: organizers do not get the external registration link).
                 hideRegistrationLink
               />
             </TabsContent>

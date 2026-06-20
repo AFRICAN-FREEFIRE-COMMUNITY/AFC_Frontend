@@ -112,6 +112,7 @@ import TeamStatisticsTab from "./_components/TeamStatisticsTab";
 import TeamAchievementsTab from "./_components/TeamAchievementsTab";
 // Subtle clickable player name -> public player profile (roster / applications / requests).
 import { PlayerLink } from "@/components/ui/entity-link";
+import { CountryFlag } from "@/lib/countryFlag";
 // Team-side "Request blacklist lift" action: lets a manager (or a member, for themselves)
 // ask an organizer to lift an active organizer blacklist on this team. It AUTO-DISCOVERS the
 // blacklists affecting this team via GET /organizers/blacklists/mine/?team_id= (no manual id
@@ -545,7 +546,8 @@ const Page = ({ params }: { params: Params }) => {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-muted-foreground mt-1 inline-flex items-center gap-1.5">
+                    <CountryFlag country={teamDetails?.country} />
                     {t("teamDetail.country", { country: teamDetails?.country })}
                   </p>
                   {teamDetails?.is_banned && (
@@ -699,8 +701,13 @@ const Page = ({ params }: { params: Params }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">{t("teamDetail.countryLabel")}</p>
-                        <p className="text-lg md:text-xl font-semibold">
+                        <p className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                          <CountryFlag country={teamDetails?.country} />
                           {teamDetails?.country}
+                        </p>
+                        {/* F2 (owner 2026-06-20): explain the auto-country rule on the user-facing side. */}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t("teamDetail.countryAutoExplain")}
                         </p>
                       </div>
                       <div>
@@ -808,8 +815,12 @@ const Page = ({ params }: { params: Params }) => {
                           .map((member: any, index: string) => (
                             <TableRow key={index}>
                               <TableCell>
-                                {/* Member name links to the public player profile. */}
-                                <PlayerLink name={member.username} />
+                                {/* Member name links to the public player profile; the flag is the
+                                    member's own country (these locations derive the team country). */}
+                                <span className="inline-flex items-center gap-1.5">
+                                  <CountryFlag country={member.country} />
+                                  <PlayerLink name={member.username} />
+                                </span>
                               </TableCell>
                               <TableCell>
                                 {formatWord(member.in_game_role) || (

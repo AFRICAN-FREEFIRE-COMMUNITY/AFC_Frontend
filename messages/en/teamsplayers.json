@@ -135,6 +135,7 @@
     "tabRequests": "Requests & Applications",
     "teamOverview": "Team Overview",
     "countryLabel": "Country",
+    "countryAutoExplain": "Set automatically from where the team's players are based: the country most players are from. If there's a tie, the team owner's country is used.",
     "totalKills": "Total Kills",
     "totalWins": "Total Wins",
     "tierLabel": "Tier",

@@ -971,7 +971,8 @@ export default function OrganizerCreateEventPage() {
               setPreviewUrl={setPreviewUrl}
               // AFC-only internal/external Event Type is hidden for organizers.
               hideEventType
-              // Registration link is an AFC-only concern; not needed for org events.
+              // Registration link is an AFC-only concern; NOT applied to organizer events at all
+              // (owner reverted 2026-06-20: organizers do not get the external registration link).
               hideRegistrationLink
             />
           )}

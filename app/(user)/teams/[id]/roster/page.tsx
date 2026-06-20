@@ -110,14 +110,22 @@ export default function page({ params }: { params: Params }) {
       );
 
       if (currentMember) {
+        // Staff roles (coach/manager/analyst) never hold an in-game position. When the management
+        // role is being moved TO staff, clear in_game_role in the payload - otherwise we'd re-send the
+        // member's stale playing position and the backend returns a partial "only players can have
+        // in-game roles" error (the backend drops it anyway). Keeps owner->staff + member->staff clean.
+        const STAFF_ROLES = new Set(["coach", "manager", "analyst"]);
+        const nextManagementRole =
+          roleType === "managementRole"
+            ? newRole
+            : existingChange?.management_role ?? currentMember.management_role;
+
         const update: MemberUpdate = {
           member_id: memberId,
-          management_role:
-            roleType === "managementRole"
-              ? newRole
-              : existingChange?.management_role ?? currentMember.management_role,
-          in_game_role:
-            roleType === "inGameRole"
+          management_role: nextManagementRole,
+          in_game_role: STAFF_ROLES.has(nextManagementRole)
+            ? ""
+            : roleType === "inGameRole"
               ? newRole
               : existingChange?.in_game_role ?? currentMember.in_game_role ?? "",
         };

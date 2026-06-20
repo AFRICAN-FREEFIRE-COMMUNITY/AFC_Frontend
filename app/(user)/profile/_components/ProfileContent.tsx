@@ -349,6 +349,35 @@ export const ProfileContent = () => {
                 user.language ?? "en"
               ] ?? "English"}
             </p>
+            {/* Esports image (UserProfile.esports_pic). Shown on the owner's own profile so they KNOW
+                it exists - organizers use it as the player's image in event graphics. It is uploaded /
+                replaced from the Edit Profile page (the backend already returns esport_image_url on
+                get-user-profile -> AuthContext user). Distinct from the profile picture (the Avatar above). */}
+            <div className="w-full mb-4">
+              <p className="mb-2 text-sm font-medium text-center">
+                {t("card.esportsImageLabel")}
+              </p>
+              {user.esport_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.esport_image_url}
+                  alt={t("card.esportsImageAlt", { name: user.full_name })}
+                  className="w-full max-h-48 rounded-md border object-cover"
+                />
+              ) : (
+                <Link
+                  href="/profile/edit"
+                  className="flex flex-col items-center gap-1 rounded-md border border-dashed p-4 text-center hover:bg-muted/40"
+                >
+                  <span className="text-sm text-muted-foreground">
+                    {t("card.esportsImageEmpty")}
+                  </span>
+                  <span className="text-xs text-primary hover:underline">
+                    {t("card.esportsImageHint")}
+                  </span>
+                </Link>
+              )}
+            </div>
             <div className="grid w-full gap-2">
               <div className="flex items-center justify-end">
                 <InfoTip id="profile.discord_connect" />
