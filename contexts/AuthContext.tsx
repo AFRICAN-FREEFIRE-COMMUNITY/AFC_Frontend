@@ -277,7 +277,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [token]);
 
-  const fetchUser = async (token: string): Promise<User> => {
+  // Resilient profile fetch. Logs the user out ONLY on a genuine auth failure (401). Any TRANSIENT
+  // failure (network, timeout, 5xx - e.g. a backend worker momentarily stalled) is retried with
+  // backoff and, if it still fails, leaves the session INTACT (token kept) instead of logging the
+  // user out. (owner 2026-06-20: "open a page and it randomly logs me out" - a transient
+  // get-user-profile failure was destroying a perfectly valid, freshly-logged-in session.)
+  const fetchUser = async (token: string, attempt = 0): Promise<User> => {
     try {
       const res = await axios(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-user-profile/`,
@@ -285,12 +290,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          // Fail fast if a worker is stalled so a retry can recover, instead of hanging.
+          timeout: 15000,
         },
       );
 
-      if (res.statusText !== "OK") throw new Error("Failed to fetch user");
-
-      // Map the database user to your User interface
+      // axios already rejects non-2xx, so reaching here means a 2xx response. Do NOT gate on
+      // res.statusText - it is empty ("") on HTTP/2, which made a valid 200 throw -> logout.
       const dbUser = res.data;
 
       const mappedUser: User = {
@@ -337,8 +343,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(mappedUser);
       return mappedUser;
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Internal server error");
-      logout();
+      const status = err?.response?.status;
+
+      // Genuine auth failure: the token is invalid/expired -> clear the session.
+      if (status === 401) {
+        logout();
+        throw err;
+      }
+
+      // TRANSIENT failure (no response = network/timeout, or a 5xx). DO NOT destroy a valid
+      // session. Retry a couple times with backoff; the backend usually recovers (e.g. once a
+      // stalled worker frees up). If it still fails, KEEP the token so a reload logs the user
+      // straight back in - no forced re-login on a server hiccup.
+      const isTransient = status === undefined || status >= 500;
+      if (isTransient && attempt < 2) {
+        await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+        return await fetchUser(token, attempt + 1);
+      }
+
+      toast.error(
+        isTransient
+          ? "Couldn't reach the server. Your session is kept; please retry."
+          : err.response?.data?.message || "Internal server error",
+      );
       throw err;
     } finally {
       setLoading(false);
