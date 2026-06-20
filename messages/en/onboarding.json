@@ -15,6 +15,8 @@
     "esports": {
       "title": "Add your esports image",
       "desc": "A clear photo of you (a bust shot). Organizers use it in event graphics. It must be a real picture of you.",
+      "samplesTitle": "Examples of a good esports image:",
+      "sampleAlt": "Example esports image",
       "choose": "Choose image",
       "save": "Upload image",
       "have": "You already have an esports image. You can replace it."

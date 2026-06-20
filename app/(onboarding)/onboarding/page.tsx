@@ -204,6 +204,23 @@ export default function OnboardingPage() {
             {haveEsports && (
               <p className="text-xs text-muted-foreground italic">{t("steps.esports.have")}</p>
             )}
+            {/* Reference samples (owner 2026-06-21): the same shots shown on the profile-edit
+                page (public/esport-samples/) so a brand-new user sees what a good bust shot looks
+                like before uploading. The backend then verifies a human face is present. */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-foreground">{t("steps.esports.samplesTitle")}</p>
+              <div className="flex flex-wrap gap-2">
+                {["sample-1.jpg", "sample-2.png", "sample-3.webp"].map((f) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={f}
+                    src={`/esport-samples/${f}`}
+                    alt={t("steps.esports.sampleAlt")}
+                    className="h-28 w-20 rounded-md border object-cover"
+                  />
+                ))}
+              </div>
+            </div>
             <Input type="file" accept="image/*" onChange={(e) => setEsportFile(e.target.files?.[0] ?? null)} />
           </div>
         )}

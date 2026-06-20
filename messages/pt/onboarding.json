@@ -15,6 +15,8 @@
     "esports": {
       "title": "Adicione a sua imagem de eSports",
       "desc": "Uma fotografia nítida tua (um retrato do tronco). Os organizadores utilizam-na nos materiais gráficos do evento. Tem de ser uma fotografia tua real.",
+      "samplesTitle": "Exemplos de uma boa imagem no mundo dos eSports:",
+      "sampleAlt": "Imagem de exemplo de eSports",
       "choose": "Escolha uma imagem",
       "save": "Carregar imagem",
       "have": "Já tens uma imagem relacionada com os eSports. Podes substituí-la."

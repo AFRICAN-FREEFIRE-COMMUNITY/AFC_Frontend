@@ -13,6 +13,8 @@
   "finished": "You're all set. Welcome aboard!",
   "steps.esports.title": "Add your esports image",
   "steps.esports.desc": "A clear photo of you (a bust shot). Organizers use it in event graphics. It must be a real picture of you.",
+  "steps.esports.samplesTitle": "Examples of a good esports image:",
+  "steps.esports.sampleAlt": "Example esports image",
   "steps.esports.choose": "Choose image",
   "steps.esports.save": "Upload image",
   "steps.esports.have": "You already have an esports image. You can replace it.",
