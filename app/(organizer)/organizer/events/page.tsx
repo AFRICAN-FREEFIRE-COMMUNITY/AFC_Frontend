@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/table";
 import {
   IconCalendarEvent,
+  IconEyeOff,
   IconLink,
   IconPlus,
   IconPencil,
@@ -144,34 +145,63 @@ export default function OrganizerEventsPage() {
 
   const [events, setEvents] = useState<OrgEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  // Which event row is mid-unpublish (drives its button's pending state + disables it).
+  const [unpublishingId, setUnpublishingId] = useState<string | null>(null);
+
+  // Load the selected org's events. Extracted from the effect so the Unpublish action
+  // can re-fetch afterwards (a freshly-drafted event then drops off this published-only
+  // list). get-all-events filters is_draft=False, so every row here is a published event.
+  const loadEvents = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
+        {
+          params: { organization_id: organizationId },
+          // get-all-events is read-only/public, but we still send the Bearer so an
+          // org-scoped backend can authorise the caller against the organization.
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        },
+      );
+      setEvents(res.data?.events ?? []);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to load your events.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ── Load the selected org's events. Re-runs when the org switches (the layout
   // re-mounts this subtree keyed on slug, so organizationId is always current). ──
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
-          {
-            params: { organization_id: organizationId },
-            // get-all-events is read-only/public, but we still send the Bearer so an
-            // org-scoped backend can authorise the caller against the organization.
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          },
-        );
-        setEvents(res.data?.events ?? []);
-      } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message || "Failed to load your events.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
+    loadEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId, token]);
+
+  // ── Unpublish an event (published -> draft) ─────────────────────────────────
+  // One-click parity with the admin events list. Calls POST /events/edit-event/ with
+  // { event_id, is_draft: true } - the SAME endpoint + payload the admin Unpublish button
+  // and the [slug]/edit form use. The backend authorises org members with can_edit_events
+  // (or the owner) on the event's owning org, so this works for org-owned events with no
+  // backend change. Gated on canEditEvents, exactly like the Edit button. On success we
+  // re-fetch: the now-drafted event leaves this published-only list and shows up under
+  // /organizer/events/drafts, where "Continue editing" re-publishes it.
+  const handleUnpublish = async (event: OrgEvent) => {
+    setUnpublishingId(event.event_id);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
+        { event_id: event.event_id, is_draft: true },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success("Event unpublished. It is now a draft.");
+      await loadEvents();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to unpublish event.");
+    } finally {
+      setUnpublishingId(null);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -276,6 +306,21 @@ export default function OrganizerEventsPage() {
                               <IconPencil className="size-4" />
                               Edit
                             </Link>
+                          </Button>
+                        )}
+                        {/* Unpublish -> set the event back to a draft (hides it from every
+                            public list). Same gate as Edit; mirrors the admin events list. */}
+                        {canEditEvents && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleUnpublish(event)}
+                            disabled={unpublishingId === event.event_id}
+                          >
+                            <IconEyeOff className="size-4" />
+                            {unpublishingId === event.event_id
+                              ? "Unpublishing..."
+                              : "Unpublish"}
                           </Button>
                         )}
                         {/* Duplicate → clone this event into a fresh draft, then deep-link
