@@ -110,6 +110,12 @@ const NAV_ITEMS = [
   // Gated PER-PAGE on can_manage_registrations (or owner) - the SAME permission the
   // backend blacklist endpoints require. See app/(organizer)/organizer/blacklists/page.tsx.
   { label: "Blacklists", href: "/organizer/blacklists" },
+  // "Watchlist" (owner 2026-06-21) - the SHARED, AFC-wide advisory list of suspicious players +
+  // teams (NOT a ban - a warning + name tags so admins/organizers watch out for them). Visible to
+  // every organizer (the backend gate allows any active org member). See
+  // app/(organizer)/organizer/watchlist/page.tsx. (Label kept literal to match the existing nav;
+  // the PAGE body is internationalized via next-intl per the i18n rule.)
+  { label: "Watchlist", href: "/organizer/watchlist" },
 ];
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────

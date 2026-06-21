@@ -29,6 +29,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { InfoTip } from "@/components/ui/info-tip";
+// Shared advisory-watchlist badge + client (components/WatchTag.tsx, lib/watchlist.ts). On load we
+// ask watchlistApi.tags once which of the visible team_ids / member player_ids are actively watched,
+// then render <WatchTag> next to those names so staff see the flag right on the registered roster.
+import { WatchTag } from "@/components/WatchTag";
+import { watchlistApi } from "@/lib/watchlist";
 import { IconChevronDown, IconUser } from "@tabler/icons-react";
 import { DisqualifyModal } from "../../../_components/DisqualifyModal";
 import { ReactivateModal } from "../../../_components/ReactivateModal";
@@ -168,6 +173,41 @@ export default function RegisteredTeamsTab({
   useEffect(() => {
     fetchWarnings();
   }, [fetchWarnings]);
+
+  // ── Watchlist tags (owner 2026-06-21) ──
+  // One bulk "which of these ids are actively watched" call per load (and again whenever the team
+  // list changes), collecting EVERY visible team id + member/competitor player id. Drives the
+  // <WatchTag> badge next to flagged team + player names. Best-effort: failures leave it empty.
+  const [watched, setWatched] = useState<{
+    teamIds: Set<number>;
+    playerIds: Set<number>;
+  }>({ teamIds: new Set(), playerIds: new Set() });
+
+  const fetchWatchTags = useCallback(async () => {
+    // Teams: the registered teams' site team_id. Players: solo competitors OR every team member.
+    const teamIds = isTeamEvent
+      ? eventDetails.tournament_teams.map((t: any) => t.team_id).filter(Boolean)
+      : [];
+    const playerIds = isTeamEvent
+      ? eventDetails.tournament_teams.flatMap((t: any) =>
+          (t.members ?? []).map((m: TeamMember) => m.player_id),
+        )
+      : (eventDetails.registered_competitors ?? []).map((c) => c.player_id);
+    if (teamIds.length === 0 && playerIds.length === 0) return;
+    try {
+      const res = await watchlistApi.tags({ teamIds, playerIds });
+      setWatched({
+        teamIds: new Set(res.watched_team_ids),
+        playerIds: new Set(res.watched_player_ids),
+      });
+    } catch {
+      /* badges are best-effort; ignore */
+    }
+  }, [isTeamEvent, eventDetails]);
+
+  useEffect(() => {
+    fetchWatchTags();
+  }, [fetchWatchTags]);
 
   // Warning lookup for a row. Squad rows key on team_id; solo rows on the user id (player_id).
   const teamWarning = (teamId?: number) =>
@@ -312,6 +352,10 @@ export default function RegisteredTeamsTab({
                     <TableCell className="capitalize font-medium">
                       <span className="inline-flex items-center gap-2 flex-wrap">
                         {comp.username}
+                        {/* Advisory watchlist flag for this player. */}
+                        {watched.playerIds.has(comp.player_id) && (
+                          <WatchTag reason="On the advisory watchlist" />
+                        )}
                         {warnBadge(userWarning(comp.player_id))}
                       </span>
                     </TableCell>
@@ -413,6 +457,12 @@ export default function RegisteredTeamsTab({
                           {members.length} player{members.length === 1 ? "" : "s"}
                         </Badge>
                       </button>
+                      {/* Advisory watchlist flag for this team (keyed on its site team_id). */}
+                      {watched.teamIds.has(team.team_id) && (
+                        <span className="ml-2 inline-flex">
+                          <WatchTag reason="On the advisory watchlist" />
+                        </span>
+                      )}
                       {warnBadge(teamWarning(team.team_id)) && (
                         <span className="ml-2 inline-flex">
                           {warnBadge(teamWarning(team.team_id))}
@@ -515,6 +565,10 @@ export default function RegisteredTeamsTab({
                                   className="shrink-0 text-muted-foreground"
                                 />
                                 <span className="font-medium">{m.username}</span>
+                                {/* Advisory watchlist flag for this roster player. */}
+                                {watched.playerIds.has(m.player_id) && (
+                                  <WatchTag reason="On the advisory watchlist" />
+                                )}
                                 {m.uid && (
                                   <span className="text-muted-foreground">
                                     UID {m.uid}

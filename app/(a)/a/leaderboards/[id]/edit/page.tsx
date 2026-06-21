@@ -90,6 +90,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
+// Shared advisory-watchlist badge + client (components/WatchTag.tsx, lib/watchlist.ts). One bulk
+// watchlistApi.tags call (recomputed when the standings reload) marks which standings team_ids /
+// player_ids are watched; <WatchTag> then renders next to those flagged names in the standings.
+import { WatchTag } from "@/components/WatchTag";
+import { watchlistApi } from "@/lib/watchlist";
 import { ManualMatchResultStep } from "../../_components/ManualMatchResultStep";
 import { MatchMethodSelectionStep } from "../../_components/MatchMethodSelectionStep";
 import { FileUploadStep } from "../../_components/FileUploadStep";
@@ -351,6 +356,27 @@ export default function EditLeaderboardPage({
     setLoading(true);
     setError(null);
     try {
+      // AUTO-SEED safety-net (owner 2026-06-21): before loading standings, make sure every team added
+      // to this event (admin add, public/organizer registration, or qualifier promotion) is seeded
+      // into the ENTRY stage's groups, so it shows up here for stat entry WITHOUT a manual "Seed to
+      // groups" step. Idempotent + gated (admin/organizer) on the backend; errors are ignored so the
+      // page always loads. Endpoint: seeding_management.sync_entry_stage_seeding.
+      try {
+        await fetch(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seeding/sync-entry-stage/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ event_id: id }),
+          },
+        );
+      } catch {
+        // Non-fatal: standings still load; teams can be seeded manually if this ever fails.
+      }
+
       const res = await fetch(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboard-details-for-event/`,
         {
@@ -556,6 +582,71 @@ export default function EditLeaderboardPage({
     }
     setMatchScoring(initialMatchScoring);
   }, [selectedGroupId, eventData, rosterByTeam]);
+
+  // ── Watchlist tags (owner 2026-06-21) ───────────────────────────────────────
+  // Mark which standings rows are on the AFC-wide advisory watchlist so <WatchTag> can flag them.
+  // We derive the ids from the LOADED standings state (overall + per-match editRows + per-team
+  // playerGroups) so the set tracks the currently selected group, and re-run whenever those reload
+  // (group/stage switch, data refresh). One bulk watchlistApi.tags call per change; best-effort.
+  //
+  // Id semantics differ by mode: in TEAM mode an editRow/overall id is a SITE TEAM id and
+  // playerGroups carry team ids + member player ids; in SOLO mode an editRow/overall id is a
+  // PLAYER (competitor) id. We bucket accordingly so a team id is never checked against players.
+  const [watched, setWatched] = useState<{
+    teamIds: Set<number>;
+    playerIds: Set<number>;
+  }>({ teamIds: new Set(), playerIds: new Set() });
+
+  useEffect(() => {
+    const teamIds = new Set<number>();
+    const playerIds = new Set<number>();
+    const bucket = participantType === "team" ? teamIds : playerIds;
+    // overall standings: id is team (team mode) or competitor/player (solo mode).
+    for (const e of overall) {
+      const eid = e.tournament_team_id ?? e.competitor_id;
+      if (eid) bucket.add(eid);
+    }
+    // per-match editable rows: same id semantics as overall.
+    for (const rows of Object.values(editRows)) {
+      for (const r of rows) if (r.id) bucket.add(r.id);
+    }
+    // per-team player groups (team mode only): team header id + each member player id.
+    for (const groups of Object.values(playerGroups)) {
+      for (const g of groups) {
+        if (g.teamId) teamIds.add(g.teamId);
+        for (const p of g.players) if (p.player_id) playerIds.add(p.player_id);
+      }
+    }
+    const teamArr = [...teamIds];
+    const playerArr = [...playerIds];
+    if (teamArr.length === 0 && playerArr.length === 0) {
+      setWatched({ teamIds: new Set(), playerIds: new Set() });
+      return;
+    }
+    let cancelled = false;
+    watchlistApi
+      .tags({ teamIds: teamArr, playerIds: playerArr })
+      .then((res) => {
+        if (cancelled) return;
+        setWatched({
+          teamIds: new Set(res.watched_team_ids),
+          playerIds: new Set(res.watched_player_ids),
+        });
+      })
+      .catch(() => {
+        /* badges are best-effort; ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [overall, editRows, playerGroups, participantType]);
+
+  // Is this standings-row entity (a team in team mode, a player in solo mode) watched?
+  const isEntityWatched = (id?: number) =>
+    id != null &&
+    (participantType === "team"
+      ? watched.teamIds.has(id)
+      : watched.playerIds.has(id));
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 
@@ -1411,7 +1502,13 @@ export default function EditLeaderboardPage({
                             {currentRows.map((row, idx) => (
                               <TableRow key={row.id}>
                                 <TableCell className="font-medium">
-                                  {row.name}
+                                  <span className="inline-flex items-center gap-2">
+                                    {row.name}
+                                    {/* Advisory watchlist flag (team in team mode, player in solo). */}
+                                    {isEntityWatched(row.id) && (
+                                      <WatchTag reason="On the advisory watchlist" />
+                                    )}
+                                  </span>
                                 </TableCell>
                                 <TableCell>
                                   <Input
@@ -1543,8 +1640,12 @@ export default function EditLeaderboardPage({
                                         className="text-muted-foreground"
                                       />
                                     )}
-                                    <span className="font-medium text-sm">
+                                    <span className="font-medium text-sm inline-flex items-center gap-2">
                                       {group.teamName}
+                                      {/* Advisory watchlist flag for this team. */}
+                                      {watched.teamIds.has(group.teamId) && (
+                                        <WatchTag reason="On the advisory watchlist" />
+                                      )}
                                     </span>
                                   </div>
                                   <Badge variant="secondary">
@@ -1584,7 +1685,15 @@ export default function EditLeaderboardPage({
                                             (player, playerIdx) => (
                                               <TableRow key={player.player_id}>
                                                 <TableCell className="font-medium">
-                                                  {player.username}
+                                                  <span className="inline-flex items-center gap-2">
+                                                    {player.username}
+                                                    {/* Advisory watchlist flag for this player. */}
+                                                    {watched.playerIds.has(
+                                                      player.player_id,
+                                                    ) && (
+                                                      <WatchTag reason="On the advisory watchlist" />
+                                                    )}
+                                                  </span>
                                                 </TableCell>
                                                 <TableCell>
                                                   <Input
@@ -1762,7 +1871,13 @@ export default function EditLeaderboardPage({
                                       #{idx + 1}
                                     </TableCell>
                                     <TableCell className="font-medium">
-                                      {stat.username ?? stat.team_name ?? "-"}
+                                      <span className="inline-flex items-center gap-2">
+                                        {stat.username ?? stat.team_name ?? "-"}
+                                        {/* Advisory watchlist flag (statId is team in team mode, player in solo). */}
+                                        {isEntityWatched(statId) && (
+                                          <WatchTag reason="On the advisory watchlist" />
+                                        )}
+                                      </span>
                                     </TableCell>
                                     <TableCell className="text-right">
                                       {stat.placement}
@@ -1955,7 +2070,13 @@ export default function EditLeaderboardPage({
                                 #{idx + 1}
                               </TableCell>
                               <TableCell className="font-medium">
-                                {getEntityName(entry)}
+                                <span className="inline-flex items-center gap-2">
+                                  {getEntityName(entry)}
+                                  {/* Advisory watchlist flag (entityId is team in team mode, player in solo). */}
+                                  {isEntityWatched(entityId) && (
+                                    <WatchTag reason="On the advisory watchlist" />
+                                  )}
+                                </span>
                               </TableCell>
                               <TableCell className="text-right">
                                 {entry.total_booyah}

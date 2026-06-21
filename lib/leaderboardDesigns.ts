@@ -121,7 +121,10 @@ export interface LeaderboardDesignText {
 export interface LeaderboardDesignFont {
   id: number;
   name: string;
-  file: string | null; // media URL
+  // CORS-enabled URL to the font bytes, served by the Django font_file view (NOT the raw /media/
+  // URL, which nginx serves without CORS in prod). Loaded via the browser FontFace API in
+  // DesignFieldsEditor to PREVIEW the typeface in the canvas, the font pickers, and the §E library.
+  file: string | null;
 }
 
 // One library design as returned by _serialize_design (backend views_leaderboard_design). The two

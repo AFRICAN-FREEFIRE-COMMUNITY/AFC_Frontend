@@ -23,6 +23,11 @@ import {
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+// Shared watchlist client (lib/watchlist.ts). The upload review lets admins flag teams/players
+// straight from the off-roster flags here; entries land on the AFC-wide advisory watchlist that
+// powers <WatchTag> elsewhere (registered teams, leaderboard standings, /a/watchlist).
+import { watchlistApi } from "@/lib/watchlist";
+import { IconEye } from "@tabler/icons-react";
 
 interface Props {
   match: { match_id: number; match_name: string };
@@ -49,16 +54,31 @@ interface UnknownRow {
   team_name: string;
   site_team_name: string | null;
   tournament_team_id: number | null;
+  // The site team this UID's block resolved to (when the team exists on the site). Drives the
+  // per-row "Watch team" button so an admin can flag the offending team straight from the review.
+  site_team_id?: number | null;
   uid: string;
   name: string;
   kills: number;
   reason: string;
   other_team_name?: string;
+  // belongs_to_other_team rows carry the registered identity of the player who showed up under
+  // the wrong team, so we can offer a "Watch player" button (watch the user, not the team).
+  registered_user_id?: number | null;
+  other_team_id?: number | null;
 }
 interface RosterNoUidRow {
   tournament_team_id: number;
   user_id: number;
   username: string;
+}
+// A team that EXISTS on the site but whose uploaded players' UIDs are off-roster (ringers / alt
+// accounts). Surfaced as its own review section with an "Add to watchlist" button (TASK 1b).
+interface RosterMismatchTeam {
+  team_name: string;          // in-game / uploaded block name
+  site_team_name: string;     // the matched team's name on the site
+  site_team_id: number;       // afc team PK -> watchlistApi.add({ team_id })
+  tournament_team_id: number;
 }
 interface UploadResult {
   parsed_teams: number;
@@ -68,6 +88,8 @@ interface UploadResult {
   attributed: AttributedRow[];
   unknown_uids: UnknownRow[];
   roster_no_uid: RosterNoUidRow[];
+  // Teams present on the site but flagged for off-roster players (see RosterMismatchTeam).
+  roster_mismatch_teams: RosterMismatchTeam[];
   unmatched_count: number;
 }
 
@@ -78,6 +100,7 @@ const REASON_LABEL: Record<string, string> = {
   team_not_on_site: "Team not on the site",
   duplicate_in_file: "Listed twice (counted once)",
   no_team_stats: "Could not save, re-upload",
+  team_exists_roster_mismatch: "Team exists, players not on roster",
 };
 
 export function FileUploadStep({ match, formData, onNext, onBack, participantTypeOverride }: Props) {
@@ -93,6 +116,34 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
   // UID), we hold the drawer open on a review panel instead of auto-advancing, so the admin sees
   // exactly which kills were credited and which UIDs need reconciling.
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
+  // Track which watchlist subjects have already been added from this review so we can disable the
+  // button (and stop double-adds). Keyed by a stable string so teams + players never collide:
+  // `team:<id>` / `player:<id>`. busyWatchKey marks the one in-flight add.
+  const [addedWatchKeys, setAddedWatchKeys] = useState<Set<string>>(new Set());
+  const [busyWatchKey, setBusyWatchKey] = useState<string | null>(null);
+
+  // ── "Add to watchlist" from the upload review ────────────────────────────────
+  // Calls the shared watchlistApi.add (lib/watchlist.ts -> POST auth/watchlist/, Bearer inside).
+  // On success the row's button flips to "Added" and stays disabled. source is always "upload" so
+  // the watchlist entry records it came from a leaderboard file upload.
+  const addToWatch = async (
+    key: string,
+    input: Parameters<typeof watchlistApi.add>[0],
+    successMsg: string,
+  ) => {
+    if (addedWatchKeys.has(key) || busyWatchKey) return;
+    setBusyWatchKey(key);
+    try {
+      await watchlistApi.add(input);
+      setAddedWatchKeys((prev) => new Set(prev).add(key));
+      toast.success(successMsg);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || "Could not add to watchlist");
+    } finally {
+      setBusyWatchKey(null);
+    }
+  };
 
   // Resolve participant type - use override if provided, otherwise fetch from event details
   useEffect(() => {
@@ -186,11 +237,19 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
       const rosterNoUid: RosterNoUidRow[] = Array.isArray(data.roster_no_uid)
         ? data.roster_no_uid
         : [];
+      // Teams on the site whose uploaded players are off-roster (ringers/alts). Surfaced as its
+      // own "Add to watchlist" section below (TASK 1b).
+      const rosterMismatchTeams: RosterMismatchTeam[] = Array.isArray(
+        data.roster_mismatch_teams,
+      )
+        ? data.roster_mismatch_teams
+        : [];
       const hasFlags =
         participantType === "team" &&
         (unknownUids.length > 0 ||
           missingTeams.length > 0 ||
-          rosterNoUid.length > 0);
+          rosterNoUid.length > 0 ||
+          rosterMismatchTeams.length > 0);
 
       if (hasFlags) {
         setUploadResult({
@@ -201,6 +260,7 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
           attributed: Array.isArray(data.attributed) ? data.attributed : [],
           unknown_uids: unknownUids,
           roster_no_uid: rosterNoUid,
+          roster_mismatch_teams: rosterMismatchTeams,
           unmatched_count: data.unmatched_count ?? unknownUids.length,
         });
         toast.success(
@@ -307,11 +367,121 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
                               ? `: ${r.other_team_name}`
                               : ""}
                           </Badge>
+                          {/* TASK 1c: per-row watchlist shortcuts. Watch the registered PLAYER
+                              when this UID belongs to someone on another team; otherwise watch the
+                              resolved site TEAM when we know which one this block matched. */}
+                          {r.reason === "belongs_to_other_team" &&
+                          r.registered_user_id ? (
+                            <WatchRowButton
+                              label="Watch player"
+                              busy={
+                                busyWatchKey === `player:${r.registered_user_id}`
+                              }
+                              added={addedWatchKeys.has(
+                                `player:${r.registered_user_id}`,
+                              )}
+                              onClick={() =>
+                                addToWatch(
+                                  `player:${r.registered_user_id}`,
+                                  {
+                                    subject_type: "player",
+                                    player_id: r.registered_user_id!,
+                                    reason: `Played for ${
+                                      r.team_name
+                                    } but registered on ${
+                                      r.other_team_name ?? "another team"
+                                    }`,
+                                    source: "upload",
+                                    context: `uid ${r.uid}`,
+                                  },
+                                  "Player added to watchlist",
+                                )
+                              }
+                            />
+                          ) : r.site_team_id ? (
+                            <WatchRowButton
+                              label="Watch team"
+                              busy={busyWatchKey === `team:${r.site_team_id}`}
+                              added={addedWatchKeys.has(
+                                `team:${r.site_team_id}`,
+                              )}
+                              onClick={() =>
+                                addToWatch(
+                                  `team:${r.site_team_id}`,
+                                  {
+                                    subject_type: "team",
+                                    team_id: r.site_team_id!,
+                                    reason: `Off-roster players in an uploaded result for ${r.team_name}`,
+                                    source: "upload",
+                                    context: `team ${
+                                      r.site_team_name ?? r.team_name
+                                    }`,
+                                  },
+                                  "Team added to watchlist",
+                                )
+                              }
+                            />
+                          ) : null}
                         </div>
                       ))}
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* TASK 1b: Teams that EXIST on the site but whose uploaded players are off-roster
+              (ringers / alt accounts). One "Add to watchlist" button per team -> watches the
+              resolved site team (subject_type "team", site_team_id). */}
+          {uploadResult.roster_mismatch_teams.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-semibold text-amber-500">
+                <IconAlertTriangle size={16} />
+                Teams on the site with off-roster players (
+                {uploadResult.roster_mismatch_teams.length})
+              </div>
+              <p className="text-xs text-muted-foreground">
+                These teams are registered on the site, but the players who
+                showed up in the file are not on their roster. Add the team to
+                the watchlist so they are flagged for review.
+              </p>
+              <div className="rounded-lg border overflow-hidden divide-y">
+                {uploadResult.roster_mismatch_teams.map((t) => {
+                  const key = `team:${t.site_team_id}`;
+                  return (
+                    <div
+                      key={key}
+                      className="flex items-center gap-2 px-3 py-2 text-xs"
+                    >
+                      <span className="font-medium flex-1 truncate">
+                        {t.team_name}
+                      </span>
+                      {/* The matched site team name (the in-game block name may differ). */}
+                      <span className="text-muted-foreground truncate max-w-[40%]">
+                        {t.site_team_name}
+                      </span>
+                      <WatchRowButton
+                        label="Add to watchlist"
+                        busy={busyWatchKey === key}
+                        added={addedWatchKeys.has(key)}
+                        onClick={() =>
+                          addToWatch(
+                            key,
+                            {
+                              subject_type: "team",
+                              team_id: t.site_team_id,
+                              reason: `Off-roster players in an uploaded result for ${t.team_name}`,
+                              source: "upload",
+                              context: `team ${t.site_team_name}`,
+                            },
+                            "Team added to watchlist",
+                          )
+                        }
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -527,5 +697,39 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ── WatchRowButton ───────────────────────────────────────────────────────────
+// Tiny amber "Add to watchlist" / "Watch team" / "Watch player" button used by the upload review
+// rows above. Presentational + stateless: the parent owns the busy/added state and the actual
+// watchlistApi.add call (addToWatch). After a successful add it flips to a disabled "Added" pill.
+function WatchRowButton({
+  label,
+  busy,
+  added,
+  onClick,
+}: {
+  label: string;
+  busy: boolean;
+  added: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      disabled={busy || added}
+      onClick={onClick}
+      className="h-6 shrink-0 gap-1 rounded-full border-amber-500/60 px-2 text-[10px] text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
+    >
+      {busy ? (
+        <IconLoader2 size={12} className="animate-spin" />
+      ) : (
+        <IconEye size={12} />
+      )}
+      {added ? "Added" : label}
+    </Button>
   );
 }

@@ -745,19 +745,27 @@ export function DesignFieldsEditor({
     }
   }, [open]);
 
-  // ── Inject uploaded fonts as @font-face so the canvas preview shows them. ──
-  // Uses the FontFace API; each font is loaded once per session.
+  // ── Inject uploaded fonts as @font-face so the canvas + pickers preview them. ──
+  // Uses the FontFace API; each font is loaded once per session. The loaded face powers BOTH the
+  // canvas cells/text AND the font-preview in every picker (trigger + options) and the §E library.
+  // NOTE the font file lives on the API origin (cross-origin to the FE), so its load goes through
+  // CORS — a failure here means the preview silently falls back to DM Sans, so we surface it.
   useEffect(() => {
     for (const font of fonts) {
       if (!font.file || loadedFontUrls.current.has(font.id)) continue;
       try {
         const ff = new FontFace(font.name, `url(${font.file})`);
-        ff.load().then((loaded) => {
-          document.fonts.add(loaded);
-          loadedFontUrls.current.set(font.id, font.file!);
-        });
-      } catch {
-        // Silently skip fonts that fail to load.
+        ff.load()
+          .then((loaded) => {
+            document.fonts.add(loaded);
+            loadedFontUrls.current.set(font.id, font.file!);
+          })
+          .catch((err) => {
+            // Cross-origin/CORS or a bad file: log so the cause is visible; preview stays on DM Sans.
+            console.warn(`[design-fonts] failed to load "${font.name}" from ${font.file}`, err);
+          });
+      } catch (err) {
+        console.warn(`[design-fonts] could not construct FontFace for "${font.name}"`, err);
       }
     }
   }, [fonts]);
@@ -1173,6 +1181,14 @@ export function DesignFieldsEditor({
     const f = fonts.find((f) => f.id === fontId);
     return f ? `"${f.name}", DM Sans, sans-serif` : "DM Sans, sans-serif";
   };
+
+  // FONT PREVIEW (owner 2026-06-21): every font picker should show how a font actually LOOKS, not
+  // just its name, so admins/organizers can choose the right typeface before applying. We render
+  // each font picker's options AND its trigger (the selected value) in that font's own face. This
+  // family string is fed to `style.fontFamily`; the @font-face is already injected once per session
+  // by the FontFace effect above. Used by the three font <Select>s (group "All columns font", the
+  // selected-field Font, and the selected-text Font) and mirrors the §E font-library list preview.
+  const fontFaceFamily = (name: string) => `"${name}", DM Sans, sans-serif`;
 
   // Background URL: use the background for the SIZE being edited (owner 2026-06-15) so the canvas
   // shows the IG portrait bg when editing IG and the YT landscape bg when editing YT. Falls back to
@@ -1621,16 +1637,28 @@ export function DesignFieldsEditor({
                                 setGroupFont(gi, v === "__default__" ? null : Number(v))
                               }
                             >
+                              {/* Trigger renders the selected font in its OWN face so the applied
+                                  font is visible at a glance (owner 2026-06-21 font-preview). */}
                               <SelectTrigger
                                 className="h-7 w-40 text-[11px]"
+                                style={{
+                                  fontFamily: fontName(
+                                    fields.find((f) => f.column_group === gi)?.font_id ?? null,
+                                  ),
+                                }}
                                 aria-label={`Set font for all columns in group ${gi + 1}`}
                               >
                                 <SelectValue placeholder="Default" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="__default__">Default</SelectItem>
+                                {/* Each option in its own typeface = a live preview of the font. */}
                                 {fonts.map((ft) => (
-                                  <SelectItem key={ft.id} value={String(ft.id)}>
+                                  <SelectItem
+                                    key={ft.id}
+                                    value={String(ft.id)}
+                                    style={{ fontFamily: fontFaceFamily(ft.name) }}
+                                  >
                                     {ft.name}
                                   </SelectItem>
                                 ))}
@@ -1865,13 +1893,22 @@ export function DesignFieldsEditor({
                         })
                       }
                     >
-                      <SelectTrigger className="h-8 text-xs">
+                      {/* Trigger + options render in their own face so the font's look is visible
+                          before/after applying it (owner 2026-06-21 font-preview). */}
+                      <SelectTrigger
+                        className="h-8 text-xs"
+                        style={{ fontFamily: fontName(selectedField.font_id) }}
+                      >
                         <SelectValue placeholder="Default" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__default__">Default</SelectItem>
                         {fonts.map((f) => (
-                          <SelectItem key={f.id} value={String(f.id)}>
+                          <SelectItem
+                            key={f.id}
+                            value={String(f.id)}
+                            style={{ fontFamily: fontFaceFamily(f.name) }}
+                          >
                             {f.name}
                           </SelectItem>
                         ))}
@@ -2025,13 +2062,22 @@ export function DesignFieldsEditor({
                         })
                       }
                     >
-                      <SelectTrigger className="h-8 text-xs">
+                      {/* Trigger + options render in their own face so the font's look is visible
+                          before/after applying it (owner 2026-06-21 font-preview). */}
+                      <SelectTrigger
+                        className="h-8 text-xs"
+                        style={{ fontFamily: fontName(selectedText.font_id) }}
+                      >
                         <SelectValue placeholder="Default" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__default__">Default</SelectItem>
                         {fonts.map((f) => (
-                          <SelectItem key={f.id} value={String(f.id)}>
+                          <SelectItem
+                            key={f.id}
+                            value={String(f.id)}
+                            style={{ fontFamily: fontFaceFamily(f.name) }}
+                          >
                             {f.name}
                           </SelectItem>
                         ))}

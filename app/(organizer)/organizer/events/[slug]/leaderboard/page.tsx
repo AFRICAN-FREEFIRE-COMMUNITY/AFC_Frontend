@@ -281,6 +281,27 @@ export default function OrganizerEventLeaderboardPage({
   const fetchLeaderboard = async () => {
     if (!eventId) return;
     try {
+      // AUTO-SEED safety-net (owner 2026-06-21): before loading standings, ensure every team added to
+      // this event (organizer/public registration, admin add, or qualifier) is seeded into the ENTRY
+      // stage's groups, so it appears here for stat entry WITHOUT a manual "Seed to groups" step.
+      // Idempotent + gated (organizer with can_manage_registrations OR admin) on the backend; errors
+      // are ignored so the page still loads. Endpoint: seeding_management.sync_entry_stage_seeding.
+      try {
+        await fetch(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seeding/sync-entry-stage/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ event_id: eventId }),
+          },
+        );
+      } catch {
+        // Non-fatal: standings still load.
+      }
+
       const res = await fetch(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboard-details-for-event/`,
         {

@@ -3,6 +3,7 @@ import {
   IconBan,
   IconBuilding,
   IconCalendar,
+  IconEye,
   IconChartBarPopular,
   IconFolder,
   IconHome,
@@ -197,6 +198,17 @@ export const adminNavLinks: AdminNavLink[] = [
     slug: "/a/blacklists",
     icon: IconBan,
     allowedRoles: ["head_admin", "organizer_admin"],
+  },
+  {
+    // Watchlist (owner 2026-06-21): shared advisory list of suspicious players/teams that
+    // admins + organizers flag for everyone to watch out for (NOT a ban — purely a warning +
+    // name tags). Page app/(a)/a/watchlist/page.tsx; backend afc_auth/views_watchlist.py.
+    // Gated to the moderation-adjacent admin roles (the backend gate also allows organizers,
+    // who reach it from the organizer dashboard).
+    label: "Watchlist",
+    slug: "/a/watchlist",
+    icon: IconEye,
+    allowedRoles: ["head_admin", "event_admin", "teams_admin", "organizer_admin"],
   },
   {
     // Data-API partner management (afc_partner_api admin surface). Gated on
