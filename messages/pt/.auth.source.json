@@ -1,5 +1,6 @@
 {
   "google.or": "or",
+  "google.continue": "Continue with Google",
   "google.success": "Signed in with Google.",
   "google.failed": "Google sign-in failed. Please try again.",
   "discord.continue": "Continue with Discord",
