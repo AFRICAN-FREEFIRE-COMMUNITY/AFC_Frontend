@@ -184,9 +184,13 @@ export default function OrganizerCreateEventPage() {
       event_name: "",
       competition_type: "",
       participant_type: "",
-      // Organizer events are external to AFC. The internal/external Event Type field is
-      // AFC-only and hidden in this flow (Step1EventDetails hideEventType), so default it.
-      event_type: "external",
+      // Organizer events are ALWAYS internal: registration happens on-platform (AFC's own
+      // flow), never via an off-platform "external" link. The internal/external Event Type
+      // selector is AFC-admin-only and hidden here (Step1EventDetails hideEventType), so we
+      // hard-default to "internal". (Previously this defaulted to "external", which made the
+      // user-facing event page render a "Register (External Link)" button for organizer
+      // events. The backend also forces org events to internal as the source of truth.)
+      event_type: "internal",
       is_public: "True",
       max_teams_or_players: 1,
       banner: "",
@@ -703,17 +707,16 @@ export default function OrganizerCreateEventPage() {
             formData.append("paid_terms_accepted", "true");
           }
         }
-        if (data.event_start_time)
-          formData.append("event_start_time", data.event_start_time);
-        if (data.event_end_time)
-          formData.append("event_end_time", data.event_end_time);
-        if (data.registration_start_time)
-          formData.append(
-            "registration_start_time",
-            data.registration_start_time,
-          );
-        if (data.registration_end_time)
-          formData.append("registration_end_time", data.registration_end_time);
+        // Times are compulsory (owner 2026-06-21): always send all four + the creator's
+        // IANA timezone so the backend stores the times paired with their tz.
+        formData.append("event_start_time", data.event_start_time);
+        formData.append("event_end_time", data.event_end_time);
+        formData.append("registration_start_time", data.registration_start_time);
+        formData.append("registration_end_time", data.registration_end_time);
+        formData.append(
+          "timezone",
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+        );
         formData.append(
           "registration_restriction",
           data?.registration_restriction ?? "none",

@@ -593,7 +593,7 @@ export default function BasicInfoTab({
             name="registration_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Start Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormLabel>Registration Start Time</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -606,7 +606,7 @@ export default function BasicInfoTab({
             name="registration_end_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration End Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormLabel>Registration End Time</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -764,7 +764,7 @@ export default function BasicInfoTab({
             name="event_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Start Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormLabel>Event Start Time</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -777,7 +777,7 @@ export default function BasicInfoTab({
             name="event_end_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event End Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormLabel>Event End Time</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>

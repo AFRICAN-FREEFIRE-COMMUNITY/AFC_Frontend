@@ -57,6 +57,11 @@ import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../../_components/OrganizerContext";
+// Reused from the admin Events area: a destructive confirm dialog that POSTs
+// /events/delete-event/. The backend now lets the event's CREATOR delete it while it
+// is still a draft (in addition to AFC admins / org can_edit_events), so organizers
+// can remove their own drafts here. See afc_tournament_and_scrims/views.py::delete_event.
+import { DeleteEventModal } from "@/app/(a)/a/events/_components/DeleteEventModal";
 
 // ── Row shape ───────────────────────────────────────────────────────────────
 // One draft as returned inside get-drafted-events().drafted_events[]. participant_type
@@ -230,8 +235,11 @@ export default function OrganizerDraftsPage() {
                     <TableCell>
                       {/* "Continue editing" deep-links into the organizer edit page,
                           where finishing + publishing flips is_draft off and the
-                          event drops out of this list. */}
-                      <div className="flex items-center justify-end">
+                          event drops out of this list. The Delete button (owner
+                          2026-06-21) lets the organizer remove their own draft; on
+                          success we drop the row from local state so the list updates
+                          without a refetch. */}
+                      <div className="flex items-center justify-end gap-2">
                         <Button asChild variant="outline" size="sm">
                           <Link
                             href={`/organizer/events/${draft.event_slug}/edit`}
@@ -240,6 +248,17 @@ export default function OrganizerDraftsPage() {
                             Continue editing
                           </Link>
                         </Button>
+                        <DeleteEventModal
+                          eventId={draft.event_id}
+                          eventName={draft.event_name || "Untitled draft"}
+                          size="sm"
+                          showLabel
+                          onSuccess={() =>
+                            setDrafts((prev) =>
+                              prev.filter((d) => d.event_id !== draft.event_id),
+                            )
+                          }
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

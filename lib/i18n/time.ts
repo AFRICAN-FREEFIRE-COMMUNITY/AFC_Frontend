@@ -206,3 +206,81 @@ export function formatLocalTime(
     timeZone: getBrowserTimeZone(),
   }).format(date);
 }
+
+// ── Event times (host wall-clock + tz) ────────────────────────────────────────
+// Event start/end + registration times are stored as the HOST's wall-clock
+// (a "YYYY-MM-DD" date + an "HH:MM[:SS]" time) PLUS the host's IANA timezone
+// (Event.timezone, owner 2026-06-21). Unlike the UTC instants formatLocalTime
+// handles, these need the host tz to be pinned to an absolute moment first, so we
+// can then show BOTH the viewer's local time and the host's time with a label
+// ("17:00 your time • 18:00 WAT host"). Used by components/LocalEventTime.tsx.
+
+/**
+ * The offset (ms) of an IANA timezone at a given instant: how far that zone is
+ * from UTC then (handles DST). Computed by formatting the instant AS the zone's
+ * wall clock and diffing against the same wall clock read as UTC.
+ */
+function tzOffsetMs(instant: Date, tz: string): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const map: Record<string, number> = {};
+  for (const p of dtf.formatToParts(instant)) {
+    if (p.type !== "literal") map[p.type] = Number(p.value);
+  }
+  // 24:00 can appear for midnight in some engines; normalise to 0.
+  const hour = map.hour === 24 ? 0 : map.hour;
+  const asUTC = Date.UTC(map.year, map.month - 1, map.day, hour, map.minute, map.second);
+  return asUTC - instant.getTime();
+}
+
+/**
+ * Convert a HOST wall-clock (date "YYYY-MM-DD" + time "HH:MM[:SS]") in IANA `tz`
+ * into the absolute instant it represents. Returns null on missing/invalid input.
+ * Two-pass to settle DST boundaries (the offset can differ side-to-side of the
+ * wall clock); zones without DST (e.g. WAT) resolve exactly on the first pass.
+ */
+export function zonedWallClockToInstant(
+  dateStr?: string | null,
+  timeStr?: string | null,
+  tz?: string | null,
+): Date | null {
+  if (!dateStr || !timeStr || !tz) return null;
+  const [y, mo, d] = dateStr.split("-").map(Number);
+  const [h, mi] = timeStr.split(":").map(Number);
+  if ([y, mo, d, h, mi].some((n) => Number.isNaN(n))) return null;
+
+  const wallAsUTC = Date.UTC(y, mo - 1, d, h, mi);
+  let instant = new Date(wallAsUTC - tzOffsetMs(new Date(wallAsUTC), tz));
+  // Second pass: re-evaluate the offset at the resolved instant (DST safety).
+  instant = new Date(wallAsUTC - tzOffsetMs(instant, tz));
+  return instant;
+}
+
+/**
+ * Format an absolute instant as "HH:MM" in a SPECIFIC IANA timezone, optionally
+ * with the zone's short name appended ("18:00 WAT"). Works on the server too
+ * (a fixed tz needs no browser context), so it is safe as an SSR fallback.
+ */
+export function formatTimeInZone(
+  value: LocalTimeValue,
+  tz: string,
+  opts?: { withZoneName?: boolean; locale?: string },
+): string {
+  const date = toDate(value);
+  if (!date) return "";
+  const locale = opts?.locale ?? getActiveLocale();
+  return new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: tz,
+    ...(opts?.withZoneName ? { timeZoneName: "short" } : {}),
+  }).format(date);
+}

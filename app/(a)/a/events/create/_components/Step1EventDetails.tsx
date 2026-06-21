@@ -284,7 +284,7 @@ export function Step1EventDetails({
             name="registration_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Start Time <span className="text-muted-foreground font-normal">(optional)</span><InfoTip id="events.create.registration_time" className="ml-1" /></FormLabel>
+                <FormLabel>Registration Start Time<InfoTip id="events.create.registration_time" className="ml-1" /></FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -298,7 +298,7 @@ export function Step1EventDetails({
             name="registration_end_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration End Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormLabel>Registration End Time</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -457,7 +457,7 @@ export function Step1EventDetails({
             name="event_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Start Time <span className="text-muted-foreground font-normal">(optional)</span><InfoTip id="events.create.event_time" className="ml-1" /></FormLabel>
+                <FormLabel>Event Start Time<InfoTip id="events.create.event_time" className="ml-1" /></FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -471,7 +471,7 @@ export function Step1EventDetails({
             name="event_end_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event End Time <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                <FormLabel>Event End Time</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>

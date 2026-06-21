@@ -95,6 +95,7 @@
     "organizedBy": "Organizado por {name}",
     "afcOfficial": "African Freefire Community",
     "date": "Data: <date></date>",
+    "time": "Hora: <time></time>",
     "prizePool": "Premiação: {value}",
     "locationOnline": "Local: Online",
     "format": "Formato: {value}",
@@ -167,6 +168,17 @@
       "title": "Inscrição Bloqueada",
       "team": "Sua equipe está banida e não pode participar deste evento.",
       "account": "Sua conta está banida e você não pode participar deste evento."
+    },
+    "registerGate": {
+      "noTeam": {
+        "title": "Este é um torneio por equipas",
+        "body": "Para te inscreveres, tens de fazer parte de uma equipa. Primeiro, junta-te a uma equipa como jogador; depois, o proprietário, o capitão, o vice-capitão, o gestor ou o treinador da equipa poderá inscrever a equipa.",
+        "cta": "Encontra uma equipa para te juntares"
+      },
+      "roleDenied": {
+        "title": "Apenas os membros da equipa podem inscrever-se",
+        "body": "Apenas o proprietário da equipa, o capitão, o vice-capitão, o diretor desportivo ou o treinador podem inscrever a equipa num evento. Pede a um deles para inscrever a tua equipa."
+      }
     },
     "loadFailed": "Falha ao carregar detalhes do evento",
     "loadTeamFailed": "Falha ao carregar dados da equipe",

@@ -6,9 +6,52 @@ import { XIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+// ── Radix pointer-events lock self-heal ───────────────────────────────────────
+// WHY THIS EXISTS: Radix Dialog (a "modal" layer) sets `document.body
+// { pointer-events: none }` while it is open so the page behind the modal is
+// inert, and is supposed to restore it on close. With @radix-ui/react-dialog
+// 1.1.x under React 19, when another Radix dismissable layer (a Select / Popover)
+// lives INSIDE the dialog, the layered cleanup can race and leave that lock stuck
+// on <body> after the dialog closes — making the ENTIRE page unclickable by mouse.
+//
+// This is the exact cause of the "Create Event button is not working" report:
+// the create-event wizard's stage-config dialog (StageModal, which contains a
+// Radix Select for the stage format) left the lock on, so on the final wizard
+// step the publish/draft checkboxes and the "Create Event" submit could never be
+// clicked. The same applies to the edit flow's StageConfigModal (same pattern).
+//
+// FIX: whenever a dialog closes, if the body lock is still stuck AND no other
+// dialog is currently open, clear it. Guarding on "no other open dialog" keeps
+// stacked/nested dialogs working (we never strip the lock a still-open dialog
+// needs). This is a no-op when Radix cleans up correctly on its own.
+//
+// CONNECTS TO: every consumer of this shadcn <Dialog>/<DialogContent> wrapper —
+// notably app/(a)/a/events/create/_components/StageModal.tsx and
+// app/(a)/a/events/[slug]/edit/_components/StageConfigModal.tsx.
+function restoreBodyPointerEventsIfStuck() {
+  if (typeof document === "undefined") return;
+  // Defer so Radix's own close/cleanup runs first; only override if it failed.
+  setTimeout(() => {
+    const anotherDialogOpen = document.querySelector(
+      '[data-slot="dialog-content"][data-state="open"], [role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]'
+    );
+    if (!anotherDialogOpen && document.body.style.pointerEvents === "none") {
+      document.body.style.pointerEvents = "";
+    }
+  }, 100);
+}
+
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  // For controlled dialogs (open prop driven by parent state, e.g. StageModal),
+  // self-heal the body pointer-events lock whenever `open` flips to false. This
+  // covers programmatic closes (Save/Cancel handlers that set open=false), which
+  // are the closes most prone to the stuck-lock race above.
+  React.useEffect(() => {
+    if (props.open === false) restoreBodyPointerEventsIfStuck();
+  }, [props.open]);
+
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
 
@@ -37,8 +80,18 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
+      // NOTE: the CLOSE/exit animation utilities are intentionally omitted. With
+      // tw-animate-css under Tailwind v4 + React 19, a heavily re-rendering dialog
+      // (e.g. the create-event StageModal, full of form.watch subscriptions)
+      // restarts the 0.2s `exit` keyframe on every render, so `animationend` never
+      // fires and Radix's <Presence> never unmounts the closed overlay/content.
+      // The leftover overlay (fixed inset-0, z-50, pointer-events auto) then sits
+      // over the whole page and eats every click — which is what disabled the
+      // "Create Event" submit. Without an exit animation, Presence unmounts the
+      // overlay synchronously on close, so it can never linger. Keep the OPEN
+      // (enter) animation for a smooth appearance.
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        "data-[state=open]:animate-in data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
         className
       )}
       {...props}
@@ -54,13 +107,24 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
 }) {
+  // Covers uncontrolled dialogs (opened via <DialogTrigger>, no `open` prop on
+  // the Root): when the content unmounts on close, self-heal the body lock too.
+  React.useEffect(() => {
+    return () => restoreBodyPointerEventsIfStuck();
+  }, []);
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        // CLOSE/exit animation utilities intentionally omitted — see the note on
+        // DialogOverlay above. A stuck `exit` keyframe kept the closed content
+        // mounted (visible ghost panel + pointer-events auto) and froze the page.
+        // Dropping the exit animation lets <Presence> unmount it immediately on
+        // close. Keep the OPEN (enter) animation.
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border px-3 md:px-6 py-6 shadow-lg duration-200 sm:max-w-lg",
+          "bg-background data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border px-3 md:px-6 py-6 shadow-lg duration-200 sm:max-w-lg",
           className
         )}
         {...props}

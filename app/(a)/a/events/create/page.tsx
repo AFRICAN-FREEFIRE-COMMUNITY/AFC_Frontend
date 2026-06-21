@@ -742,10 +742,17 @@ export default function CreateEventPage() {
             data.registration_fee_currency || "USD",
           );
         }
-        if (data.event_start_time) formData.append("event_start_time", data.event_start_time);
-        if (data.event_end_time) formData.append("event_end_time", data.event_end_time);
-        if (data.registration_start_time) formData.append("registration_start_time", data.registration_start_time);
-        if (data.registration_end_time) formData.append("registration_end_time", data.registration_end_time);
+        // Times are now compulsory (owner 2026-06-21) so always send the four of them
+        // (the Zod schema guarantees they're non-empty) plus the creator's IANA timezone,
+        // so the backend can store the times paired with the tz they were entered in.
+        formData.append("event_start_time", data.event_start_time);
+        formData.append("event_end_time", data.event_end_time);
+        formData.append("registration_start_time", data.registration_start_time);
+        formData.append("registration_end_time", data.registration_end_time);
+        formData.append(
+          "timezone",
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+        );
         formData.append(
           "registration_restriction",
           data?.registration_restriction ?? "none",

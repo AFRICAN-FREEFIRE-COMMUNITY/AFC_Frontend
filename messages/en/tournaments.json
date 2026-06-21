@@ -95,6 +95,7 @@
     "organizedBy": "Organized by {name}",
     "afcOfficial": "African Freefire Community",
     "date": "Date: <date></date>",
+    "time": "Time: <time></time>",
     "prizePool": "Prize Pool: {value}",
     "locationOnline": "Location: Online",
     "format": "Format: {value}",
@@ -167,6 +168,17 @@
       "title": "Registration Blocked",
       "team": "Your team is banned and cannot participate in this event.",
       "account": "Your account is banned and you cannot participate in this event."
+    },
+    "registerGate": {
+      "noTeam": {
+        "title": "This is a team tournament",
+        "body": "You need to be on a team to register. Join a team as a player first, then a team owner, captain, vice-captain, manager, or coach can register the team.",
+        "cta": "Find a team to join"
+      },
+      "roleDenied": {
+        "title": "Only team staff can register",
+        "body": "Only the team owner, captain, vice-captain, manager, or coach can register the team for an event. Ask one of them to register your team."
+      }
     },
     "loadFailed": "Failed to load event details",
     "loadTeamFailed": "Failed to load team data",

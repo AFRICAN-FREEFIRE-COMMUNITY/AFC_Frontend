@@ -445,14 +445,13 @@ const Page = ({ params }: { params: Params }) => {
           },
         );
 
-        if (response.statusText === "OK") {
-          toast.success(
-            response.data.message || t("teamDetail.transferSuccess"),
-          );
-          router.push("/teams");
-        } else {
-          toast.error(t("errors.generic"));
-        }
+        // axios rejects any non-2xx, so reaching here means success. Do NOT gate on
+        // response.statusText === "OK": statusText is EMPTY over HTTP/2 (prod is behind a
+        // proxy that speaks h2), so that check silently failed the success path even though
+        // the backend had already transferred ownership - the user saw "nothing happens".
+        // (Same bug class fixed in AuthContext.fetchUser this session.)
+        toast.success(response.data.message || t("teamDetail.transferSuccess"));
+        router.push("/teams");
       } catch (error: any) {
         toast.error(
           error?.response?.data?.message || t("teamDetail.transferFailed"),
@@ -1507,9 +1506,17 @@ const Page = ({ params }: { params: Params }) => {
                           </DialogHeader>
                           <Form {...form}>
                             <form
-                              onSubmit={() =>
-                                requireAuth(form.handleSubmit(onSubmit))
-                              }
+                              // form.handleSubmit(...) MUST be the onSubmit handler itself:
+                              // it calls e.preventDefault() + runs validation, then invokes
+                              // the callback with the validated data. The previous wiring
+                              // `() => requireAuth(form.handleSubmit(onSubmit))` swallowed the
+                              // submit event (no preventDefault) so the browser did a NATIVE
+                              // form submit = full page reload, and the transfer never ran -
+                              // exactly the "it just loads and nothing happens" report. We
+                              // still gate on auth, just INSIDE the validated callback.
+                              onSubmit={form.handleSubmit((data) =>
+                                requireAuth(() => onSubmit(data)),
+                              )}
                               className="space-y-6"
                             >
                               <FormField

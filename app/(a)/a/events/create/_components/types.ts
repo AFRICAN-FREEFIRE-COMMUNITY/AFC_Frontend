@@ -263,10 +263,17 @@ export const EventFormSchema = z
     waitlist_discord_role_id: z.string().optional(),
     // Slot-assignment mode (owner 2026-06-17): how a no-show's slot is filled.
     waitlist_mode: z.string().optional(),
-    event_start_time: z.string().optional(),
-    event_end_time: z.string().optional(),
-    registration_start_time: z.string().optional(),
-    registration_end_time: z.string().optional(),
+    // Event + registration start/end TIMES are compulsory for both admins and organizers
+    // (owner 2026-06-21). HH:MM strings from the <input type="time"> in the creator's tz.
+    event_start_time: z.string().min(1, "Event start time required"),
+    event_end_time: z.string().min(1, "Event end time required"),
+    registration_start_time: z.string().min(1, "Registration start time required"),
+    registration_end_time: z.string().min(1, "Registration end time required"),
+    // IANA timezone of whoever creates/edits the event (e.g. "Africa/Lagos"). Not a
+    // user-typed field: the create/edit pages set it at submit from
+    // Intl.DateTimeFormat().resolvedOptions().timeZone so the times above can be shown
+    // in both the viewer's local tz and the host's tz on the public event page.
+    timezone: z.string().optional(),
   })
   .refine(
     (data) => {

@@ -130,6 +130,31 @@ function appendRegistrationFeeFields(
   }
 }
 
+// Append the four (now compulsory) event/registration times + the editor's IANA timezone
+// to a save payload (owner 2026-06-21). Mirror of the admin edit page helper. Previously
+// the organizer edit page never re-sent the times, so any time edit was silently dropped.
+// Called by every save handler below so a partial save can't wipe the times. timezone =
+// whoever is SETTING it now (the editor's browser). backend: edit_event.
+function appendEventTimes(
+  formData: FormData,
+  data: Pick<
+    EventFormType,
+    | "event_start_time"
+    | "event_end_time"
+    | "registration_start_time"
+    | "registration_end_time"
+  >,
+) {
+  formData.append("event_start_time", data.event_start_time || "");
+  formData.append("event_end_time", data.event_end_time || "");
+  formData.append("registration_start_time", data.registration_start_time || "");
+  formData.append("registration_end_time", data.registration_end_time || "");
+  formData.append(
+    "timezone",
+    Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+  );
+}
+
 // ── Round-Robin rehydration (sub-project B) ─────────────────────────────────────
 // Identical to the admin edit page's helper: translate the backend's get-event-details
 // echo into the form's RoundRobinConfig. The echo carries base groups (with server
@@ -1159,6 +1184,8 @@ export default function OrganizerEditEventPage({
       formData.append("registration_link", data.registration_link || "");
       // Paid-vs-free registration (re-sent on every full-event save so it isn't lost).
       appendRegistrationFeeFields(formData, data);
+      // Re-send the (compulsory) times + tz on this partial save too, so it can't wipe them.
+      appendEventTimes(formData, data);
       formData.append(
         "publish_to_tournaments",
         data.publish_to_tournaments.toString(),
@@ -1287,6 +1314,8 @@ export default function OrganizerEditEventPage({
       formData.append("registration_link", data.registration_link || "");
       // Paid-vs-free registration (re-sent on every full-event save so it isn't lost).
       appendRegistrationFeeFields(formData, data);
+      // Re-send the (compulsory) times + tz on this partial save too, so it can't wipe them.
+      appendEventTimes(formData, data);
       formData.append(
         "publish_to_tournaments",
         data.publish_to_tournaments.toString(),
@@ -1592,6 +1621,9 @@ export default function OrganizerEditEventPage({
         formData.append("registration_link", data.registration_link || "");
         // Paid-vs-free registration (re-sent on save so the values persist).
         appendRegistrationFeeFields(formData, data);
+        // Compulsory event/registration times + editor tz (re-sent so an edit actually
+        // persists; previously the times were never sent and edits were silently lost).
+        appendEventTimes(formData, data);
         formData.append(
           "publish_to_tournaments",
           data.publish_to_tournaments.toString(),

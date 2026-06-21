@@ -30,6 +30,7 @@ import {
   User,
   Trophy,
   XCircle,
+  ShieldAlert,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
@@ -52,6 +53,7 @@ import { formatMoneyInput } from "@/lib/utils";
 // in UTC). formatLocalTime is its string form for non-JSX needs (here: the
 // interpolated "Used at: {time}" invite message). See components/LocalTime.tsx.
 import { LocalTime } from "@/components/LocalTime";
+import { LocalEventTime } from "@/components/LocalEventTime";
 import { formatLocalTime } from "@/lib/i18n/time";
 import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
@@ -183,6 +185,31 @@ const PLAYER_ROLES = ["team_captain", "vice_captain", "member"] as const;
 const isPlayingMember = (m: TeamMember): boolean =>
   PLAYER_ROLES.includes((m.management_role ?? "member") as any);
 
+// ── Who may REGISTER a team for an event (owner 2026-06-21) ─────────────────────
+// The team OWNER plus these management roles. Everyone on the team SEES the Register
+// button; a member without one of these roles gets a popup explaining only the team
+// owner / captain / vice-captain / manager / coach can register. Must match the backend
+// TEAM_EVENT_REGISTER_ROLES (+ owner) in afc_tournament_and_scrims/views.py
+// ::_user_can_register_team.
+const TEAM_REGISTER_ROLES = [
+  "team_captain",
+  "vice_captain",
+  "manager",
+  "coach",
+] as const;
+
+// True if the given user (by in-game name) may register `team` for an event: the team
+// owner, or a member whose management_role is one of TEAM_REGISTER_ROLES.
+function userCanRegisterTeam(
+  team: { team_owner: string; members: TeamMember[] } | null,
+  ign?: string | null,
+): boolean {
+  if (!team || !ign) return false;
+  if (team.team_owner === ign) return true;
+  const role = team.members.find((m) => m.username === ign)?.management_role;
+  return TEAM_REGISTER_ROLES.includes((role ?? "") as any);
+}
+
 type ModalStep =
   | "CLOSED"
   | "INFO"
@@ -240,6 +267,9 @@ interface EventDetails {
   registration_end_time?: string | null;
   event_start_time?: string | null;
   event_end_time?: string | null;
+  // Host IANA timezone the times were entered in (owner 2026-06-21); paired with the
+  // *_time fields by <LocalEventTime/> to show viewer-local + host time.
+  timezone?: string | null;
   prizepool: string;
   prize_distribution: { [key: string]: number };
   event_rules: string;
@@ -3035,6 +3065,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // Ban state
   const [isUserBanned, setIsUserBanned] = useState(false);
   const [showBannedModal, setShowBannedModal] = useState(false);
+  // Team-event registration gate popups (owner 2026-06-21): shown when a non-privileged
+  // user clicks Register on a team event (no team / wrong role). See handleRegisterClick.
+  const [showNoTeamModal, setShowNoTeamModal] = useState(false);
+  const [showRoleDeniedModal, setShowRoleDeniedModal] = useState(false);
 
   // User Discord state
   const [userDiscordId, setUserDiscordId] = useState<string | null>(null);
@@ -3511,7 +3545,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     }
   }, [slug, token, t]);
 
-  const fetchUserTeam = useCallback(async () => {
+  // Returns the user's team (and caches it in state), or null when they are on no team
+  // / the fetch fails. Returning it lets the Register click gate decide synchronously
+  // (no-team -> "join a team" popup) instead of waiting on async state. No longer toasts
+  // on "no team" - the click gate shows a dedicated dialog for that case now.
+  const fetchUserTeam = useCallback(async (): Promise<UserTeam | null> => {
     setLoadingTeam(true);
     try {
       const resCurrent = await axios.post(
@@ -3530,12 +3568,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           { team_name: resCurrent.data.team.team_name },
         );
         setUserTeam(resDetails.data.team);
-      } else {
-        toast.error(t("detail.noTeam"));
+        return resDetails.data.team as UserTeam;
       }
+      setUserTeam(null);
+      return null;
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.message || t("detail.loadTeamFailed"));
+      return null;
     } finally {
       setLoadingTeam(false);
     }
@@ -3797,6 +3837,27 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       return;
     }
 
+    // ── Team-event registration gate (owner 2026-06-21) ──────────────────────────
+    // Everyone can SEE the Register button on a team event, but only certain people may
+    // actually register the team. Resolve the clicker's team + role here (fetching the
+    // team if it has not loaded yet) and short-circuit with the right popup:
+    //   • not on any team  -> "this is a team tournament, join a team as a player"
+    //   • on a team but not owner/captain/manager/coach -> "only those roles can register"
+    // A privileged member falls through to the normal registration flow below. The
+    // backend (register_for_event::_user_can_register_team) enforces the same rule.
+    if (eventDetails?.participant_type === "squad") {
+      let team = userTeam;
+      if (!team) team = await fetchUserTeam();
+      if (!team) {
+        setShowNoTeamModal(true);
+        return;
+      }
+      if (!userCanRegisterTeam(team, user?.in_game_name)) {
+        setShowRoleDeniedModal(true);
+        return;
+      }
+    }
+
     // Check if event is private and if user has a valid invite
     if (eventDetails && !eventDetails.is_public && !hasValidInvite) {
       toast.error(t("register.toast.privateEvent"));
@@ -3838,6 +3899,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     userTeam,
     isUserBanned,
     fetchUserTeam,
+    user,
     t,
   ]);
 
@@ -4512,6 +4574,24 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               ),
             })}
           </p>
+          {/* Event time (owner 2026-06-21): shows BOTH the viewer's local time and the
+              host's time with a tz label, pinned from the host wall-clock + Event.timezone.
+              Only rendered once a start time exists (it is compulsory on new events; older
+              events may have none). */}
+          {eventDetails.event_start_time && (
+            <p>
+              {t.rich("detail.time", {
+                time: () => (
+                  <LocalEventTime
+                    date={eventDetails.start_date}
+                    startTime={eventDetails.event_start_time}
+                    endTime={eventDetails.event_end_time}
+                    tz={eventDetails.timezone}
+                  />
+                ),
+              })}
+            </p>
+          )}
           <p>
             {t("detail.prizePool", {
               value: /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
@@ -4708,9 +4788,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         );
       })()}
 
-      {(eventDetails.participant_type === "squad"
-        ? userTeam?.team_owner === user?.in_game_name
-        : true) && (
+      {/* The register section is shown to EVERYONE (owner 2026-06-21): any visitor sees
+          the Register button for a team event; the click handler then pops the right
+          message if they have no team or lack the owner/captain/manager/coach role.
+          (Previously this whole block was hidden unless you were the team owner.) */}
+      {true && (
         <div className="text-center mt-6 space-y-2">
           {/* Captain-level roster rejection notice */}
           {(() => {
@@ -4761,8 +4843,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 {t("detail.registered.already")}
               </Button>
 
-              {/* Show Edit and Leave buttons only if event hasn't started */}
-              {!isEventStarted && (
+              {/* Show Edit and Leave only before the event starts, AND - for a team
+                  event - only to someone who may manage the registration (owner /
+                  captain / manager / coach). A regular member of a registered team sees
+                  "Registered" but not Edit/Leave. Solo events are unaffected. */}
+              {!isEventStarted &&
+                (eventDetails.participant_type !== "squad" ||
+                  userCanRegisterTeam(userTeam, user?.in_game_name)) && (
                 <>
                   {eventDetails.participant_type === "squad" && (
                     <EditRosterModal
@@ -4783,7 +4870,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 </>
               )}
             </div>
-          ) : eventDetails.event_type === "external" ? (
+          ) : eventDetails.event_type === "external" &&
+            !eventDetails.organization_name ? (
+            // External (off-platform) registration is AFC-admin-only. Organizer events
+            // (those with an organization) always register on-platform, so even if a
+            // legacy org event still has event_type="external" in the DB, we never show
+            // the "Register (External Link)" button for it. (Backend now forces org
+            // events to internal; this is defense-in-depth for un-backfilled rows.)
             <Button
               onClick={() =>
                 requireAuth(() =>
@@ -5077,6 +5170,62 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             <Button
               className="mt-6 w-full"
               onClick={() => setShowBannedModal(false)}
+            >
+              {t("common.close")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Team-event registration gate: clicked Register but NOT on any team (owner
+          2026-06-21). Tells them it's a team tournament + points them to join a team. */}
+      <Dialog open={showNoTeamModal} onOpenChange={setShowNoTeamModal}>
+        <DialogContent className="sm:max-w-[420px]">
+          <div className="text-center">
+            <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="h-7 w-7 text-primary" />
+            </div>
+            <DialogTitle className="text-xl">
+              {t("detail.registerGate.noTeam.title")}
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-base">
+              {t("detail.registerGate.noTeam.body")}
+            </DialogDescription>
+            <div className="mt-6 flex flex-col gap-2">
+              <Button asChild className="w-full">
+                <Link href="/teams">
+                  {t("detail.registerGate.noTeam.cta")}
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowNoTeamModal(false)}
+              >
+                {t("common.close")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Team-event registration gate: clicked Register, on a team, but lacks an
+          owner/captain/manager/coach role (owner 2026-06-21). */}
+      <Dialog open={showRoleDeniedModal} onOpenChange={setShowRoleDeniedModal}>
+        <DialogContent className="sm:max-w-[420px]">
+          <div className="text-center">
+            <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+              <ShieldAlert className="h-7 w-7 text-amber-600" />
+            </div>
+            <DialogTitle className="text-xl">
+              {t("detail.registerGate.roleDenied.title")}
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-base">
+              {t("detail.registerGate.roleDenied.body")}
+            </DialogDescription>
+            <Button
+              className="mt-6 w-full"
+              onClick={() => setShowRoleDeniedModal(false)}
             >
               {t("common.close")}
             </Button>
