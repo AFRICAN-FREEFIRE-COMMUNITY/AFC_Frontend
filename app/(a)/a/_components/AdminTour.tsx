@@ -176,6 +176,18 @@ function buildSteps(
         };
       }
 
+      // Specific-tab switch: click one exact tab trigger (by selector), then advance.
+      // Used to reach a 3rd/4th tab that activateInactiveTab (first-inactive) can't target.
+      if (s.activateTab) {
+        const target = s.activateTab;
+        driveStep.popover!.onNextClick = () => {
+          safeQuery(target)?.click();
+          window.setTimeout(() => {
+            getDriver()?.moveNext();
+          }, 220);
+        };
+      }
+
       return driveStep;
     });
 }

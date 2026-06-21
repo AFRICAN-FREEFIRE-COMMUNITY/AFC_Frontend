@@ -727,7 +727,10 @@ export function Step1EventDetails({
             organizer create wizards get them here. (Previously lived in the later waitlist step.) */}
         <div className="space-y-3 rounded-lg border p-4">
           <div>
-            <Label>Registration requirements</Label>
+            <Label>
+              Registration requirements
+              <InfoTip id="events.create.registration_requirements._section" className="ml-1" />
+            </Label>
             <p className="text-xs text-muted-foreground">
               Block registration until competitors have uploaded the media you need for
               graphics and broadcasts.
@@ -735,7 +738,7 @@ export function Step1EventDetails({
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="require-team-logo">Require team logo</Label>
+              <Label htmlFor="require-team-logo">Require team logo<InfoTip id="events.create.require_team_logo" className="ml-1" /></Label>
               <p className="text-xs text-muted-foreground">
                 Teams cannot register until their team logo is uploaded.
               </p>
@@ -759,7 +762,7 @@ export function Step1EventDetails({
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="require-esport-images">Require player esport images</Label>
+              <Label htmlFor="require-esport-images">Require player esport images<InfoTip id="events.create.require_esport_images" className="ml-1" /></Label>
               <p className="text-xs text-muted-foreground">
                 Every registering player must have their esport image uploaded on their
                 profile.
@@ -784,7 +787,7 @@ export function Step1EventDetails({
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="require-player-profile-image">Require player profile image</Label>
+              <Label htmlFor="require-player-profile-image">Require player profile image<InfoTip id="events.create.require_player_profile_image" className="ml-1" /></Label>
               <p className="text-xs text-muted-foreground">
                 Every registering player must have a profile image uploaded.
               </p>
@@ -808,7 +811,7 @@ export function Step1EventDetails({
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="require-player-uid">Require player Free Fire UID</Label>
+              <Label htmlFor="require-player-uid">Require player Free Fire UID<InfoTip id="events.create.require_player_uid" className="ml-1" /></Label>
               <p className="text-xs text-muted-foreground">
                 Every registering player must have their Free Fire UID set on their profile.
               </p>

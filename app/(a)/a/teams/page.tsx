@@ -87,7 +87,7 @@ export default function TeamsAndPlayersPage() {
               <IconBan className="h-4 w-4" /> Blacklists
             </TabsTrigger>
             {/* Owner ask 2026-06-20: player + team reports triage, moved here. */}
-            <TabsTrigger value="reports">
+            <TabsTrigger value="reports" data-tour="teams-reports-tab">
               <IconShield className="h-4 w-4" /> Reports
             </TabsTrigger>
           </TabsList>

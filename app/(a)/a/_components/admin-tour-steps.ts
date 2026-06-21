@@ -69,6 +69,11 @@ export type AdminTourStep = {
   side?: "top" | "right" | "bottom" | "left" | "over";
   align?: "start" | "center" | "end";
   activateInactiveTab?: string;
+  // Click a SPECIFIC tab trigger (a [data-tour] selector) on Next, then advance. Unlike
+  // activateInactiveTab (which clicks the first inactive trigger, fine for a 2-tab page),
+  // this targets one exact tab - needed to reach the 3rd/4th tab of a multi-tab page
+  // (e.g. the Reports tab on Teams & Players). owner 2026-06-21.
+  activateTab?: string;
   lazy?: boolean;
 };
 
@@ -356,6 +361,44 @@ export const ADMIN_TOUR_STEPS: Record<AdminTourPageKey, AdminTourStep[]> = {
       title: "The players table",
       description:
         "Every player with their team, kills, wins, MVPs and status. View opens that player's profile; the Ban or Unban button controls their platform access.",
+      side: "top",
+      align: "center",
+      lazy: true,
+    },
+    {
+      // Switch to the Reports tab (owner 2026-06-21). activateTab clicks the exact
+      // Reports trigger - activateInactiveTab (first-inactive) cannot reach the 4th tab.
+      element: '[data-tour="teams-reports-tab"]',
+      title: "Now the Reports tab",
+      description:
+        "That covers Teams and Players. Click Next and we will open the Reports tab, where you triage player and team reports filed by the community.",
+      side: "bottom",
+      align: "start",
+      activateTab: '[data-tour="teams-reports-tab"]',
+    },
+    {
+      element: '[data-tour="reports-stats"]',
+      title: "Report counts at a glance",
+      description:
+        "These cards show the total reports filed and how many subjects are repeat offenders (3 or more reports on the same player or team within 2 weeks).",
+      side: "bottom",
+      align: "center",
+      lazy: true,
+    },
+    {
+      element: '[data-tour="reports-filters"]',
+      title: "Filter and search reports",
+      description:
+        "Narrow the queue by subject (player or team), status or category, search by reported name or reporter, or show only repeat offenders.",
+      side: "bottom",
+      align: "start",
+      lazy: true,
+    },
+    {
+      element: '[data-tour="reports-table"]',
+      title: "Review and answer reports",
+      description:
+        "Each report shows who was reported, by whom, the reason, the proof image and its status. Click Answer to read the evidence and write a response the reporter sees on their profile.",
       side: "top",
       align: "center",
       lazy: true,

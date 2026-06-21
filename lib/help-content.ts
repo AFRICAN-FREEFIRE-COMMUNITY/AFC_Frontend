@@ -44,6 +44,18 @@ export const HELP = {
   "events.create.event_time":
     "Optional exact start or end time for the event - leave blank if only the date matters.",
 
+  // ── Step 1: Registration requirements (owner 2026-06-21) ────────────────────
+  "events.create.registration_requirements._section":
+    "Optional gates that block registration until competitors have uploaded the media and identifiers you need for graphics and broadcasts.",
+  "events.create.require_team_logo":
+    "Teams cannot register until they have uploaded a team logo.",
+  "events.create.require_esport_images":
+    "Every registering player must have their esport image uploaded on their profile.",
+  "events.create.require_player_profile_image":
+    "Every registering player must have a profile image uploaded.",
+  "events.create.require_player_uid":
+    "Every registering player must have their Free Fire UID set on their profile.",
+
   // ── Step 2: Event mode ─────────────────────────────────────────────────────
   "events.create.event_mode":
     "Virtual (online), Physical (LAN, in-person) or Hybrid (a mix of both).",
@@ -909,6 +921,14 @@ export const HELP = {
     "One combined score from tournament and scrim results: kills and placements (compressed so they can't run away), bigger tournaments worth more, plus bonuses for wins and finals. Tap a row for the breakdown.",
   "rankings.public.tiers_intro":
     "A team's grade for the whole season, regraded each quarter; only teams are tiered. The \"X/2 tournaments\" badge means a team must play at least 2 tournaments that quarter to rank above Entry.",
+
+  // ── Download media: size + naming options (owner 2026-06-21) ─────────────────
+  "media.download.esportSize":
+    "Original keeps the full uploaded resolution. Role picture resizes each esport image to 108 x 130, the player-slot size used in graphics.",
+  "media.download.esportNaming":
+    "How each esport image file is named: the player's in-game name, their Free Fire UID, or both combined (name then UID).",
+  "media.download.logoSize":
+    "Original keeps the full resolution. Gloo wallpaper is 1000 x 1000 (display/social); Head pic is 108 x 130. Team logo files are always named after the team.",
 } as const;
 
 export type HelpId = keyof typeof HELP;

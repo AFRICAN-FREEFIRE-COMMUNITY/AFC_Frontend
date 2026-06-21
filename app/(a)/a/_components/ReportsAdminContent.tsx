@@ -181,7 +181,7 @@ export function ReportsAdminContent() {
   return (
     <div>
       {/* Stat strip */}
-      <div className="grid grid-cols-2 gap-4 md:max-w-md mb-4">
+      <div className="grid grid-cols-2 gap-4 md:max-w-md mb-4" data-tour="reports-stats">
         <Card>
           <CardContent className="py-4">
             <p className="text-xs text-muted-foreground">Total reports</p>
@@ -197,7 +197,7 @@ export function ReportsAdminContent() {
       </div>
 
       {/* Filters */}
-      <Card className="mb-4">
+      <Card className="mb-4" data-tour="reports-filters">
         <CardContent className="py-4 flex flex-wrap items-end gap-3">
           <div className="space-y-1">
             <Label className="text-xs">Subject</Label>
@@ -253,7 +253,7 @@ export function ReportsAdminContent() {
       </Card>
 
       {/* Table */}
-      <Card>
+      <Card data-tour="reports-table">
         <CardContent className="p-0">
           {loading ? (
             <div className="py-12"><FullLoader /></div>

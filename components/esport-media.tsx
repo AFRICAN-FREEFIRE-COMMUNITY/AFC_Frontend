@@ -42,6 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { InfoTip } from "@/components/ui/info-tip";
 import { TeamSearchSelect, type PickedTeam } from "@/components/ui/team-search-select";
 import { UserSearchSelect, type PickedUser } from "@/components/ui/user-search-select";
 import { IconDownload, IconLoader2, IconX } from "@tabler/icons-react";
@@ -108,7 +109,7 @@ function MediaOptionFields({
       {showEsport && (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label className="text-xs">Esport image size</Label>
+            <Label className="text-xs">Esport image size<InfoTip id="media.download.esportSize" className="ml-1" /></Label>
             <Select value={value.esportSize} onValueChange={(v) => set({ esportSize: v as MediaOptions["esportSize"] })}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -118,7 +119,7 @@ function MediaOptionFields({
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Esport file name</Label>
+            <Label className="text-xs">Esport file name<InfoTip id="media.download.esportNaming" className="ml-1" /></Label>
             <Select value={value.esportNaming} onValueChange={(v) => set({ esportNaming: v as MediaOptions["esportNaming"] })}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -132,7 +133,7 @@ function MediaOptionFields({
       )}
       {showLogo && (
         <div className="space-y-1">
-          <Label className="text-xs">Team logo size</Label>
+          <Label className="text-xs">Team logo size<InfoTip id="media.download.logoSize" className="ml-1" /></Label>
           <Select value={value.logoSize} onValueChange={(v) => set({ logoSize: v as MediaOptions["logoSize"] })}>
             <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
