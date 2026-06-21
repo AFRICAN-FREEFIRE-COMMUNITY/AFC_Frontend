@@ -62,6 +62,7 @@ export function GoogleSignInButton() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const buttonRef = useRef<HTMLDivElement | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Where to send the user after a successful Google sign-in. Mirrors LoginForm's
@@ -100,56 +101,76 @@ export function GoogleSignInButton() {
     [login, router, resolveTarget, t],
   );
 
+  // Render (or re-render) Google's button sized to the form width. GIS renders an
+  // IFRAME we can't CSS-style, so the polish comes from its supported options: a dark
+  // pill that matches the AFC theme, large size, and a pixel width measured from the
+  // surrounding form (GIS caps at 400) so it lines up full-width with the Login/Create
+  // Account buttons instead of a detached fixed-width white box.
+  const renderBtn = useCallback(() => {
+    const g = (window as any).google;
+    if (!g?.accounts?.id || !buttonRef.current || !wrapRef.current) return;
+    const w = Math.min(400, Math.max(220, Math.floor(wrapRef.current.clientWidth)));
+    buttonRef.current.innerHTML = ""; // clear before re-render (resize)
+    g.accounts.id.renderButton(buttonRef.current, {
+      type: "standard",
+      theme: "filled_black",
+      size: "large",
+      width: w,
+      text: "continue_with",
+      shape: "pill",
+      logo_alignment: "left",
+    });
+  }, []);
+
   useEffect(() => {
     if (!clientId) return; // feature dormant until a client id is configured
     let cancelled = false;
+    let ro: ResizeObserver | undefined;
     loadGis()
       .then(() => {
         if (cancelled) return;
         const g = (window as any).google;
-        if (!g?.accounts?.id || !buttonRef.current) return;
+        if (!g?.accounts?.id) return;
         g.accounts.id.initialize({
           client_id: clientId,
           callback: (resp: { credential?: string }) => {
             if (resp?.credential) handleCredential(resp.credential);
           },
         });
-        // Render Google's official, localized button into our container.
-        g.accounts.id.renderButton(buttonRef.current, {
-          theme: "outline",
-          size: "large",
-          width: 320,
-          text: "continue_with",
-          shape: "rectangular",
-          logo_alignment: "center",
-        });
+        renderBtn();
+        // Keep the button matched to the form width on resize.
+        if (wrapRef.current && "ResizeObserver" in window) {
+          ro = new ResizeObserver(() => renderBtn());
+          ro.observe(wrapRef.current);
+        }
       })
       .catch(() => {
         // Script blocked / offline: leave the area empty, password login still works.
       });
     return () => {
       cancelled = true;
+      ro?.disconnect();
     };
-  }, [clientId, handleCredential]);
+  }, [clientId, handleCredential, renderBtn]);
 
   if (!clientId) return null;
 
   return (
     <div className="mt-6">
-      {/* "or" divider between the password form and the Google button */}
+      {/* subtle "or" divider between the password form and the Google button */}
       <div className="relative mb-4 flex items-center">
-        <div className="h-px flex-1 bg-border" />
-        <span className="px-3 text-xs uppercase text-muted-foreground">
+        <div className="h-px flex-1 bg-border/70" />
+        <span className="px-3 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
           {t("google.or")}
         </span>
-        <div className="h-px flex-1 bg-border" />
+        <div className="h-px flex-1 bg-border/70" />
       </div>
-      <div className="flex justify-center">
-        {/* GIS renders its iframe button into this div. busy just dims it while we
-            exchange the token so a double-click can't fire two logins. */}
+      {/* wrapRef is full-width (measured); GIS renders its iframe button into buttonRef,
+          centered within it. busy dims it so a double-click can't fire two logins. */}
+      <div ref={wrapRef} className="w-full">
         <div
           ref={buttonRef}
-          className={busy ? "pointer-events-none opacity-60" : ""}
+          className={`flex justify-center ${busy ? "pointer-events-none opacity-60" : ""}`}
           aria-busy={busy}
         />
       </div>
