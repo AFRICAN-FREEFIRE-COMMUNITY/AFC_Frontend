@@ -12,10 +12,16 @@ export const env = createEnv({
     // (settings.GOOGLE_OAUTH_CLIENT_ID). OPTIONAL: when unset the button hides and
     // Google sign-in is simply unavailable, so the app builds/runs without it.
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().optional(),
+    // Discord SSO (owner 2026-06-21): "true" shows the "Continue with Discord" button
+    // (components/auth/DiscordSignInButton.tsx). The whole OAuth flow lives on the backend
+    // (reuses the existing Discord app), so the FE only needs this on/off flag. Off where
+    // Discord creds aren't configured (e.g. local dev) so the button isn't shown broken.
+    NEXT_PUBLIC_DISCORD_SSO_ENABLED: z.string().optional(),
   },
   experimental__runtimeEnv: {
     NEXT_PUBLIC_BACKEND_API_URL: process.env.NEXT_PUBLIC_BACKEND_API_URL,
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    NEXT_PUBLIC_DISCORD_SSO_ENABLED: process.env.NEXT_PUBLIC_DISCORD_SSO_ENABLED,
   },
 });

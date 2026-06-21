@@ -38,6 +38,8 @@ import { useTranslations } from "next-intl";
 // login page; Google sign-in creates the account on first use. Hidden unless
 // NEXT_PUBLIC_GOOGLE_CLIENT_ID is set.
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+// "Continue with Discord" (owner 2026-06-21). Gated on NEXT_PUBLIC_DISCORD_SSO_ENABLED.
+import { DiscordSignInButton } from "@/components/auth/DiscordSignInButton";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -499,6 +501,7 @@ export function CreateAccountForm() {
         </Button>
       </form>
       <GoogleSignInButton />
+      <DiscordSignInButton />
     </Form>
   );
 }

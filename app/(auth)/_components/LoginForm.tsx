@@ -25,6 +25,8 @@ import { useTranslations } from "next-intl";
 // "Continue with Google" (owner 2026-06-20). Renders nothing unless
 // NEXT_PUBLIC_GOOGLE_CLIENT_ID is configured, so password login is unaffected.
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+// "Continue with Discord" (owner 2026-06-21). Renders only when NEXT_PUBLIC_DISCORD_SSO_ENABLED=true.
+import { DiscordSignInButton } from "@/components/auth/DiscordSignInButton";
 
 function LoginFormContent() {
   const router = useRouter();
@@ -177,6 +179,7 @@ function LoginFormContent() {
         </Button>
       </form>
       <GoogleSignInButton />
+      <DiscordSignInButton />
     </Form>
   );
 }
