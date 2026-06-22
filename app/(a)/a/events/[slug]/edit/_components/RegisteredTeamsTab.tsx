@@ -36,6 +36,7 @@ import { WatchTag } from "@/components/WatchTag";
 import { watchlistApi } from "@/lib/watchlist";
 import { IconChevronDown, IconUser } from "@tabler/icons-react";
 import { DisqualifyModal } from "../../../_components/DisqualifyModal";
+import { RemoveTeamModal } from "../../../_components/RemoveTeamModal";
 import { ReactivateModal } from "../../../_components/ReactivateModal";
 import { AddTeamsModal } from "../../../_components/AddTeamsModal";
 // Admin roster corrector: lets staff fix a registered team's event lineup (even after
@@ -521,6 +522,7 @@ export default function RegisteredTeamsTab({
                             event_id={eventDetails.event_id}
                             name={team.team_name}
                             showLabel
+                            isTeam   // route to /events/disqualify-team/ (was hitting the solo endpoint -> "failed")
                             onSuccess={() =>
                               updateCompetitorStatus(
                                 team.team_id || team.player_id,
@@ -534,6 +536,7 @@ export default function RegisteredTeamsTab({
                             event_id={eventDetails.event_id}
                             name={team.team_name}
                             showLabel
+                            isTeam   // route to /events/reactivate-team/
                             onSuccess={() =>
                               updateCompetitorStatus(
                                 team.team_id || team.player_id,
@@ -542,6 +545,16 @@ export default function RegisteredTeamsTab({
                             }
                           />
                         )}
+                        {/* Remove the team from the event ENTIRELY (frees the slot) — distinct from
+                            Disqualify which keeps them on record (owner 2026-06-22). Shown for any
+                            status; backend blocks it once the team has match results. */}
+                        <RemoveTeamModal
+                          team_id={team.team_id || team.player_id}
+                          event_id={eventDetails.event_id}
+                          name={team.team_name}
+                          showLabel
+                          onSuccess={() => onRefresh?.()}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

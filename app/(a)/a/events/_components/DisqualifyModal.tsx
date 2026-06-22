@@ -26,6 +26,7 @@ export const DisqualifyModal = ({
   onSuccess,
   redirectTo,
   showLabel = false,
+  isTeam = false,
 }: {
   competitor_id: number;
   event_id: number;
@@ -33,6 +34,10 @@ export const DisqualifyModal = ({
   onSuccess?: () => void;
   redirectTo?: string;
   showLabel?: boolean;
+  // TEAM events use a DIFFERENT endpoint (owner 2026-06-22 bug: disqualify "failed" for teams).
+  // For a team, `competitor_id` is the Team id, so route to /events/disqualify-team/ (which is also
+  // organizer-gated). Solo keeps the registered-competitor endpoint (competitor_id = user id).
+  isTeam?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -43,8 +48,12 @@ export const DisqualifyModal = ({
     startTransition(async () => {
       try {
         const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/disqualify-registered-competitor/`,
-          { competitor_id: competitor_id, event_id: event_id },
+          isTeam
+            ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/disqualify-team/`
+            : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/disqualify-registered-competitor/`,
+          isTeam
+            ? { event_id: event_id, team_id: competitor_id }
+            : { competitor_id: competitor_id, event_id: event_id },
           {
             headers: {
               Authorization: `Bearer ${token}`,

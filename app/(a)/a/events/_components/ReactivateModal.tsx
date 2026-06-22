@@ -26,6 +26,7 @@ export const ReactivateModal = ({
   onSuccess,
   redirectTo,
   showLabel = false,
+  isTeam = false,
 }: {
   competitor_id: number;
   event_id: number;
@@ -33,6 +34,9 @@ export const ReactivateModal = ({
   onSuccess?: () => void;
   redirectTo?: string;
   showLabel?: boolean;
+  // TEAM events reactivate via /events/reactivate-team/ (competitor_id = Team id), the reverse of
+  // the team disqualify. Solo keeps the registered-competitor endpoint. (owner 2026-06-22)
+  isTeam?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -43,8 +47,12 @@ export const ReactivateModal = ({
     startTransition(async () => {
       try {
         const res = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/reactivate-registered-competitor/`,
-          { competitor_id: competitor_id, event_id: event_id },
+          isTeam
+            ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/reactivate-team/`
+            : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/reactivate-registered-competitor/`,
+          isTeam
+            ? { event_id: event_id, team_id: competitor_id }
+            : { competitor_id: competitor_id, event_id: event_id },
           {
             headers: {
               Authorization: `Bearer ${token}`,
