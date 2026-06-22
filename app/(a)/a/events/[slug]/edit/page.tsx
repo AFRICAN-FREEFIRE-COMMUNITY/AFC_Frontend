@@ -174,6 +174,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       participant_type: "",
       event_type: "",
       is_public: "True",
+      discord_required: false,
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -301,6 +302,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           restriction_mode: eventDetails.restriction_mode || "allow_only",
           selected_locations: eventDetails.restricted_countries || [],
           is_sponsored: eventDetails.is_sponsored ?? false,
+          discord_required: eventDetails.discord_required ?? false,
           sponsor_name: eventDetails.sponsor_name ?? "",
           sponsor_usernames:
             eventDetails.sponsors?.map((s) => s.sponsor_username) ?? [],
@@ -1313,6 +1315,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("stages", JSON.stringify(data.stages));
 
         formData.append("is_sponsored", data.is_sponsored ? "True" : "False");
+        formData.append("discord_required", data.discord_required ? "True" : "False");
         formData.append("sponsor_name", data.sponsor_name || "");
         formData.append(
           "sponsor_usernames",

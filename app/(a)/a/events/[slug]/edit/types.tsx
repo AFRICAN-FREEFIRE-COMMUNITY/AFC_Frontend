@@ -111,6 +111,7 @@ export const EventFormSchema = z
     restriction_mode: z.enum(["allow_only", "block_selected"]).optional(),
     selected_locations: z.array(z.string()).optional(),
     is_sponsored: z.boolean().optional(),
+    discord_required: z.boolean().optional(),
     sponsor_name: z.string().optional(),
     sponsor_usernames: z.array(z.string()).optional(),
     requirement_description: z.string().optional(),
@@ -184,6 +185,7 @@ export interface EventDetails {
   }>;
   tournament_teams: any[];
   is_sponsored?: boolean;
+  discord_required?: boolean;
   sponsor_name?: string;
   sponsor_usernames?: string[];
   sponsors?: Array<{

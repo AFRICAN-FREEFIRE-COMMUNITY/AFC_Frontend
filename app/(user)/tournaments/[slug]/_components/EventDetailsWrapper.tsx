@@ -76,9 +76,6 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Set to true when Discord is required for tournament registration
-const DISCORD_REQUIRED = false;
-
 type ModalStep =
   | "CLOSED"
   | "INFO"
@@ -149,6 +146,7 @@ interface EventDetails {
   is_registered: boolean;
   is_public: boolean;
   is_sponsored?: boolean;
+  discord_required?: boolean;
   sponsor_name?: string;
   sponsor_field_label?: string;
   sponsor_requirement_description?: string | null;
@@ -1593,7 +1591,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 onClick={handleRulesContinue} // ← plain call; useEffect above handles the fetch
                 disabled={!rulesAccepted}
               >
-                {eventDetails.is_sponsored ? "Continue" : "Continue to Discord"}
+                {eventDetails.is_sponsored || !eventDetails.discord_required ? "Continue" : "Continue to Discord"}
               </Button>
             </DialogFooter>
           </>
@@ -1798,7 +1796,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               </Button>
               <Button
                 onClick={() =>
-                  DISCORD_REQUIRED
+                  eventDetails?.discord_required
                     ? setModalStep(nextStep)
                     : handleJoinedServer()
                 }
@@ -2826,7 +2824,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       setModalStep("SPONSOR");
       return;
     }
-    if (!DISCORD_REQUIRED) {
+    if (!eventDetails?.discord_required) {
       handleJoinedServerRef.current();
       return;
     }

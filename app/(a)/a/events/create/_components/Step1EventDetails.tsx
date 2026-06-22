@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -169,6 +170,35 @@ export function Step1EventDetails({
               )}
             />
           ))}
+        </div>
+
+        {/* Discord Requirement */}
+        <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="space-y-0.5">
+            <Label htmlFor="discord-required-toggle">
+              Require Discord to Register
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              When on, players must connect Discord and join the AFC server
+              before they can register. Off by default.
+            </p>
+          </div>
+          <FormField
+            // @ts-ignore
+            control={form.control}
+            name="discord_required"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Switch
+                    id="discord-required-toggle"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* Max Teams */}

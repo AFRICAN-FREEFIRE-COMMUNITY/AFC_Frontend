@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import {
   FormControl,
   FormDescription,
@@ -300,6 +301,34 @@ export default function BasicInfoTab({
                   </SelectContent>
                 </Select>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Discord Requirement */}
+        <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="space-y-0.5">
+            <Label htmlFor="discord-required-toggle">
+              Require Discord to Register
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              When on, players must connect Discord and join the AFC server
+              before they can register. Off by default.
+            </p>
+          </div>
+          <FormField
+            control={form.control}
+            name="discord_required"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Switch
+                    id="discord-required-toggle"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
               </FormItem>
             )}
           />

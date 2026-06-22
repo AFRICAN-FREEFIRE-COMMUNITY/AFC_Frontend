@@ -104,6 +104,7 @@ export default function CreateEventPage() {
       registration_restriction: "none",
       restriction_mode: "allow_only",
       is_sponsored: false,
+      discord_required: false,
       sponsor_name: "",
       sponsor_usernames: [],
       sponsor_requirement_description: "",
@@ -233,6 +234,7 @@ export default function CreateEventPage() {
           selected_locations: d.restricted_countries || [],
           stream_channels: d.stream_channels?.length ? d.stream_channels : [""],
           is_sponsored: d.is_sponsored || false,
+          discord_required: d.discord_required || false,
           sponsor_name: d.sponsor_name || "",
           sponsor_usernames:
             d.sponsors?.map((s: any) => s.sponsor_username) || [],
@@ -699,6 +701,8 @@ export default function CreateEventPage() {
           // @ts-ignore
           formData.append("waitlist_discord_role_id", data.waitlist_discord_role_id || "");
         }
+
+        formData.append("discord_required", (data.discord_required ?? false).toString());
 
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`,
