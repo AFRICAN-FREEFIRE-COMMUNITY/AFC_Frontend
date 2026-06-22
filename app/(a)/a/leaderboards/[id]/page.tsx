@@ -22,6 +22,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // Flagged-kill controls (owner 2026-06-16): manage "ringer" kills (UIDs that played for a team
 // they're not on) for this TEAM event. Backend: events/flagged-kills/* (lib/flaggedKills).
 import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
+// Multi-map .log upload (owner 2026-06-22): drop every map's match-log at once, assign each to a
+// match, review, apply. Reuses /events/upload-team-match-result/ per file (dry_run for review).
+import { MultiMapLogUpload } from "../_components/MultiMapLogUpload";
 // Design-based export (owner 2026-06-16): the existing DownloadLeaderboardButton renders onto the
 // FIXED AFC template; this dialog lets the admin pick a CUSTOM design + size and render via the
 // backend renderer (events/<id>/stages/<sid>/graphic/). Shared with the organizer leaderboard.
@@ -88,6 +91,9 @@ export default function IndividualLeaderboardPage({
   const [pickerMatchId, setPickerMatchId] = useState<string>("");
   // Whole-group editor sub-view (upload + manual edit + Save all, per group).
   const [groupEditOpen, setGroupEditOpen] = useState(false);
+  // Bumped after a multi-map upload applies so the FlaggedKillsPanel remounts + re-fetches its flags
+  // (applying .log files rewrites MatchKillFlag rows; fetchLeaderboard alone doesn't refresh the panel).
+  const [flagRefreshKey, setFlagRefreshKey] = useState(0);
 
   const fetchLeaderboard = async () => {
     try {
@@ -653,11 +659,34 @@ export default function IndividualLeaderboardPage({
         </Card>
       )}
 
+      {/* Multi-map .log upload (owner 2026-06-22): TEAM events only. Drop every map's match-log at
+          once, assign each to a match in THIS group, review, then apply — reuses the single-map
+          upload pipeline per file. Fed the current group's matches. */}
+      {!editingMatch && !groupEditOpen && eventData && detailsParticipantType !== "solo" && currentGroup && (
+        <div className="mt-4 flex justify-end">
+          <MultiMapLogUpload
+            matches={currentGroup?.matches ?? []}
+            token={token}
+            onChanged={() => {
+              fetchLeaderboard();
+              setFlagRefreshKey((k) => k + 1); // re-fetch the flagged-kills panel too
+            }}
+          />
+        </div>
+      )}
+
       {/* Flagged-kill controls (owner 2026-06-16): only TEAM events have ringer flags (they come
-          from the team match-log file upload). Lets the admin count/exclude flagged players' kills. */}
+          from the team match-log file upload). Lets the admin count/exclude flagged players' kills.
+          key=flagRefreshKey forces a remount + re-fetch after a multi-map upload rewrites the flags. */}
       {eventData && detailsParticipantType !== "solo" && (
         <div className="mt-4">
-          <FlaggedKillsPanel eventId={id} token={token} canManage onChanged={fetchLeaderboard} />
+          <FlaggedKillsPanel
+            key={flagRefreshKey}
+            eventId={id}
+            token={token}
+            canManage
+            onChanged={fetchLeaderboard}
+          />
         </div>
       )}
 
