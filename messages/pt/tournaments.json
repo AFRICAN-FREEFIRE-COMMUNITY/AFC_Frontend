@@ -101,6 +101,7 @@
     "format": "Formato: {value}",
     "participants": "Participantes: {value}",
     "paidBadge": "Pago: {fee}",
+    "discordRequiredBadge": "É necessário ter o Discord",
     "viewToggle": {
       "results": "Resultados",
       "structure": "Estrutura"
@@ -426,6 +427,8 @@
       "teamLogoDescription": "O logotipo da sua equipe é carregado na página de edição da equipe.",
       "teamLogoAction": "Abrir editor de equipe",
       "sponsorSubmissionDescription": "Verifique a etapa de requisitos do patrocinador: cada jogador escalado deve completar cada item do patrocinador.",
+      "discordMissing": "Em falta: {names}",
+      "discordAction": "Ligar ao Discord",
       "requirementsTitle": "Alguns jogadores precisam completar o perfil primeiro",
       "req": {
         "uid": "Free Fire UID",

@@ -833,6 +833,67 @@ export function Step1EventDetails({
               )}
             />
           </div>
+          {/* ── Discord registration gate ──────────────────────────────────────────
+              Per-event toggle (mirrors the require_* toggles above). When ON, the
+              backend's register_for_event/ rejects any participant who isn't connected
+              to Discord AND a member of the event's server, returning 403
+              code:"discord_required" (handled on the public tournament page's
+              handleRegistrationGateError → "Connect Discord" toast). The optional Guild
+              ID input below is shown only when the toggle is ON; blank means the main
+              AFC server. Both keys (require_discord + discord_server_id) are sent on
+              create by the admin + organizer create pages alongside is_public. */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-discord">Require Discord to register</Label>
+              <p className="text-xs text-muted-foreground">
+                Players must be connected to Discord and a member of this server.
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field
+              control={form.control}
+              name={"require_discord" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-discord"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          {/* Guild ID input - revealed only while the Discord gate is ON. */}
+          {form.watch("require_discord" as never) && (
+            <FormField
+              // @ts-ignore - shared optional field
+              control={form.control}
+              name={"discord_server_id" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="discord-server-id">
+                    Discord server ID (Guild ID)
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      id="discord-server-id"
+                      placeholder="e.g., 123456789012345678"
+                      value={(field.value as unknown as string) ?? ""}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Players must be connected to Discord and a member of this server.
+                    Leave blank to use the main AFC server.
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
       </CardContent>
     </Card>

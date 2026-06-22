@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+// Switch powers the per-event "Require Discord to register" toggle added below
+// (mirrors the create wizard's require_* toggles in Step1EventDetails).
+import { Switch } from "@/components/ui/switch";
 import {
   FormControl,
   FormDescription,
@@ -353,6 +356,67 @@ export default function BasicInfoTab({
             )}
           />
         </div>
+
+        {/* ── Discord registration gate (per-event) ────────────────────────────────
+            Edit-side twin of the create wizard's toggle in Step1EventDetails. When ON,
+            the backend's register_for_event/ rejects any participant who isn't connected
+            to Discord AND a member of the event's server (403 code:"discord_required",
+            handled on the public tournament page). Rehydrated from
+            eventDetails.require_discord / discord_server_id (see edit page form.reset)
+            and re-sent on save next to is_public. The Guild ID input shows only while the
+            toggle is ON; blank means the main AFC server. */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="require-discord">Require Discord to register</Label>
+            <p className="text-xs text-muted-foreground">
+              Players must be connected to Discord and a member of this server.
+            </p>
+          </div>
+          <FormField
+            // @ts-ignore - optional gate field, shared edit schema
+            control={form.control}
+            name={"require_discord" as never}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Switch
+                    id="require-discord"
+                    checked={(field.value as unknown as boolean) ?? false}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+        {/* Guild ID input - revealed only while the Discord gate is ON. */}
+        {form.watch("require_discord" as never) && (
+          <FormField
+            // @ts-ignore - optional gate field, shared edit schema
+            control={form.control}
+            name={"discord_server_id" as never}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="discord-server-id">
+                  Discord server ID (Guild ID)
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    id="discord-server-id"
+                    placeholder="e.g., 123456789012345678"
+                    value={(field.value as unknown as string) ?? ""}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  Players must be connected to Discord and a member of this server.
+                  Leave blank to use the main AFC server.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Registration Link — AFC-only; organizer edit hides it (hideRegistrationLink).
             The value persists in form state and is re-sent on save. */}

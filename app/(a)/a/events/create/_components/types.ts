@@ -199,6 +199,15 @@ export const EventFormSchema = z
     participant_type: z.string().min(1, "Participant type required"),
     event_type: z.string().min(1, "Event type required"),
     is_public: z.string().default("True"),
+    // ── Discord registration gate (per-event). ───────────────────────────────────
+    // When require_discord is ON, register-for-event/ rejects any participant who is
+    // not Discord-connected AND a member of the event's Discord server (403 code
+    // "discord_required"). discord_server_id is the Discord Guild ID to check against;
+    // blank means "use the main AFC server" (the backend's default guild). Mirrors the
+    // is_sponsored boolean-toggle pattern: collected in Step1EventDetails, sent on
+    // create as require_discord + discord_server_id (see admin/organizer create pages).
+    require_discord: z.boolean().default(false),
+    discord_server_id: z.string().optional(),
     max_teams_or_players: z.coerce
       .number()
       .min(1, "Max teams/players required"),

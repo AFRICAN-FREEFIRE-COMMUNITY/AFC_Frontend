@@ -327,6 +327,13 @@ interface EventDetails {
   // has a profile image. Shown in the INFO-step requirements callout + enforced server-side.
   require_player_uid?: boolean;
   require_player_profile_image?: boolean;
+  // ── Discord registration gate (per-event) ── echoed by get-event-details/. When
+  // require_discord is true, the event shows a "Discord required" badge in the header
+  // and register-for-event/ rejects participants who aren't Discord-connected + in the
+  // event's server (403 code:"discord_required", handled in handleRegistrationGateError
+  // below with a "Connect Discord" action). discord_server_id is informational here.
+  require_discord?: boolean;
+  discord_server_id?: string | null;
   // ── Owning organization (F4, owner 2026-06-19) ── rendered as an "Organized by [logo] name"
   // attribution in the event header, linking to /organizations/<slug>. All null for native AFC
   // events (the header then falls back to AFC branding). organization_logo is an absolute URL
@@ -4163,9 +4170,33 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         });
         return;
       }
+      // ── Discord registration gate (per-event require_discord) ──
+      // register-for-event/ rejects with code:"discord_required" when a participant isn't
+      // Discord-connected and/or not in the event's Discord server. discord_missing (when
+      // present) names the usernames still missing the connection. We surface the backend
+      // message + a "Connect Discord" action that opens the OAuth connect flow
+      // (handleDiscordConnect, defined just above). Mirrors the other gate branches.
+      if (data?.code === "discord_required") {
+        const missing: string[] = Array.isArray(data?.discord_missing)
+          ? data.discord_missing
+          : [];
+        toast.error(message, {
+          // List the players still needing to connect, when the backend provides them.
+          description:
+            missing.length > 0
+              ? t("register.toast.discordMissing", { names: missing.join(", ") })
+              : undefined,
+          action: {
+            label: t("register.toast.discordAction"),
+            onClick: handleDiscordConnect,
+          },
+          duration: 12000,
+        });
+        return;
+      }
       toast.error(message);
     },
-    [router, userTeam, t],
+    [router, userTeam, t, handleDiscordConnect],
   );
 
   // ── PAID PATH ──────────────────────────────────────────────────────────────
@@ -4618,6 +4649,22 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
             >
               {t("detail.paidBadge", { fee: paidFeeLabel })}
+            </Badge>
+          </div>
+        )}
+
+        {/* ── Discord-required badge ──
+            Shown when the event's require_discord gate is ON (echoed by get-event-details/).
+            Tells viewers up front that registering needs a connected Discord account + server
+            membership, before they hit the register flow (where register-for-event/ enforces it
+            with code:"discord_required"). Same outline tier-badge idiom as the paid badge. */}
+        {eventDetails.require_discord && (
+          <div>
+            <Badge
+              variant="outline"
+              className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+            >
+              {t("detail.discordRequiredBadge")}
             </Badge>
           </div>
         )}

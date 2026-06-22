@@ -379,6 +379,9 @@ export default function OrganizerEditEventPage({
       participant_type: "",
       event_type: "",
       is_public: "True",
+      // Discord registration gate defaults OFF; rehydrated from the fetched event below.
+      require_discord: false,
+      discord_server_id: "",
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -505,6 +508,10 @@ export default function OrganizerEditEventPage({
           participant_type: eventDetails.participant_type,
           event_type: eventDetails.event_type,
           is_public: eventDetails.is_public ? "True" : "False",
+          // Pre-fill the Discord gate toggle + Guild ID from the fetched event (parity
+          // with the admin edit page) so BasicInfoTab shows + re-saves the saved state.
+          require_discord: eventDetails.require_discord ?? false,
+          discord_server_id: eventDetails.discord_server_id ?? "",
           max_teams_or_players: eventDetails.max_teams_or_players,
           stream_channels: eventDetails.stream_channels || [],
           event_mode: eventDetails.event_mode,
@@ -1164,6 +1171,16 @@ export default function OrganizerEditEventPage({
       formData.append("participant_type", data.participant_type);
       formData.append("event_type", data.event_type);
       formData.append("is_public", data.is_public);
+      // Re-send the Discord gate on every save path (sponsor / waitlist / main) so it's
+      // never dropped. Always send the flag; only send the Guild ID when ON (blank = main
+      // AFC server). edit_event reads require_discord + discord_server_id.
+      formData.append(
+        "require_discord",
+        (data.require_discord ?? false).toString(),
+      );
+      if (data.require_discord) {
+        formData.append("discord_server_id", data.discord_server_id || "");
+      }
       formData.append(
         "max_teams_or_players",
         data.max_teams_or_players.toString(),
@@ -1294,6 +1311,16 @@ export default function OrganizerEditEventPage({
       formData.append("participant_type", data.participant_type);
       formData.append("event_type", data.event_type);
       formData.append("is_public", data.is_public);
+      // Re-send the Discord gate on every save path (sponsor / waitlist / main) so it's
+      // never dropped. Always send the flag; only send the Guild ID when ON (blank = main
+      // AFC server). edit_event reads require_discord + discord_server_id.
+      formData.append(
+        "require_discord",
+        (data.require_discord ?? false).toString(),
+      );
+      if (data.require_discord) {
+        formData.append("discord_server_id", data.discord_server_id || "");
+      }
       formData.append(
         "max_teams_or_players",
         data.max_teams_or_players.toString(),
@@ -1605,6 +1632,14 @@ export default function OrganizerEditEventPage({
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
         formData.append("is_public", data.is_public);
+        // Discord gate on the main save (mirrors the sponsor/waitlist save paths above).
+        formData.append(
+          "require_discord",
+          (data.require_discord ?? false).toString(),
+        );
+        if (data.require_discord) {
+          formData.append("discord_server_id", data.discord_server_id || "");
+        }
         formData.append(
           "max_teams_or_players",
           data.max_teams_or_players.toString(),

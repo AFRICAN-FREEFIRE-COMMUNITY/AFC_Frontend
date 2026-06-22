@@ -100,6 +100,10 @@ export default function CreateEventPage() {
       participant_type: "",
       event_type: "",
       is_public: "True",
+      // Discord registration gate defaults OFF (no behaviour change for events that
+      // don't opt in). See Step1EventDetails' toggle + the require_discord append below.
+      require_discord: false,
+      discord_server_id: "",
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -255,6 +259,9 @@ export default function CreateEventPage() {
           participant_type: d.participant_type,
           event_type: d.event_type,
           is_public: d.is_public ? "True" : "False",
+          // Carry the Discord gate over when duplicating an event.
+          require_discord: d.require_discord ?? false,
+          discord_server_id: d.discord_server_id ?? "",
           max_teams_or_players: d.max_teams_or_players,
           event_mode: d.event_mode,
           number_of_stages: mappedStages.length,
@@ -705,6 +712,16 @@ export default function CreateEventPage() {
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
         formData.append("is_public", data.is_public);
+        // Discord registration gate (mirrors the is_sponsored boolean append): always
+        // send the flag; only send the Guild ID when the gate is ON (blank = main AFC
+        // server). create_event reads both keys (see MINTROUTE/backend contract).
+        formData.append(
+          "require_discord",
+          (data.require_discord ?? false).toString(),
+        );
+        if (data.require_discord) {
+          formData.append("discord_server_id", data.discord_server_id || "");
+        }
         formData.append(
           "max_teams_or_players",
           data.max_teams_or_players.toString(),

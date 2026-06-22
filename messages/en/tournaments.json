@@ -101,6 +101,7 @@
     "format": "Format: {value}",
     "participants": "Participants: {value}",
     "paidBadge": "Paid: {fee}",
+    "discordRequiredBadge": "Discord required",
     "viewToggle": {
       "results": "Results",
       "structure": "Structure"
@@ -426,6 +427,8 @@
       "teamLogoDescription": "Your team logo is uploaded on the team's edit page.",
       "teamLogoAction": "Open team editor",
       "sponsorSubmissionDescription": "Check the sponsor requirements step: every rostered player must complete every sponsor item.",
+      "discordMissing": "Missing: {names}",
+      "discordAction": "Connect Discord",
       "requirementsTitle": "Some players need to complete their profile first",
       "req": {
         "uid": "Free Fire UID",

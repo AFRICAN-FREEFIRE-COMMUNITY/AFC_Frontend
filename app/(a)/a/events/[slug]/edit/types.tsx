@@ -111,6 +111,14 @@ export const EventFormSchema = z
     participant_type: z.string().min(1, "Participant type required"),
     event_type: z.string().min(1, "Event type required"),
     is_public: z.string().default("True"),
+    // ── Discord registration gate (per-event) - mirrors the create schema. ────────
+    // BasicInfoTab pre-fills these from the fetched event detail and re-sends them on
+    // save. When require_discord is ON, register-for-event/ rejects participants who
+    // aren't Discord-connected + in the event's server (code "discord_required");
+    // discord_server_id is the target Guild ID (blank = main AFC server). Optional so
+    // editing an existing event with no Discord gate is unchanged.
+    require_discord: z.boolean().optional(),
+    discord_server_id: z.string().optional(),
     max_teams_or_players: z.coerce
       .number()
       .min(1, "Max teams/players required"),
@@ -208,6 +216,11 @@ export interface EventDetails {
   participant_type: string;
   event_type: string;
   is_public: string;
+  // ── Discord registration gate echo (from get-event-details-for-admin/). ──
+  // require_discord drives the BasicInfoTab toggle; discord_server_id pre-fills the
+  // Guild ID input shown when the toggle is ON. Optional so older payloads still type.
+  require_discord?: boolean;
+  discord_server_id?: string | null;
   max_teams_or_players: number;
   event_name: string;
   event_mode: string;

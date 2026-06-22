@@ -192,6 +192,10 @@ export default function OrganizerCreateEventPage() {
       // events. The backend also forces org events to internal as the source of truth.)
       event_type: "internal",
       is_public: "True",
+      // Discord registration gate defaults OFF (parity with the admin create wizard).
+      // Collected by the shared Step1EventDetails toggle; sent below next to is_public.
+      require_discord: false,
+      discord_server_id: "",
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -665,6 +669,16 @@ export default function OrganizerCreateEventPage() {
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
         formData.append("is_public", data.is_public);
+        // Discord registration gate (parity with the admin create page): always send the
+        // flag; only send the Guild ID when ON (blank = main AFC server). create_event
+        // reads require_discord + discord_server_id unchanged for org-scoped events.
+        formData.append(
+          "require_discord",
+          (data.require_discord ?? false).toString(),
+        );
+        if (data.require_discord) {
+          formData.append("discord_server_id", data.discord_server_id || "");
+        }
         formData.append(
           "max_teams_or_players",
           data.max_teams_or_players.toString(),

@@ -101,6 +101,7 @@
     "format": "Format : {value}",
     "participants": "Participants : {value}",
     "paidBadge": "Payant : {fee}",
+    "discordRequiredBadge": "Discord requis",
     "viewToggle": {
       "results": "Résultats",
       "structure": "Structure"
@@ -426,6 +427,8 @@
       "teamLogoDescription": "Le logo de votre équipe est téléchargé sur la page de modification de l'équipe.",
       "teamLogoAction": "Ouvrir l'éditeur d'équipe",
       "sponsorSubmissionDescription": "Vérifiez l'étape des exigences des sponsors : chaque joueur inscrit doit compléter chaque élément de sponsor.",
+      "discordMissing": "Manquant : {names}",
+      "discordAction": "Se connecter à Discord",
       "requirementsTitle": "Certains joueurs doivent d'abord compléter leur profil",
       "req": {
         "uid": "UID Free Fire",
