@@ -104,6 +104,9 @@ export default function CreateEventPage() {
       // don't opt in). See Step1EventDetails' toggle + the require_discord append below.
       require_discord: false,
       discord_server_id: "",
+      // Discord invite link defaults empty; required only when require_discord is ON
+      // (enforced in onSubmit + by the backend). See DiscordRegistrationGate.
+      discord_invite_link: "",
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -262,6 +265,7 @@ export default function CreateEventPage() {
           // Carry the Discord gate over when duplicating an event.
           require_discord: d.require_discord ?? false,
           discord_server_id: d.discord_server_id ?? "",
+          discord_invite_link: d.discord_invite_link ?? "",
           max_teams_or_players: d.max_teams_or_players,
           event_mode: d.event_mode,
           number_of_stages: mappedStages.length,
@@ -699,6 +703,12 @@ export default function CreateEventPage() {
   // ── Submit ───────────────────────────────────────────────────────────────────
 
   const onSubmit = (data: EventFormType) => {
+    // Mirror the backend 400: require_discord=true demands a non-empty invite link.
+    if (data.require_discord && !data.discord_invite_link?.trim()) {
+      toast.error("Add a Discord invite link to require Discord for registration.");
+      setCurrentStep(1);
+      return;
+    }
     startTransition(async () => {
       try {
         const formData = new FormData();
@@ -721,6 +731,11 @@ export default function CreateEventPage() {
         );
         if (data.require_discord) {
           formData.append("discord_server_id", data.discord_server_id || "");
+          // Required when the gate is ON (guarded above + backend 400s without it).
+          formData.append(
+            "discord_invite_link",
+            data.discord_invite_link || "",
+          );
         }
         formData.append(
           "max_teams_or_players",

@@ -69,6 +69,7 @@
   "detail.participants": "Participants: {value}",
   "detail.paidBadge": "Paid: {fee}",
   "detail.discordRequiredBadge": "Discord required",
+  "detail.joinDiscord": "Join the event's Discord",
   "detail.viewToggle.results": "Results",
   "detail.viewToggle.structure": "Structure",
   "detail.noStages": "Tournament hasn't started yet. Results will appear here.",

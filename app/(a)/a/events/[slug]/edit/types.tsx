@@ -119,6 +119,11 @@ export const EventFormSchema = z
     // editing an existing event with no Discord gate is unchanged.
     require_discord: z.boolean().optional(),
     discord_server_id: z.string().optional(),
+    // Discord invite link (REQUIRED when require_discord is ON). BasicInfoTab pre-fills it
+    // from the fetched event and the save handlers re-send it + block submitting a gated
+    // event with no link (mirrors the backend 400). Optional in the schema so an existing
+    // event with the gate off still validates. See DiscordRegistrationGate.
+    discord_invite_link: z.string().optional(),
     max_teams_or_players: z.coerce
       .number()
       .min(1, "Max teams/players required"),
@@ -221,6 +226,10 @@ export interface EventDetails {
   // Guild ID input shown when the toggle is ON. Optional so older payloads still type.
   require_discord?: boolean;
   discord_server_id?: string | null;
+  // Discord invite link echo (from get-event-details-for-admin/). Pre-fills the
+  // DiscordRegistrationGate's required invite-link input and lets the edit form treat an
+  // event that already has a link as already-verified (no forced re-verify to keep it on).
+  discord_invite_link?: string | null;
   max_teams_or_players: number;
   event_name: string;
   event_mode: string;

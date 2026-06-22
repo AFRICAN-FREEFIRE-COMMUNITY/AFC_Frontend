@@ -208,6 +208,11 @@ export const EventFormSchema = z
     // create as require_discord + discord_server_id (see admin/organizer create pages).
     require_discord: z.boolean().default(false),
     discord_server_id: z.string().optional(),
+    // The Discord invite link players use to join the event's server. REQUIRED whenever
+    // require_discord is ON (the backend 400s a save with require_discord=true + no link);
+    // the create/edit save handlers enforce the same before submitting. Collected by the
+    // shared DiscordRegistrationGate and shown on the public event page's "Join Discord".
+    discord_invite_link: z.string().optional(),
     max_teams_or_players: z.coerce
       .number()
       .min(1, "Max teams/players required"),

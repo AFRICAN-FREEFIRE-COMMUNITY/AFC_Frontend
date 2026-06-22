@@ -102,6 +102,7 @@
     "participants": "Participants: {value}",
     "paidBadge": "Paid: {fee}",
     "discordRequiredBadge": "Discord required",
+    "joinDiscord": "Join the event's Discord",
     "viewToggle": {
       "results": "Results",
       "structure": "Structure"

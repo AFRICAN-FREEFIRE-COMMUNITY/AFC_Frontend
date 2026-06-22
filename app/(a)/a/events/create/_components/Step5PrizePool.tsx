@@ -9,6 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { EventFormType } from "./types";
+// Shared prize-distribution helpers (see lib/eventFormats.ts). These renumber the map to
+// a contiguous "1".."N" on every add/remove, which is what fixes the "can't re-add a
+// deleted position / can't fix a wrong one" bug. The edit tab + organizer edit page use
+// the exact same helpers so create + edit behave identically.
+import {
+  addPrizePositionTo,
+  removePrizePositionFrom,
+  formatPrizeKey,
+} from "@/lib/eventFormats";
 
 interface Step5Props {
   form: UseFormReturn<EventFormType>;
@@ -17,22 +26,25 @@ interface Step5Props {
 export function Step5PrizePool({ form }: Step5Props) {
   const prizeDistribution = form.watch("prize_distribution") || {};
 
+  // Add the next sequential position. addPrizePositionTo renumbers first, so the new key
+  // is always (current row count)+1 and can never collide with or overwrite an existing
+  // row even after a middle position was deleted.
   const addPrizePosition = () => {
-    const current = { ...prizeDistribution };
-    const nextPos = Object.keys(current).length + 1;
-    const suffix =
-      nextPos === 1 ? "st" : nextPos === 2 ? "nd" : nextPos === 3 ? "rd" : "th";
-    form.setValue("prize_distribution", {
-      ...current,
-      [`${nextPos}${suffix}`]: 0,
-    });
+    form.setValue(
+      "prize_distribution",
+      addPrizePositionTo(prizeDistribution),
+      { shouldDirty: true },
+    );
   };
 
+  // Remove a position and renumber the survivors back to 1..N (no gaps), so the slot can
+  // be rebuilt by adding again. Keeps at least one row.
   const removePrizePosition = (key: string) => {
-    if (Object.keys(prizeDistribution).length <= 1) return;
-    const current = { ...prizeDistribution };
-    delete current[key];
-    form.setValue("prize_distribution", current);
+    form.setValue(
+      "prize_distribution",
+      removePrizePositionFrom(prizeDistribution, key),
+      { shouldDirty: true },
+    );
   };
 
   return (
@@ -99,7 +111,10 @@ export function Step5PrizePool({ form }: Step5Props) {
           <FormLabel>Prize Distribution</FormLabel>
           {Object.entries(prizeDistribution).map(([key, value]) => (
             <div key={key} className="grid grid-cols-4 gap-2">
-              <Input value={key} disabled className="col-span-1" />
+              {/* Show the position as an ordinal ("1st", "2nd", ...). The map is keyed by
+                  contiguous numeric strings now, so we format for display; the underlying
+                  key stays "1".."N" for the backend payload. */}
+              <Input value={formatPrizeKey(key)} disabled className="col-span-1" />
               <div className="col-span-3 flex items-center justify-end gap-1">
                 <Input
                   type="text"

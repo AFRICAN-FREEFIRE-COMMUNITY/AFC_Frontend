@@ -102,6 +102,7 @@
     "participants": "Participantes: {value}",
     "paidBadge": "Pago: {fee}",
     "discordRequiredBadge": "É necessário ter o Discord",
+    "joinDiscord": "Junta-te ao Discord do evento",
     "viewToggle": {
       "results": "Resultados",
       "structure": "Estrutura"

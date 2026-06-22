@@ -49,9 +49,45 @@ import type { EventFormType, EventDetails } from "../types";
 // Single source of truth for the paid-registration currency options (defined with the
 // create-flow form constants); reused here so create + edit can't drift.
 import { REGISTRATION_FEE_CURRENCIES } from "@/app/(a)/a/events/create/_components/types";
+// Shared per-event Discord registration gate (guild id + invite + verify + require +
+// invite link) — same control the create wizard's Step1EventDetails uses.
+import { DiscordRegistrationGate } from "@/app/(a)/a/events/create/_components/DiscordRegistrationGate";
+
+// The four registration-requirement toggles (owner correction 2026-06-22: these belong on
+// Basic Info, not the Waitlist tab). Each blocks registration until satisfied; the register
+// flow points players at exactly what they're missing. The keys match the backend's
+// require_* fields and the waitlistForm state the edit page persists via saveWaitlistSettings.
+const REQUIREMENT_TOGGLES: { key: string; label: string; help: string }[] = [
+  {
+    key: "require_team_logo",
+    label: "Require team logo",
+    help: "Teams cannot register until their team logo is uploaded.",
+  },
+  {
+    key: "require_esport_images",
+    label: "Require player esport images",
+    help: "Every registering player must have their esport image uploaded on their profile.",
+  },
+  {
+    key: "require_player_profile_image",
+    label: "Require player profile image",
+    help: "Every registering player must have a profile image uploaded.",
+  },
+  {
+    key: "require_player_uid",
+    label: "Require player Free Fire UID",
+    help: "Every registering player must have their Free Fire UID set on their profile.",
+  },
+];
 
 interface BasicInfoTabProps {
   eventDetails: EventDetails;
+  // Registration-requirement toggles state (owner correction 2026-06-22). These MOVED from
+  // the Waitlist tab to Basic Info, but they are still backed by the edit page's waitlistForm
+  // state + saved by saveWaitlistSettings — the edit page passes that exact state/setter here
+  // (typed loosely) so the field bindings + save are unchanged. Only the rendering location moved.
+  requirementsForm: Record<string, any>;
+  setRequirementsForm: React.Dispatch<React.SetStateAction<any>>;
   previewUrl: string;
   setPreviewUrl: (url: string) => void;
   selectedFile: File | null;
@@ -80,6 +116,8 @@ interface BasicInfoTabProps {
 
 export default function BasicInfoTab({
   eventDetails,
+  requirementsForm,
+  setRequirementsForm,
   previewUrl,
   setPreviewUrl,
   selectedFile,
@@ -357,66 +395,58 @@ export default function BasicInfoTab({
           />
         </div>
 
-        {/* ── Discord registration gate (per-event) ────────────────────────────────
-            Edit-side twin of the create wizard's toggle in Step1EventDetails. When ON,
-            the backend's register_for_event/ rejects any participant who isn't connected
-            to Discord AND a member of the event's server (403 code:"discord_required",
-            handled on the public tournament page). Rehydrated from
-            eventDetails.require_discord / discord_server_id (see edit page form.reset)
-            and re-sent on save next to is_public. The Guild ID input shows only while the
-            toggle is ON; blank means the main AFC server. */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="require-discord">Require Discord to register</Label>
+        {/* ── Registration requirements (owner correction 2026-06-22) ──────────────────
+            ALL per-event registration gates live on Basic Info (grouped together), NOT on
+            the Waitlist tab. These four asset toggles (team logo / esport image / profile
+            image / Free Fire UID) MOVED here from WaitlistTab. They are driven by the SAME
+            waitlistForm state + setter the edit page already owns, so saving is unchanged
+            (saveWaitlistSettings still persists them). The Discord gate (below) is the
+            fifth registration requirement and sits with them. */}
+        <div className="space-y-3 rounded-lg border p-4">
+          <div>
+            <Label>Registration requirements</Label>
             <p className="text-xs text-muted-foreground">
-              Players must be connected to Discord and a member of this server.
+              Block registration until competitors have provided what you need. The
+              register flow points each player at exactly what they are missing.
             </p>
           </div>
-          <FormField
-            // @ts-ignore - optional gate field, shared edit schema
-            control={form.control}
-            name={"require_discord" as never}
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Switch
-                    id="require-discord"
-                    checked={(field.value as unknown as boolean) ?? false}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          {REQUIREMENT_TOGGLES.map((req) => (
+            <div
+              key={req.key}
+              className="flex items-center justify-between"
+            >
+              <div className="space-y-0.5">
+                <Label htmlFor={`req-${req.key}`}>{req.label}</Label>
+                <p className="text-xs text-muted-foreground">{req.help}</p>
+              </div>
+              <Switch
+                id={`req-${req.key}`}
+                checked={Boolean(requirementsForm[req.key])}
+                onCheckedChange={(v) =>
+                  setRequirementsForm((p: any) => ({ ...p, [req.key]: v }))
+                }
+              />
+            </div>
+          ))}
         </div>
-        {/* Guild ID input - revealed only while the Discord gate is ON. */}
-        {form.watch("require_discord" as never) && (
-          <FormField
-            // @ts-ignore - optional gate field, shared edit schema
-            control={form.control}
-            name={"discord_server_id" as never}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel htmlFor="discord-server-id">
-                  Discord server ID (Guild ID)
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    id="discord-server-id"
-                    placeholder="e.g., 123456789012345678"
-                    value={(field.value as unknown as string) ?? ""}
-                    onChange={field.onChange}
-                  />
-                </FormControl>
-                <p className="text-xs text-muted-foreground">
-                  Players must be connected to Discord and a member of this server.
-                  Leave blank to use the main AFC server.
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+
+        {/* ── Discord registration gate (per-event) ────────────────────────────────
+            Edit-side use of the shared DiscordRegistrationGate (same control as the create
+            wizard's Step1EventDetails). When ON, register_for_event/ rejects any participant
+            who isn't Discord-connected + a member of the event's server (403
+            code:"discord_required", handled on the public tournament page). Rehydrated from
+            eventDetails.require_discord / discord_server_id / discord_invite_link (see edit
+            page form.reset) and re-sent on save. initiallyVerified=true when the event
+            already has a saved invite link, so the admin isn't forced to re-verify just to
+            keep the gate on. */}
+        <DiscordRegistrationGate
+          // @ts-ignore - the edit form's EventFormType is structurally compatible for the
+          // three Discord keys this control touches (require_discord / discord_server_id /
+          // discord_invite_link), but is a distinct schema type from the create EventFormType
+          // the component is typed against. Same widening the rest of this file casts away.
+          form={form}
+          initiallyVerified={Boolean(eventDetails.discord_invite_link)}
+        />
 
         {/* Registration Link — AFC-only; organizer edit hides it (hideRegistrationLink).
             The value persists in form state and is re-sent on save. */}

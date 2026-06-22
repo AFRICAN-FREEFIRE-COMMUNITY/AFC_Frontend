@@ -72,6 +72,14 @@ import { PageHeader } from "@/components/PageHeader";
 import { IconLock, IconCalendarOff } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+// Shared prize-distribution helpers (see lib/eventFormats.ts). Renumber the map to a
+// contiguous "1".."N" on every add/remove so a deleted/wrong position can always be
+// rebuilt. Same helpers used by the admin create wizard + admin edit page = parity.
+import {
+  addPrizePositionTo,
+  removePrizePositionFrom,
+  formatPrizeKey,
+} from "@/lib/eventFormats";
 import axios from "axios";
 import { FullLoader } from "@/components/Loader";
 import { useOrganizer } from "../../../_components/OrganizerContext";
@@ -357,6 +365,13 @@ export default function OrganizerEditEventPage({
     waitlist_capacity: 0,
     waitlist_discord_role_id: "",
     waitlist_mode: "first_registered",
+    // Registration-requirement toggles (owner correction 2026-06-22): rendered on Basic Info
+    // (BasicInfoTab) but still stored here + saved by the waitlist save, for parity with the
+    // admin edit page. Previously the organizer flow never carried/saved these.
+    require_team_logo: false,
+    require_esport_images: false,
+    require_player_uid: false,
+    require_player_profile_image: false,
   });
   const [savingWaitlist, setSavingWaitlist] = useState(false);
 
@@ -382,6 +397,7 @@ export default function OrganizerEditEventPage({
       // Discord registration gate defaults OFF; rehydrated from the fetched event below.
       require_discord: false,
       discord_server_id: "",
+      discord_invite_link: "",
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -512,6 +528,8 @@ export default function OrganizerEditEventPage({
           // with the admin edit page) so BasicInfoTab shows + re-saves the saved state.
           require_discord: eventDetails.require_discord ?? false,
           discord_server_id: eventDetails.discord_server_id ?? "",
+          // Pre-fill the required invite link too (only meaningful when the gate is on).
+          discord_invite_link: eventDetails.discord_invite_link ?? "",
           max_teams_or_players: eventDetails.max_teams_or_players,
           stream_channels: eventDetails.stream_channels || [],
           event_mode: eventDetails.event_mode,
@@ -717,6 +735,11 @@ export default function OrganizerEditEventPage({
             ed.waitlist_capacity != null ? Number(ed.waitlist_capacity) : "",
           waitlist_discord_role_id: ed.waitlist_discord_role_id ?? "",
           waitlist_mode: ed.waitlist_mode ?? "first_registered",
+          // Prefill the registration-requirement toggles from the event (now on Basic Info).
+          require_team_logo: ed.require_team_logo ?? false,
+          require_esport_images: ed.require_esport_images ?? false,
+          require_player_uid: ed.require_player_uid ?? false,
+          require_player_profile_image: ed.require_player_profile_image ?? false,
         });
       }
 
@@ -1173,13 +1196,15 @@ export default function OrganizerEditEventPage({
       formData.append("is_public", data.is_public);
       // Re-send the Discord gate on every save path (sponsor / waitlist / main) so it's
       // never dropped. Always send the flag; only send the Guild ID when ON (blank = main
-      // AFC server). edit_event reads require_discord + discord_server_id.
+      // AFC server). edit_event reads require_discord + discord_server_id +
+      // discord_invite_link (the link is required when the gate is on).
       formData.append(
         "require_discord",
         (data.require_discord ?? false).toString(),
       );
       if (data.require_discord) {
         formData.append("discord_server_id", data.discord_server_id || "");
+        formData.append("discord_invite_link", data.discord_invite_link || "");
       }
       formData.append(
         "max_teams_or_players",
@@ -1313,13 +1338,15 @@ export default function OrganizerEditEventPage({
       formData.append("is_public", data.is_public);
       // Re-send the Discord gate on every save path (sponsor / waitlist / main) so it's
       // never dropped. Always send the flag; only send the Guild ID when ON (blank = main
-      // AFC server). edit_event reads require_discord + discord_server_id.
+      // AFC server). edit_event reads require_discord + discord_server_id +
+      // discord_invite_link (the link is required when the gate is on).
       formData.append(
         "require_discord",
         (data.require_discord ?? false).toString(),
       );
       if (data.require_discord) {
         formData.append("discord_server_id", data.discord_server_id || "");
+        formData.append("discord_invite_link", data.discord_invite_link || "");
       }
       formData.append(
         "max_teams_or_players",
@@ -1417,6 +1444,16 @@ export default function OrganizerEditEventPage({
         waitlistForm.waitlist_mode || "first_registered",
       );
 
+      // Registration-requirement toggles (owner correction 2026-06-22): edited on Basic Info
+      // but saved here (parity with the admin edit page). edit_event reads these require_* keys.
+      formData.append("require_team_logo", waitlistForm.require_team_logo ? "True" : "False");
+      formData.append("require_esport_images", waitlistForm.require_esport_images ? "True" : "False");
+      formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
+      formData.append(
+        "require_player_profile_image",
+        waitlistForm.require_player_profile_image ? "True" : "False",
+      );
+
       await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -1433,6 +1470,10 @@ export default function OrganizerEditEventPage({
                 ? Number(waitlistForm.waitlist_capacity)
                 : null,
               waitlist_discord_role_id: waitlistForm.waitlist_discord_role_id,
+              require_team_logo: waitlistForm.require_team_logo,
+              require_esport_images: waitlistForm.require_esport_images,
+              require_player_uid: waitlistForm.require_player_uid,
+              require_player_profile_image: waitlistForm.require_player_profile_image,
             }
           : prev,
       );
@@ -1446,36 +1487,29 @@ export default function OrganizerEditEventPage({
   };
 
   // ── Prize distribution (ported 1:1 from the admin edit page) ────────────────
-
+  // Delegates to the shared lib/eventFormats helpers (imported above) so the organizer
+  // edit page, the admin edit tab, and the admin create wizard behave identically.
+  //
+  // ROOT CAUSE the helpers fix: the OLD addPrizePosition used Math.max(existingKeys)+1
+  // and never renumbered, so deleting a middle position ("2") from {1,2,3} left {1,3} and
+  // adding produced {1,3,4} -> a permanent gap with no way to re-add the "2" slot or fix
+  // a wrong entry. The shared helpers renumber the survivors to a gap-free 1..N on every
+  // add/remove, so the list can always be rebuilt. Wire shape (Record<string,string>
+  // JSON.stringified) is unchanged. formatPrizeKey still maps the numeric key to "1st".
   const addPrizePosition = () => {
-    const current = { ...form.watch("prize_distribution") };
-    const numericKeys = Object.keys(current)
-      .map((key) => parseInt(key.replace(/[^0-9]/g, "")))
-      .filter((n) => !isNaN(n));
-    const nextPos = (numericKeys.length > 0 ? Math.max(...numericKeys) : 0) + 1;
-    form.setValue("prize_distribution", { ...current, [`${nextPos}`]: "" });
+    form.setValue(
+      "prize_distribution",
+      addPrizePositionTo(form.watch("prize_distribution")),
+      { shouldDirty: true },
+    );
   };
 
   const removePrizePosition = (key: string) => {
-    const current = { ...form.watch("prize_distribution") };
-    if (Object.keys(current).length <= 1) return;
-    delete current[key];
-    form.setValue("prize_distribution", current);
-  };
-
-  const formatPrizeKey = (key: string) => {
-    if (key.endsWith("Place")) key = key.split(" ")[0];
-    const numericPart = parseInt(key.replace(/[^0-9]/g, ""));
-    if (isNaN(numericPart)) return key;
-    const suffix =
-      numericPart === 1
-        ? "st"
-        : numericPart === 2
-          ? "nd"
-          : numericPart === 3
-            ? "rd"
-            : "th";
-    return `${numericPart}${suffix}`;
+    form.setValue(
+      "prize_distribution",
+      removePrizePositionFrom(form.watch("prize_distribution"), key),
+      { shouldDirty: true },
+    );
   };
 
   // ── Save / submit (ported 1:1 from the admin edit page) ─────────────────────
@@ -1604,6 +1638,12 @@ export default function OrganizerEditEventPage({
       setCurrentTab("basic_info");
       return;
     }
+    // Mirror the backend 400: require_discord=true demands a non-empty invite link.
+    if (data.require_discord && !data.discord_invite_link?.trim()) {
+      toast.error("Add a Discord invite link to require Discord for registration.");
+      setCurrentTab("basic_info");
+      return;
+    }
     // NOTE (fix 2026-06-20): we intentionally do NOT block saving when registration closes at/after
     // the event start. The backend edit_event does not enforce that rule, and the create flow + form
     // schema allow it, so rolling/late registration is a valid configuration. The old hard guard here
@@ -1639,6 +1679,7 @@ export default function OrganizerEditEventPage({
         );
         if (data.require_discord) {
           formData.append("discord_server_id", data.discord_server_id || "");
+          formData.append("discord_invite_link", data.discord_invite_link || "");
         }
         formData.append(
           "max_teams_or_players",
@@ -1931,6 +1972,10 @@ export default function OrganizerEditEventPage({
             <TabsContent value="basic_info">
               <BasicInfoTab
                 eventDetails={eventDetails}
+                // Registration-requirement toggles live on Basic Info (owner 2026-06-22) but
+                // are stored + saved via waitlistForm/saveWaitlistSettings (admin parity).
+                requirementsForm={waitlistForm}
+                setRequirementsForm={setWaitlistForm}
                 previewUrl={previewUrl}
                 setPreviewUrl={setPreviewUrl}
                 selectedFile={selectedFile}

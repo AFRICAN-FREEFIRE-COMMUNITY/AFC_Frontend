@@ -334,6 +334,16 @@ interface EventDetails {
   // below with a "Connect Discord" action). discord_server_id is informational here.
   require_discord?: boolean;
   discord_server_id?: string | null;
+  // Discord invite link echoed by get-event-details/. When require_discord is on and this
+  // is set, the event header shows a "Join the event's Discord" button (target _blank) for
+  // ALL viewers so they can join before/while registering. See the join button below.
+  discord_invite_link?: string | null;
+  // Roster-edit window (owner 2026-06-15): true while an admin/organizer has opened roster editing
+  // (until roster_edit_until, capped at the event end). When open, the team captain may edit their
+  // roster EVEN AFTER the event start time - so the Edit Roster button honours this, not just the
+  // pre-start check (owner 2026-06-22 bug: editing was blocked despite an open window). Echoed by
+  // get_event_details; the backend edit_roster enforces the same window.
+  roster_edit_open?: boolean;
   // ── Owning organization (F4, owner 2026-06-19) ── rendered as an "Organized by [logo] name"
   // attribution in the event header, linking to /organizations/<slug>. All null for native AFC
   // events (the header then falls back to AFC branding). organization_logo is an absolute URL
@@ -4669,6 +4679,26 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           </div>
         )}
 
+        {/* ── Join the event's Discord ──
+            Shown to ALL viewers when the event requires Discord AND an invite link was set
+            on the create/edit wizard (eventDetails.discord_invite_link, echoed by
+            get-event-details/). Opens the organizer-provided invite in a new tab so players
+            can join the server before/while registering (registering itself is gated by
+            register-for-event/ → code:"discord_required"). i18n label: detail.joinDiscord. */}
+        {eventDetails.require_discord && eventDetails.discord_invite_link && (
+          <div>
+            <Button asChild variant="outline" size="sm">
+              <a
+                href={eventDetails.discord_invite_link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t("detail.joinDiscord")}
+              </a>
+            </Button>
+          </div>
+        )}
+
         <CardContent style={{ padding: 0 }} className="space-y-4">
           {eventDetails.stages?.length > 0 ? (
             <>
@@ -4890,22 +4920,28 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 {t("detail.registered.already")}
               </Button>
 
-              {/* Show Edit and Leave only before the event starts, AND - for a team
-                  event - only to someone who may manage the registration (owner /
-                  captain / manager / coach). A regular member of a registered team sees
-                  "Registered" but not Edit/Leave. Solo events are unaffected. */}
+              {/* EDIT ROSTER (squad): allowed while the event has NOT started OR while the
+                  roster-edit window is open (owner 2026-06-22 fix). The window (roster_edit_open,
+                  set by an admin/organizer) exists precisely so captains can edit AFTER the event
+                  start / registration close, so gating Edit on !isEventStarted alone hid it and the
+                  window did nothing. Manager-gated (owner/captain/vice/manager/coach); the backend
+                  edit_roster enforces the same window + the match-start lock. */}
+              {eventDetails.participant_type === "squad" &&
+                (!isEventStarted || eventDetails.roster_edit_open) &&
+                userCanRegisterTeam(userTeam, user?.in_game_name) && (
+                  <EditRosterModal
+                    eventDetails={eventDetails}
+                    userTeam={userTeam}
+                    token={token}
+                    onSuccess={fetchEventDetails}
+                  />
+                )}
+
+              {/* LEAVE: only before the event starts (the roster-edit window is for EDITING, not
+                  leaving) - and, for a team event, only a manager. Solo registrants can leave too. */}
               {!isEventStarted &&
                 (eventDetails.participant_type !== "squad" ||
                   userCanRegisterTeam(userTeam, user?.in_game_name)) && (
-                <>
-                  {eventDetails.participant_type === "squad" && (
-                    <EditRosterModal
-                      eventDetails={eventDetails}
-                      userTeam={userTeam}
-                      token={token}
-                      onSuccess={fetchEventDetails}
-                    />
-                  )}
                   <LeaveEventModal
                     eventId={eventDetails.event_id}
                     eventName={eventDetails.event_name}
@@ -4914,8 +4950,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                       toast.info(t("detail.registered.leftToast"));
                     }}
                   />
-                </>
-              )}
+                )}
             </div>
           ) : eventDetails.event_type === "external" &&
             !eventDetails.organization_name ? (

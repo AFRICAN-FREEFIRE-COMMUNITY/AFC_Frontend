@@ -39,6 +39,10 @@ import { countries, REGIONS_MAP } from "@/constants";
 import { InfoTip } from "@/components/ui/info-tip";
 import { type HelpId } from "@/lib/help-content";
 import { EventFormType, REGISTRATION_FEE_CURRENCIES } from "./types";
+// Shared per-event Discord registration gate (guild id + invite + verify + require +
+// invite link). Same control the edit form (BasicInfoTab) uses, so create + edit can't
+// drift. See DiscordRegistrationGate.tsx for the full invite->verify->require flow.
+import { DiscordRegistrationGate } from "./DiscordRegistrationGate";
 
 interface Step1Props {
   form: UseFormReturn<EventFormType>;
@@ -833,68 +837,17 @@ export function Step1EventDetails({
               )}
             />
           </div>
-          {/* ── Discord registration gate ──────────────────────────────────────────
-              Per-event toggle (mirrors the require_* toggles above). When ON, the
-              backend's register_for_event/ rejects any participant who isn't connected
-              to Discord AND a member of the event's server, returning 403
-              code:"discord_required" (handled on the public tournament page's
-              handleRegistrationGateError → "Connect Discord" toast). The optional Guild
-              ID input below is shown only when the toggle is ON; blank means the main
-              AFC server. Both keys (require_discord + discord_server_id) are sent on
-              create by the admin + organizer create pages alongside is_public. */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="require-discord">Require Discord to register</Label>
-              <p className="text-xs text-muted-foreground">
-                Players must be connected to Discord and a member of this server.
-              </p>
-            </div>
-            <FormField
-              // @ts-ignore - shared optional field
-              control={form.control}
-              name={"require_discord" as never}
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Switch
-                      id="require-discord"
-                      checked={(field.value as unknown as boolean) ?? false}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-          {/* Guild ID input - revealed only while the Discord gate is ON. */}
-          {form.watch("require_discord" as never) && (
-            <FormField
-              // @ts-ignore - shared optional field
-              control={form.control}
-              name={"discord_server_id" as never}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="discord-server-id">
-                    Discord server ID (Guild ID)
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      id="discord-server-id"
-                      placeholder="e.g., 123456789012345678"
-                      value={(field.value as unknown as string) ?? ""}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground">
-                    Players must be connected to Discord and a member of this server.
-                    Leave blank to use the main AFC server.
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
         </div>
+
+        {/* ── Discord registration gate ──────────────────────────────────────────
+            The full invite -> verify -> require -> invite-link flow, encapsulated in the
+            shared DiscordRegistrationGate (also used by the edit form's BasicInfoTab).
+            When ON, register_for_event/ rejects any participant who isn't connected to
+            Discord AND a member of the event's server (403 code:"discord_required",
+            handled on the public tournament page). Writes require_discord +
+            discord_server_id + discord_invite_link onto the form; all three are appended
+            to the create payload by the admin + organizer create pages. */}
+        <DiscordRegistrationGate form={form} />
       </CardContent>
     </Card>
   );

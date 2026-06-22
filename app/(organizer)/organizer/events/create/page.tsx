@@ -196,6 +196,9 @@ export default function OrganizerCreateEventPage() {
       // Collected by the shared Step1EventDetails toggle; sent below next to is_public.
       require_discord: false,
       discord_server_id: "",
+      // Discord invite link defaults empty; required only when require_discord is ON
+      // (enforced in onSubmit + by the backend). Collected by DiscordRegistrationGate.
+      discord_invite_link: "",
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -656,6 +659,12 @@ export default function OrganizerCreateEventPage() {
   // Builds the SAME multipart FormData the admin page sends, then appends
   // organization_id so the backend homes the event to this organizer's org.
   const onSubmit = (data: EventFormType) => {
+    // Mirror the backend 400: require_discord=true demands a non-empty invite link.
+    if (data.require_discord && !data.discord_invite_link?.trim()) {
+      toast.error("Add a Discord invite link to require Discord for registration.");
+      setCurrentStep(1);
+      return;
+    }
     startTransition(async () => {
       try {
         const formData = new FormData();
@@ -678,6 +687,11 @@ export default function OrganizerCreateEventPage() {
         );
         if (data.require_discord) {
           formData.append("discord_server_id", data.discord_server_id || "");
+          // Required when the gate is ON (guarded above + backend 400s without it).
+          formData.append(
+            "discord_invite_link",
+            data.discord_invite_link || "",
+          );
         }
         formData.append(
           "max_teams_or_players",

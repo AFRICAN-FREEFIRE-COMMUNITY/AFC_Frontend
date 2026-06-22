@@ -18,6 +18,14 @@ import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+// Shared prize-distribution helpers (see lib/eventFormats.ts). Renumber the map to a
+// contiguous "1".."N" on every add/remove so a deleted/wrong position can always be
+// rebuilt. Same helpers used by the admin create wizard + organizer edit page = parity.
+import {
+  addPrizePositionTo,
+  removePrizePositionFrom,
+  formatPrizeKey,
+} from "@/lib/eventFormats";
 import axios from "axios";
 import { FullLoader } from "@/components/Loader";
 import { SeedStageModal } from "../../_components/SeedStageModal";
@@ -333,6 +341,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       // Discord registration gate defaults OFF; rehydrated from the fetched event below.
       require_discord: false,
       discord_server_id: "",
+      discord_invite_link: "",
       max_teams_or_players: 1,
       banner: "",
       stream_channels: [""],
@@ -467,6 +476,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           // BasicInfoTab controls show the saved state and re-save it unchanged.
           require_discord: eventDetails.require_discord ?? false,
           discord_server_id: eventDetails.discord_server_id ?? "",
+          // Pre-fill the required invite link too (only meaningful when the gate is on).
+          discord_invite_link: eventDetails.discord_invite_link ?? "",
           max_teams_or_players: eventDetails.max_teams_or_players,
           stream_channels: eventDetails.stream_channels || [],
           event_mode: eventDetails.event_mode,
@@ -1118,13 +1129,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       formData.append("is_public", data.is_public);
       // Re-send the Discord gate on every save path (sponsor / waitlist / main) so it's
       // never dropped. Always send the flag; only send the Guild ID when ON (blank = main
-      // AFC server). edit_event reads require_discord + discord_server_id.
+      // AFC server). edit_event reads require_discord + discord_server_id +
+      // discord_invite_link (the link is required when the gate is on).
       formData.append(
         "require_discord",
         (data.require_discord ?? false).toString(),
       );
       if (data.require_discord) {
         formData.append("discord_server_id", data.discord_server_id || "");
+        formData.append("discord_invite_link", data.discord_invite_link || "");
       }
       formData.append(
         "max_teams_or_players",
@@ -1261,13 +1274,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       formData.append("is_public", data.is_public);
       // Re-send the Discord gate on every save path (sponsor / waitlist / main) so it's
       // never dropped. Always send the flag; only send the Guild ID when ON (blank = main
-      // AFC server). edit_event reads require_discord + discord_server_id.
+      // AFC server). edit_event reads require_discord + discord_server_id +
+      // discord_invite_link (the link is required when the gate is on).
       formData.append(
         "require_discord",
         (data.require_discord ?? false).toString(),
       );
       if (data.require_discord) {
         formData.append("discord_server_id", data.discord_server_id || "");
+        formData.append("discord_invite_link", data.discord_invite_link || "");
       }
       formData.append(
         "max_teams_or_players",
@@ -1417,36 +1432,29 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   };
 
   // ── Prize distribution ─────────────────────────────────────────────────────
-
+  // These delegate to the shared lib/eventFormats helpers (imported above) so the admin
+  // create wizard, this admin edit tab, and the organizer edit page behave identically.
+  //
+  // ROOT CAUSE the helpers fix: the OLD addPrizePosition used Math.max(existingKeys)+1
+  // and never renumbered, so deleting a middle position ("2") from {1,2,3} left {1,3} and
+  // adding produced {1,3,4} -> a permanent gap with no way to re-add the "2" slot or fix
+  // a wrong entry. The shared helpers renumber the survivors to a gap-free 1..N on every
+  // add/remove, so the list can always be rebuilt. Wire shape (Record<string,string>
+  // JSON.stringified) is unchanged. formatPrizeKey still maps the numeric key to "1st".
   const addPrizePosition = () => {
-    const current = { ...form.watch("prize_distribution") };
-    const numericKeys = Object.keys(current)
-      .map((key) => parseInt(key.replace(/[^0-9]/g, "")))
-      .filter((n) => !isNaN(n));
-    const nextPos = (numericKeys.length > 0 ? Math.max(...numericKeys) : 0) + 1;
-    form.setValue("prize_distribution", { ...current, [`${nextPos}`]: "" });
+    form.setValue(
+      "prize_distribution",
+      addPrizePositionTo(form.watch("prize_distribution")),
+      { shouldDirty: true },
+    );
   };
 
   const removePrizePosition = (key: string) => {
-    const current = { ...form.watch("prize_distribution") };
-    if (Object.keys(current).length <= 1) return;
-    delete current[key];
-    form.setValue("prize_distribution", current);
-  };
-
-  const formatPrizeKey = (key: string) => {
-    if (key.endsWith("Place")) key = key.split(" ")[0];
-    const numericPart = parseInt(key.replace(/[^0-9]/g, ""));
-    if (isNaN(numericPart)) return key;
-    const suffix =
-      numericPart === 1
-        ? "st"
-        : numericPart === 2
-          ? "nd"
-          : numericPart === 3
-            ? "rd"
-            : "th";
-    return `${numericPart}${suffix}`;
+    form.setValue(
+      "prize_distribution",
+      removePrizePositionFrom(form.watch("prize_distribution"), key),
+      { shouldDirty: true },
+    );
   };
 
   // ── Save / submit ──────────────────────────────────────────────────────────
@@ -1580,6 +1588,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       setCurrentTab("basic_info");
       return;
     }
+    // Mirror the backend 400: require_discord=true demands a non-empty invite link.
+    if (data.require_discord && !data.discord_invite_link?.trim()) {
+      toast.error("Add a Discord invite link to require Discord for registration.");
+      setCurrentTab("basic_info");
+      return;
+    }
 
     startSubmitTransition(async () => {
       try {
@@ -1608,6 +1622,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
         if (data.require_discord) {
           formData.append("discord_server_id", data.discord_server_id || "");
+          formData.append("discord_invite_link", data.discord_invite_link || "");
         }
         formData.append(
           "max_teams_or_players",
@@ -1897,6 +1912,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             <TabsContent value="basic_info">
               <BasicInfoTab
                 eventDetails={eventDetails}
+                // Registration-requirement toggles moved to Basic Info (owner 2026-06-22)
+                // but still backed by the same waitlistForm state the page saves via
+                // saveWaitlistSettings — so the field bindings + save are unchanged.
+                requirementsForm={waitlistForm}
+                setRequirementsForm={setWaitlistForm}
                 previewUrl={previewUrl}
                 setPreviewUrl={setPreviewUrl}
                 selectedFile={selectedFile}
