@@ -354,6 +354,7 @@
   "register.toast.req.profileImage": "Profile image",
   "register.toast.req.teamLogo": "Team logo (upload on the team's edit page)",
   "structure.noStages": "No stages configured for this tournament yet.",
+  "structure.dateTo": "to",
   "structure.finals": "Finals",
   "structure.playerWord": "Player",
   "structure.teamWord": "Team",

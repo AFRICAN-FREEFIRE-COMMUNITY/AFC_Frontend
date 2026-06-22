@@ -4978,6 +4978,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 <TournamentStructure
                   stages={eventDetails.stages as any}
                   participantType={eventDetails.participant_type}
+                  timezone={eventDetails.timezone}
                 />
               ) : (
                 <Tabs

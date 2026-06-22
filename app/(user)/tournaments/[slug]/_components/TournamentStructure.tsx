@@ -24,6 +24,12 @@ import { useParams } from "next/navigation";
 // the "structure.*" keys; useTranslations("tournaments") resolves the active
 // locale from the NEXT_LOCALE cookie (en fallback).
 import { useTranslations } from "next-intl";
+// i18n date/time: stage + group schedule dates render in the VIEWER's locale via <LocalTime
+// mode="date"/>; the group's playing TIME renders dual-tz (viewer + host) via <LocalEventTime/>,
+// since playing_time is a host wall-clock paired with the event's IANA timezone. (owner 2026-06-22)
+import { LocalTime } from "@/components/LocalTime";
+import { LocalEventTime } from "@/components/LocalEventTime";
+import { CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, ChevronRight, ArrowUp } from "lucide-react";
 // IconArrowRight matches the LinkedEventsCard chip aesthetic (components/event-links.tsx).
@@ -42,6 +48,10 @@ interface StageGroup {
   group_id: number;
   group_name: string;
   teams_qualifying: number;
+  // Schedule (owner 2026-06-22): when this group plays. playing_date is a "YYYY-MM-DD"; playing_time
+  // is a host wall-clock "HH:MM[:SS]" tied to the event's timezone. Both echoed by get_event_details.
+  playing_date?: string | null;
+  playing_time?: string | null;
   overall_leaderboard?: any[];
   matches?: any[];
 }
@@ -51,12 +61,19 @@ interface Stage {
   stage_format: string;
   teams_qualifying_from_stage: number;
   is_finals_stage?: boolean; // present on the model; fall back to "last stage" if absent
+  // Schedule (owner 2026-06-22): the stage's start/end DATEs ("YYYY-MM-DD"), echoed by
+  // get_event_details. Shown under each stage so users see when it runs.
+  start_date?: string | null;
+  end_date?: string | null;
   groups: StageGroup[];
 }
 
 interface Props {
   stages: Stage[];
   participantType: string; // "solo" | "duo" | "squad"
+  // Event IANA timezone (Event.timezone), for the dual-tz group playing-time display. Optional:
+  // legacy events / missing tz -> LocalEventTime shows the host wall-clock without conversion.
+  timezone?: string | null;
   // OPTIONAL (owner 2026-06-15): this event's numeric id, used to fetch its qualification
   // links for the "Qualification Links" section. The parent (EventDetailsWrapper) renders
   // this component with only stages + participantType and must NOT be edited, so when eventId
@@ -87,7 +104,7 @@ const rowPoints = (row: any) => {
 };
 const fmtLabel = (f: string) => FORMAT_LABEL[f] || f;
 
-export function TournamentStructure({ stages, participantType, eventId }: Props) {
+export function TournamentStructure({ stages, participantType, eventId, timezone }: Props) {
   const t = useTranslations("tournaments");
   const [sel, setSel] = useState(0);
 
@@ -210,6 +227,23 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
                   <Badge variant="outline" className="rounded-full font-medium">
                     {fmtLabel(s.stage_format)}
                   </Badge>
+                  {/* Stage schedule (owner 2026-06-22): the dates this stage runs, in the viewer's
+                      locale. Shows a range when start/end differ, a single date when they match. */}
+                  {s.start_date && (
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <CalendarDays className="size-3.5 shrink-0" />
+                      {s.end_date && s.end_date !== s.start_date ? (
+                        <span>
+                          <LocalTime value={s.start_date} mode="date" />
+                          {" "}
+                          {t("structure.dateTo")}{" "}
+                          <LocalTime value={s.end_date} mode="date" />
+                        </span>
+                      ) : (
+                        <LocalTime value={s.start_date} mode="date" />
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground flex-wrap">
                     {isFinals ? (
                       <span>{t("structure.championCrowned")}</span>
@@ -370,9 +404,30 @@ export function TournamentStructure({ stages, participantType, eventId }: Props)
               const qN = g.teams_qualifying ?? 0;
               return (
                 <div key={g.group_id} className="bg-card rounded-md border overflow-hidden">
-                  <div className="flex items-center justify-between px-5 py-3.5 border-b">
-                    <span className="font-bold">{g.group_name}</span>
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b">
+                    <div className="min-w-0">
+                      <span className="font-bold">{g.group_name}</span>
+                      {/* Group schedule (owner 2026-06-22): when this group plays. The date is in the
+                          viewer's locale; the time is dual-tz (viewer + host) since playing_time is a
+                          host wall-clock paired with the event timezone. */}
+                      {g.playing_date && (
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                          <CalendarDays className="size-3.5 shrink-0" />
+                          <LocalTime value={g.playing_date} mode="date" />
+                          {g.playing_time && (
+                            <>
+                              <span aria-hidden>·</span>
+                              <LocalEventTime
+                                date={g.playing_date}
+                                startTime={g.playing_time}
+                                tz={timezone}
+                              />
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground text-right">
                       {t("structure.matchCount", {
                         count: g.matches?.length || 0,
                         matchWord:

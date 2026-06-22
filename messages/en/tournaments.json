@@ -463,6 +463,7 @@
   },
   "structure": {
     "noStages": "No stages configured for this tournament yet.",
+    "dateTo": "to",
     "finals": "Finals",
     "playerWord": "Player",
     "teamWord": "Team",
