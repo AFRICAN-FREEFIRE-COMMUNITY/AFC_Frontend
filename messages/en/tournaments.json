@@ -301,13 +301,35 @@
       "saving": "Saving...",
       "saveContinue": "Save & Continue"
     },
-    "uidMissingMembers": {
-      "title": "Missing AFC UIDs",
-      "description": "Some team members need to set their AFC UID before you can register.",
-      "andJoiner": " and ",
-      "bodySingular": "<bold>{names}</bold> hasn't filled their AFC UID yet. Ask them to update their profiles and come back once everyone's UID is set.",
-      "bodyPlural": "<bold>{names}</bold> haven't filled their AFC UID yet. Ask them to update their profiles and come back once everyone's UID is set.",
-      "close": "Close"
+    "rosterRequirements": {
+      "title": "Some roster members aren't ready",
+      "description": "These players must complete the event requirements before you can register. Each player is shown with exactly what they still need to add.",
+      "close": "Close",
+      "ready": "Ready",
+      "discordPending": "Discord (join server)",
+      "req": {
+        "uid": "Free Fire UID",
+        "discord": "Discord (join server)",
+        "esportsImage": "Esport image",
+        "profileImage": "Profile image"
+      }
+    },
+    "selfEdit": {
+      "trigger": "Edit my details",
+      "title": "Edit my details",
+      "description": "Update your own profile details for this event. These changes apply to your account, not your teammates.",
+      "ign": "In-game name",
+      "ignPlaceholder": "Your in-game name",
+      "uid": "Free Fire UID",
+      "uidPlaceholder": "Your Free Fire UID",
+      "uidRequired": "Your Free Fire UID is required for this event.",
+      "profileImage": "Profile image",
+      "esportImage": "Esport image",
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "saved": "Your details were updated.",
+      "saveFailed": "Could not save your details."
     },
     "type": {
       "title": "Tournament Registration",

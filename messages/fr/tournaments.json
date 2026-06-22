@@ -301,13 +301,35 @@
       "saving": "Enregistrement...",
       "saveContinue": "Enregistrer et continuer"
     },
-    "uidMissingMembers": {
-      "title": "UIDs AFC manquants",
-      "description": "Certains membres de l'équipe doivent définir leur UID AFC avant que vous ne puissiez vous inscrire.",
-      "andJoiner": " et ",
-      "bodySingular": "<bold>{names}</bold> n'a pas encore renseigné son UID AFC. Demandez-lui de mettre à jour son profil et de revenir une fois que l'UID de chacun est défini.",
-      "bodyPlural": "<bold>{names}</bold> n'ont pas encore renseigné leur UID AFC. Demandez-leur de mettre à jour leurs profils et de revenir une fois que l'UID de chacun est défini.",
-      "close": "Fermer"
+    "rosterRequirements": {
+      "title": "Certains membres de l'équipe ne sont pas prêts",
+      "description": "Ces joueurs doivent remplir les conditions requises pour l'événement avant que vous puissiez vous inscrire. Pour chaque joueur, le système indique précisément ce qu'il lui reste à faire.",
+      "close": "Fermer",
+      "ready": "Prêt",
+      "discordPending": "Discord (rejoindre le serveur)",
+      "req": {
+        "uid": "UID Free Fire",
+        "discord": "Discord (rejoindre le serveur)",
+        "esportsImage": "Image liée à l'e-sport",
+        "profileImage": "Photo de profil"
+      }
+    },
+    "selfEdit": {
+      "trigger": "Modifier mes informations",
+      "title": "Modifier mes informations",
+      "description": "Mettez à jour les informations de votre profil pour cet événement. Ces modifications s'appliquent à votre compte, et non à ceux de vos coéquipiers.",
+      "ign": "Pseudo dans le jeu",
+      "ignPlaceholder": "Ton pseudo dans le jeu",
+      "uid": "UID Free Fire",
+      "uidPlaceholder": "Ton identifiant UID Free Fire",
+      "uidRequired": "Votre identifiant UID Free Fire est obligatoire pour participer à cet événement.",
+      "profileImage": "Photo de profil",
+      "esportImage": "Image liée à l'e-sport",
+      "save": "Enregistrer",
+      "saving": "Enregistrement en cours...",
+      "cancel": "Annuler",
+      "saved": "Vos informations ont été mises à jour.",
+      "saveFailed": "Impossible d'enregistrer vos informations."
     },
     "type": {
       "title": "Inscription au tournoi",

@@ -301,13 +301,35 @@
       "saving": "Salvando...",
       "saveContinue": "Salvar e Continuar"
     },
-    "uidMissingMembers": {
-      "title": "UIDs AFC Ausentes",
-      "description": "Alguns membros da equipe precisam definir seu AFC UID antes que você possa se registrar.",
-      "andJoiner": " e ",
-      "bodySingular": "<bold>{names}</bold> ainda não preencheu seu AFC UID. Peça para que atualizem seus perfis e voltem quando o UID de todos estiver definido.",
-      "bodyPlural": "<bold>{names}</bold> ainda não preencheram seus AFC UIDs. Peça para que atualizem seus perfis e voltem quando o UID de todos estiver definido.",
-      "close": "Fechar"
+    "rosterRequirements": {
+      "title": "Alguns membros do plantel ainda não estão prontos",
+      "description": "Estes jogadores têm de cumprir os requisitos do evento antes de se poderem inscrever. Para cada jogador, é indicado exatamente o que ainda falta fazer.",
+      "close": "Fechar",
+      "ready": "Pronto",
+      "discordPending": "Discord (entrar no servidor)",
+      "req": {
+        "uid": "UID do Free Fire",
+        "discord": "Discord (entrar no servidor)",
+        "esportsImage": "Imagem de desporto eletrónico",
+        "profileImage": "Imagem de perfil"
+      }
+    },
+    "selfEdit": {
+      "trigger": "Editar os meus dados",
+      "title": "Editar os meus dados",
+      "description": "Atualiza os dados do teu perfil para este evento. Estas alterações aplicam-se à tua conta, não aos teus colegas de equipa.",
+      "ign": "Nome no jogo",
+      "ignPlaceholder": "O teu nome no jogo",
+      "uid": "UID do Free Fire",
+      "uidPlaceholder": "O teu UID do Free Fire",
+      "uidRequired": "Para participar neste evento, é necessário o teu UID do Free Fire.",
+      "profileImage": "Imagem de perfil",
+      "esportImage": "Imagem de desporto eletrónico",
+      "save": "Guardar",
+      "saving": "A guardar...",
+      "cancel": "Cancelar",
+      "saved": "Os seus dados foram atualizados.",
+      "saveFailed": "Não foi possível guardar os seus dados."
     },
     "type": {
       "title": "Inscrição no Torneio",

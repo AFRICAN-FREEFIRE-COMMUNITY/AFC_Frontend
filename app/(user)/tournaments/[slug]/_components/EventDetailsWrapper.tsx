@@ -121,6 +121,7 @@ import {
 import { SponsorRequirementsCard } from "./SponsorRequirementsCard";
 // Pre-register requirements heads-up (asset + sponsor requirements), shown to all viewers (owner 2026-06-20).
 import { EventRequirementsCard } from "./EventRequirementsCard";
+import { MemberSelfEditModal } from "./MemberSelfEditModal";
 // Public "Qualified field" provenance banner (event linking P2): who entered this
 // event through fired qualification links. Self-hides when there are none.
 import { QualifiedFromBanner } from "@/components/qualified-from-banner";
@@ -215,7 +216,12 @@ type ModalStep =
   | "INFO"
   | "TYPE"
   | "UID_PROMPT"
-  | "UID_MISSING_MEMBERS"
+  // ROSTER_REQUIREMENTS (owner 2026-06-22): the per-member roster-readiness marker. Before a
+  // registration is submitted we evaluate EVERY active event requirement against each selected
+  // member and, if any are unmet, show this modal listing each member + the exact requirements
+  // they still fail (UID / Discord / esport image / profile image), so the captain knows precisely
+  // who to chase. (Replaced an older UID-only message.)
+  | "ROSTER_REQUIREMENTS"
   | "RULES"
   | "SPONSOR"
   | "DISCORD_LINK"
@@ -377,6 +383,123 @@ interface TeamMember {
   // Drives isPlayingMember(): STAFF members are filtered out of the registration pickers
   // because the backend rejects them at register-for-event/ + edit-roster/. (Roster Rules)
   management_role?: string;
+  // Registration-requirement marker flags (owner 2026-06-22): does this member have an esport
+  // image / profile image on file? Echoed by team/get-team-details/ (afc_team.get_team_details)
+  // alongside uid + discord_id, so the roster step can show a per-member ✓/✗ for every active
+  // event requirement (require_player_uid / require_discord / require_esport_images /
+  // require_player_profile_image). See evaluateRosterRequirements + the ROSTER_REQUIREMENTS modal.
+  has_esports_image?: boolean;
+  has_profile_image?: boolean;
+}
+
+// ── Per-member registration-requirement evaluation (owner 2026-06-22) ─────────────────────────
+// SINGLE SOURCE OF TRUTH for "which of this event's active requirements does this roster member
+// still fail?". Used by BOTH the member picker (inline ✓/✗ badges in TeamRegistrationModals'
+// SELECT_MEMBERS step) and the pre-submit ROSTER_REQUIREMENTS marker (handleGoToRules), so the two
+// can never drift. Mirrors the backend gate field-for-field: UID + the two images come from
+// afc_tournament_and_scrims._missing_registration_assets; discord = "connected" (discord_id present)
+// while the backend stays authority on actual guild membership at submit (register_for_event's
+// require_discord gate). Returns the unmet requirement keys; an empty array means the member is ready.
+type RequirementKey = "uid" | "discord" | "esports_image" | "profile_image";
+function memberMissingRequirements(
+  member: Pick<
+    TeamMember,
+    "uid" | "discord_id" | "has_esports_image" | "has_profile_image"
+  >,
+  event: Pick<
+    EventDetails,
+    | "require_player_uid"
+    | "require_discord"
+    | "require_esport_images"
+    | "require_player_profile_image"
+  > | null,
+): RequirementKey[] {
+  const missing: RequirementKey[] = [];
+  if (event?.require_player_uid && !member.uid?.trim()) missing.push("uid");
+  // Discord here = NOT CONNECTED (no discord_id). The backend also requires actual guild membership
+  // (check_discord_membership_in_guild), which the FE can't see from get-team-details — so a member
+  // who IS connected is handled separately as an "advisory" (see MemberRequirementBadges) rather
+  // than being claimed fully ready. A connected member is therefore NOT a hard "missing" here.
+  if (event?.require_discord && !member.discord_id) missing.push("discord");
+  if (event?.require_esport_images && !member.has_esports_image)
+    missing.push("esports_image");
+  if (event?.require_player_profile_image && !member.has_profile_image)
+    missing.push("profile_image");
+  return missing;
+}
+
+// ── Inline per-member requirement badges (owner 2026-06-22) ───────────────────────────────────
+// Shared by BOTH roster pickers (registration SELECT_MEMBERS + EditRosterModal) so the badge logic
+// lives in one place. Three honest states:
+//   • red ✗  — a requirement the FE can definitively see is unmet (no UID / no image / Discord NOT
+//              connected). These are the hard misses from memberMissingRequirements().
+//   • amber  — require_discord is on and the member IS connected, but the FE cannot verify they are
+//              in the event's Discord SERVER (only the backend's check_discord_membership_in_guild
+//              can, at submit). We must NOT show green here, or the badge would over-promise.
+//   • green "Ready" — only when there is nothing unmet AND nothing unverifiable (no amber).
+// Renders nothing when the event has no per-player requirements (keeps the picker clean).
+function MemberRequirementBadges({
+  member,
+  event,
+}: {
+  member: Pick<
+    TeamMember,
+    "uid" | "discord_id" | "has_esports_image" | "has_profile_image"
+  >;
+  event: EventDetails | null;
+}) {
+  const t = useTranslations("tournaments");
+  const anyReq =
+    event?.require_player_uid ||
+    event?.require_discord ||
+    event?.require_esport_images ||
+    event?.require_player_profile_image;
+  if (!anyReq) return null;
+
+  const hardMissing = memberMissingRequirements(member, event);
+  // Connected but server-membership unverifiable client-side -> advisory, not a guarantee.
+  const discordUnverified = !!event?.require_discord && !!member.discord_id;
+
+  const reqLabel = (k: string) =>
+    ({
+      uid: t("register.rosterRequirements.req.uid"),
+      discord: t("register.rosterRequirements.req.discord"),
+      esports_image: t("register.rosterRequirements.req.esportsImage"),
+      profile_image: t("register.rosterRequirements.req.profileImage"),
+    })[k] ?? k;
+
+  if (hardMissing.length === 0 && !discordUnverified) {
+    return (
+      <Badge variant="outline" className="border-primary text-primary">
+        <CheckCircle />
+        {t("register.rosterRequirements.ready")}
+      </Badge>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap justify-end gap-1">
+      {hardMissing.map((k) => (
+        <Badge
+          key={k}
+          variant="outline"
+          className="border-destructive text-destructive"
+        >
+          <XCircle />
+          {reqLabel(k)}
+        </Badge>
+      ))}
+      {discordUnverified && (
+        <Badge
+          variant="outline"
+          className="border-amber-500 text-amber-600"
+        >
+          <AlertTriangle />
+          {t("register.rosterRequirements.discordPending")}
+        </Badge>
+      )}
+    </div>
+  );
 }
 
 interface UserTeam {
@@ -848,7 +971,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                             {member.username}
                           </label>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center justify-end gap-1">
                           {isCurrent && !isRejected && (
                             <Badge variant="outline" className="text-xs">
                               {t("editRoster.selectMembers.current")}
@@ -859,6 +982,13 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                               {t("editRoster.selectMembers.rejected")}
                             </Badge>
                           )}
+                          {/* Parity with the registration picker: same per-member requirement
+                              marker (shared component) so swapping in a player missing a UID /
+                              Discord / image is visible before saving the new roster. */}
+                          <MemberRequirementBadges
+                            member={member}
+                            event={eventDetails}
+                          />
                         </div>
                       </div>
                     );
@@ -1354,9 +1484,13 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                     STAFF (coach/manager/analyst) are filtered out so the picker never
                     offers someone the backend register-for-event/ endpoint would reject. */}
                 {userTeam?.members.filter(isPlayingMember).map((member) => (
+                  // Inline requirement marker (owner 2026-06-22): each selectable member shows a
+                  // green "Ready" / red ✗-per-unmet-requirement / amber Discord-advisory badge via
+                  // the shared MemberRequirementBadges, so the captain sees who is blocking BEFORE
+                  // selecting, not only after pressing Continue.
                   <div
                     key={member.id}
-                    className="flex items-center justify-between p-3 bg-background rounded-md border hover:border-primary transition"
+                    className="flex items-center justify-between gap-3 p-3 bg-background rounded-md border hover:border-primary transition"
                   >
                     <div className="flex items-center gap-3">
                       <Checkbox
@@ -1371,11 +1505,10 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                         {member.username}
                       </label>
                     </div>
-                    {/* <Badge
-                      variant={member.is_verified ? "default" : "secondary"}
-                    >
-                      {member.is_verified ? "Verified" : "Not Verified"}
-                    </Badge> */}
+                    <MemberRequirementBadges
+                      member={member}
+                      event={eventDetails}
+                    />
                   </div>
                 ))}
               </div>
@@ -1543,7 +1676,8 @@ interface ModalProps {
   setUidInput: (v: string) => void;
   savingUid: boolean;
   handleSaveUid: () => void;
-  uidMissingMembers: string[];
+  // Per-member requirement marker (owner 2026-06-22) rendered by the ROSTER_REQUIREMENTS step.
+  rosterReqIssues: { username: string; missing: string[] }[];
   pendingJoined: boolean;
   // M: drives the success-step copy (waitlist vs confirmed registration).
   wasWaitlisted?: boolean;
@@ -1615,7 +1749,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
   setUidInput,
   savingUid,
   handleSaveUid,
-  uidMissingMembers,
+  rosterReqIssues,
   pendingJoined,
   wasWaitlisted = false,
   isDiscordConnected,
@@ -1919,47 +2053,45 @@ const RegistrationModals: React.FC<ModalProps> = ({
           </>
         );
 
-      case "UID_MISSING_MEMBERS": {
-        const lastMember = uidMissingMembers[uidMissingMembers.length - 1];
-        const otherMembers = uidMissingMembers.slice(0, -1);
-        // Name list (e.g. "A, B and C" / "C"). The localized " and " joiner is
-        // pulled from the message file so other locales can adjust it.
-        const nameList =
-          otherMembers.length > 0
-            ? `${otherMembers.join(", ")}${t(
-                "register.uidMissingMembers.andJoiner",
-              )}${lastMember}`
-            : lastMember;
+      // ── Per-member requirement marker (owner 2026-06-22) ──────────────────────────────
+      // Lists each selected roster member who still fails one or more ACTIVE event requirements,
+      // and EXACTLY which ones (UID / Discord / esport image / profile image). This is the
+      // "show me who is missing what" view the owner asked for, so the captain can chase the
+      // right teammates instead of guessing. The backend re-validates on submit (the authority).
+      case "ROSTER_REQUIREMENTS": {
+        const reqLabel = (f: string) =>
+          ({
+            uid: t("register.rosterRequirements.req.uid"),
+            discord: t("register.rosterRequirements.req.discord"),
+            esports_image: t("register.rosterRequirements.req.esportsImage"),
+            profile_image: t("register.rosterRequirements.req.profileImage"),
+          })[f] ?? f;
         return (
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
-                {t("register.uidMissingMembers.title")}
+                {t("register.rosterRequirements.title")}
               </DialogTitle>
               <DialogDescription>
-                {t("register.uidMissingMembers.description")}
+                {t("register.rosterRequirements.description")}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-3 text-sm">
-              <p>
-                {uidMissingMembers.length === 1
-                  ? t.rich("register.uidMissingMembers.bodySingular", {
-                      names: nameList,
-                      bold: (chunks) => (
-                        <span className="font-semibold">{chunks}</span>
-                      ),
-                    })
-                  : t.rich("register.uidMissingMembers.bodyPlural", {
-                      names: nameList,
-                      bold: (chunks) => (
-                        <span className="font-semibold">{chunks}</span>
-                      ),
-                    })}
-              </p>
+            <div className="space-y-2 text-sm max-h-72 overflow-y-auto">
+              {rosterReqIssues.map((it) => (
+                <div
+                  key={it.username}
+                  className="flex items-start justify-between gap-3 rounded-md border p-2"
+                >
+                  <span className="font-medium">{it.username}</span>
+                  <span className="text-right text-muted-foreground">
+                    {it.missing.map(reqLabel).join(", ")}
+                  </span>
+                </div>
+              ))}
             </div>
             <DialogFooter>
               <Button onClick={() => setModalStep("CLOSED")}>
-                {t("register.uidMissingMembers.close")}
+                {t("register.rosterRequirements.close")}
               </Button>
             </DialogFooter>
           </>
@@ -3127,7 +3259,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // UID prompt state
   const [uidInput, setUidInput] = useState("");
   const [savingUid, setSavingUid] = useState(false);
-  const [uidMissingMembers, setUidMissingMembers] = useState<string[]>([]);
+  // Per-member requirement marker state (owner 2026-06-22): each selected roster member that
+  // fails one or more active event requirements, with the exact list of unmet requirement keys
+  // (uid / discord / esports_image / profile_image). Drives the ROSTER_REQUIREMENTS modal.
+  const [rosterReqIssues, setRosterReqIssues] = useState<
+    { username: string; missing: string[] }[]
+  >([]);
 
   // Ref to allow handleRulesContinue to call handleJoinedServer without circular deps
   const handleJoinedServerRef = useRef<() => void>(() => {});
@@ -3941,36 +4078,84 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     if (regType === "team") {
       const selectedMembersData =
         userTeam?.members.filter((m) => selectedMembers.includes(m.id)) ?? [];
-      const membersWithoutUid = selectedMembersData.filter(
-        (m) => !m.uid?.trim(),
-      );
 
-      if (membersWithoutUid.length > 0) {
-        const nonCurrentUserMissing = membersWithoutUid.filter(
-          (m) => String(m.id) !== String(user?.user_id),
-        );
+      // ── PER-MEMBER REGISTRATION-REQUIREMENT MARKER (owner 2026-06-22) ──────────────────
+      // Evaluate EVERY active event requirement against each selected roster member, so the
+      // captain sees EXACTLY who is missing what BEFORE submitting (previously only UID was
+      // checked, and only via a name list with no breakdown). This mirrors the backend gate
+      // (afc_tournament_and_scrims._missing_registration_assets + the require_discord gate in
+      // register_for_event) field-for-field, using the per-member flags get-team-details echoes
+      // (uid, discord_id, has_esports_image, has_profile_image). Discord here means "connected"
+      // (discord_id present); the backend stays the authority on actual guild membership at submit.
+      const reqIssues = selectedMembersData
+        .map((m) => ({
+          id: m.id,
+          username: m.username,
+          // Shared evaluator (memberMissingRequirements) so the picker badges + this gate agree.
+          missing: memberMissingRequirements(m, eventDetails),
+        }))
+        .filter((x) => x.missing.length > 0);
 
-        if (nonCurrentUserMissing.length > 0) {
-          // One or more non-current-user members are missing UIDs - blocking
-          setUidMissingMembers(membersWithoutUid.map((m) => m.username));
-          setModalStep("UID_MISSING_MEMBERS");
+      if (reqIssues.length > 0) {
+        // Keep the friendly inline fix when the ONLY problem is the current user's OWN missing
+        // UID: they can type it right here (UID_PROMPT) instead of being told to go elsewhere.
+        const onlyCurrentUserUidMissing =
+          reqIssues.length === 1 &&
+          String(reqIssues[0].id) === String(user?.user_id) &&
+          reqIssues[0].missing.length === 1 &&
+          reqIssues[0].missing[0] === "uid";
+
+        if (onlyCurrentUserUidMissing) {
+          setUidInput("");
+          setModalStep("UID_PROMPT");
           return;
         }
 
-        // Only the current user is missing their UID
+        // Otherwise show the full per-member breakdown so the captain knows who to chase.
+        setRosterReqIssues(
+          reqIssues.map((x) => ({ username: x.username, missing: x.missing })),
+        );
+        setModalStep("ROSTER_REQUIREMENTS");
+        return;
+      }
+    } else {
+      // ── SOLO PARITY (owner 2026-06-22) ───────────────────────────────────────────────
+      // The backend solo gate enforces the SAME requirement set as teams
+      // (_missing_registration_assets: UID / esport image / profile image, + the require_discord
+      // gate). Previously the FE only pre-checked UID for solo, so a solo player missing an image
+      // walked the whole flow then hit a submit 403. Mirror the team logic for the single
+      // registrant via the shared evaluator. The AuthContext `user` carries the image URLs (not the
+      // has_* booleans get-team-details adds for team members), so adapt to the evaluator's shape;
+      // discord uses discord_username as a "connected" proxy, with the backend authoritative on
+      // actual guild membership at submit (identical caveat to the team path).
+      const soloMissing = memberMissingRequirements(
+        {
+          uid: user?.uid,
+          discord_id: user?.discord_username ? "connected" : null,
+          has_esports_image: !!user?.esport_image_url,
+          has_profile_image: !!user?.profile_pic,
+        },
+        eventDetails,
+      );
+      // UID is fixable inline (the user is the registrant), so keep the friendly prompt for that.
+      if (soloMissing.length === 1 && soloMissing[0] === "uid") {
         setUidInput("");
         setModalStep("UID_PROMPT");
         return;
       }
-    } else {
-      if (!user?.uid?.trim()) {
-        setUidInput("");
-        setModalStep("UID_PROMPT");
+      if (soloMissing.length > 0) {
+        setRosterReqIssues([
+          {
+            username: user?.in_game_name || "You",
+            missing: soloMissing,
+          },
+        ]);
+        setModalStep("ROSTER_REQUIREMENTS");
         return;
       }
     }
     setModalStep("RULES");
-  }, [user, regType, selectedMembers, userTeam]);
+  }, [user, regType, selectedMembers, userTeam, eventDetails]);
 
   const handleSaveUid = useCallback(async () => {
     if (!uidInput.trim()) return;
@@ -4937,6 +5122,25 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   />
                 )}
 
+              {/* EDIT MY DETAILS (owner 2026-06-22): every registered player — NOT just the team
+                  manager — can fix their OWN profile details (IGN / UID / required images) while
+                  roster editing is allowed. We gate on !user.identity_locked, which the backend now
+                  sets true ONLY while the roster is frozen (registration closed + no window, or a
+                  match already has results); so the trigger appears exactly when the edit will be
+                  accepted, and never lets a player touch teammates or the roster composition.
+                  onSuccess refreshes BOTH the event AND the user's team, because the per-member
+                  requirement badges (MemberRequirementBadges) read from userTeam.members — so the
+                  player's own badge flips to green right after they fix it. */}
+              {!user?.identity_locked && (
+                <MemberSelfEditModal
+                  event={eventDetails}
+                  onSuccess={() => {
+                    fetchEventDetails();
+                    fetchUserTeam();
+                  }}
+                />
+              )}
+
               {/* LEAVE: only before the event starts (the roster-edit window is for EDITING, not
                   leaving) - and, for a team event, only a manager. Solo registrants can leave too. */}
               {!isEventStarted &&
@@ -5357,7 +5561,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         setUidInput={setUidInput}
         savingUid={savingUid}
         handleSaveUid={handleSaveUid}
-        uidMissingMembers={uidMissingMembers}
+        rosterReqIssues={rosterReqIssues}
         handleJoinedServer={handleJoinedServer}
         startPaidRegistration={startPaidRegistration}
         pendingJoined={pendingJoined}
