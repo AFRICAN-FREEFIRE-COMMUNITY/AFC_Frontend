@@ -350,6 +350,9 @@ interface EventDetails {
   // pre-start check (owner 2026-06-22 bug: editing was blocked despite an open window). Echoed by
   // get_event_details; the backend edit_roster enforces the same window.
   roster_edit_open?: boolean;
+  // The window's closing instant (ISO). roster_edit_open is a server SNAPSHOT; the UI derives the
+  // LIVE open/closed state from this vs the wall clock so a stale page self-corrects (owner 2026-06-23).
+  roster_edit_until?: string | null;
   // ── Owning organization (F4, owner 2026-06-19) ── rendered as an "Organized by [logo] name"
   // attribution in the event header, linking to /organizations/<slug>. All null for native AFC
   // events (the header then falls back to AFC branding). organization_logo is an absolute URL
@@ -3987,6 +3990,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     }
   }, [fetchEventDetails, slug, token, authLoading, t]);
 
+  // Live roster-edit-window tick (owner 2026-06-23): the server roster_edit_open is a SNAPSHOT from
+  // the last fetch, so a page left open past the deadline kept showing the Edit Roster button +
+  // "Edit my details". While a window is open AND still in the future, re-render every 30s so the
+  // gates (derived from roster_edit_until vs the wall clock below) flip to closed at the deadline
+  // without a refetch. Stops ticking once the deadline passes. Backend enforces regardless.
+  const [, setRosterTick] = useState(0);
+  useEffect(() => {
+    const until = eventDetails?.roster_edit_until;
+    if (!until) return;
+    if (Date.now() >= new Date(until).getTime()) return;
+    const id = setInterval(() => setRosterTick((t) => t + 1), 30000);
+    return () => clearInterval(id);
+  }, [eventDetails?.roster_edit_until]);
+
   const handleRegisterClick = useCallback(async () => {
     // Check ban status before anything else
     if (eventDetails?.participant_type === "squad" && userTeam?.is_banned) {
@@ -4582,6 +4599,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const isEventEnded = now > eventEndDateTime;
   const isEventStarted = now >= eventStartDateTime;
 
+  // Live roster-edit-window state (owner 2026-06-23): derive open/closed from roster_edit_until vs
+  // the wall clock instead of the server's roster_edit_open SNAPSHOT, so the Edit Roster button and
+  // "Edit my details" self-edit hide the moment the window passes — even on a page left open (the
+  // 30s tick above re-renders to make it flip live). Backend stays the enforcement authority.
+  const rosterWindowOpenLive =
+    !!eventDetails.roster_edit_until &&
+    now.getTime() < new Date(eventDetails.roster_edit_until).getTime();
+
   // M: full when active (non-waitlisted) registrations have hit the cap (backend computed).
   const isFull = !!eventDetails.is_full;
   const registrationDisabledReason = !canRegister
@@ -5120,7 +5145,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   window did nothing. Manager-gated (owner/captain/vice/manager/coach); the backend
                   edit_roster enforces the same window + the match-start lock. */}
               {eventDetails.participant_type === "squad" &&
-                (!isEventStarted || eventDetails.roster_edit_open) &&
+                (!isEventStarted || rosterWindowOpenLive) &&
                 userCanRegisterTeam(userTeam, user?.in_game_name) && (
                   <EditRosterModal
                     eventDetails={eventDetails}
@@ -5138,8 +5163,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   accepted, and never lets a player touch teammates or the roster composition.
                   onSuccess refreshes BOTH the event AND the user's team, because the per-member
                   requirement badges (MemberRequirementBadges) read from userTeam.members — so the
-                  player's own badge flips to green right after they fix it. */}
-              {!user?.identity_locked && (
+                  player's own badge flips to green right after they fix it. Also gated on the LIVE
+                  roster-edit allowance (owner 2026-06-23): once the window passes on a started event,
+                  the self-edit hides without a refetch (mirrors the Edit Roster button + the backend
+                  identity lock, which re-locks once the window closes / results land). */}
+              {!user?.identity_locked &&
+                (!isEventStarted || rosterWindowOpenLive) && (
                 <MemberSelfEditModal
                   event={eventDetails}
                   onSuccess={() => {
