@@ -1330,10 +1330,17 @@ const StageResultsTable: React.FC<{
             <TableBody>
               {tableRows.length > 0 ? (
                 tableRows.map((row: any, idx: number) => {
+                  // Competitor display name. The backend overall-standings rows are raw Django
+                  // .values() dicts, so the name key differs by participant type: SOLO rows carry
+                  // competitor__user__username, SQUAD rows carry tournament_team__team__team_name.
+                  // Reading only the solo keys made every TEAM event's standings fall back to
+                  // "Player N" (owner 2026-06-23 bug). Read both (mirrors TournamentStructure.rowName).
                   const username =
                     row.username ||
+                    row.team_name ||
                     row.competitor__user__username ||
-                    `Player ${row.competitor_id || idx + 1}`;
+                    row.tournament_team__team__team_name ||
+                    `Player ${row.competitor_id || row.tournament_team_id || idx + 1}`;
                   const kills = row.total_kills ?? row.kills ?? 0;
                   const points = row.total_points ?? row.total_pts ?? 0;
                   // Group standings expose placement_sum; per-match rows expose placement_points.
@@ -1343,7 +1350,7 @@ const StageResultsTable: React.FC<{
                   return (
                     <TableRow
                       key={`${
-                        row.competitor_id || row.id
+                        row.competitor_id || row.tournament_team_id || row.id
                       }-${selectedMatchId}-${idx}`}
                       className="group"
                     >
