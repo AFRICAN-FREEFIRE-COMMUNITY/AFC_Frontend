@@ -52,10 +52,7 @@
     "card": {
       "noDescription": "No description provided yet.",
       "eventCount": "{count} events",
-      "afcOfficial": "AFC Official",
-      "verified": "Verified",
-      "unverified": "Unverified",
-      "verifiedAria": "Verified organizer"
+      "afcOfficial": "AFC Official"
     },
     "afcCard": {
       "name": "AFC Official",
@@ -79,7 +76,6 @@
       "searchPlaceholder": "Search organizers by name...",
       "filter": {
         "all": "All organizers",
-        "verifiedOnly": "Verified only",
         "afcOfficial": "AFC official"
       },
       "sort": {

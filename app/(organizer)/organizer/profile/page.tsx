@@ -163,6 +163,7 @@ export default function OrganizerProfilePage() {
   const [submitting, startSubmit] = useTransition();
 
   // Editable text fields.
+  const [name, setName] = useState(""); // organization display name (owner-editable; slug unchanged)
   const [email, setEmail] = useState("");
   const [description, setDescription] = useState("");
   // Socials are an EXTENSIBLE list of {platform, url} rows (not a fixed 4 anymore), so
@@ -198,6 +199,7 @@ export default function OrganizerProfilePage() {
       try {
         const res = await organizersApi.getOrganization(slug);
         const org = res?.organization ?? {};
+        setName(org.name ?? "");
         setEmail(org.email ?? "");
         setDescription(org.description ?? "");
         // Hydrate the editable list from the stored { platform: url } dict, keeping
@@ -224,6 +226,10 @@ export default function OrganizerProfilePage() {
 
   // ── Submit handler ──
   const onSubmit = () => {
+    if (!name.trim()) {
+      toast.error("Organization name cannot be empty.");
+      return;
+    }
     startSubmit(async () => {
       try {
         // Collapse the editable rows into the { platform: url } dict the backend stores.
@@ -241,6 +247,7 @@ export default function OrganizerProfilePage() {
 
         if (hasFiles) {
           const fd = new FormData();
+          fd.append("name", name.trim());
           fd.append("email", email);
           fd.append("description", description);
           // socials go up as a JSON string field (the rest of the app does the same
@@ -251,6 +258,7 @@ export default function OrganizerProfilePage() {
           await organizersApi.editOrganizationProfile(slug, fd, true);
         } else {
           await organizersApi.editOrganizationProfile(slug, {
+            name: name.trim(),
             email,
             description,
             socials,
@@ -333,6 +341,17 @@ export default function OrganizerProfilePage() {
                 setBannerFile(null);
                 setBannerPreview("");
               }}
+            />
+          </div>
+
+          {/* Organization name (owner 2026-06-23): editable display name. The public URL handle
+              (slug) is NOT changed by this, so existing links keep working. */}
+          <div className="space-y-2">
+            <Label>Organization name</Label>
+            <Input
+              placeholder="Your organization's name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { env } from "@/lib/env";
@@ -124,6 +124,22 @@ export default function ActionsTab({
   // POST /events/roster-edit-window/ (set_roster_edit_window) + enforced in edit_roster.
   const [loadingRosterWindow, setLoadingRosterWindow] = useState(false);
   const [rosterUntilInput, setRosterUntilInput] = useState("");
+  // The roster window AUTO-CLOSES purely by time (server: Event.roster_edit_open = now <=
+  // roster_edit_until). The eventDetails.roster_edit_open we received is only a SNAPSHOT from the
+  // last fetch, so a panel left open past the deadline kept showing "Open until ..." (owner
+  // 2026-06-23). Derive the live open/closed state from roster_edit_until vs the wall clock, and
+  // tick every 30s so an idle panel flips to "Closed" the moment the deadline passes — no refetch
+  // needed. The backend stays the enforcement authority (edit_roster recomputes on every call).
+  const [, setRosterNowTick] = useState(0);
+  const rosterUntilMs = (eventDetails as any).roster_edit_until
+    ? new Date((eventDetails as any).roster_edit_until).getTime()
+    : null;
+  const rosterEditOpen = rosterUntilMs != null && Date.now() < rosterUntilMs;
+  useEffect(() => {
+    if (rosterUntilMs == null) return;
+    const id = setInterval(() => setRosterNowTick((t) => t + 1), 30000);
+    return () => clearInterval(id);
+  }, [rosterUntilMs]);
 
   // dialogs
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -1012,7 +1028,7 @@ export default function ActionsTab({
             <div>
               <p className="text-sm font-medium">Status</p>
               <p className="text-xs text-muted-foreground">
-                {(eventDetails as any).roster_edit_open ? (
+                {rosterEditOpen ? (
                   <>
                     Open until{" "}
                     <span className="font-semibold text-foreground">
@@ -1028,7 +1044,7 @@ export default function ActionsTab({
                 )}
               </p>
             </div>
-            {(eventDetails as any).roster_edit_open && (
+            {rosterEditOpen && (
               <Button
                 size="sm"
                 variant="outline"
@@ -1063,7 +1079,7 @@ export default function ActionsTab({
               >
                 {loadingRosterWindow ? (
                   <Loader text="Saving..." />
-                ) : (eventDetails as any).roster_edit_open ? (
+                ) : rosterEditOpen ? (
                   "Update window"
                 ) : (
                   "Open window"

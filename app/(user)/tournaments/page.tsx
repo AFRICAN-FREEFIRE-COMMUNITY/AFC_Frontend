@@ -31,7 +31,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search, ArrowLeft, BadgeCheck } from "lucide-react";
+import { Search, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -98,8 +98,9 @@ interface OrganizerDirectoryItem {
 
 // How the directory grid is sorted (mirrors the approved mockup's sort select).
 type OrgSort = "events" | "name";
-// Verified/official filter for the directory grid (mirrors the mockup's filter select).
-type OrgVerFilter = "all" | "verified" | "afc";
+// Directory grid filter: all orgs, or only the AFC-official one. (The per-org verified/unverified
+// tag + filter were removed user-side, owner 2026-06-23.)
+type OrgVerFilter = "all" | "afc";
 
 // --- Event Card ---
 const EventCard: React.FC<{ event: Event }> = ({ event }) => {
@@ -400,7 +401,7 @@ const OrganizerCard: React.FC<{
       </div>
 
       <CardContent className="flex flex-col gap-3 h-full p-6 pt-0">
-        {/* Logo + name + verified tick. The logo overlaps the banner (-mt-8). */}
+        {/* Logo + name. The logo overlaps the banner (-mt-8). */}
         <div className="flex items-center gap-3 -mt-8">
           <Avatar className="h-14 w-14 rounded-md border-4 border-card bg-card">
             <AvatarImage
@@ -415,14 +416,6 @@ const OrganizerCard: React.FC<{
           <div className="min-w-0 mt-8">
             <div className="flex items-center gap-1.5">
               <span className="font-bold truncate">{org.name}</span>
-              {/* Verified tick: shown only when AFC has verified at least one of
-                  this org's event results (real rankings_verified signal). */}
-              {org.verified && (
-                <BadgeCheck
-                  className="h-4 w-4 text-gold shrink-0"
-                  aria-label={t("organizers.card.verifiedAria")}
-                />
-              )}
             </div>
           </div>
         </div>
@@ -432,7 +425,7 @@ const OrganizerCard: React.FC<{
           {org.description || t("organizers.card.noDescription")}
         </p>
 
-        {/* Footer badges: event count, tier, verified/official status. All outline
+        {/* Footer badges: event count, tier, and the AFC-official marker. All outline
             rounded-full per the AFC badge idiom. */}
         <div className="mt-auto flex flex-wrap items-center gap-1.5">
           <Badge
@@ -449,26 +442,14 @@ const OrganizerCard: React.FC<{
               {org.tier}
             </Badge>
           )}
-          {org.slug === null ? (
+          {/* AFC Official marks the platform's own org (slug === null). The per-org
+              verified/unverified tag was removed (owner 2026-06-23): no need on the user side. */}
+          {org.slug === null && (
             <Badge
               variant="outline"
               className="rounded-full px-2 py-0.5 text-xs border-gold/55 text-gold"
             >
               {t("organizers.card.afcOfficial")}
-            </Badge>
-          ) : org.verified ? (
-            <Badge
-              variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-gold/55 text-gold"
-            >
-              {t("organizers.card.verified")}
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-orange-500/55 text-orange-500"
-            >
-              {t("organizers.card.unverified")}
             </Badge>
           )}
         </div>
@@ -572,7 +553,6 @@ const OrganizerDirectory: React.FC<{
       const matchesQuery = matchesSearch(o.name, orgSearch);
       const matchesFilter =
         orgVerFilter === "all" ||
-        (orgVerFilter === "verified" && o.verified) ||
         (orgVerFilter === "afc" && o.slug === null);
       return matchesQuery && matchesFilter;
     });
@@ -667,9 +647,6 @@ const OrganizerDirectory: React.FC<{
                 <h2 className="text-xl md:text-2xl font-bold">
                   {activeOrg.name}
                 </h2>
-                {activeOrg.verified && (
-                  <BadgeCheck className="h-5 w-5 text-gold shrink-0" />
-                )}
               </div>
               {activeOrg.description && (
                 <p className="text-sm text-muted-foreground mt-1 max-w-xl">
@@ -773,9 +750,6 @@ const OrganizerDirectory: React.FC<{
             <SelectContent>
               <SelectItem value="all">
                 {t("organizers.directory.filter.all")}
-              </SelectItem>
-              <SelectItem value="verified">
-                {t("organizers.directory.filter.verifiedOnly")}
               </SelectItem>
               <SelectItem value="afc">
                 {t("organizers.directory.filter.afcOfficial")}

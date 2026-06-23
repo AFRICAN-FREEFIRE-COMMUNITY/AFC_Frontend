@@ -100,6 +100,8 @@
     "teamTag": "Team tag",
     "teamTagPlaceholder": "e.g. AFC",
     "teamTagHint": "Short team handle (up to 5 letters), e.g. AFC. Shown on your players and used in search.",
+    "teamDescription": "Team description",
+    "teamDescriptionPlaceholder": "Tell players about your team (up to 200 characters)",
     "teamLogo": "Team logo",
     "dropImage": "Drop your image here, or",
     "browse": "browse",

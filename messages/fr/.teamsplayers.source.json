@@ -89,6 +89,8 @@
   "teamEdit.teamTag": "Team tag",
   "teamEdit.teamTagPlaceholder": "e.g. AFC",
   "teamEdit.teamTagHint": "Short team handle (up to 5 letters), e.g. AFC. Shown on your players and used in search.",
+  "teamEdit.teamDescription": "Team description",
+  "teamEdit.teamDescriptionPlaceholder": "Tell players about your team (up to 200 characters)",
   "teamEdit.teamLogo": "Team logo",
   "teamEdit.dropImage": "Drop your image here, or",
   "teamEdit.browse": "browse",

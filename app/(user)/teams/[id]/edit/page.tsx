@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { FullLoader, Loader } from "@/components/Loader";
 import { use, useEffect, useRef, useState, useTransition } from "react";
@@ -68,6 +69,13 @@ export const EditTeamFormSchema = z.object({
     })
     .optional(),
   team_logo: z.string().optional(),
+  // Team description (owner 2026-06-23): editable from the team-edit page; shown on the team profile.
+  // Capped at 200 chars to match the backend Team.team_description field. Optional (blank falls back
+  // to the default server-side).
+  team_description: z
+    .string()
+    .max(200, { message: "Team description must be at most 200 characters." })
+    .optional(),
   join_settings: z
     .string()
     .min(2, { message: "Join settings must be selected." }),
@@ -110,6 +118,7 @@ export default function page({ params }: { params: Params }) {
       team_id: "",
       team_name: "",
       team_tag: "",
+      team_description: "",
       team_logo: "",
       join_settings: "",
       facebook_url: "",
@@ -155,6 +164,8 @@ export default function page({ params }: { params: Params }) {
         team_name: teamDetails.team_name || "",
         // Pre-fill the current tag (get-team-details returns team_tag); "" when unset.
         team_tag: teamDetails.team_tag || "",
+        // Pre-fill the current description (get-team-details returns team_description).
+        team_description: teamDetails.team_description || "",
         join_settings: teamDetails.join_settings || "",
         team_logo: teamDetails.team_logo || "",
         ...socialUrls,
@@ -171,6 +182,9 @@ export default function page({ params }: { params: Params }) {
         const formData = new FormData();
         formData.append("team_id", data.team_id); // ✅ send as string
         formData.append("team_name", data.team_name);
+        // Always send team_description (key present) so an empty value clears it (server then
+        // falls back to the default). Mirrors how team_tag is always sent.
+        formData.append("team_description", (data.team_description || "").trim());
         formData.append("join_settings", data.join_settings);
         // Always send team_tag (key present) so the owner can also CLEAR it: an empty value
         // tells edit_team to null the tag. The backend normalises + validates it.
@@ -287,6 +301,28 @@ export default function page({ params }: { params: Params }) {
                     <p className="text-xs text-muted-foreground">
                       {t("teamEdit.teamTagHint")}
                     </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Team description (owner 2026-06-23): shown on the team profile. Max 200 chars;
+                  sent to edit-team as team_description. */}
+              <FormField
+                control={form.control}
+                name="team_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("teamEdit.teamDescription")}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={t("teamEdit.teamDescriptionPlaceholder")}
+                        maxLength={200}
+                        rows={3}
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

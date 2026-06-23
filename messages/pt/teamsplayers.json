@@ -100,6 +100,8 @@
     "teamTag": "Tag da equipe",
     "teamTagPlaceholder": "ex: AFC",
     "teamTagHint": "Identificador curto da equipe (até 5 letras), ex: AFC. Exibido nos seus jogadores e usado na pesquisa.",
+    "teamDescription": "Descrição da equipa",
+    "teamDescriptionPlaceholder": "Fala aos jogadores sobre a tua equipa (até 200 caracteres)",
     "teamLogo": "Logotipo da equipe",
     "dropImage": "Arraste sua imagem para cá, ou",
     "browse": "procurar",
