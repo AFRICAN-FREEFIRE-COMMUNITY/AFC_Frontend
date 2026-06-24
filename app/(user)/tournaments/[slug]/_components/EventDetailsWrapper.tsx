@@ -129,6 +129,22 @@ import { QualifiedFromBanner } from "@/components/qualified-from-banner";
 // redirect. Keyed by payment_id; the success page reads `${PAID_REG_KEY_PREFIX}${payment_id}`.
 const PAID_REG_KEY_PREFIX = "afc_evt_reg_";
 
+// Currencies charged in WHOLE units (no minor unit) - mirrors the backend _ZERO_DECIMAL set in
+// event_payments.py so a per-country override in e.g. XOF/XAF (CFA francs, the Francophone-Africa
+// audience this feature targets) renders "XOF 5,000" not "XOF 5,000.00" (owner 2026-06-24).
+const ZERO_DECIMAL_CCY = new Set(["JPY", "KRW", "VND", "CLP", "XOF", "XAF"]);
+// Format an entry fee as "<CCY> <amount>" with the right number of fraction digits for the currency.
+// Used for every paid-event money string on the detail page (badge, entry-fee line, PAYMENT step,
+// register CTA) so the displayed amount always matches what the backend actually charges.
+const fmtFee = (amount: number, currency: string) => {
+  const ccy = (currency || "USD").toUpperCase();
+  const digits = ZERO_DECIMAL_CCY.has(ccy) ? 0 : 2;
+  return `${ccy} ${amount.toLocaleString(undefined, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  })}`;
+};
+
 // ── Registration draft resume (owner 2026-06-13: "if any user starts registration on
 // the platform, if they close the page or reload ... they should continue where they
 // stopped even if they have not submitted") ──
@@ -321,6 +337,25 @@ interface EventDetails {
   registration_type?: "free" | "paid";
   registration_fee?: number | null;
   registration_fee_currency?: string;
+  // ── Per-country payment (owner 2026-06-24) ──
+  // your_registration_fee is the backend-resolved fee for THIS viewer (squad: their own country as a
+  // preview; null for an anonymous viewer), so the detail page can show the exact amount (or "free for
+  // your country") before any registration step. country_payment_rules is the raw config (used to tell
+  // an anon viewer the fee "varies by country"). The amount a registrant actually pays is re-resolved
+  // server-side at register/payment time (squad uses the chosen team's country). See
+  // resolve_registration_fee / _serialize_viewer_fee in the backend.
+  your_registration_fee?: {
+    pays: boolean;
+    amount: string;
+    currency: string;
+  } | null;
+  country_payment_rules?: {
+    default_pays: boolean;
+    countries: Record<
+      string,
+      { pays: boolean; amount?: string; currency?: string }
+    >;
+  } | null;
   // ── Registration criteria (owner 2026-06-12) ── set on the event create/edit wizard.
   // require_team_logo: the team must have a logo before it can register. require_esport_images:
   // every (rostered) player must have their esport image uploaded (UserProfile.esports_pic).
@@ -353,6 +388,11 @@ interface EventDetails {
   // The window's closing instant (ISO). roster_edit_open is a server SNAPSHOT; the UI derives the
   // LIVE open/closed state from this vs the wall clock so a stale page self-corrects (owner 2026-06-23).
   roster_edit_until?: string | null;
+  // Per-team window for the VIEWER's OWN team (owner 2026-06-24): an admin/organizer can allow a
+  // SPECIFIC team to edit its roster even when the event-wide window is closed. The Edit Roster button
+  // opens when EITHER window is open. Null/false for non-members. Echoed by get_event_details.
+  your_team_roster_edit_until?: string | null;
+  your_team_roster_edit_open?: boolean;
   // ── Owning organization (F4, owner 2026-06-19) ── rendered as an "Organized by [logo] name"
   // attribution in the event header, linking to /organizations/<slug>. All null for native AFC
   // events (the header then falls back to AFC branding). organization_logo is an absolute URL
@@ -3037,15 +3077,18 @@ const RegistrationModals: React.FC<ModalProps> = ({
         // collected; here the user reviews the entry fee and pays via Stripe. The "Pay" button
         // saves the register payload to localStorage and redirects to checkout_url; the success
         // page verifies the payment and completes the actual registration.
-        const fee = eventDetails.registration_fee;
-        const currency = eventDetails.registration_fee_currency || "USD";
+        // Per-country (owner 2026-06-24): show THIS viewer's resolved fee (your_registration_fee) when
+        // available, else the base fee. Squad events re-resolve by the team's country at checkout, so
+        // this is a preview; Stripe Checkout shows the actual amount (and the buyer's local currency).
+        const vfPay = eventDetails.your_registration_fee;
+        const fee =
+          vfPay && vfPay.pays ? Number(vfPay.amount) : eventDetails.registration_fee;
+        const currency =
+          vfPay && vfPay.pays
+            ? vfPay.currency
+            : eventDetails.registration_fee_currency || "USD";
         const feeLabel =
-          typeof fee === "number"
-            ? `${currency} ${fee.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}`
-            : `${currency} 0.00`;
+          typeof fee === "number" ? fmtFee(fee, currency) : fmtFee(0, currency);
         return (
           <>
             <DialogHeader>
@@ -3997,12 +4040,19 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // without a refetch. Stops ticking once the deadline passes. Backend enforces regardless.
   const [, setRosterTick] = useState(0);
   useEffect(() => {
-    const until = eventDetails?.roster_edit_until;
-    if (!until) return;
-    if (Date.now() >= new Date(until).getTime()) return;
+    // Tick while EITHER the event-wide window or the viewer's per-team window is open + still in the
+    // future (owner 2026-06-24), so the Edit Roster button flips closed at whichever deadline is later.
+    const untils = [
+      eventDetails?.roster_edit_until,
+      eventDetails?.your_team_roster_edit_until,
+    ]
+      .filter(Boolean)
+      .map((u) => new Date(u as string).getTime());
+    const latest = untils.length ? Math.max(...untils) : null;
+    if (!latest || Date.now() >= latest) return;
     const id = setInterval(() => setRosterTick((t) => t + 1), 30000);
     return () => clearInterval(id);
-  }, [eventDetails?.roster_edit_until]);
+  }, [eventDetails?.roster_edit_until, eventDetails?.your_team_roster_edit_until]);
 
   const handleRegisterClick = useCallback(async () => {
     // Check ban status before anything else
@@ -4326,6 +4376,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       const data = error?.response?.data;
       const message: string =
         data?.message || fallback || t("register.toast.genericError");
+      // Per-country payment (owner 2026-06-24, review pass-2): any replay that unexpectedly hits the
+      // hardened paid gate (e.g. an already-paid row that no longer covers this team/amount) gets a 402
+      // payment_required. Route to the PAYMENT step so the user can pay the correct amount instead of a
+      // dead-end toast. init is binding-aware, so PAYMENT -> Pay creates a fresh checkout (no loop).
+      if (data?.code === "payment_required") {
+        setModalStep("PAYMENT");
+        return;
+      }
       if (data?.code === "esport_image_required") {
         toast.error(message, {
           description: t("register.toast.esportImageDescription"),
@@ -4430,17 +4488,45 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         const eventId = eventDetails?.event_id;
         if (!eventId) return;
 
+        // Build the register payload first so we can pass the SUBMITTED roster to init: the backend
+        // prices a squad fee off the submitted-roster country (owner 2026-06-24), so init must see the
+        // same roster register-for-event will, otherwise init and the register gate could disagree on
+        // the amount (a free init followed by a paying register would dead-end).
+        const payload = buildRegistrationPayload();
+
         const init = await eventPaymentsApi.initRegistrationPayment({
           event_id: eventId,
           // team_id only matters for squad events; omitted for solo.
           ...(regType === "team" && userTeam
             ? { team_id: userTeam.team_id }
             : {}),
+          // Roster (squad) so init prices off the same country basis as register-for-event.
+          ...(regType === "team" && Array.isArray(payload.roster_member_ids)
+            ? { roster_member_ids: payload.roster_member_ids }
+            : {}),
         });
+
+        // Per-country FREE (owner 2026-06-24): the server resolved THIS registrant's country (squad ->
+        // submitted-roster country) as free, so there is no Stripe step. Register directly via the
+        // normal endpoint (register-for-event also bypasses the paid gate for a free country) -> SUCCESS.
+        if ((init as any)?.free) {
+          const res = await axios.post(
+            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/register-for-event/`,
+            payload,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          toast.success(
+            res.data.message || t("register.toast.registeredFallback"),
+          );
+          setWasWaitlisted(!!res.data.waitlisted);
+          setPendingSponsorApproval(!!res.data.pending_sponsor_approval);
+          setModalStep("SUCCESS");
+          await fetchEventDetails();
+          return;
+        }
 
         // Persist the register payload keyed by payment_id BEFORE leaving the page, so the
         // success page can finish registration after the Stripe round-trip.
-        const payload = buildRegistrationPayload();
         try {
           localStorage.setItem(
             `${PAID_REG_KEY_PREFIX}${init.payment_id}`,
@@ -4506,10 +4592,16 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   ]);
 
   const handleJoinedServer = useCallback(async () => {
-    // PAID events do NOT register directly - route to the PAYMENT step instead. Everything
-    // up to here (INFO/RULES/SPONSOR/DISCORD) has already collected the roster + sponsor +
-    // invite info, which buildRegistrationPayload() snapshots when the user pays.
-    if (eventDetails?.registration_type === "paid") {
+    // PAID events route to the PAYMENT step instead of registering directly - EXCEPT when this
+    // viewer's country is free (per-country rules, owner 2026-06-24): then they register like a free
+    // event. The fee preview (your_registration_fee) is from the user's country; the server re-resolves
+    // at register time (squad uses the team country), so a free-country mismatch is still safe - the
+    // free path's catch below routes a surprise 402 payment_required to the PAYMENT step. Everything up
+    // to here (INFO/RULES/SPONSOR/DISCORD) already collected the roster/sponsor/invite info.
+    const vf = eventDetails?.your_registration_fee;
+    const mustPay =
+      eventDetails?.registration_type === "paid" && (vf ? vf.pays : true);
+    if (mustPay) {
       setModalStep("PAYMENT");
       return;
     }
@@ -4535,6 +4627,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         // Refresh event details to update registration status
         await fetchEventDetails();
       } catch (error: any) {
+        // Per-country safety net (owner 2026-06-24): the FE preview thought this viewer was free, but
+        // the server resolved a fee for the chosen team's country -> 402 payment_required. Route to the
+        // PAYMENT step instead of just toasting, so the registrant can still pay + finish.
+        if (error?.response?.data?.code === "payment_required") {
+          setModalStep("PAYMENT");
+          return;
+        }
         // Gate errors (esport image / team logo) become actionable toasts with a deep-link.
         handleRegistrationGateError(error);
       }
@@ -4603,9 +4702,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // the wall clock instead of the server's roster_edit_open SNAPSHOT, so the Edit Roster button and
   // "Edit my details" self-edit hide the moment the window passes — even on a page left open (the
   // 30s tick above re-renders to make it flip live). Backend stays the enforcement authority.
+  // Open when the EVENT-wide window OR the viewer's own team's per-team window is live (owner 2026-06-24).
   const rosterWindowOpenLive =
-    !!eventDetails.roster_edit_until &&
-    now.getTime() < new Date(eventDetails.roster_edit_until).getTime();
+    (!!eventDetails.roster_edit_until &&
+      now.getTime() < new Date(eventDetails.roster_edit_until).getTime()) ||
+    (!!eventDetails.your_team_roster_edit_until &&
+      now.getTime() < new Date(eventDetails.your_team_roster_edit_until).getTime());
 
   // M: full when active (non-waitlisted) registrations have hit the cap (backend computed).
   const isFull = !!eventDetails.is_full;
@@ -4639,11 +4741,40 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     eventDetails.registration_fee > 0;
   const paidFeeCurrency = eventDetails.registration_fee_currency || "USD";
   const paidFeeLabel = isPaidEvent
-    ? `${paidFeeCurrency} ${Number(eventDetails.registration_fee).toLocaleString(
-        undefined,
-        { minimumFractionDigits: 2, maximumFractionDigits: 2 },
-      )}`
+    ? fmtFee(Number(eventDetails.registration_fee), paidFeeCurrency)
     : "";
+
+  // ── Per-country viewer fee (owner 2026-06-24) ──
+  // your_registration_fee is the backend-resolved fee for THIS viewer. When present we trust it (it
+  // already accounts for the per-country rules); when absent (anonymous viewer) we fall back to the
+  // base fee and, if rules exist, flag that the amount varies by country. viewerMustPay drives both
+  // the register-flow branch and the CTA: false => this viewer registers free (skip the Stripe step).
+  const viewerFee = eventDetails.your_registration_fee ?? null;
+  // "Rules exist" for the anon hint = any per-country row OR a non-default global toggle
+  // (default_pays === false means "everyone free unless listed"), so an anon viewer of such an event
+  // sees "varies by country" rather than the base fee asserted as payable (review pass-2 finding).
+  const hasCountryRules =
+    !!eventDetails.country_payment_rules &&
+    (Object.keys(eventDetails.country_payment_rules.countries || {}).length > 0 ||
+      eventDetails.country_payment_rules.default_pays === false);
+  // The fee label shown to THIS viewer: their resolved amount, else the base fee.
+  const viewerFeeLabel =
+    isPaidEvent && viewerFee && viewerFee.pays
+      ? fmtFee(Number(viewerFee.amount), viewerFee.currency)
+      : paidFeeLabel;
+  // Whether this viewer pays. Unknown (anon) defaults to true so we never hide a real fee; the server
+  // re-checks at register time and a free-country registrant is allowed through regardless.
+  const viewerMustPay = isPaidEvent && (viewerFee ? viewerFee.pays : true);
+  // The entry-fee line shown before any registration step.
+  const entryFeeText = !isPaidEvent
+    ? ""
+    : viewerFee && !viewerFee.pays
+      ? t("detail.entryFeeFreeForCountry")
+      : viewerFee && viewerFee.pays
+        ? t("detail.entryFee", { fee: viewerFeeLabel })
+        : hasCountryRules
+          ? t("detail.entryFeeVaries", { fee: paidFeeLabel })
+          : t("detail.entryFee", { fee: paidFeeLabel });
 
   const statusVariant: Record<
     string,
@@ -4864,19 +4995,26 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           {t("detail.participants", { value: participantText })}
         </p>
 
-        {/* ── Paid-event badge ──
-            Only rendered for a paid event (registration_type === "paid" with a positive
-            fee). Outline Badge in the AFC tier-badge idiom (rounded-full, green accent),
-            mirroring the organizer badge on the event cards. Shows the entry fee up front
-            so users know before they open the register flow. */}
+        {/* ── Paid-event badge + entry fee (owner 2026-06-24, per-country) ──
+            Only rendered for a paid event. The badge keeps the AFC tier-badge idiom
+            (rounded-full, green accent). With per-country rules, this viewer may pay a
+            different amount or join free, so we show the viewer-resolved entry fee BEFORE any
+            registration step: a "Free for your country" badge when they don't pay, otherwise
+            "Paid: <fee>" plus an explicit Entry fee line (which notes "varies by country" for
+            an anonymous viewer). See viewerFee / entryFeeText above. */}
         {isPaidEvent && (
-          <div>
+          <div className="space-y-1">
             <Badge
               variant="outline"
               className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
             >
-              {t("detail.paidBadge", { fee: paidFeeLabel })}
+              {viewerFee && !viewerFee.pays
+                ? t("detail.freeForCountryBadge")
+                : t("detail.paidBadge", { fee: viewerFeeLabel })}
             </Badge>
+            {entryFeeText && (
+              <p className="text-sm text-muted-foreground">{entryFeeText}</p>
+            )}
           </div>
         )}
 
@@ -5244,11 +5382,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                     : registrationDisabledReason ||
                       (waitlistMode
                         ? t("detail.registerButton.joinWaitlist")
-                        : // Paid events surface the fee on the CTA so it's clear before the
-                          // user opens the register flow (which ends on the PAYMENT step).
-                          isPaidEvent
+                        : // Paid events surface the fee on the CTA so it's clear before the user opens
+                          // the register flow (which ends on the PAYMENT step). Per-country (owner
+                          // 2026-06-24): a viewer whose country is free gets the plain Register label;
+                          // a paying viewer sees their resolved fee (viewerFeeLabel).
+                          isPaidEvent && viewerMustPay
                           ? t("detail.registerButton.registerPaid", {
-                              fee: paidFeeLabel,
+                              fee: viewerFeeLabel,
                             })
                           : t("detail.registerButton.registerForTournament"))}
             </Button>

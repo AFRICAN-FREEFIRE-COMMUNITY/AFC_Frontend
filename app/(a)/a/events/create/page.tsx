@@ -128,6 +128,7 @@ export default function CreateEventPage() {
       registration_type: "free",
       registration_fee: null,
       registration_fee_currency: "USD",
+      country_payment_rules: null,
       event_status: "upcoming",
       publish_to_tournaments: false,
       publish_to_news: false,
@@ -284,6 +285,7 @@ export default function CreateEventPage() {
           registration_type: d.registration_type || "free",
           registration_fee: d.registration_fee ?? null,
           registration_fee_currency: d.registration_fee_currency || "USD",
+          country_payment_rules: d.country_payment_rules ?? null,
           event_status: "upcoming",
           publish_to_tournaments: false,
           publish_to_news: false,
@@ -773,6 +775,15 @@ export default function CreateEventPage() {
             "registration_fee_currency",
             data.registration_fee_currency || "USD",
           );
+          // Per-country payment rules (owner 2026-06-24): only sent for paid events. JSON-encoded;
+          // the backend parses + validates via _parse_country_payment_rules. Null/absent => everyone
+          // pays the base fee (no per-country config).
+          if (data.country_payment_rules) {
+            formData.append(
+              "country_payment_rules",
+              JSON.stringify(data.country_payment_rules),
+            );
+          }
         }
         // Times are now compulsory (owner 2026-06-21) so always send the four of them
         // (the Zod schema guarantees they're non-empty) plus the creator's IANA timezone,

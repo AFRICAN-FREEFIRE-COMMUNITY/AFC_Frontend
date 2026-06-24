@@ -69,7 +69,10 @@ function appendRegistrationFeeFields(
   formData: FormData,
   data: Pick<
     EventFormType,
-    "registration_type" | "registration_fee" | "registration_fee_currency"
+    | "registration_type"
+    | "registration_fee"
+    | "registration_fee_currency"
+    | "country_payment_rules"
   >,
 ) {
   formData.append("registration_type", data.registration_type || "free");
@@ -78,6 +81,14 @@ function appendRegistrationFeeFields(
     formData.append(
       "registration_fee_currency",
       data.registration_fee_currency || "USD",
+    );
+    // Per-country payment rules (owner 2026-06-24): always send the key on a paid-event save so
+    // clearing all rows persists (null clears it server-side). JSON-encoded; backend re-validates.
+    formData.append(
+      "country_payment_rules",
+      data.country_payment_rules
+        ? JSON.stringify(data.country_payment_rules)
+        : "",
     );
   }
 }
@@ -498,6 +509,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           registration_fee: eventDetails.registration_fee ?? null,
           registration_fee_currency:
             eventDetails.registration_fee_currency || "USD",
+          // Per-country payment rules (owner 2026-06-24): rehydrate the editor from the echo.
+          country_payment_rules: eventDetails.country_payment_rules ?? null,
           event_status: eventDetails.event_status,
           event_start_time: eventDetails.event_start_time || "",
           event_end_time: eventDetails.event_end_time || "",

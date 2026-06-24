@@ -37,6 +37,7 @@ import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { countries, REGIONS_MAP } from "@/constants";
 import { InfoTip } from "@/components/ui/info-tip";
+import CountryPaymentRulesEditor from "@/components/CountryPaymentRulesEditor";
 import { type HelpId } from "@/lib/help-content";
 import { EventFormType, REGISTRATION_FEE_CURRENCIES } from "./types";
 // Shared per-event Discord registration gate (guild id + invite + verify + require +
@@ -419,6 +420,22 @@ export function Step1EventDetails({
                 )}
               />
             </div>
+          )}
+
+          {/* Per-country payment rules (owner 2026-06-24): only for paid events. Lets the creator
+              pick which countries pay / join free + optional per-country amount overrides. Controlled
+              editor wired straight to the RHF field; backend re-validates via _parse_country_payment_rules. */}
+          {isPaidRegistration && (
+            <CountryPaymentRulesEditor
+              value={form.watch("country_payment_rules")}
+              onChange={(next) =>
+                form.setValue("country_payment_rules", next, {
+                  shouldDirty: true,
+                })
+              }
+              baseCurrency={form.watch("registration_fee_currency") ?? "USD"}
+              baseFee={form.watch("registration_fee")}
+            />
           )}
         </div>
 

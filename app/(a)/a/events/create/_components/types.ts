@@ -248,6 +248,11 @@ export const EventFormSchema = z
     registration_type: z.enum(["free", "paid"]).default("free"),
     registration_fee: z.coerce.number().positive().optional().nullable(),
     registration_fee_currency: z.string().default("USD"),
+    // Per-country payment rules (owner 2026-06-24). Optional JSON; only meaningful on a paid event.
+    // Shape { default_pays, countries: { <Country>: { pays, amount?, currency? } } } (see
+    // CountryPaymentRulesEditor / backend Event.country_payment_rules). z.any() because the shared
+    // editor owns the shape + the backend re-validates via _parse_country_payment_rules.
+    country_payment_rules: z.any().optional().nullable(),
     event_status: z.string().default("upcoming"),
     publish_to_tournaments: z.boolean().default(false),
     publish_to_news: z.boolean().default(false),

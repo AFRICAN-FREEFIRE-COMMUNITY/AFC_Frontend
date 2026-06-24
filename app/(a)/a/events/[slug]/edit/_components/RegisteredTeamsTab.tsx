@@ -126,6 +126,50 @@ export default function RegisteredTeamsTab({
     }
   };
 
+  // Per-team roster-edit allowance (owner 2026-06-24): let THIS one team edit its roster (and its
+  // members fix IGN/UID) even when the event-wide window is closed and even after results - "just like
+  // the roster-edit window, but for a specific team". Toggle opens it to the max (the backend caps the
+  // sent far-future `until` at the event end) or closes it. POSTs /events/team-roster-edit-window/.
+  const [rosterAllowBusy, setRosterAllowBusy] = useState<number | null>(null);
+  const toggleTeamRosterWindow = async (opts: {
+    teamId: number;
+    open: boolean; // true => open, false => close
+    key: number;
+  }) => {
+    if (!token) return;
+    setRosterAllowBusy(opts.key);
+    try {
+      // Far-future "until" so the backend caps it to the event end (max allowed window).
+      const farUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/team-roster-edit-window/`,
+        {
+          event_id: eventDetails.event_id,
+          team_id: opts.teamId,
+          ...(opts.open ? { until: farUntil } : { open: false }),
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(
+        opts.open
+          ? "Roster editing allowed for this team."
+          : "Roster editing closed for this team.",
+      );
+      onRefresh?.();
+    } catch (e: any) {
+      toast.error(
+        e.response?.data?.message || "Failed to update the team's roster-edit window.",
+      );
+    } finally {
+      setRosterAllowBusy(null);
+    }
+  };
+  // Live "is this team's window open?" from roster_edit_until vs the wall clock (the echoed
+  // roster_edit_open is only a snapshot; derive live so a closed-by-time window reads correctly).
+  const teamWindowOpen = (team: any) =>
+    !!team.roster_edit_until &&
+    new Date(team.roster_edit_until).getTime() > Date.now();
+
   // ── F1 no-show reputation (owner 2026-06-19) ──
   // Pull the repeat-no-show warning status for every visible team/player so a "⚠ Repeat no-show"
   // badge can flag teams that no-showed >= 2 times in the last 7 days (across ALL events). Bulk
@@ -504,6 +548,28 @@ export default function RegisteredTeamsTab({
                           }
                         >
                           {team.is_no_show ? "No-show ✓" : "No-show"}
+                        </Button>
+                        {/* Per-team roster-edit allowance (owner 2026-06-24): let THIS team edit its
+                            roster even when the event-wide window is closed / after results. Toggles
+                            TournamentTeam.roster_edit_until (open to event end / close). */}
+                        <Button
+                          size="sm"
+                          variant={teamWindowOpen(team) ? "secondary" : "outline"}
+                          disabled={rosterAllowBusy === key}
+                          title={
+                            teamWindowOpen(team)
+                              ? "This team can currently edit its roster. Click to close."
+                              : "Allow this team to edit its roster (until the event ends)."
+                          }
+                          onClick={() =>
+                            toggleTeamRosterWindow({
+                              teamId: team.team_id || team.player_id,
+                              open: !teamWindowOpen(team),
+                              key,
+                            })
+                          }
+                        >
+                          {teamWindowOpen(team) ? "Roster edit ✓" : "Allow roster edit"}
                         </Button>
                         <EditRosterModal
                           event_id={eventDetails.event_id}

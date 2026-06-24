@@ -49,6 +49,7 @@ import type { EventFormType, EventDetails } from "../types";
 // Single source of truth for the paid-registration currency options (defined with the
 // create-flow form constants); reused here so create + edit can't drift.
 import { REGISTRATION_FEE_CURRENCIES } from "@/app/(a)/a/events/create/_components/types";
+import CountryPaymentRulesEditor from "@/components/CountryPaymentRulesEditor";
 // Shared per-event Discord registration gate (guild id + invite + verify + require +
 // invite link) — same control the create wizard's Step1EventDetails uses.
 import { DiscordRegistrationGate } from "@/app/(a)/a/events/create/_components/DiscordRegistrationGate";
@@ -819,6 +820,22 @@ export default function BasicInfoTab({
                 )}
               />
             </div>
+          )}
+
+          {/* Per-country payment rules (owner 2026-06-24): edit which countries pay / join free +
+              optional per-country amount overrides. Controlled editor wired to the RHF field; rehydrated
+              from the event's country_payment_rules (get-event-details echo). Backend re-validates. */}
+          {isPaidRegistration && (
+            <CountryPaymentRulesEditor
+              value={form.watch("country_payment_rules")}
+              onChange={(next) =>
+                form.setValue("country_payment_rules", next, {
+                  shouldDirty: true,
+                })
+              }
+              baseCurrency={form.watch("registration_fee_currency") ?? "USD"}
+              baseFee={form.watch("registration_fee")}
+            />
           )}
         </div>
 

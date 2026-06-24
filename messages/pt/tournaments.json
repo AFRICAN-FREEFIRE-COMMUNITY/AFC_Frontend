@@ -97,6 +97,10 @@
     "format": "Formato: {value}",
     "participants": "Participantes: {value}",
     "paidBadge": "Pago: {fee}",
+    "freeForCountryBadge": "Gratuito no seu país",
+    "entryFee": "Taxa de inscrição: {fee}",
+    "entryFeeFreeForCountry": "Não há taxa de inscrição para o seu país. Pode inscrever-se gratuitamente.",
+    "entryFeeVaries": "Taxa de inscrição em {fee}. O valor pode variar consoante o país.",
     "discordRequiredBadge": "É necessário ter o Discord",
     "joinDiscord": "Junta-te ao Discord do evento",
     "viewToggle": {

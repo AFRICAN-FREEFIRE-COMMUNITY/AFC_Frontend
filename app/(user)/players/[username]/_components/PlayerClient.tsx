@@ -681,11 +681,20 @@ export function PlayerClient({ username }: { username: string }) {
             <ScrollArea>
               <TabsList className="w-full mb-4">
                 <TabsTrigger value="overview">{t("player.tabOverview")}</TabsTrigger>
-                <TabsTrigger value="statistics">{t("player.tabStatistics")}</TabsTrigger>
-                <TabsTrigger value="events">{t("player.tabEvents")}</TabsTrigger>
-                <TabsTrigger value="performance">
-                  {t("player.tabPerformance")}
-                </TabsTrigger>
+                {/* Individual player STATS tabs are hidden entirely unless the viewer may see this
+                    player's stats (owner 2026-06-24: own profile or an AFC admin only - NOT teammates,
+                    organizers, sponsors, or other players). statsVisible mirrors the backend
+                    get-public-player-stats gate (_can_view_player_stats), so the tab list matches what
+                    the server would actually return. Overview + Team stay (identity/roster, not stats). */}
+                {statsVisible && (
+                  <>
+                    <TabsTrigger value="statistics">{t("player.tabStatistics")}</TabsTrigger>
+                    <TabsTrigger value="events">{t("player.tabEvents")}</TabsTrigger>
+                    <TabsTrigger value="performance">
+                      {t("player.tabPerformance")}
+                    </TabsTrigger>
+                  </>
+                )}
                 <TabsTrigger value="team">{t("player.tabTeam")}</TabsTrigger>
               </TabsList>
               <ScrollBar orientation="horizontal" />

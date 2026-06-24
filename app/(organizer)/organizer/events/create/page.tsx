@@ -223,6 +223,7 @@ export default function OrganizerCreateEventPage() {
       registration_type: "free",
       registration_fee: null,
       registration_fee_currency: "USD",
+      country_payment_rules: null,
       event_status: "upcoming",
       publish_to_tournaments: false,
       publish_to_news: false,
@@ -731,6 +732,14 @@ export default function OrganizerCreateEventPage() {
             "registration_fee_currency",
             data.registration_fee_currency || "USD",
           );
+          // Per-country payment rules (owner 2026-06-24): only for paid events. JSON-encoded;
+          // backend re-validates via _parse_country_payment_rules. Absent => everyone pays base.
+          if (data.country_payment_rules) {
+            formData.append(
+              "country_payment_rules",
+              JSON.stringify(data.country_payment_rules),
+            );
+          }
           if (termsAcceptedRef.current) {
             formData.append("paid_terms_accepted", "true");
           }

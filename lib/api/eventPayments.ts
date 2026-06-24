@@ -67,7 +67,8 @@ async function aPost<T = any>(path: string, body?: any): Promise<T> {
 export interface InitRegistrationPaymentResponse {
   // The AFC-side EventRegistrationPayment id. Used as the localStorage key suffix
   // (afc_evt_reg_<payment_id>) and passed back to verify-registration-payment/.
-  payment_id: string | number;
+  // Optional: a free-country registrant (see `free`) has no payment row.
+  payment_id?: string | number;
   // Stripe-hosted Checkout URL to send the browser to. Present on a fresh init.
   checkout_url?: string;
   // Stripe Checkout Session id, echoed back on the success URL as ?session_id=.
@@ -75,6 +76,12 @@ export interface InitRegistrationPaymentResponse {
   // Set when the user has ALREADY paid for this event (no checkout needed) - the
   // caller skips straight to completing registration with this payment_id.
   already_paid?: boolean;
+  // Per-country payment (owner 2026-06-24): set when THIS registrant's country pays no entry fee
+  // (event.country_payment_rules). No Stripe step - the caller registers directly via
+  // register-for-event, which mirrors this and skips the paid gate for a free country.
+  free?: boolean;
+  // Optional human message (e.g. the free-country note).
+  message?: string;
 }
 
 /** Response of POST verify-registration-payment/. */
@@ -125,8 +132,13 @@ export const eventPaymentsApi = {
    * + session_id, OR {already_paid:true, payment_id} when the user already paid.
    * Consumed by EventDetailsWrapper.tsx right before it would call register-for-event.
    */
-  initRegistrationPayment: (body: { event_id: number; team_id?: number | string }) =>
-    aPost<InitRegistrationPaymentResponse>("init-registration-payment/", body),
+  initRegistrationPayment: (body: {
+    event_id: number;
+    team_id?: number | string;
+    // Per-country payment (owner 2026-06-24): the SUBMITTED roster, so the backend prices a squad fee
+    // off the same country basis register-for-event uses (init + register must agree on the amount).
+    roster_member_ids?: Array<number | string>;
+  }) => aPost<InitRegistrationPaymentResponse>("init-registration-payment/", body),
 
   /**
    * POST /events/verify-registration-payment/ ({session_id?, payment_id?}).

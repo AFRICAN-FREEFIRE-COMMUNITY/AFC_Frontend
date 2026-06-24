@@ -156,6 +156,9 @@ export const EventFormSchema = z
     registration_type: z.enum(["free", "paid"]).default("free"),
     registration_fee: z.coerce.number().positive().optional().nullable(),
     registration_fee_currency: z.string().default("USD"),
+    // Per-country payment rules (owner 2026-06-24); see CountryPaymentRulesEditor / backend
+    // Event.country_payment_rules. z.any(): the editor owns the shape, backend re-validates.
+    country_payment_rules: z.any().optional().nullable(),
     event_status: z.string().default("upcoming"),
     publish_to_tournaments: z.boolean().default(false),
     publish_to_news: z.boolean().default(false),
@@ -249,6 +252,14 @@ export interface EventDetails {
   registration_type?: "free" | "paid";
   registration_fee?: number | null;
   registration_fee_currency?: string | null;
+  // Per-country payment rules echo (owner 2026-06-24); BasicInfoTab rehydrates the editor from this.
+  country_payment_rules?: {
+    default_pays: boolean;
+    countries: Record<
+      string,
+      { pays: boolean; amount?: string; currency?: string }
+    >;
+  } | null;
   tournament_tier: string;
   event_banner_url: string | null;
   uploaded_rules_url: string | null;
