@@ -19,10 +19,16 @@ import {
   IconLoader2,
   IconAlertTriangle,
   IconCircleCheck,
+  IconStack2,
 } from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+// "All maps at once" mode (owner 2026-06-25): the 3D Room File picker can upload a single map OR
+// every map in the group at once. The multi-map panel is the same one the standalone "Upload all
+// maps (.log)" button uses — reused here so the all-maps option lives INSIDE the 3D Room File flow.
+import { MultiMapLogPanel, type MatchOption } from "./MultiMapLogUpload";
 // Shared watchlist client (lib/watchlist.ts). The upload review lets admins flag teams/players
 // straight from the off-roster flags here; entries land on the AFC-wide advisory watchlist that
 // powers <WatchTag> elsewhere (registered teams, leaderboard standings, /a/watchlist).
@@ -36,6 +42,13 @@ interface Props {
   onBack: () => void;
   /** Skips the event-details fetch when participant type is already known */
   participantTypeOverride?: "solo" | "team";
+  /** The current group's matches (map slots). When provided, the "All maps at once" toggle shows
+   *  so admins/orgs can upload every map's .log in one pass (reuses MultiMapLogPanel). */
+  groupMatches?: MatchOption[];
+  /** Called after the all-maps panel applies, so the parent can refresh the leaderboard + flags. */
+  onAllMapsApplied?: () => void;
+  /** Gates the all-maps Review/Apply buttons (organizer passes can_upload_results). Default true. */
+  canManage?: boolean;
 }
 
 // ── Response contract from /events/upload-team-match-result/ (see views.upload_team_match_result) ──
@@ -103,15 +116,30 @@ const REASON_LABEL: Record<string, string> = {
   team_exists_roster_mismatch: "Team exists, players not on roster",
 };
 
-export function FileUploadStep({ match, formData, onNext, onBack, participantTypeOverride }: Props) {
+export function FileUploadStep({
+  match,
+  formData,
+  onNext,
+  onBack,
+  participantTypeOverride,
+  groupMatches,
+  onAllMapsApplied,
+  canManage = true,
+}: Props) {
   const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fileType, setFileType] = useState("match_result_file");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // Drag-and-drop highlight for the single-file dropzone (native HTML5, no library).
+  const [isDragging, setIsDragging] = useState(false);
+  // Single map vs every map in the group. "all" renders MultiMapLogPanel (only offered when
+  // groupMatches is supplied by the parent leaderboard page).
+  const [scope, setScope] = useState<"single" | "all">("single");
   const [participantType, setParticipantType] = useState<"team" | "solo" | null>(null);
   const [loadingType, setLoadingType] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const canChooseAllMaps = (groupMatches?.length ?? 0) > 0;
   // When the team upload returns flagged players (unknown UIDs / missing teams / players with no
   // UID), we hold the drawer open on a review panel instead of auto-advancing, so the admin sees
   // exactly which kills were credited and which UIDs need reconciling.
@@ -185,6 +213,15 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     setSelectedFile(file);
+  };
+
+  // Native HTML5 file drop for the single-map picker (mirrors the OCR image dropzones). Takes the
+  // first dropped file; no type filter (.log/.txt has no reliable MIME and the backend validates).
+  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0] ?? null;
+    if (file) setSelectedFile(file);
   };
 
   const handleRemoveFile = () => {
@@ -588,11 +625,65 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
       <CardHeader>
         <CardTitle>{match.match_name} - 3D Room File Upload</CardTitle>
         <CardDescription>
-          Choose the data source type and upload the file for leaderboard
-          extraction.
+          {scope === "all"
+            ? "Upload every map's room file for this group at once: assign each file to its match, review, then apply."
+            : "Choose the data source type and upload the file for leaderboard extraction."}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-2 space-y-6">
+        {/* Scope toggle (owner 2026-06-25): "This map only" vs "All maps at once". Only shown when
+            the parent leaderboard page supplied the group's matches (groupMatches). */}
+        {canChooseAllMaps && (
+          <div className="space-y-2">
+            <Label className="font-medium">Upload scope</Label>
+            <div className="inline-flex w-full rounded-lg bg-muted p-1 sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setScope("single")}
+                className={cn(
+                  "flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
+                  scope === "single"
+                    ? "bg-background shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                This map only
+              </button>
+              <button
+                type="button"
+                onClick={() => setScope("all")}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
+                  scope === "all"
+                    ? "bg-background shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <IconStack2 size={15} /> All maps at once
+              </button>
+            </div>
+          </div>
+        )}
+
+        {scope === "all" && canChooseAllMaps ? (
+          /* All-maps mode: reuse MultiMapLogPanel, scoped to this group's matches. participantType
+             is resolved by now (loadingType=false), so the panel hits the right endpoint. */
+          <div className="space-y-4">
+            <MultiMapLogPanel
+              matches={groupMatches ?? []}
+              token={token}
+              participantType={participantType ?? "team"}
+              canManage={canManage}
+              onChanged={() => onAllMapsApplied?.()}
+            />
+            <div className="pt-1">
+              <Button variant="ghost" onClick={onBack}>
+                Back
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
         {/* File type selection */}
         <div className="space-y-2">
           <Label className="font-medium">File Type</Label>
@@ -645,7 +736,7 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
           </RadioGroup>
         </div>
 
-        {/* File picker */}
+        {/* File picker (drag-and-drop + click-to-browse) */}
         <div className="space-y-2">
           <Label className="font-medium">Upload File</Label>
           {selectedFile ? (
@@ -660,14 +751,35 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
               </button>
             </div>
           ) : (
-            <button
+            <div
+              role="button"
+              tabIndex={0}
               onClick={() => fileInputRef.current?.click()}
-              className="w-full rounded-lg border border-dashed p-8 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary/60 hover:text-primary transition-colors"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleFileDrop}
+              className={cn(
+                "w-full rounded-lg border border-dashed p-8 flex flex-col items-center gap-2 cursor-pointer transition-colors",
+                isDragging
+                  ? "border-primary bg-primary/5 text-primary"
+                  : "text-muted-foreground hover:border-primary/60 hover:text-primary",
+              )}
             >
               <IconUpload size={24} />
-              <span className="text-sm font-medium">Click to select file</span>
+              <span className="text-sm font-medium">
+                Drag &amp; drop a file here, or click to browse
+              </span>
               <span className="text-xs">.txt or debugger files</span>
-            </button>
+            </div>
           )}
           <input
             ref={fileInputRef}
@@ -695,6 +807,8 @@ export function FileUploadStep({ match, formData, onNext, onBack, participantTyp
             )}
           </Button>
         </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

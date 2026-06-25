@@ -127,7 +127,7 @@ import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
 // Multi-map .log upload (owner 2026-06-22) — shared with the admin leaderboard (cross-imported via
 // the @/app alias, same pattern as EventStageExportGraphicDialog). Drop all maps' match-logs at
 // once, assign+review+apply per file (reuses /events/upload-team-match-result/).
-import { MultiMapLogUpload } from "@/app/(a)/a/leaderboards/_components/MultiMapLogUpload";
+import { MultiMapLogUpload, type MatchOption } from "@/app/(a)/a/leaderboards/_components/MultiMapLogUpload";
 import { InfoTip } from "@/components/ui/info-tip";
 // Export graphic dialog (event-stage variant) - see _components/EventStageExportGraphicDialog.tsx.
 // Calls leaderboardDesignsApi.downloadEventStageGraphic, which hits
@@ -223,6 +223,8 @@ export default function OrganizerEventLeaderboardPage({
   const [editingMatch, setEditingMatch] = useState<{
     match: { match_id: number; match_name: string };
     view: MatchView;
+    // Matches of the group that owns this match — fed to FileUploadStep's "All maps at once" mode.
+    groupMatches?: MatchOption[];
   } | null>(null);
   const [matchPickerOpen, setMatchPickerOpen] = useState(false);
   const [pickerGroupId, setPickerGroupId] = useState<string>("");
@@ -474,6 +476,7 @@ export default function OrganizerEventLeaderboardPage({
           match_name: `Match ${m.match_number} (${m.match_map})`,
         },
         view: "method",
+        groupMatches: currentGroup?.matches ?? [],
       });
     } else {
       setPickerGroupId(selectedGroupId);
@@ -500,6 +503,8 @@ export default function OrganizerEventLeaderboardPage({
         match_name: `Match ${m.match_number} (${m.match_map})`,
       },
       view: "method",
+      // Use the PICKED group's matches (the picker may target a different group than the one shown).
+      groupMatches: group?.matches ?? [],
     });
   };
 
@@ -1133,19 +1138,28 @@ export default function OrganizerEventLeaderboardPage({
           match={editingMatch.match}
           formData={detailsFormData}
           participantTypeOverride={detailsParticipantType}
+          // Enables the "All maps at once" toggle (3D Room File), scoped to this match's group.
+          groupMatches={editingMatch.groupMatches ?? currentGroup?.matches ?? []}
+          canManage={canUploadResults}
+          onAllMapsApplied={() => {
+            fetchLeaderboard();
+            setFlagRefreshKey((k) => k + 1);
+          }}
           onNext={handleEditComplete}
           onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
         />
       )}
 
-      {/* Multi-map .log upload (owner 2026-06-22): TEAM events only. Drop every map's match-log at
-          once, assign each to a match in THIS group, review, apply. Hidden while editing a match/
-          group (same as the panel). canManage follows can_upload_results. */}
-      {!editingMatch && !groupEditOpen && eventData && detailsParticipantType !== "solo" && currentGroup && (
+      {/* Multi-map .log upload (owner 2026-06-22; SOLO support 2026-06-25): drop every map's
+          match-log at once, assign each to a match in THIS group, review, apply. Works for team
+          AND solo (participantType picks the endpoint). Hidden while editing a match/group.
+          canManage follows can_upload_results. */}
+      {!editingMatch && !groupEditOpen && eventData && currentGroup && (
         <div className="mt-4 flex justify-end">
           <MultiMapLogUpload
             matches={currentGroup?.matches ?? []}
             token={token}
+            participantType={detailsParticipantType}
             canManage={canUploadResults}
             onChanged={() => {
               fetchLeaderboard();

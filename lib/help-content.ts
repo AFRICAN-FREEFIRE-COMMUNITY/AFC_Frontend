@@ -154,6 +154,8 @@ export const HELP = {
     "Mark the event cancelled and notify every registered player. Use when the event won't go ahead.",
   "events.edit.complete_event":
     "Finalise the event and lock all results so nothing can be changed afterwards.",
+  "events.edit.reopen_event":
+    "Set a completed event back to active so you can fix or add results. It won't be auto-completed again until you re-enter the final results or mark it complete.",
   "events.edit.seed_to_groups":
     "Randomly distribute a stage's competitors across its groups. Run before the stage's matches begin.",
   "events.edit.advance_stage":

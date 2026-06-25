@@ -113,6 +113,8 @@ export default function ActionsTab({
   // loading
   const [loadingCancel, setLoadingCancel] = useState(false);
   const [loadingComplete, setLoadingComplete] = useState(false);
+  // Reopen a completed event (owner 2026-06-25): admins + organizers flip it back to active.
+  const [loadingReopen, setLoadingReopen] = useState(false);
   const [loadingSeed, setLoadingSeed] = useState(false);
   const [loadingAdvance, setLoadingAdvance] = useState(false);
   const [loadingSync, setLoadingSync] = useState(false);
@@ -144,6 +146,7 @@ export default function ActionsTab({
   // dialogs
   const [cancelOpen, setCancelOpen] = useState(false);
   const [completeOpen, setCompleteOpen] = useState(false);
+  const [reopenOpen, setReopenOpen] = useState(false);
   const [announcementOpen, setAnnouncementOpen] = useState(false);
 
   // selectors
@@ -274,6 +277,27 @@ export default function ActionsTab({
       toast.error(e.response?.data?.message || "Failed to complete event");
     } finally {
       setLoadingComplete(false);
+    }
+  }
+
+  // Reopen a completed event (owner 2026-06-25). POST /events/reopen-event/ flips event_status back
+  // to active (ongoing/upcoming by date) so results/rosters can be fixed; the backend gates this to
+  // AFC admins OR organizers with can_edit_events, so this same button works on the organizer page.
+  async function handleReopen() {
+    setLoadingReopen(true);
+    try {
+      const res = await axios.post(
+        `${API}/events/reopen-event/`,
+        { event_id: eventDetails.event_id },
+        { headers: authHeader },
+      );
+      toast.success(res.data.message);
+      setReopenOpen(false);
+      onRefresh?.();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to reopen event");
+    } finally {
+      setLoadingReopen(false);
     }
   }
 
@@ -654,10 +678,34 @@ export default function ActionsTab({
             </Button>
           </div>
 
+          {/* Reopen (owner 2026-06-25): only relevant once an event is completed. Admins + organizers
+              (the backend gate allows can_edit_events) flip it back to active to fix/add results. */}
           {status === "completed" && (
-            <p className="text-xs text-center text-muted-foreground italic">
-              This tournament has ended. Results are now locked.
-            </p>
+            <>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium inline-flex items-center">
+                    Reopen Event
+                    <InfoTip id="events.edit.reopen_event" className="ml-1" />
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Set this completed event back to active so you can fix or add
+                    results.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setReopenOpen(true)}
+                >
+                  <Undo2 className="h-4 w-4 mr-1" /> Reopen
+                </Button>
+              </div>
+              <p className="text-xs text-center text-muted-foreground italic">
+                This tournament has ended. Results are now locked.
+              </p>
+            </>
           )}
         </CardContent>
       </Card>
@@ -1252,6 +1300,39 @@ export default function ActionsTab({
                 ) : (
                   "Yes, Mark Complete"
                 )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Confirm Reopen (owner 2026-06-25) ──────────────────────────── */}
+      <Dialog open={reopenOpen} onOpenChange={setReopenOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <div className="text-center">
+            <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+              <Undo2 className="h-7 w-7 text-blue-600" />
+            </div>
+            <DialogTitle className="text-xl">Reopen this event?</DialogTitle>
+            <DialogDescription className="mt-2">
+              <b>"{eventDetails.event_name}"</b> will be set back to active so you
+              can fix or add results. You can mark it complete again afterwards.
+            </DialogDescription>
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="outline"
+                className="flex-1"
+                disabled={loadingReopen}
+                onClick={() => setReopenOpen(false)}
+              >
+                Back
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleReopen}
+                disabled={loadingReopen}
+              >
+                {loadingReopen ? <Loader text="Reopening..." /> : "Yes, Reopen Event"}
               </Button>
             </div>
           </div>

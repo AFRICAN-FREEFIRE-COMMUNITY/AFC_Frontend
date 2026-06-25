@@ -24,7 +24,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
 // Multi-map .log upload (owner 2026-06-22): drop every map's match-log at once, assign each to a
 // match, review, apply. Reuses /events/upload-team-match-result/ per file (dry_run for review).
-import { MultiMapLogUpload } from "../_components/MultiMapLogUpload";
+import { MultiMapLogUpload, type MatchOption } from "../_components/MultiMapLogUpload";
 // Design-based export (owner 2026-06-16): the existing DownloadLeaderboardButton renders onto the
 // FIXED AFC template; this dialog lets the admin pick a CUSTOM design + size and render via the
 // backend renderer (events/<id>/stages/<sid>/graphic/). Shared with the organizer leaderboard.
@@ -84,6 +84,9 @@ export default function IndividualLeaderboardPage({
   const [editingMatch, setEditingMatch] = useState<{
     match: { match_id: number; match_name: string };
     view: MatchView;
+    // The matches of the GROUP that owns this match — fed to FileUploadStep so its "All maps at
+    // once" mode (3D Room File) targets the right group, even if the picker chose a different group.
+    groupMatches?: MatchOption[];
   } | null>(null);
 
   const [matchPickerOpen, setMatchPickerOpen] = useState(false);
@@ -278,6 +281,7 @@ export default function IndividualLeaderboardPage({
           match_name: `Match ${m.match_number} (${m.match_map})`,
         },
         view: "method",
+        groupMatches: currentGroup?.matches ?? [],
       });
     } else {
       setPickerGroupId(selectedGroupId);
@@ -304,6 +308,8 @@ export default function IndividualLeaderboardPage({
         match_name: `Match ${m.match_number} (${m.match_map})`,
       },
       view: "method",
+      // Use the PICKED group's matches (the picker may target a different group than the one shown).
+      groupMatches: group?.matches ?? [],
     });
   };
 
@@ -659,14 +665,16 @@ export default function IndividualLeaderboardPage({
         </Card>
       )}
 
-      {/* Multi-map .log upload (owner 2026-06-22): TEAM events only. Drop every map's match-log at
-          once, assign each to a match in THIS group, review, then apply — reuses the single-map
-          upload pipeline per file. Fed the current group's matches. */}
-      {!editingMatch && !groupEditOpen && eventData && detailsParticipantType !== "solo" && currentGroup && (
+      {/* Multi-map .log upload (owner 2026-06-22; SOLO support 2026-06-25): drop every map's
+          match-log at once, assign each to a match in THIS group, review, then apply — reuses the
+          single-map upload pipeline per file. Works for team AND solo events (participantType picks
+          the endpoint). Fed the current group's matches. */}
+      {!editingMatch && !groupEditOpen && eventData && currentGroup && (
         <div className="mt-4 flex justify-end">
           <MultiMapLogUpload
             matches={currentGroup?.matches ?? []}
             token={token}
+            participantType={detailsParticipantType}
             onChanged={() => {
               fetchLeaderboard();
               setFlagRefreshKey((k) => k + 1); // re-fetch the flagged-kills panel too
@@ -741,6 +749,12 @@ export default function IndividualLeaderboardPage({
           match={editingMatch.match}
           formData={detailsFormData}
           participantTypeOverride={detailsParticipantType}
+          // Enables the "All maps at once" toggle (3D Room File), scoped to this match's group.
+          groupMatches={editingMatch.groupMatches ?? currentGroup?.matches ?? []}
+          onAllMapsApplied={() => {
+            fetchLeaderboard();
+            setFlagRefreshKey((k) => k + 1);
+          }}
           onNext={handleEditComplete}
           onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
         />
