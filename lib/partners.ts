@@ -37,6 +37,9 @@ async function aPost<T = any>(path: string, body?: any): Promise<T> {
 async function aPatch<T = any>(path: string, body?: any): Promise<T> {
   return (await axios.patch(url(path), body ?? {}, { headers: authHeaders() })).data;
 }
+async function aDelete<T = any>(path: string): Promise<T> {
+  return (await axios.delete(url(path), { headers: authHeaders() })).data;
+}
 
 // ── Toggle whitelist (must stay in lock-step with the backend PARTNER_TOGGLE_FIELDS) ──
 // The single source of truth for the FE: the Scope+Toggles tab renders one Switch per
@@ -184,6 +187,10 @@ export const partnersApi = {
   // Idempotent server-side: re-revoking is a harmless no-op success.
   revokeKey: (keyId: number | string) =>
     aPost<{ message: string }>(`admin/keys/${keyId}/revoke/`),
+  // deleteKey HARD-removes one key row (owner 2026-06-27). Unlike revokeKey (soft-disable, row kept),
+  // this deletes the row so it disappears from the list. Irreversible - the FE confirms first.
+  deleteKey: (keyId: number | string) =>
+    aDelete<{ message: string }>(`admin/keys/${keyId}/delete/`),
 
   // ── Per-event publish gate ───────────────────────────────────────────────
   // publishEvent flips Event.partner_published - the gate the read API applies FIRST,

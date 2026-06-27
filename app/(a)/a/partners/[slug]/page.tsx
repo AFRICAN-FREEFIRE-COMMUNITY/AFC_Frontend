@@ -283,6 +283,11 @@ export default function PartnerDetailPage({
   const [revokeTarget, setRevokeTarget] = useState<PartnerKey | null>(null);
   const [revoking, setRevoking] = useState(false);
 
+  // ── Delete-key state (owner 2026-06-27) ─────────────────────────────────────
+  // Hard-delete a key row (vs revoke = soft-disable). Confirmed via dialog since it's irreversible.
+  const [deleteTarget, setDeleteTarget] = useState<PartnerKey | null>(null);
+  const [deletingKey, setDeletingKey] = useState(false);
+
   // ── Fetch + seed the scope/toggle working state ───────────────────────────
   // silent=true does a background refetch (after Save / Issue / Revoke) WITHOUT
   // flipping the full-page loader - so the page doesn't unmount + bounce back to the
@@ -484,6 +489,23 @@ export default function PartnerDetailPage({
       toast.error(err?.response?.data?.message || "Failed to revoke key.");
     } finally {
       setRevoking(false);
+    }
+  };
+
+  // ── Delete a key (HARD remove the row, owner 2026-06-27) ────────────────────
+  // Distinct from revoke: this calls partnersApi.deleteKey -> the row is gone from the list.
+  // Works on active OR already-revoked keys. On success refetch so the table drops the row.
+  const handleDeleteKey = async (key: PartnerKey) => {
+    setDeletingKey(true);
+    try {
+      await partnersApi.deleteKey(key.key_id);
+      toast.success("API key deleted.");
+      setDeleteTarget(null);
+      fetchDetail(true);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to delete key.");
+    } finally {
+      setDeletingKey(false);
     }
   };
 
@@ -1111,22 +1133,34 @@ export default function PartnerDetailPage({
                           {k.last_used_at ? k.last_used_at.slice(0, 10) : "Never"}
                         </TableCell>
                         <TableCell className="text-right">
-                          {k.status === "active" ? (
-                            <div className="inline-flex items-center justify-end gap-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                onClick={() => setRevokeTarget(k)}
-                              >
-                                <IconTrash className="size-4" />
-                                Revoke
-                              </Button>
-                              <InfoTip id="partners.revoke_key" />
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
+                          <div className="inline-flex items-center justify-end gap-1">
+                            {/* Revoke = soft-disable (active keys only). Reversible-style action that
+                                keeps the row for audit. */}
+                            {k.status === "active" && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-500"
+                                  onClick={() => setRevokeTarget(k)}
+                                >
+                                  Revoke
+                                </Button>
+                                <InfoTip id="partners.revoke_key" />
+                              </>
+                            )}
+                            {/* Delete = HARD remove the key row (owner 2026-06-27). Available for any
+                                key (active or already revoked) so old keys can be cleaned up. */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              onClick={() => setDeleteTarget(k)}
+                            >
+                              <IconTrash className="size-4" />
+                              Delete
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -1272,6 +1306,42 @@ export default function PartnerDetailPage({
               onClick={() => revokeTarget && handleRevokeKey(revokeTarget)}
             >
               {revoking ? "Revoking..." : "Revoke key"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Delete key confirm (owner 2026-06-27) ── */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => {
+          if (!v) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">
+              Delete API key?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes{" "}
+              <span className="font-mono font-semibold text-foreground">
+                {deleteTarget?.key_prefix}…
+              </span>{" "}
+              and removes it from the list. Any integration using it stops working
+              immediately. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deletingKey}
+              onClick={() => deleteTarget && handleDeleteKey(deleteTarget)}
+            >
+              {deletingKey ? "Deleting..." : "Delete key"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
