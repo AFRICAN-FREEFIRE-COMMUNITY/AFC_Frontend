@@ -28,6 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+// Switch: used for the stats visibility opt-in toggle (see §stats_visible below).
+// Pattern mirrors StepWaitlist.tsx (app/(a)/a/events/create/_components/).
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { countries, DEFAULT_PROFILE_PICTURE } from "@/constants";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
@@ -115,6 +119,9 @@ const Page = () => {
       // form.reset below once the user object loads (user.language from AuthContext). "en" is the
       // backend default too, so this is a safe pre-load placeholder.
       language: "en",
+      // stats_visible default: false (private). Overwritten in form.reset below from user.stats_visible.
+      // The backend also defaults to false (hidden) for new accounts, so this is consistent.
+      stats_visible: false,
     },
   });
 
@@ -138,6 +145,9 @@ const Page = () => {
         )
           ? (user.language as "en" | "fr" | "pt")
           : "en",
+        // stats_visible: seed the toggle from the user's saved preference. AuthContext maps this
+        // from the get-user-profile payload (defaults false when the field is absent/new account).
+        stats_visible: user.stats_visible ?? false,
       });
     }
   }, [user, form]);
@@ -159,6 +169,10 @@ const Page = () => {
         // "en" | "fr" | "pt" and ignores anything else (keeping the current value), so a stray
         // value can never corrupt the field. The response echoes back "language".
         formData.append("language", data.language);
+        // stats_visible: opt-in stats sharing. FormData does not carry booleans; the backend reads
+        // the string and coerces it (request.data.get("stats_visible") -> "true"/"false" -> bool).
+        // Always send it so the field is never silently left as the old value when the user flips it.
+        formData.append("stats_visible", data.stats_visible ? "true" : "false");
 
         // Append profile picture file if selected
         if (selectedFile) {
@@ -389,6 +403,41 @@ const Page = () => {
                   </FormItem>
                 )}
               />
+              {/* ── Stats visibility (opt-in) ──────────────────────────────────────────────────
+                  Default is PRIVATE (off). Turning this on lets other users see this
+                  player's tournament stats. Sent to POST /auth/edit-profile/ as
+                  stats_visible="true"/"false" in the same FormData as all other fields.
+                  The backend echoes back "stats_visible": bool which fetchUser() maps
+                  onto AuthContext.User.stats_visible so the toggle reflects truth on next
+                  load. Pattern mirrors StepWaitlist.tsx: div wrapper + Label + Switch via
+                  FormField so RHF stays in control and the value flows through zodResolver. */}
+              <FormField
+                control={form.control}
+                name="stats_visible"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="stats-visible-toggle" className="text-sm font-medium">
+                          {t("edit.statsVisible.label")}
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          {t("edit.statsVisible.description")}
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          id="stats-visible-toggle"
+                          checked={field.value ?? false}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {/* <FormField
                 control={form.control}
                 name="country"

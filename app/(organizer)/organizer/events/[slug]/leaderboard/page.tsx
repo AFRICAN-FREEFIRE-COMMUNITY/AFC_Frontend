@@ -749,20 +749,23 @@ export default function OrganizerEventLeaderboardPage({
     <div className="space-y-2 pb-20">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between gap-2 mb-4">
-        <PageHeader
-          back={!editingMatch}
-          // ⓘ next to the title explains the whole flow: leaderboard auto-created at
-          // event setup, then seed + start, then enter/upload results.
-          title={
-            <span className="inline-flex items-center gap-2">
-              {eventData.event_name || eventNameFromList}
-              <InfoTip id="leaderboards.detail._page" />
-            </span>
-          }
-          description={`${
-            detailsParticipantType === "solo" ? "Solo" : "Team"
-          } Tournament • ${eventData.stages?.length ?? 0} Stages`}
-        />
+        {/* data-tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
+        <div data-tour="org-event-lb-title">
+          <PageHeader
+            back={!editingMatch}
+            // ⓘ next to the title explains the whole flow: leaderboard auto-created at
+            // event setup, then seed + start, then enter/upload results.
+            title={
+              <span className="inline-flex items-center gap-2">
+                {eventData.event_name || eventNameFromList}
+                <InfoTip id="leaderboards.detail._page" />
+              </span>
+            }
+            description={`${
+              detailsParticipantType === "solo" ? "Solo" : "Team"
+            } Tournament • ${eventData.stages?.length ?? 0} Stages`}
+          />
+        </div>
         {!editingMatch && (
           <div className="flex gap-2 w-full md:w-auto">
             {/* "Create Leaderboard" removed: leaderboards are now created
@@ -811,7 +814,11 @@ export default function OrganizerEventLeaderboardPage({
 
       {/* Stage tabs - hidden while editing a match (admin [id] parity). */}
       {!editingMatch && hasAnyLeaderboard && eventData.stages?.length > 0 && (
-        <Tabs value={selectedStageId} onValueChange={setSelectedStageId}>
+        <Tabs
+          data-tour="org-event-lb-stage-tabs"
+          value={selectedStageId}
+          onValueChange={setSelectedStageId}
+        >
           <ScrollArea>
             <TabsList className="w-full justify-start">
               {eventData.stages.map((s: any) => (
@@ -826,8 +833,11 @@ export default function OrganizerEventLeaderboardPage({
       )}
 
       {/* ── Normal leaderboard view ── */}
+      {/* data-tour anchor: this Card wraps the whole standings panel (group/view
+          pickers + the solo table or team tabs), so the tour step works for both
+          solo and team events without targeting a conditional inner branch. */}
       {!editingMatch && !groupEditOpen && hasAnyLeaderboard && (
-        <Card>
+        <Card data-tour="org-event-lb-table">
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div className="space-y-2">

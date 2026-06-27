@@ -119,10 +119,12 @@ export default function OrganizerOverviewPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Overview"
-        description="A snapshot of your organization."
-      />
+      <div data-tour="org-overview-title">
+        <PageHeader
+          title="Overview"
+          description="A snapshot of your organization."
+        />
+      </div>
 
       {/* Summary card: logo + name + status. */}
       <Card>
@@ -158,7 +160,7 @@ export default function OrganizerOverviewPage() {
       </Card>
 
       {/* Headline counts. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div data-tour="org-overview-stats" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <StatTile
           icon={<IconUsers className="size-5" />}
           label="Members"

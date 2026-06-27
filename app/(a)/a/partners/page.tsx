@@ -12,6 +12,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { FullLoader } from "@/components/Loader";
@@ -75,6 +76,11 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function PartnersAdminPage() {
+  // useRouter (next/navigation) so a freshly-created partner can lead the admin
+  // straight to its detail page (where the Connection details + Issue key + Scope &
+  // Toggles controls live). See handleCreate below.
+  const router = useRouter();
+
   const [partners, setPartners] = useState<PartnerSummary[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -128,17 +134,30 @@ export default function PartnersAdminPage() {
     if (!createReady || creating) return;
     setCreating(true);
     try {
-      await partnersApi.createPartner({
+      const res = await partnersApi.createPartner({
         name: createName.trim(),
         contact_email: createEmail.trim() || undefined,
       });
       toast.success("API key created.");
-      // reset the form, close, and refresh the list from page 1
+      // reset the form + close the dialog
       setCreateName("");
       setCreateEmail("");
       setCreateOpen(false);
-      setPage(1);
-      fetchPartners();
+
+      // ── Lead the admin straight to the new partner's detail page ──
+      // The owner's complaint: after creating a partner there was nowhere obvious to
+      // issue/copy a key or set access. The detail page (/a/partners/<slug>) is exactly
+      // that surface (Connection details + Issue key + Scope & Toggles), so route there
+      // on success. createPartner echoes the new PartnerSummary, which carries the
+      // backend-derived slug. If the slug is somehow missing, fall back to a plain list
+      // refresh so the new row still shows.
+      const newSlug = res?.partner?.slug;
+      if (newSlug) {
+        router.push(`/a/partners/${newSlug}`);
+      } else {
+        setPage(1);
+        fetchPartners();
+      }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to create API key.");
     } finally {

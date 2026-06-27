@@ -34,6 +34,10 @@ export interface WatchlistEntry {
   context: string;
   status: "active" | "cleared";
   added_by_username: string | null;
+  // Numeric id of the user who added this entry — used client-side to gate the Remove button
+  // for organizers (they may only remove entries they themselves added; admins can remove any).
+  // Echoed by GET /auth/watchlist/ as of 2026-06-27 backend update.
+  added_by_id: number | null;
   cleared_by_username: string | null;
   cleared_at: string | null;
   created_at: string | null;

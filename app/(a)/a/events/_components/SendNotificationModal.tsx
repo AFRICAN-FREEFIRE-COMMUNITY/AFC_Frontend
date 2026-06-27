@@ -22,6 +22,7 @@
 import { useState, useTransition } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import {
   Dialog,
@@ -38,6 +39,10 @@ import { Loader } from "@/components/Loader";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { formatLocalTime } from "@/lib/i18n/time";
+// Shared organizer broadcast rate-limit UI (5/hour + 5-min cooldown). The notice renders nothing for
+// admins (exempt); the hook keeps the counter live across this composer's sends. See lib/broadcasts.tsx.
+import { useBroadcastRate, BroadcastRateNotice } from "@/lib/broadcasts";
 import { Megaphone, DoorOpen, Pencil, Send, Bell, Mail, BellRing } from "lucide-react";
 
 // The two broadcast modes. "room_details" sends the saved room info for every map;
@@ -71,8 +76,14 @@ export const SendNotificationModal = ({
   onSuccess?: () => void;
 }) => {
   const { token } = useAuth();
+  // Rate-limit copy lives in the `broadcast` i18n namespace (organizer-facing surface).
+  const t = useTranslations("broadcast");
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  // Organizer broadcast budget for THIS composer: fetched each time it opens; kept live on send.
+  // Admins are exempt → the notice renders nothing and behaviour is unchanged.
+  const { rate, applySuccess, apply429 } = useBroadcastRate(open);
 
   const [mode, setMode] = useState<Mode>("custom");
   const [title, setTitle] = useState("");
@@ -108,13 +119,28 @@ export const SendNotificationModal = ({
           { headers: { Authorization: `Bearer ${token}` } },
         );
         toast.success(res.data.message || "Message sent to the group.");
+        // Keep the "N of 5 left this hour" counter live from the send response (rate_remaining/_limit).
+        applySuccess(res.data);
         setOpen(false);
         reset();
         onSuccess?.();
       } catch (e: any) {
-        toast.error(
-          e.response?.data?.message || "Failed to message the group.",
-        );
+        // 429 = organizer hit the hourly cap or the 5-min cooldown. Reflect the new block in the
+        // counter and toast the server's reason + when sending re-opens (resets_at, viewer timezone).
+        if (e.response?.status === 429) {
+          const body = e.response.data || {};
+          apply429(body);
+          const when = formatLocalTime(body.resets_at, "time");
+          toast.error(
+            `${body.message || t("rate.limitReached")}${
+              when ? ` ${t("rate.sendAgainAt")} ${when}` : ""
+            }`,
+          );
+        } else {
+          toast.error(
+            e.response?.data?.message || "Failed to message the group.",
+          );
+        }
       }
     });
   };
@@ -149,6 +175,10 @@ export const SendNotificationModal = ({
         </DialogDescription>
 
         <div className="space-y-4 mt-2">
+          {/* Organizer rate-limit budget ("N of 5 left this hour" + cooldown countdown). Hidden for
+              admins (exempt) so their composer is unchanged. */}
+          <BroadcastRateNotice rate={rate} />
+
           {/* Mode: room details (auto) vs custom message */}
           <div className="space-y-2">
             <Label>What to send</Label>

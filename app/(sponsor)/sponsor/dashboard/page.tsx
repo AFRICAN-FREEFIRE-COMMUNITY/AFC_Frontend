@@ -295,19 +295,27 @@ function LegacySponsorDashboard() {
 
   return (
     <div className="flex flex-col gap-3 mx-auto">
-      <PageHeader
-        title={`Welcome, ${user?.full_name}` ? user?.full_name : ""}
-        description={
-          <>
-            {counts.all} registrant{counts.all !== 1 ? "s" : ""} ·{" "}
-            {counts.pending} pending · {counts.active} active ·{" "}
-            {counts.rejected} rejected
-          </>
-        }
-      />
+      {/* data-tour anchor: Sponsor Tour "your sponsor dashboard" step (see
+          _components/sponsor-tour-steps.ts). PageHeader does not forward props to its
+          root, so we wrap it. The scoped dashboard carries the same anchor name. */}
+      <div data-tour="sponsor-dashboard-header">
+        <PageHeader
+          title={`Welcome, ${user?.full_name}` ? user?.full_name : ""}
+          description={
+            <>
+              {counts.all} registrant{counts.all !== 1 ? "s" : ""} ·{" "}
+              {counts.pending} pending · {counts.active} active ·{" "}
+              {counts.rejected} rejected
+            </>
+          }
+        />
+      </div>
 
-      {/* Search + Filter */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Search + Filter (data-tour: Sponsor Tour "find what you need" step). */}
+      <div
+        data-tour="sponsor-dashboard-filters"
+        className="flex flex-col sm:flex-row gap-3"
+      >
         <div className="relative flex-1">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
@@ -343,7 +351,10 @@ function LegacySponsorDashboard() {
         </Select>
       </div>
 
-      {/* Table */}
+      {/* Table — data-tour: Sponsor Tour "your events and registrants" step. Wraps the
+          registrants table region so the anchor is present in both the empty and
+          populated states. The scoped dashboard carries the same anchor name. */}
+      <div data-tour="sponsor-dashboard-list">
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
@@ -503,6 +514,7 @@ function LegacySponsorDashboard() {
           </CardContent>
         </Card>
       )}
+      </div>
 
       {/* Reject dialog */}
       <Dialog

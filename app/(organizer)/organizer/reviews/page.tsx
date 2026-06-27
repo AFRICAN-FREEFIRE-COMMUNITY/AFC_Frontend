@@ -280,10 +280,13 @@ export default function OrganizerReviewsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Reviews"
-        description="Ratings and anonymous feedback on each of your events."
-      />
+      {/* Tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
+      <div data-tour="org-reviews-title">
+        <PageHeader
+          title="Reviews"
+          description="Ratings and anonymous feedback on each of your events."
+        />
+      </div>
 
       {/* Page-level anonymity notice - set the expectation before any feedback. */}
       <AnonymityNotice />
@@ -304,7 +307,7 @@ export default function OrganizerReviewsPage() {
       ) : (
         // One card per event: name + rating badge in the header row, an expand
         // toggle, and the (lazily-loaded) comment list when open.
-        <div className="flex flex-col gap-3">
+        <div data-tour="org-reviews-events" className="flex flex-col gap-3">
           {events.map((ev) => {
             const st = states[ev.event_id] ?? EMPTY_EVENT_STATE;
             return (

@@ -86,6 +86,12 @@ export interface User {
   // cookie so Phase 1 (next-intl, not built yet) can pick up the locale. Read-only displayed on the
   // profile overview (ProfileContent.tsx). Defaults to "en" below when a payload omits it.
   language?: string;
+  // stats_visible: opt-in toggle controlling whether other users can see this player's stats
+  // (tournament performance, kills, wins, etc.). Default false = private. Set by the backend
+  // get-user-profile and echoed back by edit-profile. The profile edit page
+  // (app/(user)/profile/edit/page.tsx) renders a Switch that sends "true"/"false" in the
+  // edit-profile FormData; login() -> fetchUser() refreshes this value after save.
+  stats_visible?: boolean;
 
   stats: UserStats;
 }
@@ -345,6 +351,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // to "en" everywhere, but we default to "en" here too so an absent field never leaves the
         // language undefined for the profile edit selector / read-only display.
         language: dbUser.language ?? "en",
+        // stats_visible: whether other users can see this player's stats (see User interface note).
+        // Defaults false (private) so a missing field from an older payload never accidentally
+        // exposes stats that the user did not explicitly opt in to sharing.
+        stats_visible: dbUser.stats_visible ?? false,
         stats: dbUser.stats,
       };
 

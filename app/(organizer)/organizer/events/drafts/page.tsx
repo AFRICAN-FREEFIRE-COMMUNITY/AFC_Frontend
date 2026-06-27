@@ -157,22 +157,24 @@ export default function OrganizerDraftsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Drafts"
-        description="Finish and publish your organization's draft events."
-        // "Create event" mirrors the Events list header action, gated the same way
-        // (can_create_events / owner) - a draft starts life in the create wizard.
-        action={
-          membership.permissions.can_create_events || isOwner ? (
-            <Button asChild className="w-full md:w-auto">
-              <Link href="/organizer/events/create">
-                <IconPlus className="size-4" />
-                Create event
-              </Link>
-            </Button>
-          ) : undefined
-        }
-      />
+      <div data-tour="org-drafts-title">
+        <PageHeader
+          title="Drafts"
+          description="Finish and publish your organization's draft events."
+          // "Create event" mirrors the Events list header action, gated the same way
+          // (can_create_events / owner) - a draft starts life in the create wizard.
+          action={
+            membership.permissions.can_create_events || isOwner ? (
+              <Button data-tour="org-drafts-create" asChild className="w-full md:w-auto">
+                <Link href="/organizer/events/create">
+                  <IconPlus className="size-4" />
+                  Create event
+                </Link>
+              </Button>
+            ) : undefined
+          }
+        />
+      </div>
 
       <Card>
         <CardHeader className="border-b">
@@ -201,7 +203,7 @@ export default function OrganizerDraftsPage() {
               )}
             </div>
           ) : (
-            <Table>
+            <Table data-tour="org-drafts-table">
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>

@@ -205,21 +205,23 @@ export default function OrganizerEventsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Events"
-        description="Events your organization is running."
-        // "Create event" lives in the header action slot, gated on the permission.
-        action={
-          canCreateEvents ? (
-            <Button asChild className="w-full md:w-auto">
-              <Link href="/organizer/events/create">
-                <IconPlus className="size-4" />
-                Create event
-              </Link>
-            </Button>
-          ) : undefined
-        }
-      />
+      <div data-tour="org-events-title">
+        <PageHeader
+          title="Events"
+          description="Events your organization is running."
+          // "Create event" lives in the header action slot, gated on the permission.
+          action={
+            canCreateEvents ? (
+              <Button data-tour="org-events-create" asChild className="w-full md:w-auto">
+                <Link href="/organizer/events/create">
+                  <IconPlus className="size-4" />
+                  Create event
+                </Link>
+              </Button>
+            ) : undefined
+          }
+        />
+      </div>
 
       <Card>
         <CardHeader className="border-b">
@@ -249,7 +251,7 @@ export default function OrganizerEventsPage() {
               )}
             </div>
           ) : (
-            <Table>
+            <Table data-tour="org-events-table">
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>

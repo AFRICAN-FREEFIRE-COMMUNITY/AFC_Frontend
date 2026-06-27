@@ -1,0 +1,64 @@
+{
+  "tour": {
+    "sidebar": {
+      "title": "Your vendor navigation",
+      "description": "Use this sidebar to move around the vendor portal: Orders to fulfil, your Products catalogue, and Payouts for your bank details. The section you are on is highlighted in green."
+    },
+    "orders": {
+      "intro": {
+        "title": "Your orders to fulfil",
+        "description": "This is your fulfilment queue. Every paid order waiting on you shows up here, ready to be moved through to delivery."
+      },
+      "search": {
+        "title": "Find an order fast",
+        "description": "Search by buyer, order number, or item, and filter by fulfilment state, so you can jump straight to the orders that need attention."
+      },
+      "table": {
+        "title": "Open an order",
+        "description": "Each row shows the buyer, where it ships, the items, and the current state. Click Open to work through that order's steps."
+      }
+    },
+    "orderDetail": {
+      "intro": {
+        "title": "Work a single order",
+        "description": "This page walks one order from received all the way to completed. The badge by the title shows where it stands right now."
+      },
+      "details": {
+        "title": "Items and delivery",
+        "description": "Check what was ordered and where it is going before you ship. The buyer's delivery address sits right next to the items."
+      },
+      "fulfilment": {
+        "title": "Move it through the steps",
+        "description": "Acknowledge the order, set a ship date, upload proof of shipping, then mark it completed. Only the next action you can take is shown at each step."
+      }
+    },
+    "products": {
+      "create": {
+        "title": "Create a product",
+        "description": "Add a new product to your catalogue here. Set its name, category, and one or more priced variants."
+      },
+      "review": {
+        "title": "How approval works",
+        "description": "Every product starts as a draft. It only reaches buyers once you submit it and the AFC team approves it. If it is rejected, the reason shows on the row so you can fix it and try again."
+      },
+      "table": {
+        "title": "Your catalogue",
+        "description": "Each product shows its lowest price, variant count, and approval status. Edit or submit a draft straight from its row."
+      }
+    },
+    "payouts": {
+      "intro": {
+        "title": "Get paid for your orders",
+        "description": "This is where you set the bank account AFC pays you out to. We send your share of every completed order automatically."
+      },
+      "how": {
+        "title": "How payouts work",
+        "description": "Buyers pay AFC, you fulfil the order, then AFC transfers your share to the bank account on file. Make sure the account name matches your records."
+      },
+      "form": {
+        "title": "Add your bank account",
+        "description": "Pick your bank, enter your account number, then Resolve to confirm the name. Once it matches, save it and you are ready to be paid."
+      }
+    }
+  }
+}

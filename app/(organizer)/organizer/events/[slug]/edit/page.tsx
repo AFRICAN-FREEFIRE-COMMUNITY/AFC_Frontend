@@ -1918,12 +1918,18 @@ export default function OrganizerEditEventPage({
         onConfirm={() => handleConfirmSeed(selectedGroupForSeed?.group_id)}
       />
 
-      <PageHeader title={eventTitle} back />
+      {/* data-tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
+      <div data-tour="org-event-edit-title">
+        <PageHeader title={eventTitle} back />
+      </div>
 
       <Form {...form}>
         <form className="space-y-6">
           <Tabs value={currentTab} onValueChange={selectTab}>
-            <TabsList className="w-full justify-start overflow-x-auto mb-2">
+            <TabsList
+              data-tour="org-event-edit-tabs"
+              className="w-full justify-start overflow-x-auto mb-2"
+            >
               {/* Each trigger keeps the error-dot anchor pattern from the admin edit
                   page (the InfoTip ⓘ buttons are dropped here — the organizer surface
                   doesn't ship the help-content ids — but the error dots stay). */}

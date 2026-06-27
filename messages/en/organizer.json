@@ -1,0 +1,235 @@
+{
+  "tour": {
+    "button": "Take a tour",
+    "sidebar": {
+      "title": "Your organizer navigation",
+      "description": "This sidebar is how you move around your organization: overview, events, leaderboards, members, payouts and more. The section you are on is highlighted in green."
+    },
+    "overview": {
+      "title": {
+        "title": "Welcome to your organizer overview",
+        "description": "This is your organization's home base. It gives you a quick read on your activity at a glance."
+      },
+      "stats": {
+        "title": "Your headline numbers",
+        "description": "These tiles summarise your organization, for example how many members and events you have. A fast health check before you dive in."
+      }
+    },
+    "profile": {
+      "title": {
+        "title": "Your organization profile",
+        "description": "Manage how your organization appears across the site: its logo, banner, name, description and social links."
+      },
+      "images": {
+        "title": "Logo and banner",
+        "description": "Upload the logo and banner that brand your organization's page and events. Drop an image or click to choose a file."
+      },
+      "save": {
+        "title": "Save your changes",
+        "description": "Apply any edits you make to the profile. Nothing changes for the public until you save."
+      }
+    },
+    "events": {
+      "title": {
+        "title": "Your events",
+        "description": "Every tournament and scrim your organization is running lives here. Create new ones and manage the existing ones from this page."
+      },
+      "create": {
+        "title": "Create an event",
+        "description": "Start a new tournament or scrim. A wizard walks you through details, stages, prizes and rules, then publishes it."
+      },
+      "table": {
+        "title": "Your events list",
+        "description": "Each row is one event. Use the row actions to view it, edit it, manage its results and leaderboard, set up groups and rosters, or copy its links."
+      }
+    },
+    "event-create": {
+      "title": {
+        "title": "Create a new event",
+        "description": "This wizard builds a tournament or scrim from scratch for your organization, one step at a time."
+      },
+      "form": {
+        "title": "Work through the steps",
+        "description": "Each step collects part of the event: details, stages, prize pool, rules and more. Use Next and Back to move between them."
+      },
+      "submit": {
+        "title": "Publish your event",
+        "description": "On the final step, create the event to publish it. You can also save it as a draft and finish later."
+      }
+    },
+    "drafts": {
+      "title": {
+        "title": "Your draft events",
+        "description": "Events you started but have not published yet are saved here so you can finish them when you are ready."
+      },
+      "create": {
+        "title": "Start a new event",
+        "description": "Begin a fresh event from the same wizard. It will appear here as a draft until you publish it."
+      },
+      "table": {
+        "title": "Your drafts list",
+        "description": "Each row is an unpublished event. Continue editing to reopen it in the wizard, or delete one you no longer need."
+      }
+    },
+    "event-detail": {
+      "title": {
+        "title": "Event detail",
+        "description": "The hub for a single event. From here you reach everything about it: its settings, registrations, groups and results."
+      },
+      "edit": {
+        "title": "Edit this event",
+        "description": "Reopen the event in the wizard to change any detail, stage, prize or rule after it has been created."
+      },
+      "links": {
+        "title": "Linked and qualification events",
+        "description": "See how this event connects to others, for example which events qualify teams into it or follow on from it."
+      }
+    },
+    "event-edit": {
+      "title": {
+        "title": "Edit event",
+        "description": "Change any part of an existing event. Your edits apply once you save them."
+      },
+      "tabs": {
+        "title": "Edit by section",
+        "description": "Each tab edits one area of the event: basic info, registered teams, stages and groups, prizes and rules, sponsor and waitlist settings, and publish actions."
+      }
+    },
+    "event-groups": {
+      "title": {
+        "title": "Groups and rosters",
+        "description": "See who is seeded into which group for this event, and check every team's roster before play begins."
+      },
+      "search": {
+        "title": "Find a player or team fast",
+        "description": "Search by in-game name, team or UID to jump straight to a competitor across all the groups."
+      },
+      "stages": {
+        "title": "Stages and their groups",
+        "description": "Each card is a stage, broken down into its groups and the teams seeded into them. A quick way to confirm the bracket is set up correctly."
+      }
+    },
+    "event-leaderboard": {
+      "title": {
+        "title": "Event leaderboard",
+        "description": "View and manage the standings for this event. This is where raw match results become the published ranking."
+      },
+      "stageTabs": {
+        "title": "Pick a stage",
+        "description": "Switch between the event's stages to see the standings for each one."
+      },
+      "table": {
+        "title": "The standings table",
+        "description": "Placements, kills and total points for every competitor. Use the upload and edit controls to enter or correct match results."
+      }
+    },
+    "leaderboards": {
+      "title": {
+        "title": "Leaderboards",
+        "description": "Manage the results and standings for all of your organization's events from one place."
+      },
+      "search": {
+        "title": "Find an event",
+        "description": "Search your events by name, type or status to quickly locate the one you want to score."
+      },
+      "table": {
+        "title": "Your events to score",
+        "description": "Each row is an event you can attach or update a leaderboard for. Open one to upload results manually or by screenshot, configure points, and view or edit standings."
+      }
+    },
+    "standalone-create": {
+      "wizard": {
+        "title": "Create a standalone leaderboard",
+        "description": "Build a leaderboard that is not tied to a full event. This wizard walks you through the basics, the point system, the match results and a final review before you publish."
+      }
+    },
+    "standalone-view": {
+      "view": {
+        "title": "Standalone leaderboard",
+        "description": "View the published standings for this standalone leaderboard. If you manage it, you can also reopen it to edit the results."
+      }
+    },
+    "members": {
+      "title": {
+        "title": "Your organization's members",
+        "description": "Manage who belongs to your organization and what each person is allowed to do."
+      },
+      "add": {
+        "title": "Add a sub-organizer",
+        "description": "Invite another user into your organization and grant them the permissions they need, for example creating events or uploading results."
+      },
+      "table": {
+        "title": "The members table",
+        "description": "Every member with their role and permissions. Adjust what someone can do, or remove them, from here."
+      }
+    },
+    "payouts": {
+      "title": {
+        "title": "Your payouts",
+        "description": "Track your organization's share of paid-event revenue and keep your bank details up to date so you can be paid out."
+      },
+      "stats": {
+        "title": "Owed and paid at a glance",
+        "description": "These cards show how much you are owed and how much has already been paid out to your organization."
+      },
+      "table": {
+        "title": "Your earnings ledger",
+        "description": "A line for every payout, showing the event, the amount and its status. Your full revenue history in one place."
+      }
+    },
+    "metrics": {
+      "title": {
+        "title": "Your metrics",
+        "description": "Aggregate stats for your organization across events, teams, players, kills and ratings."
+      },
+      "stats": {
+        "title": "Headline metrics",
+        "description": "These cards summarise your organization's totals for the selected period. A quick read on how you are performing."
+      },
+      "tabs": {
+        "title": "Dig into the trends",
+        "description": "The tabs break the numbers down further, for example trends over time and per-area breakdowns, so you can spot what is growing."
+      }
+    },
+    "reviews": {
+      "title": {
+        "title": "Your reviews",
+        "description": "See the ratings and feedback players have left on your organization's events."
+      },
+      "events": {
+        "title": "Ratings per event",
+        "description": "Each event shows its average rating and lets you expand to read the comments. All comments are anonymous to keep feedback honest."
+      }
+    },
+    "design": {
+      "title": {
+        "title": "Leaderboard design",
+        "description": "Customise how your organization's leaderboards look, for example their colours and logos."
+      },
+      "manager": {
+        "title": "Manage your designs",
+        "description": "Upload and adjust the design assets applied to your leaderboards. Changes here flow through to your published standings."
+      }
+    },
+    "blacklists": {
+      "title": {
+        "title": "Your blacklists",
+        "description": "Block a team, and the players on it, from registering for your organization's events. You can also review requests to lift a block."
+      },
+      "add": {
+        "title": "Blacklist a team",
+        "description": "Add a team to your blacklist so it can no longer register for your events. The players on its roster are captured at the same time."
+      },
+      "table": {
+        "title": "Blacklisted teams",
+        "description": "Every team you have blocked, with the roster captured when you added it. Expand a row to see the snapshot, or lift the block when appropriate."
+      }
+    },
+    "watchlist": {
+      "manager": {
+        "title": "The shared watchlist",
+        "description": "A community-wide advisory list of suspicious players and teams that admins and organizers share. It is a warning, not a ban, so you know who to watch out for. Search it, or add an entry with a reason."
+      }
+    }
+  }
+}

@@ -88,10 +88,13 @@ export default function OrganizerPayoutsPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Payouts" />
+      {/* Tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
+      <div data-tour="org-payouts-title">
+        <PageHeader title="Payouts" />
+      </div>
 
       {/* Summary */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div data-tour="org-payouts-stats" className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardContent className="pt-6">
             <p className="text-xs text-muted-foreground">Owed (not yet paid)</p>
@@ -158,7 +161,7 @@ export default function OrganizerPayoutsPage() {
           <CardTitle className="text-base">Earnings</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto rounded-md border">
-          <Table>
+          <Table data-tour="org-payouts-table">
             <TableHeader>
               <TableRow>
                 <TableHead>Event</TableHead>

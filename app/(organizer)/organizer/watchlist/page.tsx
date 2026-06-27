@@ -36,6 +36,9 @@ export default function OrganizerWatchlistPage() {
     colWhen: t("colWhen"),
     colActions: t("colActions"),
     remove: t("remove"),
+    // Shown in place of the Remove button for entries this organizer did NOT add (owner 2026-06-27):
+    // organizers can only remove their own watchlist entries, so others' entries display the adder's name.
+    addedBy: t("addedBy"),
     sourceUpload: t("sourceUpload"),
     sourceManual: t("sourceManual"),
     emptyPlayers: t("emptyPlayers"),
@@ -47,7 +50,7 @@ export default function OrganizerWatchlistPage() {
     removed: t("removed"),
   };
   return (
-    <div className="container py-6">
+    <div data-tour="org-watchlist-manager" className="container py-6">
       <WatchlistManager labels={labels} />
     </div>
   );

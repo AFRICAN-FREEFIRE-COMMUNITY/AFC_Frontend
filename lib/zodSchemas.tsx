@@ -135,6 +135,12 @@ export const EditProfileFormSchema = z.object({
   // user.language (see AuthContext.User.language) and writes the chosen value to a NEXT_LOCALE
   // cookie on save for Phase 1 (next-intl, not built yet).
   language: z.enum(["en", "fr", "pt"]),
+  // stats_visible: opt-in toggle controlling whether other users can see this player's stats.
+  // Default is false (private). Sent to POST /auth/edit-profile/ as the string "true"/"false"
+  // (FormData does not carry booleans). An absent field tells the backend to leave the current
+  // value unchanged. The profile edit page (app/(user)/profile/edit/page.tsx) seeds this from
+  // user.stats_visible (AuthContext.User.stats_visible, mapped from get-user-profile).
+  stats_visible: z.boolean().optional(),
   // country: z.enum(countries, { message: "Country is required" }),
 });
 

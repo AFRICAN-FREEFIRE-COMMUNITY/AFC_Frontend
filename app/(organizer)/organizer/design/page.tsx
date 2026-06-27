@@ -25,14 +25,21 @@ export default function OrganizerDesignPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Design"
-        description="Build branded leaderboard designs: upload backgrounds, set colours, and drag your logos. Pick a design when you export a leaderboard."
-      />
-      <LeaderboardDesignsManager
-        organizationId={membership.organization.organization_id}
-        canManage={canManage}
-      />
+      {/* Tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
+      <div data-tour="org-design-title">
+        <PageHeader
+          title="Design"
+          description="Build branded leaderboard designs: upload backgrounds, set colours, and drag your logos. Pick a design when you export a leaderboard."
+        />
+      </div>
+      {/* Tour anchor: LeaderboardDesignsManager is a custom component (do not edit its
+          internals), so wrap it to attach the DOM anchor. */}
+      <div data-tour="org-design-manager">
+        <LeaderboardDesignsManager
+          organizationId={membership.organization.organization_id}
+          canManage={canManage}
+        />
+      </div>
     </div>
   );
 }

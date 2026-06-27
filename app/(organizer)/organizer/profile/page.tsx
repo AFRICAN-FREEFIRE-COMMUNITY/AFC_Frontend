@@ -309,15 +309,17 @@ export default function OrganizerProfilePage() {
   // ── Owner: the branding form. ──
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Profile"
-        description="Manage your organization's branding."
-      />
+      <div data-tour="org-profile-title">
+        <PageHeader
+          title="Profile"
+          description="Manage your organization's branding."
+        />
+      </div>
 
       <Card>
         <CardContent className="space-y-5">
           {/* Logo + banner uploads. */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div data-tour="org-profile-images" className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <ImageField
               label="Logo"
               previewUrl={logoPreview}
@@ -438,7 +440,7 @@ export default function OrganizerProfilePage() {
 
           {/* Save. */}
           <div className="flex justify-end">
-            <Button disabled={submitting} onClick={onSubmit}>
+            <Button data-tour="org-profile-save" disabled={submitting} onClick={onSubmit}>
               {submitting ? <Loader text="Saving..." /> : "Save changes"}
             </Button>
           </div>

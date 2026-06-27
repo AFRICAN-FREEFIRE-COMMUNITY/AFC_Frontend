@@ -182,15 +182,25 @@ export default function VendorProductsPage() {
         title="Products"
         description="Your product catalogue. Create a product, then submit it for AFC approval to go live."
         action={
-          <Button onClick={openCreate} className="w-full md:w-auto">
+          // data-tour: Vendor Tour "create a product" step. The shadcn Button forwards
+          // the data attribute to its root, so the anchor lands on the create button.
+          <Button
+            data-tour="vendor-products-create"
+            onClick={openCreate}
+            className="w-full md:w-auto"
+          >
             <IconPlus className="size-4" />
             Create product
           </Button>
         }
       />
 
-      {/* AFC reviews every product before it reaches buyers. */}
-      <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-muted-foreground">
+      {/* AFC reviews every product before it reaches buyers.
+          (data-tour: Vendor Tour "how approval works" step.) */}
+      <div
+        data-tour="vendor-products-review"
+        className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-muted-foreground"
+      >
         <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
         <p>
           AFC reviews every product before it goes live. A product starts as a
@@ -225,7 +235,8 @@ export default function VendorProductsPage() {
         </Select>
       </div>
 
-      <Card>
+      {/* data-tour: Vendor Tour "your catalogue" step (the products table). */}
+      <Card data-tour="vendor-products-table">
         <CardHeader className="border-b">
           <CardTitle>Your Products</CardTitle>
         </CardHeader>

@@ -242,10 +242,12 @@ export default function OrganizerLeaderboardsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Leaderboards"
-        description="Upload results and manage your events' leaderboards."
-      />
+      <div data-tour="org-leaderboards-title">
+        <PageHeader
+          title="Leaderboards"
+          description="Upload results and manage your events' leaderboards."
+        />
+      </div>
 
       <Card>
         <CardHeader className="border-b">
@@ -255,6 +257,7 @@ export default function OrganizerLeaderboardsPage() {
           {/* Search row - same idiom as the admin leaderboards list. */}
           <div className="flex items-center justify-start gap-2">
             <Input
+              data-tour="org-leaderboards-search"
               type="search"
               placeholder="Search events by name, type, or status..."
               value={searchQuery}
@@ -288,7 +291,7 @@ export default function OrganizerLeaderboardsPage() {
               </Button>
             </div>
           ) : (
-            <Table>
+            <Table data-tour="org-leaderboards-table">
               <TableHeader>
                 <TableRow>
                   <TableHead>Event name</TableHead>

@@ -266,25 +266,29 @@ export default function OrganizerEventGroupsPage({
 
   return (
     <div className="flex flex-col gap-4 pb-20">
-      <PageHeader
-        back
-        title="Groups & Rosters"
-        description={
-          data
-            ? `${data.event_name} • ${
-                data.is_solo ? "Solo" : "Team"
-              } event • ${data.stages.length} ${
-                data.stages.length === 1 ? "stage" : "stages"
-              }`
-            : undefined
-        }
-      />
+      {/* data-tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
+      <div data-tour="org-event-groups-title">
+        <PageHeader
+          back
+          title="Groups & Rosters"
+          description={
+            data
+              ? `${data.event_name} • ${
+                  data.is_solo ? "Solo" : "Team"
+                } event • ${data.stages.length} ${
+                  data.stages.length === 1 ? "stage" : "stages"
+                }`
+              : undefined
+          }
+        />
+      </div>
 
       {/* IGN search: filters teams + players live for the "who is in which group"
           lookup done during a running event. */}
       <div className="relative max-w-sm">
         <IconSearch className="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
+          data-tour="org-event-groups-search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by IGN, team, or UID"
@@ -301,7 +305,11 @@ export default function OrganizerEventGroupsPage({
 
       {/* Per stage → a Card; inside, a grid of per-group cards. */}
       {data?.stages.map((stage) => (
-        <Card key={stage.stage_id} className="bg-card rounded-md border">
+        <Card
+          key={stage.stage_id}
+          data-tour="org-event-groups-stages"
+          className="bg-card rounded-md border"
+        >
           <CardHeader>
             <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
               <span>{stage.stage_name}</span>

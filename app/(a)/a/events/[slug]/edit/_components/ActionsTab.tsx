@@ -1,9 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { env } from "@/lib/env";
+import { formatLocalTime } from "@/lib/i18n/time";
+// Shared organizer broadcast rate-limit UI (5/hour + 5-min cooldown). The notice renders nothing for
+// admins (exempt); the hook keeps the counter live across this composer's sends. See lib/broadcasts.tsx.
+import { useBroadcastRate, BroadcastRateNotice } from "@/lib/broadcasts";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -105,6 +110,9 @@ export default function ActionsTab({
   hideDiscord = false,
 }: ActionsTabProps) {
   const { token } = useAuth();
+  // Rate-limit copy lives in the `broadcast` i18n namespace (this Actions tab is reused by organizers).
+  // Named bcT (not t) so it doesn't shadow the existing `(t) => ...` closures elsewhere in this file.
+  const bcT = useTranslations("broadcast");
   const API = env.NEXT_PUBLIC_BACKEND_API_URL;
   const status = eventDetails.event_status;
   const isTeam = eventDetails.participant_type !== "solo";
@@ -148,6 +156,10 @@ export default function ActionsTab({
   const [completeOpen, setCompleteOpen] = useState(false);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [announcementOpen, setAnnouncementOpen] = useState(false);
+  // Organizer broadcast budget for the announcement composer: fetched each time the dialog opens and
+  // kept live on send. Admins are exempt → the notice renders nothing and behaviour is unchanged.
+  const { rate: bcRate, applySuccess: bcApplySuccess, apply429: bcApply429 } =
+    useBroadcastRate(announcementOpen);
 
   // selectors
   const [seedStageId, setSeedStageId] = useState("");
@@ -505,6 +517,8 @@ export default function ActionsTab({
 
       const res = await axios.post(url, body, { headers: authHeader });
       toast.success(res.data.message);
+      // Keep the "N of 5 left this hour" counter live from the send response (rate_remaining/_limit).
+      bcApplySuccess(res.data);
       setAnnouncementOpen(false);
       setAnnTitle("");
       setAnnMessage("");
@@ -515,7 +529,20 @@ export default function ActionsTab({
       setAnnStageId("");
       setAnnGroupId("");
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Broadcast failed");
+      // 429 = organizer hit the hourly cap or the 5-min cooldown. Reflect the new block in the counter
+      // and toast the server's reason + when sending re-opens (resets_at, rendered in viewer timezone).
+      if (e.response?.status === 429) {
+        const data = e.response.data || {};
+        bcApply429(data);
+        const when = formatLocalTime(data.resets_at, "time");
+        toast.error(
+          `${data.message || bcT("rate.limitReached")}${
+            when ? ` ${bcT("rate.sendAgainAt")} ${when}` : ""
+          }`,
+        );
+      } else {
+        toast.error(e.response?.data?.message || "Broadcast failed");
+      }
     } finally {
       setLoadingAnnouncement(false);
     }
@@ -1348,6 +1375,10 @@ export default function ActionsTab({
             <b>{eventDetails.event_name}</b>.
           </DialogDescription>
           <div className="space-y-4 mt-2">
+            {/* Organizer rate-limit budget ("N of 5 left this hour" + cooldown countdown). Hidden for
+                admins (exempt) so their composer is unchanged. */}
+            <BroadcastRateNotice rate={bcRate} />
+
             {/* Scope (owner 2026-06-17): whole event, a stage, or a single group. */}
             <div className="space-y-2">
               <Label>Send to</Label>

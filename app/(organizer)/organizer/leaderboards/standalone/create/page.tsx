@@ -43,9 +43,11 @@ export default function OrganizerCreateStandaloneLeaderboardPage() {
 
   // Organizer basePath -> post-publish redirect to /organizer/leaderboards/standalone/<id>.
   return (
-    <StandaloneCreateWizard
-      basePath="/organizer/leaderboards/standalone"
-      organizationId={membership.organization.organization_id}
-    />
+    <div data-tour="org-standalone-create">
+      <StandaloneCreateWizard
+        basePath="/organizer/leaderboards/standalone"
+        organizationId={membership.organization.organization_id}
+      />
+    </div>
   );
 }

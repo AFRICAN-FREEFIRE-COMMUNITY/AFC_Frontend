@@ -63,6 +63,11 @@ import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { vendorApi, VendorOrder } from "@/lib/vendor";
 import { VendorProvider } from "./_components/VendorContext";
+// Guided "Take a tour" launcher for the vendor portal. Pathname-aware: it shows the
+// "Take a tour" button (and handles first-visit auto-show) only on vendor pages that
+// have a tour defined in ./_components/vendor-tour-steps.ts, and renders nothing
+// elsewhere. Lives in the header so it is available on every vendor page.
+import { VendorTourLauncher } from "./_components/VendorTourLauncher";
 
 // The portal sub-routes the left nav links to. "Orders" is the fulfilment queue;
 // "Products" is the vendor's self-serve catalogue (Phase B2); "Payouts" is the
@@ -261,6 +266,9 @@ function VendorShell({ children }: { children: ReactNode }) {
                   {user.in_game_name}
                 </span>
               )}
+              {/* "Take a tour" guide for the current vendor page (self-hides where no
+                  tour exists). Sits left of the log-out button. */}
+              <VendorTourLauncher />
               <Button
                 variant="ghost"
                 size="sm"

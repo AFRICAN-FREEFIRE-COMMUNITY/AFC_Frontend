@@ -322,6 +322,7 @@ export default function OrganizerMembersPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      <div data-tour="org-members-title">
       <PageHeader
         title="Members"
         description={`${members.length} member${members.length !== 1 ? "s" : ""}`}
@@ -330,7 +331,7 @@ export default function OrganizerMembersPage() {
           canManageMembers ? (
             <Dialog open={addOpen} onOpenChange={setAddOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button data-tour="org-members-add">
                   <IconUserPlus className="size-4 mr-1.5" />
                   Add sub-organizer
                 </Button>
@@ -397,12 +398,13 @@ export default function OrganizerMembersPage() {
           ) : undefined
         }
       />
+      </div>
 
       {/* Members table. */}
       <Card className="pt-2">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
+            <Table data-tour="org-members-table">
               <TableHeader>
                 <TableRow>
                   <TableHead>Username</TableHead>

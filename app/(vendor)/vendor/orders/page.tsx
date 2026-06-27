@@ -105,13 +105,17 @@ export default function VendorOrdersPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Orders"
-        description="Paid orders for you to fulfil. Open one to move it through the lifecycle."
-      />
+      {/* data-tour anchor: intro step of the Vendor Tour (see _components/vendor-tour-steps.ts).
+          PageHeader does not forward props to its root, so we wrap it to host the anchor. */}
+      <div data-tour="vendor-orders-header">
+        <PageHeader
+          title="Orders"
+          description="Paid orders for you to fulfil. Open one to move it through the lifecycle."
+        />
+      </div>
 
-      {/* Filters: search + state. */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Filters: search + state. (data-tour: Vendor Tour "find an order" step.) */}
+      <div data-tour="vendor-orders-search" className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
@@ -135,7 +139,8 @@ export default function VendorOrdersPage() {
         </Select>
       </div>
 
-      <Card>
+      {/* data-tour: Vendor Tour "open an order" step (the queue table). */}
+      <Card data-tour="vendor-orders-table">
         <CardHeader className="border-b">
           <CardTitle>Your Orders</CardTitle>
         </CardHeader>

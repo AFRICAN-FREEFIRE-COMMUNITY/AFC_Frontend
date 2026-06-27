@@ -149,10 +149,14 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title={details.event_name}
-        description="Manage this event's qualification links, or jump to its task pages."
-      />
+      {/* data-tour anchor: PageHeader does not forward props to the DOM, so the
+          title step wraps it in a plain div the tour can spotlight. */}
+      <div data-tour="org-event-detail-title">
+        <PageHeader
+          title={details.event_name}
+          description="Manage this event's qualification links, or jump to its task pages."
+        />
+      </div>
 
       {/* ── headline: status + type badges + the task-page quick links ── */}
       <div className="flex flex-wrap items-center gap-2">
@@ -166,7 +170,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
           {details.competition_type}
         </Badge>
         <span className="ml-auto flex flex-wrap items-center gap-1.5">
-          <Button asChild size="sm" variant="outline">
+          <Button asChild size="sm" variant="outline" data-tour="org-event-detail-edit">
             <Link href={`/organizer/events/${slug}/edit`}>
               <IconPencil className="size-4" /> Edit
             </Link>
@@ -184,11 +188,15 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
         </span>
       </div>
 
-      {/* ── the qualification-chains card (shared with the admin event page) ── */}
-      <LinkedEventsCard
-        eventId={details.event_id}
-        stages={(details.stages ?? []).map((s) => ({ id: s.stage_id, stage_name: s.stage_name }))}
-      />
+      {/* ── the qualification-chains card (shared with the admin event page) ──
+          Wrapped in a data-tour div because LinkedEventsCard is a shared component
+          that may not forward arbitrary props to its root DOM node. */}
+      <div data-tour="org-event-detail-links">
+        <LinkedEventsCard
+          eventId={details.event_id}
+          stages={(details.stages ?? []).map((s) => ({ id: s.stage_id, stage_name: s.stage_name }))}
+        />
+      </div>
 
       {/* ── Clash-Squad brackets (sub-project E organizer parity) ──
           One bracket card per CS-format stage, the SAME component the admin

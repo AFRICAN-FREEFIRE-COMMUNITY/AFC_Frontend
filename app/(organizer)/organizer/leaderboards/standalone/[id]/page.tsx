@@ -39,9 +39,11 @@ export default function OrganizerStandaloneLeaderboardViewPage({
   const { id } = use(params);
   // Organizer basePath -> "Edit" deep-link to /organizer/leaderboards/standalone/create?id=<id>.
   return (
-    <StandaloneLeaderboardView
-      id={id}
-      basePath="/organizer/leaderboards/standalone"
-    />
+    <div data-tour="org-standalone-view">
+      <StandaloneLeaderboardView
+        id={id}
+        basePath="/organizer/leaderboards/standalone"
+      />
+    </div>
   );
 }

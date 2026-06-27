@@ -194,10 +194,14 @@ export default function VendorPayoutsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Payouts"
-        description="Add the bank account AFC pays you out to. We pay out your share of each completed order automatically."
-      />
+      {/* data-tour anchor: intro step of the Vendor Tour (see _components/vendor-tour-steps.ts).
+          PageHeader does not forward props to its root, so we wrap it to host the anchor. */}
+      <div data-tour="vendor-payouts-header">
+        <PageHeader
+          title="Payouts"
+          description="Add the bank account AFC pays you out to. We pay out your share of each completed order automatically."
+        />
+      </div>
 
       {loadError ? (
         // ── Load failed (network / server). Offer a retry. ──
@@ -223,8 +227,11 @@ export default function VendorPayoutsPage() {
         </Card>
       ) : (
         <>
-          {/* How payouts work. */}
-          <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-muted-foreground">
+          {/* How payouts work. (data-tour: Vendor Tour "how payouts work" step.) */}
+          <div
+            data-tour="vendor-payouts-info"
+            className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-muted-foreground"
+          >
             <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
             <p>
               When an order is completed, AFC transfers your share to the bank
@@ -295,7 +302,8 @@ export default function VendorPayoutsPage() {
             </Card>
           ) : (
             // ── Bank-details form (the Paystack rail). ──
-            <Card>
+            // data-tour: Vendor Tour "add your bank account" step.
+            <Card data-tour="vendor-payouts-form">
               <CardHeader className="border-b">
                 <CardTitle>
                   {method?.has_recipient ? "Update bank account" : "Add bank account"}

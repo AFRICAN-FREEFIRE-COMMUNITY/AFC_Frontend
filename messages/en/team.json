@@ -1,0 +1,8 @@
+{
+  "statsVisibility": {
+    "label": "Show team stats publicly",
+    "description": "Your team stats are private by default. Turn this on to let others see them.",
+    "saved": "Team stats visibility updated.",
+    "saveFailed": "Failed to update team stats visibility."
+  }
+}

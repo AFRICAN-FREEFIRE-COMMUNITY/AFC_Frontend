@@ -32,6 +32,10 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
+// Switch + Label: used for the team stats visibility opt-in (see §stats visibility below).
+// Pattern mirrors how other feature-toggles are styled on this codebase (e.g. StepWaitlist.tsx).
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { extractSocialMediaUrls } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import Image from "next/image";
@@ -95,6 +99,9 @@ type Params = Promise<{
 export default function page({ params }: { params: Params }) {
   // i18n: edit-team form copy (messages/en/teamsplayers.json -> "teamEdit").
   const t = useTranslations("teamsplayers");
+  // i18n: team-specific feature keys (messages/en/team.json -> "statsVisibility").
+  // Kept in a dedicated namespace so fr/pt translation is scoped cleanly.
+  const tTeam = useTranslations("team");
   const { id } = use(params);
   const decodedId = decodeURIComponent(id);
   const [pending, startTransition] = useTransition();
@@ -108,6 +115,14 @@ export default function page({ params }: { params: Params }) {
 
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Team stats visibility (§stats visibility) ────────────────────────────────
+  // Separate from the main edit form: toggling it fires an immediate POST to
+  // /team/set-stats-visibility/ (no form submit needed). Gated on can_manage_stats
+  // from the get-team-details response so only owners/managers see this control.
+  // Initialized below in the teamDetails useEffect from teamDetails.stats_public.
+  const [statsVisible, setStatsVisible] = useState<boolean>(false);
+  const [statsSaving, setStatsSaving] = useState<boolean>(false);
 
   const { token } = useAuth();
   const router = useRouter();
@@ -170,8 +185,40 @@ export default function page({ params }: { params: Params }) {
         team_logo: teamDetails.team_logo || "",
         ...socialUrls,
       });
+      // Seed the stats-visibility toggle from the team's current value.
+      // get-team-details returns stats_public (the team's own toggle, independent of the computed
+      // "can this viewer see the stats" field which is also named stats_visible elsewhere).
+      setStatsVisible(teamDetails.stats_public ?? false);
     }
   }, [teamDetails, form]);
+
+  // ── Stats visibility handler ─────────────────────────────────────────────────
+  // Called when the owner/manager flips the Switch. Fires an immediate POST to
+  // /team/set-stats-visibility/ (Bearer) with { team_id, stats_visible: bool }.
+  // On success: update local state. On failure: revert toggle + toast error.
+  // Callers: the Switch onCheckedChange below (gated on can_manage_stats).
+  const handleStatsVisibleToggle = async (next: boolean) => {
+    if (statsSaving || !teamDetails?.team_id) return;
+    setStatsSaving(true);
+    // Optimistic update so the UI feels instant.
+    setStatsVisible(next);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/set-stats-visibility/`,
+        { team_id: teamDetails.team_id, stats_visible: next },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(tTeam("statsVisibility.saved"));
+    } catch (error: any) {
+      // Revert on failure so the toggle truthfully reflects the server state.
+      setStatsVisible(!next);
+      toast.error(
+        error?.response?.data?.message || tTeam("statsVisibility.saveFailed"),
+      );
+    } finally {
+      setStatsSaving(false);
+    }
+  };
 
   //
   // Submit handler
@@ -488,6 +535,31 @@ export default function page({ params }: { params: Params }) {
                   </FormItem>
                 )}
               />
+
+              {/* ── Team stats visibility ──────────────────────────────────────────────────
+                  Rendered ONLY for team owners and managers (can_manage_stats from
+                  get-team-details response). Toggling fires an immediate POST to
+                  /team/set-stats-visibility/ — this is NOT part of the main form
+                  submit, it saves instantly so the owner sees clear feedback. Default
+                  is private (off); turning it on lets everyone see the team's stats. */}
+              {teamDetails?.can_manage_stats && (
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="team-stats-toggle" className="text-sm font-medium">
+                      {tTeam("statsVisibility.label")}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {tTeam("statsVisibility.description")}
+                    </p>
+                  </div>
+                  <Switch
+                    id="team-stats-toggle"
+                    checked={statsVisible}
+                    onCheckedChange={handleStatsVisibleToggle}
+                    disabled={statsSaving}
+                  />
+                </div>
+              )}
 
               {/* Social links */}
               <div className="space-y-2.5">

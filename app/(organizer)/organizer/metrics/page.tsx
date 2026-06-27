@@ -685,10 +685,12 @@ export default function OrganizerMetricsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Metrics"
-        description="A performance dashboard for your organization, across all of its events."
-      />
+      <div data-tour="org-metrics-title">
+        <PageHeader
+          title="Metrics"
+          description="A performance dashboard for your organization, across all of its events."
+        />
+      </div>
 
       {/* ── Timeframe picker: scopes every card / chart / table below. ───────── */}
       {dateControl}
@@ -720,7 +722,7 @@ export default function OrganizerMetricsPage() {
         <>
       {/* ── Headline scorecards ─────────────────────────────────────────────── */}
       {/* The at-a-glance strip: the numbers an organizer checks first. */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+      <div data-tour="org-metrics-stats" className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
         <StatCard
           icon={<IconCalendarEvent className="size-5" />}
           label="Events run"
@@ -805,7 +807,7 @@ export default function OrganizerMetricsPage() {
 
       {/* ── Detail under pill Tabs (keeps the surface scannable as it grows). ── */}
       <Tabs defaultValue="trends" className="w-full">
-        <TabsList className="h-9">
+        <TabsList data-tour="org-metrics-tabs" className="h-9">
           <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
           <TabsTrigger value="leaderboards">Leaderboards</TabsTrigger>

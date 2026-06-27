@@ -992,15 +992,17 @@ export default function OrganizerCreateEventPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Create New Event"
-        description="Set up a new event for your organization."
-        back
-      />
+      <div data-tour="org-event-create-title">
+        <PageHeader
+          title="Create New Event"
+          description="Set up a new event for your organization."
+          back
+        />
+      </div>
 
       <Form {...form}>
         {/* @ts-ignore - resolver widens the form's internal TFieldValues generic. */}
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form data-tour="org-event-create-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {currentStep === 1 && (
             <Step1EventDetails
               // @ts-ignore - reused admin step expects the stricter UseFormReturn.
@@ -1086,6 +1088,7 @@ export default function OrganizerCreateEventPage() {
                 </Button>
               ) : (
                 <Button
+                  data-tour="org-event-create-submit"
                   type="button"
                   // handleCreateClick gates a PAID org event behind the terms modal
                   // before submitting; free events submit straight through.

@@ -395,14 +395,17 @@ export default function OrganizerBlacklistsPage() {
     <div className="flex flex-col gap-5">
       {/* Header + "Blacklist a team" action. */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <PageHeader
-          title="Blacklists"
-          description="Block a team (and the players on it) from registering for your events."
-        />
+        {/* Tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
+        <div data-tour="org-blacklists-title">
+          <PageHeader
+            title="Blacklists"
+            description="Block a team (and the players on it) from registering for your events."
+          />
+        </div>
         {/* ── 1. Create dialog: TeamSearchSelect + duration + reason. ── */}
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-1.5 self-start sm:self-auto">
+            <Button data-tour="org-blacklists-add" className="gap-1.5 self-start sm:self-auto">
               <IconBan className="size-4" />
               Blacklist a team
             </Button>
@@ -516,7 +519,7 @@ export default function OrganizerBlacklistsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto rounded-md border">
-              <Table>
+              <Table data-tour="org-blacklists-table">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-foreground">Team</TableHead>

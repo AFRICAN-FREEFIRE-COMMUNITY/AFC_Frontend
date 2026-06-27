@@ -68,6 +68,9 @@ import {
   OrganizerProvider,
   OrgMembership,
 } from "./_components/OrganizerContext";
+// "Take a tour" guided walkthrough launcher for the organizer portal. Pathname-aware
+// (self-hides where no tour exists). Mirrors the admin header's AdminTourLauncher.
+import { OrganizerTourLauncher } from "./_components/OrganizerTourLauncher";
 
 // localStorage key that remembers the last org the user switched to (by slug).
 const SELECTED_ORG_KEY = "organizer:selected-slug";
@@ -163,7 +166,9 @@ function OrganizerSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent className="flex flex-col gap-2">
-            <SidebarMenu>
+            {/* data-tour anchor: the first step of every organizer tour points
+                here so a new organizer learns the nav before the page walkthrough. */}
+            <SidebarMenu data-tour="org-sidebar-nav">
               {NAV_ITEMS.map((item) => {
                 // Active = current path is, or sits under, this nav href - but the
                 // MOST-SPECIFIC nav href wins. "Drafts" (/organizer/events/drafts)
@@ -382,6 +387,9 @@ function OrganizerShell({ children }: { children: ReactNode }) {
               </Link>
             </div>
             <div className="flex items-center gap-3">
+              {/* "Take a tour" guide for the current organizer page (self-hides
+                  where no tour exists). Sits left of the user name + Log out. */}
+              <OrganizerTourLauncher />
               {user && (
                 <span className="text-sm text-muted-foreground hidden sm:block">
                   {user.in_game_name}

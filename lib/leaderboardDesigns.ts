@@ -435,6 +435,22 @@ export const leaderboardDesignsApi = {
       )
       .then((r) => r.data),
 
+  // POST .../apply-background-to-all/ -> {design}. Broadcasts the given background image(s) to
+  // EVERY explicit page of the design in one operation, saving the per-page upload-and-repeat cycle.
+  // Multipart FormData: background_instagram and/or background_youtube (at least one required; the
+  // backend validates). We do NOT set Content-Type so axios writes the multipart boundary automatically,
+  // matching the addPage/updatePage idiom. Returns the full updated design so the caller can refresh
+  // all page background URLs in one state update. Consumed by DesignFieldsEditor.tsx "Apply to all
+  // pages" action.
+  applyBackgroundToAll: (designId: number, form: FormData) =>
+    axios
+      .post<{ design: LeaderboardDesign }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/apply-background-to-all/`,
+        form,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+
   // ── Export renderer (leaderboards/standalone/<id>/graphic/) ──────────────────
   // GET the rendered PNG as a Blob. design_id is optional (the backend falls back to the library
   // default, then a plain dark AFC background); size picks the canvas; title defaults to the

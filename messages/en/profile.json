@@ -284,7 +284,11 @@
       "saved": "Esport image saved.",
       "uploadFailed": "Failed to upload the esport image."
     },
-    "identityLocked": "Locked while you're registered for an event. You can edit this again once your events are over."
+    "identityLocked": "Locked while you're registered for an event. You can edit this again once your events are over.",
+    "statsVisible": {
+      "label": "Show my stats to others",
+      "description": "Your stats are private by default. Turn this on to let others see them."
+    }
   },
   "password": {
     "title": "Change Password",

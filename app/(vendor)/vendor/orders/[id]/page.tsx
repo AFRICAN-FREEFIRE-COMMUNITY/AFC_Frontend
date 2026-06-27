@@ -208,21 +208,28 @@ export default function VendorOrderDetailPage({
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        back
-        title={
-          <span className="inline-flex items-center gap-2">
-            Order #{order.order_id}
-            <StateBadge state={state} />
-          </span>
-        }
-        description={`Placed ${
-          order.created_at ? formatDate(order.created_at) : ""
-        }`}
-      />
+      {/* data-tour anchor: intro step of the Vendor Tour (see _components/vendor-tour-steps.ts).
+          PageHeader does not forward props to its root, so we wrap it to host the anchor. */}
+      <div data-tour="vendor-order-header">
+        <PageHeader
+          back
+          title={
+            <span className="inline-flex items-center gap-2">
+              Order #{order.order_id}
+              <StateBadge state={state} />
+            </span>
+          }
+          description={`Placed ${
+            order.created_at ? formatDate(order.created_at) : ""
+          }`}
+        />
+      </div>
 
-      {/* ── Order + delivery details ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {/* ── Order + delivery details ── (data-tour: Vendor Tour "items and delivery" step.) */}
+      <div
+        data-tour="vendor-order-details"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+      >
         {/* Items */}
         <Card>
           <CardHeader className="border-b">
@@ -289,8 +296,8 @@ export default function VendorOrderDetailPage({
         </Card>
       </div>
 
-      {/* ── Lifecycle stepper ── */}
-      <Card>
+      {/* ── Lifecycle stepper ── (data-tour: Vendor Tour "move it through the steps" step.) */}
+      <Card data-tour="vendor-order-fulfilment">
         <CardHeader className="border-b">
           <CardTitle className="text-base">Fulfilment</CardTitle>
         </CardHeader>

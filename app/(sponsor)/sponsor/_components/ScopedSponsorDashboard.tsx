@@ -224,23 +224,30 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
 
   return (
     <div className="flex flex-col gap-3 mx-auto">
-      <PageHeader
-        title={`Welcome, ${user?.full_name || user?.in_game_name || ""}`}
-        description={
-          openEvent
-            ? `${openEvent.event_name} submissions for ${openEvent.sponsor_name}`
-            : sponsors.length > 1
-              ? "All events across your sponsors"
-              : `Your ${sponsors[0].name} sponsor dashboard`
-        }
-      />
+      {/* data-tour anchor: Sponsor Tour "your sponsor dashboard" step (see
+          _components/sponsor-tour-steps.ts). PageHeader does not forward props to its
+          root, so we wrap it. The same anchor name lives on the legacy dashboard. */}
+      <div data-tour="sponsor-dashboard-header">
+        <PageHeader
+          title={`Welcome, ${user?.full_name || user?.in_game_name || ""}`}
+          description={
+            openEvent
+              ? `${openEvent.event_name} submissions for ${openEvent.sponsor_name}`
+              : sponsors.length > 1
+                ? "All events across your sponsors"
+                : `Your ${sponsors[0].name} sponsor dashboard`
+          }
+        />
+      </div>
 
       {/* ── sponsor filter row ──
           The switcher is an optional FILTER now, not a gate: "All sponsors" is the
           default and the event list always opens merged. Changing it also pops any
           open drill-down so the user lands back on the (re)filtered list. Single
           membership keeps the plain name label, exactly as before. */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* data-tour: Sponsor Tour "find what you need" step (the sponsor switcher /
+          filter row). The legacy dashboard's search+status row carries the same anchor. */}
+      <div data-tour="sponsor-dashboard-filters" className="flex items-center gap-2 flex-wrap">
         <Badge variant="outline" className="rounded-full border-gold px-2 py-0.5 text-xs" style={{ color: "var(--gold)" }}>
           Sponsor
         </Badge>
@@ -267,6 +274,9 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
         )}
       </div>
 
+      {/* data-tour: Sponsor Tour "your events and registrants" step. Wraps the whole
+          events-list + per-event drill-down region so the anchor is present either way. */}
+      <div data-tour="sponsor-dashboard-list">
       {!openEvent ? (
         // ── events list (ALL memberships merged; rows tagged with a sponsor chip) ──
         events === null ? (
@@ -431,6 +441,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

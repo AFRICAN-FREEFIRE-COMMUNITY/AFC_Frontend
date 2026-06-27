@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { IconLogout, IconStar } from "@tabler/icons-react";
 import { Logo } from "@/components/Logo";
 import Link from "next/link";
+// Guided "Take a tour" launcher for the sponsor portal. Pathname-aware: shows the
+// "Take a tour" button (and handles first-visit auto-show) only on sponsor pages with a
+// tour defined in ./_components/sponsor-tour-steps.ts, and renders nothing elsewhere.
+import { SponsorTourLauncher } from "./_components/SponsorTourLauncher";
 
 function SponsorGuard({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading, hasRole } = useAuth();
@@ -47,7 +51,12 @@ export default function SponsorPortalLayout({
     <SponsorGuard>
       <div>
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
-          <div className="container mx-auto h-20 flex items-center justify-between">
+          {/* data-tour anchor: the sponsor portal has no sidebar, so the Sponsor Tour
+              opens by orienting the sponsor on this header (brand + log out). */}
+          <div
+            data-tour="sponsor-header"
+            className="container mx-auto h-20 flex items-center justify-between"
+          >
             <Link href={"/home"} className="flex items-center space-x-2">
               <Logo size="small" />
               <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
@@ -60,6 +69,9 @@ export default function SponsorPortalLayout({
                   {user.in_game_name}
                 </span>
               )}
+              {/* "Take a tour" guide for the sponsor dashboard (self-hides where no
+                  tour exists). Sits left of the log-out button. */}
+              <SponsorTourLauncher />
               <Button
                 variant="ghost"
                 size="sm"

@@ -13,6 +13,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   watchlistApi,
   type WatchlistEntry,
@@ -78,6 +79,10 @@ export interface WatchlistLabels {
   removeError: string;
   added: string; // "{name} added"
   removed: string; // "{name} removed"
+  // Prefix shown in the actions cell when the signed-in organizer did NOT add an entry
+  // and therefore cannot remove it. Defaults to "Added by" if omitted (admin page is
+  // i18n-exempt and doesn't need to pass this key). Organizer page passes t("addedBy").
+  addedBy?: string;
 }
 
 const PAGE_SIZE = 50;
@@ -88,6 +93,18 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [totalCount, setTotalCount] = useState(0);
+
+  // ── Auth: needed to gate the Remove button.
+  // Admins (coarse admin/moderator/support + granular admin roles, matching the backend gate)
+  // can remove any watchlist entry. Organizers can only remove entries they themselves added
+  // (entry.added_by_id === user.user_id). This mirrors the server-side PATCH 403 rule; the
+  // client-side check avoids the wasted round-trip in the happy path. A 403 can still arrive
+  // on a race (entry re-fetched while the page is open) — the existing catch block in remove()
+  // already surfaces err.response.data.message via toast.error, so no extra handling is needed.
+  const { user, isAdmin } = useAuth();
+
+  const canRemoveEntry = (entry: WatchlistEntry): boolean =>
+    isAdmin || entry.added_by_id === user?.user_id;
 
   // add dialog
   const [adding, setAdding] = useState(false);
@@ -239,15 +256,25 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
                       {e.created_at ? <LocalTime value={e.created_at} mode="date" /> : "-"}
                     </TableCell>
                     <TableCell className="p-2 text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-destructive hover:text-destructive"
-                        onClick={() => remove(e)}
-                      >
-                        <IconTrash className="mr-1 size-3.5" />
-                        {labels.remove}
-                      </Button>
+                      {canRemoveEntry(e) ? (
+                        // Admin OR the organizer who added this entry — show the destructive Remove button.
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-destructive hover:text-destructive"
+                          onClick={() => remove(e)}
+                        >
+                          <IconTrash className="mr-1 size-3.5" />
+                          {labels.remove}
+                        </Button>
+                      ) : (
+                        // Organizer does not own this entry — show who added it instead of a Remove button.
+                        // The server also returns 403 on PATCH for this case (race guard); the existing
+                        // catch in remove() would surface the server message via toast.error if it fires.
+                        <span className="text-xs text-muted-foreground">
+                          {labels.addedBy ?? "Added by"} {e.added_by_username || "?"}
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

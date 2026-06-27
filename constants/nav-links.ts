@@ -223,6 +223,18 @@ export const adminNavLinks: AdminNavLink[] = [
     allowedRoles: ["head_admin", "partner_admin"],
   },
   {
+    // Broadcasts audit (owner 2026-06-27): the cross-event admin view of EVERY broadcast organizers +
+    // admins send to players (full content, time, sender, scope, recipient count). Page
+    // app/(a)/a/broadcasts/page.tsx → GET /auth/all-broadcasts/. Gated to the SAME granular roles the
+    // backend treats as broadcast admins (is_broadcast_admin: head_admin / event_admin /
+    // organizer_admin / metrics_admin; head_admin always passes in canAccess), so the sidebar entry
+    // matches who the endpoint actually lets in. IconMessage reads as the messaging/broadcast surface.
+    label: "Broadcasts",
+    slug: "/a/broadcasts",
+    icon: IconMessage,
+    allowedRoles: ["head_admin", "event_admin", "organizer_admin", "metrics_admin"],
+  },
+  {
     label: "Admin News",
     slug: "/a/news",
     icon: IconNews,

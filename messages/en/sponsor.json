@@ -1,0 +1,22 @@
+{
+  "tour": {
+    "dashboard": {
+      "intro": {
+        "title": "Welcome to your sponsor portal",
+        "description": "This is your sponsor area. Use the header to head back to the main site or log out. Everything you need to manage your sponsored events is below."
+      },
+      "welcome": {
+        "title": "Your sponsor dashboard",
+        "description": "A quick read on your registrants across every event you sponsor, so you can see what needs your attention at a glance."
+      },
+      "filters": {
+        "title": "Find what you need",
+        "description": "Narrow your view here. Switch between your sponsors, or search and filter the list, so you can focus on a single event or status."
+      },
+      "list": {
+        "title": "Your events and registrants",
+        "description": "Open an event to review the players registered under your sponsorship, confirm or reject them, and export the list when you need it."
+      }
+    }
+  }
+}

@@ -79,6 +79,7 @@ import {
   IconKey,
   IconSearch,
   IconTrash,
+  IconWorld,
 } from "@tabler/icons-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { organizersApi } from "@/lib/organizers";
@@ -115,11 +116,48 @@ const TOGGLE_LABELS: Record<PartnerToggle, string> = {
   include_mvp: "MVP",
 };
 
-// Options for the two scope multiselects (events / organizations).
+// ── Partner read-API connection facts (the "Connection details" card on the Keys tab) ──
+// What an AFC admin hands a partner so the partner can call the public read API. The
+// base URL is the same one the partner firewall is mounted at in the backend
+// (afc/urls.py → path("api/v1/partner/", ...)). NEXT_PUBLIC_BACKEND_API_URL is the AFC
+// Django origin (lib/env), so this resolves to e.g.
+// https://api.africanfreefirecommunity.com/api/v1/partner/ . Endpoints + auth header
+// mirror afc_partner_api/partner_urls.py + the X-API-Key header the partner middleware
+// reads. NONE of this is partner-specific config: it is the same for every partner;
+// only the issued key (Keys tab) and the published events (Scope tab) differ.
+const PARTNER_API_BASE = `${env.NEXT_PUBLIC_BACKEND_API_URL}/api/v1/partner/`;
+
+// The seven GET endpoints the read API exposes (paths RELATIVE to PARTNER_API_BASE).
+// <slug> = an event's slug (returned by events/). Each is additionally gated by this
+// partner's resource toggles (Scope & Toggles tab), so a path 200s only if the matching
+// can_read_* switch is on AND the event is published.
+const PARTNER_ENDPOINTS: { path: string; desc: string }[] = [
+  { path: "events/", desc: "List published events in scope" },
+  { path: "events/<slug>/", desc: "One event's details" },
+  { path: "events/<slug>/stages/", desc: "Stages & groups" },
+  { path: "events/<slug>/matches/", desc: "Matches" },
+  { path: "events/<slug>/standings/", desc: "Standings" },
+  { path: "events/<slug>/teams/", desc: "Teams & rosters" },
+  { path: "events/<slug>/players/", desc: "Players" },
+];
+
+// The auth header every partner request must carry (placeholder for the issued key).
+const PARTNER_AUTH_HEADER = "X-API-Key: <api key>";
+
+// A copy-paste sample request, so the admin can hand the partner a working example.
+const SAMPLE_CURL = `curl -H "${PARTNER_AUTH_HEADER}" \\\n  ${PARTNER_API_BASE}events/`;
+
+// Options for the two scope multiselects (events / organizations). `slug` comes from the
+// /events/get-all-events/ payload and is what the per-event publish control (Scope tab)
+// passes to partnersApi.publishEvent (the read API addresses events by slug, never pk).
 interface EventOption {
   event_id: number;
   event_name: string;
   event_status: string;
+  slug: string;
+  // LIVE partner-API published state (owner 2026-06-27): get-all-events now returns this so the
+  // publish control shows the REAL current state on load, not just actions taken this session.
+  partner_published?: boolean;
 }
 interface OrgOption {
   organization_id: number;
@@ -145,6 +183,39 @@ function StatusBadge({ status }: { status: string }) {
     <Badge variant="outline" className="capitalize">
       {status || "-"}
     </Badge>
+  );
+}
+
+// ── Reusable copy-to-clipboard button (Connection details card) ───────────────
+// Mirrors the show-once issued-key copy affordance (IconCopy → IconCheck for 2s) but
+// holds its OWN copied state, so the several copy buttons on the page (base URL, auth
+// header, sample curl) never share one flag. Used only by the Connection details card.
+function CopyButton({ value, className }: { value: string; className?: string }) {
+  const [done, setDone] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setDone(true);
+      setTimeout(() => setDone(false), 2000);
+    } catch {
+      toast.error("Couldn't copy. Select and copy the text manually.");
+    }
+  };
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      onClick={copy}
+      className={className}
+      aria-label="Copy to clipboard"
+    >
+      {done ? (
+        <IconCheck className="size-4 text-green-500" />
+      ) : (
+        <IconCopy className="size-4" />
+      )}
+    </Button>
   );
 }
 
@@ -178,6 +249,17 @@ export default function PartnerDetailPage({
   const [allowedEventIds, setAllowedEventIds] = useState<number[]>([]);
   const [allowedOrgIds, setAllowedOrgIds] = useState<number[]>([]);
   const [savingScope, setSavingScope] = useState(false);
+
+  // ── Per-event publish state (the "Publish to partner API" card on the Scope tab) ──
+  // partner_published is a GLOBAL flag on the Event (Event.partner_published) that the
+  // read API checks FIRST: a partner reads NO event until it is published, however broad
+  // its scope. The admin detail/list payloads don't carry that flag (it is stripped from
+  // everything the partner firewall touches), so we can't preload each event's true
+  // state here. Instead we track only what the admin sets THIS session, keyed by event
+  // pk: undefined = not acted on yet (show the "Publish" action), true = published,
+  // false = withdrawn. publishingId disables the row's buttons while its call is in flight.
+  const [publishState, setPublishState] = useState<Record<number, boolean>>({});
+  const [publishingId, setPublishingId] = useState<number | null>(null);
 
   // ── Scope-option catalogues (all events + all orgs to choose from) ─────────
   const [eventOptions, setEventOptions] = useState<EventOption[]>([]);
@@ -267,6 +349,19 @@ export default function PartnerDetailPage({
     [orgOptions, orgSearch],
   );
 
+  // ── Events currently in this partner's allowed_events scope, resolved to full options ──
+  // The publish card lists exactly the events the admin has picked under "Allowed events"
+  // (working state `allowedEventIds`, so it stays in sync as they tick boxes, even before
+  // Save). We resolve each id to its EventOption to get the name + slug; ids we don't have
+  // an option for (e.g. a draft hidden from the picker) are dropped. publishEvent needs
+  // the slug, which is why EventOption now carries it.
+  const scopedEvents = useMemo(() => {
+    const byId = new Map(eventOptions.map((e) => [e.event_id, e]));
+    return allowedEventIds
+      .map((id) => byId.get(id))
+      .filter((e): e is EventOption => Boolean(e));
+  }, [allowedEventIds, eventOptions]);
+
   // ── Scope + toggles save (one whitelist-validated PATCH) ──────────────────
   // Sends ALL 14 toggles + the native switch + both id-lists. The backend whitelist
   // rejects anything else, so this body is exactly the set it accepts.
@@ -287,6 +382,31 @@ export default function PartnerDetailPage({
       toast.error(err?.response?.data?.message || "Failed to save scope & toggles.");
     } finally {
       setSavingScope(false);
+    }
+  };
+
+  // ── Publish / withdraw one event to/from the partner API ──────────────────
+  // Flips Event.partner_published via partnersApi.publishEvent(slug, {published}). Unlike
+  // the scope/toggle switches (which batch into "Save scope & toggles"), this fires
+  // IMMEDIATELY (partner_published is a per-event global gate, not part of the partner's
+  // edit body). On success we record the new state in publishState so the row reflects it.
+  const handlePublishEvent = async (ev: EventOption, published: boolean) => {
+    if (publishingId !== null) return;
+    setPublishingId(ev.event_id);
+    try {
+      await partnersApi.publishEvent(ev.slug, { published });
+      setPublishState((prev) => ({ ...prev, [ev.event_id]: published }));
+      toast.success(
+        published
+          ? `"${ev.event_name}" is now readable through the partner API.`
+          : `"${ev.event_name}" was withdrawn from the partner API.`,
+      );
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to update publish state.",
+      );
+    } finally {
+      setPublishingId(null);
     }
   };
 
@@ -517,6 +637,16 @@ export default function PartnerDetailPage({
 
         {/* ── Scope + Toggles tab - the grant config ── */}
         <TabsContent value="scope" className="mt-4 space-y-4">
+          {/* Orientation hint: spells out the three things that decide what this partner
+              can actually read, so the admin knows the full flow (the owner's "control
+              what data they had access to" gap). All of it is enforced by the read API. */}
+          <p className="text-sm text-muted-foreground">
+            Control exactly what this partner can read: pick the events (or whole
+            organizations) in scope, publish those events so the API will return them,
+            then choose which resources and fields are exposed. Everything on this tab is
+            enforced by the partner API.
+          </p>
+
           {/* ── Scope: which events the partner may read ── */}
           <Card>
             <CardHeader className="border-b">
@@ -661,6 +791,96 @@ export default function PartnerDetailPage({
             </CardContent>
           </Card>
 
+          {/* ── Publish to partner API - flip Event.partner_published per event ── */}
+          {/* The gate the read API applies FIRST: a configured key returns NO events until
+              they are published here. We list the events currently in this partner's
+              "Allowed events" scope (above) and let the admin publish/withdraw each one.
+              These actions fire IMMEDIATELY (they are NOT part of "Save scope & toggles")
+              because partner_published is a global per-event flag, not partner config. */}
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle>Publish to partner API</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 pt-4">
+              <p className="text-sm text-muted-foreground">
+                Publishing makes an event readable through the partner API. A configured
+                key returns no events until they are published. This applies immediately
+                and globally for the event, separately from Save scope &amp; toggles.
+              </p>
+              {scopedEvents.length === 0 ? (
+                <p className="rounded-md border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
+                  Add events under &quot;Allowed events&quot; above, then publish them here
+                  so this partner can read them.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {scopedEvents.map((ev) => {
+                    // Live state seeded from the event's real partner_published flag (get-all-events),
+                    // with any action taken THIS session (publishState) overriding it. So the row shows
+                    // the true Published/Withdrawn state on load, then updates instantly on click.
+                    const state = publishState[ev.event_id] ?? ev.partner_published ?? false;
+                    const busy = publishingId === ev.event_id;
+                    return (
+                      <div
+                        key={ev.event_id}
+                        className="flex items-center justify-between gap-3 rounded-md border px-3 py-2.5"
+                      >
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate text-sm font-medium">
+                            {ev.event_name}
+                          </span>
+                          <span className="text-xs capitalize text-muted-foreground">
+                            {ev.event_status}
+                          </span>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {state === true && (
+                            <Badge
+                              variant="outline"
+                              className="border-green-600/60 text-green-400"
+                            >
+                              Published
+                            </Badge>
+                          )}
+                          {state === false && (
+                            <Badge variant="outline" className="text-muted-foreground">
+                              Withdrawn
+                            </Badge>
+                          )}
+                          {state ? (
+                            // Already published this session → offer to withdraw it.
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={busy}
+                              onClick={() => handlePublishEvent(ev, false)}
+                            >
+                              {busy ? "Working..." : "Withdraw"}
+                            </Button>
+                          ) : (
+                            // Not published (or not acted on yet) → primary publish action.
+                            <Button
+                              size="sm"
+                              disabled={busy}
+                              onClick={() => handlePublishEvent(ev, true)}
+                            >
+                              {busy ? "Working..." : "Publish to partner API"}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <p className="text-xs text-muted-foreground">
+                    This panel does not preload each event&apos;s current publish state, so
+                    a button reflects what you set here. Publishing again is harmless if the
+                    event is already published.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* ── Resource toggles - which endpoints respond ── */}
           <Card>
             <CardHeader className="border-b">
@@ -720,8 +940,102 @@ export default function PartnerDetailPage({
           </div>
         </TabsContent>
 
-        {/* ── Keys tab - issue (show-once) + revoke; never display stored secrets ── */}
+        {/* ── Keys tab - connection details + issue (show-once) + revoke ── */}
         <TabsContent value="keys" className="mt-4 space-y-4">
+          {/* ── Connection details - everything the partner needs to call the read API ──
+              The owner's complaint: after creating a key there was "nowhere to copy the
+              link or api code". This card is that surface. It shows the base URL, the
+              X-API-Key auth header, the available endpoints, and a copy-paste curl sample.
+              All values come from module-scope constants (PARTNER_API_BASE etc.) that
+              mirror the backend (afc/urls.py + partner_urls.py). The actual secret key is
+              issued + copied in the "API keys" card below (shown only once at issue time). */}
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="inline-flex items-center gap-2">
+                <IconWorld className="size-5 text-primary" />
+                Connection details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-5 pt-4">
+              <p className="text-sm text-muted-foreground">
+                Hand the partner the base URL below plus an API key (issue one under
+                &quot;API keys&quot;). Every request must send the key in the{" "}
+                <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+                  X-API-Key
+                </code>{" "}
+                header. Note: an event only appears here once you publish it on the Scope
+                &amp; Toggles tab.
+              </p>
+
+              {/* Base URL + copy */}
+              <div className="space-y-2">
+                <Label>Base URL</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    readOnly
+                    value={PARTNER_API_BASE}
+                    className="font-mono text-xs"
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                  <CopyButton value={PARTNER_API_BASE} />
+                </div>
+              </div>
+
+              {/* Auth header */}
+              <div className="space-y-2">
+                <Label>Auth header</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    readOnly
+                    value={PARTNER_AUTH_HEADER}
+                    className="font-mono text-xs"
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                  <CopyButton value={PARTNER_AUTH_HEADER} />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Replace &lt;api key&gt; with a key issued below. The full key is shown
+                  only once, immediately after issuing.
+                </p>
+              </div>
+
+              {/* Available endpoints (relative to the base URL) */}
+              <div className="space-y-2">
+                <Label>Available endpoints</Label>
+                <div className="divide-y rounded-md border">
+                  {PARTNER_ENDPOINTS.map((ep) => (
+                    <div
+                      key={ep.path}
+                      className="flex items-center justify-between gap-3 px-3 py-2"
+                    >
+                      <code className="font-mono text-xs text-foreground">
+                        GET {ep.path}
+                      </code>
+                      <span className="text-right text-xs text-muted-foreground">
+                        {ep.desc}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Paths are relative to the base URL. Each one also obeys this partner&apos;s
+                  resource and field toggles.
+                </p>
+              </div>
+
+              {/* Sample request (copy-paste curl) */}
+              <div className="space-y-2">
+                <Label>Sample request</Label>
+                <div className="flex items-start gap-2">
+                  <pre className="flex-1 overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs">
+                    {SAMPLE_CURL}
+                  </pre>
+                  <CopyButton value={SAMPLE_CURL} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="gap-0">
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
@@ -744,6 +1058,12 @@ export default function PartnerDetailPage({
                   <InfoTip id="partners.issue_key" />
                 </div>
               </div>
+              {/* Tie-in hint: connects this card to the Connection details above so the
+                  admin knows the full hand-off (issue a key, pair it with the base URL). */}
+              <p className="mt-1 text-sm text-muted-foreground">
+                Issue a key here, then give it to the partner along with the connection
+                details above. The full key is shown only once, so copy it immediately.
+              </p>
             </CardHeader>
             <CardContent className="mt-2">
               <Table>

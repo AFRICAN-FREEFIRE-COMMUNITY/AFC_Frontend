@@ -294,6 +294,15 @@ export function DesignFieldsEditor({
   const [pages, setPages] = useState<LeaderboardDesignPage[]>([]);
   const [currentPageId, setCurrentPageId] = useState<number | null>(null);
   const [addingPage, setAddingPage] = useState(false);
+  // Which page id is being deleted right now (drives the spinner on that tab's delete button).
+  // null = no delete in flight.
+  const [deletingPageId, setDeletingPageId] = useState<number | null>(null);
+  // Per-page background upload: true while an updatePage call for a BG file is in flight.
+  const [uploadingBg, setUploadingBg] = useState(false);
+  // Files staged for "Apply to all pages": at least one (IG or YT) is required before sending.
+  const [applyAllIgFile, setApplyAllIgFile] = useState<File | null>(null);
+  const [applyAllYtFile, setApplyAllYtFile] = useState<File | null>(null);
+  const [applyingAll, setApplyingAll] = useState(false);
 
   // ── Editing size (owner 2026-06-15: independent IG/YT layouts) ───────────────
   // Which export size's layout is being edited. Drives the canvas aspect + background + which
@@ -914,6 +923,96 @@ export function DesignFieldsEditor({
     }
   };
 
+  // ── Multi-page: delete a page. ──
+  // DELETEs the page row server-side (cascading its fields + texts). Removes it from local `pages`,
+  // clears its live draft caches, and switches to the first remaining page when the active page was
+  // the one deleted. Guard: disabled when only 1 page exists (delete button is hidden too, but this
+  // is a belt-and-suspenders check). Consumed by the per-tab × button in the page tabs bar.
+  const handleDeletePage = async (pageId: number) => {
+    if (!canManage || pages.length <= 1) return;
+    if (
+      !window.confirm(
+        "Delete this page? Its fields and text elements will also be removed.",
+      )
+    )
+      return;
+    setDeletingPageId(pageId);
+    try {
+      await leaderboardDesignsApi.deletePage(design.id, pageId);
+      const remaining = pages.filter((p) => p.id !== pageId);
+      setPages(remaining);
+      // Drop the deleted page from all live draft caches so stale data is never restored.
+      liveFieldsByPage.current.delete(pageId);
+      liveTextsByPage.current.delete(pageId);
+      liveGroupsByPageSize.current.delete(gKey(pageId, "instagram"));
+      liveGroupsByPageSize.current.delete(gKey(pageId, "youtube"));
+      // If the active page was deleted, switch to the first remaining page.
+      if (currentPageId === pageId) {
+        setCurrentPageId(remaining[0]?.id ?? null);
+      }
+      onSaved(); // refresh the parent list so the design shows the updated page count
+      toast.success("Page deleted.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to delete page.");
+    } finally {
+      setDeletingPageId(null);
+    }
+  };
+
+  // ── Per-page background upload. ──
+  // PATCHes the active page's background (Instagram or YouTube) via updatePage and refreshes the
+  // local `pages` array with the returned page so the canvas background image updates immediately
+  // without a dialog re-open. Only available when there are explicit pages (currentPageId !== null).
+  const handleBgUpload = async (file: File, size: "instagram" | "youtube") => {
+    if (!canManage || currentPageId === null) return;
+    setUploadingBg(true);
+    try {
+      const opts =
+        size === "instagram"
+          ? { backgroundInstagram: file }
+          : { backgroundYoutube: file };
+      const res = await leaderboardDesignsApi.updatePage(design.id, currentPageId, opts);
+      // Splice the updated page into local state so `bgUrl` (which reads from `pages`) refreshes.
+      setPages((prev) => prev.map((p) => (p.id === currentPageId ? res.page : p)));
+      onSaved();
+      toast.success(
+        `Background (${size === "instagram" ? "Instagram" : "YouTube"}) uploaded for this page.`,
+      );
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to upload background.");
+    } finally {
+      setUploadingBg(false);
+    }
+  };
+
+  // ── Apply one background to ALL pages. ──
+  // POSTs multipart FormData to apply-background-to-all with the staged IG and/or YT file(s).
+  // The backend writes that image to every explicit page row and returns the full updated design.
+  // We replace `pages` in one shot so all page background URLs refresh. Clears staged files on
+  // success. At least one file (IG or YT) must be staged before the button enables.
+  const handleApplyBackgroundToAll = async () => {
+    if (!canManage || (!applyAllIgFile && !applyAllYtFile)) return;
+    setApplyingAll(true);
+    try {
+      const fd = new FormData();
+      if (applyAllIgFile) fd.append("background_instagram", applyAllIgFile);
+      if (applyAllYtFile) fd.append("background_youtube", applyAllYtFile);
+      const res = await leaderboardDesignsApi.applyBackgroundToAll(design.id, fd);
+      setPages(res.design.pages ?? []);
+      // Clear staged selections and reset the hidden inputs.
+      setApplyAllIgFile(null);
+      setApplyAllYtFile(null);
+      if (applyAllIgInputRef.current) applyAllIgInputRef.current.value = "";
+      if (applyAllYtInputRef.current) applyAllYtInputRef.current.value = "";
+      onSaved();
+      toast.success("Background applied to all pages.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to apply background to all pages.");
+    } finally {
+      setApplyingAll(false);
+    }
+  };
+
   // ── Field (connected column) helpers ──────────────────────────────────────
 
   // Per-group placed field types (owner 2026-06-15): each column group has its OWN set of placed
@@ -1126,6 +1225,12 @@ export function DesignFieldsEditor({
 
   // ── Font upload / delete ───────────────────────────────────────────────────
   const fontInputRef = useRef<HTMLInputElement>(null);
+  // Hidden file inputs for per-page background upload (one per canvas size).
+  const bgIgInputRef = useRef<HTMLInputElement>(null);
+  const bgYtInputRef = useRef<HTMLInputElement>(null);
+  // Hidden file inputs for the apply-to-all action (IG and YT staged independently).
+  const applyAllIgInputRef = useRef<HTMLInputElement>(null);
+  const applyAllYtInputRef = useRef<HTMLInputElement>(null);
   const [uploadingFont, setUploadingFont] = useState(false);
 
   const handleFontUpload = async (file?: File) => {
@@ -1261,19 +1366,47 @@ export function DesignFieldsEditor({
         {pages.length > 0 && (
           <div className="flex items-center gap-1 overflow-x-auto rounded-md border bg-muted p-1">
             {pages.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setCurrentPageId(p.id)}
-                className={
-                  currentPageId === p.id
-                    ? "flex items-center gap-1 rounded-md border border-primary bg-background px-3 py-1.5 text-xs font-medium text-primary shadow-sm"
-                    : "flex items-center gap-1 rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:bg-background"
-                }
-              >
-                <IconFile className="size-3" />
-                Page {p.page_number}
-              </button>
+              // Each tab = a "switch" button + an optional "delete" button, wrapped in a flex
+              // container so they form one visual unit without nesting <button> inside <button>.
+              <div key={p.id} className="flex items-center">
+                {/* Switch to this page */}
+                <button
+                  type="button"
+                  onClick={() => setCurrentPageId(p.id)}
+                  className={
+                    currentPageId === p.id
+                      ? "flex items-center gap-1 rounded-l-md border border-primary bg-background px-3 py-1.5 text-xs font-medium text-primary shadow-sm"
+                      : "flex items-center gap-1 rounded-l-md px-3 py-1.5 text-xs text-muted-foreground hover:bg-background"
+                  }
+                >
+                  <IconFile className="size-3" />
+                  Page {p.page_number}
+                </button>
+                {/* Delete this page — hidden when only 1 page exists (can't delete the last page).
+                    Disabled while any delete is already in flight. */}
+                {canManage && pages.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePage(p.id)}
+                    disabled={deletingPageId !== null}
+                    className={[
+                      "rounded-r-md border-y border-r px-1.5 py-1.5 text-muted-foreground",
+                      "hover:text-destructive hover:bg-destructive/10 disabled:opacity-50",
+                      currentPageId === p.id
+                        ? "border-primary bg-background shadow-sm"
+                        : "border-transparent",
+                    ].join(" ")}
+                    aria-label={`Delete page ${p.page_number}`}
+                    title={`Delete page ${p.page_number}`}
+                  >
+                    {deletingPageId === p.id ? (
+                      <IconLoader2 className="size-3 animate-spin" />
+                    ) : (
+                      <IconX className="size-3" />
+                    )}
+                  </button>
+                )}
+              </div>
             ))}
             <Button
               type="button"
@@ -1309,6 +1442,179 @@ export function DesignFieldsEditor({
               )}
               Add page
             </Button>
+          </div>
+        )}
+
+        {/* ── Page backgrounds: per-page upload + apply-to-all (owner 2026-06-27) ─────────────
+            Shown only for multi-page designs (pages.length > 0). Two actions in one card:
+              1. "This page" - uploads a bg (IG or YT) to the ACTIVE page via updatePage.
+                  The returned page object is spliced into `pages` so the canvas refreshes instantly.
+              2. "Apply to all" - stage IG/YT files then POST to apply-background-to-all, which
+                  writes that image to every page row. The returned design.pages replaces local state.
+            For design-level (legacy single-page) backgrounds, the LeaderboardDesignsManager handles
+            the upload via the design PATCH; no controls needed here when pages.length === 0. */}
+        {pages.length > 0 && canManage && (
+          <div className="rounded-md border bg-card p-3">
+            <p className="mb-2 text-xs font-medium text-foreground">Page backgrounds</p>
+            <div className="flex flex-wrap items-start gap-4">
+
+              {/* ── Per-page upload: uploads a bg to the currently active page only ── */}
+              <div className="space-y-1">
+                <p className="text-[11px] text-muted-foreground">
+                  This page (page {pages.find((p) => p.id === currentPageId)?.page_number ?? "?"})
+                </p>
+                <div className="flex gap-1.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={uploadingBg}
+                    onClick={() => bgIgInputRef.current?.click()}
+                    className="h-7 text-xs"
+                    title="Upload Instagram background (1080x1350) for this page only"
+                  >
+                    {uploadingBg ? (
+                      <IconLoader2 className="mr-1 size-3 animate-spin" />
+                    ) : (
+                      <IconUpload className="mr-1 size-3" />
+                    )}
+                    Upload IG bg
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={uploadingBg}
+                    onClick={() => bgYtInputRef.current?.click()}
+                    className="h-7 text-xs"
+                    title="Upload YouTube background (1920x1080) for this page only"
+                  >
+                    {uploadingBg ? (
+                      <IconLoader2 className="mr-1 size-3 animate-spin" />
+                    ) : (
+                      <IconUpload className="mr-1 size-3" />
+                    )}
+                    Upload YT bg
+                  </Button>
+                </div>
+                {/* Hidden inputs: per-page IG and YT background upload */}
+                <input
+                  ref={bgIgInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleBgUpload(f, "instagram");
+                    e.target.value = "";
+                  }}
+                />
+                <input
+                  ref={bgYtInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleBgUpload(f, "youtube");
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+
+              {/* Visual divider */}
+              <div className="hidden w-px self-stretch bg-border sm:block" aria-hidden />
+
+              {/* ── Apply-to-all: stage IG + YT files, then broadcast to every page at once ── */}
+              <div className="space-y-1">
+                <p className="text-[11px] text-muted-foreground">Apply to all pages</p>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {/* IG file picker — border turns primary when a file is staged */}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={applyingAll}
+                    onClick={() => applyAllIgInputRef.current?.click()}
+                    className={[
+                      "h-7 text-xs",
+                      applyAllIgFile ? "border-primary text-primary" : "",
+                    ].join(" ")}
+                    title="Select the Instagram background to apply to all pages"
+                  >
+                    <IconUpload className="mr-1 size-3" />
+                    {applyAllIgFile
+                      ? applyAllIgFile.name.slice(0, 12) + "..."
+                      : "IG bg"}
+                  </Button>
+                  {/* YT file picker */}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={applyingAll}
+                    onClick={() => applyAllYtInputRef.current?.click()}
+                    className={[
+                      "h-7 text-xs",
+                      applyAllYtFile ? "border-primary text-primary" : "",
+                    ].join(" ")}
+                    title="Select the YouTube background to apply to all pages"
+                  >
+                    <IconUpload className="mr-1 size-3" />
+                    {applyAllYtFile
+                      ? applyAllYtFile.name.slice(0, 12) + "..."
+                      : "YT bg"}
+                  </Button>
+                  {/* Apply button - enabled only when at least one file is staged */}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={applyingAll || (!applyAllIgFile && !applyAllYtFile)}
+                    onClick={handleApplyBackgroundToAll}
+                    className="h-7 text-xs border-primary/40 text-primary hover:bg-primary/10"
+                    title="Apply staged background(s) to every page of this design"
+                  >
+                    {applyingAll ? (
+                      <IconLoader2 className="mr-1 size-3 animate-spin" />
+                    ) : (
+                      <IconCheck className="mr-1 size-3" />
+                    )}
+                    Apply to all
+                  </Button>
+                  {/* Clear staged file selections */}
+                  {(applyAllIgFile || applyAllYtFile) && !applyingAll && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setApplyAllIgFile(null);
+                        setApplyAllYtFile(null);
+                        if (applyAllIgInputRef.current) applyAllIgInputRef.current.value = "";
+                        if (applyAllYtInputRef.current) applyAllYtInputRef.current.value = "";
+                      }}
+                      className="text-[11px] text-muted-foreground hover:text-foreground"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {/* Hidden inputs: apply-to-all IG and YT (value NOT reset on change - staged until Apply) */}
+                <input
+                  ref={applyAllIgInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => setApplyAllIgFile(e.target.files?.[0] ?? null)}
+                />
+                <input
+                  ref={applyAllYtInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => setApplyAllYtFile(e.target.files?.[0] ?? null)}
+                />
+              </div>
+            </div>
           </div>
         )}
 
