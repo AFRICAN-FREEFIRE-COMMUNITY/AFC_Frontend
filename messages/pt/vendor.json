@@ -1,4 +1,8 @@
 {
+  "actAs": {
+    "vendorBanner": "Substituição por parte do administrador: gestão de {name}",
+    "exit": "Sair"
+  },
   "tour": {
     "sidebar": {
       "title": "A sua navegação pelos fornecedores",

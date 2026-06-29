@@ -63,7 +63,17 @@ import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 import { organizersApi } from "@/lib/organizers";
+// Super-admin god-mode (lib/godmode.ts): the override banner + the helpers that read the
+// act_as_org cookie so a head_admin/super_admin can manage this org's dashboard.
+import { AdminOverrideBanner } from "@/components/admin-override-banner";
+import {
+  getActAsOrg,
+  getActAsOrgName,
+  exitGodMode,
+  isGodModeAdmin,
+} from "@/lib/godmode";
 import {
   OrganizerProvider,
   OrgMembership,
@@ -247,12 +257,20 @@ function OrganizerSidebar() {
 // if the FRESH roles still lack 'organizer'.
 
 function OrganizerGuard({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading, isOrganizer, refreshUser } = useAuth();
+  const { isAuthenticated, loading, isOrganizer, refreshUser, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   // One-shot recheck state machine: idle → checking (profile refetch in flight)
   // → done (refetch resolved; cached verdict is now fresh and final).
   const [recheck, setRecheck] = useState<"idle" | "checking" | "done">("idle");
+
+  // Super-admin god-mode: a head_admin/super_admin managing an organizer (act_as_org cookie)
+  // is allowed into this shell even without the 'organizer' role. The cookie is honored
+  // backend-side ONLY for a super admin (afc_auth/act_as.py), so this is not a privilege
+  // grant - it just lets the shell render for an admin who legitimately stepped in.
+  const godModeOrg = isGodModeAdmin(user) && !!getActAsOrg();
+  // Effective "may use the organizer shell" verdict.
+  const mayEnter = isOrganizer || godModeOrg;
 
   useEffect(() => {
     if (loading) return;
@@ -262,7 +280,7 @@ function OrganizerGuard({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!isOrganizer) {
+    if (!mayEnter) {
       if (recheck === "idle") {
         // Roles might be stale (just granted) - refetch once before judging.
         setRecheck("checking");
@@ -270,16 +288,16 @@ function OrganizerGuard({ children }: { children: ReactNode }) {
         return;
       }
       if (recheck === "done") {
-        // Fresh roles still lack 'organizer' - genuinely unauthorized.
+        // Fresh roles still lack 'organizer' (and not a god-mode admin) - unauthorized.
         router.replace("/unauthorized");
       }
       // recheck === "checking": wait for the refetch; the effect re-runs when it
       // lands (isOrganizer flips or recheck becomes "done").
     }
-  }, [isAuthenticated, loading, isOrganizer, recheck, refreshUser, pathname, router]);
+  }, [isAuthenticated, loading, mayEnter, recheck, refreshUser, pathname, router]);
 
   if (loading) return <FullLoader text="Loading" />;
-  if (!isAuthenticated || !isOrganizer)
+  if (!isAuthenticated || !mayEnter)
     return <FullLoader text="Verifying Permissions..." />;
 
   return <>{children}</>;
@@ -290,6 +308,16 @@ function OrganizerGuard({ children }: { children: ReactNode }) {
 function OrganizerShell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const t = useTranslations("organizer");
+
+  // Super-admin god-mode: are we managing this org as an admin override? (cookie + role).
+  const actAsOrgSlug = getActAsOrg();
+  const isOverride = isGodModeAdmin(user) && !!actAsOrgSlug;
+  // Leave god-mode and return to the admin organizations list.
+  const handleExitOverride = () => {
+    exitGodMode();
+    router.push("/a/organizations");
+  };
 
   // The full membership list from getMyOrganizations() (org + role + permissions).
   const [memberships, setMemberships] = useState<OrgMembership[]>([]);
@@ -305,20 +333,30 @@ function OrganizerShell({ children }: { children: ReactNode }) {
         setMemberships(results);
 
         if (results.length > 0) {
-          // Prefer a previously-remembered slug if it's still in the list,
-          // otherwise fall back to the first org.
-          const remembered =
-            typeof window !== "undefined"
-              ? localStorage.getItem(SELECTED_ORG_KEY)
-              : null;
-          const validRemembered = results.find(
-            (m) => m.organization.slug === remembered,
-          );
-          setSelectedSlug(
-            validRemembered
-              ? validRemembered.organization.slug
-              : results[0].organization.slug,
-          );
+          // Super-admin god-mode: if the admin stepped into a specific org (act_as_org),
+          // pin to it (the backend appended it to results as an admin_override membership).
+          const actOrg = getActAsOrg();
+          const actMembership = actOrg
+            ? results.find((m) => m.organization.slug === actOrg)
+            : null;
+          if (actMembership) {
+            setSelectedSlug(actMembership.organization.slug);
+          } else {
+            // Prefer a previously-remembered slug if it's still in the list,
+            // otherwise fall back to the first org.
+            const remembered =
+              typeof window !== "undefined"
+                ? localStorage.getItem(SELECTED_ORG_KEY)
+                : null;
+            const validRemembered = results.find(
+              (m) => m.organization.slug === remembered,
+            );
+            setSelectedSlug(
+              validRemembered
+                ? validRemembered.organization.slug
+                : results[0].organization.slug,
+            );
+          }
         }
       } catch (err: any) {
         toast.error(
@@ -356,6 +394,21 @@ function OrganizerShell({ children }: { children: ReactNode }) {
       <OrganizerSidebar />
 
       <SidebarInset>
+        {/* Super-admin god-mode: a prominent banner while an admin is managing this org,
+            with one-click Exit back to the admin area. */}
+        {isOverride && (
+          <AdminOverrideBanner
+            label={t("actAs.orgBanner", {
+              name:
+                getActAsOrgName() ||
+                selectedMembership?.organization.name ||
+                actAsOrgSlug ||
+                "",
+            })}
+            exitLabel={t("actAs.exit")}
+            onExit={handleExitOverride}
+          />
+        )}
         {/* Header - same shell as the sponsor portal, with logout, now fronted
             by the SidebarTrigger hamburger that toggles OrganizerSidebar. */}
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
@@ -456,7 +509,11 @@ function OrganizerShell({ children }: { children: ReactNode }) {
                   value={{
                     slug: selectedMembership.organization.slug,
                     membership: selectedMembership,
-                    isOwner: selectedMembership.role === "owner",
+                    // A god-mode admin_override membership has full (all-True) permissions,
+                    // so it acts as the owner for UI gating purposes.
+                    isOwner:
+                      selectedMembership.role === "owner" ||
+                      selectedMembership.role === "admin_override",
                   }}
                 >
                   {children}

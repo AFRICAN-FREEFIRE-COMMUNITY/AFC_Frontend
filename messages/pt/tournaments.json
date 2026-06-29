@@ -464,12 +464,24 @@
       "letterAvatars": {
         "title": "A tua equipa precisa de mais avatares com letras",
         "soloTitle": "Precisas de mais avatares com letras",
-        "teamDescription": "Este evento requer avatares com letras d{required}, mas a vossa equipa tem {available}. Cada jogador que possua um avatar com letras do Free Fire adiciona o seu ao conjunto da equipa. Peçam aos membros para adicionarem as letras que possuem ou adicionem manualmente as letras adicionais no editor da equipa.",
+        "teamDescription": "Este evento exige que os jogadores que alinhares para o mesmo tenham avatares com as letras «{required}», mas a formação que enviastes abrange apenas «{available}». Apenas os jogadores alinhados contam: os que estão no banco ou os membros da equipa técnica não contam. Alinha jogadores que possuam as letras em falta, pede a esses membros que adicionem as letras que possuem ou adiciona-as manualmente no editor de equipas.",
         "soloDescription": "Este evento requer avatares com as letras d{required}, mas tu tens {available}. Adiciona as letras d que possuis ao teu perfil.",
         "teamAction": "Gerir as cartas da equipa",
         "soloAction": "Adicionar avatares com letras"
       }
     }
+  },
+  "yourMatch": {
+    "title": "O teu par",
+    "roomDetails": "ID da sala e palavra-passe",
+    "match": "Jogo{n}",
+    "roomId": "N.º do quarto",
+    "roomName": "Nome da sala",
+    "roomPassword": "Palavra-passe",
+    "roomSoon": "O ID da sala e a palavra-passe aparecerão aqui assim que o organizador os publicar.",
+    "roomPending": "O ID da sala e a palavra-passe serão publicados pouco antes da hora do vosso jogo.",
+    "copied": "{label} copiado",
+    "copyTitle": "Clique para copiar"
   },
   "structure": {
     "noStages": "Nenhuma etapa configurada para este torneio ainda.",
@@ -478,6 +490,10 @@
     "playerWord": "Jogador",
     "teamWord": "Equipe",
     "tournamentFlow": "Fluxo do Torneio",
+    "tapHint": "Toque num palco para ver os respetivos grupos, horário e IDs das salas abaixo.",
+    "viewGroups": "Ver grupos",
+    "viewingGroups": "Visualizar grupos",
+    "yourGroup": "O vosso grupo",
     "stage": "Etapa {number}",
     "championCrowned": "Campeão coroado",
     "topAdvance": "Top {count}",

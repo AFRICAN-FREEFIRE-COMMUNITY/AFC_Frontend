@@ -8,6 +8,7 @@
   "letterAvatars": {
     "label": "Avatars des équipes",
     "description": "Les avatars « lettre » de Free Fire que votre équipe peut aligner. Les avatars « lettre » propres à chaque membre sont ajoutés automatiquement. Ajoutez ci-dessous les lettres supplémentaires dont dispose votre équipe.",
+    "fieldedNote": "Seuls les joueurs que vous alignez lors d'une compétition comptent pour l'exigence de lettres de cette compétition. Les joueurs sur le banc ou les membres du staff ne sont pas pris en compte.",
     "availableTitle": "Avatars de lettres",
     "availableCount": "Le nom de l'équipe est «{count} » et comporte 26 lettres.",
     "fromMembers": "De la part des membres",

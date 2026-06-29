@@ -5,6 +5,7 @@
   "statsVisibility.saveFailed": "Failed to update team stats visibility.",
   "letterAvatars.label": "Team letter avatars",
   "letterAvatars.description": "The Free Fire letter avatars your team can field. Each member's own letter avatars are added automatically. Add any extra letters your team owns below.",
+  "letterAvatars.fieldedNote": "Only the players you field for an event count toward that event's letter requirement. Benched or staff members do not.",
   "letterAvatars.availableTitle": "Letter avatars",
   "letterAvatars.availableCount": "Team has {count} of 26 letters",
   "letterAvatars.fromMembers": "From members",

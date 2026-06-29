@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Pagination,
@@ -54,6 +54,9 @@ export interface OrderItem {
   quantity: number;
   unit_price: string;
   line_total: string;
+  // Product thumbnail (added by backend get_my_orders 2026-06-29) so the order row shows
+  // the picture of what was bought, not just the name. Null for products with no image.
+  product_image: string | null;
 }
 
 interface Order {
@@ -118,6 +121,25 @@ export default function OrdersClient() {
     }
   };
 
+  // A small product thumbnail for an order item. Falls back to a bag glyph when the product
+  // has no image (product_image is null). Plain <img> (not next/image) to avoid remote-domain
+  // config for backend-served media, matching the lightweight thumbnail use here.
+  const ItemThumb = ({ item, size = "h-9 w-9" }: { item: OrderItem; size?: string }) =>
+    item.product_image ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={item.product_image}
+        alt={item.product_name}
+        className={`${size} shrink-0 rounded-md border object-cover`}
+      />
+    ) : (
+      <div
+        className={`${size} shrink-0 flex items-center justify-center rounded-md border bg-muted`}
+      >
+        <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+      </div>
+    );
+
   const renderItemsSummary = (items: OrderItem[]) => {
     if (items.length === 0)
       return (
@@ -129,12 +151,21 @@ export default function OrdersClient() {
 
     return (
       <div className="flex items-center gap-2">
-        <span className="truncate max-w-[150px]">
-          {t("orders.itemSummary", {
-            name: firstItem.product_name,
-            quantity: firstItem.quantity,
-          })}
-        </span>
+        {/* picture + name + variant/qty of the first item (picked up from get_my_orders) */}
+        <ItemThumb item={firstItem} />
+        <div className="min-w-0">
+          <p className="truncate max-w-[180px] font-medium">
+            {firstItem.product_name}
+          </p>
+          <p className="truncate max-w-[180px] text-xs text-muted-foreground">
+            {firstItem.variant_title
+              ? t("orders.itemVariantQty", {
+                  variant: firstItem.variant_title,
+                  quantity: firstItem.quantity,
+                })
+              : t("orders.itemQty", { quantity: firstItem.quantity })}
+          </p>
+        </div>
 
         {items.length > 1 && (
           <TooltipProvider>
@@ -151,14 +182,18 @@ export default function OrdersClient() {
                 <p className="text-xs font-semibold text-primary mb-2 border-b pb-1">
                   {t("orders.additionalItems")}
                 </p>
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                   {remainingItems.map((item, idx) => (
                     <li
                       key={idx}
-                      className="text-xs text-muted-foreground flex justify-between gap-4"
+                      className="text-xs text-muted-foreground flex items-center justify-between gap-4"
                     >
-                      <span>
-                        {item.product_name} ({item.variant_title})
+                      <span className="flex items-center gap-2">
+                        <ItemThumb item={item} size="h-7 w-7" />
+                        <span>
+                          {item.product_name}
+                          {item.variant_title ? ` (${item.variant_title})` : ""}
+                        </span>
                       </span>
                       <span className="font-medium text-foreground text-right">
                         x{item.quantity}
@@ -173,6 +208,19 @@ export default function OrdersClient() {
       </div>
     );
   };
+
+  // Total spent across PAID/COMPLETED orders (owner request 2026-06-29). Computed on the
+  // full orders array (the endpoint returns every order; the table paginates client-side),
+  // so the figure reflects all paid orders, not just the current page.
+  const { totalSpent, paidCount } = useMemo(() => {
+    const paid = orders.filter((o) =>
+      ["paid", "completed"].includes(o.status.toLowerCase()),
+    );
+    return {
+      totalSpent: paid.reduce((sum, o) => sum + Number(o.total || 0), 0),
+      paidCount: paid.length,
+    };
+  }, [orders]);
 
   const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
   const paginatedOrders = orders.slice(
@@ -196,6 +244,21 @@ export default function OrdersClient() {
         title={t("orders.pageTitle")}
         description={t("orders.pageDescription")}
       />
+
+      {/* Total spent across paid orders — a quick at-a-glance figure above the history. */}
+      {paidCount > 0 && (
+        <div className="inline-flex flex-col rounded-md border bg-card px-4 py-3 shadow-sm">
+          <span className="text-xs font-medium uppercase text-muted-foreground">
+            {t("orders.totalSpent")}
+          </span>
+          <span className="text-2xl font-bold text-primary">
+            ₦{formatMoneyInput(totalSpent)}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {t("orders.acrossPaidOrders", { count: paidCount })}
+          </span>
+        </div>
+      )}
 
       {orders.length === 0 ? (
         <Card>

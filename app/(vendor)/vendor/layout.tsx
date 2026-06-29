@@ -62,6 +62,15 @@ import {
 import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { vendorApi, VendorOrder } from "@/lib/vendor";
+import { useTranslations } from "next-intl";
+// Super-admin god-mode (lib/godmode.ts): override banner + act_as_vendor cookie readers.
+import { AdminOverrideBanner } from "@/components/admin-override-banner";
+import {
+  getActAsVendor,
+  getActAsVendorName,
+  exitGodMode,
+  isGodModeAdmin,
+} from "@/lib/godmode";
 import { VendorProvider } from "./_components/VendorContext";
 // Guided "Take a tour" launcher for the vendor portal. Pathname-aware: it shows the
 // "Take a tour" button (and handles first-visit auto-show) only on vendor pages that
@@ -192,6 +201,18 @@ function VendorSidebar() {
 function VendorShell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const t = useTranslations("vendor");
+
+  // Super-admin god-mode: managing this vendor as an admin override. The X-Act-As-Vendor
+  // header (set by the AuthContext interceptor from the act_as_vendor cookie) already makes
+  // the my-orders gate above return 200 for a super admin, so the shell renders normally;
+  // this just adds the override banner + a one-click exit. See lib/godmode.ts.
+  const actAsVendorId = getActAsVendor();
+  const isOverride = isGodModeAdmin(user) && !!actAsVendorId;
+  const handleExitOverride = () => {
+    exitGodMode();
+    router.push("/a/shop/vendors");
+  };
 
   // gateState drives what the content area shows:
   //   "loading"   → still calling my-orders.
@@ -234,6 +255,17 @@ function VendorShell({ children }: { children: ReactNode }) {
       <VendorSidebar />
 
       <SidebarInset>
+        {/* Super-admin god-mode: a prominent banner while an admin is managing this vendor,
+            with one-click Exit back to the admin vendors table. */}
+        {isOverride && (
+          <AdminOverrideBanner
+            label={t("actAs.vendorBanner", {
+              name: getActAsVendorName() || `#${actAsVendorId}`,
+            })}
+            exitLabel={t("actAs.exit")}
+            onExit={handleExitOverride}
+          />
+        )}
         {/* Header — same shell as the organizer portal, fronted by the
             SidebarTrigger hamburger that toggles VendorSidebar. */}
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">

@@ -464,12 +464,24 @@
       "letterAvatars": {
         "title": "Votre équipe a besoin de plus d'avatars sous forme de lettres",
         "soloTitle": "Il te faut davantage d'avatars sous forme de lettres",
-        "teamDescription": "Cet événement nécessite des avatars « {required} », mais votre équipe dispose d’{available}. Chaque joueur possédant un avatar « Free Fire » ajoute le sien au stock de l’équipe. Demandez aux membres d’ajouter les lettres qu’ils possèdent, ou ajoutez-en manuellement des supplémentaires dans l’éditeur d’équipe.",
+        "teamDescription": "Cet événement nécessite que les avatars des joueurs que vous alignez comportent les lettres «{required} », mais la composition que vous avez soumise ne couvre que les lettres «{available} ». Seuls les joueurs alignés comptent : les remplaçants et les membres du staff ne sont pas pris en compte. Alignez des joueurs qui possèdent les lettres manquantes, demandez à ces membres d’ajouter les lettres qu’ils possèdent, ou ajoutez-les manuellement dans l’éditeur d’équipe.",
         "soloDescription": "Cet événement nécessite des avatars représentant les lettres « {required} », mais vous disposez d’{available}. Ajoutez les lettres « Free Fire » que vous possédez à votre profil.",
         "teamAction": "Gérer les lettres de l'équipe",
         "soloAction": "Ajouter des avatars sous forme de lettres"
       }
     }
+  },
+  "yourMatch": {
+    "title": "Votre match",
+    "roomDetails": "Identifiant de la salle et mot de passe",
+    "match": "{n} de match",
+    "roomId": "Numéro de salle",
+    "roomName": "Nom de la salle",
+    "roomPassword": "Mot de passe",
+    "roomSoon": "L'identifiant et le mot de passe de votre salle s'afficheront ici dès que l'organisateur les aura publiés.",
+    "roomPending": "L'identifiant de la salle et le mot de passe seront communiqués à l'approche de l'heure de votre match.",
+    "copied": "{label} copié",
+    "copyTitle": "Cliquez pour copier"
   },
   "structure": {
     "noStages": "Aucune étape configurée pour ce tournoi pour le moment.",
@@ -478,6 +490,10 @@
     "playerWord": "Joueur",
     "teamWord": "Équipe",
     "tournamentFlow": "Déroulement du tournoi",
+    "tapHint": "Appuyez sur une étape pour afficher ses groupes, son planning et les identifiants des salles correspondants ci-dessous.",
+    "viewGroups": "Afficher les groupes",
+    "viewingGroups": "Affichage des groupes",
+    "yourGroup": "Votre groupe",
     "stage": "Étape {number}",
     "championCrowned": "Champion couronné",
     "topAdvance": "Top {count}",

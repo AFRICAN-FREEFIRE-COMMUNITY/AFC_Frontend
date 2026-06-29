@@ -36,6 +36,9 @@ import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
 import { TournamentStructure } from "./TournamentStructure";
+// "Your match" callout (owner 2026-06-29): a top-of-page card for registered participants that
+// surfaces their play time + room ID/password without digging into the Structure tab.
+import { YourMatchCallout } from "./YourMatchCallout";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Dialog,
@@ -5183,6 +5186,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 sponsorName={eventDetails.sponsor_name}
                 sponsorRequirementDescription={eventDetails.sponsor_requirement_description}
                 sponsorFieldLabel={eventDetails.sponsor_field_label}
+              />
+
+              {/* "Your match" callout (owner 2026-06-29): for registered participants, surface their
+                  play time + room ID/password at the TOP so they don't have to open Structure and tap
+                  a stage to find them. Renders nothing for anonymous / non-members / no-group viewers. */}
+              <YourMatchCallout
+                stages={eventDetails.stages as any}
+                isRegistered={eventDetails.is_registered}
+                timezone={eventDetails.timezone}
               />
 
               {/* Results ⇄ Structure toggle. "Structure" renders the new graphical

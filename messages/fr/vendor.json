@@ -1,4 +1,8 @@
 {
+  "actAs": {
+    "vendorBanner": "Règle de l'administrateur : gestion de {name}",
+    "exit": "Sortie"
+  },
   "tour": {
     "sidebar": {
       "title": "Navigation parmi vos fournisseurs",

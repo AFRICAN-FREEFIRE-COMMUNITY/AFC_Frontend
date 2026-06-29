@@ -1,4 +1,8 @@
 {
+  "actAs": {
+    "orgBanner": "Règle de l'administrateur : gestion de {name}",
+    "exit": "Sortie"
+  },
   "tour": {
     "button": "Faites une visite guidée",
     "sidebar": {

@@ -1,4 +1,6 @@
 {
   "registeredTeams.searchTeamsPlaceholder": "Search teams...",
-  "registeredTeams.searchPlayersPlaceholder": "Search players..."
+  "registeredTeams.searchPlayersPlaceholder": "Search players...",
+  "registeredTeams.noTeamsMatch": "No teams match \"{query}\"",
+  "registeredTeams.noPlayersMatch": "No players match \"{query}\""
 }

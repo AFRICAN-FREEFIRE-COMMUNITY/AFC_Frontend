@@ -2,6 +2,9 @@
 import { env } from "@/lib/env";
 import axios from "axios";
 import Cookies from "js-cookie";
+// Authoritative in-memory token mirror: authHeaders() (lib/http) prefers this over the cookie
+// so a stale duplicate auth_token cookie can never make API calls 401. See lib/authToken.ts.
+import { setAuthToken } from "@/lib/authToken";
 import {
   createContext,
   useContext,
@@ -138,6 +141,41 @@ const COOKIE_OPTIONS = {
   path: "/",
 };
 
+// Remove EVERY auth_token cookie, including a stale DUPLICATE written at a deeper path.
+// BUG FIX (2026-06-29): a second auth_token cookie at a more specific path (e.g. "/a") shadows
+// the canonical path-"/" cookie in Cookies.get, so authHeaders() sends a dead token and every
+// API call 401s ("logged in but everything fails / random logout"). Cookies.remove only targets
+// the path you give it, so we sweep path "/" AND every prefix of the current URL, then set the
+// canonical cookie fresh. Called on login + logout so duplicates can never persist.
+// Top-level route-group prefixes a stale legacy auth_token cookie could have been written at
+// (older code that set the cookie without an explicit path stored it at the current page path).
+// We can't enumerate cookie paths from JS, so we sweep these known app prefixes too, not just
+// the current URL — otherwise logging in from /login would leave a dupe parked at e.g. /a, which
+// re-shadows the canonical cookie the moment you enter the admin area.
+const _AUTH_COOKIE_PATHS = [
+  "/a", "/organizer", "/vendor", "/sponsor", "/shop", "/home",
+  "/teams", "/news", "/tournaments", "/profile", "/orders",
+];
+
+function clearAuthCookieEverywhere() {
+  try {
+    Cookies.remove(COOKIE_NAME, { path: "/" });
+    Cookies.remove(COOKIE_NAME); // js-cookie default path (the current page path)
+    // Every prefix of the current URL...
+    const pathname =
+      typeof window !== "undefined" ? window.location.pathname : "/";
+    let prefix = "";
+    for (const seg of pathname.split("/").filter(Boolean)) {
+      prefix += "/" + seg;
+      Cookies.remove(COOKIE_NAME, { path: prefix });
+    }
+    // ...plus the known top-level app prefixes (covers a legacy dupe parked off the current page).
+    for (const p of _AUTH_COOKIE_PATHS) Cookies.remove(COOKIE_NAME, { path: p });
+  } catch {
+    // never break auth flow over a cookie access error
+  }
+}
+
 // Activity slide: on activity we re-write the auth_token cookie so its 7d storage window keeps
 // refreshing for as long as the user keeps using the app (the actual session timeout is the
 // backend's sliding 3h-idle window — see COOKIE_OPTIONS). Throttled to once per 5 min so we are
@@ -177,6 +215,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedToken = Cookies.get(COOKIE_NAME);
     if (storedToken) {
       setToken(storedToken);
+      setAuthToken(storedToken); // mirror into the authoritative in-memory token
       fetchUser(storedToken);
     } else {
       setLoading(false);
@@ -192,11 +231,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // backend (SessionToken slides on every authed request); once idle past 3h the backend
         // token expires and the next request 401s -> clean logout via the handler below.
         try {
-          const t = Cookies.get(COOKIE_NAME);
+          // Slide the cookie's 7d storage window on activity. Write the AUTHORITATIVE in-scope
+          // `token` (the validated session token) at the canonical path, NOT a re-read of the
+          // cookie — re-reading could pick up a stale duplicate and re-persist the wrong token.
           const now = Date.now();
-          if (t && now - lastCookieBumpAt > COOKIE_BUMP_THROTTLE_MS) {
+          if (token && now - lastCookieBumpAt > COOKIE_BUMP_THROTTLE_MS) {
             lastCookieBumpAt = now;
-            Cookies.set(COOKIE_NAME, t, COOKIE_OPTIONS);
+            Cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
           }
         } catch {
           // cookie access can throw in rare sandboxed contexts; never break a response over it
@@ -229,7 +270,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Stash the current page first so surfaces WITHOUT the in-place modal
             // (admin/organizer) still return here after re-login.
             stashPostLoginRedirect();
-            Cookies.remove(COOKIE_NAME, { path: "/" });
+            clearAuthCookieEverywhere();
+            setAuthToken(null);
             setUser(null);
             setToken(null);
             toast.error("Your session expired. Please log in to continue.");
@@ -272,10 +314,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const localeInterceptor = axios.interceptors.request.use((config) => {
       try {
         const loc = Cookies.get("NEXT_LOCALE");
+        // Super-admin "act-as" (god-mode): when a head_admin/super_admin is managing an
+        // organizer or vendor dashboard, these cookies carry the target. We forward them as
+        // request headers on EVERY call; the backend (afc_auth/act_as.py) honors them ONLY
+        // for a super admin, so a normal user setting these cookies gains nothing. See
+        // lib/godmode.ts.
+        const actOrg = Cookies.get("act_as_org");
+        const actVendor = Cookies.get("act_as_vendor");
+        const h: any = config.headers;
+        const useSetter = h && typeof h.set === "function";
         if (loc) {
-          const h: any = config.headers;
-          if (h && typeof h.set === "function") h.set("Accept-Language", loc);
+          if (useSetter) h.set("Accept-Language", loc);
           else config.headers = { ...(config.headers as any), "Accept-Language": loc };
+        }
+        if (actOrg) {
+          if (useSetter) h.set("X-Act-As-Org", actOrg);
+          else config.headers = { ...(config.headers as any), "X-Act-As-Org": actOrg };
+        }
+        if (actVendor) {
+          if (useSetter) h.set("X-Act-As-Vendor", actVendor);
+          else config.headers = { ...(config.headers as any), "X-Act-As-Vendor": actVendor };
         }
       } catch {
         // never block a request over cookie access
@@ -393,14 +451,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (token: string): Promise<User> => {
     // Store token in cookie instead of localStorage
     localStorage.setItem("authToken", token);
+    // Clear any stale duplicate auth_token cookie FIRST so the freshly-set canonical cookie
+    // is the only one (a leftover deeper-path cookie would otherwise shadow it and 401 every
+    // call). Then set the canonical path-"/" cookie + mirror into the in-memory token.
+    clearAuthCookieEverywhere();
     Cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
     setToken(token);
+    setAuthToken(token);
     return fetchUser(token);
   };
 
   const logout = useCallback(() => {
-    // Remove cookie instead of localStorage
-    Cookies.remove(COOKIE_NAME, { path: "/" });
+    // Remove the cookie (every copy, incl. stale duplicates) + clear the in-memory token.
+    clearAuthCookieEverywhere();
+    setAuthToken(null);
     setUser(null);
     setToken(null);
   }, []);
@@ -427,7 +491,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signalSessionExpired = useCallback(() => {
     // Stash the current page so re-login returns here (see stashPostLoginRedirect).
     stashPostLoginRedirect();
-    Cookies.remove(COOKIE_NAME, { path: "/" });
+    clearAuthCookieEverywhere();
+    setAuthToken(null);
     setUser(null);
     setToken(null);
     window.dispatchEvent(new CustomEvent("auth:session-expired"));

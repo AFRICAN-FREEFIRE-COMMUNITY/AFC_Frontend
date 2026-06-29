@@ -1,4 +1,8 @@
 {
+  "actAs": {
+    "orgBanner": "Substituição por parte do administrador: gestão de {name}",
+    "exit": "Sair"
+  },
   "tour": {
     "button": "Faça uma visita guiada",
     "sidebar": {

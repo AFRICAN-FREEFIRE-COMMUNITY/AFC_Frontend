@@ -1,4 +1,8 @@
 {
+  "actAs": {
+    "vendorBanner": "Admin override: managing {name}",
+    "exit": "Exit"
+  },
   "tour": {
     "sidebar": {
       "title": "Your vendor navigation",

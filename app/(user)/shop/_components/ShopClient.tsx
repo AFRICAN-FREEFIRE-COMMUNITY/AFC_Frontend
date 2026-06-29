@@ -19,11 +19,27 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Category picker is a compact dropdown (not pill tabs) so the storefront stays tidy no
+// matter how many categories the admin adds (owner request 2026-06-29).
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, ShoppingCart, Loader2, Package, Truck } from "lucide-react";
+import {
+  Search,
+  ShoppingCart,
+  Loader2,
+  Package,
+  Truck,
+  Heart,
+} from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
+import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { matchesSearch } from "@/lib/search";
 import { ITEMS_PER_PAGE } from "@/constants";
@@ -32,6 +48,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { IconDiamond } from "@tabler/icons-react";
 import { formatMoneyInput } from "@/lib/utils";
 import { ComingSoon } from "@/components/ComingSoon";
+// Wishlist ("save for later") data layer: seed the saved markers on mount and toggle
+// a product in/out of the signed-in user's saved list from each card's heart.
+import { getMyWishlistIds, toggleWishlist } from "@/lib/wishlist";
 import {
   ProductMediaGallery,
   ProductMediaItem,
@@ -99,6 +118,9 @@ export default function ShopClient() {
   // uncategorised products) on first load.
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
+  // Wishlist: the set of product ids this user has saved, so each card's heart renders
+  // filled (saved) vs outline (not). Seeded from GET /shop/wishlist/ids/ when signed in.
+  const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
 
   // 2. Fetch products + live categories in parallel.
   useEffect(() => {
@@ -158,11 +180,72 @@ export default function ShopClient() {
     // (works for anonymous and logged-in users alike).
   }, []);
 
+  // 2b. Seed the "already saved" set so each card's heart shows the right state on load.
+  // Wishlist is per-user, so only fetch when signed in; anonymous visitors keep an empty
+  // set (their heart click nudges them to log in). Non-fatal on failure: the storefront
+  // still works without the saved markers.
+  useEffect(() => {
+    if (!token) {
+      setSavedIds(new Set());
+      return;
+    }
+    let cancelled = false;
+    getMyWishlistIds(token)
+      .then((res) => {
+        if (!cancelled) setSavedIds(new Set(res.product_ids));
+      })
+      .catch((err) => {
+        console.error("Failed to load wishlist ids", err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  // Toggle a product in/out of the saved list. Optimistic: flip the local set immediately
+  // so the heart responds instantly, call the backend (toggleWishlist), and revert + toast
+  // on failure. Anonymous users have no token, so we nudge them to log in instead of calling
+  // the API. The card's heart button stops propagation so this never triggers the Buy link.
+  const handleToggleSave = async (productId: number) => {
+    if (!token) {
+      toast.info(t("wishlist.loginToSave"));
+      return;
+    }
+    const wasSaved = savedIds.has(productId);
+    setSavedIds((prev) => {
+      const next = new Set(prev);
+      if (wasSaved) next.delete(productId);
+      else next.add(productId);
+      return next;
+    });
+    try {
+      const res = await toggleWishlist(productId, token);
+      toast.success(
+        res.saved ? t("wishlist.savedToast") : t("wishlist.removedToast"),
+      );
+    } catch (err) {
+      // revert the optimistic flip on failure
+      setSavedIds((prev) => {
+        const next = new Set(prev);
+        if (wasSaved) next.add(productId);
+        else next.delete(productId);
+        return next;
+      });
+      toast.error(t("wishlist.errorToast"));
+    }
+  };
+
   // Helper: the active category's metadata (label + whether it ships).
   const activeCategoryMeta = useMemo(
     () => categories.find((c) => c.value === activeCategory),
     [categories, activeCategory],
   );
+
+  // Localized display label for a category option: the synthetic "all" option is
+  // translatable (it is not a backend category), every real category keeps its backend
+  // name. Used by both the dropdown items and the search placeholder.
+  const labelFor = (c: CategoryTab) =>
+    c.value === "all" ? t("list.allCategories") : c.label;
 
   const filteredProducts = useMemo(() => {
     // "all" shows every active product regardless of category (so uncategorised
@@ -224,31 +307,42 @@ export default function ShopClient() {
       {/* <ComingSoon /> */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-2 gap-4">
         <PageHeader title={t("list.pageTitle")} back />
-        <Button asChild variant="outline">
-          <Link href="/shop/cart">
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            {t("list.cart")}
-          </Link>
-        </Button>
+        {/* header actions: Saved Items (the wishlist /shop/saved page) sits next to Cart */}
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/shop/saved">
+              <Heart className="mr-2 h-4 w-4" />
+              {t("wishlist.pageTitle")}
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/shop/cart">
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              {t("list.cart")}
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      <Tabs
-        value={activeCategory}
-        onValueChange={setActiveCategory}
-        className="mb-4"
-      >
-        <TabsList className="w-full justify-start overflow-x-auto">
-          {categories.map((category) => (
-            <TabsTrigger
-              key={category.value}
-              value={category.value}
-              className="flex-shrink-0"
-            >
-              {category.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      {/* Category dropdown (replaces the old pill tab bar): one compact picker that scales
+          to any number of categories instead of overflowing across the page. */}
+      <div className="mb-4 flex items-center gap-2">
+        <span className="shrink-0 text-sm font-medium text-muted-foreground">
+          {t("list.categoryLabel")}
+        </span>
+        <Select value={activeCategory} onValueChange={setActiveCategory}>
+          <SelectTrigger className="w-full max-w-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category.value} value={category.value}>
+                {labelFor(category)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -257,9 +351,9 @@ export default function ShopClient() {
           placeholder={t("list.searchPlaceholder", {
             // Category portion: live category labels come from the backend (not
             // translatable here); the generic "products" fallback is localized.
-            category:
-              activeCategoryMeta?.label.toLowerCase() ||
-              t("list.searchDefaultCategory"),
+            category: activeCategoryMeta
+              ? labelFor(activeCategoryMeta).toLowerCase()
+              : t("list.searchDefaultCategory"),
           })}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -318,6 +412,32 @@ export default function ShopClient() {
                       </Badge>
                     </div>
                   )}
+                  {/* save (wishlist) toggle, top-RIGHT to mirror the category badge top-left.
+                      Rendered last so it stays clickable above the out-of-stock overlay.
+                      stopPropagation keeps the heart from triggering the card's Buy link;
+                      a filled green heart = saved, outline = not saved. */}
+                  <button
+                    type="button"
+                    aria-label={
+                      savedIds.has(product.id)
+                        ? t("wishlist.saved")
+                        : t("wishlist.save")
+                    }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleToggleSave(product.id);
+                    }}
+                    className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-background/70 backdrop-blur-sm text-foreground transition-colors hover:bg-background/90"
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${
+                        savedIds.has(product.id)
+                          ? "fill-primary text-primary"
+                          : ""
+                      }`}
+                    />
+                  </button>
                 </div>
                 <CardContent className="p-4">
                   <CardTitle className="mb-1">{product.name}</CardTitle>

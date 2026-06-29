@@ -8,10 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Minus, Plus, Loader2, AlertCircle, Truck, Zap } from "lucide-react";
+import {
+  Minus,
+  Plus,
+  Loader2,
+  AlertCircle,
+  Truck,
+  Zap,
+  Heart,
+} from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
+// Wishlist ("save for later") data layer: read this product's saved state on mount and
+// toggle it from the Save / Saved button next to Add to Cart.
+import { getMyWishlistIds, toggleWishlist } from "@/lib/wishlist";
 import { useCart } from "@/contexts/CartContext";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,6 +84,10 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  // Wishlist: whether THIS product is in the signed-in user's saved list (drives the
+  // Save / Saved button), plus an in-flight flag to disable it during a toggle.
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // ... existing state
   const [couponCode, setCouponCode] = useState("");
@@ -156,6 +171,27 @@ export default function ProductDetailPage() {
     if (params.id) fetchDetails();
   }, [params.id]);
 
+  // Seed the saved state for this product so the Save / Saved button renders correctly on
+  // mount. Wishlist is per-user, so only check when signed in (anonymous users see "Save",
+  // and clicking nudges them to log in). Non-fatal on failure.
+  useEffect(() => {
+    if (!token || !params.id) {
+      setIsSaved(false);
+      return;
+    }
+    let cancelled = false;
+    getMyWishlistIds(token)
+      .then((res) => {
+        if (!cancelled) setIsSaved(res.product_ids.includes(Number(params.id)));
+      })
+      .catch((err) => {
+        console.error("Failed to load wishlist state", err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, params.id]);
+
   const handleAddToCart = async (redirectToCart = false) => {
     if (!selectedVariant) return;
 
@@ -189,6 +225,31 @@ export default function ProductDetailPage() {
       toast.error(errorMsg);
     } finally {
       setIsAdding(false);
+    }
+  };
+
+  // Toggle this product in/out of the saved list. Optimistic: flip the local state, call
+  // the backend (toggleWishlist), revert + toast on failure. Anonymous users have no token,
+  // so we nudge them to log in instead of calling the API. Mirrors the heart on the shop cards.
+  const handleToggleSave = async () => {
+    if (!token) {
+      toast.info(t("wishlist.loginToSave"));
+      return;
+    }
+    if (!product) return;
+    const wasSaved = isSaved;
+    setIsSaved(!wasSaved); // optimistic flip
+    setIsSaving(true);
+    try {
+      const res = await toggleWishlist(product.id, token);
+      toast.success(
+        res.saved ? t("wishlist.savedToast") : t("wishlist.removedToast"),
+      );
+    } catch (error) {
+      setIsSaved(wasSaved); // revert on failure
+      toast.error(t("wishlist.errorToast"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -427,6 +488,23 @@ export default function ProductDetailPage() {
                         {t("detail.addToCart")}
                       </>
                     )}
+                  </Button>
+                  {/* Save / Saved toggle: mirrors the heart on the shop cards. outline Button +
+                      Heart icon; a filled green heart means this product is in the saved list.
+                      Writes to the same per-user wishlist via toggleWishlist. */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleToggleSave}
+                    disabled={isSaving}
+                    aria-label={isSaved ? t("wishlist.saved") : t("wishlist.save")}
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${
+                        isSaved ? "fill-primary text-primary" : ""
+                      }`}
+                    />
+                    {isSaved ? t("wishlist.saved") : t("wishlist.save")}
                   </Button>
                 </div>
               </CardContent>

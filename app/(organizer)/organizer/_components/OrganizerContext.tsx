@@ -39,7 +39,9 @@ export interface OrgMembership {
     logo: string | null;
     status: string;
   };
-  role: "owner" | "sub_organizer";
+  // "admin_override" is the synthetic role the backend returns for a super admin managing
+  // this org via god-mode (afc_organizers get_my_organizations); it carries all permissions.
+  role: "owner" | "sub_organizer" | "admin_override";
   permissions: OrgPermissions;
 }
 

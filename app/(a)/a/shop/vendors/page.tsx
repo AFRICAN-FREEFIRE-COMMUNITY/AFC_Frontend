@@ -74,6 +74,9 @@ import { Loader2 } from "lucide-react";
 
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+// Super-admin god-mode: "Manage as" entry into a vendor's own dashboard (lib/godmode.ts).
+import { enterAsVendor, isGodModeAdmin } from "@/lib/godmode";
 import { formatDate } from "@/lib/utils";
 import {
   AdminVendor,
@@ -90,7 +93,10 @@ interface ProductLite {
 }
 
 export default function ManageVendorsPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const router = useRouter();
+  // Only head_admin / super_admin get the "Manage as" god-mode entry (owner decision 2026-06-29).
+  const canManageAs = isGodModeAdmin(user);
 
   // ── Vendor table state ──
   const [vendors, setVendors] = useState<AdminVendor[]>([]);
@@ -522,23 +528,38 @@ export default function ManageVendorsPage() {
                       {formatDate(vendor.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant={
-                          vendor.status === "active" ? "outline" : "default"
-                        }
-                        disabled={statusBusyId === vendor.id}
-                        onClick={() => handleToggleStatus(vendor)}
-                        data-tour="shop-vendors-status-toggle"
-                      >
-                        {statusBusyId === vendor.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : vendor.status === "active" ? (
-                          "Suspend"
-                        ) : (
-                          "Reactivate"
+                      <div className="flex justify-end gap-1.5">
+                        {/* Super-admin god-mode: step into this vendor's own dashboard. */}
+                        {canManageAs && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              enterAsVendor(vendor.id, vendor.display_name);
+                              router.push("/vendor/orders");
+                            }}
+                          >
+                            Manage as
+                          </Button>
                         )}
-                      </Button>
+                        <Button
+                          size="sm"
+                          variant={
+                            vendor.status === "active" ? "outline" : "default"
+                          }
+                          disabled={statusBusyId === vendor.id}
+                          onClick={() => handleToggleStatus(vendor)}
+                          data-tour="shop-vendors-status-toggle"
+                        >
+                          {statusBusyId === vendor.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : vendor.status === "active" ? (
+                            "Suspend"
+                          ) : (
+                            "Reactivate"
+                          )}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

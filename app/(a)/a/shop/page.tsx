@@ -55,6 +55,7 @@ import {
   IconUsers,
   IconBuildingStore,
   IconClipboardCheck,
+  IconTruckDelivery,
 } from "@tabler/icons-react";
 import { TrendingUp, Eye, Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -103,7 +104,18 @@ const ORDER_RANGES = {
 type OrderRange = keyof typeof ORDER_RANGES;
 
 export default function AdminShopPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+
+  // Super-admin gate for the "Customer Delivery Info" card below. Same role-normalization
+  // helper app/(a)/a/history/page.tsx + app/(a)/a/shop/customers/page.tsx use, so a
+  // shop_admin never sees the card (the backend delivery-info endpoints are head-admin
+  // only, and the /a/shop/customers page repeats this exact gate).
+  const canSeeDeliveryInfo = Boolean(
+    user?.roles?.some((r) => {
+      const n = String(r).toLowerCase().replace(/\s+/g, "_");
+      return n === "head_admin" || n === "super_admin";
+    }),
+  );
 
   // ── Stock status state ──
   const [stockStatus, setStockStatus] = useState<StockItem[]>([]);
@@ -330,6 +342,33 @@ export default function AdminShopPage() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Customer Delivery Info -> /a/shop/customers (SUPER ADMINS ONLY).
+            Shown only to head_admin / super_admin (canSeeDeliveryInfo above), since the
+            backing /shop/admin/delivery-info/ endpoints are head-admin gated and the
+            page itself repeats the same gate. A shop_admin never sees this card. */}
+        {canSeeDeliveryInfo && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <IconTruckDelivery className="h-4 w-4 text-muted-foreground" />
+                Customer Delivery Info
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground mb-3">
+                Collected delivery details (name, email, phone, address) for shop orders.
+                Super admins only.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/a/shop/customers">
+                  Open
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Main Content Row */}

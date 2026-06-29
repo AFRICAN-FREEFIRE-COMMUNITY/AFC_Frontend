@@ -8,6 +8,7 @@
   "letterAvatars": {
     "label": "Avatares com o nome da equipa",
     "description": "Os avatares com letras do Free Fire que a tua equipa pode utilizar. Os avatares com letras de cada membro são adicionados automaticamente. Adiciona abaixo quaisquer letras adicionais que a tua equipa possua.",
+    "fieldedNote": "Apenas os jogadores que alinhar num evento contam para o requisito de letras desse evento. Os jogadores que ficam no banco ou os membros da equipa técnica não contam.",
     "availableTitle": "Avatares de letras",
     "availableCount": "A equipa tem um nome «{count}» composto por 26 letras",
     "fromMembers": "Dos membros",

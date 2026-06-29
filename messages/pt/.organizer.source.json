@@ -1,4 +1,6 @@
 {
+  "actAs.orgBanner": "Admin override: managing {name}",
+  "actAs.exit": "Exit",
   "tour.button": "Take a tour",
   "tour.sidebar.title": "Your organizer navigation",
   "tour.sidebar.description": "This sidebar is how you move around your organization: overview, events, leaderboards, members, payouts and more. The section you are on is highlighted in green.",

@@ -12,6 +12,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+// Super-admin god-mode: "Manage as" entry into an organizer's own dashboard (lib/godmode.ts).
+import { enterAsOrg, isGodModeAdmin } from "@/lib/godmode";
 import { toast } from "sonner";
 import axios from "axios";
 import { env } from "@/lib/env";
@@ -117,7 +120,10 @@ export default function OrganizationsAdminPage() {
   // The owner must be an EXISTING user. As the admin types, we search users by
   // username/email (GET /team/admin-search-players/?q=) and show matches to pick
   // from, so they select the right account instead of guessing the exact handle.
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const router = useRouter();
+  // Only head_admin / super_admin get the "Manage as" god-mode entry (owner decision 2026-06-29).
+  const canManageAs = isGodModeAdmin(user);
   const [ownerResults, setOwnerResults] = useState<
     { user_id: number; username: string; email: string }[]
   >([]);
@@ -319,6 +325,7 @@ export default function OrganizationsAdminPage() {
                     <TableHead>Members</TableHead>
                     <TableHead>Events</TableHead>
                     <TableHead>Created</TableHead>
+                    {canManageAs && <TableHead className="text-right"></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -349,6 +356,21 @@ export default function OrganizationsAdminPage() {
                       <TableCell className="text-muted-foreground">
                         {org.created_at ? org.created_at.slice(0, 10) : "-"}
                       </TableCell>
+                      {canManageAs && (
+                        <TableCell className="text-right">
+                          {/* Step into this organizer's own dashboard as a super admin. */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              enterAsOrg(org.slug, org.name);
+                              router.push("/organizer/overview");
+                            }}
+                          >
+                            Manage as
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>

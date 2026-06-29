@@ -471,6 +471,18 @@
       }
     }
   },
+  "yourMatch": {
+    "title": "Your match",
+    "roomDetails": "Room ID and password",
+    "match": "Match {n}",
+    "roomId": "Room ID",
+    "roomName": "Room name",
+    "roomPassword": "Password",
+    "roomSoon": "Your room ID and password will appear here as soon as the organizer posts them.",
+    "roomPending": "Room ID and password will be posted closer to your match time.",
+    "copied": "{label} copied",
+    "copyTitle": "Click to copy"
+  },
   "structure": {
     "noStages": "No stages configured for this tournament yet.",
     "dateTo": "to",
@@ -478,6 +490,10 @@
     "playerWord": "Player",
     "teamWord": "Team",
     "tournamentFlow": "Tournament Flow",
+    "tapHint": "Tap a stage to see its groups, schedule and room IDs below.",
+    "viewGroups": "View groups",
+    "viewingGroups": "Viewing groups",
+    "yourGroup": "Your group",
     "stage": "Stage {number}",
     "championCrowned": "Champion crowned",
     "topAdvance": "Top {count}",

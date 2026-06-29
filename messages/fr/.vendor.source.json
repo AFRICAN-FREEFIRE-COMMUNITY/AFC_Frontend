@@ -1,4 +1,6 @@
 {
+  "actAs.vendorBanner": "Admin override: managing {name}",
+  "actAs.exit": "Exit",
   "tour.sidebar.title": "Your vendor navigation",
   "tour.sidebar.description": "Use this sidebar to move around the vendor portal: Orders to fulfil, your Products catalogue, and Payouts for your bank details. The section you are on is highlighted in green.",
   "tour.orders.intro.title": "Your orders to fulfil",

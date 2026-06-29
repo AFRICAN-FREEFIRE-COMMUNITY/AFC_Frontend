@@ -1,6 +1,8 @@
 {
   "registeredTeams": {
     "searchTeamsPlaceholder": "Les équipes de recherche...",
-    "searchPlayersPlaceholder": "Rechercher des joueurs..."
+    "searchPlayersPlaceholder": "Rechercher des joueurs...",
+    "noTeamsMatch": "Aucune équipe ne correspond à « {query} »",
+    "noPlayersMatch": "Aucun joueur ne correspond à « {query} »."
   }
 }

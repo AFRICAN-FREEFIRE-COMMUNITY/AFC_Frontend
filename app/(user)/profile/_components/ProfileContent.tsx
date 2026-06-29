@@ -109,6 +109,10 @@ const ACHIEVEMENT_GROUP_KEY: Record<string, string> = {
 
 export const ProfileContent = () => {
   const t = useTranslations("profile");
+  // Saved-delivery copy lives in the `shop` namespace (messages/en/shop.json ->
+  // savedDelivery), reused here for the "Saved addresses" quick-link card that points
+  // at /profile/addresses (app/(user)/profile/_components/SavedAddresses.tsx).
+  const tShop = useTranslations("shop");
   // Active UI locale, passed to formatLocalTime so the "Applied {date}" string
   // localizes month names to the chosen language (and skips the cookie read).
   const locale = useLocale();
@@ -824,6 +828,28 @@ export const ProfileContent = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* ── Saved addresses quick link ───────────────────────────────────────────
+          Points to the manage page (/profile/addresses → SavedAddresses.tsx) where
+          the buyer reviews the delivery profiles reused at checkout (the picker in
+          shop/_components/CartDetails.tsx). Copy from the `shop` namespace. */}
+      <Card className="mt-4">
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-base font-semibold">
+              {tShop("savedDelivery.profileCardTitle")}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {tShop("savedDelivery.profileCardDescription")}
+            </p>
+          </div>
+          <Button variant="outline" className="w-full sm:w-auto" asChild>
+            <Link href="/profile/addresses">
+              {tShop("savedDelivery.manage")}
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { getAuthToken } from "./authToken";
 
 /**
  * Shared HTTP helpers for the typed API clients in lib/*.ts.
@@ -10,9 +11,14 @@ import Cookies from "js-cookie";
  * idiom are centralized here.
  */
 
-/** Bearer auth header from the `auth_token` cookie (the cookie AuthContext writes on login). */
+/** Bearer auth header for a gated API call.
+ *
+ * PREFERS the authoritative in-memory token AuthContext keeps in sync (lib/authToken), and
+ * falls back to the `auth_token` cookie only before AuthContext has hydrated. This avoids the
+ * "everything 401s" bug where a STALE DUPLICATE auth_token cookie (shadowing the canonical one)
+ * made `Cookies.get` return a dead token on every request. See lib/authToken.ts. */
 export function authHeaders() {
-  const token = Cookies.get("auth_token");
+  const token = getAuthToken() ?? Cookies.get("auth_token");
   return { Authorization: `Bearer ${token ?? ""}` };
 }
 
