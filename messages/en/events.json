@@ -1,0 +1,8 @@
+{
+  "registeredTeams": {
+    "searchTeamsPlaceholder": "Search teams...",
+    "searchPlayersPlaceholder": "Search players...",
+    "noTeamsMatch": "No teams match \"{query}\"",
+    "noPlayersMatch": "No players match \"{query}\""
+  }
+}

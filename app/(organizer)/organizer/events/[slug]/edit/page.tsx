@@ -94,6 +94,7 @@ import {
   type EventFormType,
   type EventDetails,
   type StageType,
+  type AdvancementRuleInput,
   type Params,
 } from "@/app/(a)/a/events/[slug]/edit/types";
 
@@ -108,6 +109,12 @@ import { SaveConfirmModal } from "@/app/(a)/a/events/[slug]/edit/_components/Sav
 import StagesGroupsTab from "@/app/(a)/a/events/[slug]/edit/_components/StagesGroupsTab";
 import SponsorTab from "@/app/(a)/a/events/[slug]/edit/_components/SponsorTab";
 import WaitlistTab from "@/app/(a)/a/events/[slug]/edit/_components/WaitlistTab";
+// Linked-events (qualification links) editor — the SAME component the admin edit page + the event
+// DETAIL pages mount (components/event-links.tsx -> lib/eventLinks.ts -> events/<id>/links/*). The
+// backend already authorises the event's organizer on those endpoints, so reusing it here gives the
+// organizer the same create/fire/cancel surface with no divergence. Self-loads + self-saves; we just
+// mount it with the event id + stages.
+import { LinkedEventsCard } from "@/components/event-links";
 import { SeedStageModal } from "@/app/(a)/a/events/_components/SeedStageModal";
 import { ConfirmStartTournamentModal } from "@/app/(a)/a/events/_components/ConfirmStartTournamentModal";
 // Shared Round-Robin config types + default (sub-project B).
@@ -311,6 +318,8 @@ export default function OrganizerEditEventPage({
     point_rush_enabled: boolean;
     point_rush_reward: Record<string, number>;
     point_rush_target_index?: number;
+    // ── Branching advancement rules (feature #9). Optional repeatable authoring rows. ──
+    advancement_rules?: AdvancementRuleInput[];
     round_robin: RoundRobinConfig;
   }>({
     stage_name: "",
@@ -329,6 +338,7 @@ export default function OrganizerEditEventPage({
     point_rush_enabled: false,
     point_rush_reward: {},
     point_rush_target_index: undefined,
+    advancement_rules: [],
     round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
   });
 
@@ -383,6 +393,10 @@ export default function OrganizerEditEventPage({
     require_esport_images: false,
     require_player_uid: false,
     require_player_profile_image: false,
+    // Letter-avatars gate (feature #7, owner 2026-06-29): a NUMBER (0 = off, 1-26 = required min),
+    // not a bool. Edited on Basic Info (BasicInfoTab) alongside the require_* toggles, prefilled from
+    // ed.min_letter_avatars below and persisted by the waitlist save -> edit_event (admin parity).
+    min_letter_avatars: 0,
   });
   const [savingWaitlist, setSavingWaitlist] = useState(false);
 
@@ -513,6 +527,28 @@ export default function OrganizerEditEventPage({
           stage.point_rush_target_stage_id != null
             ? stageIndexById.get(stage.point_rush_target_stage_id)
             : undefined,
+        // ── Branching advancement rules (feature #9): translate the echoed rules
+        //    (target_stage_id + source_group_id) into the form's index shape. Mirrors the
+        //    admin edit page; the `...stage` spread pulls the echo shape so we OVERRIDE here. ──
+        advancement_rules: (stage.advancement_rules ?? [])
+          .map((r) => {
+            const groupIdx =
+              r.source_group_id != null
+                ? stage.groups.findIndex(
+                    (g) => (g.group_id ?? g.id) === r.source_group_id,
+                  )
+                : -1;
+            const targetIdx = stageIndexById.get(r.target_stage_id);
+            return targetIdx === undefined
+              ? null
+              : {
+                  position_from: r.position_from,
+                  position_to: r.position_to,
+                  source_group_index: groupIdx >= 0 ? groupIdx : null,
+                  target_stage_index: targetIdx,
+                };
+          })
+          .filter(Boolean) as AdvancementRuleInput[],
         round_robin: rehydrateRoundRobin(stage.round_robin),
         groups: stage.groups.map((group) => ({
           ...group,
@@ -753,6 +789,9 @@ export default function OrganizerEditEventPage({
           require_esport_images: ed.require_esport_images ?? false,
           require_player_uid: ed.require_player_uid ?? false,
           require_player_profile_image: ed.require_player_profile_image ?? false,
+          // Letter-avatars gate (feature #7): rehydrate the count from the event (0 = off). Coerced
+          // to a clean 0-or-positive number so the BasicInfoTab control reads a real value.
+          min_letter_avatars: Number(ed.min_letter_avatars ?? 0) || 0,
         });
       }
 
@@ -861,6 +900,8 @@ export default function OrganizerEditEventPage({
         point_rush_enabled: existingStage.point_rush_enabled ?? false,
         point_rush_reward: existingStage.point_rush_reward ?? {},
         point_rush_target_index: existingStage.point_rush_target_index,
+        // ── Branching advancement rules carried back into the modal (feature #9). ──
+        advancement_rules: existingStage.advancement_rules ?? [],
         round_robin: existingStage.round_robin ?? DEFAULT_ROUND_ROBIN_CONFIG,
       });
       setTempGroups(
@@ -890,6 +931,8 @@ export default function OrganizerEditEventPage({
         point_rush_enabled: false,
         point_rush_reward: {},
         point_rush_target_index: undefined,
+        // ── Branching advancement default for a brand-new stage (feature #9). ──
+        advancement_rules: [],
         round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
       });
       setTempGroups(
@@ -952,6 +995,8 @@ export default function OrganizerEditEventPage({
       point_rush_enabled: false,
       point_rush_reward: {},
       point_rush_target_index: undefined,
+      // ── Branching advancement default for a brand-new stage (feature #9). ──
+      advancement_rules: [],
     };
 
     form.setValue("stages", [...currentStages, newStage], {
@@ -1162,6 +1207,8 @@ export default function OrganizerEditEventPage({
       point_rush_enabled: stageModalData.point_rush_enabled,
       point_rush_reward: stageModalData.point_rush_reward,
       point_rush_target_index: stageModalData.point_rush_target_index,
+      // ── Branching advancement rules (feature #9) - rides into the FormData stages array. ──
+      advancement_rules: stageModalData.advancement_rules ?? [],
       ...(stageModalData.stage_format === "br - round robin"
         ? { round_robin: stageModalData.round_robin }
         : {}),
@@ -1466,6 +1513,12 @@ export default function OrganizerEditEventPage({
         "require_player_profile_image",
         waitlistForm.require_player_profile_image ? "True" : "False",
       );
+      // Letter-avatars gate (feature #7): a NUMBER (0-26), not a bool. edit_event re-parses + clamps
+      // it (_parse_min_letter_avatars). Without this append, editing the count never reached the API.
+      formData.append(
+        "min_letter_avatars",
+        String(Number(waitlistForm.min_letter_avatars ?? 0) || 0),
+      );
 
       await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
         method: "POST",
@@ -1487,6 +1540,9 @@ export default function OrganizerEditEventPage({
               require_esport_images: waitlistForm.require_esport_images,
               require_player_uid: waitlistForm.require_player_uid,
               require_player_profile_image: waitlistForm.require_player_profile_image,
+              // Letter-avatars gate (feature #7): mirror the saved count into the cached event so the
+              // RegisteredTeamsTab letter UI + a reopened Basic Info reflect it without a refetch.
+              min_letter_avatars: waitlistForm.min_letter_avatars,
             }
           : prev,
       );
@@ -1965,6 +2021,13 @@ export default function OrganizerEditEventPage({
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
               </span>
+              {/* Linked Events tab (owner 2026-06-29): per-stage qualification links into other
+                  events. Same tab the admin edit page adds (parity). */}
+              <span className="relative inline-flex flex-1 items-center justify-center">
+                <TabsTrigger value="linked_events" className="px-6 w-full">
+                  Linked Events
+                </TabsTrigger>
+              </span>
               <span className="relative inline-flex flex-1 items-center justify-center">
                 <TabsTrigger value="actions" className="px-6 w-full">
                   Event Actions
@@ -2063,6 +2126,19 @@ export default function OrganizerEditEventPage({
                 onSaveChanges={() => handleSaveChangesClick(form.getValues())}
                 loadingEvent={loadingEvent}
                 pendingSubmit={pendingSubmit}
+              />
+            </TabsContent>
+
+            {/* Linked Events (owner 2026-06-29): the qualification-links editor, reused verbatim from
+                the event DETAIL page (parity with the admin edit page). Self-contained load + save;
+                we only pass the event id + its stages mapped to { id, stage_name }. */}
+            <TabsContent value="linked_events">
+              <LinkedEventsCard
+                eventId={eventDetails.event_id}
+                stages={(eventDetails.stages ?? []).map((s: any) => ({
+                  id: s.stage_id ?? s.id,
+                  stage_name: s.stage_name,
+                }))}
               />
             </TabsContent>
 

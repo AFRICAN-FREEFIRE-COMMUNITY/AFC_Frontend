@@ -1,0 +1,25 @@
+{
+  "statsVisibility": {
+    "label": "Afficher publiquement les statistiques de l'équipe",
+    "description": "Les statistiques de votre équipe sont privées par défaut. Activez cette option pour permettre aux autres de les consulter.",
+    "saved": "Mise à jour de la visibilité des statistiques de l'équipe.",
+    "saveFailed": "Échec de la mise à jour de la visibilité des statistiques de l'équipe."
+  },
+  "letterAvatars": {
+    "label": "Avatars des équipes",
+    "description": "Les avatars « lettre » de Free Fire que votre équipe peut aligner. Les avatars « lettre » propres à chaque membre sont ajoutés automatiquement. Ajoutez ci-dessous les lettres supplémentaires dont dispose votre équipe.",
+    "availableTitle": "Avatars de lettres",
+    "availableCount": "Le nom de l'équipe est «{count} » et comporte 26 lettres.",
+    "fromMembers": "De la part des membres",
+    "manualExtras": "Ajouté manuellement",
+    "none": "Il n'y a pas encore d'avatars de lettres.",
+    "selectAll": "Tout sélectionner",
+    "clear": "Effacer",
+    "lockedHint": "Déjà pris en charge par un membre de l'équipe",
+    "save": "Enregistrer les lettres",
+    "saving": "Enregistrement",
+    "saved": "Mise à jour des lettres des équipes.",
+    "saveFailed": "Impossible de mettre à jour les lettres des équipes.",
+    "explainerAlt": "Référence pour l'avatar « Free Fire Letter »"
+  }
+}

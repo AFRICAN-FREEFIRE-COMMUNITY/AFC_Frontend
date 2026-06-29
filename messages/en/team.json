@@ -4,5 +4,23 @@
     "description": "Your team stats are private by default. Turn this on to let others see them.",
     "saved": "Team stats visibility updated.",
     "saveFailed": "Failed to update team stats visibility."
+  },
+  "letterAvatars": {
+    "label": "Team letter avatars",
+    "description": "The Free Fire letter avatars your team can field. Each member's own letter avatars are added automatically. Add any extra letters your team owns below.",
+    "fieldedNote": "Only the players you field for an event count toward that event's letter requirement. Benched or staff members do not.",
+    "availableTitle": "Letter avatars",
+    "availableCount": "Team has {count} of 26 letters",
+    "fromMembers": "From members",
+    "manualExtras": "Added manually",
+    "none": "No letter avatars yet.",
+    "selectAll": "Select all",
+    "clear": "Clear",
+    "lockedHint": "Already covered by a team member",
+    "save": "Save letters",
+    "saving": "Saving",
+    "saved": "Team letters updated.",
+    "saveFailed": "Could not update the team letters.",
+    "explainerAlt": "Free Fire letter avatar reference"
   }
 }

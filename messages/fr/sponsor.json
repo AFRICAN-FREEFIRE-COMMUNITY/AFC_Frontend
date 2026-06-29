@@ -1,0 +1,22 @@
+{
+  "tour": {
+    "dashboard": {
+      "intro": {
+        "title": "Bienvenue sur votre portail des sponsors",
+        "description": "Voici votre espace sponsor. Utilisez l'en-tête pour revenir au site principal ou vous déconnecter. Vous trouverez ci-dessous tout ce dont vous avez besoin pour gérer vos événements sponsorisés."
+      },
+      "welcome": {
+        "title": "Votre tableau de bord de parrainage",
+        "description": "Un aperçu rapide des inscrits à tous les événements que vous parrainez, pour que vous puissiez identifier d'un seul coup d'œil les points qui nécessitent votre attention."
+      },
+      "filters": {
+        "title": "Trouvez ce dont vous avez besoin",
+        "description": "Affinez votre recherche ici. Passez d'un sponsor à l'autre, ou effectuez une recherche et appliquez des filtres à la liste afin de vous concentrer sur un événement ou un statut en particulier."
+      },
+      "list": {
+        "title": "Vos événements et vos inscrits",
+        "description": "Ouvrez une manifestation pour consulter la liste des joueurs inscrits sous votre parrainage, les valider ou les refuser, puis exportez cette liste lorsque vous en avez besoin."
+      }
+    }
+  }
+}

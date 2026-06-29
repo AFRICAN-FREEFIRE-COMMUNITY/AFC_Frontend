@@ -164,6 +164,20 @@ export const RoundRobinConfigSchema = z.object({
   ),
 });
 
+// ── Branching advancement rule (feature #9). ─────────────────────────────────────
+// One authoring row: positions [position_from..position_to] of THIS stage (optionally
+// scoped to source_group_index, null = the whole stage) advance into the stage at
+// target_stage_index (0-based into the submitted stages array, same convention as
+// point_rush_target_index). The backend resolves the indices to StageAdvancementRule FK
+// rows in the create/edit second pass and runs them via advance-stage-by-rules/. Validated
+// loosely here; the backend (_validate_advancement_rules) is the authority on overlap/cycles.
+export const AdvancementRuleSchema = z.object({
+  position_from: z.coerce.number().min(1),
+  position_to: z.coerce.number().min(1),
+  source_group_index: z.coerce.number().nullable(), // null = stage-wide
+  target_stage_index: z.coerce.number(),            // 0-based later-stage index
+});
+
 export const StageSchema = z.object({
   stage_name: z.string().min(1, "Stage name required"),
   stage_discord_role_id: z.string().optional(),
@@ -173,6 +187,11 @@ export const StageSchema = z.object({
   stage_format: z.string().min(1, "Stage format required"),
   groups: z.array(GroupSchema).min(1, "At least one group required"),
   teams_qualifying_from_stage: z.coerce.number().min(0).optional(),
+  // ── Branching advancement rules (feature #9). Optional: a stage with rules is in
+  //    "branching mode" (rules OVERRIDE the single teams_qualifying_from_stage at advance
+  //    time); a stage with none keeps the legacy linear advance. Rides into the FormData
+  //    stages array; resolved to StageAdvancementRule rows in the backend second pass. ──
+  advancement_rules: z.array(AdvancementRuleSchema).optional(),
   prizepool: z.string().optional(),
   prizepool_cash_value: z.string().optional(),
   prize_distribution: z.record(z.string(), z.string()).optional(),
@@ -325,6 +344,9 @@ export const EventFormSchema = z
 export type EventFormType = z.infer<typeof EventFormSchema>;
 export type StageType = z.infer<typeof StageSchema>;
 export type GroupType = z.infer<typeof GroupSchema>;
+// Branching advancement (feature #9): one authoring row shape, shared by the stage modals
+// (StageModal / StageConfigModal) and the create/edit page mappers.
+export type AdvancementRuleInput = z.infer<typeof AdvancementRuleSchema>;
 
 // Re-exported from the shared module so existing importers (StageModal, etc.) keep the
 // same names. The point-rush / champion-rush pseudo-formats were dropped here - they are

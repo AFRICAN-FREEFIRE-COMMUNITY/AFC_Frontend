@@ -49,6 +49,9 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
+// Shared A-Z letter-avatar picker (presentational; this page owns the data + save). See
+// components/ui/letter-avatar-picker.tsx. Backs the "Letter avatars" section below.
+import { LetterAvatarPicker } from "@/components/ui/letter-avatar-picker";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -80,6 +83,46 @@ const Page = () => {
   // ── Esport Image state (its own flow: uploads immediately on file pick, replace-only). ──
   const [esportUploading, setEsportUploading] = useState(false);
   const [esportPreview, setEsportPreview] = useState<string | null>(null);
+
+  // ── Letter avatars (A-Z) state ──────────────────────────────────────────────────────────────
+  // The Free Fire letter avatars this player owns. Kept in local state (NOT in the RHF/zod form) so
+  // it stays self-contained and doesn't require touching the shared EditProfileFormSchema. Hydrated
+  // from GET /auth/get-user-profile/ below (AuthContext.user does not carry letter_avatars), and sent
+  // to POST /auth/edit-profile/ in the same FormData on save (see onSubmit). The backend normalizes +
+  // stores it on User.letter_avatars; the team available-letters union + event register-gate read it.
+  const [letterAvatars, setLetterAvatars] = useState<string[]>([]);
+  // Whether the saved letter_avatars have been HYDRATED from the profile GET. onSubmit only sends
+  // letter_avatars once this is true, so a Save before hydration resolves (or after a failed read)
+  // PRESERVES the stored value instead of overwriting it with the empty initial state. (bug fix
+  // 2026-06-29: same data-loss class as the historical edit_profile UID-wipe.)
+  const [letterAvatarsLoaded, setLetterAvatarsLoaded] = useState(false);
+
+  // Hydrate the picker from the saved value. AuthContext only maps a fixed set of profile fields onto
+  // `user`, so letter_avatars is fetched directly here once a token is available. A failed read just
+  // leaves the picker empty (never blocks editing the rest of the form).
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    axios
+      .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-user-profile/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        if (active) {
+          if (Array.isArray(res.data?.letter_avatars)) {
+            setLetterAvatars(res.data.letter_avatars as string[]);
+          }
+          // Hydrated: a Save may now persist the picker (including an explicit empty = "clear all").
+          setLetterAvatarsLoaded(true);
+        }
+      })
+      .catch(() => {
+        /* non-blocking: read failed -> stay UNloaded so onSubmit won't wipe the stored letters. */
+      });
+    return () => {
+      active = false;
+    };
+  }, [token]);
 
   // Upload/replace the esport image the moment a file is picked. POST
   // /auth/upload-esport-image/ (multipart `esport_image`); on success the returned URL becomes
@@ -173,6 +216,13 @@ const Page = () => {
         // the string and coerces it (request.data.get("stats_visible") -> "true"/"false" -> bool).
         // Always send it so the field is never silently left as the old value when the user flips it.
         formData.append("stats_visible", data.stats_visible ? "true" : "false");
+        // letter_avatars: the owned Free Fire letters (A-Z). ONLY sent once hydrated (see
+        // letterAvatarsLoaded) so a save before the profile GET resolves cannot wipe the stored
+        // letters; when hydrated, an explicit empty [] is a legitimate "clear all". FormData can't
+        // carry an array, so send a JSON-array string; edit_profile -> normalize_letter_avatars parses it.
+        if (letterAvatarsLoaded) {
+          formData.append("letter_avatars", JSON.stringify(letterAvatars));
+        }
 
         // Append profile picture file if selected
         if (selectedFile) {
@@ -437,6 +487,40 @@ const Page = () => {
                   </FormItem>
                 )}
               />
+
+              {/* ── Letter avatars (A-Z) ──────────────────────────────────────────────────────
+                  The Free Fire letter avatars this player OWNS. Uses the shared presentational
+                  picker (components/ui/letter-avatar-picker.tsx) which renders the 26-chip grid +
+                  the owner-supplied reference image (showExplainer). This page owns the data: the
+                  selection lives in local `letterAvatars` state (hydrated from get-user-profile,
+                  above) and rides along in the same FormData on "Save changes" (see onSubmit). The
+                  picker is locale-agnostic, so its button/alt labels are passed in from the
+                  `profile` namespace. NOT an RHF field (kept out of the shared zod schema). */}
+              <div className="space-y-2 rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center text-sm font-medium">
+                    {t("edit.letterAvatars.title")}
+                    <InfoTip
+                      text={t("edit.letterAvatars.infoTip")}
+                      className="ml-1.5"
+                    />
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    {t("edit.letterAvatars.description")}
+                  </p>
+                </div>
+                <LetterAvatarPicker
+                  value={letterAvatars}
+                  onChange={setLetterAvatars}
+                  showExplainer
+                  selectAllLabel={t("edit.letterAvatars.selectAll")}
+                  clearLabel={t("edit.letterAvatars.clear")}
+                  explainerAlt={t("edit.letterAvatars.explainerAlt")}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("edit.letterAvatars.saveNote")}
+                </p>
+              </div>
 
               {/* <FormField
                 control={form.control}

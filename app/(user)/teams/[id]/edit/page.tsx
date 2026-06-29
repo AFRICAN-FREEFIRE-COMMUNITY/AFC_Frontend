@@ -36,6 +36,13 @@ import { Card, CardContent } from "@/components/ui/card";
 // Pattern mirrors how other feature-toggles are styled on this codebase (e.g. StepWaitlist.tsx).
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+// Badge: small A-Z chips summarising the team's available letter avatars (member-derived vs manual).
+import { Badge } from "@/components/ui/badge";
+// Shared A-Z letter-avatar picker (controlled grid primitive). Used here for the manager
+// "Team letter avatars" panel: value = the team's manual extras, disabledLetters = the letters
+// already covered by a roster member, so a manager only ever ADDS letters on top. The panel POSTs
+// to /team/set-team-letters/; the read side comes from get-team-details (available/member/manual).
+import { LetterAvatarPicker } from "@/components/ui/letter-avatar-picker";
 import { extractSocialMediaUrls } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import Image from "next/image";
@@ -124,6 +131,15 @@ export default function page({ params }: { params: Params }) {
   const [statsVisible, setStatsVisible] = useState<boolean>(false);
   const [statsSaving, setStatsSaving] = useState<boolean>(false);
 
+  // ── Team letter avatars (§letter avatars) ─────────────────────────────────────
+  // manualLetters = the team's MANUAL extras = the picker's user-controlled value. Seeded below
+  // from teamDetails.manual_letters. Member-covered letters (teamDetails.member_letters) are passed
+  // to the picker as disabledLetters so the manager only ADDS on top of what members already cover.
+  // Saving fires a POST to /team/set-team-letters/. The whole panel is gated on can_manage_letters
+  // from get-team-details (owner / captain / vice-captain / manager / coach).
+  const [manualLetters, setManualLetters] = useState<string[]>([]);
+  const [lettersSaving, setLettersSaving] = useState<boolean>(false);
+
   const { token } = useAuth();
   const router = useRouter();
 
@@ -189,6 +205,10 @@ export default function page({ params }: { params: Params }) {
       // get-team-details returns stats_public (the team's own toggle, independent of the computed
       // "can this viewer see the stats" field which is also named stats_visible elsewhere).
       setStatsVisible(teamDetails.stats_public ?? false);
+      // Seed the manual letter-avatars from the team's stored extras. get-team-details returns
+      // manual_letters (the manager-declared extras) plus member_letters (auto-covered) and the
+      // live available_letters union. The picker only edits the manual extras.
+      setManualLetters(teamDetails.manual_letters ?? []);
     }
   }, [teamDetails, form]);
 
@@ -217,6 +237,34 @@ export default function page({ params }: { params: Params }) {
       );
     } finally {
       setStatsSaving(false);
+    }
+  };
+
+  // ── Letter-avatars save handler ───────────────────────────────────────────────
+  // POST /team/set-team-letters/ with { team_id, manual_letters }. The backend (afc_team.views.
+  // set_team_letters) gates on _can_manage_team_letters, validates each entry is a single A-Z letter,
+  // stores Team.manual_letter_avatars, and returns the recomputed live available set. On success we
+  // resync manualLetters to the server's normalized list so the picker shows the canonical stored
+  // form. Caller: the "Save letters" button below (rendered only when can_manage_letters is true).
+  // Mirrors handleStatsVisibleToggle's fire-and-toast shape.
+  const handleSaveLetters = async () => {
+    if (lettersSaving || !teamDetails?.team_id) return;
+    setLettersSaving(true);
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/set-team-letters/`,
+        { team_id: teamDetails.team_id, manual_letters: manualLetters },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      // Resync to the canonical (sorted/deduped/UPPERCASE) list the server stored.
+      setManualLetters(res.data?.manual_letters ?? manualLetters);
+      toast.success(tTeam("letterAvatars.saved"));
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || tTeam("letterAvatars.saveFailed"),
+      );
+    } finally {
+      setLettersSaving(false);
     }
   };
 
@@ -292,6 +340,14 @@ export default function page({ params }: { params: Params }) {
       }
     });
   }
+
+  // Live preview of the team's available letters for the chips under the picker: split member-derived
+  // (auto-covered, primary chips) from the manager's manual extras (gold chips). Computed from the
+  // picker's current value so the chips update instantly as the manager toggles, before saving.
+  const memberLetters: string[] = teamDetails?.member_letters ?? [];
+  const memberLetterSet = new Set(memberLetters);
+  const manualExtras = manualLetters.filter((l) => !memberLetterSet.has(l));
+  const totalLetters = new Set([...memberLetters, ...manualLetters]).size;
 
   if (pending) return <FullLoader />;
 
@@ -558,6 +614,107 @@ export default function page({ params }: { params: Params }) {
                     onCheckedChange={handleStatsVisibleToggle}
                     disabled={statsSaving}
                   />
+                </div>
+              )}
+
+              {/* ── Team letter avatars ────────────────────────────────────────────────────
+                  Rendered ONLY for managers (can_manage_letters from get-team-details:
+                  owner / captain / vice-captain / manager / coach). The shared A-Z picker edits
+                  the team's MANUAL extras (value=manualLetters); letters already covered by a
+                  roster member are passed as disabledLetters so they stay locked-on and the manager
+                  can only ADD. Saving is a separate action (NOT part of the main form submit) that
+                  POSTs to /team/set-team-letters/ — mirrors the stats-visibility control above. */}
+              {teamDetails?.can_manage_letters && (
+                <div className="space-y-3 rounded-md border p-4">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">
+                      {tTeam("letterAvatars.label")}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {tTeam("letterAvatars.description")}
+                    </p>
+                    {/* Clarify the event-registration semantics: this panel shows the WHOLE team's
+                        letter union, but an event's letter requirement only counts the players a
+                        manager actually fields for that event, so benched/staff letters don't help. */}
+                    <p className="text-xs text-muted-foreground">
+                      {tTeam("letterAvatars.fieldedNote")}
+                    </p>
+                  </div>
+
+                  {/* Shared controlled picker. disabledLetters = member-covered letters (locked on). */}
+                  <LetterAvatarPicker
+                    value={manualLetters}
+                    onChange={setManualLetters}
+                    disabledLetters={memberLetters}
+                    showExplainer
+                    selectAllLabel={tTeam("letterAvatars.selectAll")}
+                    clearLabel={tTeam("letterAvatars.clear")}
+                    lockedHint={tTeam("letterAvatars.lockedHint")}
+                    explainerAlt={tTeam("letterAvatars.explainerAlt")}
+                  />
+
+                  {/* Live available-letters summary: member-derived (primary) + manual extras (gold). */}
+                  <div className="space-y-2 text-xs">
+                    <p className="text-muted-foreground">
+                      {tTeam("letterAvatars.availableCount", {
+                        count: totalLetters,
+                      })}
+                    </p>
+                    {totalLetters === 0 ? (
+                      <p className="italic text-muted-foreground">
+                        {tTeam("letterAvatars.none")}
+                      </p>
+                    ) : (
+                      <>
+                        {memberLetters.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-muted-foreground">
+                              {tTeam("letterAvatars.fromMembers")}:
+                            </span>
+                            {memberLetters.map((l) => (
+                              <Badge
+                                key={`m-${l}`}
+                                variant="outline"
+                                className="rounded-full text-xs border-primary text-primary"
+                              >
+                                {l}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        {manualExtras.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-muted-foreground">
+                              {tTeam("letterAvatars.manualExtras")}:
+                            </span>
+                            {manualExtras.map((l) => (
+                              <Badge
+                                key={`x-${l}`}
+                                variant="outline"
+                                className="rounded-full text-xs border-gold text-gold"
+                              >
+                                {l}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      onClick={handleSaveLetters}
+                      disabled={lettersSaving}
+                    >
+                      {lettersSaving ? (
+                        <Loader text={tTeam("letterAvatars.saving")} />
+                      ) : (
+                        tTeam("letterAvatars.save")
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
 

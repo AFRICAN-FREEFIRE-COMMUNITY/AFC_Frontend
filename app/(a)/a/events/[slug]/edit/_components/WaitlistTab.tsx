@@ -32,6 +32,9 @@ export interface WaitlistForm {
   require_esport_images?: boolean;
   require_player_uid?: boolean;
   require_player_profile_image?: boolean;
+  // Letter-avatars gate (feature #7, owner 2026-06-29): NUMBER gate (0 = off, 1-26 = required min).
+  // Like the require_* fields above it is edited on Basic Info and persisted by the waitlist save.
+  min_letter_avatars?: number;
 }
 
 // NOTE (owner correction 2026-06-22): the registration-requirement toggles (team logo /

@@ -247,7 +247,9 @@
     "kills": "Kills",
     "totalPoints": "Total Points",
     "noResults": "No results available for this selection.",
-    "placePts": "Place Pts"
+    "placePts": "Place Pts",
+    "resultsNotPublished": "Results not published yet",
+    "resultsNotPublishedDesc": "The organizer will publish the leaderboard soon."
   },
   "teamRegister": {
     "selectMembers": {
@@ -458,6 +460,14 @@
         "esportsImage": "Esport image",
         "profileImage": "Profile image",
         "teamLogo": "Team logo (upload on the team's edit page)"
+      },
+      "letterAvatars": {
+        "title": "Your team needs more letter avatars",
+        "soloTitle": "You need more letter avatars",
+        "teamDescription": "This event requires {required} letter avatars from the players you field for it, but the lineup you submitted covers {available}. Only fielded players count: benched or staff members do not. Field players who own the missing letters, have those members add the letters they own, or add manual extras on the team editor.",
+        "soloDescription": "This event requires {required} letter avatars, but you have {available}. Add the Free Fire letters you own on your profile.",
+        "teamAction": "Manage team letters",
+        "soloAction": "Add letter avatars"
       }
     }
   },
@@ -475,6 +485,10 @@
     "groupSingular": "group",
     "groupPlural": "groups",
     "topN": "top {count}",
+    "branchHeading": "Advances to",
+    "branchPos": "#{pos}",
+    "branchRange": "#{from} to #{to}",
+    "branchTargetFallback": "next stage",
     "qualificationLinks": "Qualification Links",
     "qualifiesFrom": "Qualifies from",
     "qualifiesFromChip": "{eventName} - {stageName} top {count}",
@@ -482,13 +496,19 @@
     "qualifiesIntoChip": "Top {count} of {stageName} qualifies into: {eventName}",
     "standingsHeading": "Standings & Qualification - {stageName}",
     "qualifiedLegend": "Qualified for next stage",
-    "advancePerGroup": "Top <b>{count}</b> advance per group",
+    "advanceFromStage": "Top <b>{count}</b> advance from the {stageName} stage",
+    "mapsLabel": "Maps",
+    "pointSystemLabel": "Point system",
+    "perKill": "{pts} / kill",
+    "placementPointsLabel": "Placement:",
     "noGroups": "No groups defined for this stage yet.",
     "matchCount": "{count} {matchWord}",
     "matchSingular": "match",
     "matchPlural": "matches",
     "topNAdvance": " · Top {count} advance",
     "resultsPending": "Results pending.",
+    "resultsNotPublished": "Results not published yet",
+    "resultsNotPublishedDesc": "The organizer will publish the leaderboard soon.",
     "rank": "#",
     "kills": "Kills",
     "points": "Pts",

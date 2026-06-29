@@ -288,6 +288,15 @@
     "statsVisible": {
       "label": "Show my stats to others",
       "description": "Your stats are private by default. Turn this on to let others see them."
+    },
+    "letterAvatars": {
+      "title": "Letter avatars",
+      "infoTip": "Free Fire gives every letter (A to Z) its own avatar. Pick the letter avatars you own. Some events require your team to own a set number of letter avatars before you can register.",
+      "description": "Pick the Free Fire letter avatars you own. Your teams and event organizers use this to know which letters your team can field.",
+      "selectAll": "Select all",
+      "clear": "Clear",
+      "explainerAlt": "Free Fire letter avatar reference grid",
+      "saveNote": "Your letter avatars are saved when you press Save changes."
     }
   },
   "password": {

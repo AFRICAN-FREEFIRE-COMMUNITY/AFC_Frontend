@@ -37,6 +37,21 @@ const nextConfig: NextConfig = {
         destination: "/a/events?tab=leaderboards",
         permanent: false,
       },
+      // Blacklists + Watchlist were folded UNDER the combined Teams & Players page at
+      // /a/teams (owner request 2026-06-29: "they should be under /a/teams, not main
+      // tabs"). Their standalone sidebar entries were removed (constants/nav-links.ts);
+      // these exact-path redirects keep old /a/blacklists and /a/watchlist links landing
+      // on the right tab. They match ONLY those exact paths, so no sub-routes are caught.
+      {
+        source: "/a/blacklists",
+        destination: "/a/teams?tab=blacklists",
+        permanent: false,
+      },
+      {
+        source: "/a/watchlist",
+        destination: "/a/teams?tab=watchlist",
+        permanent: false,
+      },
       // ── SEO: retire dead legacy URLs Google still has indexed (audit 2026-06-14) ──
       // News used to be served by numeric DB id (/news/19); it now lives at a text
       // slug (/news/[slug]). Google still crawls ~12 old id URLs (/news/9,11,14-24)

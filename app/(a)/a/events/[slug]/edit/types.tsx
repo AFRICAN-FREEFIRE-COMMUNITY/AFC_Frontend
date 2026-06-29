@@ -76,6 +76,17 @@ export const RoundRobinConfigSchema = z.object({
   ),
 });
 
+// ── Branching advancement rule (feature #9) - mirrors the create-flow schema. ──
+// positions [position_from..position_to] of this stage (source_group_index null = the whole
+// stage) advance into the stage at target_stage_index (0-based into the submitted stages array).
+// Resolved to StageAdvancementRule rows in the backend edit second pass.
+export const AdvancementRuleSchema = z.object({
+  position_from: z.coerce.number().min(1),
+  position_to: z.coerce.number().min(1),
+  source_group_index: z.coerce.number().nullable(),
+  target_stage_index: z.coerce.number(),
+});
+
 export const StageSchema = z.object({
   stage_id: z.number().optional(),
   // Manual display order (drag-to-reorder). Echoed from get-event-details and re-submitted on Save
@@ -99,6 +110,9 @@ export const StageSchema = z.object({
   point_rush_enabled: z.boolean().default(false),
   point_rush_reward: z.record(z.string(), z.coerce.number()).optional(), // {"1":10,"2":7,...}
   point_rush_target_index: z.coerce.number().optional(), // 0-based index of the target stage
+  // ── Branching advancement rules (feature #9). Optional; rehydrated from stage.advancement_rules
+  //    (target_stage_id -> index, source_group_id -> index) and threaded into the FormData. ──
+  advancement_rules: z.array(AdvancementRuleSchema).optional(),
   // ── Round-Robin config (sub-project B). Present only for "br - round robin"
   //    stages; rehydrated from stage.round_robin and threaded into the FormData. ──
   round_robin: RoundRobinConfigSchema.optional(),
@@ -217,6 +231,23 @@ export const EventFormSchema = z
 export type EventFormType = z.infer<typeof EventFormSchema>;
 export type StageType = z.infer<typeof StageSchema>;
 export type GroupType = z.infer<typeof GroupSchema>;
+// Branching advancement (feature #9): one authoring row shape, shared by the stage modal +
+// the edit page mapper (and re-exported for the organizer edit page, which reuses both).
+export type AdvancementRuleInput = z.infer<typeof AdvancementRuleSchema>;
+
+// The shape get_event_details echoes per stage (advancement_rules). Carries resolved ids +
+// display names so the public chips render without a lookup, plus the ids the edit form maps
+// back to indices on rehydration. See views._advancement_rules_echo.
+export interface AdvancementRuleEcho {
+  id: number;
+  position_from: number;
+  position_to: number;
+  source_group_id: number | null;
+  source_group_name: string | null;
+  target_stage_id: number;
+  target_stage_name: string | null;
+  order: number;
+}
 
 export interface EventDetails {
   event_id: number;
@@ -322,6 +353,10 @@ export interface EventDetails {
     point_rush_enabled?: boolean;
     point_rush_reward?: Record<string, number>;
     point_rush_target_stage_id?: number | null;
+    // ── Branching advancement rules echoed by get-event-details (feature #9). ──
+    // The edit form maps target_stage_id -> target_stage_index and source_group_id ->
+    // source_group_index when rehydrating the authoring rows. [] / absent for a rule-less stage.
+    advancement_rules?: AdvancementRuleEcho[];
     // ── Round-Robin structure echoed by get-event-details (sub-project B). ──
     // round_robin_groups carry server group_ids + team_ids (TEAM PKs); game_days
     // carry the materialised lobbies. Rehydrated into the form's round_robin

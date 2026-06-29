@@ -77,6 +77,8 @@ export const HELP = {
     "How many bonus points each finishing position earns (e.g. 1st = 10, 2nd = 7).",
   "events.create.point_rush_target":
     "The later stage that receives these bonus points. Only stages after this one can be chosen.",
+  "events.create.advancement_routing":
+    "Split this stage's finishers into different later stages. Add a rule per cut (e.g. top 1 to 8 to the Finals, 9 to 16 to a Play-In). Off uses the single 'Teams Qualifying' number instead.",
   "events.create.number_of_groups":
     "How many groups (lobbies) this stage is split into. Each group is configured separately.",
   "events.create.teams_qualifying":
@@ -160,6 +162,8 @@ export const HELP = {
     "Randomly distribute a stage's competitors across its groups. Run before the stage's matches begin.",
   "events.edit.advance_stage":
     "Push the top competitors from a chosen group into the next stage.",
+  "events.edit.branching_advance":
+    "For a stage with routing rules, send each range of finishers into its target stage (e.g. top 1 to 8 to the Finals, 9 to 16 to a Play-In). Preview first to confirm exactly who advances where.",
   "events.edit.sync_discord":
     "Re-assign any missing Discord roles for a group - handy if a role didn't apply when players were seeded.",
   "events.edit.export_participants":

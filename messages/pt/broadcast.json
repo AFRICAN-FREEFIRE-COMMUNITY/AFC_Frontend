@@ -1,0 +1,7 @@
+{
+  "rate": {
+    "left": "{remaining} Faltam uma hora para o fim das transmissões de «{limit}»",
+    "sendAgainAt": "Pode enviar novamente em",
+    "limitReached": "O limite de transmissão foi atingido. Por favor, tente novamente mais tarde."
+  }
+}

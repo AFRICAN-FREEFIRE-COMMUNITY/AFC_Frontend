@@ -1,0 +1,235 @@
+{
+  "tour": {
+    "button": "Faça uma visita guiada",
+    "sidebar": {
+      "title": "A navegação no seu organizador",
+      "description": "Esta barra lateral permite-lhe navegar pela sua organização: visão geral, eventos, tabelas de classificação, membros, pagamentos e muito mais. A secção em que se encontra está destacada a verde."
+    },
+    "overview": {
+      "title": {
+        "title": "Bem-vindo à visão geral do seu organizador",
+        "description": "Esta é a página principal da sua organização. Permite-lhe ter uma visão geral rápida da sua atividade num piscar de olhos."
+      },
+      "stats": {
+        "title": "Os seus principais números",
+        "description": "Estes mosaicos apresentam um resumo da sua organização, por exemplo, quantos membros e eventos tem. Uma rápida avaliação antes de começar."
+      }
+    },
+    "profile": {
+      "title": {
+        "title": "Perfil da sua organização",
+        "description": "Gestione a forma como a sua organização aparece em todo o site: o logótipo, o banner, o nome, a descrição e as ligações às redes sociais."
+      },
+      "images": {
+        "title": "Logótipo e banner",
+        "description": "Carregue o logótipo e o banner que identificam a página e os eventos da sua organização. Arraste uma imagem ou clica para selecionar um ficheiro."
+      },
+      "save": {
+        "title": "Guarde as alterações",
+        "description": "Aplica as alterações que fizeres no perfil. Nada muda para o público até guardares."
+      }
+    },
+    "events": {
+      "title": {
+        "title": "Os seus eventos",
+        "description": "Todos os torneios e jogos de treino que a vossa organização está a organizar estão aqui. Criem novos e gerem os já existentes a partir desta página."
+      },
+      "create": {
+        "title": "Criar um evento",
+        "description": "Começa um novo torneio ou jogo de treino. Um assistente orienta-te sobre os detalhes, as fases, os prémios e as regras, e depois publica-o."
+      },
+      "table": {
+        "title": "A tua lista de eventos",
+        "description": "Cada linha corresponde a um evento. Utilize as ações da linha para visualizar o evento, editá-lo, gerir os seus resultados e a tabela de classificação, configurar grupos e listas de participantes ou copiar os seus links."
+      }
+    },
+    "event-create": {
+      "title": {
+        "title": "Criar um novo evento",
+        "description": "Este assistente ajuda-o a criar um torneio ou um jogo de treino a partir do zero para a sua organização, passo a passo."
+      },
+      "form": {
+        "title": "Siga os passos",
+        "description": "Cada etapa apresenta uma parte do evento: detalhes, fases, prémio total, regras e muito mais. Utilize os botões «Seguinte» e «Anterior» para navegar entre elas."
+      },
+      "submit": {
+        "title": "Publique o seu evento",
+        "description": "No passo final, crie o evento para o publicar. Também pode guardá-lo como rascunho e terminá-lo mais tarde."
+      }
+    },
+    "drafts": {
+      "title": {
+        "title": "Os teus eventos preliminares",
+        "description": "Os eventos que iniciou, mas que ainda não publicou, ficam guardados aqui para que possa concluí-los quando estiver pronto."
+      },
+      "create": {
+        "title": "Criar um novo evento",
+        "description": "Inicie um novo evento a partir do mesmo assistente. Este aparecerá aqui como rascunho até o publicar."
+      },
+      "table": {
+        "title": "A tua lista de rascunhos",
+        "description": "Cada linha corresponde a um evento não publicado. Continue a editar para o reabrir no assistente ou elimine aquele de que já não necessita."
+      }
+    },
+    "event-detail": {
+      "title": {
+        "title": "Detalhes do evento",
+        "description": "O centro de informações de um único evento. A partir daqui, tem acesso a tudo o que diz respeito ao evento: definições, inscrições, grupos e resultados."
+      },
+      "edit": {
+        "title": "Editar este evento",
+        "description": "Reabra o evento no assistente para alterar qualquer detalhe, fase, prémio ou regra após a sua criação."
+      },
+      "links": {
+        "title": "Eventos relacionados e de qualificação",
+        "description": "Veja como este evento se relaciona com outros, por exemplo, quais os eventos que permitem a qualificação das equipas para este ou que se seguem a ele."
+      }
+    },
+    "event-edit": {
+      "title": {
+        "title": "Editar evento",
+        "description": "Altere qualquer parte de um evento já existente. As suas alterações entram em vigor assim que as guardar."
+      },
+      "tabs": {
+        "title": "Editar por secção",
+        "description": "Cada separador permite editar uma área do evento: informações básicas, equipas inscritas, etapas e grupos, prémios e regulamento, definições de patrocinadores e lista de espera, e ações de publicação."
+      }
+    },
+    "event-groups": {
+      "title": {
+        "title": "Grupos e listas",
+        "description": "Veja quais as equipas que foram distribuídas por cada grupo neste evento e consulte a composição de cada equipa antes do início dos jogos."
+      },
+      "search": {
+        "title": "Encontrar rapidamente um jogador ou uma equipa",
+        "description": "Pesquise pelo nome no jogo, pela equipa ou pelo UID para aceder diretamente a um concorrente em todos os grupos."
+      },
+      "stages": {
+        "title": "Etapas e os seus grupos",
+        "description": "Cada cartão representa uma fase, dividida nos respetivos grupos e com as equipas distribuídas por esses grupos. É uma forma rápida de verificar se o quadro está corretamente configurado."
+      }
+    },
+    "event-leaderboard": {
+      "title": {
+        "title": "Classificação do evento",
+        "description": "Veja e faça a gestão da classificação deste evento. É aqui que os resultados brutos dos jogos se transformam na classificação publicada."
+      },
+      "stageTabs": {
+        "title": "Escolhe uma fase",
+        "description": "Alterne entre as etapas do evento para ver a classificação de cada uma delas."
+      },
+      "table": {
+        "title": "A tabela de classificação",
+        "description": "Classificações, abates e pontos totais de cada concorrente. Utilize os controlos de carregamento e edição para introduzir ou corrigir os resultados das partidas."
+      }
+    },
+    "leaderboards": {
+      "title": {
+        "title": "Tabelas de classificação",
+        "description": "Faça a gestão dos resultados e das classificações de todos os eventos da sua organização a partir de um único local."
+      },
+      "search": {
+        "title": "Encontrar um evento",
+        "description": "Pesquise os seus eventos por nome, tipo ou estado para localizar rapidamente aquele que pretende pontuar."
+      },
+      "table": {
+        "title": "Os teus eventos a pontuar",
+        "description": "Cada linha corresponde a um evento ao qual pode associar ou atualizar uma tabela de classificação. Abra uma para carregar resultados manualmente ou através de uma captura de ecrã, configurar pontos e visualizar ou editar as classificações."
+      }
+    },
+    "standalone-create": {
+      "wizard": {
+        "title": "Criar uma tabela de classificação independente",
+        "description": "Crie uma tabela de classificação que não esteja associada a um evento completo. Este assistente orienta-o através dos conceitos básicos, do sistema de pontos, dos resultados dos jogos e de uma revisão final antes da publicação."
+      }
+    },
+    "standalone-view": {
+      "view": {
+        "title": "Tabela de classificação independente",
+        "description": "Consulte a classificação publicada para esta tabela de classificação independente. Se for o responsável por ela, também pode reabri-la para editar os resultados."
+      }
+    },
+    "members": {
+      "title": {
+        "title": "Os membros da sua organização",
+        "description": "Gestione quem faz parte da sua organização e o que cada pessoa está autorizada a fazer."
+      },
+      "add": {
+        "title": "Adicionar um coorganizador",
+        "description": "Convide outro utilizador para a sua organização e conceda-lhe as permissões de que necessita, por exemplo, para criar eventos ou carregar resultados."
+      },
+      "table": {
+        "title": "A tabela dos membros",
+        "description": "Cada membro com a sua função e permissões. A partir daqui, pode definir o que cada um pode fazer ou removê-los."
+      }
+    },
+    "payouts": {
+      "title": {
+        "title": "Os teus pagamentos",
+        "description": "Acompanhe a quota-parte da sua organização nas receitas dos eventos pagos e mantenha os seus dados bancários atualizados para que possa receber os pagamentos."
+      },
+      "stats": {
+        "title": "Resumo das dívidas e pagamentos",
+        "description": "Estes cartões indicam o montante que lhe é devido e o montante que já foi pago à sua organização."
+      },
+      "table": {
+        "title": "O seu livro-razão de rendimentos",
+        "description": "Uma linha para cada pagamento, indicando o evento, o montante e o seu estado. Todo o seu histórico de receitas num único local."
+      }
+    },
+    "metrics": {
+      "title": {
+        "title": "As suas métricas",
+        "description": "Estatísticas agregadas da sua organização, abrangendo eventos, equipas, jogadores, abates e classificações."
+      },
+      "stats": {
+        "title": "Principais indicadores",
+        "description": "Estes cartões resumem os totais da sua organização relativos ao período selecionado. Uma visão rápida do seu desempenho."
+      },
+      "tabs": {
+        "title": "Descubra as tendências",
+        "description": "Os separadores apresentam uma análise mais detalhada dos números, por exemplo, tendências ao longo do tempo e repartições por área, para que possa identificar o que está a crescer."
+      }
+    },
+    "reviews": {
+      "title": {
+        "title": "As vossas avaliações",
+        "description": "Veja as avaliações e os comentários que os participantes deixaram sobre os eventos da sua organização."
+      },
+      "events": {
+        "title": "Audiências por evento",
+        "description": "Cada evento apresenta a sua classificação média e permite expandir a visualização para ler os comentários. Todos os comentários são anónimos, para garantir a sinceridade dos comentários."
+      }
+    },
+    "design": {
+      "title": {
+        "title": "Design da tabela de classificação",
+        "description": "Personalize o aspeto das tabelas de classificação da sua organização, por exemplo, as cores e os logótipos."
+      },
+      "manager": {
+        "title": "Gerir os seus projetos",
+        "description": "Carregue e ajuste os recursos de design aplicados às suas tabelas de classificação. As alterações efetuadas aqui são refletidas nas suas tabelas de classificação publicadas."
+      }
+    },
+    "blacklists": {
+      "title": {
+        "title": "As suas listas negras",
+        "description": "Impedir que uma equipa e os seus jogadores se inscrevam nos eventos da sua organização. Também pode analisar os pedidos de levantamento do bloqueio."
+      },
+      "add": {
+        "title": "Colocar uma equipa na lista negra",
+        "description": "Adicione uma equipa à sua lista negra para que esta deixe de poder inscrever-se nos seus eventos. Os jogadores do seu plantel são incluídos na lista ao mesmo tempo."
+      },
+      "table": {
+        "title": "Equipas na lista negra",
+        "description": "Todas as equipas que bloqueou, com a composição da equipa tal como estava no momento em que as adicionou. Expanda uma linha para ver o instantâneo ou desfaça o bloqueio quando for adequado."
+      }
+    },
+    "watchlist": {
+      "manager": {
+        "title": "A lista de observação partilhada",
+        "description": "Uma lista consultiva, partilhada por toda a comunidade, de jogadores e equipas suspeitos, que os administradores e organizadores partilham. Trata-se de um aviso, não de uma exclusão, para que saibas de quem ter cuidado. Pesquisa na lista ou adiciona uma entrada, indicando o motivo."
+      }
+    }
+  }
+}

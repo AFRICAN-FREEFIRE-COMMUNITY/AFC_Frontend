@@ -17,6 +17,7 @@ import {
   EventFormType,
   GroupType,
   StageType,
+  type AdvancementRuleInput,
 } from "./_components/types";
 import { Step1EventDetails } from "./_components/Step1EventDetails";
 import { Step2EventMode, Step3StageCount } from "./_components/Step2And3";
@@ -55,6 +56,8 @@ const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
   point_rush_enabled: false,
   point_rush_reward: {},
   point_rush_target_index: undefined,
+  // ── Branching advancement default (feature #9): no rules = legacy linear advance. ──
+  advancement_rules: [],
   // ── Round-Robin default (sub-project B): two empty base groups, auto-schedule. ──
   round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
 };
@@ -240,6 +243,29 @@ export default function CreateEventPage() {
             stage.point_rush_target_stage_id != null
               ? dupStageIndexById.get(stage.point_rush_target_stage_id)
               : undefined,
+          // ── Branching advancement rules carried over when duplicating (feature #9). ──
+          // Remap each echoed rule's target_stage_id -> target_stage_index (dupStageIndexById) and
+          // source_group_id -> source_group_index (its position in this stage's groups). Rules whose
+          // target stage no longer resolves are dropped (defensive; shouldn't happen).
+          advancement_rules: (stage.advancement_rules ?? [])
+            .map((r: any) => {
+              const groupIdx =
+                r.source_group_id != null
+                  ? (stage.groups ?? []).findIndex(
+                      (g: any) => (g.group_id ?? g.id) === r.source_group_id,
+                    )
+                  : -1;
+              const targetIdx = dupStageIndexById.get(r.target_stage_id);
+              return targetIdx === undefined
+                ? null
+                : {
+                    position_from: r.position_from,
+                    position_to: r.position_to,
+                    source_group_index: groupIdx >= 0 ? groupIdx : null,
+                    target_stage_index: targetIdx,
+                  };
+            })
+            .filter(Boolean) as AdvancementRuleInput[],
           groups: (stage.groups ?? []).map((group: any) => ({
             group_name: group.group_name,
             group_discord_role_id: "",
@@ -373,6 +399,9 @@ export default function CreateEventPage() {
         point_rush_enabled: existing.point_rush_enabled ?? false,
         point_rush_reward: existing.point_rush_reward ?? {},
         point_rush_target_index: existing.point_rush_target_index,
+        // ── Branching advancement rules carried back into the modal (feature #9). The form
+        //    already stores them as indices (StageType), so pass them straight through. ──
+        advancement_rules: existing.advancement_rules ?? [],
         // ── Round-Robin config carried back (default if the stage had none). ──
         round_robin: existing.round_robin ?? DEFAULT_ROUND_ROBIN_CONFIG,
       });
@@ -523,7 +552,13 @@ export default function CreateEventPage() {
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
       stage_format: stageModalData.stage_format,
-      groups: tempGroups,
+      // A round-robin stage's lobbies come from its base groups (the round_robin config below),
+      // NOT the classic per-group list. tempGroups can still hold leftover classic groups (e.g. the
+      // default "Group A" from before the format was switched to round-robin); sending those makes
+      // the backend's normal group loop (afc_tournament_and_scrims.views.create_event) create a
+      // STRAY extra group alongside the round-robin lobbies. Bug fix 2026-06-29: send [] for
+      // round-robin so only the base groups + game-day lobbies are created.
+      groups: isRoundRobinStage ? [] : tempGroups,
       teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
       prizepool: stageModalData.prizepool,
       prizepool_cash_value: stageModalData.prizepool_cash_value,
@@ -534,6 +569,9 @@ export default function CreateEventPage() {
       point_rush_enabled: stageModalData.point_rush_enabled,
       point_rush_reward: stageModalData.point_rush_reward,
       point_rush_target_index: stageModalData.point_rush_target_index,
+      // ── Branching advancement rules (feature #9) - rides into the FormData stages array;
+      //    resolved to StageAdvancementRule rows in the backend create second pass. ──
+      advancement_rules: stageModalData.advancement_rules ?? [],
       // ── Round-Robin config (sub-project B) - only meaningful for the BR
       //    Round-Robin format; sent only when that format is selected so other
       //    bracket types don't carry a stray round_robin payload. ──
@@ -894,6 +932,17 @@ export default function CreateEventPage() {
         formData.append(
           "require_player_uid",
           String((form.getValues("require_player_uid" as never) as unknown as boolean) ?? false),
+        );
+        // Letter-avatars registration gate (feature #7, owner 2026-06-29). UNLIKE the require_*
+        // toggles above this is a NUMBER (0-26, 0 = off), written into RHF by Step1EventDetails'
+        // "Require letter avatars" Switch + count input. create_event re-parses + clamps it
+        // (_parse_min_letter_avatars) into Event.min_letter_avatars, which register_for_event then
+        // enforces. Without this append the toggle never reached the backend.
+        formData.append(
+          "min_letter_avatars",
+          String(
+            Number((form.getValues("min_letter_avatars" as never) as unknown as number) ?? 0) || 0,
+          ),
         );
 
         const response = await fetch(

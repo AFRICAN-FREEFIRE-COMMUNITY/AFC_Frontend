@@ -1,0 +1,64 @@
+{
+  "tour": {
+    "sidebar": {
+      "title": "Navigation parmi vos fournisseurs",
+      "description": "Utilisez cette barre latérale pour naviguer dans le portail des fournisseurs : « Commandes à traiter », « Votre catalogue de produits » et « Paiements » pour vos coordonnées bancaires. La section dans laquelle vous vous trouvez est surlignée en vert."
+    },
+    "orders": {
+      "intro": {
+        "title": "Vos commandes à traiter",
+        "description": "Voici votre file d'attente des commandes à traiter. Toutes les commandes payées qui vous sont destinées s'affichent ici, prêtes à être transmises au service de livraison."
+      },
+      "search": {
+        "title": "Trouver rapidement une commande",
+        "description": "Effectuez une recherche par acheteur, numéro de commande ou article, puis filtrez les résultats par statut d'exécution afin d'accéder directement aux commandes qui nécessitent votre attention."
+      },
+      "table": {
+        "title": "Passer une commande",
+        "description": "Chaque ligne indique le nom de l'acheteur, l'adresse de livraison, les articles et le statut actuel. Cliquez sur « Ouvrir » pour suivre les étapes de cette commande."
+      }
+    },
+    "orderDetail": {
+      "intro": {
+        "title": "Traiter une seule commande",
+        "description": "Cette page retrace le parcours d'une commande, depuis sa réception jusqu'à son exécution. Le badge situé à côté du titre indique où elle en est actuellement."
+      },
+      "details": {
+        "title": "Articles et livraison",
+        "description": "Vérifiez la commande et la destination avant d'expédier le colis. L'adresse de livraison de l'acheteur figure juste à côté des articles."
+      },
+      "fulfilment": {
+        "title": "Suivez les étapes",
+        "description": "Validez la commande, fixez une date d'expédition, téléchargez la preuve d'expédition, puis marquez la commande comme terminée. À chaque étape, seule l'action suivante que vous pouvez effectuer s'affiche."
+      }
+    },
+    "products": {
+      "create": {
+        "title": "Créer un produit",
+        "description": "Ajoutez ici un nouveau produit à votre catalogue. Définissez son nom, sa catégorie et une ou plusieurs variantes avec prix."
+      },
+      "review": {
+        "title": "Comment fonctionne le processus de validation ?",
+        "description": "Chaque produit commence par un brouillon. Il n'est accessible aux acheteurs qu'une fois que vous l'avez soumis et que l'équipe AFC l'a approuvé. S'il est rejeté, la raison s'affiche dans la ligne correspondante afin que vous puissiez le corriger et réessayer."
+      },
+      "table": {
+        "title": "Votre catalogue",
+        "description": "Chaque produit affiche son prix le plus bas, le nombre de variantes et son statut de validation. Vous pouvez modifier ou valider un brouillon directement depuis sa ligne."
+      }
+    },
+    "payouts": {
+      "intro": {
+        "title": "Recevez le paiement de vos commandes",
+        "description": "C'est ici que vous indiquez le compte bancaire sur lequel AFC vous verse vos gains. Nous vous versons automatiquement votre part pour chaque commande finalisée."
+      },
+      "how": {
+        "title": "Comment fonctionnent les versements",
+        "description": "Les acheteurs paient AFC, vous traitez la commande, puis AFC transfère votre part sur le compte bancaire enregistré dans nos fichiers. Assurez-vous que le nom du titulaire du compte correspond bien à celui figurant dans vos dossiers."
+      },
+      "form": {
+        "title": "Ajoutez votre compte bancaire",
+        "description": "Choisissez votre banque, saisissez votre numéro de compte, puis cliquez sur « Valider » pour vérifier le nom. Une fois que les informations correspondent, enregistrez-les et vous êtes prêt à recevoir votre paiement."
+      }
+    }
+  }
+}

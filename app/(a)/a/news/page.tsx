@@ -83,6 +83,10 @@ const page = () => {
     switch (status.toLowerCase()) {
       case "published":
         return "default";
+      // "scheduled" = a future-dated post that the publish_scheduled_news task will auto-release.
+      // Outline (gold border via className below) so it reads as "pending", distinct from live posts.
+      case "scheduled":
+        return "outline";
       case "draft":
         return "secondary";
       case "archived":
@@ -286,6 +290,8 @@ const page = () => {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="published">Published</SelectItem>
+                {/* Scheduled = not yet public; backend returns status "scheduled" for these. */}
+                <SelectItem value="scheduled">Scheduled</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="archived">Archived</SelectItem>
               </SelectContent>
@@ -395,7 +401,11 @@ const page = () => {
                       variant={getStatusBadgeVariant(
                         newsDetails.status || "published",
                       )}
-                      className="text-xs capitalize"
+                      className={`text-xs capitalize ${
+                        newsDetails.status === "scheduled"
+                          ? "border-amber-500/50 text-amber-600 dark:text-amber-400"
+                          : ""
+                      }`}
                     >
                       {newsDetails.status || "Published"}
                     </Badge>
@@ -426,6 +436,18 @@ const page = () => {
                       )}
                     </span>
                   </div>
+                  {/* Auto-release time for a not-yet-published (scheduled) article. Rendered in the
+                      admin's local timezone via formatDate(..., true); the Celery task flips it live then. */}
+                  {newsDetails.status === "scheduled" &&
+                    newsDetails.scheduled_publish_at && (
+                      <div className="flex items-center gap-1.5 mb-3 text-xs font-medium text-amber-600 dark:text-amber-400">
+                        <IconCalendar size={14} />
+                        <span>
+                          Scheduled for{" "}
+                          {formatDate(newsDetails.scheduled_publish_at, true)}
+                        </span>
+                      </div>
+                    )}
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-3 break-words overflow-hidden flex-grow">
                     {truncateText(extractTiptapText(newsDetails.content), 150)}
                   </p>

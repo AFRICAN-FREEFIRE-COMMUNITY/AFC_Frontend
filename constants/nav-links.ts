@@ -1,9 +1,7 @@
 import {
   IconArticle,
-  IconBan,
   IconBuilding,
   IconCalendar,
-  IconEye,
   IconChartBarPopular,
   IconFolder,
   IconHome,
@@ -137,17 +135,19 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconHome,
     allowedRoles: ["head_admin"],
   },
-  // Teams + Players are now ONE combined page (owner request 2026-06-09): the two
-  // standalone admin pages were merged into a single two-tab page at /a/teams
-  // (Teams | Players). /a/players redirects there with ?tab=players. This single
-  // sidebar entry replaces the old separate "Admin Players" + "Admin Teams" links.
-  // allowedRoles is the union of the old two (head_admin saw players; teams_admin +
-  // head_admin saw teams) so neither audience loses access to the merged page.
+  // Teams + Players are now ONE combined page (owner request 2026-06-09), and the
+  // Blacklists + Watchlist dashboards were folded in as tabs (owner 2026-06-29), so this
+  // ONE entry is the home for Teams | Players | Blacklists | Reports | Watchlist. /a/players,
+  // /a/blacklists and /a/watchlist all redirect here with the matching ?tab= (next.config.ts).
+  // allowedRoles is the UNION of every folded-in surface's old gate (teams_admin:
+  // teams/players/reports; organizer_admin: blacklists; event_admin: watchlist) so no audience
+  // loses access; the page itself shows each viewer only the tabs their roles allow (per-tab
+  // gating in app/(a)/a/teams/page.tsx).
   {
     label: "Teams & Players",
     slug: "/a/teams",
     icon: IconUsersGroup,
-    allowedRoles: ["head_admin", "teams_admin"],
+    allowedRoles: ["head_admin", "teams_admin", "event_admin", "organizer_admin"],
   },
   {
     slug: "/a/player-markets",
@@ -188,28 +188,12 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconUsersGroup,
     allowedRoles: ["head_admin", "organizer_admin"],
   },
-  {
-    // Blacklist visibility dashboard (owner ask 2026-06-12): every organizer
-    // blacklist across all orgs - how many times, by whom, and why - with stat
-    // cards + filters (app/(a)/a/blacklists/page.tsx). Sits next to Organizations
-    // because it oversees the same organizer ecosystem, gated to the SAME roles the
-    // backend endpoint checks (is_platform_org_admin: head_admin / organizer_admin).
-    label: "Blacklists",
-    slug: "/a/blacklists",
-    icon: IconBan,
-    allowedRoles: ["head_admin", "organizer_admin"],
-  },
-  {
-    // Watchlist (owner 2026-06-21): shared advisory list of suspicious players/teams that
-    // admins + organizers flag for everyone to watch out for (NOT a ban — purely a warning +
-    // name tags). Page app/(a)/a/watchlist/page.tsx; backend afc_auth/views_watchlist.py.
-    // Gated to the moderation-adjacent admin roles (the backend gate also allows organizers,
-    // who reach it from the organizer dashboard).
-    label: "Watchlist",
-    slug: "/a/watchlist",
-    icon: IconEye,
-    allowedRoles: ["head_admin", "event_admin", "teams_admin", "organizer_admin"],
-  },
+  // Blacklists (owner ask 2026-06-12) and Watchlist (owner 2026-06-21) were standalone sidebar
+  // entries here; owner 2026-06-29 folded them UNDER the "Teams & Players" page as tabs
+  // (?tab=blacklists / ?tab=watchlist), so their main-nav entries were removed. Access is
+  // preserved via the broadened "Teams & Players" gate + per-tab role gating (see page.tsx);
+  // old links redirect (next.config.ts). BlacklistsTable + WatchlistAdminContent live on under
+  // app/(a)/a/blacklists/_components and app/(a)/a/watchlist/_components.
   {
     // Data-API partner management (afc_partner_api admin surface). Gated on
     // head_admin / partner_admin to match the backend's _is_partner_admin check

@@ -284,7 +284,20 @@
       "saved": "Image esport enregistrée.",
       "uploadFailed": "Échec du téléchargement de l'image esport."
     },
-    "identityLocked": "Verrouillé tant que vous êtes inscrit à un événement. Vous pourrez le modifier à nouveau une fois vos événements terminés."
+    "identityLocked": "Verrouillé tant que vous êtes inscrit à un événement. Vous pourrez le modifier à nouveau une fois vos événements terminés.",
+    "statsVisible": {
+      "label": "Afficher mes statistiques aux autres",
+      "description": "Vos statistiques sont privées par défaut. Activez cette option pour permettre aux autres de les consulter."
+    },
+    "letterAvatars": {
+      "title": "Avatars de lettres",
+      "infoTip": "Free Fire attribue à chaque lettre (de A à Z) son propre avatar. Choisissez les avatars de lettres que vous possédez. Certains événements exigent que votre équipe dispose d'un nombre défini d'avatars de lettres avant de pouvoir s'inscrire.",
+      "description": "Sélectionnez les avatars « Free Fire » représentant des lettres que vous possédez. Vos équipes et les organisateurs d'événements s'en servent pour savoir quelles lettres votre équipe peut aligner.",
+      "selectAll": "Tout sélectionner",
+      "clear": "Effacer",
+      "explainerAlt": "Grille de référence pour les avatars de Free Fire",
+      "saveNote": "Vos avatars de lettres sont enregistrés lorsque vous cliquez sur « Enregistrer les modifications »."
+    }
   },
   "password": {
     "title": "Changer le mot de passe",

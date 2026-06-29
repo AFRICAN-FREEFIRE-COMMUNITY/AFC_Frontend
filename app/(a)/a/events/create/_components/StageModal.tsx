@@ -403,6 +403,7 @@ import {
   FORMATTED_WORD,
   GroupType,
   STAGE_FORMATS,
+  type AdvancementRuleInput,
 } from "./types";
 // Shared Round-Robin builder (sub-project B) - same panel used by the edit flow.
 import {
@@ -429,6 +430,10 @@ export interface StageModalData {
   point_rush_enabled: boolean;
   point_rush_reward: Record<string, number>; // {"1":10,"2":7,...} placement→bonus
   point_rush_target_index?: number; // 0-based index of the LATER stage that banks the bonus
+  // ── Branching advancement rules (feature #9). Optional repeatable rows; presence = branching
+  //    mode (rules OVERRIDE the single teams_qualifying field at advance time). Rides into the
+  //    FormData stages array on save; resolved to StageAdvancementRule rows by the backend. ──
+  advancement_rules?: AdvancementRuleInput[];
   // ── Round-Robin config (sub-project B). Edited only when stage_format is
   //    "br - round robin"; rides into the FormData stages array on save. ──
   round_robin: RoundRobinConfig;
@@ -572,6 +577,225 @@ function PrizePoolSection({
           <Plus className="w-3.5 h-3.5 mr-1" /> Add Prize Position
         </Button>
       </div>
+    </div>
+  );
+}
+
+// ── Reusable Advancement Routing Section (feature #9) ───────────────────────────
+// The authoring UI for branching advancement. OFF (no rules) keeps the legacy single
+// "Teams Qualifying from this Stage" field above; ON shows repeatable rows of
+// [From #][To #][from: All groups | Group N][-> target later-stage]. Each row maps to a
+// StageAdvancementRule (positions [from..to] of this stage / one group advance into a later
+// stage). Rides via stageModalData.advancement_rules; the target Select reuses the exact
+// later-stages filter the Point-Rush target uses. Shared verbatim by the create StageModal and
+// (a copy of) the edit StageConfigModal, mirroring how PrizePoolSection is duplicated per modal.
+interface AdvancementRoutingSectionProps {
+  rules: AdvancementRuleInput[] | undefined;
+  onChange: (rules: AdvancementRuleInput[]) => void;
+  // Stage names + the index being edited -> the list of LATER stages a rule can target.
+  stageNames: string[];
+  editingStageIndex: number | null;
+  // The group labels of THIS stage, for the per-group scope option (empty -> stage-wide only).
+  groupOptions: { index: number; label: string }[];
+}
+
+function AdvancementRoutingSection({
+  rules,
+  onChange,
+  stageNames,
+  editingStageIndex,
+  groupOptions,
+}: AdvancementRoutingSectionProps) {
+  const list = rules ?? [];
+  const branchingOn = list.length > 0;
+
+  // The later stages this stage can route into (same filter as the Point-Rush target).
+  const laterStages = stageNames
+    .map((name, idx) => ({ name, idx }))
+    .filter(({ idx }) => editingStageIndex === null || idx > editingStageIndex);
+  const firstLaterIdx = laterStages.length > 0 ? laterStages[0].idx : undefined;
+
+  const addRow = () => {
+    // A new row defaults to "top 1" of the whole stage into the first available later stage.
+    onChange([
+      ...list,
+      {
+        position_from: 1,
+        position_to: 1,
+        source_group_index: null,
+        target_stage_index: firstLaterIdx ?? 0,
+      },
+    ]);
+  };
+
+  const updateRow = (i: number, patch: Partial<AdvancementRuleInput>) => {
+    const next = list.map((r, idx) => (idx === i ? { ...r, ...patch } : r));
+    onChange(next);
+  };
+
+  const removeRow = (i: number) => {
+    onChange(list.filter((_, idx) => idx !== i));
+  };
+
+  return (
+    <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-primary">
+            Advancement Routing (optional)
+            <InfoTip id="events.create.advancement_routing" className="ml-1" />
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Split this stage's finishers into different later stages (e.g. top 1 to 8 to
+            the Finals, 9 to 16 to the Play-In). Off uses the single qualifier above.
+          </p>
+        </div>
+        <Switch
+          checked={branchingOn}
+          onCheckedChange={(checked) => {
+            // ON seeds one starter row; OFF clears all rules (back to the single qualifier).
+            if (checked) {
+              if (list.length === 0) addRow();
+            } else {
+              onChange([]);
+            }
+          }}
+        />
+      </div>
+
+      {branchingOn && (
+        <div className="space-y-3">
+          {laterStages.length === 0 && (
+            <p className="text-xs text-muted-foreground italic">
+              Add a later stage to route finishers into.
+            </p>
+          )}
+          {list.map((rule, i) => (
+            <div
+              key={i}
+              className="space-y-2 rounded-md border bg-background p-3"
+            >
+              <div className="flex flex-wrap items-end gap-2">
+                {/* From # */}
+                <div className="w-20">
+                  <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
+                    From #
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={rule.position_from}
+                    onChange={(e) =>
+                      updateRow(i, {
+                        position_from:
+                          e.target.value === "" ? 1 : Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                {/* To # */}
+                <div className="w-20">
+                  <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
+                    To #
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={rule.position_to}
+                    onChange={(e) =>
+                      updateRow(i, {
+                        position_to:
+                          e.target.value === "" ? 1 : Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                {/* Source scope: All groups (stage-wide) or one group */}
+                <div className="flex-1 min-w-[140px]">
+                  <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
+                    From
+                  </label>
+                  <Select
+                    value={
+                      rule.source_group_index === null ||
+                      rule.source_group_index === undefined
+                        ? "stage"
+                        : String(rule.source_group_index)
+                    }
+                    onValueChange={(value) =>
+                      updateRow(i, {
+                        source_group_index:
+                          value === "stage" ? null : Number(value),
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="stage">All groups (whole stage)</SelectItem>
+                      {groupOptions.map((g) => (
+                        <SelectItem key={g.index} value={String(g.index)}>
+                          {g.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex items-end gap-2">
+                {/* Target later stage (same options as the Point-Rush target) */}
+                <div className="flex-1">
+                  <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
+                    Advance to
+                  </label>
+                  <Select
+                    value={
+                      rule.target_stage_index === undefined
+                        ? ""
+                        : String(rule.target_stage_index)
+                    }
+                    onValueChange={(value) =>
+                      updateRow(i, { target_stage_index: Number(value) })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a later stage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {laterStages.map(({ name, idx }) => (
+                        <SelectItem key={idx} value={String(idx)}>
+                          {name || `Stage ${idx + 1}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeRow(i)}
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+          {laterStages.length > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addRow}
+              className="w-full"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Routing Rule
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -975,6 +1199,28 @@ export function StageModal({
                 }
               />
             </div>
+
+            {/* Branching advancement routing (feature #9). Off (default) uses the single
+                qualifier above; on splits the stage's finishers into different later stages.
+                Group options are the classic groups (none for round-robin -> stage-wide only). */}
+            <AdvancementRoutingSection
+              rules={stageModalData.advancement_rules}
+              onChange={(rules) =>
+                setStageModalData({ ...stageModalData, advancement_rules: rules })
+              }
+              stageNames={stageNames}
+              editingStageIndex={editingStageIndex}
+              groupOptions={
+                isRoundRobin
+                  ? []
+                  : tempGroups
+                      .slice(0, stageModalData.number_of_groups)
+                      .map((g, idx) => ({
+                        index: idx,
+                        label: g.group_name || `Group ${idx + 1}`,
+                      }))
+              }
+            />
 
             {/* Classic "Number of Groups" - NOT used for round-robin (its base groups
                 above define the structure), so it is hidden for that format with a note. */}

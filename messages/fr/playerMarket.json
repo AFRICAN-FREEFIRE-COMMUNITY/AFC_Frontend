@@ -1,0 +1,43 @@
+{
+  "phone": {
+    "label": "Appareil mobile actuel",
+    "placeholder": "Sélectionnez votre téléphone",
+    "search": "Recherchez ou saisissez votre numéro de téléphone",
+    "other": "Utilisez « {q} »",
+    "empty": "Aucun téléphone détecté. Tapez pour en utiliser un personnalisé.",
+    "help": "Les équipes voient cette information dans votre publication. Choisissez le vôtre dans la liste ou saisissez n'importe quel autre numéro de téléphone."
+  },
+  "screenshots": {
+    "label": "Captures d'écran du profil dans le jeu",
+    "help": "Ajoutez jusqu'à 3 captures d'écran de votre profil dans le jeu afin que les équipes puissent consulter vos statistiques. Taille maximale : 10 Mo par capture.",
+    "add": "Ajouter une capture d'écran",
+    "remove": "Supprimer la capture d'écran",
+    "max": "Vous pouvez ajouter jusqu'à 3 captures d'écran.",
+    "tooLarge": "Chaque capture d'écran doit peser 10 Mo ou moins.",
+    "heading": "Captures d'écran du profil",
+    "current": "Captures d'écran actuelles",
+    "removeAll": "Supprimer toutes les captures d'écran",
+    "replaceHint": "De nouvelles captures d'écran ont été ajoutées à votre message. Les captures d'écran marquées sont supprimées lorsque vous enregistrez.",
+    "undoRemove": "Annuler"
+  },
+  "location": {
+    "label": "Statut de résident",
+    "placeholder": "Sélectionnez votre État",
+    "optional": "Facultatif",
+    "help": "Facultatif. Affiché aux équipes afin qu'elles puissent trouver des joueurs dans leur région.",
+    "detected": "Votre emplacement : {country}",
+    "unavailable": "Nous n'avons pas pu identifier votre pays ; le champ « État » n'est donc pas disponible.",
+    "none": "Effacer la sélection"
+  },
+  "uid": {
+    "label": "UID Free Fire",
+    "copy": "Copier l'UID",
+    "copied": "UID copié"
+  },
+  "filter": {
+    "countryPlaceholder": "N'importe quel pays",
+    "statePlaceholder": "Filtrer par département",
+    "stateHint": "Choisissez un pays, puis filtrez les joueurs par région.",
+    "stateDisabled": "Choisissez d'abord un pays"
+  }
+}

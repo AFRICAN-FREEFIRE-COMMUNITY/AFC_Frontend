@@ -29,5 +29,6 @@
   "addError": "Could not add to the watchlist.",
   "removeError": "Could not remove from the watchlist.",
   "added": "added to the watchlist.",
-  "removed": "removed from the watchlist."
+  "removed": "removed from the watchlist.",
+  "addedBy": "Added by"
 }

@@ -429,6 +429,66 @@ export default function BasicInfoTab({
               />
             </div>
           ))}
+          {/* ── Require letter avatars (feature #7, owner 2026-06-29) ──────────────────────────
+              UNLIKE the four boolean toggles above, this gate is a NUMBER: 0 = off, 1-26 = the
+              required minimum. Mirrors the create wizard's Step1EventDetails control. Backed by the
+              SAME requirementsForm (the edit page's waitlistForm) state + saved by saveWaitlistSettings,
+              which appends min_letter_avatars to edit_event. Blocks registration until a team/player
+              has at least N Free Fire letter avatars available (enforced in register_for_event). */}
+          {(() => {
+            // 0 (or unset) = OFF. Any value > 0 reveals the 1-26 count input and turns the gate on.
+            const current = Number(requirementsForm.min_letter_avatars ?? 0) || 0;
+            const enabled = current > 0;
+            return (
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="req-min-letter-avatars">
+                    Require letter avatars
+                    <InfoTip
+                      text="Teams or players must have at least this many Free Fire letter avatars (A-Z) available before they can register. A team's available letters are the combined letters its members own plus any manual extras added on the team editor."
+                      className="ml-1"
+                    />
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Set the minimum number of letter avatars (1 to 26) competitors must have available
+                    to register.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {/* Count input only when the gate is on. Clamped 1-26 (26 letters exist). */}
+                  {enabled && (
+                    <Input
+                      type="number"
+                      min={1}
+                      max={26}
+                      value={current}
+                      onChange={(e) =>
+                        setRequirementsForm((p: any) => ({
+                          ...p,
+                          min_letter_avatars: Math.max(
+                            1,
+                            Math.min(26, Number(e.target.value) || 1),
+                          ),
+                        }))
+                      }
+                      className="w-20"
+                    />
+                  )}
+                  <Switch
+                    id="req-min-letter-avatars"
+                    checked={enabled}
+                    // Toggling on seeds a sensible default of 1; off clears to 0.
+                    onCheckedChange={(on) =>
+                      setRequirementsForm((p: any) => ({
+                        ...p,
+                        min_letter_avatars: on ? 1 : 0,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── Discord registration gate (per-event) ────────────────────────────────

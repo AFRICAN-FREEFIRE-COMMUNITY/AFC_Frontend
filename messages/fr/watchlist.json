@@ -29,5 +29,6 @@
   "addError": "Impossible d'ajouter à la liste de suivi.",
   "removeError": "Impossible de supprimer de la liste de surveillance.",
   "added": "ajouté à la liste de suivi.",
-  "removed": "retiré de la liste de surveillance."
+  "removed": "retiré de la liste de surveillance.",
+  "addedBy": "Ajouté par"
 }

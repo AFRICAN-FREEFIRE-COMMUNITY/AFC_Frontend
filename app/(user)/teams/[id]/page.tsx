@@ -139,6 +139,9 @@ const Page = ({ params }: { params: Params }) => {
   const t = useTranslations("teamsplayers");
   // Report-dialog copy (separate namespace, messages/en/playerReports.json).
   const tReport = useTranslations("playerReports");
+  // Team-feature copy (messages/en/team.json -> "letterAvatars"): the read-only letter-avatar chips
+  // shown in the Overview tab. Same namespace the team-edit manager panel uses.
+  const tTeam = useTranslations("team");
   const router = useRouter();
   const { openAuthModal } = useAuthModal();
   const [inviteLink, setInviteLink] = useState("");
@@ -524,6 +527,14 @@ const Page = ({ params }: { params: Params }) => {
 
   if (pending) return <FullLoader />;
 
+  // Letter avatars (read-only) for the Overview tab. The backend LIVE-DERIVES the team's available
+  // letters (member union ∪ manual extras) in get-team-details. We split member-derived letters
+  // (primary chips) from manager-added manual extras (gold chips) using member_letters. Managers
+  // edit these on the team-edit page (app/(user)/teams/[id]/edit).
+  const teamMemberLetters: string[] = teamDetails?.member_letters ?? [];
+  const teamMemberLetterSet = new Set(teamMemberLetters);
+  const teamAvailableLetters: string[] = teamDetails?.available_letters ?? [];
+
   if (teamDetails)
     return (
       <div>
@@ -804,6 +815,37 @@ const Page = ({ params }: { params: Params }) => {
                           <LocalTime value={teamDetails?.creation_date} mode="date" />
                         </p>
                       </div>
+                    </div>
+
+                    {/* Letter avatars (read-only). The team's available Free Fire letter avatars,
+                        LIVE-DERIVED by the backend (member union ∪ manual extras) and returned by
+                        get-team-details. Member-covered letters render as primary chips; manager-added
+                        extras render as gold chips. Managers edit these on the team-edit page. */}
+                    <div className="mt-6 border-t pt-4">
+                      <p className="text-sm text-muted-foreground">
+                        {tTeam("letterAvatars.availableTitle")}
+                      </p>
+                      {teamAvailableLetters.length === 0 ? (
+                        <p className="mt-1 text-xs italic text-muted-foreground">
+                          {tTeam("letterAvatars.none")}
+                        </p>
+                      ) : (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {teamAvailableLetters.map((letter: string) => (
+                            <Badge
+                              key={letter}
+                              variant="outline"
+                              className={
+                                teamMemberLetterSet.has(letter)
+                                  ? "rounded-full text-xs border-primary text-primary"
+                                  : "rounded-full text-xs border-gold text-gold"
+                              }
+                            >
+                              {letter}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

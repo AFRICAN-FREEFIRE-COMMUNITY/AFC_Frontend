@@ -1,0 +1,25 @@
+{
+  "statsVisibility": {
+    "label": "Mostrar estatísticas da equipa publicamente",
+    "description": "As estatísticas da tua equipa são privadas por predefinição. Ativa esta opção para permitir que os outros as vejam.",
+    "saved": "A visibilidade das estatísticas da equipa foi atualizada.",
+    "saveFailed": "Não foi possível atualizar a visibilidade das estatísticas da equipa."
+  },
+  "letterAvatars": {
+    "label": "Avatares com o nome da equipa",
+    "description": "Os avatares com letras do Free Fire que a tua equipa pode utilizar. Os avatares com letras de cada membro são adicionados automaticamente. Adiciona abaixo quaisquer letras adicionais que a tua equipa possua.",
+    "availableTitle": "Avatares de letras",
+    "availableCount": "A equipa tem um nome «{count}» composto por 26 letras",
+    "fromMembers": "Dos membros",
+    "manualExtras": "Adicionado manualmente",
+    "none": "Ainda não há avatares com letras.",
+    "selectAll": "Selecionar tudo",
+    "clear": "Limpar",
+    "lockedHint": "Já foi tratado por um membro da equipa",
+    "save": "Guardar cartas",
+    "saving": "Poupança",
+    "saved": "As letras das equipas foram atualizadas.",
+    "saveFailed": "Não foi possível atualizar as letras das equipas.",
+    "explainerAlt": "Referência de avatares com letras do Free Fire"
+  }
+}

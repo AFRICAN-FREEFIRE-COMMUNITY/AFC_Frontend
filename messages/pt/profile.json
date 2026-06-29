@@ -284,7 +284,20 @@
       "saved": "Imagem de esport salva.",
       "uploadFailed": "Falha ao carregar a imagem de esport."
     },
-    "identityLocked": "Bloqueado enquanto estiver registado para um evento. Pode editar isto novamente assim que os seus eventos terminarem."
+    "identityLocked": "Bloqueado enquanto estiver registado para um evento. Pode editar isto novamente assim que os seus eventos terminarem.",
+    "statsVisible": {
+      "label": "Mostrar as minhas estatísticas aos outros",
+      "description": "As tuas estatísticas são privadas por predefinição. Ativa esta opção para permitir que outras pessoas as vejam."
+    },
+    "letterAvatars": {
+      "title": "Avatares de letras",
+      "infoTip": "O Free Fire atribui a cada letra (de A a Z) o seu próprio avatar. Escolhe os avatares de letras que tens. Alguns eventos exigem que a tua equipa tenha um determinado número de avatares de letras para que possas inscrever-te.",
+      "description": "Escolhe os avatares com letras do Free Fire que tens. As tuas equipas e os organizadores do evento utilizam esta informação para saber quais as letras que a tua equipa pode colocar em campo.",
+      "selectAll": "Selecionar tudo",
+      "clear": "Limpar",
+      "explainerAlt": "Grelha de referência para avatares de cartas do Free Fire",
+      "saveNote": "Os avatares das tuas letras ficam guardados quando clicas em «Guardar alterações»."
+    }
   },
   "password": {
     "title": "Alterar Senha",

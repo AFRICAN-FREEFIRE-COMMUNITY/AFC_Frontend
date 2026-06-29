@@ -1,0 +1,43 @@
+{
+  "phone": {
+    "label": "Current Mobile Device",
+    "placeholder": "Select your phone",
+    "search": "Search or type your phone",
+    "other": "Use \"{q}\"",
+    "empty": "No phone found. Type to use a custom one.",
+    "help": "Teams see this on your post. Pick yours from the list, or type any other phone."
+  },
+  "screenshots": {
+    "label": "In-Game Profile Screenshots",
+    "help": "Add up to 3 screenshots of your in-game profile so teams can see your stats. Max 10 MB each.",
+    "add": "Add screenshot",
+    "remove": "Remove screenshot",
+    "max": "You can add up to 3 screenshots.",
+    "tooLarge": "Each screenshot must be 10 MB or smaller.",
+    "heading": "Profile Screenshots",
+    "current": "Current screenshots",
+    "removeAll": "Remove all screenshots",
+    "replaceHint": "New screenshots are added to your post. Marked screenshots are removed when you save.",
+    "undoRemove": "Undo"
+  },
+  "location": {
+    "label": "Residential State",
+    "placeholder": "Select your state",
+    "optional": "Optional",
+    "help": "Optional. Shown to teams so they can find players in their area.",
+    "detected": "Your location: {country}",
+    "unavailable": "We could not detect your country, so the state field is unavailable.",
+    "none": "Clear selection"
+  },
+  "uid": {
+    "label": "Free Fire UID",
+    "copy": "Copy UID",
+    "copied": "UID copied"
+  },
+  "filter": {
+    "countryPlaceholder": "Any country",
+    "statePlaceholder": "Filter by state",
+    "stateHint": "Pick a country, then filter players by its states.",
+    "stateDisabled": "Select a country first"
+  }
+}

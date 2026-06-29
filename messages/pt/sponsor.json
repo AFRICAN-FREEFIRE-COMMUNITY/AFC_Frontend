@@ -1,0 +1,22 @@
+{
+  "tour": {
+    "dashboard": {
+      "intro": {
+        "title": "Bem-vindo ao seu portal de patrocinadores",
+        "description": "Esta é a sua área de patrocinador. Utilize o cabeçalho para voltar ao site principal ou para terminar a sessão. Tudo o que precisa para gerir os seus eventos patrocinados encontra-se abaixo."
+      },
+      "welcome": {
+        "title": "O seu painel de controlo de patrocinador",
+        "description": "Uma visão geral rápida dos inscritos em todos os eventos que patrocina, para que possa ver, num piscar de olhos, o que requer a sua atenção."
+      },
+      "filters": {
+        "title": "Encontre o que precisa",
+        "description": "Limite a sua visualização aqui. Alterne entre os seus patrocinadores ou pesquise e filtre a lista, para que se possa concentrar num único evento ou estado."
+      },
+      "list": {
+        "title": "Os seus eventos e inscritos",
+        "description": "Aceda a um evento para consultar os jogadores inscritos sob o seu patrocínio, confirmá-los ou rejeitá-los e exportar a lista quando precisar."
+      }
+    }
+  }
+}

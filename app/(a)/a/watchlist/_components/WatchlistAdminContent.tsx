@@ -1,11 +1,18 @@
 "use client";
 
-// Admin Watchlist page (/a/watchlist) — owner 2026-06-21.
-// The shared advisory watchlist of suspicious players + teams (NOT a ban — a warning + name
-// tags so admins/organizers watch out for them). Renders the shared <WatchlistManager> with
-// ENGLISH labels: admin pages under (a)/ are operated in English and are i18n-EXEMPT (per
-// WEBSITE/CLAUDE.md). The organizer mirror at /organizer/watchlist passes localized labels.
-// Data: lib/watchlist.ts -> afc_auth/views_watchlist.py. Sidebar entry in constants/nav-links.ts.
+// WatchlistAdminContent
+// ─────────────────────
+// The admin watchlist surface (shared <WatchlistManager> with ENGLISH labels), extracted here
+// 2026-06-29 so the SAME component renders both:
+//   - the "Watchlist" tab on the combined Teams & Players page (app/(a)/a/teams/page.tsx), and
+//   - (previously) the standalone /a/watchlist route, now retired to a redirect -> /a/teams?tab=watchlist
+//     (next.config.ts), per owner request "blacklists + watchlist should sit UNDER /a/teams, not as
+//     their own main sidebar tabs".
+//
+// Admin pages under (a)/ are operated in English and are i18n-EXEMPT (per WEBSITE/CLAUDE.md), so the
+// labels are inline English; the organizer mirror at /organizer/watchlist passes localized labels.
+// Data: lib/watchlist.ts -> afc_auth/views_watchlist.py.
+
 import { WatchlistManager, type WatchlistLabels } from "@/components/watchlist/WatchlistManager";
 
 const EN: WatchlistLabels = {
@@ -43,10 +50,8 @@ const EN: WatchlistLabels = {
   removed: "removed from the watchlist.",
 };
 
-export default function AdminWatchlistPage() {
-  return (
-    <div className="container py-6">
-      <WatchlistManager labels={EN} />
-    </div>
-  );
+// Carries its own PageHeader (inside WatchlistManager), exactly like the Blacklists tab's
+// BlacklistsTable does, so it drops straight into a TabsContent with no extra chrome.
+export function WatchlistAdminContent() {
+  return <WatchlistManager labels={EN} />;
 }

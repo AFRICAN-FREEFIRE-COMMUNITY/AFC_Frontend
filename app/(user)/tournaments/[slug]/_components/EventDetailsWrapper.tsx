@@ -309,6 +309,11 @@ interface EventDetails {
   uploaded_rules_url: string | null;
   is_registered: boolean;
   is_public: boolean;
+  // Per-event results visibility (owner 2026-06-29): Event.results_published, echoed by the detail
+  // endpoints. false => the organizer has HIDDEN the public standings, so the Results + Structure
+  // views show a "Results not published yet" state (the backend also withholds the rows). Absent on
+  // legacy events => treated as published. Passed to StageResultsTable + TournamentStructure below.
+  results_published?: boolean;
   is_sponsored?: boolean;
   sponsor_name?: string;
   sponsor_field_label?: string;
@@ -1232,8 +1237,13 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
 const StageResultsTable: React.FC<{
   stage: Stage;
   participantType?: string;
-}> = ({ stage, participantType }) => {
+  // Per-event results visibility (owner 2026-06-29): when explicitly false the organizer has hidden
+  // the standings, so we show a "Results not published yet" state instead of the results table. The
+  // backend also withholds the rows; this is the user-facing explanation. Absent/true => normal.
+  resultsPublished?: boolean;
+}> = ({ stage, participantType, resultsPublished }) => {
   const t = useTranslations("tournaments");
+  const resultsHidden = resultsPublished === false;
   // Initialize with first group's ID
   const [selectedGroupId, setSelectedGroupId] = useState<string>(
     stage?.groups?.[0]?.group_id?.toString() || "",
@@ -1346,6 +1356,18 @@ const StageResultsTable: React.FC<{
           </h3>
         </div>
 
+        {/* Results hidden by the organizer (owner 2026-06-29): a clean "not published yet" state in
+            place of the standings table. The backend also withholds the rows; this explains why. */}
+        {resultsHidden ? (
+          <div className="rounded-md border p-10 text-center">
+            <p className="text-sm font-medium text-muted-foreground">
+              {t("stageResults.resultsNotPublished")}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("stageResults.resultsNotPublishedDesc")}
+            </p>
+          </div>
+        ) : (
         <div className="rounded-md border overflow-hidden shadow-inner">
           <Table>
             <TableHeader>
@@ -1434,6 +1456,7 @@ const StageResultsTable: React.FC<{
             </TableBody>
           </Table>
         </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -4471,9 +4494,46 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         });
         return;
       }
+      // ── Letter avatars registration gate (feature #7, owner 2026-06-29) ──
+      // register-for-event/ rejects with code:"letter_avatars_required" when the event requires
+      // N letter avatars but the team/player has fewer available (backend
+      // _letter_avatars_required_response, carrying required + available_count). We name the gap and
+      // jump the user to the right editor. Whether this is a TEAM or SOLO gate is decided by the EVENT
+      // (participant_type), NOT by whether the user happens to belong to a team: a solo-event registrant
+      // who is also on a roster must still be routed to /profile/edit, not the team letters editor.
+      // TEAM -> /teams/<id>/edit (members' letters + the team's manual extras); SOLO -> /profile/edit
+      // (the Free Fire letters they own). Mirrors the discord/team-logo branches.
+      if (data?.code === "letter_avatars_required") {
+        const required: number = data?.required ?? 0;
+        const available: number = data?.available_count ?? 0;
+        const isTeam = eventDetails?.participant_type !== "solo";
+        toast.error(
+          isTeam
+            ? t("register.toast.letterAvatars.title")
+            : t("register.toast.letterAvatars.soloTitle"),
+          {
+            description: isTeam
+              ? t("register.toast.letterAvatars.teamDescription", { required, available })
+              : t("register.toast.letterAvatars.soloDescription", { required, available }),
+            action: {
+              label: isTeam
+                ? t("register.toast.letterAvatars.teamAction")
+                : t("register.toast.letterAvatars.soloAction"),
+              onClick: () =>
+                router.push(
+                  isTeam && userTeam?.team_id
+                    ? `/teams/${userTeam.team_id}/edit`
+                    : "/profile/edit",
+                ),
+            },
+            duration: 15000,
+          },
+        );
+        return;
+      }
       toast.error(message);
     },
-    [router, userTeam, t, handleDiscordConnect],
+    [router, userTeam, t, handleDiscordConnect, eventDetails?.participant_type],
   );
 
   // ── PAID PATH ──────────────────────────────────────────────────────────────
@@ -5149,6 +5209,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   stages={eventDetails.stages as any}
                   participantType={eventDetails.participant_type}
                   timezone={eventDetails.timezone}
+                  // Hidden standings => group cards show "Results not published yet" (config stays).
+                  resultsPublished={eventDetails.results_published}
                 />
               ) : (
                 <Tabs
@@ -5180,6 +5242,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   <StageResultsTable
                     stage={stage}
                     participantType={eventDetails.participant_type}
+                    // Hidden standings => "Results not published yet" in place of the results table.
+                    resultsPublished={eventDetails.results_published}
                   />
                 </TabsContent>
               ))}

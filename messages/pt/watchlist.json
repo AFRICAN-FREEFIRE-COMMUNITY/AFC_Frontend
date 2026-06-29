@@ -29,5 +29,6 @@
   "addError": "Não foi possível adicionar à lista de observação.",
   "removeError": "Não foi possível remover da lista de observação.",
   "added": "adicionado à lista de observação.",
-  "removed": "retirado da lista de observação."
+  "removed": "retirado da lista de observação.",
+  "addedBy": "Adicionado por"
 }

@@ -1,0 +1,64 @@
+{
+  "tour": {
+    "sidebar": {
+      "title": "A sua navegação pelos fornecedores",
+      "description": "Utilize esta barra lateral para navegar no portal do fornecedor: Encomendas a processar, o seu catálogo de produtos e Pagamentos, onde pode introduzir os seus dados bancários. A secção em que se encontra está destacada a verde."
+    },
+    "orders": {
+      "intro": {
+        "title": "As suas encomendas a processar",
+        "description": "Esta é a sua fila de processamento de encomendas. Todas as encomendas pagas que estão à sua espera aparecem aqui, prontas para serem encaminhadas para entrega."
+      },
+      "search": {
+        "title": "Encontrar rapidamente uma encomenda",
+        "description": "Pesquise por comprador, número de encomenda ou artigo e filtre por estado de processamento, para que possa aceder diretamente às encomendas que requerem atenção."
+      },
+      "table": {
+        "title": "Abrir uma encomenda",
+        "description": "Cada linha apresenta o comprador, o destino da encomenda, os artigos e o estado atual. Clique em «Abrir» para seguir os passos dessa encomenda."
+      }
+    },
+    "orderDetail": {
+      "intro": {
+        "title": "Processar uma única encomenda",
+        "description": "Esta página acompanha o percurso de uma encomenda, desde a sua receção até à conclusão. O ícone junto ao título indica em que fase se encontra neste momento."
+      },
+      "details": {
+        "title": "Artigos e entrega",
+        "description": "Verifique o que foi encomendado e para onde vai antes de enviar. A morada de entrega do comprador aparece mesmo ao lado dos artigos."
+      },
+      "fulfilment": {
+        "title": "Siga os passos",
+        "description": "Confirme a encomenda, defina uma data de envio, carregue o comprovativo de envio e, em seguida, marque-a como concluída. Em cada etapa, é apresentada apenas a próxima ação que pode realizar."
+      }
+    },
+    "products": {
+      "create": {
+        "title": "Criar um produto",
+        "description": "Adicione aqui um novo produto ao seu catálogo. Defina o nome, a categoria e uma ou mais variantes com preços."
+      },
+      "review": {
+        "title": "Como funciona o processo de aprovação",
+        "description": "Todos os produtos começam por ser um rascunho. Só chegam aos compradores depois de os submeteres e de a equipa da AFC os aprovar. Se forem rejeitados, o motivo é indicado na linha correspondente, para que possas corrigir o problema e tentar novamente."
+      },
+      "table": {
+        "title": "O seu catálogo",
+        "description": "Cada produto apresenta o seu preço mais baixo, o número de variantes e o estado de aprovação. Pode editar ou enviar um rascunho diretamente a partir da respetiva linha."
+      }
+    },
+    "payouts": {
+      "intro": {
+        "title": "Receba o pagamento pelas suas encomendas",
+        "description": "É aqui que define a conta bancária para a qual a AFC lhe efetua os pagamentos. Enviamos automaticamente a sua parte de cada encomenda concluída."
+      },
+      "how": {
+        "title": "Como funcionam os pagamentos",
+        "description": "Os compradores pagam à AFC, você processa a encomenda e, em seguida, a AFC transfere a sua parte para a conta bancária registada no sistema. Certifique-se de que o nome da conta corresponde aos seus registos."
+      },
+      "form": {
+        "title": "Adicione a sua conta bancária",
+        "description": "Escolha o seu banco, introduza o número da sua conta e, em seguida, clique em «Resolver» para confirmar o nome. Assim que a informação corresponder, guarde-a e estará pronto para receber o pagamento."
+      }
+    }
+  }
+}

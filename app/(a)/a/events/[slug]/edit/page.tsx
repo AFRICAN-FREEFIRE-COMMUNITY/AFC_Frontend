@@ -38,6 +38,7 @@ import {
   type EventFormType,
   type EventDetails,
   type StageType,
+  type AdvancementRuleInput,
   type Params,
 } from "./types";
 
@@ -59,6 +60,12 @@ import { SaveConfirmModal } from "./_components/SaveConfirmModal";
 import StagesGroupsTab from "./_components/StagesGroupsTab";
 import SponsorTab from "./_components/SponsorTab";
 import WaitlistTab from "./_components/WaitlistTab";
+// Linked-events (qualification links) editor — the SAME component the event DETAIL page mounts
+// (components/event-links.tsx -> lib/eventLinks.ts -> events/<id>/links/* endpoints). Reused here so
+// an admin can create/fire/cancel per-stage qualification links straight from the edit flow. It
+// self-loads (eventLinksApi.list) and self-saves (create/fire/cancel/decide), so we only mount it
+// with the event id + its stages.
+import { LinkedEventsCard } from "@/components/event-links";
 
 // ── Paid-vs-free registration payload helper (non-payment phase) ─────────────────
 // Appends registration_type (+ fee/currency when paid) onto the edit-event FormData.
@@ -252,6 +259,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     point_rush_enabled: boolean;
     point_rush_reward: Record<string, number>;
     point_rush_target_index?: number;
+    // ── Branching advancement rules (feature #9). Optional repeatable authoring rows. ──
+    advancement_rules?: AdvancementRuleInput[];
     // ── Round-Robin config (sub-project B) - only for "br - round robin" stages. ──
     round_robin: RoundRobinConfig;
   }>({
@@ -272,6 +281,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     point_rush_enabled: false,
     point_rush_reward: {},
     point_rush_target_index: undefined,
+    // ── Branching advancement default (feature #9): no rules = legacy linear advance. ──
+    advancement_rules: [],
     // ── Round-Robin default: two empty base groups, auto-schedule. ──
     round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
   });
@@ -327,6 +338,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     require_esport_images: false,
     require_player_uid: false,
     require_player_profile_image: false,
+    // Letter-avatars gate (feature #7, owner 2026-06-29): a NUMBER (0 = off, 1-26 = required min),
+    // not a bool. Edited on Basic Info (BasicInfoTab) alongside the require_* toggles, prefilled from
+    // ed.min_letter_avatars below and persisted by saveWaitlistSettings -> edit_event.
+    min_letter_avatars: 0,
   });
   const [savingWaitlist, setSavingWaitlist] = useState(false);
 
@@ -455,6 +470,29 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           stage.point_rush_target_stage_id != null
             ? stageIndexById.get(stage.point_rush_target_stage_id)
             : undefined,
+        // ── Branching advancement rules (feature #9): translate the echoed rules (which carry
+        //    target_stage_id + source_group_id) back into the form's index shape. target_stage_id
+        //    -> index via stageIndexById; source_group_id -> its position in this stage's groups.
+        //    The `...stage` spread above pulls in the echo shape, so we OVERRIDE it here. ──
+        advancement_rules: (stage.advancement_rules ?? [])
+          .map((r) => {
+            const groupIdx =
+              r.source_group_id != null
+                ? stage.groups.findIndex(
+                    (g) => (g.group_id ?? g.id) === r.source_group_id,
+                  )
+                : -1;
+            const targetIdx = stageIndexById.get(r.target_stage_id);
+            return targetIdx === undefined
+              ? null
+              : {
+                  position_from: r.position_from,
+                  position_to: r.position_to,
+                  source_group_index: groupIdx >= 0 ? groupIdx : null,
+                  target_stage_index: targetIdx,
+                };
+          })
+          .filter(Boolean) as AdvancementRuleInput[],
         // ── Round-Robin config (sub-project B): rebuild the form shape from the
         //    echoed structure. The backend uses base-group IDS for lobby merges; the
         //    form uses 0-based INDICES - translate via a group_id → index lookup so
@@ -670,6 +708,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           require_esport_images: ed.require_esport_images ?? false,
           require_player_uid: ed.require_player_uid ?? false,
           require_player_profile_image: ed.require_player_profile_image ?? false,
+          // Letter-avatars gate (feature #7): rehydrate the count from the event (0 = off). Coerced
+          // to a clean 0-or-positive number so the BasicInfoTab control reads a real value.
+          min_letter_avatars: Number(ed.min_letter_avatars ?? 0) || 0,
         });
       }
 
@@ -778,6 +819,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         point_rush_enabled: existingStage.point_rush_enabled ?? false,
         point_rush_reward: existingStage.point_rush_reward ?? {},
         point_rush_target_index: existingStage.point_rush_target_index,
+        // ── Branching advancement rules carried back into the modal (feature #9). The form
+        //    already holds them as indices, so pass straight through. ──
+        advancement_rules: existingStage.advancement_rules ?? [],
         // ── Round-Robin config carried back (default if the stage had none). ──
         round_robin: existingStage.round_robin ?? DEFAULT_ROUND_ROBIN_CONFIG,
       });
@@ -813,6 +857,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         point_rush_enabled: false,
         point_rush_reward: {},
         point_rush_target_index: undefined,
+        // ── Branching advancement default for a brand-new stage (feature #9). ──
+        advancement_rules: [],
         // ── Round-Robin default for a brand-new stage. ──
         round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
       });
@@ -877,6 +923,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       point_rush_enabled: false,
       point_rush_reward: {},
       point_rush_target_index: undefined,
+      // ── Branching advancement default for a brand-new stage (feature #9). ──
+      advancement_rules: [],
     };
 
     form.setValue("stages", [...currentStages, newStage], {
@@ -1075,11 +1123,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
       stage_format: stageModalData.stage_format,
-      groups: tempGroups.map((tg, i) => ({
-        ...tg,
-        matches: (existingStage?.groups[i] as any)?.matches || [],
-        // prize fields from tempGroups are already included via spread
-      })),
+      // Round-robin stages get their lobbies from the base groups (round_robin config), NOT the
+      // classic per-group list; sending leftover tempGroups here makes the backend create a STRAY
+      // extra group alongside the lobbies (same bug fixed in the create flow, 2026-06-29). Send [].
+      groups: isRoundRobinStage
+        ? []
+        : tempGroups.map((tg, i) => ({
+            ...tg,
+            matches: (existingStage?.groups[i] as any)?.matches || [],
+            // prize fields from tempGroups are already included via spread
+          })),
       stage_discord_role_id: stageModalData.stage_discord_role_id,
       teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
       total_teams_in_stage: stageModalData.total_teams_in_stage,
@@ -1093,6 +1146,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       point_rush_enabled: stageModalData.point_rush_enabled,
       point_rush_reward: stageModalData.point_rush_reward,
       point_rush_target_index: stageModalData.point_rush_target_index,
+      // ── Branching advancement rules (feature #9) - rides into the FormData stages array;
+      //    resolved to StageAdvancementRule rows in the backend edit second pass. ──
+      advancement_rules: stageModalData.advancement_rules ?? [],
       // ── Round-Robin config (sub-project B) - sent only for the BR Round-Robin
       //    format so other bracket types don't carry a stray round_robin payload. ──
       ...(stageModalData.stage_format === "br - round robin"
@@ -1402,6 +1458,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         "require_player_profile_image",
         waitlistForm.require_player_profile_image ? "True" : "False",
       );
+      // Letter-avatars gate (feature #7): a NUMBER (0-26), not a bool. edit_event re-parses + clamps
+      // it (_parse_min_letter_avatars). Without this append, editing the count never reached the API.
+      formData.append(
+        "min_letter_avatars",
+        String(Number(waitlistForm.min_letter_avatars ?? 0) || 0),
+      );
 
       // fetch() only rejects on a NETWORK failure, not on HTTP 4xx/5xx — so check res.ok before
       // reporting success. Without this a 403/400/500 (e.g. not authorized to edit) still showed
@@ -1432,6 +1494,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               require_esport_images: waitlistForm.require_esport_images,
               require_player_uid: waitlistForm.require_player_uid,
               require_player_profile_image: waitlistForm.require_player_profile_image,
+              // Letter-avatars gate (feature #7): mirror the saved count into the cached event so the
+              // RegisteredTeamsTab letter UI + a reopened Basic Info reflect it without a refetch.
+              min_letter_avatars: waitlistForm.min_letter_avatars,
             }
           : prev,
       );
@@ -1891,6 +1956,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
               </span>
+              {/* Linked Events tab (owner 2026-06-29): per-stage qualification links into other
+                  events. No InfoTip (no help-content id for it yet); no error-dot (it self-manages). */}
+              <span className="relative inline-flex flex-1 items-center justify-center">
+                <TabsTrigger value="linked_events" className="px-6 w-full">
+                  Linked Events
+                </TabsTrigger>
+              </span>
               <span className="relative inline-flex flex-1 items-center justify-center">
                 {/* data-tour anchor (event-edit-actions): admin tour "Actions tab" step. */}
                 <TabsTrigger
@@ -1999,6 +2071,20 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 onSaveChanges={() => handleSaveChangesClick(form.getValues())}
                 loadingEvent={loadingEvent}
                 pendingSubmit={pendingSubmit}
+              />
+            </TabsContent>
+
+            {/* Linked Events (owner 2026-06-29): the qualification-links editor, reused verbatim
+                from the event DETAIL page. eventId + stages drive its create dialog; everything else
+                (load + create/fire/cancel/decide + refresh) is self-contained in the card. Stages map
+                to { id, stage_name } using the server stage_id (mirrors the detail-page mount). */}
+            <TabsContent value="linked_events">
+              <LinkedEventsCard
+                eventId={eventDetails.event_id}
+                stages={(eventDetails.stages ?? []).map((s: any) => ({
+                  id: s.stage_id ?? s.id,
+                  stage_name: s.stage_name,
+                }))}
               />
             </TabsContent>
 

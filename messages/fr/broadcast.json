@@ -1,0 +1,7 @@
+{
+  "rate": {
+    "left": "{remaining} Il reste une heure avant la fin des émissions d’{limit}",
+    "sendAgainAt": "Vous pouvez réessayer à l'adresse suivante :",
+    "limitReached": "La limite de diffusion a été atteinte. Veuillez réessayer plus tard."
+  }
+}

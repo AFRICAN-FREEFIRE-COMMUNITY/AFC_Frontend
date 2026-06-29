@@ -128,6 +128,8 @@ const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
   point_rush_enabled: false,
   point_rush_reward: {},
   point_rush_target_index: undefined,
+  // ── Branching advancement default (feature #9): no rules = legacy linear advance. ──
+  advancement_rules: [],
   // ── Round-Robin default (sub-project B): two empty base groups, auto-schedule. ──
   round_robin: DEFAULT_ROUND_ROBIN_CONFIG,
 };
@@ -331,6 +333,8 @@ export default function OrganizerCreateEventPage() {
         point_rush_enabled: existing.point_rush_enabled ?? false,
         point_rush_reward: existing.point_rush_reward ?? {},
         point_rush_target_index: existing.point_rush_target_index,
+        // ── Branching advancement rules carried back (feature #9; StageType stores indices). ──
+        advancement_rules: existing.advancement_rules ?? [],
         // ── Round-Robin config carried back (default if the stage had none). ──
         round_robin: existing.round_robin ?? DEFAULT_ROUND_ROBIN_CONFIG,
       });
@@ -489,6 +493,11 @@ export default function OrganizerCreateEventPage() {
       point_rush_enabled: stageModalData.point_rush_enabled,
       point_rush_reward: stageModalData.point_rush_reward,
       point_rush_target_index: stageModalData.point_rush_target_index,
+      // ── Branching advancement (feature #9). Bug fix 2026-06-29: the organizer create page dropped
+      //    these on save while the shared StageModal authored them (admin create already threaded
+      //    them), so organizer events lost all branching rules. Index-based; resolved to
+      //    StageAdvancementRule rows in the backend create second pass. ──
+      advancement_rules: stageModalData.advancement_rules ?? [],
       // ── Round-Robin config (sub-project B) - only for the BR Round-Robin format. ──
       ...(stageModalData.stage_format === "br - round robin"
         ? { round_robin: stageModalData.round_robin }
@@ -862,6 +871,17 @@ export default function OrganizerCreateEventPage() {
         formData.append(
           "require_player_uid",
           String((form.getValues("require_player_uid" as never) as unknown as boolean) ?? false),
+        );
+        // Letter-avatars registration gate (feature #7, owner 2026-06-29). UNLIKE the require_*
+        // toggles above this is a NUMBER (0-26, 0 = off), written into RHF by Step1EventDetails'
+        // "Require letter avatars" Switch + count input. create_event re-parses + clamps it
+        // (_parse_min_letter_avatars) into Event.min_letter_avatars, which register_for_event then
+        // enforces. Without this append the toggle never reached the backend.
+        formData.append(
+          "min_letter_avatars",
+          String(
+            Number((form.getValues("min_letter_avatars" as never) as unknown as number) ?? 0) || 0,
+          ),
         );
 
         // ── ORGANIZER-SPECIFIC: home the event to the selected organization. ──

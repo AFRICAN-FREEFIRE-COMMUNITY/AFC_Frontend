@@ -1,0 +1,235 @@
+{
+  "tour": {
+    "button": "Faites une visite guidée",
+    "sidebar": {
+      "title": "Navigation dans votre agenda",
+      "description": "Cette barre latérale vous permet de naviguer au sein de votre organisation : aperçu, événements, classements, membres, paiements et bien plus encore. La section dans laquelle vous vous trouvez est surlignée en vert."
+    },
+    "overview": {
+      "title": {
+        "title": "Bienvenue dans l'aperçu de votre agenda",
+        "description": "Il s'agit du centre névralgique de votre organisation. Il vous permet d'avoir un aperçu rapide de votre activité en un clin d'œil."
+      },
+      "stats": {
+        "title": "Vos chiffres clés",
+        "description": "Ces vignettes vous donnent un aperçu de votre organisation, notamment le nombre de membres et d'événements que vous comptez. Un petit bilan rapide avant de vous lancer."
+      }
+    },
+    "profile": {
+      "title": {
+        "title": "Profil de votre organisation",
+        "description": "Gérez la manière dont votre organisation apparaît sur le site : son logo, sa bannière, son nom, sa description et ses liens vers les réseaux sociaux."
+      },
+      "images": {
+        "title": "Logo et bannière",
+        "description": "Téléchargez le logo et la bannière qui identifient la page et les événements de votre organisation. Glissez une image ou cliquez pour sélectionner un fichier."
+      },
+      "save": {
+        "title": "Enregistrez vos modifications",
+        "description": "Enregistrez les modifications que vous apportez au profil. Aucun changement n'apparaîtra pour le public tant que vous n'aurez pas enregistré."
+      }
+    },
+    "events": {
+      "title": {
+        "title": "Vos événements",
+        "description": "Tous les tournois et matchs d'entraînement organisés par votre organisation sont répertoriés ici. Vous pouvez en créer de nouveaux et gérer ceux qui existent déjà depuis cette page."
+      },
+      "create": {
+        "title": "Créer un événement",
+        "description": "Lancez un nouveau tournoi ou un match d'entraînement. Un assistant vous guide à travers les détails, les étapes, les prix et les règles, puis publie votre événement."
+      },
+      "table": {
+        "title": "Votre liste d'événements",
+        "description": "Chaque ligne correspond à un événement. Utilisez les actions de ligne pour l'afficher, le modifier, gérer ses résultats et son classement, configurer des groupes et des effectifs, ou copier ses liens."
+      }
+    },
+    "event-create": {
+      "title": {
+        "title": "Créer un nouvel événement",
+        "description": "Cet assistant vous permet de créer, étape par étape, un tournoi ou un match d'entraînement sur mesure pour votre organisation."
+      },
+      "form": {
+        "title": "Suivez les étapes",
+        "description": "Chaque étape présente une partie de l'événement : détails, étapes, cagnotte, règlement et plus encore. Utilisez les boutons « Suivant » et « Précédent » pour passer de l'une à l'autre."
+      },
+      "submit": {
+        "title": "Publiez votre événement",
+        "description": "À la dernière étape, créez l'événement pour le publier. Vous pouvez également l'enregistrer comme brouillon et le terminer plus tard."
+      }
+    },
+    "drafts": {
+      "title": {
+        "title": "Vos événements provisoires",
+        "description": "Les événements que vous avez commencés mais que vous n'avez pas encore publiés sont enregistrés ici afin que vous puissiez les terminer lorsque vous serez prêt."
+      },
+      "create": {
+        "title": "Créer un nouvel événement",
+        "description": "Lancez une nouvelle manifestation à partir de ce même assistant. Elle apparaîtra ici sous forme de brouillon jusqu'à ce que vous la publiiez."
+      },
+      "table": {
+        "title": "Votre liste de brouillons",
+        "description": "Chaque ligne correspond à un événement non publié. Poursuivez la modification pour le rouvrir dans l'assistant, ou supprimez celui dont vous n'avez plus besoin."
+      }
+    },
+    "event-detail": {
+      "title": {
+        "title": "Détails de l'événement",
+        "description": "La plateforme dédiée à un événement spécifique. C'est ici que vous trouverez toutes les informations le concernant : son cadre, les inscriptions, les groupes et les résultats."
+      },
+      "edit": {
+        "title": "Modifier cet événement",
+        "description": "Rouvrez l'événement dans l'assistant pour modifier tout détail, étape, prix ou règle après sa création."
+      },
+      "links": {
+        "title": "Événements liés et épreuves de qualification",
+        "description": "Découvrez les liens entre cet événement et d'autres, par exemple quels sont les événements qui permettent aux équipes de s'y qualifier ou qui lui font suite."
+      }
+    },
+    "event-edit": {
+      "title": {
+        "title": "Modifier l'événement",
+        "description": "Modifiez n'importe quel élément d'un événement existant. Vos modifications seront prises en compte dès que vous les aurez enregistrées."
+      },
+      "tabs": {
+        "title": "Modifier par section",
+        "description": "Chaque onglet permet de modifier un aspect de l'événement : informations générales, équipes inscrites, épreuves et groupes, prix et règlement, paramètres relatifs aux sponsors et à la liste d'attente, ainsi que les actions de publication."
+      }
+    },
+    "event-groups": {
+      "title": {
+        "title": "Groupes et listes de joueurs",
+        "description": "Découvrez la répartition des équipes dans les différents groupes pour cette compétition et consultez la composition de chaque équipe avant le début des matchs."
+      },
+      "search": {
+        "title": "Trouver rapidement un joueur ou une équipe",
+        "description": "Effectuez une recherche par nom de personnage, équipe ou UID pour accéder directement à un concurrent, tous groupes confondus."
+      },
+      "stages": {
+        "title": "Les étapes et leurs groupes",
+        "description": "Chaque carte représente une phase du tournoi, avec la répartition des groupes et des équipes qui y sont classées. C'est un moyen rapide de vérifier que le tableau est correctement établi."
+      }
+    },
+    "event-leaderboard": {
+      "title": {
+        "title": "Classement de l'événement",
+        "description": "Consultez et gérez le classement de cette compétition. C'est ici que les résultats bruts des matchs sont transformés en classement officiel."
+      },
+      "stageTabs": {
+        "title": "Choisissez une étape",
+        "description": "Passez d'une épreuve à l'autre pour consulter le classement de chacune d'entre elles."
+      },
+      "table": {
+        "title": "Le classement",
+        "description": "Classement, nombre de victimes et total de points pour chaque concurrent. Utilisez les commandes de téléchargement et de modification pour saisir ou corriger les résultats des matchs."
+      }
+    },
+    "leaderboards": {
+      "title": {
+        "title": "Classements",
+        "description": "Gérez les résultats et les classements de toutes les compétitions organisées par votre structure depuis un seul et même endroit."
+      },
+      "search": {
+        "title": "Trouver un événement",
+        "description": "Recherchez vos événements par nom, type ou statut pour trouver rapidement celui que vous souhaitez noter."
+      },
+      "table": {
+        "title": "Vos événements à ne pas manquer",
+        "description": "Chaque ligne correspond à un événement pour lequel vous pouvez créer ou mettre à jour un classement. Ouvrez-en une pour saisir les résultats manuellement ou via une capture d'écran, configurer les points, puis consulter ou modifier le classement."
+      }
+    },
+    "standalone-create": {
+      "wizard": {
+        "title": "Créer un classement autonome",
+        "description": "Créez un classement qui ne soit pas lié à un événement complet. Cet assistant vous guide à travers les principes de base, le système de points, les résultats des matchs et un dernier aperçu avant la publication."
+      }
+    },
+    "standalone-view": {
+      "view": {
+        "title": "Classement autonome",
+        "description": "Consultez le classement publié pour ce classement autonome. Si vous en êtes le gestionnaire, vous pouvez également le rouvrir pour modifier les résultats."
+      }
+    },
+    "members": {
+      "title": {
+        "title": "Les membres de votre organisation",
+        "description": "Gérez la liste des membres de votre organisation et les droits d'accès de chacun."
+      },
+      "add": {
+        "title": "Ajouter un co-organisateur",
+        "description": "Invitez un autre utilisateur à rejoindre votre organisation et accordez-lui les autorisations dont il a besoin, par exemple pour créer des événements ou publier des résultats."
+      },
+      "table": {
+        "title": "Le tableau des membres",
+        "description": "Chaque membre, avec son rôle et ses autorisations. Vous pouvez modifier les droits d'un membre ou le supprimer à partir d'ici."
+      }
+    },
+    "payouts": {
+      "title": {
+        "title": "Vos gains",
+        "description": "Suivez la part des recettes issues des événements payants revenant à votre organisation et veillez à ce que vos coordonnées bancaires soient à jour afin de pouvoir recevoir vos paiements."
+      },
+      "stats": {
+        "title": "Aperçu des montants dus et payés",
+        "description": "Ces fiches indiquent le montant qui vous est dû et celui qui a déjà été versé à votre organisation."
+      },
+      "table": {
+        "title": "Votre registre des revenus",
+        "description": "Une ligne pour chaque paiement, indiquant l'événement, le montant et son statut. L'historique complet de vos recettes en un seul endroit."
+      }
+    },
+    "metrics": {
+      "title": {
+        "title": "Vos indicateurs",
+        "description": "Statistiques globales de votre organisation, regroupant les événements, les équipes, les joueurs, les éliminations et les classements."
+      },
+      "stats": {
+        "title": "Principaux indicateurs",
+        "description": "Ces fiches récapitulent les chiffres globaux de votre organisation pour la période sélectionnée. Un aperçu rapide de vos performances."
+      },
+      "tabs": {
+        "title": "Découvrez les tendances",
+        "description": "Les onglets permettent d'approfondir l'analyse des chiffres, par exemple en présentant les tendances au fil du temps et les répartitions par zone, afin que vous puissiez identifier les secteurs en croissance."
+      }
+    },
+    "reviews": {
+      "title": {
+        "title": "Vos avis",
+        "description": "Consultez les notes et les commentaires laissés par les joueurs sur les événements organisés par votre association."
+      },
+      "events": {
+        "title": "Audiences par événement",
+        "description": "Chaque événement affiche sa note moyenne et vous permet de cliquer pour lire les commentaires. Tous les commentaires sont anonymes afin de garantir l'honnêteté des avis."
+      }
+    },
+    "design": {
+      "title": {
+        "title": "Conception du classement",
+        "description": "Personnalisez l'apparence des classements de votre organisation, notamment leurs couleurs et leurs logos."
+      },
+      "manager": {
+        "title": "Gérez vos créations",
+        "description": "Importez et modifiez les éléments graphiques utilisés pour vos classements. Les modifications apportées ici seront répercutées dans vos classements publiés."
+      }
+    },
+    "blacklists": {
+      "title": {
+        "title": "Vos listes noires",
+        "description": "Empêchez une équipe, ainsi que ses joueurs, de s'inscrire aux événements organisés par votre association. Vous pouvez également examiner les demandes de levée d'un blocage."
+      },
+      "add": {
+        "title": "Ajouter une équipe à la liste noire",
+        "description": "Ajoutez une équipe à votre liste noire afin qu'elle ne puisse plus s'inscrire à vos événements. Les joueurs figurant dans son effectif sont automatiquement ajoutés à la liste noire."
+      },
+      "table": {
+        "title": "Équipes mises sur liste noire",
+        "description": "Toutes les équipes que vous avez bloquées, avec la composition de l'équipe telle qu'elle était au moment où vous les avez ajoutées. Développez une ligne pour afficher l'aperçu, ou levez le blocage le moment venu."
+      }
+    },
+    "watchlist": {
+      "manager": {
+        "title": "La liste de surveillance partagée",
+        "description": "Une liste consultative à l'échelle de la communauté répertoriant les joueurs et équipes suspects, partagée par les administrateurs et les organisateurs. Il s'agit d'un avertissement, et non d'une exclusion, afin que vous sachiez de qui vous méfier. Vous pouvez effectuer une recherche dans cette liste ou y ajouter une entrée en précisant le motif."
+      }
+    }
+  }
+}

@@ -41,9 +41,12 @@ const page = ({ params }: { params: Params }) => {
     startTransition(async () => {
       try {
         let currentNews = newsDetails;
+        // Pass the admin's Bearer token so a not-yet-published (scheduled) article is returned for
+        // preview here - the public/anonymous caller gets a 404 for scheduled items.
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
           { slug },
+          token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
         currentNews = res.data.news;
 
@@ -85,6 +88,18 @@ const page = ({ params }: { params: Params }) => {
                   <Badge variant="secondary" className="capitalize">
                     {newsDetails.category}
                   </Badge>
+                  {/* Scheduled (not yet public) marker - admins previewing a future-dated article see
+                      when it will auto-release. Public visitors never reach this page (backend 404s). */}
+                  {newsDetails.is_published === false &&
+                    newsDetails.scheduled_publish_at && (
+                      <Badge
+                        variant="outline"
+                        className="border-amber-500/50 text-amber-600 dark:text-amber-400"
+                      >
+                        Scheduled for{" "}
+                        {formatDate(newsDetails.scheduled_publish_at, true)}
+                      </Badge>
+                    )}
                   <div className="flex items-center gap-3 border-l pl-3 ml-1 border-muted-foreground/20">
                     <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
                       <IconThumbUp size={16} stroke={2.5} />

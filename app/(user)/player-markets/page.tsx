@@ -69,8 +69,15 @@ import {
   IconBrandReddit,
   IconBrandLinkedin,
   IconFlag,
+  IconPhoto,
+  IconUpload,
+  IconId,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+// Type-to-search phone picker (curated list + free-text "Other") for the Current Mobile Device
+// field. Feature 1 of the "Player Available Post" set (owner 2026-06-29).
+import { PhoneCombobox } from "@/components/ui/phone-combobox";
 import { DEFAULT_PROFILE_PICTURE, countries } from "@/constants";
 import axios from "axios";
 import { env } from "@/lib/env";
@@ -162,7 +169,27 @@ interface PlayerAvailablePost {
   // Optional gameplay video LINK (YouTube/TikTok, backend-allowlisted). Rendered as an embedded
   // player in the View Player dialog via lib/videoEmbed.ts; cards show a "Video" badge.
   video_url?: string;
+  // Free Fire UID of the player (feature 4, owner 2026-06-29). Returned by
+  // view-player-availability-posts (post.player.uid); shown on the card + View Player dialog so
+  // recruiters can look the player up in-game.
+  uid?: string | null;
+  // Optional residential state/region (feature 3): an ISO-3166-2 subdivision name, "" when unset.
+  // Drives the recruiter STATE FILTER on the players tab and shows as a "Lives in ..." badge.
+  residential_state?: string;
+  // Optional residential COUNTRY (refinement): the pycountry country NAME the state belongs to,
+  // server-derived, "" when unset. Drives the recruiter COUNTRY FILTER on the players tab.
+  residential_country?: string;
+  // Up to 3 in-game profile screenshots (feature 2): ordered absolute URLs from the API host.
+  // Rendered as a gallery on the card + View Player dialog.
+  images?: PostImage[];
   expiry: string;
+}
+
+// One attached screenshot as serialized by afc_player_market.views._serialize_post_images.
+interface PostImage {
+  id: number;
+  url: string;
+  order: number;
 }
 
 // ─── Lookup helpers ──────────────────────────────────────────────────────────
@@ -255,17 +282,29 @@ function CountryMultiSelect({
   value,
   onChange,
   placeholder = "Select countries...",
+  // Options default to the global country list, but the same picker is reused for the
+  // residential-STATE filter (feature 3) by passing that country's subdivisions in.
+  options = countries,
+  searchPlaceholder = "Search countries...",
+  emptyLabel = "No countries found",
+  disabled = false,
 }: {
   value: string[];
   onChange: (val: string[]) => void;
   placeholder?: string;
+  // readonly so the global `countries` tuple (a `readonly [...]`) can be the default while a
+  // plain string[] (the fetched state list) is still accepted.
+  options?: readonly string[];
+  searchPlaceholder?: string;
+  emptyLabel?: string;
+  disabled?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
-  // Country picker search: use the shared matcher so it stays punctuation/accent
+  // Picker search: use the shared matcher so it stays punctuation/accent
   // insensitive and consistent with every other "Search ..." box on the site.
-  const filtered = countries.filter((c) => matchesSearch(c, search));
+  const filtered = options.filter((c) => matchesSearch(c, search));
 
   const toggle = (country: string) => {
     onChange(
@@ -279,8 +318,10 @@ function CountryMultiSelect({
     <div className="relative">
       {/* Trigger */}
       <div
-        className="min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer flex flex-wrap gap-1.5"
-        onClick={() => setOpen((o) => !o)}
+        className={`min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm flex flex-wrap gap-1.5 ${
+          disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+        }`}
+        onClick={() => !disabled && setOpen((o) => !o)}
       >
         {value.length === 0 ? (
           <span className="text-muted-foreground">{placeholder}</span>
@@ -306,11 +347,11 @@ function CountryMultiSelect({
       </div>
 
       {/* Dropdown */}
-      {open && (
+      {open && !disabled && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
           <div className="p-2">
             <Input
-              placeholder="Search countries..."
+              placeholder={searchPlaceholder}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onClick={(e) => e.stopPropagation()}
@@ -321,7 +362,7 @@ function CountryMultiSelect({
             <div className="p-1">
               {filtered.length === 0 ? (
                 <p className="text-xs text-center text-muted-foreground py-4">
-                  No countries found
+                  {emptyLabel}
                 </p>
               ) : (
                 filtered.map((c) => (
@@ -365,10 +406,120 @@ function CountryMultiSelect({
   );
 }
 
+// ─── Screenshot Picker (feature 2) ────────────────────────────────────────────
+// Reusable in-game-screenshot uploader for the Create/Edit Player form. Manages a list of
+// NEW File objects (up to `max`, default 3) with live thumbnail previews + per-image remove,
+// mirroring the simple file-input pattern used by the onboarding esports uploader. The chosen
+// files are sent as multipart `images` to create-recruitment-post / edit-post, normalised +
+// capped server-side (afc_player_market.views._save_post_images). `existing` (edit only) shows
+// the screenshots already saved on the post so the user knows what is there.
+function ScreenshotPicker({
+  files,
+  onChange,
+  max = 3,
+  tooLargeMessage,
+  tooManyMessage,
+  labels,
+}: {
+  files: File[];
+  onChange: (files: File[]) => void;
+  max?: number;
+  tooLargeMessage: string;
+  tooManyMessage: string;
+  labels: { add: string; remove: string };
+}) {
+  // Object URLs for previews; revoked on change/unmount so we don't leak blob handles.
+  const [previews, setPreviews] = useState<string[]>([]);
+  useEffect(() => {
+    const urls = files.map((f) => URL.createObjectURL(f));
+    setPreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [files]);
+
+  // Re-clamp the queued files when `max` shrinks (e.g. an "undo" that re-adds an existing image lowers
+  // the remaining quota). Without this the queue can sit above the cap and the upload fails server-side
+  // with a 400 only at Save time; trimming here keeps the client in sync with the backend limit.
+  useEffect(() => {
+    if (files.length > max) onChange(files.slice(0, max));
+  }, [max, files, onChange]);
+
+  // 10 MB matches the backend MAX_POST_IMAGE_BYTES guard so the user gets the same limit
+  // client-side before the upload even starts.
+  const MAX_BYTES = 10 * 1024 * 1024;
+
+  const handleAdd = (picked: FileList | null) => {
+    if (!picked || picked.length === 0) return;
+    const incoming = Array.from(picked);
+    // Size guard up-front (mirrors the server's per-image cap).
+    if (incoming.some((f) => f.size > MAX_BYTES)) {
+      toast.error(tooLargeMessage);
+      return;
+    }
+    const next = [...files, ...incoming];
+    if (next.length > max) {
+      toast.error(tooManyMessage);
+    }
+    onChange(next.slice(0, max));
+  };
+
+  const removeAt = (idx: number) =>
+    onChange(files.filter((_, i) => i !== idx));
+
+  return (
+    <div className="space-y-2">
+      {previews.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {previews.map((src, idx) => (
+            <div
+              key={idx}
+              className="relative h-20 w-20 overflow-hidden rounded-md border bg-muted"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={`Screenshot ${idx + 1}`}
+                className="h-full w-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => removeAt(idx)}
+                aria-label={labels.remove}
+                className="absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80"
+              >
+                <IconX className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {files.length < max && (
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground hover:bg-accent">
+          <IconUpload className="h-3.5 w-3.5" />
+          {labels.add}
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              handleAdd(e.target.files);
+              // reset so re-picking the same file fires onChange again
+              e.target.value = "";
+            }}
+          />
+        </label>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 function PlayerMarketPage() {
   const { token, user } = useAuth();
+  // i18n for the NEW "Player Available Post" strings (phone picker, screenshots, location,
+  // UID, state filter). Author English lives in messages/en/playerMarket.json.
+  const t = useTranslations("playerMarket");
 
   const [activeTab, setActiveTab] = useState("teams");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -419,6 +570,11 @@ function PlayerMarketPage() {
   const [newPlayerDevice, setNewPlayerDevice] = useState("");
   // OPTIONAL gameplay video link (YouTube/TikTok only - validated against lib/videoEmbed.ts).
   const [newPlayerVideo, setNewPlayerVideo] = useState("");
+  // OPTIONAL residential state (feature 3): an ISO-3166-2 subdivision name, locked to the
+  // player's IP-detected country (marketCtx). "" = not set.
+  const [newPlayerState, setNewPlayerState] = useState("");
+  // Up to 3 in-game profile screenshots (feature 2), sent as multipart `images`.
+  const [newPlayerImages, setNewPlayerImages] = useState<File[]>([]);
   const [newPlayerExpiry, setNewPlayerExpiry] = useState("");
 
   // ── One-month expiry bound (feature "L-market-expiry-cap") ──
@@ -475,7 +631,35 @@ function PlayerMarketPage() {
   const [editPlayerDevice, setEditPlayerDevice] = useState("");
   // Optional gameplay video link on edit (clearable: an empty string removes it).
   const [editPlayerVideo, setEditPlayerVideo] = useState("");
+  // Residential state on edit (feature 3): present-key-wins, "" clears it.
+  const [editPlayerState, setEditPlayerState] = useState("");
+  // Screenshots on edit (feature 2): NEW files to upload (ADDED on save) + the EXISTING saved
+  // gallery to display + the ids the user has MARKED for removal. Removal is DEFERRED to Save
+  // (owner 2026-06-29): the per-thumbnail X only toggles an id in editRemoveImageIds; the actual
+  // delete happens via edit-post's remove_image_ids when (and only when) the form is saved, so
+  // cancelling the dialog deletes nothing.
+  const [editPlayerImages, setEditPlayerImages] = useState<File[]>([]);
+  const [editPlayerExistingImages, setEditPlayerExistingImages] = useState<PostImage[]>([]);
+  const [editRemoveImageIds, setEditRemoveImageIds] = useState<number[]>([]);
   const [editPlayerExpiry, setEditPlayerExpiry] = useState("");
+
+  // ── Residential-location bootstrap (feature 3) ──
+  // The state picker on the Create/Edit Player form is LOCKED to the player's own country. We
+  // resolve that country + its subdivisions once from the backend (GET my-market-context, which
+  // reads the same login-country signal as the country gate) and reuse it for both forms.
+  const [marketCtx, setMarketCtx] = useState<{
+    country_code: string;
+    country_name: string;
+    subdivisions: { value: string; label: string }[];
+  } | null>(null);
+
+  // ── Players-tab STATE FILTER (feature 3, recruiter side) ──
+  // A recruiter picks a country to scope the state list, then filters players by one or more of
+  // that country's states. playerStateOptions holds the fetched subdivision names; the filter
+  // compares against each player's residential_state.
+  const [playerCountryFilter, setPlayerCountryFilter] = useState("all");
+  const [playerStateFilter, setPlayerStateFilter] = useState<string[]>([]);
+  const [playerStateOptions, setPlayerStateOptions] = useState<string[]>([]);
 
   // inside your component, near the top with other hooks:
   const searchParams = useSearchParams();
@@ -562,6 +746,12 @@ function PlayerMarketPage() {
         setEditPlayerInfo(data.additional_info ?? "");
         setEditPlayerDevice(data.mobile_device ?? "");
         setEditPlayerVideo(data.video_url ?? "");
+        setEditPlayerState(data.residential_state ?? "");
+        // Show the screenshots already on the post; start with no new uploads queued and nothing
+        // marked for removal.
+        setEditPlayerExistingImages(data.images ?? []);
+        setEditPlayerImages([]);
+        setEditRemoveImageIds([]);
         setEditPlayerExpiry(data.post_expiry_date ?? "");
       }
       setEditingPost({ id: postId, type });
@@ -643,22 +833,36 @@ function PlayerMarketPage() {
     }
     setIsEditSubmitting(true);
     try {
+      // multipart (mirrors create) so an edit can REPLACE the screenshot gallery (feature 2).
+      // Array fields go as JSON strings (backend _coerce_list decodes); scalars as plain text.
+      const fd = new FormData();
+      fd.append("post_id", String(editingPost.id));
+      fd.append("post_expiry_date", editPlayerExpiry);
+      fd.append("primary_role", editPlayerPrimary);
+      fd.append("secondary_role", editPlayerSecondary);
+      fd.append("availability_type", editPlayerAvailability);
+      fd.append("additional_info", editPlayerInfo);
+      fd.append("mobile_device", editPlayerDevice.trim());
+      fd.append("video_url", editPlayerVideo.trim());
+      fd.append("residential_state", editPlayerState);
+      fd.append("country_names", JSON.stringify(editPlayerCountries));
+      // Screenshots (deferred removal): the result is (existing - marked-removed) + new. NEW files
+      // are ADDED (not a replace); the ids the user marked for removal are sent together so the
+      // backend applies both atomically on this one Save.
+      if (editRemoveImageIds.length > 0) {
+        fd.append("remove_image_ids", JSON.stringify(editRemoveImageIds));
+      }
+      if (editPlayerImages.length > 0) {
+        editPlayerImages.forEach((f) => fd.append("images", f));
+      }
       await axios.patch(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/edit-post/`,
-        {
-          post_id: editingPost.id,
-          post_expiry_date: editPlayerExpiry,
-          primary_role: editPlayerPrimary,
-          secondary_role: editPlayerSecondary,
-          availability_type: editPlayerAvailability,
-          additional_info: editPlayerInfo,
-          mobile_device: editPlayerDevice.trim(),
-          video_url: editPlayerVideo.trim(),
-          country_names: editPlayerCountries,
-        },
+        fd,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       toast.success("Post updated successfully!");
+      // The gallery changed (removed + added with server-assigned ids/urls), so reflect the text
+      // edits optimistically AND silently re-fetch the player list to refresh the card galleries.
       setPlayerPosts((prev) =>
         prev.map((p) =>
           p.id === editingPost.id
@@ -670,12 +874,19 @@ function PlayerMarketPage() {
                 additional_info: editPlayerInfo,
                 mobile_device: editPlayerDevice.trim(),
                 video_url: editPlayerVideo.trim(),
+                residential_state: editPlayerState,
                 expiry: editPlayerExpiry,
                 country: editPlayerCountries[0] ?? p.country,
               }
             : p,
         ),
       );
+      axios
+        .get<PlayerAvailablePost[]>(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-player-availability-posts/`,
+        )
+        .then((r) => setPlayerPosts(r.data))
+        .catch(() => {});
       setEditPostOpen(false);
       setEditingPost(null);
     } catch (error: any) {
@@ -764,6 +975,44 @@ function PlayerMarketPage() {
       });
   }, [token, user]);
 
+  // ── Residential-location bootstrap (feature 3) ──
+  // Resolve the player's own country + its states once (used to LOCK the state picker on the
+  // Create/Edit Player form). Endpoint: GET /player-market/my-market-context/ (auth). Failure is
+  // non-fatal: marketCtx stays null and the optional state field simply hides.
+  useEffect(() => {
+    if (!token) return;
+    axios
+      .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/my-market-context/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((r) => setMarketCtx(r.data))
+      .catch(() => setMarketCtx(null));
+  }, [token]);
+
+  // ── Players-tab state-filter options (feature 3, recruiter side) ──
+  // When the recruiter picks a country in the players filter, load that country's subdivisions
+  // so the state multi-select can offer them. "all" clears both the options and any selection.
+  // Endpoint: GET /player-market/location-subdivisions/?country=<name> (public).
+  useEffect(() => {
+    if (playerCountryFilter === "all") {
+      setPlayerStateOptions([]);
+      setPlayerStateFilter([]);
+      return;
+    }
+    axios
+      .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/location-subdivisions/`, {
+        params: { country: playerCountryFilter },
+      })
+      .then((r) =>
+        setPlayerStateOptions(
+          (r.data?.subdivisions ?? []).map((s: { value: string }) => s.value),
+        ),
+      )
+      .catch(() => setPlayerStateOptions([]));
+    // Reset the chosen states whenever the country changes (old states don't belong to it).
+    setPlayerStateFilter([]);
+  }, [playerCountryFilter]);
+
   // ── Trial invites (received) ──────────────────────────────────────────────
   // A user can be BOTH a team leader and a player who receives trial invites, so
   // this fetch is gated on `token` only (NOT on !isTeamLeader). It populates the
@@ -843,9 +1092,51 @@ function PlayerMarketPage() {
         playerRoleFilter === "all" ||
         player.primary_role === playerRoleFilter ||
         player.secondary_role === playerRoleFilter;
-      return matchesText && matchesAvailability && matchesRole;
+      // Residential COUNTRY filter (refinement): when a country is chosen, only keep players
+      // whose residential_country matches it exactly. The dropdown's options are sourced from the
+      // posts' own residential_country values (see playerCountryOptions), so the match is exact.
+      const matchesCountry =
+        playerCountryFilter === "all" ||
+        player.residential_country === playerCountryFilter;
+      // Residential STATE filter (feature 3): when the recruiter has selected one or more
+      // states, only keep players whose residential_state is one of them. No selection = no
+      // state constraint. Players with no residential_state are excluded once a state is chosen.
+      const matchesState =
+        playerStateFilter.length === 0 ||
+        (!!player.residential_state &&
+          playerStateFilter.includes(player.residential_state));
+      return (
+        matchesText &&
+        matchesAvailability &&
+        matchesRole &&
+        matchesCountry &&
+        matchesState
+      );
     });
-  }, [playerPosts, playerSearch, playerAvailabilityFilter, playerRoleFilter]);
+  }, [
+    playerPosts,
+    playerSearch,
+    playerAvailabilityFilter,
+    playerRoleFilter,
+    playerCountryFilter,
+    playerStateFilter,
+  ]);
+
+  // Distinct residential_country values across the loaded player posts, for the recruiter's
+  // Country filter dropdown (refinement). Sourced from the posts so each option is guaranteed to
+  // match a stored value exactly (avoids any country-naming drift) and only countries that
+  // actually have players are offered.
+  const playerCountryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          playerPosts
+            .map((p) => p.residential_country)
+            .filter((c): c is string => !!c),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [playerPosts],
+  );
 
   // Handlers
   const resetCreateForm = () => {
@@ -863,6 +1154,8 @@ function PlayerMarketPage() {
     setNewPlayerInfo("");
     setNewPlayerDevice("");
     setNewPlayerVideo("");
+    setNewPlayerState("");
+    setNewPlayerImages([]);
     setNewPlayerExpiry("");
   };
 
@@ -932,19 +1225,24 @@ function PlayerMarketPage() {
     }
     setIsSubmitting(true);
     try {
+      // multipart so the post can carry up to 3 screenshot files (feature 2). Array fields go
+      // as JSON strings, which the backend _coerce_list decodes; scalar fields go as plain text.
+      const fd = new FormData();
+      fd.append("post_type", "PLAYER_AVAILABLE");
+      fd.append("country_codes", JSON.stringify(newPlayerCountries));
+      fd.append("post_expiry_date", newPlayerExpiry);
+      fd.append("primary_role", newPlayerPrimary);
+      fd.append("secondary_role", newPlayerSecondary);
+      fd.append("availability_type", newPlayerAvailability);
+      fd.append("additional_info", newPlayerInfo);
+      fd.append("mobile_device", newPlayerDevice.trim());
+      fd.append("video_url", newPlayerVideo.trim());
+      // Optional residential state (feature 3) + screenshots (feature 2).
+      fd.append("residential_state", newPlayerState);
+      newPlayerImages.forEach((f) => fd.append("images", f));
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/create-recruitment-post/`,
-        {
-          post_type: "PLAYER_AVAILABLE",
-          country_codes: newPlayerCountries,
-          post_expiry_date: newPlayerExpiry,
-          primary_role: newPlayerPrimary,
-          secondary_role: newPlayerSecondary,
-          availability_type: newPlayerAvailability,
-          additional_info: newPlayerInfo,
-          mobile_device: newPlayerDevice.trim(),
-          video_url: newPlayerVideo.trim(),
-        },
+        fd,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       toast.success("Player availability post created successfully!");
@@ -1437,6 +1735,51 @@ function PlayerMarketPage() {
             </Select>
           </div>
 
+          {/* Residential location filter (refinement): the Country select now TRULY filters
+              players by residential_country AND scopes the state list. Options are the distinct
+              residential_country values actually present on posts (exact-match guaranteed). The
+              state multi-select then narrows within that country (combinable). */}
+          {playerCountryOptions.length > 0 && (
+            <>
+              <div className="flex flex-col md:flex-row gap-2">
+                <Select
+                  value={playerCountryFilter}
+                  onValueChange={setPlayerCountryFilter}
+                >
+                  <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectValue placeholder={t("filter.countryPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("filter.countryPlaceholder")}</SelectItem>
+                    {playerCountryOptions.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex-1">
+                  <CountryMultiSelect
+                    value={playerStateFilter}
+                    onChange={setPlayerStateFilter}
+                    options={playerStateOptions}
+                    placeholder={
+                      playerCountryFilter === "all"
+                        ? t("filter.stateDisabled")
+                        : t("filter.statePlaceholder")
+                    }
+                    searchPlaceholder={t("filter.statePlaceholder")}
+                    emptyLabel={t("filter.stateDisabled")}
+                    disabled={playerCountryFilter === "all"}
+                  />
+                </div>
+              </div>
+              {playerCountryFilter === "all" && (
+                <p className="text-xs text-muted-foreground">{t("filter.stateHint")}</p>
+              )}
+            </>
+          )}
+
           {/* Player Cards Grid */}
           {loadingPlayers ? (
             <div className="text-center py-12 text-muted-foreground">
@@ -1490,6 +1833,22 @@ function PlayerMarketPage() {
                       )}
                     </div>
 
+                    {/* In-game profile screenshots (feature 2): prominent thumbnail strip. Up to 3,
+                        absolute URLs from the API. Hidden when the player attached none. */}
+                    {player.images && player.images.length > 0 && (
+                      <div className="flex gap-1.5">
+                        {player.images.slice(0, 3).map((img) => (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            key={img.id}
+                            src={img.url}
+                            alt={t("screenshots.heading")}
+                            className="h-16 w-16 rounded-md border object-cover"
+                          />
+                        ))}
+                      </div>
+                    )}
+
                     {/* Info row */}
                     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
@@ -1502,12 +1861,26 @@ function PlayerMarketPage() {
                           {player.country}
                         </span>
                       )}
+                      {/* Residential state (feature 3): where the player actually lives. */}
+                      {player.residential_state && (
+                        <span className="flex items-center gap-1">
+                          <IconMapPin className="h-3 w-3" />
+                          {player.residential_state}
+                        </span>
+                      )}
                       {/* The phone the player currently plays on (compulsory on new posts;
                           may be empty on posts created before the field existed). */}
                       {player.mobile_device && (
                         <span className="flex items-center gap-1">
                           <IconDeviceMobile className="h-3 w-3" />
                           {player.mobile_device}
+                        </span>
+                      )}
+                      {/* Free Fire UID (feature 4): the player's in-game id for look-up. */}
+                      {player.uid && (
+                        <span className="flex items-center gap-1">
+                          <IconId className="h-3 w-3" />
+                          {t("uid.label")}: {player.uid}
                         </span>
                       )}
                       {/* Signals a gameplay video waits in View Details (no embed on cards). */}
@@ -2580,18 +2953,74 @@ function PlayerMarketPage() {
               </div>
 
               {/* COMPULSORY (owner 2026-06-12): the phone the player currently plays on.
-                  Required by the backend; shown on the post card + View Player dialog. */}
+                  Feature 1 (owner 2026-06-29): a type-to-search combobox over a curated phone
+                  list that STILL allows a free-text "Other" value. Shown on card + dialog. */}
               <div className="space-y-2">
-                <Label>Current Mobile Device *</Label>
-                <Input
-                  placeholder="e.g. iPhone 13, Infinix Note 30 Pro"
-                  maxLength={80}
+                <Label>{t("phone.label")} *</Label>
+                <PhoneCombobox
                   value={newPlayerDevice}
-                  onChange={(e) => setNewPlayerDevice(e.target.value)}
+                  onChange={setNewPlayerDevice}
+                  placeholder={t("phone.placeholder")}
+                  searchPlaceholder={t("phone.search")}
+                  otherLabel={t("phone.other", { q: "{q}" })}
+                  emptyLabel={t("phone.empty")}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Teams see this on your post. Use the exact phone you play on now.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("phone.help")}</p>
+              </div>
+
+              {/* OPTIONAL residential state (feature 3): locked to the player's IP-detected
+                  country (marketCtx). Hidden when we can't resolve a country. */}
+              <div className="space-y-2">
+                <Label>
+                  {t("location.label")}
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">
+                    ({t("location.optional")})
+                  </span>
+                </Label>
+                {marketCtx?.country_code ? (
+                  <>
+                    <Select
+                      value={newPlayerState || "__none__"}
+                      onValueChange={(v) =>
+                        setNewPlayerState(v === "__none__" ? "" : v)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("location.placeholder")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">
+                          {t("location.none")}
+                        </SelectItem>
+                        {marketCtx.subdivisions.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            {s.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {t("location.detected", { country: marketCtx.country_name })}. {t("location.help")}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {t("location.unavailable")}
+                  </p>
+                )}
+              </div>
+
+              {/* OPTIONAL in-game profile screenshots (feature 2): up to 3, multipart `images`. */}
+              <div className="space-y-2">
+                <Label>{t("screenshots.label")}</Label>
+                <ScreenshotPicker
+                  files={newPlayerImages}
+                  onChange={setNewPlayerImages}
+                  tooLargeMessage={t("screenshots.tooLarge")}
+                  tooManyMessage={t("screenshots.max")}
+                  labels={{ add: t("screenshots.add"), remove: t("screenshots.remove") }}
+                />
+                <p className="text-xs text-muted-foreground">{t("screenshots.help")}</p>
               </div>
 
               {/* OPTIONAL gameplay video LINK. Embedded in the View Player dialog via
@@ -2869,15 +3298,135 @@ function PlayerMarketPage() {
                 />
               </div>
 
-              {/* Compulsory device field: may change, never clear (mirrors the backend rule). */}
+              {/* Compulsory device field: may change, never clear (mirrors the backend rule).
+                  Feature 1: same phone combobox as the create form (free-text "Other" allowed). */}
               <div className="space-y-2">
-                <Label>Current Mobile Device *</Label>
-                <Input
-                  placeholder="e.g. iPhone 13, Infinix Note 30 Pro"
-                  maxLength={80}
+                <Label>{t("phone.label")} *</Label>
+                <PhoneCombobox
                   value={editPlayerDevice}
-                  onChange={(e) => setEditPlayerDevice(e.target.value)}
+                  onChange={setEditPlayerDevice}
+                  placeholder={t("phone.placeholder")}
+                  searchPlaceholder={t("phone.search")}
+                  otherLabel={t("phone.other", { q: "{q}" })}
+                  emptyLabel={t("phone.empty")}
                 />
+              </div>
+
+              {/* Optional residential state (feature 3): locked to the player's country. */}
+              <div className="space-y-2">
+                <Label>
+                  {t("location.label")}
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">
+                    ({t("location.optional")})
+                  </span>
+                </Label>
+                {marketCtx?.country_code ? (
+                  <Select
+                    value={editPlayerState || "__none__"}
+                    onValueChange={(v) =>
+                      setEditPlayerState(v === "__none__" ? "" : v)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("location.placeholder")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">{t("location.none")}</SelectItem>
+                      {marketCtx.subdivisions.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {t("location.unavailable")}
+                  </p>
+                )}
+              </div>
+
+              {/* Screenshots (feature 2 + deferred removal): each saved thumbnail's X MARKS it for
+                  removal locally (greyed + Undo); nothing is deleted until Save. New screenshots are
+                  ADDED. The result is (kept existing) + new, capped at 3 (the uploader's slot count
+                  shrinks as existing screenshots are kept). "Remove all" marks every saved one. */}
+              <div className="space-y-2">
+                <Label>{t("screenshots.label")}</Label>
+                {editPlayerExistingImages.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-muted-foreground">{t("screenshots.current")}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {editPlayerExistingImages.map((img) => {
+                        const marked = editRemoveImageIds.includes(img.id);
+                        return (
+                          <div
+                            key={img.id}
+                            className="relative h-20 w-20 overflow-hidden rounded-md border bg-muted"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img.url}
+                              alt="Screenshot"
+                              className={`h-full w-full object-cover ${marked ? "opacity-30" : ""}`}
+                            />
+                            {marked ? (
+                              // Marked for removal: greyed, with an Undo overlay (deferred, no server call).
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditRemoveImageIds((prev) =>
+                                    prev.filter((id) => id !== img.id),
+                                  )
+                                }
+                                className="absolute inset-0 flex items-center justify-center bg-black/40 text-xs font-medium text-white"
+                              >
+                                {t("screenshots.undoRemove")}
+                              </button>
+                            ) : (
+                              // X: mark this screenshot for removal on Save (does NOT delete now).
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditRemoveImageIds((prev) => [...prev, img.id])
+                                }
+                                aria-label={t("screenshots.remove")}
+                                className="absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80"
+                              >
+                                <IconX className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-red-500 hover:text-red-500"
+                      onClick={() =>
+                        setEditRemoveImageIds(editPlayerExistingImages.map((i) => i.id))
+                      }
+                    >
+                      <IconTrash className="h-3.5 w-3.5 mr-1" />
+                      {t("screenshots.removeAll")}
+                    </Button>
+                  </div>
+                )}
+                {/* Uploader slots left = 3 - (existing screenshots kept after marks). */}
+                <ScreenshotPicker
+                  files={editPlayerImages}
+                  onChange={setEditPlayerImages}
+                  max={Math.max(
+                    0,
+                    3 -
+                      (editPlayerExistingImages.length - editRemoveImageIds.length),
+                  )}
+                  tooLargeMessage={t("screenshots.tooLarge")}
+                  tooManyMessage={t("screenshots.max")}
+                  labels={{ add: t("screenshots.add"), remove: t("screenshots.remove") }}
+                />
+                <p className="text-xs text-muted-foreground">{t("screenshots.replaceHint")}</p>
               </div>
 
               {/* Optional gameplay video link: editable, clear the field to remove it. */}
@@ -3109,6 +3658,32 @@ function PlayerMarketPage() {
                 </div>
               )}
 
+              {/* In-game profile screenshots (feature 2): prominent gallery. Each opens full size
+                  in a new tab. Hidden when the player attached none. */}
+              {viewPlayer.images && viewPlayer.images.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1.5">{t("screenshots.heading")}</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {viewPlayer.images.map((img) => (
+                      <a
+                        key={img.id}
+                        href={img.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img.url}
+                          alt={t("screenshots.heading")}
+                          className="h-28 w-28 rounded-md border object-cover transition-opacity hover:opacity-90"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Gameplay video (optional): the embed src is DERIVED from the parsed host +
                   video id (lib/videoEmbed.ts), never the raw stored URL; an unparseable link
                   (e.g. a vm.tiktok.com short link) renders as an outbound link instead. */}
@@ -3164,6 +3739,13 @@ function PlayerMarketPage() {
                       {viewPlayer.country}
                     </Badge>
                   )}
+                  {/* Residential state (feature 3): where the player lives, when provided. */}
+                  {viewPlayer.residential_state && (
+                    <Badge variant="outline" className="text-xs">
+                      <IconMapPin className="h-3 w-3 mr-1" />
+                      {viewPlayer.residential_state}
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="text-xs">
                     <IconCalendar className="h-3 w-3 mr-1" />
                     Expires {new Date(viewPlayer.expiry).toLocaleDateString()}
@@ -3173,6 +3755,22 @@ function PlayerMarketPage() {
                     <Badge variant="outline" className="text-xs">
                       <IconDeviceMobile className="h-3 w-3 mr-1" />
                       {viewPlayer.mobile_device}
+                    </Badge>
+                  )}
+                  {/* Free Fire UID (feature 4): in-game id, click-to-copy for recruiters. */}
+                  {viewPlayer.uid && (
+                    <Badge
+                      variant="outline"
+                      className="text-xs cursor-pointer hover:bg-accent"
+                      title={t("uid.copy")}
+                      onClick={() => {
+                        navigator.clipboard.writeText(String(viewPlayer.uid));
+                        toast.success(t("uid.copied"));
+                      }}
+                    >
+                      <IconId className="h-3 w-3 mr-1" />
+                      {t("uid.label")}: {viewPlayer.uid}
+                      <IconCopy className="h-3 w-3 ml-1 opacity-70" />
                     </Badge>
                   )}
                 </div>

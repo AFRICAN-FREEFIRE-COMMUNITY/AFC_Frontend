@@ -52,14 +52,41 @@ interface StageGroup {
   // is a host wall-clock "HH:MM[:SS]" tied to the event's timezone. Both echoed by get_event_details.
   playing_date?: string | null;
   playing_time?: string | null;
+  // Maps this group plays, in order (owner 2026-06-29). Straight off the get_event_details /
+  // get_event_details_not_logged_in group payload (`match_maps` JSON list, e.g.
+  // ["Bermuda","Purgatory"]). Rendered as badges on the group card below.
+  match_maps?: string[] | null;
+  // The group's point system (owner 2026-06-29): its leaderboard scoring config, echoed by the same
+  // detail endpoints. `placement_points` is a {"1":12,"2":9,...} rank->points map; `kill_point` is
+  // points awarded per kill. Rendered alongside the maps so users see HOW the group is scored.
+  leaderboard?: {
+    placement_points?: Record<string, number> | null;
+    kill_point?: number | null;
+  } | null;
   overall_leaderboard?: any[];
   matches?: any[];
+}
+// One branching-advancement rule echoed per stage (feature #9) by get_event_details(_not_logged_in)
+// -> views._advancement_rules_echo. Each says positions [position_from..position_to] of this stage
+// (whole stage when source_group_* is null, else that one group) advance into target_stage_name.
+// Rendered as a chip under the source stage card; rule-less stages keep the plain "top N" chevron.
+interface AdvancementRule {
+  id: number;
+  position_from: number;
+  position_to: number;
+  source_group_id: number | null;
+  source_group_name: string | null;
+  target_stage_id: number;
+  target_stage_name: string | null;
 }
 interface Stage {
   stage_id: number;
   stage_name: string;
   stage_format: string;
   teams_qualifying_from_stage: number;
+  // Branching advancement rules (feature #9). When present, the stage routes its finishers into
+  // (possibly several) specific later stages; the chips below replace the single "top N" hint.
+  advancement_rules?: AdvancementRule[];
   is_finals_stage?: boolean; // present on the model; fall back to "last stage" if absent
   // Schedule (owner 2026-06-22): the stage's start/end DATEs ("YYYY-MM-DD"), echoed by
   // get_event_details. Shown under each stage so users see when it runs.
@@ -80,6 +107,13 @@ interface Props {
   // is absent we resolve it ourselves from the URL slug (see useEffect below). Optional keeps
   // the existing 2-prop call site valid without touching the wrapper.
   eventId?: number;
+  // Per-event results visibility (owner 2026-06-29): Event.results_published, echoed by the detail
+  // endpoints. When explicitly false the organizer has HIDDEN the standings (social-reveal timing),
+  // so each group card shows a "Results not published yet" state instead of its standings table. The
+  // maps + point-system strip and the stage flow stay (that's config, not results). Absent/true =>
+  // normal standings. The backend ALSO withholds overall_leaderboard server-side, so this is the
+  // user-facing explanation for the now-empty standings, not the security boundary.
+  resultsPublished?: boolean;
 }
 
 // Pull a competitor's display name from a leaderboard row regardless of solo/squad shape.
@@ -104,9 +138,13 @@ const rowPoints = (row: any) => {
 };
 const fmtLabel = (f: string) => FORMAT_LABEL[f] || f;
 
-export function TournamentStructure({ stages, participantType, eventId, timezone }: Props) {
+export function TournamentStructure({ stages, participantType, eventId, timezone, resultsPublished }: Props) {
   const t = useTranslations("tournaments");
   const [sel, setSel] = useState(0);
+  // Explicit false only (undefined/true => standings render normally) so legacy callers + events
+  // without the flag are unaffected. When hidden, each group card swaps its standings table for the
+  // "Results not published yet" state below; config (maps / point system) is untouched.
+  const resultsHidden = resultsPublished === false;
 
   // ── Qualification Links (owner 2026-06-15) ──
   // This event's place in the season: events that qualify INTO it (inbound) and events its
@@ -202,6 +240,10 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
           {stages.map((s, i) => {
             const isFinals = i === finalsIdx;
             const advancing = s.teams_qualifying_from_stage;
+            // Branching advancement (feature #9): when this stage has explicit routing rules, the
+            // chips below carry where each cut goes, so we suppress the single "top N" chevron hint.
+            const branchRules = s.advancement_rules ?? [];
+            const hasBranching = branchRules.length > 0;
             return (
               <div key={s.stage_id} className="flex items-stretch">
                 <button
@@ -265,12 +307,56 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                       </>
                     )}
                   </div>
+                  {/* Branching advancement chips (feature #9): one per rule, "Top {from}-{to} ->
+                      {targetStage}" (with a group prefix when the rule is scoped to one group). Only
+                      shown when the stage has routing rules; mirrors the LinkedEventsCard chip look
+                      (rounded-full outline Badge + IconArrowRight) already used above. */}
+                  {hasBranching && !isFinals && (
+                    <div className="mt-3 space-y-1.5">
+                      <p className="text-[0.6rem] font-bold uppercase tracking-wider text-muted-foreground">
+                        {t("structure.branchHeading")}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {branchRules.map((r) => {
+                          const range =
+                            r.position_from === r.position_to
+                              ? t("structure.branchPos", { pos: r.position_from })
+                              : t("structure.branchRange", {
+                                  from: r.position_from,
+                                  to: r.position_to,
+                                });
+                          const prefix = r.source_group_name
+                            ? `${r.source_group_name} `
+                            : "";
+                          return (
+                            <Badge
+                              key={r.id}
+                              variant="outline"
+                              className="rounded-full gap-1 px-2 py-0.5 text-xs border-primary/50 text-primary"
+                            >
+                              <span>
+                                {prefix}
+                                {range}
+                              </span>
+                              <IconArrowRight className="size-3 shrink-0" />
+                              <span>
+                                {r.target_stage_name ||
+                                  t("structure.branchTargetFallback")}
+                              </span>
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </button>
                 {/* arrow between stages */}
                 {i < stages.length - 1 && (
                   <div className="flex flex-col items-center justify-center min-w-[54px] text-muted-foreground">
                     <ChevronRight className="size-6" />
-                    {!isFinals && (
+                    {/* Suppress the single "top N" hint when branching rules carry the routing
+                        detail in the chips above (feature #9). */}
+                    {!isFinals && !hasBranching && (
                       <span className="text-[0.6rem] mt-0.5">
                         {t("structure.topN", { count: advancing })}
                       </span>
@@ -383,8 +469,13 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
           </span>
           {sel !== finalsIdx && (
             <span>
-              {t.rich("structure.advancePerGroup", {
+              {/* teams_qualifying_from_stage is the STAGE TOTAL that advances (e.g. 15), NOT a
+                  per-group number; per-group quotas show as "Top N advance" on each group card
+                  below (group.teams_qualifying). Bug fix 2026-06-29: this legend used to read
+                  "Top 15 advance per group", which was wrong (15 was the stage total). */}
+              {t.rich("structure.advanceFromStage", {
                 count: stage.teams_qualifying_from_stage,
+                stageName: stage.stage_name,
                 b: (chunks) => <b className="text-primary">{chunks}</b>,
               })}
             </span>
@@ -439,6 +530,60 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                     </span>
                   </div>
 
+                  {/* Maps + point system for this group (owner 2026-06-29). Both are read straight off
+                      the get_event_details(_not_logged_in) group payload: match_maps (the maps this
+                      group plays, in order) and leaderboard (placement_points map + kill_point). Shown
+                      here, mirroring how they're configured per group, so users can see what each group
+                      plays and how it is scored. The whole strip is hidden when neither is present. */}
+                  {((Array.isArray(g.match_maps) && g.match_maps.length > 0) ||
+                    (g.leaderboard &&
+                      (g.leaderboard.kill_point != null ||
+                        (g.leaderboard.placement_points &&
+                          Object.keys(g.leaderboard.placement_points).length > 0)))) && (
+                    <div className="border-b px-5 py-3 space-y-2">
+                      {/* maps the group plays, in order (capitalize: stored lowercase e.g. "bermuda") */}
+                      {Array.isArray(g.match_maps) && g.match_maps.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="mr-1 text-[0.68rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                            {t("structure.mapsLabel")}
+                          </span>
+                          {g.match_maps.map((m, i) => (
+                            <Badge
+                              key={`${g.group_id}-map-${i}`}
+                              variant="outline"
+                              className="rounded-full px-2 py-0.5 text-xs capitalize"
+                            >
+                              {m}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      {/* point system: per-kill value (badge) + the placement-points map (compact line) */}
+                      {g.leaderboard && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="mr-1 text-[0.68rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                            {t("structure.pointSystemLabel")}
+                          </span>
+                          {g.leaderboard.kill_point != null && (
+                            <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs">
+                              {t("structure.perKill", { pts: g.leaderboard.kill_point })}
+                            </Badge>
+                          )}
+                          {g.leaderboard.placement_points &&
+                            Object.keys(g.leaderboard.placement_points).length > 0 && (
+                              <span className="text-xs text-muted-foreground">
+                                {t("structure.placementPointsLabel")}{" "}
+                                {Object.entries(g.leaderboard.placement_points)
+                                  .sort((a, b) => Number(a[0]) - Number(b[0]))
+                                  .map(([place, pts]) => `#${place}: ${pts}`)
+                                  .join(", ")}
+                              </span>
+                            )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Room details (owner 2026-06-17): the backend only fills room_id/name/password on
                       these match rows for the group's registered competitors AND only after the
                       organizer posts them, so this block simply renders whatever creds arrived. Anon
@@ -484,7 +629,19 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                       </div>
                     );
                   })()}
-                  {rows.length === 0 ? (
+                  {/* Results hidden by the organizer (owner 2026-06-29): show a clean "not published
+                      yet" state instead of standings. The maps + point-system strip above stays
+                      (config, not results). Falls through to the normal pending/standings otherwise. */}
+                  {resultsHidden ? (
+                    <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+                      <p className="font-medium not-italic">
+                        {t("structure.resultsNotPublished")}
+                      </p>
+                      <p className="mt-1 text-xs">
+                        {t("structure.resultsNotPublishedDesc")}
+                      </p>
+                    </div>
+                  ) : rows.length === 0 ? (
                     <div className="px-5 py-8 text-center text-sm text-muted-foreground italic">
                       {t("structure.resultsPending")}
                     </div>

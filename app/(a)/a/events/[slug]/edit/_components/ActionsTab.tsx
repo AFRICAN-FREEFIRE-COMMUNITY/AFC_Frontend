@@ -72,11 +72,26 @@ interface Group {
   group_name: string;
 }
 
+// One branching-advancement rule echoed per stage (feature #9) by the event-detail endpoints.
+// Presence of >=1 rule on a stage = "branching mode" -> the Branching Advancement card below runs
+// advance-stage-by-rules/ for it (instead of the per-group legacy advance).
+interface AdvancementRule {
+  id: number;
+  position_from: number;
+  position_to: number;
+  source_group_id: number | null;
+  source_group_name: string | null;
+  target_stage_id: number;
+  target_stage_name: string | null;
+}
+
 interface Stage {
   stage_id: number;
   stage_name: string;
   stage_status?: string;
   groups: Group[];
+  // Branching advancement rules (feature #9); [] / absent for a legacy linear-advance stage.
+  advancement_rules?: AdvancementRule[];
 }
 
 interface ActionsTabProps {
@@ -92,6 +107,10 @@ interface ActionsTabProps {
     // Roster-edit window (owner 2026-06-15): current state for the Roster Editing card.
     roster_edit_until?: string | null;
     roster_edit_open?: boolean;
+    // Per-event results visibility (owner 2026-06-29): whether the PUBLIC standings are published.
+    // Defaults true (absent => treated as published). Drives the "Results Visibility" toggle below;
+    // the value is set by set_results_visibility and echoed by get_event_details(_for_admin/_not_logged_in).
+    results_published?: boolean;
   };
   onStartTournament: () => void;
   onRefresh?: () => void;
@@ -128,6 +147,12 @@ export default function ActionsTab({
   const [loadingSync, setLoadingSync] = useState(false);
   const [loadingAnnouncement, setLoadingAnnouncement] = useState(false);
   const [loadingVisibility, setLoadingVisibility] = useState(false);
+  // Results visibility (owner 2026-06-29): publish/hide the PUBLIC standings (social-reveal timing).
+  // resultsPublished defaults TRUE when the flag is absent (legacy events stay visible). The confirm
+  // dialog (resultsVisOpen) guards the flip since hiding mid-event suddenly removes players' standings.
+  const [loadingResultsVis, setLoadingResultsVis] = useState(false);
+  const [resultsVisOpen, setResultsVisOpen] = useState(false);
+  const resultsPublished = eventDetails.results_published !== false;
   const [loadingExport, setLoadingExport] = useState<"csv" | "xlsx" | null>(null);
   // Roster-edit window (owner 2026-06-15): admin/organizer opens team roster-editing for a set
   // period that auto-closes; the picker is capped at the event end date. Backed by
@@ -166,6 +191,19 @@ export default function ActionsTab({
   const [advanceStageId, setAdvanceStageId] = useState("");
   const [advanceGroupId, setAdvanceGroupId] = useState("");
   const [syncGroupId, setSyncGroupId] = useState("");
+
+  // ── Branching advancement (feature #9): run a stage's StageAdvancementRule rows (split its
+  //    finishers into different later stages). Only stages WITH rules appear here; the engine +
+  //    permission live in afc_tournament_and_scrims.advancement_routing (advance-stage-by-rules/).
+  //    A Preview (dry_run) shows who routes where before the real Advance writes anything. ──
+  const branchingStages = eventDetails.stages.filter(
+    (s) => (s.advancement_rules?.length ?? 0) > 0,
+  );
+  const [branchStageId, setBranchStageId] = useState("");
+  const [loadingBranchPreview, setLoadingBranchPreview] = useState(false);
+  const [loadingBranchAdvance, setLoadingBranchAdvance] = useState(false);
+  // The dry_run preview result (routed blocks) for the currently-selected stage, or null.
+  const [branchPreview, setBranchPreview] = useState<any | null>(null);
 
   // ── Seeding management (owner 2026-06-15): undo/redo group seeding + delete group/stage
   //    with a disposition choice. Calls events/seeding/* (afc_tournament_and_scrims.seeding_management).
@@ -353,6 +391,51 @@ export default function ActionsTab({
       toast.error(e.response?.data?.message || "Advance failed");
     } finally {
       setLoadingAdvance(false);
+    }
+  }
+
+  // ── Branching advancement (feature #9): preview (dry_run) then advance a stage's rules. ──
+  // POST /events/advance-stage-by-rules/ (advancement_routing.advance_stage_by_rules). Preview
+  // returns the routed blocks WITHOUT writing; Advance seeds the finishers into their target stages.
+  async function handleBranchPreview() {
+    if (!branchStageId) return toast.error("Select a stage first");
+    setLoadingBranchPreview(true);
+    setBranchPreview(null);
+    try {
+      const res = await axios.post(
+        `${API}/events/advance-stage-by-rules/`,
+        {
+          event_id: eventDetails.event_id,
+          stage_id: branchStageId,
+          dry_run: true,
+        },
+        { headers: authHeader },
+      );
+      setBranchPreview(res.data);
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Preview failed");
+    } finally {
+      setLoadingBranchPreview(false);
+    }
+  }
+
+  async function handleBranchAdvance() {
+    if (!branchStageId) return toast.error("Select a stage first");
+    setLoadingBranchAdvance(true);
+    try {
+      const res = await axios.post(
+        `${API}/events/advance-stage-by-rules/`,
+        { event_id: eventDetails.event_id, stage_id: branchStageId },
+        { headers: authHeader },
+      );
+      toast.success(res.data.message || "Branching advancement complete");
+      setBranchPreview(null);
+      // Routing seeds finishers into later stages; refetch so the updated stages show in place.
+      onRefresh?.();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Advance failed");
+    } finally {
+      setLoadingBranchAdvance(false);
     }
   }
 
@@ -564,6 +647,34 @@ export default function ActionsTab({
       toast.error(e.response?.data?.message || "Failed to update visibility");
     } finally {
       setLoadingVisibility(false);
+    }
+  }
+
+  // Publish or hide this event's PUBLIC standings (owner 2026-06-29). POSTs the flipped value to
+  // set_results_visibility (gate: admin OR organizer-with-can_edit_events, same as this whole tab).
+  // When hidden, the public tournament Results/Structure view shows "Results not published yet" and
+  // the detail endpoints withhold each group's overall_leaderboard. onRefresh re-pulls so the shown
+  // state updates in place. Staff result-entry surfaces are unaffected (not gated server-side).
+  async function handleToggleResultsVisibility() {
+    setLoadingResultsVis(true);
+    try {
+      const res = await axios.post(
+        `${API}/events/set-results-visibility/`,
+        {
+          event_id: eventDetails.event_id,
+          results_published: !resultsPublished,
+        },
+        { headers: authHeader },
+      );
+      toast.success(res.data.message);
+      setResultsVisOpen(false);
+      onRefresh?.();
+    } catch (e: any) {
+      toast.error(
+        e.response?.data?.message || "Failed to update results visibility",
+      );
+    } finally {
+      setLoadingResultsVis(false);
     }
   }
 
@@ -843,6 +954,101 @@ export default function ActionsTab({
               </Button>
             </div>
           </div>
+
+          {/* Branching advancement (feature #9): only shown when at least one stage has routing
+              rules. Picks a rule-stage, PREVIEWS (dry_run) who routes where, then ADVANCES (seeds
+              the finishers into their target stages). Backend: events/advance-stage-by-rules/
+              (advancement_routing.advance_stage_by_rules). The per-group advance above stays for
+              rule-less stages. */}
+          {branchingStages.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <p className="text-sm font-medium inline-flex items-center">
+                  Branching Advancement
+                  <InfoTip id="events.edit.branching_advance" className="ml-1" />
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Split a stage's finishers into different later stages using its routing
+                  rules. Preview first to see exactly who advances where.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Select
+                    value={branchStageId}
+                    onValueChange={(v) => {
+                      setBranchStageId(v);
+                      setBranchPreview(null);
+                    }}
+                  >
+                    <SelectTrigger className="flex-1 min-w-[160px]">
+                      <SelectValue placeholder="Stage with routing rules" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branchingStages.map((s) => (
+                        <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                          {s.stage_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleBranchPreview}
+                    disabled={loadingBranchPreview || !branchStageId}
+                  >
+                    {loadingBranchPreview ? <Loader text="..." /> : "Preview"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleBranchAdvance}
+                    disabled={loadingBranchAdvance || !branchStageId}
+                  >
+                    {loadingBranchAdvance ? (
+                      <Loader text="..." />
+                    ) : (
+                      <>
+                        <ChevronRight className="h-4 w-4 mr-1" /> Advance
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* dry_run preview: one block per rule, listing who routes into which stage. */}
+                {branchPreview && Array.isArray(branchPreview.routed) && (
+                  <div className="mt-2 space-y-2 rounded-md border bg-muted/30 p-3">
+                    {branchPreview.routed.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        No competitors to route yet (no results entered, or no one in
+                        range).
+                      </p>
+                    )}
+                    {branchPreview.routed.map((blk: any, bi: number) => (
+                      <div key={bi} className="text-xs">
+                        <p className="font-medium text-foreground">
+                          {blk.scope === "group" && blk.source_group_name
+                            ? `${blk.source_group_name} `
+                            : ""}
+                          #{blk.from} to #{blk.to}
+                          {"  ->  "}
+                          {blk.target_stage_name}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {blk.competitors.length === 0
+                            ? "Nobody in range yet."
+                            : blk.competitors
+                                .map(
+                                  (c: any) => `#${c.placement} ${c.name}`,
+                                )
+                                .join(", ")}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -1213,6 +1419,45 @@ export default function ActionsTab({
 
           <Separator />
 
+          {/* Results Visibility (owner 2026-06-29): publish or HIDE the public leaderboard so the
+              organizer can time the social reveal. Hiding withholds the standings from the public
+              tournament page (Results/Structure shows "Results not published yet"); staff can still
+              enter/manage results. Confirm-gated since hiding mid-event removes players' standings. */}
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Results Visibility</p>
+              <p className="text-xs text-muted-foreground">
+                Currently:{" "}
+                <span className="font-semibold">
+                  {resultsPublished ? "Published" : "Hidden"}
+                </span>
+                {resultsPublished
+                  ? ". Players can see the leaderboard."
+                  : ". The leaderboard is hidden from players."}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setResultsVisOpen(true)}
+              disabled={loadingResultsVis}
+            >
+              {loadingResultsVis ? (
+                <Loader text="Saving..." />
+              ) : resultsPublished ? (
+                <>
+                  <EyeOff className="h-4 w-4 mr-1" /> Hide Results
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4 mr-1" /> Publish Results
+                </>
+              )}
+            </Button>
+          </div>
+
+          <Separator />
+
           <div>
             <p className="text-sm font-medium mb-1 inline-flex items-center">
               Export Participants
@@ -1360,6 +1605,61 @@ export default function ActionsTab({
                 disabled={loadingReopen}
               >
                 {loadingReopen ? <Loader text="Reopening..." /> : "Yes, Reopen Event"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Confirm Results Visibility toggle (owner 2026-06-29) ────────── */}
+      <Dialog open={resultsVisOpen} onOpenChange={setResultsVisOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <div className="text-center">
+            <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+              {resultsPublished ? (
+                <EyeOff className="h-7 w-7 text-blue-600" />
+              ) : (
+                <Eye className="h-7 w-7 text-blue-600" />
+              )}
+            </div>
+            <DialogTitle className="text-xl">
+              {resultsPublished ? "Hide results?" : "Publish results?"}
+            </DialogTitle>
+            <DialogDescription className="mt-2">
+              {resultsPublished ? (
+                <>
+                  The leaderboard for <b>"{eventDetails.event_name}"</b> will be
+                  hidden from players until you publish it again. You can still
+                  enter and review results while they are hidden.
+                </>
+              ) : (
+                <>
+                  The leaderboard for <b>"{eventDetails.event_name}"</b> will be
+                  visible to everyone on the tournament page.
+                </>
+              )}
+            </DialogDescription>
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="outline"
+                className="flex-1"
+                disabled={loadingResultsVis}
+                onClick={() => setResultsVisOpen(false)}
+              >
+                Back
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleToggleResultsVisibility}
+                disabled={loadingResultsVis}
+              >
+                {loadingResultsVis ? (
+                  <Loader text="Saving..." />
+                ) : resultsPublished ? (
+                  "Yes, Hide Results"
+                ) : (
+                  "Yes, Publish Results"
+                )}
               </Button>
             </div>
           </div>

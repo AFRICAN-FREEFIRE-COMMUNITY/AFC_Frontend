@@ -1,0 +1,21 @@
+{
+  "statsVisibility.label": "Show team stats publicly",
+  "statsVisibility.description": "Your team stats are private by default. Turn this on to let others see them.",
+  "statsVisibility.saved": "Team stats visibility updated.",
+  "statsVisibility.saveFailed": "Failed to update team stats visibility.",
+  "letterAvatars.label": "Team letter avatars",
+  "letterAvatars.description": "The Free Fire letter avatars your team can field. Each member's own letter avatars are added automatically. Add any extra letters your team owns below.",
+  "letterAvatars.availableTitle": "Letter avatars",
+  "letterAvatars.availableCount": "Team has {count} of 26 letters",
+  "letterAvatars.fromMembers": "From members",
+  "letterAvatars.manualExtras": "Added manually",
+  "letterAvatars.none": "No letter avatars yet.",
+  "letterAvatars.selectAll": "Select all",
+  "letterAvatars.clear": "Clear",
+  "letterAvatars.lockedHint": "Already covered by a team member",
+  "letterAvatars.save": "Save letters",
+  "letterAvatars.saving": "Saving",
+  "letterAvatars.saved": "Team letters updated.",
+  "letterAvatars.saveFailed": "Could not update the team letters.",
+  "letterAvatars.explainerAlt": "Free Fire letter avatar reference"
+}

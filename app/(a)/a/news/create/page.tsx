@@ -39,12 +39,26 @@ import { InfoTip } from "@/components/ui/info-tip";
 import Image from "next/image";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 
+// Local "now" as a YYYY-MM-DDTHH:mm string for the <input type="datetime-local"> min attribute,
+// so an admin cannot pick a past time when scheduling. (Backend treats a past/blank time as
+// "publish immediately" anyway - this is just a friendlier guard.)
+function localNowForInput() {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 function page() {
   const router = useRouter();
   const { user, token } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string>("");
+
+  // Scheduled publish (optional). Empty string => publish immediately (current behaviour). A future
+  // datetime here is sent to create-news as `scheduled_publish_at`; the backend then creates the post
+  // hidden and the publish_scheduled_news Celery beat task flips it live at that time.
+  const [scheduledPublishAt, setScheduledPublishAt] = useState("");
 
   const [pending, startTransition] = useTransition();
 
@@ -77,6 +91,16 @@ function page() {
         // Append profile picture file if selected
         if (selectedFile) {
           formData.append("images", selectedFile);
+        }
+
+        // Optional schedule. Send the picked LOCAL datetime as a UTC ISO string (mirrors the event
+        // roster-window picker) so the backend stores a timezone-aware moment. Omitted when blank,
+        // which keeps the original "publish immediately" behaviour.
+        if (scheduledPublishAt) {
+          formData.append(
+            "scheduled_publish_at",
+            new Date(scheduledPublishAt).toISOString(),
+          );
         }
 
         const response = await axios.post(
@@ -367,6 +391,29 @@ function page() {
                   </FormItem>
                 )}
               />
+
+              {/* Schedule publish (optional). Plain state field (not part of the zod form) - mirrors
+                  the way the featured image is handled as separate state. Leave blank to publish now;
+                  pick a future time to auto-release. The datetime-local renders/edits in the admin's
+                  own timezone and is converted to UTC on submit. */}
+              <div className="space-y-2">
+                <FormLabel htmlFor="news-schedule">
+                  Schedule publish (optional)
+                </FormLabel>
+                <Input
+                  id="news-schedule"
+                  type="datetime-local"
+                  min={localNowForInput()}
+                  value={scheduledPublishAt}
+                  onChange={(e) => setScheduledPublishAt(e.target.value)}
+                  className="w-full md:w-auto"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Leave blank to publish immediately. Pick a future date and time
+                  to release this article automatically.
+                </p>
+              </div>
+
               <div className="flex justify-end space-x-4">
                 <Button
                   className="flex-1"
@@ -377,7 +424,11 @@ function page() {
                   <Link href="/a/news">Cancel</Link>
                 </Button>
                 <Button type="submit" disabled={pending} className="flex-1">
-                  {pending ? "Publishing..." : "Publish"}
+                  {pending
+                    ? "Saving..."
+                    : scheduledPublishAt
+                      ? "Schedule"
+                      : "Publish"}
                 </Button>
               </div>
             </form>

@@ -156,10 +156,19 @@ const page = () => {
         );
         const newsData = res.data.news;
 
+        // PUBLIC feed never shows SCHEDULED (not-yet-published) articles, even to a news admin.
+        // get-all-news returns scheduled items to admins on purpose (so the ADMIN news page at
+        // /a/news can render + manage them), and this public list reuses that endpoint — so without
+        // this guard an admin browsing /news saw their own scheduled posts inline. Admins manage
+        // scheduled posts on /a/news; here we drop anything not yet published for everyone.
+        const publishedNews = newsData.filter(
+          (item: any) => item.is_published !== false && item.status !== "scheduled",
+        );
+
         // Map the folded reaction fields onto the keys the cards already read
         // (likes_count / dislikes_count). No per-article request anymore: this
         // removes the old 1+N waterfall to get-news-likes-dislikes-count/.
-        const newsWithCounts = newsData.map((item: any) => ({
+        const newsWithCounts = publishedNews.map((item: any) => ({
           ...item,
           likes_count: item.likes ?? 0,
           dislikes_count: item.dislikes ?? 0,

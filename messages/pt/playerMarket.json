@@ -1,0 +1,43 @@
+{
+  "phone": {
+    "label": "Dispositivo móvel atual",
+    "placeholder": "Selecione o seu telemóvel",
+    "search": "Pesquise ou introduza o seu número de telemóvel",
+    "other": "Utilize «{q}»",
+    "empty": "Não foi encontrado nenhum telemóvel. Digite para utilizar um telemóvel personalizado.",
+    "help": "Equipas, vejam isto na vossa publicação. Escolham o vosso número da lista ou introduzam qualquer outro número de telemóvel."
+  },
+  "screenshots": {
+    "label": "Capturas de ecrã do perfil no jogo",
+    "help": "Adicione até 3 capturas de ecrã do seu perfil no jogo para que as equipas possam ver as suas estatísticas. Máximo de 10 MB cada.",
+    "add": "Adicionar captura de ecrã",
+    "remove": "Remover captura de ecrã",
+    "max": "Pode adicionar até 3 capturas de ecrã.",
+    "tooLarge": "Cada captura de ecrã deve ter, no máximo, 10 MB.",
+    "heading": "Capturas de ecrã do perfil",
+    "current": "Capturas de ecrã atuais",
+    "removeAll": "Remover todas as capturas de ecrã",
+    "replaceHint": "Foram adicionadas novas capturas de ecrã à sua publicação. As capturas de ecrã marcadas são removidas quando guardar.",
+    "undoRemove": "Desfazer"
+  },
+  "location": {
+    "label": "Estado de residência",
+    "placeholder": "Selecione o seu estado",
+    "optional": "Opcional",
+    "help": "Opcional. Apresentado às equipas para que possam encontrar jogadores na sua zona.",
+    "detected": "A sua localização: {country}",
+    "unavailable": "Não foi possível identificar o seu país, pelo que o campo «estado» não está disponível.",
+    "none": "Limpar seleção"
+  },
+  "uid": {
+    "label": "UID do Free Fire",
+    "copy": "Copiar UID",
+    "copied": "UID copiado"
+  },
+  "filter": {
+    "countryPlaceholder": "Qualquer país",
+    "statePlaceholder": "Filtrar por estado",
+    "stateHint": "Escolha um país e, em seguida, filtre os jogadores por estados.",
+    "stateDisabled": "Selecione primeiro um país"
+  }
+}

@@ -247,7 +247,9 @@
     "kills": "Frags",
     "totalPoints": "Points totaux",
     "noResults": "Aucun résultat disponible pour cette sélection.",
-    "placePts": "Pts de placement"
+    "placePts": "Pts de placement",
+    "resultsNotPublished": "Résultats non encore publiés",
+    "resultsNotPublishedDesc": "L'organisateur publiera prochainement le classement."
   },
   "teamRegister": {
     "selectMembers": {
@@ -458,6 +460,14 @@
         "esportsImage": "Image esport",
         "profileImage": "Image de profil",
         "teamLogo": "Logo d'équipe (à télécharger sur la page de modification de l'équipe)"
+      },
+      "letterAvatars": {
+        "title": "Votre équipe a besoin de plus d'avatars sous forme de lettres",
+        "soloTitle": "Il te faut davantage d'avatars sous forme de lettres",
+        "teamDescription": "Cet événement nécessite des avatars « {required} », mais votre équipe dispose d’{available}. Chaque joueur possédant un avatar « Free Fire » ajoute le sien au stock de l’équipe. Demandez aux membres d’ajouter les lettres qu’ils possèdent, ou ajoutez-en manuellement des supplémentaires dans l’éditeur d’équipe.",
+        "soloDescription": "Cet événement nécessite des avatars représentant les lettres « {required} », mais vous disposez d’{available}. Ajoutez les lettres « Free Fire » que vous possédez à votre profil.",
+        "teamAction": "Gérer les lettres de l'équipe",
+        "soloAction": "Ajouter des avatars sous forme de lettres"
       }
     }
   },
@@ -475,6 +485,10 @@
     "groupSingular": "groupe",
     "groupPlural": "groupes",
     "topN": "top {count}",
+    "branchHeading": "Avances vers",
+    "branchPos": "#{pos}",
+    "branchRange": "# {from} vers # {to}",
+    "branchTargetFallback": "étape suivante",
     "qualificationLinks": "Liens de qualification",
     "qualifiesFrom": "Se qualifie de",
     "qualifiesFromChip": "{eventName} - {stageName} top {count}",
@@ -482,13 +496,19 @@
     "qualifiesIntoChip": "Le top {count} de {stageName} se qualifie pour : {eventName}",
     "standingsHeading": "Classement et qualification - {stageName}",
     "qualifiedLegend": "Qualifié pour la prochaine étape",
-    "advancePerGroup": "Le top <b>{count}</b> avance par groupe",
+    "advanceFromStage": "Les meilleurs «<b>{count}</b>s » se qualifient à l’issue de l’étape «{stageName} »",
+    "mapsLabel": "Cartes",
+    "pointSystemLabel": "Système de points",
+    "perKill": "{pts} / tuer",
+    "placementPointsLabel": "Placement :",
     "noGroups": "Aucun groupe défini pour cette étape pour le moment.",
     "matchCount": "{count} {matchWord}",
     "matchSingular": "match",
     "matchPlural": "matchs",
     "topNAdvance": " · Top {count} avancent",
     "resultsPending": "Résultats en attente.",
+    "resultsNotPublished": "Résultats non encore publiés",
+    "resultsNotPublishedDesc": "L'organisateur publiera prochainement le classement.",
     "rank": "#",
     "kills": "Kills",
     "points": "Pts",

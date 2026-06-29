@@ -1,11 +1,17 @@
 "use client";
 
-import { Fragment, useState, useEffect, useCallback } from "react";
+import { Fragment, useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+// i18n: the search-box placeholder lives in the "events" namespace (messages/en/events.json),
+// resolved for the active locale by useTranslations. The rest of this admin/organizer edit
+// surface is plain English; only the new user-typed search placeholder is internationalized
+// (the one new user-facing string this feature adds).
+import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -27,14 +33,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { InfoTip } from "@/components/ui/info-tip";
+// Letter Avatars (feature #7): the shared broadcast composer. Passing it letterAssignments switches
+// it to its built-in "Broadcast assignments" mode (POSTs /auth/broadcast-letter-assignments/), so it
+// renders its own trigger button here in the card header. See SendNotificationModal.tsx.
+import { SendNotificationModal } from "../../../_components/SendNotificationModal";
 // Shared advisory-watchlist badge + client (components/WatchTag.tsx, lib/watchlist.ts). On load we
 // ask watchlistApi.tags once which of the visible team_ids / member player_ids are actively watched,
 // then render <WatchTag> next to those names so staff see the flag right on the registered roster.
 import { WatchTag } from "@/components/WatchTag";
 import { watchlistApi } from "@/lib/watchlist";
-import { IconChevronDown, IconUser } from "@tabler/icons-react";
+import { IconChevronDown, IconUser, IconSearch } from "@tabler/icons-react";
 import { DisqualifyModal } from "../../../_components/DisqualifyModal";
 import { RemoveTeamModal } from "../../../_components/RemoveTeamModal";
 import { ReactivateModal } from "../../../_components/ReactivateModal";
@@ -43,6 +60,10 @@ import { AddTeamsModal } from "../../../_components/AddTeamsModal";
 // registration closes) by POSTing /events/edit-roster/. Reopens the team for sponsor
 // re-approval when the roster changes. See EditRosterModal.tsx for the full contract.
 import { EditRosterModal } from "../../../_components/EditRosterModal";
+
+// The 26 letter-avatar options (A-Z) for the per-team Assign Select (feature #7). Built once at
+// module scope so each render reuses the same array.
+const LETTERS_A_Z = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
 
 // A single player on a registered team's roster (from get_event_details
 // tournament_teams[].members). username is the in-game name; uid + full_name give full
@@ -64,6 +85,11 @@ interface RegisteredTeamsTabProps {
     // eventDetails (get_event_details exposes is_sponsored; see edit/types.tsx). The
     // EditRosterModal needs it to collect per-player sponsor IDs on a sponsored event.
     is_sponsored?: boolean;
+    // Letter Avatars (feature #7, owner 2026-06-29): the event's registration threshold (0 = off),
+    // echoed by get_event_details. Drives whether the per-team letter-assignment UI is shown (also
+    // shown if any team already has an assigned_letter). The per-team assigned_letter rides on each
+    // tournament_teams[] entry; the live available_letters come from /events/event-team-letters/.
+    min_letter_avatars?: number;
     registered_competitors: Array<{
       player_id: number;
       username: string;
@@ -95,6 +121,18 @@ export default function RegisteredTeamsTab({
   );
   const toggleTeam = (key: number) =>
     setExpandedTeams((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  // ── Search filter (owner 2026-06-29) ──
+  // Client-side, case-insensitive substring filter over the ALREADY-loaded registered list (no
+  // refetch): filters teams by team_name on a team event and players by username on a solo event.
+  // evT resolves the search placeholder from the "events" i18n namespace. Named evT (not t) so it
+  // does not shadow the existing `(t: any) => ...` TEAM-row closures below (mirrors ActionsTab's bcT).
+  // Applied to the same two filtered .map() chains that already drop waitlisted rows, so it composes.
+  const evT = useTranslations("events");
+  const [search, setSearch] = useState("");
+  const query = search.trim().toLowerCase();
+  const matchesQuery = (name?: string | null) =>
+    query === "" || (name ?? "").toLowerCase().includes(query);
 
   // No-show toggle (owner 2026-06-17): mark an active competitor absent so a waitlist team can take
   // the slot (Promote on the Waitlist tab). value flips the current is_no_show. Refreshes after.
@@ -254,6 +292,134 @@ export default function RegisteredTeamsTab({
     fetchWatchTags();
   }, [fetchWatchTags]);
 
+  // ── Letter Avatars (feature #7, owner 2026-06-29) ──────────────────────────────────────────────
+  // Per-event A-Z letter ASSIGNMENT for registered teams. OWNER DECISION (Open Q g): a letter is
+  // UNIQUE per team per event. The live available_letters (union of members' owned User.letter_avatars
+  // + the team's manual_letter_avatars) + assigned_letter + member_count come from
+  // /events/event-team-letters/ (backend get_event_team_letters) - kept OFF get_event_details because
+  // the union is heavy. We pull it on load (and after each assignment). assign-team-letter
+  // (backend assign_team_letter) sets/changes/clears a team's letter (admins/orgs anytime) and notifies
+  // the team's members; the header "Broadcast assignments" button (SendNotificationModal) announces
+  // them all at once via /auth/broadcast-letter-assignments/.
+  type LetterRow = {
+    team_id: number;
+    available_letters: string[];
+    assigned_letter: string | null;
+    member_count: number;
+  };
+  const [letterRows, setLetterRows] = useState<Record<number, LetterRow>>({});
+  const [assignBusy, setAssignBusy] = useState<number | null>(null);
+  // Pending assignment awaiting confirmation (it notifies the whole team, so we confirm first).
+  const [assignTarget, setAssignTarget] = useState<{
+    teamId: number;
+    teamName: string;
+    letter: string; // "" => unassign
+  } | null>(null);
+
+  // Show the letter UI for EVERY team (duo/squad) event (owner 2026-06-29): organizers may assign
+  // letter avatars on any team event, not only events that REQUIRE letters. The assign endpoint
+  // (assign_team_letter) already works regardless of Event.min_letter_avatars, so this is purely FE
+  // visibility. Still hidden for solo events (a letter is a per-TEAM in-game banner). Previously this
+  // was gated on min_letter_avatars > 0 OR an existing assignment, which hid the assign UI on a team
+  // event that hadn't opted into the registration requirement.
+  const showLetters = isTeamEvent;
+
+  const fetchLetters = useCallback(async () => {
+    if (!token || !showLetters) return;
+    try {
+      const res = await axios.get(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/event-team-letters/`,
+        {
+          params: { event_id: eventDetails.event_id, limit: 200 },
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const map: Record<number, LetterRow> = {};
+      for (const row of res.data?.teams ?? []) {
+        map[row.team_id] = {
+          team_id: row.team_id,
+          available_letters: row.available_letters ?? [],
+          assigned_letter: row.assigned_letter ?? null,
+          member_count: row.member_count ?? 0,
+        };
+      }
+      setLetterRows(map);
+    } catch {
+      /* the letter column is best-effort; ignore */
+    }
+  }, [token, showLetters, eventDetails.event_id]);
+
+  useEffect(() => {
+    fetchLetters();
+  }, [fetchLetters]);
+
+  // The assigned letter for a team: once the fresh fetch has loaded a row for this team, that row is
+  // authoritative (even when its assigned_letter is null after a clear); only fall back to the
+  // get_event_details echo when no row has been fetched yet. Distinguishing "row absent" from "row
+  // present with null" stops a stale prop echo from re-surfacing a letter the admin just cleared.
+  const assignedLetterFor = useCallback(
+    (team: any): string | null => {
+      const row = letterRows[team.team_id];
+      if (row) return row.assigned_letter ?? null;
+      return team.assigned_letter ?? null;
+    },
+    [letterRows],
+  );
+
+  // letter -> team_id holding it, across the whole event. Drives greying a letter already taken by
+  // ANOTHER team in the per-row Select (a team's own current letter stays selectable).
+  const takenByTeam = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const team of eventDetails.tournament_teams ?? []) {
+      const L = assignedLetterFor(team);
+      if (L) m.set(L, team.team_id);
+    }
+    return m;
+  }, [eventDetails.tournament_teams, assignedLetterFor]);
+
+  // Teams that currently hold a letter, shaped for the SendNotificationModal broadcast payload.
+  const letterAssignments = useMemo(
+    () =>
+      (eventDetails.tournament_teams ?? [])
+        .map((team: any) => ({
+          team_id: team.team_id,
+          team_name: team.team_name,
+          letter: assignedLetterFor(team) || "",
+        }))
+        .filter((a: { letter: string }) => !!a.letter),
+    [eventDetails.tournament_teams, assignedLetterFor],
+  );
+
+  // POST the pending assignment (or clear). On success the team's members are notified server-side;
+  // we re-pull the letters so every row's Select + the taken-letter greying reflect the change.
+  const assignLetter = async () => {
+    if (!token || !assignTarget) return;
+    setAssignBusy(assignTarget.teamId);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/assign-team-letter/`,
+        {
+          event_id: eventDetails.event_id,
+          team_id: assignTarget.teamId,
+          letter: assignTarget.letter, // "" clears the assignment
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(
+        assignTarget.letter
+          ? `Assigned letter ${assignTarget.letter} to ${assignTarget.teamName}. Team notified.`
+          : `Cleared ${assignTarget.teamName}'s letter.`,
+      );
+      setAssignTarget(null);
+      await fetchLetters();
+    } catch (e: any) {
+      // Backend 409 (letter_taken) names the conflicting team; surface its message.
+      toast.error(e.response?.data?.message || "Failed to assign the letter.");
+    } finally {
+      setAssignBusy(null);
+    }
+  };
+
   // Warning lookup for a row. Squad rows key on team_id; solo rows on the user id (player_id).
   const teamWarning = (teamId?: number) =>
     teamId != null ? warnings.teams[teamId] : undefined;
@@ -356,6 +522,18 @@ export default function RegisteredTeamsTab({
               {detectBusy && <IconLoader2 className="size-4 animate-spin mr-1" />}
               Check for no-shows
             </Button>
+            {/* Letter Avatars (feature #7): announce every assigned letter to its team at once. The
+                modal renders its own "Broadcast assignments" trigger when letterAssignments is
+                non-empty; shown only when the event uses letters AND at least one team has one. */}
+            {showLetters && letterAssignments.length > 0 && (
+              <SendNotificationModal
+                eventId={eventDetails.event_id}
+                groupId={undefined}
+                letterAssignments={letterAssignments}
+                eventName={eventDetails.event_name}
+                onSuccess={() => fetchLetters()}
+              />
+            )}
             {isTeamEvent && (
               <span className="inline-flex items-center gap-1">
                 <AddTeamsModal
@@ -376,6 +554,21 @@ export default function RegisteredTeamsTab({
         </CardTitle>
       </CardHeader>
       <CardContent className="relative">
+        {/* Search box (owner 2026-06-29): filters the already-loaded registered list in place by
+            team/player name. Mirrors the AddTeamsModal search idiom (IconSearch + pl-9 Input). */}
+        <div className="relative mb-3">
+          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder={
+              isTeamEvent
+                ? evT("registeredTeams.searchTeamsPlaceholder")
+                : evT("registeredTeams.searchPlayersPlaceholder")
+            }
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
         <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
           <Table>
             <TableHeader>
@@ -384,6 +577,9 @@ export default function RegisteredTeamsTab({
                   {isTeamEvent ? "Teams" : "Players"}
                 </TableHead>
                 <TableHead>Status</TableHead>
+                {/* Letter Avatars (feature #7): available letters + per-team Assign Select. Only for
+                    team events that use letters (showLetters). */}
+                {showLetters && <TableHead>Letters</TableHead>}
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -391,7 +587,7 @@ export default function RegisteredTeamsTab({
               {/* Logic for Solo Players */}
               {eventDetails.participant_type === "solo" &&
                 eventDetails?.registered_competitors
-                  ?.filter((c) => !c.is_waitlisted)
+                  ?.filter((c) => !c.is_waitlisted && matchesQuery(c.username))
                   .map((comp) => (
                   <TableRow key={comp.player_id}>
                     <TableCell className="capitalize font-medium">
@@ -471,7 +667,7 @@ export default function RegisteredTeamsTab({
                   is on each registered team without leaving this tab. */}
               {isTeamEvent &&
                 eventDetails?.tournament_teams
-                  ?.filter((t: any) => !t.is_waitlisted)
+                  ?.filter((t: any) => !t.is_waitlisted && matchesQuery(t.team_name))
                   .map((team) => {
                   const key = team.tournament_team_id || team.team_id || team.player_id;
                   const members: TeamMember[] = team.members || [];
@@ -528,6 +724,73 @@ export default function RegisteredTeamsTab({
                         {team.status}
                       </span>
                     </TableCell>
+                    {/* Letter Avatars (feature #7): available letters (live union) + the per-team
+                        Assign Select. The Select greys letters already taken by ANOTHER team and
+                        opens a confirm dialog (assignment notifies the whole team). */}
+                    {showLetters && (
+                      <TableCell>
+                        <div className="flex flex-col gap-1.5">
+                          {/* Available letters this team owns/has (members' letters + manual extras). */}
+                          <div className="flex flex-wrap items-center gap-1">
+                            {(letterRows[team.team_id]?.available_letters ?? []).length > 0 ? (
+                              (letterRows[team.team_id]?.available_letters ?? []).map((L) => (
+                                <Badge
+                                  key={L}
+                                  variant="outline"
+                                  className="rounded-full px-1.5 py-0 text-[10px] font-mono"
+                                >
+                                  {L}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground">
+                                None owned
+                              </span>
+                            )}
+                          </div>
+                          {/* Assigned letter Badge + the A-Z Assign Select. */}
+                          <div className="flex items-center gap-1.5">
+                            {assignedLetterFor(team) && (
+                              <Badge className="rounded-full px-2 py-0.5 text-[10px] bg-primary text-primary-foreground">
+                                {assignedLetterFor(team)}
+                              </Badge>
+                            )}
+                            <Select
+                              value={assignedLetterFor(team) ?? ""}
+                              disabled={assignBusy === team.team_id}
+                              onValueChange={(val) => {
+                                const next = val === "__none__" ? "" : val;
+                                // No-op if they re-picked the team's current letter.
+                                if ((assignedLetterFor(team) ?? "") === next) return;
+                                setAssignTarget({
+                                  teamId: team.team_id,
+                                  teamName: team.team_name,
+                                  letter: next,
+                                });
+                              }}
+                            >
+                              <SelectTrigger className="h-7 w-24 text-xs">
+                                <SelectValue placeholder="Assign" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__none__">Unassign</SelectItem>
+                                {LETTERS_A_Z.map((L) => {
+                                  const holder = takenByTeam.get(L);
+                                  const takenByOther =
+                                    holder != null && holder !== team.team_id;
+                                  return (
+                                    <SelectItem key={L} value={L} disabled={takenByOther}>
+                                      {L}
+                                      {takenByOther ? " (taken)" : ""}
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </TableCell>
+                    )}
                     <TableCell className="text-right">
                       {/* Squad-only actions: correct the roster, then disqualify /
                           reactivate. EditRosterModal POSTs /events/edit-roster/ for THIS
@@ -627,7 +890,8 @@ export default function RegisteredTeamsTab({
                   {/* Expanded roster: the players on this registered team. */}
                   {isOpen && (
                     <TableRow className="bg-muted/30 hover:bg-muted/30">
-                      <TableCell colSpan={3} className="p-0">
+                      {/* +1 column when the Letters column is shown (feature #7). */}
+                      <TableCell colSpan={showLetters ? 4 : 3} className="p-0">
                         {members.length === 0 ? (
                           <p className="px-6 py-3 text-xs text-muted-foreground">
                             No players on this team's roster.
@@ -676,6 +940,31 @@ export default function RegisteredTeamsTab({
                   </Fragment>
                   );
                 })}
+
+              {/* Search empty-state (owner 2026-06-29): when a query is active but matches zero
+                  non-waitlisted rows, show a "No teams/players match" line instead of a blank table.
+                  Only shown WHILE searching — an event with no registrants at all already reads as an
+                  empty table, so we don't want this firing then. colSpan spans every column including
+                  the optional Letters column (mirrors the expanded-roster row's colSpan). */}
+              {query !== "" &&
+                (eventDetails.participant_type === "solo"
+                  ? (eventDetails?.registered_competitors ?? []).filter(
+                      (c: any) => !c.is_waitlisted && matchesQuery(c.username),
+                    ).length
+                  : (eventDetails?.tournament_teams ?? []).filter(
+                      (t: any) => !t.is_waitlisted && matchesQuery(t.team_name),
+                    ).length) === 0 && (
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell
+                      colSpan={showLetters ? 4 : 3}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
+                      {isTeamEvent
+                        ? evT("registeredTeams.noTeamsMatch", { query: search.trim() })
+                        : evT("registeredTeams.noPlayersMatch", { query: search.trim() })}
+                    </TableCell>
+                  </TableRow>
+                )}
             </TableBody>
           </Table>
         </div>
@@ -714,6 +1003,46 @@ export default function RegisteredTeamsTab({
                 <IconLoader2 className="size-4 animate-spin mr-1" />
               )}
               Mark no-show
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Letter Avatars (feature #7, owner 2026-06-29): confirm a letter assignment / change / clear.
+          We confirm because every assignment NOTIFIES the whole team (assign_team_letter ->
+          deliver_broadcast). The unique-per-event rule means reassigning frees the team's old letter. */}
+      <AlertDialog
+        open={!!assignTarget}
+        onOpenChange={(o) => !o && setAssignTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {assignTarget?.letter
+                ? `Assign letter ${assignTarget.letter} to ${assignTarget?.teamName}?`
+                : `Clear ${assignTarget?.teamName}'s letter?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {assignTarget?.letter
+                ? "Every member of this team will be notified of their assigned letter for this event. A letter can belong to only one team per event, so reassigning frees this team's previous letter. You can change it again anytime."
+                : "This removes the team's assigned letter and frees it for another team. You can assign a new one anytime."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={assignBusy !== null}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                assignLetter();
+              }}
+              disabled={assignBusy !== null}
+            >
+              {assignBusy !== null && (
+                <IconLoader2 className="size-4 animate-spin mr-1" />
+              )}
+              {assignTarget?.letter ? "Assign letter" : "Clear letter"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

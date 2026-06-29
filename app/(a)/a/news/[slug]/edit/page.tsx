@@ -42,6 +42,21 @@ type Params = Promise<{
   slug: string;
 }>;
 
+// Local "now" as a YYYY-MM-DDTHH:mm string for the <input type="datetime-local"> min attribute.
+function localNowForInput() {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+// Turn a backend UTC ISO datetime into the YYYY-MM-DDTHH:mm LOCAL string the datetime-local input
+// needs (so a scheduled article pre-fills the picker in the admin's own timezone).
+function isoToLocalInput(iso?: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 export default function EditNewsForm({ params }: { params: Params }) {
   const { slug } = use(params);
 
@@ -49,6 +64,11 @@ export default function EditNewsForm({ params }: { params: Params }) {
   const { user, token } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newsDetails, setNewsDetails] = useState<any>();
+
+  // Scheduled publish (optional), kept as plain state like the featured image. Pre-filled below only
+  // for a not-yet-published (scheduled) article; blank for an already-live one so re-saving it does
+  // NOT accidentally re-hide it. Sent to edit-news as `scheduled_publish_at` (UTC ISO) on save.
+  const [scheduledPublishAt, setScheduledPublishAt] = useState("");
 
   const [previewUrl, setPreviewUrl] = useState<string>(
     newsDetails?.images_url ? newsDetails.images_url : "",
@@ -80,14 +100,24 @@ export default function EditNewsForm({ params }: { params: Params }) {
 
     startTransition(async () => {
       try {
+        // Send the admin's Bearer token so get-news-detail will return a not-yet-published
+        // (scheduled) article for editing - the public/anonymous caller gets a 404 for those.
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-news-detail/`,
           { slug },
+          token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
         setNewsDetails(res.data.news);
         setPreviewUrl(
           res?.data?.news?.images_url ? res?.data?.news?.images_url : "",
         );
+        // Pre-fill the schedule picker only for a still-scheduled article (so editing a live post
+        // with a blank picker keeps it live - see edit-news backend handling).
+        if (res?.data?.news?.is_published === false) {
+          setScheduledPublishAt(
+            isoToLocalInput(res?.data?.news?.scheduled_publish_at),
+          );
+        }
       } catch (error: any) {
         toast.error(error.response.data.message);
       }
@@ -148,6 +178,21 @@ export default function EditNewsForm({ params }: { params: Params }) {
           from: "(previous)",
           to: selectedFile.name,
         });
+      // Schedule change: compare the picker against the article's current schedule (blank = live now).
+      const originalSchedule =
+        newsDetails.is_published === false
+          ? isoToLocalInput(newsDetails.scheduled_publish_at)
+          : "";
+      if (scheduledPublishAt !== originalSchedule)
+        changes.push({
+          label: "Schedule",
+          from: originalSchedule
+            ? new Date(originalSchedule).toLocaleString()
+            : "Publish now",
+          to: scheduledPublishAt
+            ? new Date(scheduledPublishAt).toLocaleString()
+            : "Publish now",
+        });
     }
 
     setConfirmChanges(changes);
@@ -167,6 +212,13 @@ export default function EditNewsForm({ params }: { params: Params }) {
         formData.append("category", data.category);
         formData.append("related_event", data.event!);
         formData.append("author", data.author);
+
+        // Always send the schedule field so the backend acts on it: a future datetime re-schedules
+        // (hidden until then), a blank value publishes now and clears any pending schedule.
+        formData.append(
+          "scheduled_publish_at",
+          scheduledPublishAt ? new Date(scheduledPublishAt).toISOString() : "",
+        );
 
         if (selectedFile) {
           formData.append("images", selectedFile);
@@ -466,6 +518,28 @@ export default function EditNewsForm({ params }: { params: Params }) {
                   </FormItem>
                 )}
               />
+
+              {/* Schedule publish (optional) - mirrors the create form. Pre-filled for a scheduled
+                  article; blank for a live one. Future time => auto-release later, blank => publish now. */}
+              <div className="space-y-2">
+                <FormLabel htmlFor="news-schedule">
+                  Schedule publish (optional)
+                </FormLabel>
+                <Input
+                  id="news-schedule"
+                  type="datetime-local"
+                  min={localNowForInput()}
+                  value={scheduledPublishAt}
+                  onChange={(e) => setScheduledPublishAt(e.target.value)}
+                  className="w-full md:w-auto"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {scheduledPublishAt
+                    ? "This article will publish automatically at the time above."
+                    : "Leave blank to publish immediately. Pick a future date and time to release it automatically."}
+                </p>
+              </div>
+
               <div className="flex justify-end space-x-4">
                 <Button
                   type="button"
@@ -476,7 +550,11 @@ export default function EditNewsForm({ params }: { params: Params }) {
                   <Link href="/a/news">Cancel</Link>
                 </Button>
                 <Button type="submit" className="flex-1" disabled={pendingEdit}>
-                  {pendingEdit ? "Publishing..." : "Publish"}
+                  {pendingEdit
+                    ? "Saving..."
+                    : scheduledPublishAt
+                      ? "Schedule"
+                      : "Publish"}
                 </Button>
               </div>
             </form>

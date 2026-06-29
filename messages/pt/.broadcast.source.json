@@ -1,0 +1,5 @@
+{
+  "rate.left": "{remaining} of {limit} broadcasts left this hour",
+  "rate.sendAgainAt": "You can send again at",
+  "rate.limitReached": "Broadcast limit reached. Please try again later."
+}
