@@ -98,6 +98,9 @@ import { watchlistApi } from "@/lib/watchlist";
 import { ManualMatchResultStep } from "../../_components/ManualMatchResultStep";
 import { MatchMethodSelectionStep } from "../../_components/MatchMethodSelectionStep";
 import { FileUploadStep } from "../../_components/FileUploadStep";
+// "Upload all maps (.log)" — multi-map match-log upload (per-file map pick + review + apply),
+// mirroring the leaderboard view page so the edit page offers it too (owner 2026-06-29).
+import { MultiMapLogUpload } from "../../_components/MultiMapLogUpload";
 import { GroupBulkUploadPanel } from "../../_components/GroupBulkUploadPanel";
 // OCR review flow (Phase 1): pick a map + drop a screenshot (MapSelectionStep), then review +
 // correct the auto-extracted rows (OCRReviewTable) and commit. Mounted in the Upload drawer below,
@@ -2453,6 +2456,23 @@ export default function EditLeaderboardPage({
                 onComplete={fetchData}
               />
 
+              {/* Bulk: upload every map's match-LOG / 3D-room file at once for this group,
+                  assign each file to a map, review, then apply (owner 2026-06-29 — parity with
+                  the leaderboard view page). Works for team + solo (participantType picks the
+                  endpoint). */}
+              <div className="flex justify-end">
+                <MultiMapLogUpload
+                  matches={groupMatches.map((m) => ({
+                    match_id: m.match_id,
+                    match_number: m.match_number,
+                    match_map: m.match_map,
+                  }))}
+                  token={token}
+                  participantType={participantType}
+                  onChanged={fetchData}
+                />
+              </div>
+
               {/* Or upload one map at a time (per-map drawer). */}
               <p className="text-xs font-medium text-muted-foreground pt-1">
                 Or upload a single map:
@@ -2581,6 +2601,13 @@ export default function EditLeaderboardPage({
                   match={uploadingMatch}
                   formData={uploadFormData}
                   participantTypeOverride={participantType}
+                  // Enables the "All maps at once" toggle on the 3D Room File step, scoped to this
+                  // group's matches (owner 2026-06-29 — parity with the leaderboard view page).
+                  groupMatches={currentGroup?.matches ?? []}
+                  onAllMapsApplied={() => {
+                    fetchData();
+                    setUploadDrawerOpen(false);
+                  }}
                   onNext={handleUploadComplete}
                   onBack={() => setUploadView("method")}
                 />

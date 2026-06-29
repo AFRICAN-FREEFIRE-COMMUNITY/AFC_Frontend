@@ -76,6 +76,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { formatWord } from "@/lib/utils";
+// Per-player flag: player.country is now the IP-derived location (afc_auth.views.set_ip_country,
+// owner 2026-06-29), so the flag shown here matches where the player actually is.
+import { CountryFlag } from "@/lib/countryFlag";
 // LocalTime renders a stored UTC timestamp in the viewer's own timezone + language;
 // the i18n/time helpers cover the chart axis label (a string, not JSX).
 import { LocalTime } from "@/components/LocalTime";
@@ -706,7 +709,16 @@ export function PlayerClient({ username }: { username: string }) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
                 <div>
                   <p className="text-xs text-muted-foreground">{t("player.country")}</p>
-                  <p className="text-sm mt-0.5">{player.country || "-"}</p>
+                  <p className="text-sm mt-0.5 inline-flex items-center gap-1.5">
+                    {player.country ? (
+                      <>
+                        <CountryFlag country={player.country} />
+                        {player.country}
+                      </>
+                    ) : (
+                      "-"
+                    )}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">{t("player.uid")}</p>
