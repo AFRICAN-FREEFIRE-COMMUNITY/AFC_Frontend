@@ -41,6 +41,16 @@ type Props = {
 const toSel = (v: boolean | null) => (v === null ? "default" : v ? "count" : "exclude");
 const fromSel = (v: string): boolean | null => (v === "default" ? null : v === "count");
 
+// Reason -> i18n key for the "Why flagged" badge. Covers the two legacy reasons plus the two
+// name-matching reasons (name-matching feature): a roster member whose UID changed, or a name that
+// matches a member registered on another team. Both arrive pending approval via the Select below.
+const REASON_KEY: Record<string, string> = {
+  not_on_roster: "reasonNotOnRoster",
+  belongs_to_other_team: "reasonOtherTeam",
+  name_matched_uid_changed: "reasonNameUidChanged",
+  name_matched_other_team: "reasonNameOtherTeam",
+};
+
 export function FlaggedKillsPanel({ eventId, token, canManage = true, onChanged }: Props) {
   const t = useTranslations("flaggedKills");
   const [loading, setLoading] = useState(true);
@@ -166,9 +176,18 @@ export function FlaggedKillsPanel({ eventId, token, canManage = true, onChanged 
                   <TableCell className="py-2 text-xs">{f.team_name ?? "-"}</TableCell>
                   <TableCell className="py-2 text-right text-xs tabular-nums">{f.kills}</TableCell>
                   <TableCell className="py-2">
-                    <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
-                      {f.reason === "not_on_roster" ? t("reasonNotOnRoster") : t("reasonOtherTeam")}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
+                        {t(REASON_KEY[f.reason] ?? "reasonNotOnRoster")}
+                      </Badge>
+                      {/* Pending pill: a name-matched / cross-team flag explicitly held at
+                          count_kills=false until an admin approves it via the Count select. */}
+                      {f.count_kills === false && (
+                        <Badge variant="outline" className="rounded-full border-orange-500/40 px-2 py-0.5 text-[10px] text-orange-400">
+                          {t("pending")}
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="py-2">
                     <div className="flex items-center gap-2">

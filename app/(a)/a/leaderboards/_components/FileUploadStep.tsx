@@ -33,7 +33,11 @@ import { MultiMapLogPanel, type MatchOption } from "./MultiMapLogUpload";
 // straight from the off-roster flags here; entries land on the AFC-wide advisory watchlist that
 // powers <WatchTag> elsewhere (registered teams, leaderboard standings, /a/watchlist).
 import { watchlistApi } from "@/lib/watchlist";
-import { IconEye } from "@tabler/icons-react";
+import { IconEye, IconCheck } from "@tabler/icons-react";
+// Flagged-kill approval client (name-matching feature). The review panel can approve a name-matched
+// or cross-team player's kills inline via the SAME PATCH the <FlaggedKillsPanel/> uses
+// (events/flagged-kills/flag/). No new endpoint: flaggedKillsApi.setFlag(flag_id, count, token).
+import { flaggedKillsApi } from "@/lib/flaggedKills";
 
 interface Props {
   match: { match_id: number; match_name: string };
@@ -47,6 +51,9 @@ interface Props {
   groupMatches?: MatchOption[];
   /** Called after the all-maps panel applies, so the parent can refresh the leaderboard + flags. */
   onAllMapsApplied?: () => void;
+  /** Called after a flag is approved/excluded inline (name-matching feature), so the parent can
+   *  refetch the leaderboard + bump the FlaggedKillsPanel refresh key. Same body as onAllMapsApplied. */
+  onFlagsChanged?: () => void;
   /** Gates the all-maps Review/Apply buttons (organizer passes can_upload_results). Default true. */
   canManage?: boolean;
 }
@@ -79,6 +86,13 @@ interface UnknownRow {
   // the wrong team, so we can offer a "Watch player" button (watch the user, not the team).
   registered_user_id?: number | null;
   other_team_id?: number | null;
+  // Name-matching feature (reasons name_matched_uid_changed / name_matched_other_team): the roster
+  // member this file player matched BY NAME, plus the pending MatchKillFlag's id so we can approve
+  // it inline. scope tells whether the matched member is on THIS team or another one.
+  matched_user_id?: number | null;
+  matched_username?: string | null;
+  flag_id?: number | null;
+  scope?: "same_team" | "other_team";
 }
 interface RosterNoUidRow {
   tournament_team_id: number;
@@ -114,7 +128,19 @@ const REASON_LABEL: Record<string, string> = {
   duplicate_in_file: "Listed twice (counted once)",
   no_team_stats: "Could not save, re-upload",
   team_exists_roster_mismatch: "Team exists, players not on roster",
+  // Name-matching feature: pending flags an admin approves inline below.
+  name_matched_uid_changed: "Name matched, UID changed",
+  name_matched_other_team: "Name matches another team",
 };
+
+// Reasons whose flag can be approved/excluded inline (name-matching feature). Each arrives pending
+// (count_kills=false on the backend); the admin flips it via flaggedKillsApi.setFlag. Rows without a
+// flag_id (e.g. dry-run preview, or genuinely unknown UIDs) get the Watch button instead.
+const APPROVABLE_REASONS = new Set<string>([
+  "name_matched_uid_changed",
+  "name_matched_other_team",
+  "belongs_to_other_team",
+]);
 
 export function FileUploadStep({
   match,
@@ -124,6 +150,7 @@ export function FileUploadStep({
   participantTypeOverride,
   groupMatches,
   onAllMapsApplied,
+  onFlagsChanged,
   canManage = true,
 }: Props) {
   const { token } = useAuth();
@@ -149,6 +176,12 @@ export function FileUploadStep({
   // `team:<id>` / `player:<id>`. busyWatchKey marks the one in-flight add.
   const [addedWatchKeys, setAddedWatchKeys] = useState<Set<string>>(new Set());
   const [busyWatchKey, setBusyWatchKey] = useState<string | null>(null);
+  // ── Inline flag approval state (name-matching feature) ───────────────────────
+  // Mirrors the watchlist add pattern above: approvedKeys records which flags the admin already
+  // resolved here (keyed `approve:<flag_id>` -> true=counted / false=excluded) so the row flips to a
+  // disabled "Counted"/"Excluded" pill; busyApproveKey marks the one in-flight PATCH.
+  const [approvedKeys, setApprovedKeys] = useState<Map<string, boolean>>(new Map());
+  const [busyApproveKey, setBusyApproveKey] = useState<string | null>(null);
 
   // ── "Add to watchlist" from the upload review ────────────────────────────────
   // Calls the shared watchlistApi.add (lib/watchlist.ts -> POST auth/watchlist/, Bearer inside).
@@ -170,6 +203,34 @@ export function FileUploadStep({
       toast.error(err?.response?.data?.message || "Could not add to watchlist");
     } finally {
       setBusyWatchKey(null);
+    }
+  };
+
+  // ── Approve / exclude a pending flag inline (name-matching feature) ───────────
+  // Calls the SAME endpoint the FlaggedKillsPanel uses: flaggedKillsApi.setFlag(flag_id, count) ->
+  // PATCH events/flagged-kills/flag/ -> _recompute_team_kills_for_event re-totals the team. count
+  // true = approve (kills count), false = exclude. On success the row flips to a disabled pill and we
+  // notify the parent (onFlagsChanged) so the leaderboard + FlaggedKillsPanel refresh. Only reachable
+  // for rows with a real flag_id (dry-run preview returns flag_id=null -> button hidden).
+  const approveCount = async (flagId: number, count: boolean) => {
+    if (!token) return;
+    const key = `approve:${flagId}`;
+    if (approvedKeys.has(key) || busyApproveKey) return;
+    setBusyApproveKey(key);
+    try {
+      await flaggedKillsApi.setFlag(flagId, count, token);
+      setApprovedKeys((prev) => new Map(prev).set(key, count));
+      toast.success(
+        count
+          ? "Approved. These kills now count for the team."
+          : "Excluded. These kills will not count.",
+      );
+      onFlagsChanged?.();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "Could not update this flag.");
+    } finally {
+      setBusyApproveKey(null);
     }
   };
 
@@ -380,87 +441,126 @@ export function FileUploadStep({
                       {teamName}
                     </div>
                     <div className="divide-y">
-                      {rows.map((r, i) => (
-                        <div
-                          key={`${r.uid}-${i}`}
-                          className="flex items-center gap-2 px-3 py-2 text-xs"
-                        >
-                          <span className="font-medium flex-1 truncate">
-                            {r.name || "(no name)"}
-                          </span>
-                          <span className="text-muted-foreground tabular-nums">
-                            UID {r.uid}
-                          </span>
-                          <span className="text-muted-foreground tabular-nums">
-                            {r.kills} kill{r.kills === 1 ? "" : "s"}
-                          </span>
-                          <Badge
-                            variant="outline"
-                            className="rounded-full px-2 py-0.5 text-[10px] border-amber-500/60 text-amber-500"
+                      {rows.map((r, i) => {
+                        // A name-matched / cross-team row whose pending flag can be approved inline
+                        // (name-matching feature). flag_id is null in a dry-run preview -> no approve.
+                        const canApprove =
+                          r.flag_id != null &&
+                          APPROVABLE_REASONS.has(r.reason);
+                        // The roster member this file player matched by name (same team or other).
+                        const isNameMatch =
+                          r.reason === "name_matched_uid_changed" ||
+                          r.reason === "name_matched_other_team";
+                        return (
+                          <div
+                            key={`${r.uid}-${i}`}
+                            className="flex flex-wrap items-center gap-2 px-3 py-2 text-xs"
                           >
-                            {REASON_LABEL[r.reason] ?? r.reason}
+                            <span className="font-medium flex-1 truncate">
+                              {r.name || "(no name)"}
+                            </span>
+                            <span className="text-muted-foreground tabular-nums">
+                              UID {r.uid}
+                            </span>
+                            <span className="text-muted-foreground tabular-nums">
+                              {r.kills} kill{r.kills === 1 ? "" : "s"}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="rounded-full px-2 py-0.5 text-[10px] border-amber-500/60 text-amber-500"
+                            >
+                              {REASON_LABEL[r.reason] ?? r.reason}
+                              {/* Append the other team for both legacy cross-team and the new
+                                  name_matched_other_team reason. */}
+                              {(r.reason === "belongs_to_other_team" ||
+                                r.reason === "name_matched_other_team") &&
+                              r.other_team_name
+                                ? `: ${r.other_team_name}`
+                                : ""}
+                            </Badge>
+                            {/* Name-matching feature: show which roster player this name matched. */}
+                            {isNameMatch && r.matched_username ? (
+                              <span className="text-[10px] text-muted-foreground truncate">
+                                matches {r.matched_username}
+                              </span>
+                            ) : null}
+                            {/* Inline approve / exclude for a pending name-matched or cross-team flag.
+                                Once resolved it flips to a disabled pill. */}
+                            {canApprove ? (
+                              <ApproveRowButtons
+                                flagId={r.flag_id!}
+                                decision={approvedKeys.get(
+                                  `approve:${r.flag_id}`,
+                                )}
+                                busy={busyApproveKey === `approve:${r.flag_id}`}
+                                onApprove={() =>
+                                  approveCount(r.flag_id!, true)
+                                }
+                                onExclude={() =>
+                                  approveCount(r.flag_id!, false)
+                                }
+                              />
+                            ) : null}
+                            {/* TASK 1c: per-row watchlist shortcuts. Watch the registered PLAYER
+                                when this UID belongs to someone on another team; otherwise watch the
+                                resolved site TEAM when we know which one this block matched. Kept for
+                                genuinely-unknown rows even when an approve control is also shown. */}
                             {r.reason === "belongs_to_other_team" &&
-                            r.other_team_name
-                              ? `: ${r.other_team_name}`
-                              : ""}
-                          </Badge>
-                          {/* TASK 1c: per-row watchlist shortcuts. Watch the registered PLAYER
-                              when this UID belongs to someone on another team; otherwise watch the
-                              resolved site TEAM when we know which one this block matched. */}
-                          {r.reason === "belongs_to_other_team" &&
-                          r.registered_user_id ? (
-                            <WatchRowButton
-                              label="Watch player"
-                              busy={
-                                busyWatchKey === `player:${r.registered_user_id}`
-                              }
-                              added={addedWatchKeys.has(
-                                `player:${r.registered_user_id}`,
-                              )}
-                              onClick={() =>
-                                addToWatch(
+                            r.registered_user_id ? (
+                              <WatchRowButton
+                                label="Watch player"
+                                busy={
+                                  busyWatchKey ===
+                                  `player:${r.registered_user_id}`
+                                }
+                                added={addedWatchKeys.has(
                                   `player:${r.registered_user_id}`,
-                                  {
-                                    subject_type: "player",
-                                    player_id: r.registered_user_id!,
-                                    reason: `Played for ${
-                                      r.team_name
-                                    } but registered on ${
-                                      r.other_team_name ?? "another team"
-                                    }`,
-                                    source: "upload",
-                                    context: `uid ${r.uid}`,
-                                  },
-                                  "Player added to watchlist",
-                                )
-                              }
-                            />
-                          ) : r.site_team_id ? (
-                            <WatchRowButton
-                              label="Watch team"
-                              busy={busyWatchKey === `team:${r.site_team_id}`}
-                              added={addedWatchKeys.has(
-                                `team:${r.site_team_id}`,
-                              )}
-                              onClick={() =>
-                                addToWatch(
+                                )}
+                                onClick={() =>
+                                  addToWatch(
+                                    `player:${r.registered_user_id}`,
+                                    {
+                                      subject_type: "player",
+                                      player_id: r.registered_user_id!,
+                                      reason: `Played for ${
+                                        r.team_name
+                                      } but registered on ${
+                                        r.other_team_name ?? "another team"
+                                      }`,
+                                      source: "upload",
+                                      context: `uid ${r.uid}`,
+                                    },
+                                    "Player added to watchlist",
+                                  )
+                                }
+                              />
+                            ) : r.site_team_id ? (
+                              <WatchRowButton
+                                label="Watch team"
+                                busy={busyWatchKey === `team:${r.site_team_id}`}
+                                added={addedWatchKeys.has(
                                   `team:${r.site_team_id}`,
-                                  {
-                                    subject_type: "team",
-                                    team_id: r.site_team_id!,
-                                    reason: `Off-roster players in an uploaded result for ${r.team_name}`,
-                                    source: "upload",
-                                    context: `team ${
-                                      r.site_team_name ?? r.team_name
-                                    }`,
-                                  },
-                                  "Team added to watchlist",
-                                )
-                              }
-                            />
-                          ) : null}
-                        </div>
-                      ))}
+                                )}
+                                onClick={() =>
+                                  addToWatch(
+                                    `team:${r.site_team_id}`,
+                                    {
+                                      subject_type: "team",
+                                      team_id: r.site_team_id!,
+                                      reason: `Off-roster players in an uploaded result for ${r.team_name}`,
+                                      source: "upload",
+                                      context: `team ${
+                                        r.site_team_name ?? r.team_name
+                                      }`,
+                                    },
+                                    "Team added to watchlist",
+                                  )
+                                }
+                              />
+                            ) : null}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -845,5 +945,71 @@ function WatchRowButton({
       )}
       {added ? "Added" : label}
     </Button>
+  );
+}
+
+// ── ApproveRowButtons ─────────────────────────────────────────────────────────
+// Inline approve / exclude control for a pending name-matched or cross-team flag (name-matching
+// feature). Presentational + stateless: the parent (FileUploadStep) owns the busy/decided state and
+// the flaggedKillsApi.setFlag call (approveCount). `decision` undefined = not yet resolved (show the
+// two buttons); true = approved -> "Counted" pill; false = excluded -> "Excluded" pill.
+function ApproveRowButtons({
+  flagId,
+  decision,
+  busy,
+  onApprove,
+  onExclude,
+}: {
+  flagId: number;
+  decision: boolean | undefined;
+  busy: boolean;
+  onApprove: () => void;
+  onExclude: () => void;
+}) {
+  // Resolved: collapse to a single disabled pill reflecting the choice.
+  if (decision !== undefined) {
+    return (
+      <Badge
+        variant="outline"
+        className={
+          "h-6 shrink-0 rounded-full px-2 text-[10px] " +
+          (decision
+            ? "border-green-500/50 text-green-600 dark:text-green-400"
+            : "border-muted-foreground/30 text-muted-foreground")
+        }
+      >
+        {decision ? "Counted" : "Excluded"}
+      </Badge>
+    );
+  }
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled={busy}
+        onClick={onApprove}
+        className="h-6 gap-1 rounded-full border-green-500/60 px-2 text-[10px] text-green-600 hover:bg-green-500/10 dark:text-green-400"
+        title={`Approve flag #${flagId} to count`}
+      >
+        {busy ? (
+          <IconLoader2 size={12} className="animate-spin" />
+        ) : (
+          <IconCheck size={12} />
+        )}
+        Approve to count
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        disabled={busy}
+        onClick={onExclude}
+        className="h-6 shrink-0 rounded-full px-2 text-[10px] text-muted-foreground hover:text-destructive"
+      >
+        Exclude
+      </Button>
+    </div>
   );
 }

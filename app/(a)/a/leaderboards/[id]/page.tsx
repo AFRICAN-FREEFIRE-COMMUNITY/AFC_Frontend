@@ -755,6 +755,11 @@ export default function IndividualLeaderboardPage({
             fetchLeaderboard();
             setFlagRefreshKey((k) => k + 1);
           }}
+          // Inline flag approval (name-matching feature): same refresh as the all-maps apply.
+          onFlagsChanged={() => {
+            fetchLeaderboard();
+            setFlagRefreshKey((k) => k + 1);
+          }}
           onNext={handleEditComplete}
           onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
         />

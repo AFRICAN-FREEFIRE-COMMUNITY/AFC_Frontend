@@ -16,7 +16,14 @@ import { env } from "@/lib/env";
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
 
-export type FlagReason = "not_on_roster" | "belongs_to_other_team";
+// Name-based matching reasons (name-matching feature): a file player whose NAME matches a roster
+// member but whose UID differs (uid_changed), or whose name matches a member registered on another
+// team. Both are created pending (count_kills=false) and approved via the same setFlag PATCH.
+export type FlagReason =
+  | "not_on_roster"
+  | "belongs_to_other_team"
+  | "name_matched_uid_changed"
+  | "name_matched_other_team";
 
 export type FlaggedKill = {
   flag_id: number;

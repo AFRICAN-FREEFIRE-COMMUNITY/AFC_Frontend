@@ -17,7 +17,7 @@
 // next stage", not per-group edges). Points-based formats (incl. "Knockout" labels) all
 // render as their accurate standings, because that is how AFC records results.
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 // i18n: tournament-section strings live in messages/en/tournaments.json under
@@ -31,7 +31,7 @@ import { LocalTime } from "@/components/LocalTime";
 import { LocalEventTime } from "@/components/LocalEventTime";
 import { CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, ChevronRight, ArrowUp } from "lucide-react";
+import { Trophy, ChevronRight, ChevronDown, ArrowUp } from "lucide-react";
 // IconArrowRight matches the LinkedEventsCard chip aesthetic (components/event-links.tsx).
 import { IconArrowRight } from "@tabler/icons-react";
 import { FORMAT_LABEL } from "@/lib/eventFormats";
@@ -48,6 +48,10 @@ interface StageGroup {
   group_id: number;
   group_name: string;
   teams_qualifying: number;
+  // is_my_group (owner 2026-06-29): true for the group the signed-in viewer competes in
+  // (echoed by get_event_details). Drives a "Your group" highlight so registered players
+  // spot their own group instantly.
+  is_my_group?: boolean;
   // Schedule (owner 2026-06-22): when this group plays. playing_date is a "YYYY-MM-DD"; playing_time
   // is a host wall-clock "HH:MM[:SS]" tied to the event's timezone. Both echoed by get_event_details.
   playing_date?: string | null;
@@ -141,6 +145,16 @@ const fmtLabel = (f: string) => FORMAT_LABEL[f] || f;
 export function TournamentStructure({ stages, participantType, eventId, timezone, resultsPublished }: Props) {
   const t = useTranslations("tournaments");
   const [sel, setSel] = useState(0);
+  // Tapping a stage scrolls its groups (standings + schedule + room IDs) into view, so the
+  // stage spine reads as an interactive selector rather than static cards (owner 2026-06-29).
+  const groupsRef = useRef<HTMLElement>(null);
+  const selectStage = (i: number) => {
+    setSel(i);
+    // Defer one frame so the newly-selected stage's groups render before we scroll to them.
+    requestAnimationFrame(() =>
+      groupsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
+  };
   // Explicit false only (undefined/true => standings render normally) so legacy callers + events
   // without the flag are unaffected. When hidden, each group card swaps its standings table for the
   // "Results not published yet" state below; config (maps / point system) is untouched.
@@ -233,9 +247,12 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
     <div className="space-y-10">
       {/* ── 1. Stage-flow spine ── */}
       <section>
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
           {t("structure.tournamentFlow")}
         </p>
+        {/* Discoverability hint: makes it obvious the stage cards below are tappable and that
+            tapping drives the groups/schedule/room IDs shown underneath (owner 2026-06-29). */}
+        <p className="mb-4 text-xs text-muted-foreground">{t("structure.tapHint")}</p>
         <div className="flex items-stretch overflow-x-auto pb-2">
           {stages.map((s, i) => {
             const isFinals = i === finalsIdx;
@@ -248,7 +265,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
               <div key={s.stage_id} className="flex items-stretch">
                 <button
                   type="button"
-                  onClick={() => setSel(i)}
+                  onClick={() => selectStage(i)}
                   className={`text-left min-w-[230px] flex-1 bg-card rounded-md border p-5 transition-colors
                     ${i === sel ? "ring-1 ring-primary/40 border-primary/50" : "hover:border-primary/40"}
                     ${isFinals ? "border-gold/50" : ""}`}
@@ -349,6 +366,23 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                       </div>
                     </div>
                   )}
+                  {/* Tappable affordance: a clear caret + label so the card obviously opens its
+                      groups below. The selected card reads "Viewing groups" with the caret down;
+                      the others read "View groups" with the caret pointing right. */}
+                  <div
+                    className={`mt-3 flex items-center gap-1 text-xs font-medium ${
+                      i === sel ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    <ChevronDown
+                      className={`size-3.5 transition-transform ${
+                        i === sel ? "" : "-rotate-90"
+                      }`}
+                    />
+                    {i === sel
+                      ? t("structure.viewingGroups")
+                      : t("structure.viewGroups")}
+                  </div>
                 </button>
                 {/* arrow between stages */}
                 {i < stages.length - 1 && (
@@ -458,7 +492,8 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
       )}
 
       {/* ── 2. Standings & qualification for the selected stage ── */}
-      <section>
+      {/* groupsRef: selectStage() scrolls here so a stage tap visibly reveals its groups. */}
+      <section ref={groupsRef} className="scroll-mt-4">
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
           {t("structure.standingsHeading", { stageName: stage.stage_name })}
         </p>
@@ -494,10 +529,21 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                 : [];
               const qN = g.teams_qualifying ?? 0;
               return (
-                <div key={g.group_id} className="bg-card rounded-md border overflow-hidden">
+                <div
+                  key={g.group_id}
+                  className={`bg-card rounded-md border overflow-hidden ${
+                    g.is_my_group ? "ring-1 ring-primary/50 border-primary/50" : ""
+                  }`}
+                >
                   <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b">
                     <div className="min-w-0">
                       <span className="font-bold">{g.group_name}</span>
+                      {/* "Your group" highlight so a registered player spots their group instantly. */}
+                      {g.is_my_group && (
+                        <Badge className="ml-2 rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-[0.65rem] text-primary">
+                          {t("structure.yourGroup")}
+                        </Badge>
+                      )}
                       {/* Group schedule (owner 2026-06-22): when this group plays. The date is in the
                           viewer's locale; the time is dual-tz (viewer + host) since playing_time is a
                           host wall-clock paired with the event timezone. */}
