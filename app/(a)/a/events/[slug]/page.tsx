@@ -109,6 +109,8 @@ interface EventDetails {
   event_status: string;
   registration_link: string | null;
   tournament_tier: string;
+  // True when a head/super admin pinned the tier (vs auto-classified from the rules). owner 2026-06-30.
+  tier_overridden?: boolean;
   event_banner_url: string | null;
   uploaded_rules_url: string | null;
   number_of_stages: number;
@@ -306,7 +308,11 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const router = useRouter();
 
   // Get both token and loading state from auth context
-  const { token, loading: authLoading } = useAuth();
+  const { token, loading: authLoading, user, hasAnyRole } = useAuth();
+  // Only a super (role "admin") or head_admin may manually override an event's tier (owner 2026-06-30).
+  const canOverrideTier =
+    user?.role === "admin" || (hasAnyRole ? hasAnyRole(["head_admin"]) : false);
+  const [tierSaving, setTierSaving] = useState(false);
 
   const [pending, startTransition] = useTransition();
   const [eventDetails, setEventDetails] = useState<EventDetails>();
@@ -450,6 +456,27 @@ const Page = ({ params }: { params: Promise<Params> }) => {
       refetchEvent();
     });
   }, [slug, token, authLoading, refetchEvent]);
+
+  // Manually override the event's tournament tier (head/super admin only; owner 2026-06-30).
+  // Pass { tournament_tier } to pin a tier, or { reset: true } to clear the override + re-classify.
+  // Hits POST events/<id>/set-tier/ then refetches so the badge + pinned/auto state update.
+  const setTier = async (body: { tournament_tier?: string; reset?: boolean }) => {
+    if (!token || !eventDetails?.event_id || tierSaving) return;
+    setTierSaving(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventDetails.event_id}/set-tier/`,
+        body,
+        { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } },
+      );
+      toast.success(body.reset ? "Tier reset to auto-classified." : "Tier updated.");
+      await refetchEvent();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to update tier.");
+    } finally {
+      setTierSaving(false);
+    }
+  };
 
   const fetchInviteLinks = async (eventId: number) => {
     if (!token) return;
@@ -821,6 +848,37 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               )}
             </Badge>
           </div>
+          {/* Tournament-tier override (head/super admin only; owner 2026-06-30). The tier is
+              auto-classified from the Tournament Tiers rules; a head/super admin can pin a specific
+              tier here, or reset back to auto. Hidden for everyone else (they only see the badge). */}
+          {canOverrideTier && (
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-muted-foreground">
+                Tier ({eventDetails.tier_overridden ? "pinned" : "auto"}):
+              </span>
+              {["tier_1", "tier_2", "tier_3"].map((tk) => (
+                <Button
+                  key={tk}
+                  size="sm"
+                  variant={tournament_tier === tk ? "default" : "outline"}
+                  disabled={tierSaving}
+                  onClick={() => setTier({ tournament_tier: tk })}
+                >
+                  {tk.replace("tier_", "Tier ")}
+                </Button>
+              ))}
+              {eventDetails.tier_overridden && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={tierSaving}
+                  onClick={() => setTier({ reset: true })}
+                >
+                  Reset to auto
+                </Button>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex gap-2 w-full lg:w-auto">
           {/* ZIP of every registered team's logo + every rostered player's esport image
