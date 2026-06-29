@@ -1,4 +1,9 @@
 {
+  "tier": {
+    "tier_1": "Nível 1",
+    "tier_2": "Nível 2",
+    "tier_3": "Nível 3"
+  },
   "common": {
     "back": "Voltar",
     "cancel": "Cancelar",

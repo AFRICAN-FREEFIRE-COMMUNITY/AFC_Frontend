@@ -106,18 +106,37 @@ export default function OrderDetailsPage() {
               {order.items.map((item: any, idx: number) => (
                 <div
                   key={idx}
-                  className="flex justify-between items-start group"
+                  className="flex justify-between items-start group gap-3"
                 >
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm">{item.product_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("orderDetail.variantQty", {
-                        variant: item.variant_title,
-                        quantity: item.quantity,
-                      })}
-                    </p>
+                  {/* product image + details (owner 2026-06-29: the detail page should show the
+                      image + full product details, not just the order id). product_image now comes
+                      from get_order_details; raw <img> (absolute media URL) avoids next/image host
+                      config, matching the rest of the shop. Falls back to a placeholder block. */}
+                  <div className="flex items-start gap-3 min-w-0">
+                    {item.product_image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.product_image}
+                        alt={item.product_name}
+                        className="size-14 rounded-md border object-cover shrink-0 bg-muted"
+                      />
+                    ) : (
+                      <div className="size-14 rounded-md border bg-muted shrink-0" />
+                    )}
+                    <div className="space-y-1 min-w-0">
+                      <p className="font-medium text-sm">{item.product_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("orderDetail.variantQty", {
+                          variant: item.variant_title,
+                          quantity: item.quantity,
+                        })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("orderDetail.unitPrice", { price: formatMoneyInput(item.unit_price) })}
+                      </p>
+                    </div>
                   </div>
-                  <p className="font-semibold text-sm">
+                  <p className="font-semibold text-sm shrink-0">
                     ₦{formatMoneyInput(item.line_total)}
                   </p>
                 </div>
@@ -212,7 +231,7 @@ export default function OrderDetailsPage() {
 
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full print:hidden"
             onClick={() => window.print()}
           >
             {t("orderDetail.printReceipt")}

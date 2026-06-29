@@ -803,9 +803,17 @@ function RunEvaluationDialog({
         toast.error(res.error || "Evaluation could not run.");
         return;
       }
-      toast.success(
-        `Evaluation run for ${season.name}: ${res.teams_evaluated} teams, ${res.players_evaluated} players tiered.`,
-      );
+      // Evaluation now rebuilds scores from match results first (backend recalc_season), so a
+      // 0/0 result means there genuinely are no countable results in the season window — surface
+      // the backend's note instead of a misleading "0 teams tiered" success (owner bug 2026-06-29).
+      const tiered = (res?.teams_evaluated ?? 0) + (res?.players_evaluated ?? 0);
+      if (tiered === 0 && res?.note) {
+        toast.warning(res.note);
+      } else {
+        toast.success(
+          `Evaluation run for ${season.name}: ${res.teams_evaluated} teams, ${res.players_evaluated} players tiered.`,
+        );
+      }
       onConfirmed(season.season_id);
       onOpenChange(false);
     } catch (err: any) {

@@ -201,6 +201,7 @@
   "orderDetail.description": "Manage and view your transaction history",
   "orderDetail.itemsPurchased": "Items Purchased",
   "orderDetail.variantQty": "Variant: {variant} | Qty: {quantity}",
+  "orderDetail.unitPrice": "Unit price: ₦{price}",
   "orderDetail.subtotal": "Subtotal",
   "orderDetail.tax": "Tax",
   "orderDetail.totalAmount": "Total Amount",

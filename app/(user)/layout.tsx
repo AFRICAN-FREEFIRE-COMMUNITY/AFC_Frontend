@@ -32,13 +32,20 @@ const layout = ({ children }: { children: ReactNode }) => {
     <GuidedTourProvider>
       <div className="min-h-screen">
         <div className="relative z-10">
-          <Header />
+          {/* print:hidden on the site chrome so window.print() (e.g. the order "Print Receipt"
+              button) yields a clean printout of just the page content, not the nav header + the
+              full site footer bleeding onto a 2nd page (owner 2026-06-29). */}
+          <div className="print:hidden">
+            <Header />
+          </div>
           {/* First-login onboarding: redirect a brand-new user to /onboarding once. Renders nothing. */}
           <OnboardingGate />
           {/* Quiet, dismissible profile-completion nudge (esports image / team logo). Non-blocking. */}
           <CompletionReminder />
           <div className="py-10 container min-h-[60vh]">{children}</div>
-          <Footer />
+          <div className="print:hidden">
+            <Footer />
+          </div>
         </div>
         {/* Animated guided-tour HUB modal (auto-shows for newcomers, replayable from
             the Header sparkles button). Renders nothing when the hub is not open. */}

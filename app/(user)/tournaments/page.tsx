@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { TournamentTierBadge } from "@/components/TournamentTierBadge";
 import { env } from "@/lib/env";
 import { matchesSearch } from "@/lib/search";
 // i18n time: <LocalTime/> renders the event date in the viewer's own timezone +
@@ -69,6 +70,9 @@ interface Event {
   registration_type?: "free" | "paid";
   registration_fee?: number | null;
   registration_fee_currency?: string;
+  // Tournament tier (tier_1/2/3) for the tier badge (owner 2026-06-29). Optional so the card
+  // still renders if the list endpoint omits it (badge just hides).
+  tournament_tier?: string | null;
 }
 
 type StatusFilter = "all" | "upcoming" | "ongoing" | "completed";
@@ -156,12 +160,16 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
             date: () => <LocalTime value={event.event_date} mode="date" />,
           })}
         </p>
-        <p
-          className={`text-sm font-medium ${statusColors[event.event_status] ?? "text-muted-foreground"}`}
-        >
-          {event.event_status.charAt(0).toUpperCase() +
-            event.event_status.slice(1)}
-        </p>
+        {/* status + tournament tier badge on one row, so every card shows what tier the event is. */}
+        <div className="flex items-center justify-between gap-2">
+          <p
+            className={`text-sm font-medium ${statusColors[event.event_status] ?? "text-muted-foreground"}`}
+          >
+            {event.event_status.charAt(0).toUpperCase() +
+              event.event_status.slice(1)}
+          </p>
+          <TournamentTierBadge tier={event.tournament_tier} />
+        </div>
 
         {/* ── Organizer badge ──
             Only shown when the event is run by an external organization. Outline

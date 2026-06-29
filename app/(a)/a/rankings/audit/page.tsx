@@ -12,6 +12,13 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+// Name-search pickers so the admin looks a team/player up BY NAME instead of typing a raw
+// numeric id (owner 2026-06-29: "we dont know IDs... no way to view the data"). Same pickers
+// used on the standalone-leaderboard + organizer-blacklist + overrides flows. TeamSearchSelect
+// emits the team_id; UserSearchSelect emits the username + the full PickedUser (we read user_id,
+// which is what playerRaw() keys off — player_id == User PK, per afc_rankings.admin_audit).
+import { TeamSearchSelect } from "@/components/ui/team-search-select";
+import { UserSearchSelect } from "@/components/ui/user-search-select";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -192,18 +199,30 @@ export default function AuditLogPage() {
   // ── raw data viewer state ────────────────────────────────────────────────
   const [rawOpen, setRawOpen] = useState(false);
   const [rawKind, setRawKind] = useState<"team" | "player">("team");
-  const [rawId, setRawId] = useState("");
+  // The picked subject. Team branch holds the team_id (TeamSearchSelect emits it directly);
+  // player branch holds the controlled username (UserSearchSelect's value) + the resolved
+  // user_id (playerRaw keys off the User PK, so we load by user_id, not username).
+  const [rawTeamId, setRawTeamId] = useState<number | null>(null);
+  const [rawUsername, setRawUsername] = useState<string | null>(null);
+  const [rawUserId, setRawUserId] = useState<number | null>(null);
   const [rawLoading, setRawLoading] = useState(false);
   const [raw, setRaw] = useState<RawResponse | null>(null);
 
+  // The numeric id we'd load for the current kind (team_id or user_id); null until a pick.
+  const rawSubjectId = rawKind === "team" ? rawTeamId : rawUserId;
+  // Clear any picked subject (on close, or when flipping Team<->Player so a stale pick can't carry).
+  const clearRawSubject = () => { setRawTeamId(null); setRawUsername(null); setRawUserId(null); };
+
   const loadRaw = () => {
-    const id = Number(rawId);
-    if (!id) { toast.error("Enter a numeric ID."); return; }
+    if (!rawSubjectId) {
+      toast.error(rawKind === "team" ? "Pick a team to view." : "Pick a player to view.");
+      return;
+    }
     setRawLoading(true);
     setRaw(null);
     const req = rawKind === "team"
-      ? rankingsAdminApi.teamRaw(id)
-      : rankingsAdminApi.playerRaw(id);
+      ? rankingsAdminApi.teamRaw(rawSubjectId)
+      : rankingsAdminApi.playerRaw(rawSubjectId);
     req
       .then((r: RawResponse) => setRaw(r))
       .catch((err: any) =>
@@ -211,10 +230,10 @@ export default function AuditLogPage() {
       .finally(() => setRawLoading(false));
   };
 
-  // Reset the viewer's loaded data when it closes so a re-open starts clean.
+  // Reset the viewer's loaded data + picked subject when it closes so a re-open starts clean.
   const onRawOpenChange = (open: boolean) => {
     setRawOpen(open);
-    if (!open) { setRaw(null); setRawId(""); }
+    if (!open) { setRaw(null); clearRawSubject(); }
   };
 
   // Only the component rows the current breakdown actually carries.
@@ -403,7 +422,7 @@ export default function AuditLogPage() {
 
           {/* subject picker - drives teamRaw(id) / playerRaw(id) */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[140px_1fr_auto]">
-            <Select value={rawKind} onValueChange={(v) => { setRawKind(v as "team" | "player"); setRaw(null); }}>
+            <Select value={rawKind} onValueChange={(v) => { setRawKind(v as "team" | "player"); setRaw(null); clearRawSubject(); }}>
               <SelectTrigger className="h-9 w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -412,16 +431,22 @@ export default function AuditLogPage() {
                 <SelectItem value="player">Player</SelectItem>
               </SelectContent>
             </Select>
-            <Input
-              value={rawId}
-              onChange={(e) => setRawId(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") loadRaw(); }}
-              placeholder={rawKind === "team" ? "Team ID" : "Player ID"}
-              inputMode="numeric"
-              className="h-9"
-              aria-label={rawKind === "team" ? "Team ID" : "Player ID"}
-            />
-            <Button onClick={loadRaw} disabled={rawLoading || !rawId.trim()}>
+            {/* Search by NAME (owner 2026-06-29) instead of a raw id box: pick a team -> we use its
+                team_id; pick a player -> we use the picked user's user_id (playerRaw keys off User PK). */}
+            {rawKind === "team" ? (
+              <TeamSearchSelect
+                value={rawTeamId}
+                onChange={(teamId) => setRawTeamId(teamId)}
+                placeholder="Search a team by name..."
+              />
+            ) : (
+              <UserSearchSelect
+                value={rawUsername}
+                onChange={(username, user) => { setRawUsername(username); setRawUserId(user?.user_id ?? null); }}
+                placeholder="Search a player by name..."
+              />
+            )}
+            <Button onClick={loadRaw} disabled={rawLoading || !rawSubjectId}>
               {rawLoading ? "Loading…" : "Load"}
             </Button>
           </div>
@@ -483,7 +508,7 @@ export default function AuditLogPage() {
             <div className="flex items-center justify-center rounded-md border border-dashed py-10 text-center text-xs text-muted-foreground">
               {rawLoading
                 ? "Loading raw scoring data…"
-                : `Enter a ${rawKind} ID and load to see its uncompressed component breakdown.`}
+                : `Search for a ${rawKind} and load to see its uncompressed component breakdown.`}
             </div>
           )}
 

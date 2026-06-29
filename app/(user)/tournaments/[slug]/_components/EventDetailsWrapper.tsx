@@ -72,6 +72,7 @@ import {
   IconLoader2,
 } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
+import { TournamentTierBadge } from "@/components/TournamentTierBadge";
 import {
   Select,
   SelectContent,
@@ -5057,6 +5058,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         <p className="text-sm">
           {t("detail.participants", { value: participantText })}
         </p>
+
+        {/* ── Tournament tier badge (owner 2026-06-29) ──
+            Always shown so viewers know how this event is ranked (tier_1/2/3). Reuses the shared
+            TournamentTierBadge (same outline rounded-full idiom as the badges below). */}
+        <div>
+          <TournamentTierBadge tier={eventDetails.tournament_tier} />
+        </div>
 
         {/* ── Paid-event badge + entry fee (owner 2026-06-24, per-country) ──
             Only rendered for a paid event. The badge keeps the AFC tier-badge idiom

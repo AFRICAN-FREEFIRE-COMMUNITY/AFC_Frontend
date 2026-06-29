@@ -1,4 +1,9 @@
 {
+  "tier": {
+    "tier_1": "Tier 1",
+    "tier_2": "Tier 2",
+    "tier_3": "Tier 3"
+  },
   "common": {
     "back": "Back",
     "cancel": "Cancel",
