@@ -29,6 +29,7 @@ import axios from "axios";
 import { env } from "@/lib/env";
 // Shared-chrome strings live in messages/en/common.json under "common".
 import { useTranslations } from "next-intl";
+import { LinkifiedText } from "@/components/LinkifiedText";
 
 // ── Notification shape ────────────────────────────────────────────────────────
 // Mirrors what GET /auth/get-notifications/ returns (fetched in Header.tsx and
@@ -245,8 +246,10 @@ export function NotificationDropdown({
                             {notification.title}
                           </p>
                         )}
+                        {/* Linkify URLs in the body so a pasted link (e.g. a WhatsApp group invite an
+                            admin/organizer adds) is tappable + highlighted, not dead text (owner 2026-06-30). */}
                         <p className="mt-0.5 whitespace-pre-line break-words text-sm text-muted-foreground">
-                          {notification.message}
+                          <LinkifiedText text={notification.message} />
                         </p>
 
                         {(links.length > 0 || unread) && (
