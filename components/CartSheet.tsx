@@ -30,9 +30,12 @@ import { useTranslations } from "next-intl";
 // in the viewer's display currency (CurrencyContext). formatPrice is kept only for the
 // two coupon/"you save" strings that interpolate money INTO a translated sentence.
 import { Money } from "@/components/Money";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { displayMoney } from "@/lib/money";
 
 export function CartSheet() {
   const t = useTranslations("common");
+  const { rates, currency } = useCurrency();
   const {
     isCartOpen,
     setIsCartOpen,
@@ -97,13 +100,11 @@ export function CartSheet() {
     }
   };
 
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      minimumFractionDigits: 0,
-    }).format(Number(price));
-  };
+  // Currency-aware string formatter for money interpolated INTO translated sentences (coupon
+  // discount / "you save"), where <Money/> (a component) can't be used. Converts the stored NGN
+  // amount to the viewer's display currency. Owner 2026-06-30 multi-currency.
+  const formatPrice = (price: string | number) =>
+    displayMoney(Number(price) || 0, "NGN", currency, rates);
 
   return (
     <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>

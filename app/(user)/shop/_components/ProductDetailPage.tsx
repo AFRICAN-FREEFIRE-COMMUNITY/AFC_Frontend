@@ -34,6 +34,8 @@ import { formatMoneyInput } from "@/lib/utils";
 // Multi-currency money chokepoint: shows stored NGN prices in the viewer's display
 // currency (CurrencyContext). Used for the variant + subtotal renders below.
 import { Money } from "@/components/Money";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { displayMoney } from "@/lib/money";
 import { ComingSoon } from "@/components/ComingSoon";
 import { InfoTip } from "@/components/ui/info-tip";
 import {
@@ -77,6 +79,7 @@ interface ProductData {
 export default function ProductDetailPage() {
   // Localized copy for the product detail page (messages/en/shop.json -> "detail").
   const t = useTranslations("shop");
+  const { rates, currency } = useCurrency();
   const params = useParams();
   const router = useRouter();
   const { fetchCartCount } = useCart();
@@ -256,13 +259,10 @@ export default function ProductDetailPage() {
     }
   };
 
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      minimumFractionDigits: 0,
-    }).format(Number(price));
-  };
+  // Currency-aware string formatter for money interpolated into a translated sentence (the coupon
+  // "applied: {value} off" line), where <Money/> can't be used. Converts NGN -> viewer currency.
+  const formatPrice = (price: string | number) =>
+    displayMoney(Number(price) || 0, "NGN", currency, rates);
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => Math.max(1, Math.min(99, prev + delta)));
