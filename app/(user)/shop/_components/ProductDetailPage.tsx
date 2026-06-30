@@ -31,6 +31,9 @@ import { IconDiamond, IconShoppingCart } from "@tabler/icons-react";
 import { Loader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { formatMoneyInput } from "@/lib/utils";
+// Multi-currency money chokepoint: shows stored NGN prices in the viewer's display
+// currency (CurrencyContext). Used for the variant + subtotal renders below.
+import { Money } from "@/components/Money";
 import { ComingSoon } from "@/components/ComingSoon";
 import { InfoTip } from "@/components/ui/info-tip";
 import {
@@ -374,7 +377,9 @@ export default function ProductDetailPage() {
                     {variantMetaLine(variant)}
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">{formatPrice(variant.price)}</p>
+                    <p className="font-bold">
+                      <Money amount={variant.price} />
+                    </p>
                     {!variant.in_stock && (
                       <span className="text-xs text-destructive">
                         {t("detail.outOfStock")}
@@ -417,13 +422,13 @@ export default function ProductDetailPage() {
                     </p>
                     {appliedCoupon && (
                       <p className="text-xs text-muted-foreground line-through">
-                        {formatPrice(
-                          parseFloat(selectedVariant.price) * quantity,
-                        )}
+                        <Money
+                          amount={parseFloat(selectedVariant.price) * quantity}
+                        />
                       </p>
                     )}
                     <p className="text-2xl font-bold text-primary">
-                      {formatPrice(finalSubtotal)}
+                      <Money amount={finalSubtotal} />
                     </p>
                   </div>
                 </div>

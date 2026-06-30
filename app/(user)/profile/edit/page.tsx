@@ -32,6 +32,7 @@ import {
 // Pattern mirrors StepWaitlist.tsx (app/(a)/a/events/create/_components/).
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { countries, DEFAULT_PROFILE_PICTURE } from "@/constants";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
@@ -453,6 +454,10 @@ const Page = () => {
                   </FormItem>
                 )}
               />
+              {/* Display currency (multi-currency, owner 2026-06-30). Standalone control (NOT part of
+                  the RHF form): it applies immediately via CurrencyContext + persists to the profile
+                  through /auth/set-currency/. Money across the app then renders in this currency. */}
+              <CurrencyPicker label={t("edit.currency")} />
               {/* ── Stats visibility (opt-in) ──────────────────────────────────────────────────
                   Default is PRIVATE (off). Turning this on lets other users see this
                   player's tournament stats. Sent to POST /auth/edit-profile/ as

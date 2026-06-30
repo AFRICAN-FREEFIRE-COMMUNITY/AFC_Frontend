@@ -41,7 +41,11 @@ import { env } from "@/lib/env";
 import { toast } from "sonner";
 import Image from "next/image";
 import { DEFAULT_IMAGE } from "@/constants";
-import { formatMoneyInput } from "@/lib/utils";
+// Multi-currency money chokepoint: renders cart/line/summary amounts (stored in NGN)
+// in the viewer's display currency (CurrencyContext). Replaces the old ₦+formatMoneyInput
+// display. NOTE: the cart MATH (getSubtotal/getTax/getTotal) stays in NGN since it feeds
+// the charge; only the displayed output is wrapped here.
+import { Money } from "@/components/Money";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
 import {
@@ -442,14 +446,13 @@ export default function CartDetails() {
                     Number(item.line_total) <
                       Number(item.unit_price) * item.quantity && (
                       <p className="text-xs text-muted-foreground line-through">
-                        ₦
-                        {formatMoneyInput(
-                          Number(item.unit_price) * item.quantity,
-                        )}
+                        <Money
+                          amount={Number(item.unit_price) * item.quantity}
+                        />
                       </p>
                     )}
                   <p className="font-bold">
-                    ₦{formatMoneyInput(item.line_total)}
+                    <Money amount={item.line_total} />
                   </p>
                   <Button
                     variant="ghost"
@@ -790,14 +793,13 @@ export default function CartDetails() {
                     Number(item.line_total) <
                       Number(item.unit_price) * item.quantity && (
                       <p className="text-xs text-muted-foreground line-through">
-                        ₦
-                        {formatMoneyInput(
-                          Number(item.unit_price) * item.quantity,
-                        )}
+                        <Money
+                          amount={Number(item.unit_price) * item.quantity}
+                        />
                       </p>
                     )}
                   <p className="font-semibold">
-                    ₦{formatMoneyInput(item.line_total)}
+                    <Money amount={item.line_total} />
                   </p>
                 </div>
               </div>
@@ -855,7 +857,7 @@ export default function CartDetails() {
                   {t("cart.reviewOrder.originalSubtotal")}
                 </span>
                 <span className="line-through text-muted-foreground">
-                  ₦{formatMoneyInput(getOriginalSubtotal())}
+                  <Money amount={getOriginalSubtotal()} />
                 </span>
               </div>
             )}
@@ -863,14 +865,15 @@ export default function CartDetails() {
               <span className="text-muted-foreground">
                 {t("cart.reviewOrder.subtotal")}
               </span>
-              <span>₦{formatMoneyInput(getSubtotal())}</span>
+              <span>
+                <Money amount={getSubtotal()} />
+              </span>
             </div>
             {getOriginalSubtotal() > getSubtotal() && (
               <div className="flex justify-between text-green-500">
                 <span>{t("cart.reviewOrder.discount")}</span>
                 <span>
-                  -₦
-                  {formatMoneyInput(getOriginalSubtotal() - getSubtotal())}
+                  -<Money amount={getOriginalSubtotal() - getSubtotal()} />
                 </span>
               </div>
             )}
@@ -879,7 +882,9 @@ export default function CartDetails() {
                 {t("cart.reviewOrder.tax")}
                 <InfoTip id="shop.checkout.tax" className="ml-1" />:
               </span>
-              <span>₦{formatMoneyInput(getTax())}</span>
+              <span>
+                <Money amount={getTax()} />
+              </span>
             </div>
             <Separator className="my-2" />
             <div className="flex justify-between font-bold text-base">
@@ -887,7 +892,9 @@ export default function CartDetails() {
                 {t("cart.reviewOrder.total")}
                 <InfoTip id="shop.checkout.total" className="ml-1" />:
               </span>
-              <span>₦{formatMoneyInput(getTotal())}</span>
+              <span>
+                <Money amount={getTotal()} />
+              </span>
             </div>
           </div>
         </div>
@@ -1011,13 +1018,14 @@ export default function CartDetails() {
                           Number(item.line_total) <
                             Number(item.unit_price) * item.quantity && (
                             <span className="text-xs text-muted-foreground line-through mr-1">
-                              ₦
-                              {formatMoneyInput(
-                                Number(item.unit_price) * item.quantity,
-                              )}
+                              <Money
+                                amount={Number(item.unit_price) * item.quantity}
+                              />
                             </span>
                           )}
-                        <span>₦{formatMoneyInput(item.line_total)}</span>
+                        <span>
+                          <Money amount={item.line_total} />
+                        </span>
                       </div>
                     </div>
                     {item.coupon_code && (
@@ -1034,32 +1042,37 @@ export default function CartDetails() {
                       {t("cart.summary.originalSubtotal")}
                     </span>
                     <span className="line-through text-muted-foreground">
-                      ₦{formatMoneyInput(getOriginalSubtotal())}
+                      <Money amount={getOriginalSubtotal()} />
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
                   <span>{t("cart.summary.subtotal")}</span>
-                  <span>₦{formatMoneyInput(getSubtotal())}</span>
+                  <span>
+                    <Money amount={getSubtotal()} />
+                  </span>
                 </div>
                 {getOriginalSubtotal() > getSubtotal() && (
                   <div className="flex justify-between text-sm text-green-500">
                     <span>{t("cart.summary.discount")}</span>
                     <span>
-                      -₦
-                      {formatMoneyInput(getOriginalSubtotal() - getSubtotal())}
+                      -<Money amount={getOriginalSubtotal() - getSubtotal()} />
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
                   <span>{t("cart.summary.tax")}</span>
-                  <span>₦{formatMoneyInput(getTax())}</span>
+                  <span>
+                    <Money amount={getTax()} />
+                  </span>
                 </div>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
                 <span>{t("cart.summary.total")}</span>
-                <span>₦{formatMoneyInput(getTotal())}</span>
+                <span>
+                  <Money amount={getTotal()} />
+                </span>
               </div>
             </CardContent>
           </Card>

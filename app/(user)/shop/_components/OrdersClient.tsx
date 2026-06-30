@@ -36,7 +36,9 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { IconShoppingBag } from "@tabler/icons-react";
-import { formatMoneyInput } from "@/lib/utils";
+// Multi-currency money chokepoint: shows order totals (stored in NGN) in the viewer's
+// display currency (CurrencyContext) instead of the old NGN-only formatters.
+import { Money } from "@/components/Money";
 // i18n time: render the order date in the VIEWER's own timezone + language instead
 // of the old formatDate() helper (which built the string from the local-process
 // clock = UTC at SSR and a hardcoded month name). LocalTime is hydration-safe.
@@ -97,14 +99,6 @@ export default function OrdersClient() {
       fetchOrders();
     }
   }, [token]);
-
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      minimumFractionDigits: 0,
-    }).format(Number(price));
-  };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -252,7 +246,7 @@ export default function OrdersClient() {
             {t("orders.totalSpent")}
           </span>
           <span className="text-2xl font-bold text-primary">
-            ₦{formatMoneyInput(totalSpent)}
+            <Money amount={totalSpent} />
           </span>
           <span className="text-xs text-muted-foreground">
             {t("orders.acrossPaidOrders", { count: paidCount })}
@@ -305,7 +299,7 @@ export default function OrdersClient() {
                         {renderItemsSummary(order.items)}
                       </TableCell>
                       <TableCell className="font-semibold">
-                        ₦{formatMoneyInput(order.total)}
+                        <Money amount={order.total} />
                       </TableCell>
                       <TableCell>
                         <LocalTime value={order.created_at} mode="date" />

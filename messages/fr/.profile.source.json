@@ -212,6 +212,7 @@
   "edit.inGameNamePlaceholder": "Enter your in-game name",
   "edit.language": "Language",
   "edit.languagePlaceholder": "Select your language",
+  "edit.currency": "Display currency",
   "edit.saving": "Saving...",
   "edit.saveChanges": "Save changes",
   "edit.changePassword": "Change Password",

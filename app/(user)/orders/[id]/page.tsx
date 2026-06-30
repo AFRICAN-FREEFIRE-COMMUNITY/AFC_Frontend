@@ -26,7 +26,13 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader } from "@/components/PageHeader";
-import { formatMoneyInput } from "@/lib/utils";
+// Multi-currency money chokepoint: shows order amounts (stored in NGN) in the viewer's display
+// currency (CurrencyContext). <Money/> for JSX renders; displayMoney() (string form) for the
+// unit-price line, which interpolates a money STRING into the translated "Unit price: {price}"
+// sentence (a React component can't be a next-intl interpolation arg).
+import { Money } from "@/components/Money";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { displayMoney } from "@/lib/money";
 import { InfoTip } from "@/components/ui/info-tip";
 // i18n time: render the order date in the VIEWER's own timezone + language instead
 // of the old formatDate() helper (UTC at SSR + hardcoded English month). Hydration-safe.
@@ -35,6 +41,7 @@ import { LocalTime } from "@/components/LocalTime";
 export default function OrderDetailsPage() {
   // Localized copy for the single order detail page (messages/en/shop.json -> "orderDetail").
   const t = useTranslations("shop");
+  const { rates, currency } = useCurrency();
   const { id } = useParams();
   const { token } = useAuth();
   const [order, setOrder] = useState<any>(null);
@@ -57,13 +64,6 @@ export default function OrderDetailsPage() {
 
     if (token && id) fetchOrderDetails();
   }, [id, token]);
-
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(Number(price));
-  };
 
   if (loading) {
     return (
@@ -132,12 +132,12 @@ export default function OrderDetailsPage() {
                         })}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {t("orderDetail.unitPrice", { price: formatMoneyInput(item.unit_price) })}
+                        {t("orderDetail.unitPrice", { price: displayMoney(Number(item.unit_price) || 0, "NGN", currency, rates) })}
                       </p>
                     </div>
                   </div>
                   <p className="font-semibold text-sm shrink-0">
-                    ₦{formatMoneyInput(item.line_total)}
+                    <Money amount={item.line_total} />
                   </p>
                 </div>
               ))}
@@ -147,18 +147,22 @@ export default function OrderDetailsPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>{t("orderDetail.subtotal")}</span>
-                  <span>₦{formatMoneyInput(order.subtotal)}</span>
+                  <span>
+                    <Money amount={order.subtotal} />
+                  </span>
                 </div>
                 <Separator className="my-4" />
                 <div className="flex justify-between text-muted-foreground">
                   <span>{t("orderDetail.tax")}</span>
-                  <span>₦{formatMoneyInput(order.tax)}</span>
+                  <span>
+                    <Money amount={order.tax} />
+                  </span>
                 </div>
                 <Separator className="my-4" />
                 <div className="flex justify-between font-semibold text-base">
                   <span>{t("orderDetail.totalAmount")}</span>
                   <span className="text-primary">
-                    {formatPrice(order.total)}
+                    <Money amount={order.total} />
                   </span>
                 </div>
               </div>

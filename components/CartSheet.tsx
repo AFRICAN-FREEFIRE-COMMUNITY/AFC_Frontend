@@ -26,6 +26,10 @@ import { toast } from "sonner";
 import { IconCreditCard, IconTrash } from "@tabler/icons-react";
 // Shared-chrome strings live in messages/en/common.json under "common".
 import { useTranslations } from "next-intl";
+// Multi-currency money chokepoint: renders cart line/subtotal amounts (stored in NGN)
+// in the viewer's display currency (CurrencyContext). formatPrice is kept only for the
+// two coupon/"you save" strings that interpolate money INTO a translated sentence.
+import { Money } from "@/components/Money";
 
 export function CartSheet() {
   const t = useTranslations("common");
@@ -224,13 +228,13 @@ export function CartSheet() {
                         Number(item.line_total) <
                           Number(item.unit_price) * item.quantity && (
                           <p className="text-xs text-muted-foreground line-through">
-                            {formatPrice(
-                              Number(item.unit_price) * item.quantity,
-                            )}
+                            <Money
+                              amount={Number(item.unit_price) * item.quantity}
+                            />
                           </p>
                         )}
                       <p className="font-bold text-sm">
-                        {formatPrice(item.line_total)}
+                        <Money amount={item.line_total} />
                       </p>
                     </div>
                   </div>
@@ -245,14 +249,14 @@ export function CartSheet() {
                     {t("cart.original")}
                   </span>
                   <span className="text-muted-foreground line-through">
-                    {formatPrice(getOriginalSubtotal())}
+                    <Money amount={getOriginalSubtotal()} />
                   </span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-bold">
                 <span>{t("cart.estimatedTotal")}</span>
                 <span className="text-primary">
-                  {formatPrice(getSubtotal())}
+                  <Money amount={getSubtotal()} />
                 </span>
               </div>
               {getOriginalSubtotal() > getSubtotal() && (

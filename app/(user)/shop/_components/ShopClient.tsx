@@ -47,6 +47,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { IconDiamond } from "@tabler/icons-react";
 import { formatMoneyInput } from "@/lib/utils";
+// Multi-currency money chokepoint: converts the stored NGN amount to the viewer's
+// display currency (CurrencyContext) + formats it. Replaces the old NGN-only formatPrice.
+import { Money } from "@/components/Money";
 import { ComingSoon } from "@/components/ComingSoon";
 // Wishlist ("save for later") data layer: seed the saved markers on mount and toggle
 // a product in/out of the signed-in user's saved list from each card's heart.
@@ -278,14 +281,6 @@ export default function ShopClient() {
     currentPage * ITEMS_PER_PAGE,
   );
 
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      minimumFractionDigits: 0,
-    }).format(Number(price));
-  };
-
   // Helper to get the display price (lowest variant price)
   const getStartingPrice = (variants: Variant[]) => {
     if (!variants.length) return "0";
@@ -468,7 +463,7 @@ export default function ShopClient() {
                     <span className="text-xs font-medium text-muted-foreground uppercase mr-1">
                       {t("list.from")}
                     </span>
-                    {formatPrice(startingPrice)}
+                    <Money amount={startingPrice} />
                   </p>
                   <Button asChild className="w-full">
                     <Link href={`/shop/${product.id}`}>

@@ -18,8 +18,8 @@
 //     in <ProtectedRoute> (app/(user)/shop/saved/page.tsx) so anonymous users are bounced to
 //     login before this renders.
 //   - Card design mirrors ShopClient.tsx (same ProductMediaGallery cover, top-left category
-//     badge, out-of-stock overlay, NGN price via Intl.NumberFormat "en-NG", AFC Card/Badge/
-//     Button idiom). Copy comes from messages/en/shop.json -> "wishlist".
+//     badge, out-of-stock overlay, multi-currency price via the shared <Money/> chokepoint,
+//     AFC Card/Badge/Button idiom). Copy comes from messages/en/shop.json -> "wishlist".
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
@@ -38,6 +38,9 @@ import {
   WishlistProduct,
 } from "@/lib/wishlist";
 import { ProductMediaGallery } from "./ProductMediaGallery";
+// Multi-currency money chokepoint: shows the saved product's starting price in the
+// viewer's display currency (CurrencyContext) instead of the old NGN-only formatter.
+import { Money } from "@/components/Money";
 
 export default function WishlistClient() {
   // Localized copy for the saved-items page (messages/en/shop.json -> "wishlist").
@@ -69,14 +72,6 @@ export default function WishlistClient() {
       cancelled = true;
     };
   }, [token]);
-
-  // NGN price formatter, identical to the storefront (ShopClient / ProductDetailPage).
-  const formatPrice = (price: string | number) =>
-    new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      minimumFractionDigits: 0,
-    }).format(Number(price));
 
   // Remove a product from the saved list. toggleWishlist flips it off server-side; on
   // success we drop it from the local list so the card disappears without a refetch.
@@ -161,7 +156,7 @@ export default function WishlistClient() {
                     <span className="text-xs font-medium text-muted-foreground uppercase mr-1">
                       {t("wishlist.from")}
                     </span>
-                    {formatPrice(product.starting_price)}
+                    <Money amount={product.starting_price} />
                   </p>
                   {/* View opens the full product; Remove un-saves it (drops the card). */}
                   <div className="flex gap-2">

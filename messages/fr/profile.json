@@ -257,6 +257,7 @@
     "inGameNamePlaceholder": "Entrez votre nom en jeu",
     "language": "Langue",
     "languagePlaceholder": "Sélectionnez votre langue",
+    "currency": "Devise d'affichage",
     "saving": "Enregistrement...",
     "saveChanges": "Enregistrer les modifications",
     "changePassword": "Changer le mot de passe",

@@ -246,7 +246,7 @@
     "description": "Manage and view your transaction history",
     "itemsPurchased": "Items Purchased",
     "variantQty": "Variant: {variant} | Qty: {quantity}",
-    "unitPrice": "Unit price: ₦{price}",
+    "unitPrice": "Unit price: {price}",
     "subtotal": "Subtotal",
     "tax": "Tax",
     "totalAmount": "Total Amount",

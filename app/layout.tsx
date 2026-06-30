@@ -11,6 +11,7 @@ import {
   generateWebsiteSchema,
 } from "@/lib/seo";
 import { CartProvider } from "@/contexts/CartContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import Script from "next/script";
 import { AuthModalProvider } from "@/components/AuthModal";
 // i18n: locale + messages come from i18n/request.ts (driven by the NEXT_LOCALE
@@ -119,7 +120,12 @@ export default async function RootLayout({
                 disableTransitionOnChange
               >
                 <PageGradient />
-                <CartProvider>{children}</CartProvider>
+                {/* Multi-currency display layer (owner 2026-06-30): loads FX rates + the viewer's
+                    display currency so <Money/> shows everyone their own currency. Inside AuthProvider
+                    so it can read the auth token; wraps the cart so shop money converts too. */}
+                <CurrencyProvider>
+                  <CartProvider>{children}</CartProvider>
+                </CurrencyProvider>
                 <Toaster position="bottom-center" />
               </ThemeProvider>
             </AuthModalProvider>

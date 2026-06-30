@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { displayMoney } from "@/lib/money";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +20,6 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FullLoader } from "@/components/Loader";
-import { ngn } from "@/lib/rankingsMock";
 import { rankingsApi, Season } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { matchesSearch } from "@/lib/search";
@@ -59,6 +60,12 @@ const MATCH_LIMIT = 8;
 const MIN_REASON = 10;
 
 export default function PrizeMoneyPage() {
+  // Multi-currency display (owner 2026-06-30): prize amounts are STORED in NGN; show them in the
+  // admin's chosen display currency (set currency=USD in profile to see USD, the original ask).
+  // `fmt` converts a stored-NGN amount -> the viewer's currency. Inputs stay in Naira for now
+  // (storage stays NGN); the entered amount's live preview also converts via fmt.
+  const { rates, currency } = useCurrency();
+  const fmt = (x: number | string) => displayMoney(Number(x) || 0, "NGN", currency, rates);
   // ── season scope ── undefined = not resolved yet, null = resolved but none active
   const [seasonId, setSeasonId] = useState<number | null | undefined>(undefined);
 
@@ -203,7 +210,7 @@ export default function PrizeMoneyPage() {
         amount: Number(addAmount),
         reason: addReason.trim(),
       });
-      toast.success(`Prize of ${ngn(Number(addAmount))} recorded.`);
+      toast.success(`Prize of ${fmt(Number(addAmount))} recorded.`);
       setAddOpen(false);
       resetAdd();
       await loadPrizes(seasonId);
@@ -321,7 +328,7 @@ export default function PrizeMoneyPage() {
             <span className="text-primary"><IconCoin className="size-4" /></span>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold tabular-nums">{ngn(totalThisSeason)}</p>
+            <p className="text-2xl font-bold tabular-nums">{fmt(totalThisSeason)}</p>
             <p className="text-xs text-muted-foreground">
               Across {rows.length} payout{rows.length === 1 ? "" : "s"}
             </p>
@@ -362,7 +369,7 @@ export default function PrizeMoneyPage() {
                     <TableCell className="font-medium">{r.event_name ?? "-"}</TableCell>
                     <TableCell>{r.team_name ?? "-"}</TableCell>
                     <TableCell className="text-right font-semibold tabular-nums text-primary">
-                      {ngn(amountNumber(r.amount))}
+                      {fmt(amountNumber(r.amount))}
                     </TableCell>
                     <TableCell className="text-muted-foreground tabular-nums">
                       <span className="inline-flex items-center gap-1">
@@ -517,7 +524,7 @@ export default function PrizeMoneyPage() {
 
             {Number(addAmount) > 0 && (
               <p className="text-xs text-muted-foreground">
-                Recording <span className="font-semibold text-primary">{ngn(Number(addAmount))}</span> in prize money.
+                Recording <span className="font-semibold text-primary">{fmt(Number(addAmount))}</span> in prize money.
               </p>
             )}
 
@@ -576,11 +583,11 @@ export default function PrizeMoneyPage() {
 
               <div className="rounded-md border bg-muted/30 p-3 text-xs">
                 <span className="text-muted-foreground">Was </span>
-                <span className="line-through tabular-nums">{ngn(amountNumber(editRow.amount))}</span>
+                <span className="line-through tabular-nums">{fmt(amountNumber(editRow.amount))}</span>
                 {Number(editAmount) !== amountNumber(editRow.amount) && Number(editAmount) > 0 && (
                   <>
                     <span className="text-muted-foreground"> → </span>
-                    <span className="font-medium text-foreground tabular-nums">{ngn(Number(editAmount))}</span>
+                    <span className="font-medium text-foreground tabular-nums">{fmt(Number(editAmount))}</span>
                   </>
                 )}
               </div>
@@ -620,7 +627,7 @@ export default function PrizeMoneyPage() {
             <AlertDialogTitle>Delete prize entry?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteRow
-                ? `This removes the ${ngn(amountNumber(deleteRow.amount))} payout for ${deleteRow.team_name ?? "team"} (${deleteRow.event_name ?? "-"}). This cannot be undone.`
+                ? `This removes the ${fmt(amountNumber(deleteRow.amount))} payout for ${deleteRow.team_name ?? "team"} (${deleteRow.event_name ?? "-"}). This cannot be undone.`
                 : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>

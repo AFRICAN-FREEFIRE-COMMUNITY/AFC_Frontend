@@ -246,7 +246,7 @@
     "description": "Gerencie e visualize seu histórico de transações",
     "itemsPurchased": "Itens Comprados",
     "variantQty": "Variante: {variant} | Qtd: {quantity}",
-    "unitPrice": "Preço unitário: {price} ₦",
+    "unitPrice": "Preço unitário: {price}",
     "subtotal": "Subtotal",
     "tax": "Imposto",
     "totalAmount": "Valor Total",
