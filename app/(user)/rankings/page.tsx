@@ -186,6 +186,9 @@ function RankingsView() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  // Country filter (owner 2026-06-30): view the rankings for one country. "" = all countries.
+  // Client-side (every row already carries r.country for the flag), so no extra request.
+  const [countryFilter, setCountryFilter] = useState("");
   // The ghost the user is requesting to claim (null = dialog closed). Set by the per-row "Claim"
   // button; consumed by <ClaimGhostDialog/> at the bottom of this view.
   const [claimTarget, setClaimTarget] = useState<ClaimGhostTarget | null>(null);
@@ -208,11 +211,20 @@ function RankingsView() {
   }, [subject]);
 
   const all: any[] = subject === "teams" ? teams : players;
+  // Distinct countries present in the current rows (for the filter dropdown), sorted.
+  const countryOptions = useMemo(
+    () => Array.from(new Set(all.map((r) => r.country).filter(Boolean))).sort() as string[],
+    [all],
+  );
   // Use the shared matchesSearch() helper (lib/search.ts) instead of a raw .includes so the
   // search box is punctuation/space/accent-insensitive and folds stylized "fancy font" IGNs
   // (typing "ve" finds "V-E"). The searched field is the team_name or username for the active tab.
-  const rows = all.filter((r) =>
-    matchesSearch(subject === "teams" ? r.team_name : r.username, q));
+  // Country filter applied alongside the search ("" = all countries).
+  const rows = all.filter(
+    (r) =>
+      matchesSearch(subject === "teams" ? r.team_name : r.username, q) &&
+      (!countryFilter || r.country === countryFilter),
+  );
   // Month label ("June 2026"): no <LocalTime> month-year mode exists, so format inline
   // but in the VIEWER's locale (month names follow the language) + their timezone,
   // instead of the old hardcoded "en-US" / UTC. Falls back to "This month" when unset.
@@ -232,7 +244,26 @@ function RankingsView() {
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <SearchBar value={q} onChange={setQ} placeholder={subject === "teams" ? t("rankings.searchTeams") : t("rankings.searchPlayers")} />
-          <Tabs value={subject} onValueChange={(v) => { setSubject(v as Subject); setQ(""); }}>
+          {/* Country filter (owner 2026-06-30): see the rankings for one country. Only shown when the
+              data has countries to choose from. "__all" sentinel = all countries (Radix Select can't
+              use an empty-string value). */}
+          {countryOptions.length > 0 && (
+            <Select
+              value={countryFilter || "__all"}
+              onValueChange={(v) => setCountryFilter(v === "__all" ? "" : v)}
+            >
+              <SelectTrigger className="h-9 w-full sm:w-44">
+                <SelectValue placeholder={t("rankings.allCountries")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">{t("rankings.allCountries")}</SelectItem>
+                {countryOptions.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Tabs value={subject} onValueChange={(v) => { setSubject(v as Subject); setQ(""); setCountryFilter(""); }}>
             <TabsList>
               <TabsTrigger value="teams"><IconUsers className="mr-1 size-3.5" /> {t("rankings.teams")}</TabsTrigger>
               <TabsTrigger value="players"><IconTrophy className="mr-1 size-3.5" /> {t("rankings.players")}</TabsTrigger>
@@ -490,6 +521,8 @@ function TiersView() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState<number | undefined>(undefined);
   const [q, setQ] = useState("");
+  // Country filter for the tiers view (owner 2026-06-30): see tiers for one country. "" = all.
+  const [countryFilter, setCountryFilter] = useState("");
   const [teams, setTeams] = useState<TeamRow[]>([]);
   // Season returned on the quarterly envelope - carries rankings_published + tiers_published.
   const [season, setSeason] = useState<SeasonFlags | null>(null);
@@ -514,15 +547,20 @@ function TiersView() {
   // Tiers not published yet → backend sends tier=null on every row even though rankings are published.
   const tiersHidden = season?.tiers_published === false;
 
+  const countryOptions = useMemo(
+    () => Array.from(new Set(teams.map((r) => r.country).filter(Boolean))).sort() as string[],
+    [teams],
+  );
   const byTier = useMemo(() => {
     const g: Record<number, any[]> = { 0: [], 1: [], 2: [], 3: [] };
     teams
       // Shared matchesSearch() helper (lib/search.ts): punctuation/space/accent-insensitive
       // and folds stylized "fancy font" team names, unlike the old .toLowerCase().includes().
-      .filter((r) => matchesSearch(r.team_name, q))
+      // Country filter applied alongside ("" = all countries).
+      .filter((r) => matchesSearch(r.team_name, q) && (!countryFilter || r.country === countryFilter))
       .forEach((r) => { if (r.tier != null) g[r.tier].push(r); });
     return g;
-  }, [teams, q]);
+  }, [teams, q, countryFilter]);
   const filteredTotal = byTier[0].length + byTier[1].length + byTier[2].length + byTier[3].length;
   const searching = q.trim().length > 0;
 
@@ -535,6 +573,15 @@ function TiersView() {
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <SearchBar value={q} onChange={setQ} placeholder={t("rankings.searchTeams")} />
+          {countryOptions.length > 0 && (
+            <Select value={countryFilter || "__all"} onValueChange={(v) => setCountryFilter(v === "__all" ? "" : v)}>
+              <SelectTrigger className="h-9 w-full sm:w-44"><SelectValue placeholder={t("rankings.allCountries")} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">{t("rankings.allCountries")}</SelectItem>
+                {countryOptions.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          )}
           <Select value={seasonId ? String(seasonId) : undefined} onValueChange={(v) => setSeasonId(Number(v))}>
             <SelectTrigger className="h-9 w-[170px]"><SelectValue placeholder={t("rankings.season")} /></SelectTrigger>
             <SelectContent>
