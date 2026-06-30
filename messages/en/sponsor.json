@@ -18,5 +18,25 @@
         "description": "Open an event to review the players registered under your sponsorship, confirm or reject them, and export the list when you need it."
       }
     }
+  },
+  "builder": {
+    "cantFind": "Can't find the sponsor you need?",
+    "createSponsor": "Create sponsor",
+    "emptyAllAdded": "All matching sponsors are already added.",
+    "emptyCreate": "No sponsors found. Create one with the button below.",
+    "modal": {
+      "title": "Create sponsor",
+      "description": "The brand profile events attach to and members belong to.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. ydpay",
+      "websiteLabel": "Website (optional)",
+      "websitePlaceholder": "https://...",
+      "descriptionLabel": "Description (optional)",
+      "cancel": "Cancel",
+      "submit": "Create",
+      "nameRequired": "Give the sponsor a name.",
+      "created": "Sponsor created.",
+      "createFailed": "Failed to create the sponsor."
+    }
   }
 }

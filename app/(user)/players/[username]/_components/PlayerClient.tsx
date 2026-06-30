@@ -153,6 +153,19 @@ interface TournamentWinningRow {
   created_at: string | null;
 }
 
+// One event the player is CURRENTLY registered for (upcoming/ongoing). PUBLIC: the backend
+// (afc_player.aggregation.compute_registered_events) returns these OUTSIDE the stats_visible
+// privacy gate, so this list is populated for every viewer. event_slug deep-links to the
+// public /tournaments/<slug> page; participant_type marks how the player entered (solo/squad).
+interface RegisteredEventRow {
+  event_id: number;
+  event_slug: string | null;
+  event_name: string;
+  event_status: "upcoming" | "ongoing";
+  event_date: string | null;
+  participant_type: "solo" | "squad";
+}
+
 interface PublicPlayer {
   user_id: number;
   username: string;
@@ -186,6 +199,10 @@ interface PublicPlayer {
   per_event: PerEventRow[];
   recent_matches: RecentMatchRow[];
   tier_history: TierHistoryRow[];
+  // Events the player is CURRENTLY registered for (upcoming/ongoing), solo + squad. PUBLIC:
+  // returned by get-public-player-stats for every viewer (NOT behind stats_visible). Optional
+  // so an older backend that omits it degrades to "no upcoming registered events".
+  registered_events?: RegisteredEventRow[];
   // Tournament prize winnings (lifetime total + per-event rows, newest first). Populated by
   // afc_rankings.admin_prize.prize_create and gated behind the same stats_visible flag below.
   // Optional so an older backend (pre-2026-06-15) that omits them degrades to "no winnings".
@@ -812,6 +829,73 @@ export function PlayerClient({ username }: { username: string }) {
               ) : (
                 // Private: the viewer is not the player, an admin, or a teammate.
                 <PrivateStats />
+              )}
+
+              {/* ── Registered Events (PUBLIC) ──────────────────────────────────
+                  The upcoming/ongoing events this player is CURRENTLY registered for
+                  (solo + squad). Data: player.registered_events from
+                  /player/get-public-player-stats/ (afc_player.aggregation
+                  .compute_registered_events), returned for EVERY viewer — it sits
+                  OUTSIDE the stats privacy gate, so it shows even when the detailed
+                  stats are hidden. (The Statistics / Events / Performance tabs only
+                  render for permitted viewers, so the always-visible Overview tab is
+                  the right home for this public schedule.) Each row deep-links to
+                  /tournaments/<event_slug> and renders its date in the viewer's
+                  timezone via LocalTime. Empty -> a muted line. Mirrors the team
+                  page's "Registered Events" card. */}
+              <div className="mt-6 mb-3 text-xs font-medium text-muted-foreground">
+                {t("player.registeredEventsTitle")}
+              </div>
+              {(player.registered_events?.length ?? 0) === 0 ? (
+                <p className="text-sm italic text-muted-foreground">
+                  {t("player.noRegisteredEvents")}
+                </p>
+              ) : (
+                <div className="rounded-md border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("player.event")}</TableHead>
+                        <TableHead>{t("player.date")}</TableHead>
+                        <TableHead>{t("player.eventStatus")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {player.registered_events!.map((ev) => (
+                        <TableRow key={ev.event_id}>
+                          <TableCell className="font-medium">
+                            {/* Slug-based deep link to the public event page; plain text
+                                when an event has no slug yet (never links to a 404). */}
+                            {ev.event_slug ? (
+                              <Link
+                                href={`/tournaments/${ev.event_slug}`}
+                                className="text-primary hover:underline"
+                              >
+                                {ev.event_name}
+                              </Link>
+                            ) : (
+                              ev.event_name
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {ev.event_date ? (
+                              <LocalTime value={ev.event_date} mode="date" />
+                            ) : (
+                              "-"
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="rounded-full text-xs">
+                              {ev.event_status === "ongoing"
+                                ? t("player.eventStatusOngoing")
+                                : t("player.eventStatusUpcoming")}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </TabsContent>
 

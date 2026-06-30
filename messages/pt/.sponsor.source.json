@@ -6,5 +6,21 @@
   "tour.dashboard.filters.title": "Find what you need",
   "tour.dashboard.filters.description": "Narrow your view here. Switch between your sponsors, or search and filter the list, so you can focus on a single event or status.",
   "tour.dashboard.list.title": "Your events and registrants",
-  "tour.dashboard.list.description": "Open an event to review the players registered under your sponsorship, confirm or reject them, and export the list when you need it."
+  "tour.dashboard.list.description": "Open an event to review the players registered under your sponsorship, confirm or reject them, and export the list when you need it.",
+  "builder.cantFind": "Can't find the sponsor you need?",
+  "builder.createSponsor": "Create sponsor",
+  "builder.emptyAllAdded": "All matching sponsors are already added.",
+  "builder.emptyCreate": "No sponsors found. Create one with the button below.",
+  "builder.modal.title": "Create sponsor",
+  "builder.modal.description": "The brand profile events attach to and members belong to.",
+  "builder.modal.nameLabel": "Name",
+  "builder.modal.namePlaceholder": "e.g. ydpay",
+  "builder.modal.websiteLabel": "Website (optional)",
+  "builder.modal.websitePlaceholder": "https://...",
+  "builder.modal.descriptionLabel": "Description (optional)",
+  "builder.modal.cancel": "Cancel",
+  "builder.modal.submit": "Create",
+  "builder.modal.nameRequired": "Give the sponsor a name.",
+  "builder.modal.created": "Sponsor created.",
+  "builder.modal.createFailed": "Failed to create the sponsor."
 }

@@ -18,5 +18,25 @@
         "description": "Ouvrez une manifestation pour consulter la liste des joueurs inscrits sous votre parrainage, les valider ou les refuser, puis exportez cette liste lorsque vous en avez besoin."
       }
     }
+  },
+  "builder": {
+    "cantFind": "Vous ne trouvez pas le sponsor qu'il vous faut ?",
+    "createSponsor": "Créer un sponsor",
+    "emptyAllAdded": "Tous les sponsors correspondants ont déjà été ajoutés.",
+    "emptyCreate": "Aucun sponsor trouvé. Créez-en un en cliquant sur le bouton ci-dessous.",
+    "modal": {
+      "title": "Créer un sponsor",
+      "description": "Les événements liés au profil de la marque auxquels les membres participent et auxquels ils sont affiliés.",
+      "nameLabel": "Nom",
+      "namePlaceholder": "par exemple : ydpay",
+      "websiteLabel": "Site web (facultatif)",
+      "websitePlaceholder": "https://...",
+      "descriptionLabel": "Description (facultative)",
+      "cancel": "Annuler",
+      "submit": "Créer",
+      "nameRequired": "Donnez un nom au parrain.",
+      "created": "Parrain créé.",
+      "createFailed": "Échec de la création du parrain."
+    }
   }
 }

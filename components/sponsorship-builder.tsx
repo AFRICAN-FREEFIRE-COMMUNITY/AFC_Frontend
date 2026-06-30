@@ -27,6 +27,8 @@
 // state for an event that does not exist yet (eventId = null).
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import {
   ArrowDown,
   ArrowUp,
@@ -39,6 +41,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -49,6 +59,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { sponsorsApi, SponsorEngagement, SponsorRow } from "@/lib/sponsors";
 
 // ── value shape ───────────────────────────────────────────────────────────────
@@ -146,6 +157,11 @@ export function sponsorshipIssues(rows: SponsorshipDraft[]): string[] {
 // Component
 // ════════════════════════════════════════════════════════════════════════════
 export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuilderProps) {
+  // i18n: the "sponsor" namespace (messages/en/sponsor.json -> "builder" keys). This component
+  // is shared by the organizer event-create wizard (NOT i18n-exempt), so every new user-facing
+  // string here is translated.
+  const t = useTranslations("sponsor");
+
   // ── sponsor typeahead state ──
   // Plain input + dropdown (per the approved mockup) instead of the Popover trigger
   // button idiom: the list opens on focus, queries sponsorsApi.list({q}) debounced,
@@ -155,6 +171,19 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
   const [searching, setSearching] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── inline "Create sponsor" modal state ──
+  // Lets an organizer (or admin) self-serve a brand-new sponsor during event setup instead of
+  // waiting for a sponsor-admin to create it under /a/sponsors. Mirrors the admin create dialog
+  // in app/(a)/a/sponsors/_components/SponsorProfilesContent.tsx; submits to
+  // sponsorsApi.create (POST sponsors/create/), whose gate now also allows event-creating
+  // organizers (afc_sponsors.views._can_create_sponsor). On success the new sponsor is auto-added
+  // to the picked list below.
+  const [createOpen, setCreateOpen] = useState(false);
+  const [cName, setCName] = useState("");
+  const [cWebsite, setCWebsite] = useState("");
+  const [cDesc, setCDesc] = useState("");
+  const [creating, setCreating] = useState(false);
 
   // Per-sponsor "type to add next" select value (defaults to collect_id), keyed by
   // sponsor_id so two cards don't share one select.
@@ -198,6 +227,38 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
     ]);
     setQuery("");
     setPickerOpen(false);
+  };
+
+  // Create a brand-new sponsor from the inline modal, then attach it to this event's draft.
+  // Hits sponsorsApi.create (POST sponsors/create/); the backend now lets event-creating
+  // organizers through (afc_sponsors.views._can_create_sponsor), so this works for both the
+  // admin and organizer create wizards. On success the returned sponsor is auto-added to the
+  // picked list via addSponsor — no extra search needed (a just-picked sponsor is filtered out
+  // of the typeahead by `pickable`).
+  const handleCreateSponsor = async () => {
+    const name = cName.trim();
+    if (!name) {
+      toast.error(t("builder.modal.nameRequired"));
+      return;
+    }
+    setCreating(true);
+    try {
+      const res = await sponsorsApi.create({
+        name,
+        website: cWebsite.trim(),
+        description: cDesc.trim(),
+      });
+      toast.success(t("builder.modal.created"));
+      setCreateOpen(false);
+      setCName("");
+      setCWebsite("");
+      setCDesc("");
+      addSponsor(res.sponsor);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("builder.modal.createFailed"));
+    } finally {
+      setCreating(false);
+    }
   };
 
   const removeSponsor = (sponsorId: number) =>
@@ -288,10 +349,12 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                 <Loader2 className="size-4 animate-spin" /> Searching...
               </div>
             ) : pickable.length === 0 ? (
+              // Empty-state copy is now neutral: organizers can create sponsors too, so the
+              // "no match" line points to the Create button below instead of "admins only".
               <div className="px-3 py-3 text-sm text-muted-foreground">
                 {results.length > 0
-                  ? "All matching sponsors are already added."
-                  : "No sponsors found. Sponsor admins create them under Admin, Sponsors."}
+                  ? t("builder.emptyAllAdded")
+                  : t("builder.emptyCreate")}
               </div>
             ) : (
               <div className="max-h-56 divide-y overflow-y-auto">
@@ -321,6 +384,23 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
             )}
           </div>
         )}
+      </div>
+
+      {/* ── "Create sponsor" inline self-serve (owner 2026-06-30) ──
+          Organizers no longer wait for an admin to create a sponsor first: this opens the
+          create modal below and, on success, attaches the new sponsor to this event. */}
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">{t("builder.cantFind")}</p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0"
+          onClick={() => setCreateOpen(true)}
+        >
+          <Plus className="mr-1 size-3.5" />
+          {t("builder.createSponsor")}
+        </Button>
       </div>
 
       {/* ── One card per attached sponsor ── */}
@@ -633,6 +713,50 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
           sponsor can ask for several values.
         </p>
       )}
+
+      {/* ── Inline "Create sponsor" modal ──
+          Same fields + flow as the admin dialog (SponsorProfilesContent): Name (required),
+          Website (optional), Description (optional). Submits via handleCreateSponsor ->
+          sponsorsApi.create, then auto-adds the new sponsor to the picked list. */}
+      <Dialog open={createOpen} onOpenChange={(o) => !creating && setCreateOpen(o)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("builder.modal.title")}</DialogTitle>
+            <DialogDescription>{t("builder.modal.description")}</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-1">
+            <div className="space-y-1.5">
+              <Label>{t("builder.modal.nameLabel")}</Label>
+              <Input
+                value={cName}
+                onChange={(e) => setCName(e.target.value)}
+                placeholder={t("builder.modal.namePlaceholder")}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("builder.modal.websiteLabel")}</Label>
+              <Input
+                value={cWebsite}
+                onChange={(e) => setCWebsite(e.target.value)}
+                placeholder={t("builder.modal.websitePlaceholder")}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("builder.modal.descriptionLabel")}</Label>
+              <Textarea rows={3} value={cDesc} onChange={(e) => setCDesc(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={creating} onClick={() => setCreateOpen(false)}>
+              {t("builder.modal.cancel")}
+            </Button>
+            <Button disabled={creating} onClick={handleCreateSponsor}>
+              {creating && <Loader2 className="mr-1 size-4 animate-spin" />}
+              {t("builder.modal.submit")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

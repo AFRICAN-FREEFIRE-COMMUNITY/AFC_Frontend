@@ -402,6 +402,11 @@ interface EventDetails {
   // opens when EITHER window is open. Null/false for non-members. Echoed by get_event_details.
   your_team_roster_edit_until?: string | null;
   your_team_roster_edit_open?: boolean;
+  // Stage-over release (owner 2026-06-30): true when the viewer's team is eliminated / its stage is
+  // over and it did not advance. The backend edit_roster then lets the team edit its roster even after
+  // registration close + results (and the identity lock releases its members), so the Edit Roster +
+  // Edit-my-details buttons open on a started event without an admin window. Echoed by get_event_details.
+  your_team_stage_over?: boolean;
   // ── Owning organization (F4, owner 2026-06-19) ── rendered as an "Organized by [logo] name"
   // attribution in the event header, linking to /organizations/<slug>. All null for native AFC
   // events (the header then falls back to AFC branding). organization_logo is an absolute URL
@@ -4773,6 +4778,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     (!!eventDetails.your_team_roster_edit_until &&
       now.getTime() < new Date(eventDetails.your_team_roster_edit_until).getTime());
 
+  // Roster editing is allowed for the viewer's team when the event has not started, OR an admin window
+  // is live, OR the team's stage is over (owner 2026-06-30 stage-over rule: an eliminated team is done
+  // competing so it may fix its roster even mid-event). Mirrors the backend edit_roster allow-paths
+  // (roster_window_open / team_stage_over) so the button shows exactly when the edit will be accepted.
+  const rosterEditAllowedLive =
+    !isEventStarted || rosterWindowOpenLive || !!eventDetails.your_team_stage_over;
+
   // M: full when active (non-waitlisted) registrations have hit the cap (backend computed).
   const isFull = !!eventDetails.is_full;
   const registrationDisabledReason = !canRegister
@@ -5367,7 +5379,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   window did nothing. Manager-gated (owner/captain/vice/manager/coach); the backend
                   edit_roster enforces the same window + the match-start lock. */}
               {eventDetails.participant_type === "squad" &&
-                (!isEventStarted || rosterWindowOpenLive) &&
+                rosterEditAllowedLive &&
                 userCanRegisterTeam(userTeam, user?.in_game_name) && (
                   <EditRosterModal
                     eventDetails={eventDetails}
@@ -5390,7 +5402,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   the self-edit hides without a refetch (mirrors the Edit Roster button + the backend
                   identity lock, which re-locks once the window closes / results land). */}
               {!user?.identity_locked &&
-                (!isEventStarted || rosterWindowOpenLive) && (
+                rosterEditAllowedLive && (
                 <MemberSelfEditModal
                   event={eventDetails}
                   onSuccess={() => {

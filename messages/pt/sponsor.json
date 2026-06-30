@@ -18,5 +18,25 @@
         "description": "Aceda a um evento para consultar os jogadores inscritos sob o seu patrocínio, confirmá-los ou rejeitá-los e exportar a lista quando precisar."
       }
     }
+  },
+  "builder": {
+    "cantFind": "Não consegue encontrar o patrocinador de que precisa?",
+    "createSponsor": "Criar patrocinador",
+    "emptyAllAdded": "Todos os patrocinadores correspondentes já foram adicionados.",
+    "emptyCreate": "Não foram encontrados patrocinadores. Crie um através do botão abaixo.",
+    "modal": {
+      "title": "Criar patrocinador",
+      "description": "Os eventos associados ao perfil da marca e aos quais os membros pertencem.",
+      "nameLabel": "Nome",
+      "namePlaceholder": "por exemplo, ydpay",
+      "websiteLabel": "Site (opcional)",
+      "websitePlaceholder": "https://...",
+      "descriptionLabel": "Descrição (opcional)",
+      "cancel": "Cancelar",
+      "submit": "Criar",
+      "nameRequired": "Dá um nome ao patrocinador.",
+      "created": "Patrocinador criado.",
+      "createFailed": "Não foi possível criar o patrocinador."
+    }
   }
 }

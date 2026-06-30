@@ -850,6 +850,72 @@ const Page = ({ params }: { params: Params }) => {
                   </CardContent>
                 </Card>
 
+                {/* ── Registered Events (PUBLIC) ──────────────────────────────────
+                    The upcoming/ongoing events this team is CURRENTLY registered for.
+                    Data: teamDetails.registered_events from get-team-details
+                    (afc_team.views.get_team_details), returned for EVERY viewer (it is
+                    NOT behind the stats_visible gate, since a registration schedule is
+                    public). Each row links to the public tournament page
+                    (/tournaments/<event_slug>, the slug-based route used across the site)
+                    and renders its date in the viewer's timezone via LocalTime. Empty ->
+                    a muted line. Mirrors the player profile's "Registered Events" section. */}
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle>{t("teamDetail.registeredEventsTitle")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(teamDetails?.registered_events?.length ?? 0) === 0 ? (
+                      <p className="text-sm italic text-muted-foreground">
+                        {t("teamDetail.noRegisteredEvents")}
+                      </p>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{t("teamDetail.event")}</TableHead>
+                            <TableHead>{t("teamDetail.date")}</TableHead>
+                            <TableHead>{t("teamDetail.status")}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {teamDetails.registered_events.map((ev: any) => (
+                            <TableRow key={ev.event_id}>
+                              <TableCell className="font-medium">
+                                {/* Slug-based deep link to the public event page; plain text when
+                                    an event has no slug yet (so the row never links to a 404). */}
+                                {ev.event_slug ? (
+                                  <Link
+                                    href={`/tournaments/${ev.event_slug}`}
+                                    className="text-primary hover:underline"
+                                  >
+                                    {ev.event_name}
+                                  </Link>
+                                ) : (
+                                  ev.event_name
+                                )}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {ev.event_date ? (
+                                  <LocalTime value={ev.event_date} mode="date" />
+                                ) : (
+                                  "-"
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="rounded-full text-xs">
+                                  {ev.event_status === "ongoing"
+                                    ? t("teamDetail.eventStatusOngoing")
+                                    : t("teamDetail.eventStatusUpcoming")}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Organizer blacklist - request lift. Visible to team MEMBERS only
                     (a non-member has no standing to ask). The component auto-discovers the
                     blacklists affecting this team (GET /organizers/blacklists/mine/) and the
