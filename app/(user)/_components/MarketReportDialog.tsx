@@ -36,7 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { IconFlag } from "@tabler/icons-react";
+import { IconFlag, IconVideo, IconPhoto, IconX } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { playerMarketApi } from "@/lib/playerMarket";
 
@@ -71,15 +71,19 @@ export function MarketReportDialog({
   const t = useTranslations("home");
   const [reason, setReason] = useState("bad_tryout");
   const [details, setDetails] = useState("");
-  const [evidence, setEvidence] = useState<File | null>(null);
+  // Evidence is now MULTIPLE images AND/OR videos (owner 2026-06-30): the reporter can attach several
+  // screenshots and screen recordings, and a moderator views/plays them all. Backend accepts the
+  // repeated multipart field `evidence_files`; cap mirrors the server (6 files).
+  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const MAX_EVIDENCE = 6;
 
   // Reset the form every time a new post is targeted (the dialog is reused across cards).
   useEffect(() => {
     if (target) {
       setReason("bad_tryout");
       setDetails("");
-      setEvidence(null);
+      setEvidenceFiles([]);
     }
   }, [target]);
 
@@ -90,21 +94,21 @@ export function MarketReportDialog({
       toast.error(t("marketReport.toast.detailsRequired"));
       return;
     }
-    // J4: evidence is now COMPULSORY. The submit button is already disabled until an
-    // image is attached, but we guard here too so the rule holds even if the button
-    // state is bypassed. Matches the backend 400 "Evidence is required to file a report."
-    if (!evidence) {
+    // J4: evidence is COMPULSORY. The submit button is already disabled until a file is attached,
+    // but guard here too so the rule holds even if the button state is bypassed. Matches the backend
+    // 400 "Evidence is required to file a report."
+    if (evidenceFiles.length === 0) {
       toast.error(t("marketReport.toast.evidenceRequired"));
       return;
     }
     setSubmitting(true);
     try {
-      // Multipart so the optional evidence image rides along.
+      // Multipart so the evidence images + videos ride along (one repeated `evidence_files` field).
       const form = new FormData();
       form.append("post_id", String(target.postId));
       form.append("category", reason);
       form.append("details", details.trim());
-      if (evidence) form.append("evidence", evidence);
+      evidenceFiles.forEach((f) => form.append("evidence_files", f));
 
       const res = await playerMarketApi.fileReport(form);
       toast.success(res?.message || t("marketReport.toast.success"));
@@ -197,9 +201,10 @@ export function MarketReportDialog({
             />
           </div>
 
-          {/* REQUIRED evidence image (feature "J-market-rules", J4). Evidence is now
-              mandatory: the submit button stays disabled until a screenshot is attached,
-              and the backend rejects an evidence-less report with 400. */}
+          {/* REQUIRED evidence: multiple images AND/OR videos (owner 2026-06-30, J4). The submit
+              button stays disabled until at least one file is attached; the backend rejects an
+              evidence-less report with 400 and caps the batch at MAX_EVIDENCE. Picking more files
+              ADDS to the list (de-duped) so the user can build it up across several picks. */}
           <div className="space-y-2">
             <Label htmlFor="report-evidence">
               {t("marketReport.evidenceLabel")}{" "}
@@ -211,14 +216,60 @@ export function MarketReportDialog({
             <Input
               id="report-evidence"
               type="file"
-              accept="image/*"
-              onChange={(e) => setEvidence(e.target.files?.[0] ?? null)}
+              accept="image/*,video/*"
+              multiple
+              disabled={evidenceFiles.length >= MAX_EVIDENCE}
+              onChange={(e) => {
+                const picked = Array.from(e.target.files ?? []);
+                setEvidenceFiles((prev) => {
+                  const seen = new Set(prev.map((f) => `${f.name}:${f.size}`));
+                  const merged = [...prev];
+                  for (const f of picked) {
+                    const key = `${f.name}:${f.size}`;
+                    if (!seen.has(key)) {
+                      seen.add(key);
+                      merged.push(f);
+                    }
+                  }
+                  return merged.slice(0, MAX_EVIDENCE);
+                });
+                // Reset so the same file can be re-picked after a remove.
+                e.target.value = "";
+              }}
             />
-            <p className="text-xs text-muted-foreground">
-              {evidence
-                ? t("marketReport.evidenceAttached", { name: evidence.name })
-                : t("marketReport.evidenceNote")}
-            </p>
+            {evidenceFiles.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                {t("marketReport.evidenceNote")}
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {evidenceFiles.map((f, i) => (
+                  <li
+                    key={`${f.name}-${f.size}-${i}`}
+                    className="flex items-center justify-between gap-2 rounded-md border bg-muted/40 px-2 py-1 text-xs"
+                  >
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      {f.type.startsWith("video/") ? (
+                        <IconVideo className="h-3.5 w-3.5 shrink-0 text-primary" />
+                      ) : (
+                        <IconPhoto className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      )}
+                      <span className="truncate">{f.name}</span>
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={t("marketReport.evidenceRemove")}
+                      className="shrink-0 text-destructive hover:opacity-80"
+                      onClick={() =>
+                        setEvidenceFiles((prev) => prev.filter((_, idx) => idx !== i))
+                      }
+                    >
+                      <IconX className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* J5: warn the reporter that abusing reports is itself punishable. Keep it
@@ -248,7 +299,7 @@ export function MarketReportDialog({
           <Button
             variant="destructive"
             onClick={submit}
-            disabled={submitting || !evidence || !details.trim()}
+            disabled={submitting || evidenceFiles.length === 0 || !details.trim()}
           >
             <IconFlag className="h-4 w-4 mr-1" />
             {submitting

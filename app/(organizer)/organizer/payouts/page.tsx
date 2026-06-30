@@ -9,6 +9,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +47,7 @@ const statusClass: Record<string, string> = {
 };
 
 export default function OrganizerPayoutsPage() {
+  const t = useTranslations("organizer");
   const { slug, isOwner } = useOrganizer();
   const [earnings, setEarnings] = useState<Earning[]>([]);
   const [summary, setSummary] = useState<{ total_owed: number; total_paid: number }>({
@@ -69,7 +71,7 @@ export default function OrganizerPayoutsPage() {
         setSummary(res?.summary ?? { total_owed: 0, total_paid: 0 });
       })
       .catch((e: any) =>
-        toast.error(e?.response?.data?.message || "Failed to load earnings."),
+        toast.error(e?.response?.data?.message || t("payouts.loadError")),
       )
       .finally(() => setLoading(false));
   }, [slug]);
@@ -78,9 +80,9 @@ export default function OrganizerPayoutsPage() {
     setSaving(true);
     try {
       await organizersApi.savePayoutAccount(slug, bank);
-      toast.success("Payout account saved.");
+      toast.success(t("payouts.accountSaved"));
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to save payout account.");
+      toast.error(e?.response?.data?.message || t("payouts.saveError"));
     } finally {
       setSaving(false);
     }
@@ -90,20 +92,20 @@ export default function OrganizerPayoutsPage() {
     <div className="space-y-4">
       {/* Tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
       <div data-tour="org-payouts-title">
-        <PageHeader title="Payouts" />
+        <PageHeader title={t("payouts.title")} />
       </div>
 
       {/* Summary */}
       <div data-tour="org-payouts-stats" className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs text-muted-foreground">Owed (not yet paid)</p>
+            <p className="text-xs text-muted-foreground">{t("payouts.owedLabel")}</p>
             <p className="text-2xl font-bold text-amber-400">${summary.total_owed.toFixed(2)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs text-muted-foreground">Paid out</p>
+            <p className="text-xs text-muted-foreground">{t("payouts.paidLabel")}</p>
             <p className="text-2xl font-bold text-green-400">${summary.total_paid.toFixed(2)}</p>
           </CardContent>
         </Card>
@@ -113,33 +115,33 @@ export default function OrganizerPayoutsPage() {
       {isOwner && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Payout account</CardTitle>
+            <CardTitle className="text-base">{t("payouts.accountTitle")}</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Where AFC sends your share once an event's revenue is released.
+              {t("payouts.accountDesc")}
             </p>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Bank code</Label>
+                <Label>{t("payouts.bankCode")}</Label>
                 <Input
-                  placeholder="e.g. 058"
+                  placeholder={t("payouts.bankCodePlaceholder")}
                   value={bank.bank_code}
                   onChange={(e) => setBank((p) => ({ ...p, bank_code: e.target.value }))}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Account number</Label>
+                <Label>{t("payouts.accountNumber")}</Label>
                 <Input
-                  placeholder="0123456789"
+                  placeholder={t("payouts.accountNumberPlaceholder")}
                   value={bank.account_number}
                   onChange={(e) => setBank((p) => ({ ...p, account_number: e.target.value }))}
                 />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
-                <Label>Account name</Label>
+                <Label>{t("payouts.accountName")}</Label>
                 <Input
-                  placeholder="Account holder name"
+                  placeholder={t("payouts.accountNamePlaceholder")}
                   value={bank.account_name}
                   onChange={(e) => setBank((p) => ({ ...p, account_name: e.target.value }))}
                 />
@@ -148,7 +150,7 @@ export default function OrganizerPayoutsPage() {
             <div className="flex justify-end">
               <Button onClick={saveBank} disabled={saving}>
                 {saving && <IconLoader2 className="size-4 animate-spin mr-1" />}
-                Save payout account
+                {t("payouts.saveButton")}
               </Button>
             </div>
           </CardContent>
@@ -158,31 +160,31 @@ export default function OrganizerPayoutsPage() {
       {/* Earnings ledger */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Earnings</CardTitle>
+          <CardTitle className="text-base">{t("payouts.earningsTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto rounded-md border">
           <Table data-tour="org-payouts-table">
             <TableHeader>
               <TableRow>
-                <TableHead>Event</TableHead>
-                <TableHead>Share</TableHead>
-                <TableHead>Gross</TableHead>
-                <TableHead>AFC fee</TableHead>
-                <TableHead>Net</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("payouts.table.event")}</TableHead>
+                <TableHead>{t("payouts.table.share")}</TableHead>
+                <TableHead>{t("payouts.table.gross")}</TableHead>
+                <TableHead>{t("payouts.table.afcFee")}</TableHead>
+                <TableHead>{t("payouts.table.net")}</TableHead>
+                <TableHead>{t("payouts.table.status")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                    <IconLoader2 className="size-4 animate-spin inline mr-2" /> Loading…
+                    <IconLoader2 className="size-4 animate-spin inline mr-2" /> {t("payouts.loading")}
                   </TableCell>
                 </TableRow>
               ) : earnings.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                    No earnings yet. Earnings appear once a paid event's revenue is released.
+                    {t("payouts.empty")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -201,7 +203,7 @@ export default function OrganizerPayoutsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusClass[e.status]}>
-                        {e.status}
+                        {t(`payouts.status.${e.status}`)}
                       </Badge>
                     </TableCell>
                   </TableRow>

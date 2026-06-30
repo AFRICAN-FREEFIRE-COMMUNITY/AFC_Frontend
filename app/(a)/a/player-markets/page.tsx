@@ -2288,20 +2288,56 @@ export default function AdminPlayerMarketPage() {
                 </div>
               )}
 
-              {/* Evidence image (read-only) - shown when the reporter attached one. */}
-              {resolveTarget.evidence && (
+              {/* Evidence (read-only) - the reporter may attach MULTIPLE images AND videos
+                  (owner 2026-06-30). Moderators view every image and PLAY every video here.
+                  evidence_files (absolute URLs from the API) is preferred; for pre-feature rows
+                  that only have the single legacy `evidence` image we fall back to it. */}
+              {(resolveTarget.evidence_files?.length ?? 0) > 0 ? (
                 <div className="space-y-2">
-                  <Label>Evidence</Label>
-                  <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
-                    {/* Reporter-supplied evidence comes from an upload host - plain <img>. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={resolveTarget.evidence}
-                      alt="Report evidence"
-                      className="size-full object-contain"
-                    />
+                  <Label>Evidence ({resolveTarget.evidence_files.length})</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {resolveTarget.evidence_files.map((ev, i) =>
+                      ev.media_type === "video" ? (
+                        <video
+                          key={i}
+                          src={ev.url}
+                          controls
+                          className="aspect-video w-full rounded-md border bg-muted object-contain"
+                        />
+                      ) : (
+                        <a
+                          key={i}
+                          href={ev.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="relative block aspect-video w-full overflow-hidden rounded-md border bg-muted"
+                        >
+                          {/* Reporter-supplied evidence comes from an upload host - plain <img>. */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={ev.url}
+                            alt={`Report evidence ${i + 1}`}
+                            className="size-full object-contain"
+                          />
+                        </a>
+                      ),
+                    )}
                   </div>
                 </div>
+              ) : (
+                resolveTarget.evidence && (
+                  <div className="space-y-2">
+                    <Label>Evidence</Label>
+                    <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={resolveTarget.evidence}
+                        alt="Report evidence"
+                        className="size-full object-contain"
+                      />
+                    </div>
+                  </div>
+                )
               )}
 
               {/* Status. */}

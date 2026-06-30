@@ -38,6 +38,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -113,6 +114,8 @@ export function EventStageExportGraphicDialog({
   defaultSubtitle = "",
   trigger,
 }: EventStageExportGraphicDialogProps) {
+  // i18n: organizer-facing dialog, keys under the "organizer" namespace (exportGraphic.*).
+  const t = useTranslations("organizer");
   const [open, setOpen] = useState(false);
   const [designs, setDesigns] = useState<LeaderboardDesign[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(false);
@@ -147,7 +150,9 @@ export function EventStageExportGraphicDialog({
       const def = rows.find((d) => d.is_default);
       setDesignId(def ? String(def.id) : AUTO);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load designs.");
+      toast.error(
+        err?.response?.data?.message || t("exportGraphic.loadDesignsError"),
+      );
     } finally {
       setLoadingDesigns(false);
     }
@@ -218,7 +223,7 @@ export function EventStageExportGraphicDialog({
           saveBlob(blob, `${safe}-${size}-page${p}.png`);
           if (p < pageCount) await new Promise((r) => setTimeout(r, 400));
         }
-        toast.success(`Downloaded ${pageCount} images.`);
+        toast.success(t("exportGraphic.downloadedImages", { count: pageCount }));
       } else {
         const blob = await leaderboardDesignsApi.downloadEventStageGraphic(
           eventId,
@@ -226,12 +231,12 @@ export function EventStageExportGraphicDialog({
           baseOpts,
         );
         saveBlob(blob, `${safe}-${size}.png`);
-        toast.success("Graphic downloaded.");
+        toast.success(t("exportGraphic.graphicDownloaded"));
       }
     } catch (err: any) {
       // Blob error responses carry JSON inside the blob body, not as parsed JSON.
       // We decode the blob text manually to read the backend's message field.
-      let message = "Failed to export the graphic.";
+      let message = t("exportGraphic.exportError");
       const data = err?.response?.data;
       if (data instanceof Blob) {
         try {
@@ -259,17 +264,16 @@ export function EventStageExportGraphicDialog({
         </div>
       ) : (
         <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-          <IconDownload className="size-4" /> Export graphic
+          <IconDownload className="size-4" /> {t("exportGraphic.button")}
         </Button>
       )}
 
       <Dialog open={open} onOpenChange={(o) => !downloading && setOpen(o)}>
         <DialogContent className="sm:max-w-[460px]">
           <DialogHeader>
-            <DialogTitle>Export leaderboard graphic</DialogTitle>
+            <DialogTitle>{t("exportGraphic.dialogTitle")}</DialogTitle>
             <DialogDescription>
-              Pick the stage and group to show, render those standings onto a
-              branded design, and download it as an image.
+              {t("exportGraphic.dialogDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -282,7 +286,7 @@ export function EventStageExportGraphicDialog({
             {stages.length > 0 && (
               <>
                 <div className="space-y-2">
-                  <Label>Stage</Label>
+                  <Label>{t("exportGraphic.stage")}</Label>
                   <Select
                     value={selStage}
                     onValueChange={(v) => {
@@ -293,12 +297,13 @@ export function EventStageExportGraphicDialog({
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a stage" />
+                      <SelectValue placeholder={t("exportGraphic.selectStage")} />
                     </SelectTrigger>
                     <SelectContent>
                       {stages.map((s) => (
                         <SelectItem key={String(s.stage_id)} value={String(s.stage_id)}>
-                          {s.stage_name || `Stage ${s.stage_id}`}
+                          {s.stage_name ||
+                            t("exportGraphic.stageFallback", { id: s.stage_id })}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -306,16 +311,19 @@ export function EventStageExportGraphicDialog({
                 </div>
                 {stageGroups.length > 0 && (
                   <div className="space-y-2">
-                    <Label>Group</Label>
+                    <Label>{t("exportGraphic.group")}</Label>
                     <Select value={selGroup} onValueChange={setSelGroup}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={ALL_GROUPS}>Whole stage (all groups)</SelectItem>
+                        <SelectItem value={ALL_GROUPS}>
+                          {t("exportGraphic.wholeStage")}
+                        </SelectItem>
                         {stageGroups.map((g) => (
                           <SelectItem key={String(g.group_id)} value={String(g.group_id)}>
-                            {g.group_name || `Group ${g.group_id}`}
+                            {g.group_name ||
+                              t("exportGraphic.groupFallback", { id: g.group_id })}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -329,45 +337,45 @@ export function EventStageExportGraphicDialog({
                 Lists the org's design library. "Default / plain background"
                 lets the backend choose the library default (or plain dark). */}
             <div className="space-y-2">
-              <Label>Design</Label>
+              <Label>{t("exportGraphic.design")}</Label>
               <Select value={designId} onValueChange={setDesignId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a design" />
+                  <SelectValue placeholder={t("exportGraphic.selectDesign")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={AUTO}>Default / plain background</SelectItem>
+                  <SelectItem value={AUTO}>
+                    {t("exportGraphic.defaultDesign")}
+                  </SelectItem>
                   {designs.map((d) => (
                     <SelectItem key={d.id} value={String(d.id)}>
                       {d.name}
-                      {d.is_default ? " (default)" : ""}
+                      {d.is_default ? t("exportGraphic.defaultSuffix") : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {loadingDesigns ? (
                 <p className="text-xs text-muted-foreground">
-                  Loading designs...
+                  {t("exportGraphic.loadingDesigns")}
                 </p>
               ) : designs.length === 0 ? (
                 <p className="flex items-center gap-1 text-xs text-muted-foreground">
                   <IconPhoto className="size-3" />
-                  No designs yet. Add one in the Leaderboard designs section to
-                  brand the export.
+                  {t("exportGraphic.noDesigns")}
                 </p>
               ) : null}
               {/* Note shown when the selected design has multiple pages: one image per page. */}
               {(designs.find((d) => String(d.id) === designId)?.pages?.length ??
                 0) > 1 && (
                 <p className="text-xs text-muted-foreground">
-                  This design has multiple pages. Each page downloads as its own
-                  image.
+                  {t("exportGraphic.multiPageNote")}
                 </p>
               )}
             </div>
 
             {/* ── Size picker - YouTube landscape vs Instagram portrait ─── */}
             <div className="space-y-2">
-              <Label>Size</Label>
+              <Label>{t("exportGraphic.size")}</Label>
               <Select
                 value={size}
                 onValueChange={(v) => setSize(v as GraphicSize)}
@@ -376,9 +384,11 @@ export function EventStageExportGraphicDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="youtube">YouTube (1920 x 1080)</SelectItem>
+                  <SelectItem value="youtube">
+                    {t("exportGraphic.sizeYoutube")}
+                  </SelectItem>
                   <SelectItem value="instagram">
-                    Instagram (1080 x 1350)
+                    {t("exportGraphic.sizeInstagram")}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -387,12 +397,14 @@ export function EventStageExportGraphicDialog({
             {/* ── Title (prefilled with event name) ───────────────────────
                 The backend uses this as the graphic's headline text. */}
             <div className="space-y-2">
-              <Label htmlFor="event-export-title">Title</Label>
+              <Label htmlFor="event-export-title">
+                {t("exportGraphic.title")}
+              </Label>
               <Input
                 id="event-export-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Event title"
+                placeholder={t("exportGraphic.titlePlaceholder")}
               />
             </div>
 
@@ -400,14 +412,16 @@ export function EventStageExportGraphicDialog({
                 Shown beneath the title; identifies the stage/round. */}
             <div className="space-y-2">
               <Label htmlFor="event-export-subtitle">
-                Subtitle{" "}
-                <span className="text-xs text-muted-foreground">(optional)</span>
+                {t("exportGraphic.subtitle")}{" "}
+                <span className="text-xs text-muted-foreground">
+                  {t("exportGraphic.optional")}
+                </span>
               </Label>
               <Input
                 id="event-export-subtitle"
                 value={subtitle}
                 onChange={(e) => setSubtitle(e.target.value)}
-                placeholder="e.g. Group Stage - Round 1"
+                placeholder={t("exportGraphic.subtitlePlaceholder")}
               />
             </div>
           </div>
@@ -418,7 +432,7 @@ export function EventStageExportGraphicDialog({
               disabled={downloading}
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("exportGraphic.cancel")}
             </Button>
             <Button disabled={downloading} onClick={onDownload}>
               {downloading ? (
@@ -426,7 +440,7 @@ export function EventStageExportGraphicDialog({
               ) : (
                 <IconDownload className="mr-1 size-4" />
               )}
-              Download
+              {t("exportGraphic.download")}
             </Button>
           </DialogFooter>
         </DialogContent>

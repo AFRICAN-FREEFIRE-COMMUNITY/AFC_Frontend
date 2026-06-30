@@ -29,6 +29,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,6 +83,7 @@ interface OrgEvent {
 // Outline badge (rounded-full, text-xs) per AFC constants; colour by event status -
 // same colour mapping the organizer Overview uses for org status, kept consistent.
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("organizer");
   const normalized = (status || "").toLowerCase();
   const colour =
     normalized === "ongoing"
@@ -94,7 +96,7 @@ function StatusBadge({ status }: { status: string }) {
             "border-yellow-500 text-yellow-600";
   return (
     <Badge variant="outline" className={`capitalize ${colour}`}>
-      {status || "unknown"}
+      {status || t("eventsList.status.unknown")}
     </Badge>
   );
 }
@@ -103,6 +105,7 @@ function StatusBadge({ status }: { status: string }) {
 // Verified (green) vs Unverified (orange) - the AFC review gate an organizer event
 // clears before its results count toward the public rankings.
 function RankingsBadge({ verified }: { verified: boolean }) {
+  const t = useTranslations("organizer");
   return (
     <Badge
       variant="outline"
@@ -112,7 +115,10 @@ function RankingsBadge({ verified }: { verified: boolean }) {
           : "border-orange-500 text-orange-600"
       }
     >
-      Rankings: {verified ? "Verified" : "Unverified"}
+      {t("eventsList.rankings.label")}:{" "}
+      {verified
+        ? t("eventsList.rankings.verified")
+        : t("eventsList.rankings.unverified")}
     </Badge>
   );
 }
@@ -122,6 +128,7 @@ function RankingsBadge({ verified }: { verified: boolean }) {
 export default function OrganizerEventsPage() {
   const { membership, isOwner } = useOrganizer();
   const { token } = useAuth();
+  const t = useTranslations("organizer");
 
   // The numeric id used to scope the events fetch (lives on the selected membership).
   const organizationId = membership.organization.organization_id;
@@ -165,7 +172,9 @@ export default function OrganizerEventsPage() {
       );
       setEvents(res.data?.events ?? []);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load your events.");
+      toast.error(
+        err?.response?.data?.message || t("eventsList.toast.loadFailed"),
+      );
     } finally {
       setLoading(false);
     }
@@ -194,10 +203,12 @@ export default function OrganizerEventsPage() {
         { event_id: event.event_id, is_draft: true },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success("Event unpublished. It is now a draft.");
+      toast.success(t("eventsList.toast.unpublished"));
       await loadEvents();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to unpublish event.");
+      toast.error(
+        err?.response?.data?.message || t("eventsList.toast.unpublishFailed"),
+      );
     } finally {
       setUnpublishingId(null);
     }
@@ -207,15 +218,15 @@ export default function OrganizerEventsPage() {
     <div className="flex flex-col gap-5">
       <div data-tour="org-events-title">
         <PageHeader
-          title="Events"
-          description="Events your organization is running."
+          title={t("eventsList.title")}
+          description={t("eventsList.description")}
           // "Create event" lives in the header action slot, gated on the permission.
           action={
             canCreateEvents ? (
               <Button data-tour="org-events-create" asChild className="w-full md:w-auto">
                 <Link href="/organizer/events/create">
                   <IconPlus className="size-4" />
-                  Create event
+                  {t("eventsList.createEvent")}
                 </Link>
               </Button>
             ) : undefined
@@ -225,13 +236,13 @@ export default function OrganizerEventsPage() {
 
       <Card>
         <CardHeader className="border-b">
-          <CardTitle>Your Events</CardTitle>
+          <CardTitle>{t("eventsList.cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             // Inline loading row - matches the organizer Overview's loading copy.
             <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-              Loading events...
+              {t("eventsList.loading")}
             </div>
           ) : events.length === 0 ? (
             // ── Empty state ── nothing homed to this org yet.
@@ -240,12 +251,12 @@ export default function OrganizerEventsPage() {
                 <IconCalendarEvent className="size-6" />
               </div>
               <p className="text-sm text-muted-foreground">
-                Your organization hasn&apos;t created any events yet.
+                {t("eventsList.empty")}
               </p>
               {canCreateEvents && (
                 <Button asChild variant="outline" size="sm">
                   <Link href="/organizer/events/create">
-                    Create your first event
+                    {t("eventsList.createFirst")}
                   </Link>
                 </Button>
               )}
@@ -254,11 +265,11 @@ export default function OrganizerEventsPage() {
             <Table data-tour="org-events-table">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Rankings</TableHead>
+                  <TableHead>{t("eventsList.table.name")}</TableHead>
+                  <TableHead>{t("eventsList.table.type")}</TableHead>
+                  <TableHead>{t("eventsList.table.date")}</TableHead>
+                  <TableHead>{t("eventsList.table.status")}</TableHead>
+                  <TableHead>{t("eventsList.table.rankings")}</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -274,7 +285,7 @@ export default function OrganizerEventsPage() {
                             variant="outline"
                             className="border-muted-foreground text-muted-foreground"
                           >
-                            Draft
+                            {t("eventsList.draftBadge")}
                           </Badge>
                         )}
                       </div>
@@ -300,13 +311,15 @@ export default function OrganizerEventsPage() {
                             sibling agent), gated on can_upload_results / owner. */}
                       <div className="flex flex-wrap items-center justify-end gap-2">
                         <Button asChild variant="outline" size="sm">
-                          <Link href={`/tournaments/${event.slug}`}>View</Link>
+                          <Link href={`/tournaments/${event.slug}`}>
+                            {t("eventsList.actions.view")}
+                          </Link>
                         </Button>
                         {canEditEvents && (
                           <Button asChild variant="outline" size="sm">
                             <Link href={`/organizer/events/${event.slug}/edit`}>
                               <IconPencil className="size-4" />
-                              Edit
+                              {t("eventsList.actions.edit")}
                             </Link>
                           </Button>
                         )}
@@ -321,8 +334,8 @@ export default function OrganizerEventsPage() {
                           >
                             <IconEyeOff className="size-4" />
                             {unpublishingId === event.event_id
-                              ? "Unpublishing..."
-                              : "Unpublish"}
+                              ? t("eventsList.actions.unpublishing")
+                              : t("eventsList.actions.unpublish")}
                           </Button>
                         )}
                         {/* Duplicate → clone this event into a fresh draft, then deep-link
@@ -343,7 +356,7 @@ export default function OrganizerEventsPage() {
                               href={`/organizer/events/${event.slug}/leaderboard`}
                             >
                               <IconTrophy className="size-4" />
-                              Results & Leaderboard
+                              {t("eventsList.actions.resultsLeaderboard")}
                             </Link>
                           </Button>
                         )}
@@ -354,7 +367,7 @@ export default function OrganizerEventsPage() {
                           <Button asChild variant="outline" size="sm">
                             <Link href={`/organizer/events/${event.slug}`}>
                               <IconLink className="size-4" />
-                              Links
+                              {t("eventsList.actions.links")}
                             </Link>
                           </Button>
                         )}
@@ -367,7 +380,7 @@ export default function OrganizerEventsPage() {
                               href={`/organizer/events/${event.slug}/groups`}
                             >
                               <IconUsersGroup className="size-4" />
-                              Groups & Rosters
+                              {t("eventsList.actions.groupsRosters")}
                             </Link>
                           </Button>
                         )}

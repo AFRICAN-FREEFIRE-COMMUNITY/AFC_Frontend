@@ -17,6 +17,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,13 +75,14 @@ function ImageField({
   onSelect: (file: File) => void;
   onClear: () => void;
 }) {
+  const t = useTranslations("organizer");
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Validate type, then hand the file up to the parent.
   const handleFile = (file?: File) => {
     if (!file) return;
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      toast.error("Only PNG, JPG, JPEG, or WEBP files are supported.");
+      toast.error(t("profile.image.invalidType"));
       return;
     }
     onSelect(file);
@@ -99,13 +101,13 @@ function ImageField({
               <IconPhoto size={24} className="text-primary" />
             </div>
             <p className="text-sm text-muted-foreground">
-              Drop an image here, or{" "}
+              {t("profile.image.dropPrefix")}{" "}
               <span className="text-primary font-medium hover:underline">
-                browse
+                {t("profile.image.browse")}
               </span>
             </p>
             <p className="text-xs text-muted-foreground">
-              Supports: PNG, JPG, JPEG, WEBP
+              {t("profile.image.supports")}
             </p>
           </div>
         </div>
@@ -116,7 +118,7 @@ function ImageField({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={previewUrl}
-              alt={`${label} preview`}
+              alt={t("profile.image.previewAlt", { label })}
               className="size-full object-cover"
             />
           </div>
@@ -128,7 +130,7 @@ function ImageField({
               onClick={onClear}
             >
               <IconX size={16} className="mr-2" />
-              Remove
+              {t("profile.image.remove")}
             </Button>
             <Button
               type="button"
@@ -137,7 +139,7 @@ function ImageField({
               onClick={() => inputRef.current?.click()}
             >
               <IconUpload size={16} className="mr-2" />
-              Replace
+              {t("profile.image.replace")}
             </Button>
           </div>
         </div>
@@ -157,6 +159,7 @@ function ImageField({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function OrganizerProfilePage() {
+  const t = useTranslations("organizer");
   const { slug, isOwner } = useOrganizer();
 
   const [loading, setLoading] = useState(true);
@@ -214,7 +217,7 @@ export default function OrganizerProfilePage() {
         setBannerPreview(org.default_banner ?? "");
       } catch (err: any) {
         toast.error(
-          err?.response?.data?.message || "Failed to load organization.",
+          err?.response?.data?.message || t("profile.loadError"),
         );
       } finally {
         setLoading(false);
@@ -227,7 +230,7 @@ export default function OrganizerProfilePage() {
   // ── Submit handler ──
   const onSubmit = () => {
     if (!name.trim()) {
-      toast.error("Organization name cannot be empty.");
+      toast.error(t("profile.nameRequired"));
       return;
     }
     startSubmit(async () => {
@@ -265,13 +268,13 @@ export default function OrganizerProfilePage() {
           });
         }
 
-        toast.success("Profile updated.");
+        toast.success(t("profile.updated"));
         // Clear staged files so a second save without re-picking goes JSON.
         setLogoFile(null);
         setBannerFile(null);
       } catch (err: any) {
         toast.error(
-          err?.response?.data?.message || "Failed to update profile.",
+          err?.response?.data?.message || t("profile.updateError"),
         );
       }
     });
@@ -280,7 +283,7 @@ export default function OrganizerProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
-        Loading profile...
+        {t("profile.loading")}
       </div>
     );
   }
@@ -290,15 +293,14 @@ export default function OrganizerProfilePage() {
     return (
       <div className="flex flex-col gap-5">
         <PageHeader
-          title="Profile"
-          description="Manage your organization's branding."
+          title={t("profile.title")}
+          description={t("profile.description")}
         />
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <IconLock className="size-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground max-w-sm">
-              Only the organization owner can edit branding. You have read-only
-              access to this section.
+              {t("profile.readOnly")}
             </p>
           </CardContent>
         </Card>
@@ -311,8 +313,8 @@ export default function OrganizerProfilePage() {
     <div className="flex flex-col gap-5">
       <div data-tour="org-profile-title">
         <PageHeader
-          title="Profile"
-          description="Manage your organization's branding."
+          title={t("profile.title")}
+          description={t("profile.description")}
         />
       </div>
 
@@ -321,7 +323,7 @@ export default function OrganizerProfilePage() {
           {/* Logo + banner uploads. */}
           <div data-tour="org-profile-images" className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <ImageField
-              label="Logo"
+              label={t("profile.logoLabel")}
               previewUrl={logoPreview}
               onSelect={(file) => {
                 setLogoFile(file);
@@ -333,7 +335,7 @@ export default function OrganizerProfilePage() {
               }}
             />
             <ImageField
-              label="Default banner"
+              label={t("profile.bannerLabel")}
               previewUrl={bannerPreview}
               onSelect={(file) => {
                 setBannerFile(file);
@@ -349,9 +351,9 @@ export default function OrganizerProfilePage() {
           {/* Organization name (owner 2026-06-23): editable display name. The public URL handle
               (slug) is NOT changed by this, so existing links keep working. */}
           <div className="space-y-2">
-            <Label>Organization name</Label>
+            <Label>{t("profile.nameLabel")}</Label>
             <Input
-              placeholder="Your organization's name"
+              placeholder={t("profile.namePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -359,10 +361,10 @@ export default function OrganizerProfilePage() {
 
           {/* Email. */}
           <div className="space-y-2">
-            <Label>Email</Label>
+            <Label>{t("profile.emailLabel")}</Label>
             <Input
               type="email"
-              placeholder="organization@example.com"
+              placeholder={t("profile.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -370,9 +372,9 @@ export default function OrganizerProfilePage() {
 
           {/* Description. */}
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>{t("profile.descriptionLabel")}</Label>
             <Textarea
-              placeholder="Tell players about your organization..."
+              placeholder={t("profile.descriptionPlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
@@ -382,7 +384,7 @@ export default function OrganizerProfilePage() {
           {/* Socials - an extensible list. Add a row for ANY platform (TikTok, Twitch,
               a website, ...): the platform field is free text with common suggestions. */}
           <div className="space-y-2.5">
-            <Label>Social links (optional)</Label>
+            <Label>{t("profile.socialsLabel")}</Label>
             {/* Shared suggestion list so the platform inputs offer common platforms
                 while still accepting any custom value the organizer types. */}
             <datalist id="social-platform-suggestions">
@@ -393,7 +395,7 @@ export default function OrganizerProfilePage() {
 
             {socialLinks.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                No social links yet. Add one below.
+                {t("profile.socialsEmpty")}
               </p>
             )}
 
@@ -402,7 +404,7 @@ export default function OrganizerProfilePage() {
                 <Input
                   className="w-1/3"
                   list="social-platform-suggestions"
-                  placeholder="Platform (e.g. TikTok)"
+                  placeholder={t("profile.platformPlaceholder")}
                   value={link.platform}
                   onChange={(e) =>
                     updateSocialLink(idx, "platform", e.target.value)
@@ -410,7 +412,7 @@ export default function OrganizerProfilePage() {
                 />
                 <Input
                   className="flex-1"
-                  placeholder="Link or handle (e.g. https://tiktok.com/@org)"
+                  placeholder={t("profile.socialUrlPlaceholder")}
                   value={link.url}
                   onChange={(e) => updateSocialLink(idx, "url", e.target.value)}
                 />
@@ -420,7 +422,7 @@ export default function OrganizerProfilePage() {
                   size="icon"
                   className="text-muted-foreground hover:text-destructive"
                   onClick={() => removeSocialLink(idx)}
-                  aria-label="Remove social link"
+                  aria-label={t("profile.removeSocialAria")}
                 >
                   <IconX className="size-4" />
                 </Button>
@@ -434,14 +436,14 @@ export default function OrganizerProfilePage() {
               className="gap-1.5"
               onClick={addSocialLink}
             >
-              <IconPlus className="size-4" /> Add social link
+              <IconPlus className="size-4" /> {t("profile.addSocial")}
             </Button>
           </div>
 
           {/* Save. */}
           <div className="flex justify-end">
             <Button data-tour="org-profile-save" disabled={submitting} onClick={onSubmit}>
-              {submitting ? <Loader text="Saving..." /> : "Save changes"}
+              {submitting ? <Loader text={t("profile.saving")} /> : t("profile.save")}
             </Button>
           </div>
         </CardContent>

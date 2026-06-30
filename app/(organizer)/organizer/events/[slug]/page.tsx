@@ -33,6 +33,7 @@
 import React, { use, useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -72,6 +73,9 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
   const { slug } = use(params);
   const { token } = useAuth();
   const { membership, isOwner } = useOrganizer();
+  // i18n: organizer-facing surface, namespace "organizer" (matches layout/tour);
+  // English values live in messages/en/organizer.json -> fr/pt via pnpm i18n:translate.
+  const t = useTranslations("organizer");
 
   // Same gate the backend applies to every link endpoint for organizers.
   const canEdit = membership.permissions.can_edit_events || isOwner;
@@ -119,12 +123,12 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
   if (!canEdit) {
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Event" description="Event detail and qualification links." />
+        <PageHeader title={t("eventDetail.fallbackTitle")} description={t("eventDetail.fallbackDescription")} />
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <IconLock className="size-8 text-muted-foreground" />
             <p className="max-w-sm text-sm text-muted-foreground">
-              You don&apos;t have permission to manage this organization&apos;s events.
+              {t("eventDetail.noPermission")}
             </p>
           </CardContent>
         </Card>
@@ -137,10 +141,10 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
   if (notMine || !details) {
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Event" description="Event detail and qualification links." />
+        <PageHeader title={t("eventDetail.fallbackTitle")} description={t("eventDetail.fallbackDescription")} />
         <Card>
           <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            That event was not found in this organization.
+            {t("eventDetail.notFound")}
           </CardContent>
         </Card>
       </div>
@@ -154,7 +158,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
       <div data-tour="org-event-detail-title">
         <PageHeader
           title={details.event_name}
-          description="Manage this event's qualification links, or jump to its task pages."
+          description={t("eventDetail.description")}
         />
       </div>
 
@@ -172,17 +176,17 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
         <span className="ml-auto flex flex-wrap items-center gap-1.5">
           <Button asChild size="sm" variant="outline" data-tour="org-event-detail-edit">
             <Link href={`/organizer/events/${slug}/edit`}>
-              <IconPencil className="size-4" /> Edit
+              <IconPencil className="size-4" /> {t("eventDetail.edit")}
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline">
             <Link href={`/organizer/events/${slug}/groups`}>
-              <IconUsersGroup className="size-4" /> Groups &amp; Rosters
+              <IconUsersGroup className="size-4" /> {t("eventDetail.groupsAndRosters")}
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline">
             <Link href={`/organizer/events/${slug}/leaderboard`}>
-              <IconTrophy className="size-4" /> Leaderboard
+              <IconTrophy className="size-4" /> {t("eventDetail.leaderboard")}
             </Link>
           </Button>
         </span>

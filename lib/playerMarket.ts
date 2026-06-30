@@ -53,7 +53,11 @@ export interface MarketReportRow {
   post_id: number | null;
   category: "bad_tryout" | "scam" | "abusive" | "fake_post" | "other";
   details: string;
+  // Legacy single evidence image (old rows + the first image of a new report). Kept for back-compat.
   evidence: string | null;
+  // All attached evidence (images + videos), absolute URLs, in attach order (owner 2026-06-30). The
+  // admin reports dialog renders images as <img> and videos as <video controls>. Empty for old rows.
+  evidence_files: { url: string; media_type: "image" | "video" }[];
   status: "open" | "reviewing" | "resolved" | "dismissed" | "banned";
   resolution_notes: string | null;
   // reporter_id (feature "J-market-rules", J5): the reporter's User id, used by the

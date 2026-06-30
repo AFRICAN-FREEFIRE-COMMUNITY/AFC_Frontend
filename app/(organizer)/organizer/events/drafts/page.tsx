@@ -35,6 +35,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,6 +81,7 @@ interface DraftEvent {
 export default function OrganizerDraftsPage() {
   const { membership, isOwner } = useOrganizer();
   const { token } = useAuth();
+  const t = useTranslations("organizer");
 
   // The numeric id used to scope the drafts fetch (lives on the selected membership).
   const organizationId = membership.organization.organization_id;
@@ -119,7 +121,7 @@ export default function OrganizerDraftsPage() {
         setDrafts(res.data?.drafted_events ?? []);
       } catch (err: any) {
         toast.error(
-          err?.response?.data?.message || "Failed to load your drafts.",
+          err?.response?.data?.message || t("drafts.toast.loadFailed"),
         );
       } finally {
         setLoading(false);
@@ -134,8 +136,8 @@ export default function OrganizerDraftsPage() {
     return (
       <div className="flex flex-col gap-5">
         <PageHeader
-          title="Drafts"
-          description="Finish and publish your organization's draft events."
+          title={t("drafts.title")}
+          description={t("drafts.description")}
         />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -143,11 +145,12 @@ export default function OrganizerDraftsPage() {
               <IconLock className="size-6" />
             </div>
             <p className="max-w-sm text-sm text-muted-foreground">
-              You do not have permission to manage draft events for this
-              organization.
+              {t("drafts.noPermission")}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/organizer/overview">Back to overview</Link>
+              <Link href="/organizer/overview">
+                {t("drafts.backToOverview")}
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -159,8 +162,8 @@ export default function OrganizerDraftsPage() {
     <div className="flex flex-col gap-5">
       <div data-tour="org-drafts-title">
         <PageHeader
-          title="Drafts"
-          description="Finish and publish your organization's draft events."
+          title={t("drafts.title")}
+          description={t("drafts.description")}
           // "Create event" mirrors the Events list header action, gated the same way
           // (can_create_events / owner) - a draft starts life in the create wizard.
           action={
@@ -168,7 +171,7 @@ export default function OrganizerDraftsPage() {
               <Button data-tour="org-drafts-create" asChild className="w-full md:w-auto">
                 <Link href="/organizer/events/create">
                   <IconPlus className="size-4" />
-                  Create event
+                  {t("drafts.createEvent")}
                 </Link>
               </Button>
             ) : undefined
@@ -178,13 +181,13 @@ export default function OrganizerDraftsPage() {
 
       <Card>
         <CardHeader className="border-b">
-          <CardTitle>Draft Events</CardTitle>
+          <CardTitle>{t("drafts.cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             // Inline loading row - matches the organizer Events / Leaderboards copy.
             <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-              Loading drafts...
+              {t("drafts.loading")}
             </div>
           ) : drafts.length === 0 ? (
             // ── Empty state ── no drafts saved for this org yet.
@@ -193,12 +196,13 @@ export default function OrganizerDraftsPage() {
                 <IconFileText className="size-6" />
               </div>
               <p className="text-sm text-muted-foreground">
-                Your organization has no draft events. Start one and save it as a
-                draft to finish later.
+                {t("drafts.empty")}
               </p>
               {(membership.permissions.can_create_events || isOwner) && (
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/organizer/events/create">Create an event</Link>
+                  <Link href="/organizer/events/create">
+                    {t("drafts.createEventAlt")}
+                  </Link>
                 </Button>
               )}
             </div>
@@ -206,9 +210,9 @@ export default function OrganizerDraftsPage() {
             <Table data-tour="org-drafts-table">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Format</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead>{t("drafts.table.name")}</TableHead>
+                  <TableHead>{t("drafts.table.format")}</TableHead>
+                  <TableHead>{t("drafts.table.created")}</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -219,12 +223,12 @@ export default function OrganizerDraftsPage() {
                         the inline draft badge on the Events list. */}
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {draft.event_name || "Untitled draft"}
+                        {draft.event_name || t("drafts.untitled")}
                         <Badge
                           variant="outline"
                           className="border-muted-foreground text-muted-foreground"
                         >
-                          Draft
+                          {t("drafts.draftBadge")}
                         </Badge>
                       </div>
                     </TableCell>
@@ -247,12 +251,12 @@ export default function OrganizerDraftsPage() {
                             href={`/organizer/events/${draft.event_slug}/edit`}
                           >
                             <IconPencil className="size-4" />
-                            Continue editing
+                            {t("drafts.continueEditing")}
                           </Link>
                         </Button>
                         <DeleteEventModal
                           eventId={draft.event_id}
-                          eventName={draft.event_name || "Untitled draft"}
+                          eventName={draft.event_name || t("drafts.untitled")}
                           size="sm"
                           showLabel
                           onSuccess={() =>

@@ -21,6 +21,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -105,7 +106,15 @@ interface Member {
 // ── Role badge ────────────────────────────────────────────────────────────────
 
 function RoleBadge({ role }: { role: string }) {
+  const t = useTranslations("organizer");
   const isOwner = role === "owner";
+  // Known roles get a translated label; any unknown role falls back to its raw value.
+  const roleLabel =
+    role === "owner"
+      ? t("members.role.owner")
+      : role === "sub_organizer"
+        ? t("members.role.sub_organizer")
+        : role.replace("_", " ");
   return (
     <Badge
       variant="outline"
@@ -115,7 +124,7 @@ function RoleBadge({ role }: { role: string }) {
           : "border-blue-500 text-blue-600 capitalize"
       }
     >
-      {role.replace("_", " ")}
+      {roleLabel}
     </Badge>
   );
 }
@@ -138,6 +147,7 @@ function StatusBadge({ status }: { status: string }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function OrganizerMembersPage() {
+  const t = useTranslations("organizer");
   const { slug, membership, isOwner } = useOrganizer();
 
   // The caller may manage members if they own the org or hold can_manage_members.
@@ -161,10 +171,10 @@ export default function OrganizerMembersPage() {
     setLifecycleBusy(true);
     try {
       await organizersApi.leaveOrganization(slug);
-      toast.success("You have left the organization.");
+      toast.success(t("members.toast.leftOrg"));
       router.push("/organizer");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to leave the organization.");
+      toast.error(err?.response?.data?.message || t("members.toast.leaveError"));
     } finally {
       setLifecycleBusy(false);
     }
@@ -174,9 +184,13 @@ export default function OrganizerMembersPage() {
     try {
       await organizersApi.suspendMyOrganization(slug, !orgSuspended);
       setOrgStatus(orgSuspended ? "active" : "suspended");
-      toast.success(orgSuspended ? "Organization reactivated." : "Organization suspended.");
+      toast.success(
+        orgSuspended
+          ? t("members.toast.orgReactivated")
+          : t("members.toast.orgSuspended"),
+      );
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to update the organization.");
+      toast.error(err?.response?.data?.message || t("members.toast.updateOrgError"));
     } finally {
       setLifecycleBusy(false);
     }
@@ -185,10 +199,10 @@ export default function OrganizerMembersPage() {
     setLifecycleBusy(true);
     try {
       await organizersApi.deleteMyOrganization(slug);
-      toast.success("Organization deleted. An AFC admin can restore it if needed.");
+      toast.success(t("members.toast.orgDeleted"));
       router.push("/organizer");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to delete the organization.");
+      toast.error(err?.response?.data?.message || t("members.toast.deleteOrgError"));
     } finally {
       setLifecycleBusy(false);
     }
@@ -215,7 +229,7 @@ export default function OrganizerMembersPage() {
         setMembers(res?.results ?? []);
       } catch (err: any) {
         toast.error(
-          err?.response?.data?.message || "Failed to load members.",
+          err?.response?.data?.message || t("members.toast.loadError"),
         );
       } finally {
         setLoading(false);
@@ -238,7 +252,7 @@ export default function OrganizerMembersPage() {
   // ── Add a sub-organizer. ──
   const handleAdd = async () => {
     if (!addUsername.trim()) {
-      toast.error("Enter a username.");
+      toast.error(t("members.toast.enterUsername"));
       return;
     }
     setAdding(true);
@@ -247,7 +261,7 @@ export default function OrganizerMembersPage() {
         username: addUsername.trim(),
         permissions: addPermissions,
       });
-      toast.success(`${addUsername.trim()} added.`);
+      toast.success(t("members.toast.added", { name: addUsername.trim() }));
       // Re-fetch so the new row (with its server-assigned user_id) appears.
       const res = await organizersApi.getOrganizationMembers(slug);
       setMembers(res?.results ?? []);
@@ -256,7 +270,7 @@ export default function OrganizerMembersPage() {
       setAddPermissions(EMPTY_PERMISSIONS);
       setAddOpen(false);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to add member.");
+      toast.error(err?.response?.data?.message || t("members.toast.addError"));
     } finally {
       setAdding(false);
     }
@@ -290,7 +304,7 @@ export default function OrganizerMembersPage() {
         ),
       );
       toast.error(
-        err?.response?.data?.message || "Failed to update permissions.",
+        err?.response?.data?.message || t("members.toast.permissionsError"),
       );
     } finally {
       setBusy(member.user_id, false);
@@ -303,9 +317,9 @@ export default function OrganizerMembersPage() {
     try {
       await organizersApi.removeOrganizationMember(slug, member.user_id);
       setMembers((prev) => prev.filter((m) => m.user_id !== member.user_id));
-      toast.success(`${member.username} removed.`);
+      toast.success(t("members.toast.removed", { name: member.username }));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to remove member.");
+      toast.error(err?.response?.data?.message || t("members.toast.removeError"));
     } finally {
       setBusy(member.user_id, false);
     }
@@ -315,7 +329,7 @@ export default function OrganizerMembersPage() {
     return (
       <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
         <IconLoader2 className="size-5 animate-spin" />
-        Loading members...
+        {t("members.loading")}
       </div>
     );
   }
@@ -324,8 +338,8 @@ export default function OrganizerMembersPage() {
     <div className="flex flex-col gap-5">
       <div data-tour="org-members-title">
       <PageHeader
-        title="Members"
-        description={`${members.length} member${members.length !== 1 ? "s" : ""}`}
+        title={t("members.title")}
+        description={t("members.memberCount", { count: members.length })}
         action={
           // Only members who can manage members see the add button.
           canManageMembers ? (
@@ -333,36 +347,38 @@ export default function OrganizerMembersPage() {
               <DialogTrigger asChild>
                 <Button data-tour="org-members-add">
                   <IconUserPlus className="size-4 mr-1.5" />
-                  Add sub-organizer
+                  {t("members.addSubOrganizer")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Add sub-organizer</DialogTitle>
+                  <DialogTitle>{t("members.addSubOrganizer")}</DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col gap-4 py-2">
                   {/* User - typeahead picker, not a raw username input, so the
                       caller sees matching accounts as they type and selects one. */}
                   <div className="space-y-2">
-                    <Label>User</Label>
+                    <Label>{t("members.userLabel")}</Label>
                     <UserSearchSelect
                       value={addUsername || null}
                       onChange={(username) => setAddUsername(username ?? "")}
-                      placeholder="Search by username or name..."
+                      placeholder={t("members.searchPlaceholder")}
                       disabled={adding}
                     />
                   </div>
 
                   {/* Permission switches. */}
                   <div className="space-y-2">
-                    <Label>Permissions</Label>
+                    <Label>{t("members.permissionsLabel")}</Label>
                     <div className="flex flex-col gap-2.5 rounded-md border p-3">
                       {PERMISSION_FIELDS.map((field) => (
                         <div
                           key={field.key}
                           className="flex items-center justify-between"
                         >
-                          <span className="text-xs">{field.label}</span>
+                          <span className="text-xs">
+                            {t(`members.permissions.${field.key}`)}
+                          </span>
                           <Switch
                             checked={addPermissions[field.key]}
                             onCheckedChange={(checked) =>
@@ -384,13 +400,13 @@ export default function OrganizerMembersPage() {
                     disabled={adding}
                     onClick={() => setAddOpen(false)}
                   >
-                    Cancel
+                    {t("members.cancel")}
                   </Button>
                   <Button disabled={adding} onClick={handleAdd}>
                     {adding && (
                       <IconLoader2 className="size-4 animate-spin mr-2" />
                     )}
-                    Add
+                    {t("members.add")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -407,14 +423,18 @@ export default function OrganizerMembersPage() {
             <Table data-tour="org-members-table">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Full name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t("members.table.username")}</TableHead>
+                  <TableHead>{t("members.table.fullName")}</TableHead>
+                  <TableHead>{t("members.table.role")}</TableHead>
+                  <TableHead>{t("members.table.status")}</TableHead>
                   {/* Permission + remove columns only matter to managers. */}
-                  {canManageMembers && <TableHead>Permissions</TableHead>}
                   {canManageMembers && (
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("members.table.permissions")}</TableHead>
+                  )}
+                  {canManageMembers && (
+                    <TableHead className="text-right">
+                      {t("members.table.actions")}
+                    </TableHead>
                   )}
                 </TableRow>
               </TableHeader>
@@ -425,7 +445,7 @@ export default function OrganizerMembersPage() {
                       colSpan={canManageMembers ? 6 : 4}
                       className="py-10 text-center text-muted-foreground"
                     >
-                      No members yet.
+                      {t("members.empty")}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -451,7 +471,7 @@ export default function OrganizerMembersPage() {
                           <TableCell>
                             {isOwnerRow ? (
                               <span className="text-xs text-muted-foreground">
-                                Full access
+                                {t("members.fullAccess")}
                               </span>
                             ) : (
                               <div className="flex flex-wrap gap-x-3 gap-y-1.5">
@@ -472,7 +492,7 @@ export default function OrganizerMembersPage() {
                                       disabled={isBusy}
                                     />
                                     <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                                      {field.label}
+                                      {t(`members.permissions.${field.key}`)}
                                     </span>
                                   </label>
                                 ))}
@@ -502,29 +522,31 @@ export default function OrganizerMembersPage() {
                                     ) : (
                                       <IconTrash className="size-3" />
                                     )}
-                                    Remove
+                                    {t("members.remove.button")}
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>
-                                      Remove {m.username}?
+                                      {t("members.remove.confirmTitle", {
+                                        name: m.username,
+                                      })}
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      This removes {m.username} from the
-                                      organization. They will lose all access.
-                                      This action cannot be undone.
+                                      {t("members.remove.confirmDesc", {
+                                        name: m.username,
+                                      })}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>
-                                      Cancel
+                                      {t("members.cancel")}
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                       className="bg-destructive text-white hover:bg-destructive/90"
                                       onClick={() => handleRemove(m)}
                                     >
-                                      Remove
+                                      {t("members.remove.button")}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -549,11 +571,11 @@ export default function OrganizerMembersPage() {
           {isOwner ? (
             <>
               <div>
-                <p className="text-sm font-medium">Organization controls</p>
+                <p className="text-sm font-medium">{t("members.org.controlsTitle")}</p>
                 <p className="text-xs text-muted-foreground">
                   {orgSuspended
-                    ? "Your organization is suspended and hidden from the public site."
-                    : "Suspend hides your org + its events from the public site. Delete is reversible by an AFC admin."}
+                    ? t("members.org.suspendedDesc")
+                    : t("members.org.activeDesc")}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -563,30 +585,28 @@ export default function OrganizerMembersPage() {
                   disabled={lifecycleBusy}
                 >
                   {lifecycleBusy && <IconLoader2 className="size-4 animate-spin mr-1" />}
-                  {orgSuspended ? "Reactivate" : "Suspend"}
+                  {orgSuspended ? t("members.org.reactivate") : t("members.org.suspend")}
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" disabled={lifecycleBusy}>
-                      Delete organization
+                      {t("members.org.deleteButton")}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete this organization?</AlertDialogTitle>
+                      <AlertDialogTitle>{t("members.org.deleteConfirmTitle")}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Your organization and its events will be hidden from the site. This is a
-                        soft delete: an AFC admin can restore everything intact. Your events and
-                        results are always retained.
+                        {t("members.org.deleteConfirmDesc")}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t("members.cancel")}</AlertDialogCancel>
                       <AlertDialogAction
                         className="bg-destructive text-white hover:bg-destructive/90"
                         onClick={handleDeleteOrg}
                       >
-                        Delete
+                        {t("members.org.delete")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -596,29 +616,28 @@ export default function OrganizerMembersPage() {
           ) : (
             <>
               <div>
-                <p className="text-sm font-medium">Leave organization</p>
+                <p className="text-sm font-medium">{t("members.leave.title")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Remove yourself from this organization. You will lose access to its dashboard.
+                  {t("members.leave.desc")}
                 </p>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" disabled={lifecycleBusy}>
                     {lifecycleBusy && <IconLoader2 className="size-4 animate-spin mr-1" />}
-                    Leave organization
+                    {t("members.leave.button")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Leave this organization?</AlertDialogTitle>
+                    <AlertDialogTitle>{t("members.leave.confirmTitle")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      You will be removed from this organization and lose access to its dashboard.
-                      An owner can re-invite you later.
+                      {t("members.leave.confirmDesc")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleLeave}>Leave</AlertDialogAction>
+                    <AlertDialogCancel>{t("members.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleLeave}>{t("members.leave.confirm")}</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

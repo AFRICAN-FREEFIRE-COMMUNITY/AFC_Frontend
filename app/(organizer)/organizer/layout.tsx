@@ -88,15 +88,18 @@ const SELECTED_ORG_KEY = "organizer:selected-slug";
 // The portal sub-routes the top sub-nav links to.
 // "Events" sits between Overview and Profile - it's the org's events surface
 // (list + create), gated per-page on the membership's can_create_events permission.
+// Each item carries a `key` (a stable i18n sub-key under the "organizer.nav.*"
+// namespace) rather than a literal label, so the visible link text is resolved
+// at render via next-intl (see OrganizerSidebar's t(`nav.${item.key}`)).
 const NAV_ITEMS = [
-  { label: "Overview", href: "/organizer/overview" },
-  { label: "Events", href: "/organizer/events" },
+  { key: "overview", href: "/organizer/overview" },
+  { key: "events", href: "/organizer/events" },
   // "Drafts" - the org's UNPUBLISHED (is_draft=True) events, saved from the
   // create/edit wizard but not yet live. Sits right under Events (it's an Events
   // sub-surface). Gated PER-PAGE on can_create_events / can_edit_events (or owner) -
   // the same set the backend get-drafted-events endpoint requires. See
   // app/(organizer)/organizer/events/drafts/page.tsx.
-  { label: "Drafts", href: "/organizer/events/drafts" },
+  { key: "drafts", href: "/organizer/events/drafts" },
   // "Leaderboards" - the org's results-upload + leaderboard-management surface
   // (list the org's events, then manage each event's leaderboard: create/generate,
   // upload results manually or via OCR image upload, configure points, view/edit).
@@ -104,31 +107,31 @@ const NAV_ITEMS = [
   // can_upload_results permission (or owner) - same pattern Events/Design use
   // (the nav item always shows; the page itself shows a lock notice when the
   // caller lacks the permission). See app/(organizer)/organizer/leaderboards/page.tsx.
-  { label: "Leaderboards", href: "/organizer/leaderboards" },
+  { key: "leaderboards", href: "/organizer/leaderboards" },
   // "Design" - the org's leaderboard-design request surface (submit + history),
   // gated per-page on the membership's can_submit_designs permission (or owner).
-  { label: "Design", href: "/organizer/design" },
-  { label: "Profile", href: "/organizer/profile" },
-  { label: "Members", href: "/organizer/members" },
+  { key: "design", href: "/organizer/design" },
+  { key: "profile", href: "/organizer/profile" },
+  { key: "members", href: "/organizer/members" },
   // "Metrics" - the org's aggregate stats (events / teams / players / kills / rating),
   // gated per-page on can_view_metrics (or owner).
-  { label: "Metrics", href: "/organizer/metrics" },
+  { key: "metrics", href: "/organizer/metrics" },
   // "Payouts" (F6-P4) - the org's share of paid-event revenue + bank details (owner sets the bank).
-  { label: "Payouts", href: "/organizer/payouts" },
+  { key: "payouts", href: "/organizer/payouts" },
   // "Reviews" - the org's per-event ratings + ANONYMOUS comments,
   // gated per-page on can_view_reviews (or owner).
-  { label: "Reviews", href: "/organizer/reviews" },
+  { key: "reviews", href: "/organizer/reviews" },
   // "Blacklists" - block a team (and the players snapshotted on it) from registering
   // for this org's events, plus the queue of lift requests the affected party raises.
   // Gated PER-PAGE on can_manage_registrations (or owner) - the SAME permission the
   // backend blacklist endpoints require. See app/(organizer)/organizer/blacklists/page.tsx.
-  { label: "Blacklists", href: "/organizer/blacklists" },
+  { key: "blacklists", href: "/organizer/blacklists" },
   // "Watchlist" (owner 2026-06-21) - the SHARED, AFC-wide advisory list of suspicious players +
   // teams (NOT a ban - a warning + name tags so admins/organizers watch out for them). Visible to
   // every organizer (the backend gate allows any active org member). See
   // app/(organizer)/organizer/watchlist/page.tsx. (Label kept literal to match the existing nav;
   // the PAGE body is internationalized via next-intl per the i18n rule.)
-  { label: "Watchlist", href: "/organizer/watchlist" },
+  { key: "watchlist", href: "/organizer/watchlist" },
 ];
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────
@@ -140,6 +143,7 @@ const NAV_ITEMS = [
 
 function OrganizerSidebar() {
   const pathname = usePathname();
+  const t = useTranslations("organizer");
   // Close the mobile drawer after navigating, same as NavMain.handleLinkClick.
   const { setOpenMobile } = useSidebar();
   // isAdmin drives the "Admin Dashboard" exit link: a platform admin who is also an
@@ -151,11 +155,11 @@ function OrganizerSidebar() {
   // Links that LEAVE the organizer portal (rendered as a separate menu group below
   // the org sub-nav). Admin Dashboard only shows for platform admins.
   const exitItems = [
-    { label: "User Dashboard", href: "/home", icon: IconHome },
+    { label: t("nav.userDashboard"), href: "/home", icon: IconHome },
     ...(isAdmin
       ? [
           {
-            label: "Admin Dashboard",
+            label: t("nav.adminDashboard"),
             href: "/a/dashboard",
             icon: IconLayoutDashboard,
           },
@@ -169,7 +173,7 @@ function OrganizerSidebar() {
         <div className="flex items-center justify-start gap-2">
           <Logo size="small" />
           <span className="font-medium text-sm text-muted-foreground">
-            Organizer Portal
+            {t("nav.portalTitle")}
           </span>
         </div>
       </SidebarHeader>
@@ -191,10 +195,13 @@ function OrganizerSidebar() {
                   (a, b) => b.href.length - a.href.length,
                 )[0];
                 const isActive = bestMatch?.href === item.href;
+                // Resolve the visible link text from the item's i18n key
+                // (en/fr/pt) under the "organizer.nav.*" namespace.
+                const label = t(`nav.${item.key}`);
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
-                      tooltip={item.label}
+                      tooltip={label}
                       asChild
                       className={cn(
                         isActive &&
@@ -205,7 +212,7 @@ function OrganizerSidebar() {
                         href={item.href}
                         onClick={() => setOpenMobile(false)}
                       >
-                        <span>{item.label}</span>
+                        <span>{label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -260,6 +267,7 @@ function OrganizerGuard({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading, isOrganizer, refreshUser, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations("organizer");
   // One-shot recheck state machine: idle → checking (profile refetch in flight)
   // → done (refetch resolved; cached verdict is now fresh and final).
   const [recheck, setRecheck] = useState<"idle" | "checking" | "done">("idle");
@@ -296,9 +304,9 @@ function OrganizerGuard({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, loading, mayEnter, recheck, refreshUser, pathname, router]);
 
-  if (loading) return <FullLoader text="Loading" />;
+  if (loading) return <FullLoader text={t("nav.loading")} />;
   if (!isAuthenticated || !mayEnter)
-    return <FullLoader text="Verifying Permissions..." />;
+    return <FullLoader text={t("nav.verifyingPermissions")} />;
 
   return <>{children}</>;
 }
@@ -360,7 +368,7 @@ function OrganizerShell({ children }: { children: ReactNode }) {
         }
       } catch (err: any) {
         toast.error(
-          err?.response?.data?.message || "Failed to load your organizations.",
+          err?.response?.data?.message || t("nav.loadOrgsError"),
         );
       } finally {
         setLoading(false);
@@ -430,7 +438,7 @@ function OrganizerShell({ children }: { children: ReactNode }) {
                 onClick={() => router.back()}
               >
                 <IconArrowLeft className="size-4" />
-                <span className="hidden sm:inline">Back</span>
+                <span className="hidden sm:inline">{t("nav.back")}</span>
               </Button>
               <Link href={"/home"} className="flex items-center space-x-2">
                 <Logo size="small" />
@@ -455,7 +463,7 @@ function OrganizerShell({ children }: { children: ReactNode }) {
                 onClick={logout}
               >
                 <IconLogout className="size-4" />
-                <span className="hidden sm:inline">Log out</span>
+                <span className="hidden sm:inline">{t("nav.logout")}</span>
               </Button>
             </div>
           </div>
@@ -464,16 +472,16 @@ function OrganizerShell({ children }: { children: ReactNode }) {
         {/* Content */}
         <main className="flex-1 container py-8">
           {loading ? (
-            <FullLoader text="Loading your organizations..." />
+            <FullLoader text={t("nav.loadingOrgs")} />
           ) : memberships.length === 0 ? (
             // No org membership at all - nothing to show, point the user back home.
             <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
               <IconBuilding className="size-10 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                You aren&apos;t a member of any organization yet.
+                {t("nav.noOrgMembership")}
               </p>
               <Button variant="outline" onClick={() => router.push("/home")}>
-                Back to home
+                {t("nav.backToHome")}
               </Button>
             </div>
           ) : (
@@ -484,7 +492,7 @@ function OrganizerShell({ children }: { children: ReactNode }) {
                   {/* Org switcher: only render chrome when the user has >1 org. */}
                   <Select value={selectedSlug} onValueChange={onSwitchOrg}>
                     <SelectTrigger className="w-full sm:w-56">
-                      <SelectValue placeholder="Select organization" />
+                      <SelectValue placeholder={t("nav.selectOrgPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {memberships.map((m) => (

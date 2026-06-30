@@ -15,6 +15,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ import { useOrganizer } from "../_components/OrganizerContext";
 // Outline badge (rounded-full, text-xs) per AFC constants; colour by org status.
 
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("organizer");
   const normalized = (status || "").toLowerCase();
   const colour =
     normalized === "active"
@@ -35,7 +37,7 @@ function StatusBadge({ status }: { status: string }) {
         : "border-yellow-500 text-yellow-600";
   return (
     <Badge variant="outline" className={`capitalize ${colour}`}>
-      {status || "unknown"}
+      {status || t("overview.status.unknown")}
     </Badge>
   );
 }
@@ -71,6 +73,7 @@ function StatTile({
 
 export default function OrganizerOverviewPage() {
   const { slug } = useOrganizer();
+  const t = useTranslations("organizer");
 
   const [org, setOrg] = useState<any>(null);
   const [memberCount, setMemberCount] = useState(0);
@@ -89,7 +92,7 @@ export default function OrganizerOverviewPage() {
         setEventCount(res?.organization?.event_count ?? 0);
       } catch (err: any) {
         toast.error(
-          err?.response?.data?.message || "Failed to load organization.",
+          err?.response?.data?.message || t("overview.loadError"),
         );
       } finally {
         setLoading(false);
@@ -102,7 +105,7 @@ export default function OrganizerOverviewPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
-        Loading organization...
+        {t("overview.loading")}
       </div>
     );
   }
@@ -111,7 +114,7 @@ export default function OrganizerOverviewPage() {
     return (
       <Card>
         <CardContent className="py-12 text-center text-muted-foreground">
-          Could not load this organization.
+          {t("overview.notFound")}
         </CardContent>
       </Card>
     );
@@ -121,8 +124,8 @@ export default function OrganizerOverviewPage() {
     <div className="flex flex-col gap-5">
       <div data-tour="org-overview-title">
         <PageHeader
-          title="Overview"
-          description="A snapshot of your organization."
+          title={t("overview.title")}
+          description={t("overview.description")}
         />
       </div>
 
@@ -137,7 +140,7 @@ export default function OrganizerOverviewPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={org.logo}
-                alt={`${org.name} logo`}
+                alt={t("overview.logoAlt", { name: org.name })}
                 className="size-full object-cover"
               />
             ) : (
@@ -163,12 +166,12 @@ export default function OrganizerOverviewPage() {
       <div data-tour="org-overview-stats" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <StatTile
           icon={<IconUsers className="size-5" />}
-          label="Members"
+          label={t("overview.members")}
           value={memberCount}
         />
         <StatTile
           icon={<IconCalendarEvent className="size-5" />}
-          label="Events"
+          label={t("overview.events")}
           value={eventCount}
         />
       </div>

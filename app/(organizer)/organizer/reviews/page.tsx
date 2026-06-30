@@ -35,6 +35,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import axios from "axios";
 import { PageHeader } from "@/components/PageHeader";
@@ -102,6 +103,7 @@ const EMPTY_EVENT_STATE: EventState = {
 // Reused at the top of the page and inside each comment list so the organizer is
 // always reminded that feedback is anonymous (text + date only, never the author).
 function AnonymityNotice({ inline = false }: { inline?: boolean }) {
+  const t = useTranslations("organizer");
   return (
     <p
       className={
@@ -110,8 +112,7 @@ function AnonymityNotice({ inline = false }: { inline?: boolean }) {
           : "text-xs text-muted-foreground"
       }
     >
-      Ratings and comments are anonymous - only the feedback text and date are
-      shown, never who left it.
+      {t("reviews.anonymityNotice")}
     </p>
   );
 }
@@ -120,11 +121,12 @@ function AnonymityNotice({ inline = false }: { inline?: boolean }) {
 // Outline badge (rounded-full, text-xs) per AFC constants. Shows the star + average
 // to one decimal and the count behind it, or a muted "No ratings yet" when count==0.
 function RatingBadge({ rating }: { rating: EventRating | null }) {
+  const t = useTranslations("organizer");
   const count = rating?.count ?? 0;
   if (count === 0 || rating?.average == null) {
     return (
       <Badge variant="outline" className="text-muted-foreground">
-        No ratings yet
+        {t("reviews.noRatings")}
       </Badge>
     );
   }
@@ -133,7 +135,7 @@ function RatingBadge({ rating }: { rating: EventRating | null }) {
       <IconStarFilled className="size-3" />
       {rating.average.toFixed(1)}
       <span className="text-muted-foreground">
-        ({count} rating{count !== 1 ? "s" : ""})
+        {t("reviews.ratingCount", { count })}
       </span>
     </Badge>
   );
@@ -142,6 +144,7 @@ function RatingBadge({ rating }: { rating: EventRating | null }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function OrganizerReviewsPage() {
+  const t = useTranslations("organizer");
   const { membership, isOwner } = useOrganizer();
   const { token } = useAuth();
 
@@ -214,7 +217,7 @@ export default function OrganizerReviewsPage() {
         });
       } catch (err: any) {
         toast.error(
-          err?.response?.data?.message || "Failed to load your events.",
+          err?.response?.data?.message || t("reviews.loadEventsError"),
         );
       } finally {
         setLoading(false);
@@ -243,7 +246,7 @@ export default function OrganizerReviewsPage() {
         // Reset to "not fetched" so a later expand can retry.
         patchState(eventId, { comments: null, commentsLoading: false });
         toast.error(
-          err?.response?.data?.message || "Failed to load comments.",
+          err?.response?.data?.message || t("reviews.loadCommentsError"),
         );
       }
     }
@@ -254,15 +257,14 @@ export default function OrganizerReviewsPage() {
     return (
       <div className="flex flex-col gap-5">
         <PageHeader
-          title="Reviews"
-          description="Ratings and feedback on your events."
+          title={t("reviews.title")}
+          description={t("reviews.lockDescription")}
         />
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <IconLock className="size-8 text-muted-foreground" />
             <p className="max-w-sm text-sm text-muted-foreground">
-              You don&apos;t have permission to view this organization&apos;s
-              reviews.
+              {t("reviews.noPermission")}
             </p>
           </CardContent>
         </Card>
@@ -273,7 +275,7 @@ export default function OrganizerReviewsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
-        Loading reviews...
+        {t("reviews.loadingReviews")}
       </div>
     );
   }
@@ -283,8 +285,8 @@ export default function OrganizerReviewsPage() {
       {/* Tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
       <div data-tour="org-reviews-title">
         <PageHeader
-          title="Reviews"
-          description="Ratings and anonymous feedback on each of your events."
+          title={t("reviews.title")}
+          description={t("reviews.description")}
         />
       </div>
 
@@ -299,8 +301,7 @@ export default function OrganizerReviewsPage() {
               <IconMessage className="size-6" />
             </div>
             <p className="text-sm text-muted-foreground">
-              Your organization hasn&apos;t run any events yet, so there&apos;s
-              no feedback to show.
+              {t("reviews.noEvents")}
             </p>
           </CardContent>
         </Card>
@@ -319,7 +320,7 @@ export default function OrganizerReviewsPage() {
                       <span className="font-medium">{ev.event_name}</span>
                       {st.ratingLoading ? (
                         <span className="text-xs text-muted-foreground">
-                          Loading rating...
+                          {t("reviews.loadingRating")}
                         </span>
                       ) : (
                         <RatingBadge rating={st.rating} />
@@ -332,7 +333,7 @@ export default function OrganizerReviewsPage() {
                       onClick={() => toggleExpand(ev.event_id)}
                     >
                       <IconMessage className="size-4" />
-                      Comments
+                      {t("reviews.comments")}
                       {/* Chevron rotates to point up when the region is open. */}
                       <IconChevronDown
                         className={`size-4 transition-transform ${
@@ -350,14 +351,14 @@ export default function OrganizerReviewsPage() {
 
                       {st.commentsLoading ? (
                         <p className="py-4 text-center text-sm text-muted-foreground">
-                          Loading comments...
+                          {t("reviews.loadingComments")}
                         </p>
                       ) : !st.comments || st.comments.length === 0 ? (
                         // Empty state - no comments on this event yet.
                         <div className="flex flex-col items-center gap-2 py-6 text-center">
                           <IconMessageOff className="size-6 text-muted-foreground" />
                           <p className="text-sm text-muted-foreground">
-                            No comments on this event yet.
+                            {t("reviews.noComments")}
                           </p>
                         </div>
                       ) : (

@@ -14,12 +14,14 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { LeaderboardDesignsManager } from "@/app/(a)/a/leaderboards/standalone/_components/LeaderboardDesignsManager";
 import { useOrganizer } from "../_components/OrganizerContext";
 
 export default function OrganizerDesignPage() {
   const { membership, isOwner } = useOrganizer();
+  const t = useTranslations("organizer");
   // Same gate the rest of the portal uses for design work: the design permission, or owner.
   const canManage = membership.permissions.can_submit_designs || isOwner;
 
@@ -28,8 +30,8 @@ export default function OrganizerDesignPage() {
       {/* Tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
       <div data-tour="org-design-title">
         <PageHeader
-          title="Design"
-          description="Build branded leaderboard designs: upload backgrounds, set colours, and drag your logos. Pick a design when you export a leaderboard."
+          title={t("design.title")}
+          description={t("design.description")}
         />
       </div>
       {/* Tour anchor: LeaderboardDesignsManager is a custom component (do not edit its

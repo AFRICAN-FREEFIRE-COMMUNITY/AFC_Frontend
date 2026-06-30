@@ -148,6 +148,9 @@ interface TeamRecruitmentPost {
   minimum_tier_required: string;
   commitment_type: string;
   expiry: string;
+  // True only for the viewer who CREATED this post (server-computed from created_by, owner 2026-06-30).
+  // Drives the My Posts tab membership AND the inline Edit/Delete buttons shown on this card.
+  is_owner?: boolean;
 }
 
 interface PlayerAvailablePost {
@@ -183,6 +186,9 @@ interface PlayerAvailablePost {
   // Rendered as a gallery on the card + View Player dialog.
   images?: PostImage[];
   expiry: string;
+  // True only for the viewer who CREATED this post (server-computed from created_by, owner 2026-06-30).
+  // Drives the My Posts tab membership AND the inline Edit/Delete buttons shown on this card.
+  is_owner?: boolean;
 }
 
 // One attached screenshot as serialized by afc_player_market.views._serialize_post_images.
@@ -692,11 +698,16 @@ function PlayerMarketPage() {
     }
   }, [searchParams, teamPosts, playerPosts, loadingTeams, loadingPlayers]);
 
+  // My Posts membership = the server-computed is_owner flag (created_by == viewer), so BOTH a team
+  // post AND a player availability post the user created show up, regardless of their current team /
+  // IGN (the old string match missed a post once the user's team name or in-game name changed, and
+  // it only ever surfaced one type). Falls back to the legacy name match if is_owner is absent (older
+  // API), so nothing regresses before the backend ships.
   const myTeamPosts = teamPosts.filter(
-    (p) => p.team === currentTeam?.team_name,
+    (p) => p.is_owner ?? p.team === currentTeam?.team_name,
   );
   const myPlayerPosts = playerPosts.filter(
-    (p) => p.player === user?.in_game_name,
+    (p) => p.is_owner ?? p.player === user?.in_game_name,
   );
 
   const handleDeletePost = async (postId: number) => {
@@ -1034,9 +1045,16 @@ function PlayerMarketPage() {
   }, [token]);
 
   useEffect(() => {
+    // Send the Bearer token when signed in so the list endpoints can compute is_owner per card (the
+    // My Posts tab + the inline Edit/Delete buttons depend on it). The endpoints stay public, so a
+    // guest (no token) still loads the market - they just own nothing. Re-runs when the token resolves.
+    const authConfig = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
     axios
       .get<TeamRecruitmentPost[]>(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-team-recruitment-posts/`,
+        authConfig,
       )
       .then((res) => setTeamPosts(res.data))
       .catch(() => toast.error("Failed to load team posts."))
@@ -1045,11 +1063,12 @@ function PlayerMarketPage() {
     axios
       .get<PlayerAvailablePost[]>(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-player-availability-posts/`,
+        authConfig,
       )
       .then((res) => setPlayerPosts(res.data))
       .catch(() => toast.error("Failed to load player posts."))
       .finally(() => setLoadingPlayers(false));
-  }, []);
+  }, [token]);
 
   // Teams tab filters
   const [teamSearch, setTeamSearch] = useState("");
@@ -1654,22 +1673,50 @@ function PlayerMarketPage() {
                           url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/team-${team.id}`}
                           text={`${team.team ?? "A team"} is recruiting on AFC Player Market!`}
                         />
-                        {/* Report (red flag) - always shown, regardless of the transfer window. */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-red-500 hover:text-red-500"
-                          onClick={() =>
-                            setReportTarget({
-                              postId: team.id,
-                              subjectType: "team",
-                              subjectName: team.team ?? "this team",
-                            })
-                          }
-                        >
-                          <IconFlag className="h-3.5 w-3.5 mr-1" />
-                          Report
-                        </Button>
+                        {team.is_owner ? (
+                          /* Owner controls (owner 2026-06-30): Edit/Delete YOUR OWN post inline on
+                             the Teams listing, mirroring the My Posts tab. Replaces Report, since you
+                             never report your own post. Same handlers + endpoints as My Posts. */
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs"
+                              disabled={isLoadingEditPost}
+                              onClick={() => openEditPost(team.id, "team")}
+                            >
+                              <IconPencil className="h-3.5 w-3.5 mr-1" />
+                              {isLoadingEditPost ? "Loading..." : "Edit"}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs text-destructive hover:text-destructive"
+                              disabled={isDeletingPost === team.id}
+                              onClick={() => handleDeletePost(team.id)}
+                            >
+                              <IconTrash className="h-3.5 w-3.5 mr-1" />
+                              {isDeletingPost === team.id ? "Deleting..." : "Delete"}
+                            </Button>
+                          </>
+                        ) : (
+                          /* Report (red flag) - shown for posts that are not yours. */
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-red-500 hover:text-red-500"
+                            onClick={() =>
+                              setReportTarget({
+                                postId: team.id,
+                                subjectType: "team",
+                                subjectName: team.team ?? "this team",
+                              })
+                            }
+                          >
+                            <IconFlag className="h-3.5 w-3.5 mr-1" />
+                            Report
+                          </Button>
+                        )}
                       </div>
                       <Button
                         variant="ghost"
@@ -1912,22 +1959,50 @@ function PlayerMarketPage() {
                           url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/player-${player.id}`}
                           text={`${player.player} is open to joining a team on AFC Player Market!`}
                         />
-                        {/* Report (red flag) - always shown, regardless of the transfer window. */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-red-500 hover:text-red-500"
-                          onClick={() =>
-                            setReportTarget({
-                              postId: player.id,
-                              subjectType: "player",
-                              subjectName: player.player,
-                            })
-                          }
-                        >
-                          <IconFlag className="h-3.5 w-3.5 mr-1" />
-                          Report
-                        </Button>
+                        {player.is_owner ? (
+                          /* Owner controls (owner 2026-06-30): Edit/Delete YOUR OWN availability post
+                             inline on the Players listing, mirroring the My Posts tab. Replaces Report
+                             (you never report your own post). Same handlers + endpoints as My Posts. */
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs"
+                              disabled={isLoadingEditPost}
+                              onClick={() => openEditPost(player.id, "player")}
+                            >
+                              <IconPencil className="h-3.5 w-3.5 mr-1" />
+                              {isLoadingEditPost ? "Loading..." : "Edit"}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs text-destructive hover:text-destructive"
+                              disabled={isDeletingPost === player.id}
+                              onClick={() => handleDeletePost(player.id)}
+                            >
+                              <IconTrash className="h-3.5 w-3.5 mr-1" />
+                              {isDeletingPost === player.id ? "Deleting..." : "Delete"}
+                            </Button>
+                          </>
+                        ) : (
+                          /* Report (red flag) - shown for posts that are not yours. */
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-red-500 hover:text-red-500"
+                            onClick={() =>
+                              setReportTarget({
+                                postId: player.id,
+                                subjectType: "player",
+                                subjectName: player.player,
+                              })
+                            }
+                          >
+                            <IconFlag className="h-3.5 w-3.5 mr-1" />
+                            Report
+                          </Button>
+                        )}
                       </div>
                       <Button
                         variant="ghost"
@@ -2416,26 +2491,31 @@ function PlayerMarketPage() {
         {/* ─── My Posts Tab ─────────────────────────────────────────── */}
         {token && (
           <TabsContent value="my-posts" className="mt-4 space-y-4">
-            {isTeamLeader ? (
+            {/* My Posts now shows BOTH a user's team recruitment posts AND their player
+                availability posts (owner 2026-06-30) - the old isTeamLeader ternary showed only one.
+                Each section renders only when it has posts; a single empty state covers "no posts of
+                either kind". Membership is the server is_owner flag (see myTeamPosts/myPlayerPosts). */}
+            {myTeamPosts.length === 0 && myPlayerPosts.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <IconClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="font-medium">No posts yet</p>
+                <p className="text-sm">
+                  Create a team recruitment post or an availability post to get started
+                </p>
+              </div>
+            ) : (
               <>
-                <div>
-                  <p className="text-base font-semibold">
-                    My Recruitment Posts
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Team recruitment posts you&apos;ve created
-                  </p>
-                </div>
-                {myTeamPosts.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <IconClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="font-medium">No posts yet</p>
-                    <p className="text-sm">
-                      Create a recruitment post to start finding players
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {myTeamPosts.length > 0 && (
+                  <>
+                    <div>
+                      <p className="text-base font-semibold">
+                        My Recruitment Posts
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Team recruitment posts you&apos;ve created
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                     {myTeamPosts.map((post) => (
                       <Card
                         key={post.id}
@@ -2538,28 +2618,19 @@ function PlayerMarketPage() {
                       </Card>
                     ))}
                   </div>
+                  </>
                 )}
-              </>
-            ) : (
-              <>
-                <div>
-                  <p className="text-base font-semibold">
-                    My Availability Posts
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Posts you&apos;ve created to find a team
-                  </p>
-                </div>
-                {myPlayerPosts.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <IconClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="font-medium">No posts yet</p>
-                    <p className="text-sm">
-                      Create a post to let teams know you&apos;re available
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {myPlayerPosts.length > 0 && (
+                  <>
+                    <div>
+                      <p className="text-base font-semibold">
+                        My Availability Posts
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Posts you&apos;ve created to find a team
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                     {myPlayerPosts.map((post) => (
                       <Card
                         key={post.id}
@@ -2660,6 +2731,7 @@ function PlayerMarketPage() {
                       </Card>
                     ))}
                   </div>
+                  </>
                 )}
               </>
             )}

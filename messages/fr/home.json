@@ -44,12 +44,6 @@
         "description": "Débloquez des badges, des titres et des récompenses en gravissant les échelons de la compétition."
       }
     },
-    "about": {
-      "heading": "Qu'est-ce que l'AFC Hub ?",
-      "body": "L'African Free Fire Community (AFC) Hub est une plateforme dédiée à l'e-sport compétitif de Free Fire. Les joueurs peuvent y créer un profil, constituer et gérer des équipes, s'inscrire à des tournois et à des matchs d'entraînement, gravir les échelons du classement mensuel et suivre leurs statistiques de match ainsi que leurs succès, le tout depuis un seul et même endroit.",
-      "googleData": "La connexion via Google est facultative. Si vous optez pour cette option, AFC utilise uniquement votre nom et votre adresse e-mail pour créer votre compte AFC et vous y connecter. Nous ne publions jamais rien sur votre compte Google et n'accédons à aucune autre donnée.",
-      "privacyLink": "Consultez notre politique de confidentialité"
-    },
     "cta": {
       "headingPrefix": "Prêt à",
       "headingHighlight": "Passer au niveau supérieur",
@@ -330,9 +324,10 @@
     "detailsLabel": "Ce qui s'est passé",
     "detailsPlaceholder": "Décrivez ce qui s'est passé. Incluez les dates, les noms en jeu et tout ce dont un modérateur a besoin pour comprendre la situation.",
     "evidenceLabel": "Preuve",
-    "evidenceHint": "(capture d'écran requise)",
+    "evidenceHint": "(images ou vidéos obligatoires)",
     "evidenceAttached": "Joint : {name}",
-    "evidenceNote": "Joignez une capture d'écran comme preuve. Un rapport ne peut pas être déposé sans preuve.",
+    "evidenceRemove": "Supprimer",
+    "evidenceNote": "Joignez des captures d'écran ou des vidéos à titre de preuve. Il n'est pas possible de déposer une plainte sans élément de preuve.",
     "honestyNote": "<strong>Signalez honnêtement.</strong> Le dépôt d'un rapport faux, humoristique ou mensonger peut entraîner votre bannissement du marché, en tant que rapporteur. Ne signalez que les problèmes réels et joignez une preuve.",
     "cancel": "Annuler",
     "submit": "Envoyer le rapport",

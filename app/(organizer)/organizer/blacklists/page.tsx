@@ -45,6 +45,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -212,6 +213,8 @@ function RequestStatusBadge({ status }: { status: string }) {
 // ── Page ────────────────────────────────────────────────────────────────────
 export default function OrganizerBlacklistsPage() {
   const { membership, isOwner } = useOrganizer();
+  // next-intl translator for the organizer namespace (keys prefixed "blacklists.").
+  const t = useTranslations("organizer");
 
   // The same gate the backend enforces on every blacklist endpoint.
   const canManage = membership.permissions.can_manage_registrations || isOwner;
@@ -272,7 +275,7 @@ export default function OrganizerBlacklistsPage() {
       setBlacklists(blRes?.results ?? []);
       setLiftRequests(lrRes?.results ?? []);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load blacklists.");
+      toast.error(err?.response?.data?.message || t("blacklists.toast.loadError"));
     } finally {
       setLoading(false);
     }
@@ -285,13 +288,13 @@ export default function OrganizerBlacklistsPage() {
   // ── 1. Create a blacklist. POST /organizers/blacklists/ ──
   const handleCreate = async () => {
     if (!pickedTeamId) {
-      toast.error("Pick a team to blacklist.");
+      toast.error(t("blacklists.toast.pickTeam"));
       return;
     }
     // Guard the date range (the Submit button is already disabled while invalid, but a stray
     // call should never send a bad window to the backend).
     if (!isRangeValid) {
-      toast.error("Pick a start and end date, with the end date after the start.");
+      toast.error(t("blacklists.toast.pickDates"));
       return;
     }
     setCreating(true);
@@ -304,7 +307,7 @@ export default function OrganizerBlacklistsPage() {
         end_date: endDate,
         reason: createReason.trim(),
       });
-      toast.success(res?.message || "Team blacklisted.");
+      toast.success(res?.message || t("blacklists.toast.created"));
       // Reset the form, close the dialog, and refresh the table.
       setPickedTeamId(null);
       setStartDate(today);
@@ -313,7 +316,7 @@ export default function OrganizerBlacklistsPage() {
       setCreateOpen(false);
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to blacklist the team.");
+      toast.error(err?.response?.data?.message || t("blacklists.toast.createError"));
     } finally {
       setCreating(false);
     }
@@ -324,10 +327,10 @@ export default function OrganizerBlacklistsPage() {
     setLiftingId(id);
     try {
       const res = await organizersApi.liftBlacklist(id);
-      toast.success(res?.message || "Blacklist lifted.");
+      toast.success(res?.message || t("blacklists.toast.lifted"));
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to lift the blacklist.");
+      toast.error(err?.response?.data?.message || t("blacklists.toast.liftError"));
     } finally {
       setLiftingId(null);
     }
@@ -347,12 +350,17 @@ export default function OrganizerBlacklistsPage() {
         decision,
         reason: reason.trim(),
       });
-      toast.success(res?.message || `Lift request ${decision}d.`);
+      toast.success(
+        res?.message ||
+          (decision === "approve"
+            ? t("blacklists.toast.requestApproved")
+            : t("blacklists.toast.requestDenied")),
+      );
       // A decided request leaves the pending list; a team-scope approve also lifts
       // the blacklist, so refresh both tables.
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to decide the request.");
+      toast.error(err?.response?.data?.message || t("blacklists.toast.decideError"));
     } finally {
       setDecidingId(null);
     }
@@ -365,16 +373,15 @@ export default function OrganizerBlacklistsPage() {
     return (
       <div className="flex flex-col gap-5">
         <PageHeader
-          title="Blacklists"
-          description="Block teams from registering for your events."
+          title={t("blacklists.title")}
+          description={t("blacklists.lockedDescription")}
         />
         <BlacklistLookupSection />
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <IconLock className="size-8 text-muted-foreground" />
             <p className="max-w-sm text-sm text-muted-foreground">
-              You don&apos;t have permission to manage this organization&apos;s
-              blacklists.
+              {t("blacklists.noPermission")}
             </p>
           </CardContent>
         </Card>
@@ -386,7 +393,7 @@ export default function OrganizerBlacklistsPage() {
     return (
       <div className="flex items-center justify-center gap-2 py-24 text-sm text-muted-foreground">
         <IconLoader2 className="size-4 animate-spin" />
-        Loading blacklists...
+        {t("blacklists.loading")}
       </div>
     );
   }
@@ -398,8 +405,8 @@ export default function OrganizerBlacklistsPage() {
         {/* Tour anchor: PageHeader does not forward props to the DOM, so wrap it. */}
         <div data-tour="org-blacklists-title">
           <PageHeader
-            title="Blacklists"
-            description="Block a team (and the players on it) from registering for your events."
+            title={t("blacklists.title")}
+            description={t("blacklists.description")}
           />
         </div>
         {/* ── 1. Create dialog: TeamSearchSelect + duration + reason. ── */}
@@ -407,21 +414,21 @@ export default function OrganizerBlacklistsPage() {
           <DialogTrigger asChild>
             <Button data-tour="org-blacklists-add" className="gap-1.5 self-start sm:self-auto">
               <IconBan className="size-4" />
-              Blacklist a team
+              {t("blacklists.create.button")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Blacklist a team</DialogTitle>
+              <DialogTitle>{t("blacklists.create.title")}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-2">
               {/* Team picker (search-as-you-type existing teams). Emits the numeric team_id. */}
               <div className="flex flex-col gap-2">
-                <Label>Team</Label>
+                <Label>{t("blacklists.create.teamLabel")}</Label>
                 <TeamSearchSelect
                   value={pickedTeamId}
                   onChange={(id) => setPickedTeamId(id)}
-                  placeholder="Search a team to blacklist..."
+                  placeholder={t("blacklists.create.teamPlaceholder")}
                 />
               </div>
               {/* Calendar date RANGE (replaces the old duration-in-days input). Two native
@@ -430,7 +437,7 @@ export default function OrganizerBlacklistsPage() {
                   Values are ISO "YYYY-MM-DD", sent straight to the backend as start_date/end_date. */}
               <div className="flex flex-col gap-3 sm:flex-row">
                 <div className="flex flex-1 flex-col gap-2">
-                  <Label htmlFor="bl-start">Start date</Label>
+                  <Label htmlFor="bl-start">{t("blacklists.create.startLabel")}</Label>
                   <Input
                     id="bl-start"
                     type="date"
@@ -440,7 +447,7 @@ export default function OrganizerBlacklistsPage() {
                   />
                 </div>
                 <div className="flex flex-1 flex-col gap-2">
-                  <Label htmlFor="bl-end">End date</Label>
+                  <Label htmlFor="bl-end">{t("blacklists.create.endLabel")}</Label>
                   <Input
                     id="bl-end"
                     type="date"
@@ -455,24 +462,22 @@ export default function OrganizerBlacklistsPage() {
                   backwards, so the organizer sees why Submit is disabled. */}
               {startDate && endDate && !isRangeValid && (
                 <p className="text-xs text-destructive">
-                  The end date must be after the start date.
+                  {t("blacklists.create.rangeError")}
                 </p>
               )}
               {/* Reason (optional, shown to the affected party on their request surface). */}
               <div className="flex flex-col gap-2">
-                <Label htmlFor="bl-reason">Reason</Label>
+                <Label htmlFor="bl-reason">{t("blacklists.create.reasonLabel")}</Label>
                 <Textarea
                   id="bl-reason"
                   value={createReason}
                   onChange={(e) => setCreateReason(e.target.value)}
-                  placeholder="Why is this team being blacklisted?"
+                  placeholder={t("blacklists.create.reasonPlaceholder")}
                   rows={3}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                The team and every player currently on its roster will be blocked
-                from registering for your events for the selected date range. The
-                block follows each player even if they later leave the team.
+                {t("blacklists.create.helper")}
               </p>
             </div>
             <DialogFooter>
@@ -481,17 +486,17 @@ export default function OrganizerBlacklistsPage() {
                 onClick={() => setCreateOpen(false)}
                 disabled={creating}
               >
-                Cancel
+                {t("blacklists.cancel")}
               </Button>
               {/* Submit is disabled while creating OR the date range is invalid. */}
               <Button onClick={handleCreate} disabled={creating || !isRangeValid}>
                 {creating ? (
                   <span className="flex items-center gap-1.5">
                     <IconLoader2 className="size-4 animate-spin" />
-                    Blacklisting...
+                    {t("blacklists.create.submitting")}
                   </span>
                 ) : (
-                  "Blacklist team"
+                  t("blacklists.create.submit")
                 )}
               </Button>
             </DialogFooter>
@@ -506,7 +511,7 @@ export default function OrganizerBlacklistsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Blacklisted teams ({blacklists.length})
+            {t("blacklists.table.title", { count: blacklists.length })}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -514,7 +519,7 @@ export default function OrganizerBlacklistsPage() {
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
               <IconBan className="size-6 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                You haven&apos;t blacklisted any teams yet.
+                {t("blacklists.table.empty")}
               </p>
             </div>
           ) : (
@@ -522,11 +527,11 @@ export default function OrganizerBlacklistsPage() {
               <Table data-tour="org-blacklists-table">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-foreground">Team</TableHead>
-                    <TableHead className="text-foreground">Reason</TableHead>
-                    <TableHead className="text-foreground">Start</TableHead>
-                    <TableHead className="text-foreground">End</TableHead>
-                    <TableHead className="text-foreground">Status</TableHead>
+                    <TableHead className="text-foreground">{t("blacklists.table.team")}</TableHead>
+                    <TableHead className="text-foreground">{t("blacklists.table.reason")}</TableHead>
+                    <TableHead className="text-foreground">{t("blacklists.table.start")}</TableHead>
+                    <TableHead className="text-foreground">{t("blacklists.table.end")}</TableHead>
+                    <TableHead className="text-foreground">{t("blacklists.table.status")}</TableHead>
                     <TableHead className="text-right text-foreground"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -552,13 +557,12 @@ export default function OrganizerBlacklistsPage() {
                                   isOpen && "rotate-180",
                                 )}
                               />
-                              <span>{bl.team_name ?? `Team #${bl.team_id}`}</span>
+                              <span>{bl.team_name ?? t("blacklists.teamFallback", { id: bl.team_id })}</span>
                               <Badge
                                 variant="outline"
                                 className="ml-1 rounded-full px-2 py-0.5 text-[10px]"
                               >
-                                {bl.players.length} player
-                                {bl.players.length === 1 ? "" : "s"}
+                                {t("blacklists.table.playerCount", { count: bl.players.length })}
                               </Badge>
                             </button>
                           </TableCell>
@@ -588,27 +592,29 @@ export default function OrganizerBlacklistsPage() {
                                     {liftingId === bl.id ? (
                                       <IconLoader2 className="size-4 animate-spin" />
                                     ) : (
-                                      "Lift"
+                                      t("blacklists.lift.button")
                                     )}
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>
-                                      Lift this blacklist?
+                                      {t("blacklists.lift.confirmTitle")}
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      {bl.team_name ?? "This team"} and everyone on
-                                      its snapshot will be able to register for your
-                                      events again immediately. This cannot be undone.
+                                      {t("blacklists.lift.confirmDescription", {
+                                        team:
+                                          bl.team_name ??
+                                          t("blacklists.lift.thisTeam"),
+                                      })}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogCancel>{t("blacklists.cancel")}</AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() => handleLift(bl.id)}
                                     >
-                                      Lift blacklist
+                                      {t("blacklists.lift.confirmAction")}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -623,7 +629,7 @@ export default function OrganizerBlacklistsPage() {
                             <TableCell colSpan={6} className="p-0">
                               {bl.players.length === 0 ? (
                                 <p className="px-6 py-3 text-xs text-muted-foreground">
-                                  No players were snapshotted on this blacklist.
+                                  {t("blacklists.snapshot.empty")}
                                 </p>
                               ) : (
                                 <div className="divide-y divide-border/50 px-6 py-2">
@@ -637,7 +643,7 @@ export default function OrganizerBlacklistsPage() {
                                         className="shrink-0 text-muted-foreground"
                                       />
                                       <span className="font-medium">
-                                        {p.username ?? `User #${p.user_id}`}
+                                        {p.username ?? t("blacklists.userFallback", { id: p.user_id })}
                                       </span>
                                       {/* A retired (individually-lifted) player reads "Lifted". */}
                                       <Badge
@@ -649,7 +655,7 @@ export default function OrganizerBlacklistsPage() {
                                             : "border-muted-foreground/40 text-muted-foreground",
                                         )}
                                       >
-                                        {p.is_active ? "Blocked" : "Lifted"}
+                                        {p.is_active ? t("blacklists.snapshot.blocked") : t("blacklists.snapshot.lifted")}
                                       </Badge>
                                     </div>
                                   ))}
@@ -672,13 +678,13 @@ export default function OrganizerBlacklistsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Lift requests ({liftRequests.length})
+            {t("blacklists.requests.title", { count: liftRequests.length })}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {liftRequests.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              No pending lift requests.
+              {t("blacklists.requests.empty")}
             </p>
           ) : (
             <div className="flex flex-col gap-3">
@@ -690,7 +696,7 @@ export default function OrganizerBlacklistsPage() {
                   <div className="flex flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-medium">
-                        {req.team_name ?? `Team #${req.team_id}`}
+                        {req.team_name ?? t("blacklists.teamFallback", { id: String(req.team_id ?? "") })}
                       </span>
                       {/* Scope badge: a whole-team lift vs one player. */}
                       <Badge
@@ -698,17 +704,23 @@ export default function OrganizerBlacklistsPage() {
                         className="rounded-full px-2 py-0.5 text-xs capitalize"
                       >
                         {req.scope === "team"
-                          ? "Whole team"
-                          : `Player: ${req.target_username ?? `#${req.target_user_id}`}`}
+                          ? t("blacklists.requests.wholeTeam")
+                          : t("blacklists.requests.player", {
+                              name:
+                                req.target_username ??
+                                `#${req.target_user_id}`,
+                            })}
                       </Badge>
                       <RequestStatusBadge status={req.status} />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Requested by{" "}
+                      {t("blacklists.requests.requestedBy")}{" "}
                       <span className="text-foreground">
-                        {req.requested_by_username ?? "Unknown"}
+                        {req.requested_by_username ?? t("blacklists.requests.unknown")}
                       </span>
-                      {req.created_at ? ` on ${formatDate(req.created_at)}` : ""}
+                      {req.created_at
+                        ? ` ${t("blacklists.requests.onDate", { date: formatDate(req.created_at) })}`
+                        : ""}
                     </p>
                     {req.reason && (
                       <p className="mt-1 whitespace-pre-wrap text-xs text-foreground">
@@ -760,8 +772,19 @@ function DecideButton({
   busy?: boolean;
   onConfirm: (reason: string) => void;
 }) {
+  const t = useTranslations("organizer");
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
+
+  // `label` ("Deny" | "Approve") stays the stable internal key (it drives the DOM id
+  // and the decision branch); these derive the localized display text + dialog title.
+  const isDeny = label === "Deny";
+  const displayLabel = isDeny
+    ? t("blacklists.decide.deny")
+    : t("blacklists.decide.approve");
+  const dialogTitle = isDeny
+    ? t("blacklists.decide.denyTitle")
+    : t("blacklists.decide.approveTitle");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -776,26 +799,28 @@ function DecideButton({
           )}
           disabled={busy}
         >
-          {busy ? <IconLoader2 className="size-4 animate-spin" /> : label}
+          {busy ? <IconLoader2 className="size-4 animate-spin" /> : displayLabel}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{label} lift request</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-2 py-2">
-          <Label htmlFor={`decide-reason-${label}`}>Note (optional)</Label>
+          <Label htmlFor={`decide-reason-${label}`}>
+            {t("blacklists.decide.noteLabel")}
+          </Label>
           <Textarea
             id={`decide-reason-${label}`}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Add a short note for the requester."
+            placeholder={t("blacklists.decide.notePlaceholder")}
             rows={3}
           />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t("blacklists.cancel")}
           </Button>
           <Button
             variant={destructive ? "destructive" : "default"}
@@ -805,7 +830,7 @@ function DecideButton({
               setReason("");
             }}
           >
-            {label}
+            {displayLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -832,6 +857,7 @@ function DecideButton({
 // notice for members WITHOUT can_manage_registrations - the backend gate for this
 // call is just "active member of any org", so every portal member can use it.
 function BlacklistLookupSection() {
+  const t = useTranslations("organizer");
   // Which kind of target is being looked up. Switching modes clears the picked
   // target AND the previous result so stale answers never sit under a new picker.
   const [mode, setMode] = useState<"team" | "player">("team");
@@ -878,7 +904,7 @@ function BlacklistLookupSection() {
       });
       setResult(res);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Lookup failed.");
+      toast.error(err?.response?.data?.message || t("blacklists.toast.lookupError"));
     } finally {
       setSearching(false);
     }
@@ -887,25 +913,25 @@ function BlacklistLookupSection() {
   // The headline name for the result card (team name or username, echoed by the API).
   const targetLabel =
     result?.target.type === "team"
-      ? result.target.team_name ?? `Team #${result.target.team_id}`
-      : result?.target.username ?? `User #${result?.target.user_id}`;
+      ? result.target.team_name ??
+        t("blacklists.teamFallback", { id: String(result.target.team_id ?? "") })
+      : result?.target.username ??
+        t("blacklists.userFallback", { id: String(result?.target.user_id ?? "") });
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Blacklist lookup</CardTitle>
+        <CardTitle className="text-base">{t("blacklists.lookup.title")}</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Check whether a team or player has been blacklisted by other
-          organizations: how many times, by whom, and when. Reasons stay private
-          to the blacklisting organization.
+          {t("blacklists.lookup.description")}
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {/* Target type toggle: pill-segment Tabs per AFC constants. */}
         <Tabs value={mode} onValueChange={(v) => switchMode(v as "team" | "player")}>
           <TabsList>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="player">Player</TabsTrigger>
+            <TabsTrigger value="team">{t("blacklists.lookup.team")}</TabsTrigger>
+            <TabsTrigger value="player">{t("blacklists.lookup.player")}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -913,12 +939,16 @@ function BlacklistLookupSection() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           {/* The target typeahead (team_id or user_id, depending on mode). */}
           <div className="flex flex-1 flex-col gap-2">
-            <Label>{mode === "team" ? "Team" : "Player"}</Label>
+            <Label>
+              {mode === "team"
+                ? t("blacklists.lookup.team")
+                : t("blacklists.lookup.player")}
+            </Label>
             {mode === "team" ? (
               <TeamSearchSelect
                 value={teamId}
                 onChange={(id) => setTeamId(id)}
-                placeholder="Search a team to look up..."
+                placeholder={t("blacklists.lookup.teamPlaceholder")}
               />
             ) : (
               <UserSearchSelect
@@ -928,13 +958,13 @@ function BlacklistLookupSection() {
                   // user is only present on a pick; clearing hands back null.
                   setPickedUserId(user?.user_id ?? null);
                 }}
-                placeholder="Search a player to look up..."
+                placeholder={t("blacklists.lookup.playerPlaceholder")}
               />
             )}
           </div>
           {/* Optional window: any time frame the organizer decides to check. */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="lookup-start">From (optional)</Label>
+            <Label htmlFor="lookup-start">{t("blacklists.lookup.fromLabel")}</Label>
             <Input
               id="lookup-start"
               type="date"
@@ -943,7 +973,7 @@ function BlacklistLookupSection() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="lookup-end">To (optional)</Label>
+            <Label htmlFor="lookup-end">{t("blacklists.lookup.toLabel")}</Label>
             <Input
               id="lookup-end"
               type="date"
@@ -961,7 +991,7 @@ function BlacklistLookupSection() {
             ) : (
               <IconSearch className="size-4" />
             )}
-            Search
+            {t("blacklists.lookup.search")}
           </Button>
         </div>
 
@@ -973,19 +1003,24 @@ function BlacklistLookupSection() {
               <span className="font-medium">{targetLabel}</span>{" "}
               {result.total_count === 0 ? (
                 <span className="text-muted-foreground">
-                  has not been blacklisted
                   {result.window.start || result.window.end
-                    ? " in the selected time frame."
-                    : "."}
+                    ? t("blacklists.lookup.notBlacklistedWindow")
+                    : t("blacklists.lookup.notBlacklistedAll")}
                 </span>
               ) : (
                 <>
-                  <span className="text-muted-foreground">blacklisted</span>{" "}
+                  <span className="text-muted-foreground">
+                    {t("blacklists.lookup.blacklisted")}
+                  </span>{" "}
                   <span className="font-semibold text-primary">
-                    {result.total_count} time{result.total_count === 1 ? "" : "s"}
+                    {t("blacklists.lookup.timesCount", {
+                      count: result.total_count,
+                    })}
                   </span>{" "}
                   <span className="text-muted-foreground">
-                    ({result.active_count} active)
+                    {t("blacklists.lookup.activeCount", {
+                      count: result.active_count,
+                    })}
                   </span>
                 </>
               )}
@@ -996,14 +1031,14 @@ function BlacklistLookupSection() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-foreground">Organization</TableHead>
+                      <TableHead className="text-foreground">{t("blacklists.lookup.colOrganization")}</TableHead>
                       {/* Player lookups show WHICH team the player was snapshotted on. */}
                       {result.target.type === "player" && (
-                        <TableHead className="text-foreground">Team</TableHead>
+                        <TableHead className="text-foreground">{t("blacklists.lookup.colTeam")}</TableHead>
                       )}
-                      <TableHead className="text-foreground">Start</TableHead>
-                      <TableHead className="text-foreground">End</TableHead>
-                      <TableHead className="text-foreground">Status</TableHead>
+                      <TableHead className="text-foreground">{t("blacklists.lookup.colStart")}</TableHead>
+                      <TableHead className="text-foreground">{t("blacklists.lookup.colEnd")}</TableHead>
+                      <TableHead className="text-foreground">{t("blacklists.lookup.colStatus")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

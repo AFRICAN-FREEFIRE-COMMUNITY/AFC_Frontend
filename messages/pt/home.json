@@ -44,12 +44,6 @@
         "description": "Desbloqueie distintivos, títulos e recompensas enquanto sobe na escada competitiva."
       }
     },
-    "about": {
-      "heading": "O que é o AFC Hub?",
-      "body": "O African Free Fire Community (AFC) Hub é uma plataforma competitiva de eSports do Free Fire. Os jogadores criam um perfil, formam e gerem equipas, inscrevem-se em torneios e jogos de treino, sobem nas classificações mensais e acompanham as suas estatísticas de jogo e conquistas, tudo num único local.",
-      "googleData": "O início de sessão com o Google é opcional. Se optar por essa opção, a AFC utiliza apenas o seu nome e endereço de e-mail para criar a sua conta AFC e iniciar a sessão na mesma. Nunca publicamos nada na sua conta do Google nem acedemos a quaisquer outros dados.",
-      "privacyLink": "Leia a nossa Política de Privacidade"
-    },
     "cta": {
       "headingPrefix": "Pronto para",
       "headingHighlight": "Subir de Nível",
@@ -330,9 +324,10 @@
     "detailsLabel": "O que aconteceu",
     "detailsPlaceholder": "Descreva o que aconteceu. Inclua datas, nomes no jogo e tudo o que um moderador precisa para entender a situação.",
     "evidenceLabel": "Evidência",
-    "evidenceHint": "(captura de tela obrigatória)",
+    "evidenceHint": "(são necessárias imagens ou vídeos)",
     "evidenceAttached": "Anexado: {name}",
-    "evidenceNote": "Anexe uma captura de tela como prova. Uma denúncia não pode ser enviada sem evidência.",
+    "evidenceRemove": "Remover",
+    "evidenceNote": "Anexe capturas de ecrã ou vídeos como prova. Não é possível apresentar uma denúncia sem provas.",
     "honestyNote": "<strong>Denuncie com honestidade.</strong> Enviar uma denúncia falsa, de brincadeira ou inverídica pode resultar no seu banimento, como denunciante, do mercado. Denuncie apenas problemas reais e anexe provas.",
     "cancel": "Cancelar",
     "submit": "Enviar denúncia",

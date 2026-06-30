@@ -35,6 +35,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import axios from "axios";
 import { PageHeader } from "@/components/PageHeader";
@@ -88,6 +89,7 @@ interface LeaderboardRow {
 // Outline badge (rounded-full, text-xs) per AFC constants; colour by event status -
 // same colour mapping the organizer Events list uses, kept consistent across pages.
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("organizer");
   const normalized = (status || "").toLowerCase();
   const colour =
     normalized === "ongoing"
@@ -100,7 +102,7 @@ function StatusBadge({ status }: { status: string }) {
             "border-yellow-500 text-yellow-600";
   return (
     <Badge variant="outline" className={`capitalize ${colour}`}>
-      {status || "unknown"}
+      {status || t("leaderboards.statusUnknown")}
     </Badge>
   );
 }
@@ -110,6 +112,7 @@ function StatusBadge({ status }: { status: string }) {
 // otherwise - the at-a-glance signal that tells the organizer whether there is
 // anything to manage yet for that event.
 function LeaderboardCountBadge({ count }: { count: number }) {
+  const t = useTranslations("organizer");
   return (
     <Badge
       variant="outline"
@@ -119,7 +122,9 @@ function LeaderboardCountBadge({ count }: { count: number }) {
           : "border-muted-foreground text-muted-foreground"
       }
     >
-      {count > 0 ? `Leaderboards: ${count}` : "None yet"}
+      {count > 0
+        ? t("leaderboards.countBadge", { count })
+        : t("leaderboards.noneYet")}
     </Badge>
   );
 }
@@ -127,6 +132,7 @@ function LeaderboardCountBadge({ count }: { count: number }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function OrganizerLeaderboardsPage() {
+  const t = useTranslations("organizer");
   const { membership, isOwner } = useOrganizer();
   const { token } = useAuth();
 
@@ -176,7 +182,7 @@ export default function OrganizerLeaderboardsPage() {
         setLeaderboards(leaderboardsRes.data?.leaderboards ?? []);
       } catch (err: any) {
         toast.error(
-          err?.response?.data?.message || "Failed to load your leaderboards.",
+          err?.response?.data?.message || t("leaderboards.loadError"),
         );
       } finally {
         setLoading(false);
@@ -220,8 +226,8 @@ export default function OrganizerLeaderboardsPage() {
     return (
       <div className="flex flex-col gap-5">
         <PageHeader
-          title="Leaderboards"
-          description="Upload results and manage your events' leaderboards."
+          title={t("leaderboards.title")}
+          description={t("leaderboards.description")}
         />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -229,10 +235,12 @@ export default function OrganizerLeaderboardsPage() {
               <IconLock className="size-6" />
             </div>
             <p className="max-w-sm text-sm text-muted-foreground">
-              You do not have permission to manage results for this organization.
+              {t("leaderboards.noPermission")}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/organizer/overview">Back to overview</Link>
+              <Link href="/organizer/overview">
+                {t("leaderboards.backToOverview")}
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -244,14 +252,14 @@ export default function OrganizerLeaderboardsPage() {
     <div className="flex flex-col gap-5">
       <div data-tour="org-leaderboards-title">
         <PageHeader
-          title="Leaderboards"
-          description="Upload results and manage your events' leaderboards."
+          title={t("leaderboards.title")}
+          description={t("leaderboards.description")}
         />
       </div>
 
       <Card>
         <CardHeader className="border-b">
-          <CardTitle>Your Events</CardTitle>
+          <CardTitle>{t("leaderboards.yourEvents")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search row - same idiom as the admin leaderboards list. */}
@@ -259,21 +267,23 @@ export default function OrganizerLeaderboardsPage() {
             <Input
               data-tour="org-leaderboards-search"
               type="search"
-              placeholder="Search events by name, type, or status..."
+              placeholder={t("leaderboards.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-background/50 backdrop-blur-sm block"
             />
             <Button className="w-9 h-9 md:h-12 md:w-auto" type="button">
               <IconSearch />
-              <span className="hidden md:inline-block">Search</span>
+              <span className="hidden md:inline-block">
+                {t("leaderboards.searchButton")}
+              </span>
             </Button>
           </div>
 
           {loading ? (
             // Inline loading row - matches the organizer Events page loading copy.
             <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-              Loading events...
+              {t("leaderboards.loadingEvents")}
             </div>
           ) : events.length === 0 ? (
             // ── Empty state ── nothing homed to this org yet (no events → no
@@ -283,22 +293,23 @@ export default function OrganizerLeaderboardsPage() {
                 <IconTrophy className="size-6" />
               </div>
               <p className="text-sm text-muted-foreground">
-                Your organization hasn&apos;t created any events yet, so there are
-                no leaderboards to manage.
+                {t("leaderboards.emptyEvents")}
               </p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/organizer/events">Go to events</Link>
+                <Link href="/organizer/events">
+                  {t("leaderboards.goToEvents")}
+                </Link>
               </Button>
             </div>
           ) : (
             <Table data-tour="org-leaderboards-table">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Event name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Leaderboard</TableHead>
+                  <TableHead>{t("leaderboards.table.eventName")}</TableHead>
+                  <TableHead>{t("leaderboards.table.type")}</TableHead>
+                  <TableHead>{t("leaderboards.table.date")}</TableHead>
+                  <TableHead>{t("leaderboards.table.status")}</TableHead>
+                  <TableHead>{t("leaderboards.table.leaderboard")}</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -333,7 +344,7 @@ export default function OrganizerLeaderboardsPage() {
                                 href={`/organizer/events/${event.slug}/leaderboard`}
                               >
                                 <IconSettings className="size-4" />
-                                Manage
+                                {t("leaderboards.manage")}
                               </Link>
                             </Button>
                           </div>
@@ -347,7 +358,7 @@ export default function OrganizerLeaderboardsPage() {
                       colSpan={6}
                       className="h-24 text-center text-muted-foreground"
                     >
-                      No events match your search query.
+                      {t("leaderboards.noMatch")}
                     </TableCell>
                   </TableRow>
                 )}

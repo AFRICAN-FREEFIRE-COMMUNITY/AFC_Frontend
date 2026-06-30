@@ -102,6 +102,10 @@ import { FileUploadStep } from "../../_components/FileUploadStep";
 // mirroring the leaderboard view page so the edit page offers it too (owner 2026-06-29).
 import { MultiMapLogUpload } from "../../_components/MultiMapLogUpload";
 import { GroupBulkUploadPanel } from "../../_components/GroupBulkUploadPanel";
+// Flagged-kills control (owner 2026-06-30): the "Count flagged players' kills" toggle + the per-player
+// list. Previously only on the leaderboard VIEW page; the admin uploads results HERE on the edit page,
+// so it must be reachable here too. Same component the view page mounts.
+import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
 // OCR review flow (Phase 1): pick a map + drop a screenshot (MapSelectionStep), then review +
 // correct the auto-extracted rows (OCRReviewTable) and commit. Mounted in the Upload drawer below,
 // in place of the old read-only ImageUploadStep preview. DraftRow types come from lib/api/ocr.ts.
@@ -285,6 +289,11 @@ export default function EditLeaderboardPage({
   const [participantType, setParticipantType] = useState<"solo" | "team">(
     "solo",
   );
+
+  // Bumped after a result upload applies so the FlaggedKillsPanel remounts + re-fetches its flags
+  // (mirrors the leaderboard view page). A team upload can create/clear ringer flags, so the panel
+  // must re-read them once the upload writes.
+  const [flagRefreshKey, setFlagRefreshKey] = useState(0);
 
   // Tab control
   const [activeTab, setActiveTab] = useState("matches");
@@ -1295,6 +1304,7 @@ export default function EditLeaderboardPage({
     setUploadingMatch(null);
     setOcrSession(null); // clear any in-flight OCR draft when the drawer closes
     fetchData();
+    setFlagRefreshKey((k) => k + 1); // re-pull ringer flags after an upload (FlaggedKillsPanel)
     setActiveTab("matches");
   };
 
@@ -1354,6 +1364,22 @@ export default function EditLeaderboardPage({
           description="Edit match results, scoring configuration, and apply adjustments"
         />
       </span>
+
+      {/* Flagged-kill controls (owner 2026-06-30): only TEAM events have ringer flags (from the team
+          match-log file upload). The admin uploads results on THIS edit page, so the "Count flagged
+          players' kills" toggle + the per-player list must be here, not only on the view page. The
+          toggle is ON by default (Event.count_flagged_kills) and a fresh upload now applies it without
+          needing to toggle it off/on. key=flagRefreshKey remounts it after an upload rewrites the flags;
+          onChanged re-pulls the standings so toggling a player re-scores the tables live. */}
+      {eventData && participantType !== "solo" && (
+        <FlaggedKillsPanel
+          key={flagRefreshKey}
+          eventId={id}
+          token={token}
+          canManage
+          onChanged={fetchData}
+        />
+      )}
 
       {/* Stage tabs */}
       {/* data-tour anchor (leaderboard-edit-stage-group): admin tour "Stage and group picker"
@@ -2606,6 +2632,7 @@ export default function EditLeaderboardPage({
                   groupMatches={currentGroup?.matches ?? []}
                   onAllMapsApplied={() => {
                     fetchData();
+                    setFlagRefreshKey((k) => k + 1); // re-pull ringer flags after the upload
                     setUploadDrawerOpen(false);
                   }}
                   onNext={handleUploadComplete}

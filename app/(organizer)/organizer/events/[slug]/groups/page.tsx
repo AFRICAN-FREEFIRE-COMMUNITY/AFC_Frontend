@@ -43,6 +43,7 @@
 "use client";
 
 import React, { use, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -115,6 +116,7 @@ export default function OrganizerEventGroupsPage({
   params: Promise<Params>;
 }) {
   const { slug: routeSlug } = use(params);
+  const t = useTranslations("organizer");
   const { token } = useAuth();
   const { membership, isOwner } = useOrganizer();
 
@@ -219,17 +221,17 @@ export default function OrganizerEventGroupsPage({
   if (!canView) {
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Groups & Rosters" back />
+        <PageHeader title={t("groups.title")} back />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <div className="flex size-12 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <IconLock className="size-6" />
             </div>
             <p className="max-w-sm text-sm text-muted-foreground">
-              You do not have permission to view rosters for this organization.
+              {t("groups.lock.noPermission")}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/organizer/events">Back to events</Link>
+              <Link href="/organizer/events">{t("groups.backToEvents")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -237,24 +239,23 @@ export default function OrganizerEventGroupsPage({
     );
   }
 
-  if (resolving) return <FullLoader text="Loading event..." />;
+  if (resolving) return <FullLoader text={t("groups.loadingEvent")} />;
 
   // The slug didn't resolve to one of THIS org's events.
   if (notMine) {
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Groups & Rosters" back />
+        <PageHeader title={t("groups.title")} back />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <div className="flex size-12 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <IconTrophy className="size-6" />
             </div>
             <p className="max-w-sm text-sm text-muted-foreground">
-              We couldn&apos;t find this event under your organization. You can
-              only view rosters for your own events.
+              {t("groups.notMine")}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/organizer/events">Back to events</Link>
+              <Link href="/organizer/events">{t("groups.backToEvents")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -262,7 +263,7 @@ export default function OrganizerEventGroupsPage({
     );
   }
 
-  if (loading) return <FullLoader text="Loading rosters..." />;
+  if (loading) return <FullLoader text={t("groups.loadingRosters")} />;
 
   return (
     <div className="flex flex-col gap-4 pb-20">
@@ -270,14 +271,18 @@ export default function OrganizerEventGroupsPage({
       <div data-tour="org-event-groups-title">
         <PageHeader
           back
-          title="Groups & Rosters"
+          title={t("groups.title")}
           description={
             data
-              ? `${data.event_name} • ${
-                  data.is_solo ? "Solo" : "Team"
-                } event • ${data.stages.length} ${
-                  data.stages.length === 1 ? "stage" : "stages"
-                }`
+              ? t("groups.description", {
+                  event: data.event_name,
+                  type: data.is_solo ? t("groups.solo") : t("groups.team"),
+                  count: data.stages.length,
+                  stageWord:
+                    data.stages.length === 1
+                      ? t("groups.stage")
+                      : t("groups.stages"),
+                })
               : undefined
           }
         />
@@ -291,7 +296,7 @@ export default function OrganizerEventGroupsPage({
           data-tour="org-event-groups-search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by IGN, team, or UID"
+          placeholder={t("groups.searchPlaceholder")}
           className="pl-8"
         />
       </div>
@@ -299,7 +304,7 @@ export default function OrganizerEventGroupsPage({
       {/* Empty event (no stages at all). */}
       {(!data || data.stages.length === 0) && (
         <p className="text-muted-foreground italic">
-          No stages defined for this event yet.
+          {t("groups.noStages")}
         </p>
       )}
 
@@ -324,7 +329,7 @@ export default function OrganizerEventGroupsPage({
           <CardContent className="grid md:grid-cols-2 gap-2">
             {stage.groups.length === 0 ? (
               <p className="text-muted-foreground italic text-sm md:col-span-2">
-                No groups yet, seed this stage first.
+                {t("groups.noGroups")}
               </p>
             ) : (
               stage.groups.map((group) => {
@@ -337,8 +342,12 @@ export default function OrganizerEventGroupsPage({
                         <span>{group.group_name}</span>
                         <span className="text-muted-foreground text-xs">
                           {data.is_solo
-                            ? `${group.player_count} players`
-                            : `${group.team_count} teams`}
+                            ? t("groups.playerCount", {
+                                count: group.player_count,
+                              })
+                            : t("groups.teamCount", {
+                                count: group.team_count,
+                              })}
                         </span>
                       </CardTitle>
                     </CardHeader>
@@ -347,20 +356,20 @@ export default function OrganizerEventGroupsPage({
                         // ── SOLO group: one players table ──
                         players.length === 0 ? (
                           <p className="text-muted-foreground italic text-xs">
-                            No players yet.
+                            {t("groups.noPlayers")}
                           </p>
                         ) : (
                           <Table>
                             <TableHeader>
                               <TableRow className="h-10">
                                 <TableHead className="text-foreground text-xs p-2">
-                                  IGN
+                                  {t("groups.table.ign")}
                                 </TableHead>
                                 <TableHead className="text-foreground text-xs p-2">
-                                  UID
+                                  {t("groups.table.uid")}
                                 </TableHead>
                                 <TableHead className="text-foreground text-xs p-2">
-                                  Status
+                                  {t("groups.table.status")}
                                 </TableHead>
                               </TableRow>
                             </TableHeader>
@@ -384,7 +393,7 @@ export default function OrganizerEventGroupsPage({
                       ) : // ── TEAM group: a sub-card per team with a players table ──
                       teams.length === 0 ? (
                         <p className="text-muted-foreground italic text-xs">
-                          No teams yet.
+                          {t("groups.noTeams")}
                         </p>
                       ) : (
                         teams.map((team) => (
@@ -409,20 +418,20 @@ export default function OrganizerEventGroupsPage({
                             <CardContent className="pt-0">
                               {team.players.length === 0 ? (
                                 <p className="text-muted-foreground italic text-xs">
-                                  No players yet.
+                                  {t("groups.noPlayers")}
                                 </p>
                               ) : (
                                 <Table>
                                   <TableHeader>
                                     <TableRow className="h-10">
                                       <TableHead className="text-foreground text-xs p-2">
-                                        IGN
+                                        {t("groups.table.ign")}
                                       </TableHead>
                                       <TableHead className="text-foreground text-xs p-2">
-                                        UID
+                                        {t("groups.table.uid")}
                                       </TableHead>
                                       <TableHead className="text-foreground text-xs p-2">
-                                        Status
+                                        {t("groups.table.status")}
                                       </TableHead>
                                     </TableRow>
                                   </TableHeader>

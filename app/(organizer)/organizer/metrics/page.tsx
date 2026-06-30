@@ -46,6 +46,7 @@
 
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import {
   Card,
@@ -212,11 +213,11 @@ interface OrgMetrics {
 // (the backend applies them via __date__gte / __date__lte).
 type RangePreset = "all" | "7" | "30" | "90" | "custom";
 
-const PRESETS: { key: RangePreset; label: string }[] = [
-  { key: "7", label: "Last 7 days" },
-  { key: "30", label: "Last 30 days" },
-  { key: "90", label: "Last 90 days" },
-  { key: "all", label: "All time" },
+const PRESETS: { key: RangePreset; labelKey: string }[] = [
+  { key: "7", labelKey: "metrics.presets.last7" },
+  { key: "30", labelKey: "metrics.presets.last30" },
+  { key: "90", labelKey: "metrics.presets.last90" },
+  { key: "all", labelKey: "metrics.presets.allTime" },
 ];
 
 // Format a Date as "YYYY-MM-DD" (local), the wire format the backend's ?start/?end expect.
@@ -342,6 +343,7 @@ function StatCard({
 // Outline badge (rounded-full, text-xs) per AFC constants; colour by event status,
 // reusing the exact mapping the organizer Events list uses for visual continuity.
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("organizer");
   const normalized = (status || "").toLowerCase();
   const colour =
     normalized === "ongoing"
@@ -351,7 +353,7 @@ function StatusBadge({ status }: { status: string }) {
         : "border-yellow-500 text-yellow-600"; // upcoming / unknown
   return (
     <Badge variant="outline" className={`capitalize ${colour}`}>
-      {status || "unknown"}
+      {status || t("metrics.status.unknown")}
     </Badge>
   );
 }
@@ -378,6 +380,7 @@ function DateRangeControl({
   customEnd: string;
   setCustomEnd: (v: string) => void;
 }) {
+  const t = useTranslations("organizer");
   return (
     <Card>
       <CardContent className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -385,7 +388,7 @@ function DateRangeControl({
         <div className="flex flex-wrap items-center gap-2">
           <IconCalendarStats className="size-4 text-muted-foreground" />
           <span className="mr-1 text-xs font-medium text-muted-foreground">
-            Timeframe
+            {t("metrics.timeframe")}
           </span>
           {PRESETS.map((p) => (
             <Button
@@ -401,7 +404,7 @@ function DateRangeControl({
                 setCustomEnd("");
               }}
             >
-              {p.label}
+              {t(p.labelKey)}
             </Button>
           ))}
         </div>
@@ -409,7 +412,7 @@ function DateRangeControl({
         {/* Custom range. Editing either input switches the active preset to "custom" so the
             two dates take over from the chips. Either side may be left blank (open-ended). */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Custom</span>
+          <span className="text-xs text-muted-foreground">{t("metrics.custom")}</span>
           <Input
             type="date"
             value={customStart}
@@ -419,9 +422,9 @@ function DateRangeControl({
               setPreset("custom");
             }}
             className="h-8 w-[9.5rem] text-xs"
-            aria-label="Custom start date"
+            aria-label={t("metrics.customStartAria")}
           />
-          <span className="text-xs text-muted-foreground">to</span>
+          <span className="text-xs text-muted-foreground">{t("metrics.to")}</span>
           <Input
             type="date"
             value={customEnd}
@@ -431,7 +434,7 @@ function DateRangeControl({
               setPreset("custom");
             }}
             className="h-8 w-[9.5rem] text-xs"
-            aria-label="Custom end date"
+            aria-label={t("metrics.customEndAria")}
           />
         </div>
       </CardContent>
@@ -443,6 +446,7 @@ function DateRangeControl({
 
 export default function OrganizerMetricsPage() {
   const { slug, membership, isOwner } = useOrganizer();
+  const t = useTranslations("organizer");
 
   // Same gate the rest of the portal uses, on the metrics permission.
   const canViewMetrics = membership.permissions.can_view_metrics || isOwner;
@@ -504,7 +508,7 @@ export default function OrganizerMetricsPage() {
         const res = await organizersApi.getOrgMetrics(slug, range);
         setMetrics(res ?? null);
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Failed to load metrics.");
+        toast.error(err?.response?.data?.message || t("metrics.loadError"));
       } finally {
         // Always clear the loader — including on error — so the page never spins forever.
         setLoading(false);
@@ -574,10 +578,10 @@ export default function OrganizerMetricsPage() {
   // "Dec 1, 2025 to Dec 31, 2025". Reads the server-echoed range when present so the label
   // matches exactly what the data reflects.
   const rangeLabel = useMemo(() => {
-    if (preset === "7") return "Last 7 days";
-    if (preset === "30") return "Last 30 days";
-    if (preset === "90") return "Last 90 days";
-    if (preset === "all") return "All time";
+    if (preset === "7") return t("metrics.presets.last7");
+    if (preset === "30") return t("metrics.presets.last30");
+    if (preset === "90") return t("metrics.presets.last90");
+    if (preset === "all") return t("metrics.presets.allTime");
     // custom: describe whichever bounds are set (either side may be open).
     const s = metrics?.range?.start ?? customStart;
     const e = metrics?.range?.end ?? customEnd;
@@ -591,11 +595,11 @@ export default function OrganizerMetricsPage() {
             year: "numeric",
           });
     };
-    if (s && e) return `${f(s)} to ${f(e)}`;
-    if (s) return `From ${f(s)}`;
-    if (e) return `Up to ${f(e)}`;
-    return "All time";
-  }, [preset, customStart, customEnd, metrics?.range]);
+    if (s && e) return t("metrics.range.between", { start: f(s), end: f(e) });
+    if (s) return t("metrics.range.from", { date: f(s) });
+    if (e) return t("metrics.range.upTo", { date: f(e) });
+    return t("metrics.presets.allTime");
+  }, [preset, customStart, customEnd, metrics?.range, t]);
 
   // The shared timeframe control, rendered in every non-locked state so the user can always
   // change the window (even when the current window has no data).
@@ -624,15 +628,14 @@ export default function OrganizerMetricsPage() {
     return (
       <div className="flex flex-col gap-5">
         <PageHeader
-          title="Metrics"
-          description="A performance dashboard for your organization."
+          title={t("metrics.pageTitle")}
+          description={t("metrics.descriptionShort")}
         />
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <IconLock className="size-8 text-muted-foreground" />
             <p className="max-w-sm text-sm text-muted-foreground">
-              You don&apos;t have permission to view this organization&apos;s
-              metrics.
+              {t("metrics.lockNotice")}
             </p>
           </CardContent>
         </Card>
@@ -647,11 +650,11 @@ export default function OrganizerMetricsPage() {
     return (
       <div className="flex flex-col gap-5">
         <PageHeader
-          title="Metrics"
-          description="A performance dashboard for your organization, across all of its events."
+          title={t("metrics.pageTitle")}
+          description={t("metrics.description")}
         />
         <div className="flex items-center justify-center gap-2 py-24 text-sm text-muted-foreground">
-          Loading metrics...
+          {t("metrics.loading")}
         </div>
       </div>
     );
@@ -665,8 +668,8 @@ export default function OrganizerMetricsPage() {
     return (
       <div className="flex flex-col gap-5">
         <PageHeader
-          title="Metrics"
-          description="A performance dashboard for your organization, across all of its events."
+          title={t("metrics.pageTitle")}
+          description={t("metrics.description")}
         />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -674,8 +677,7 @@ export default function OrganizerMetricsPage() {
               <IconChartBar className="size-6" />
             </div>
             <p className="text-sm text-muted-foreground">
-              Your organization hasn&apos;t run any events yet. Metrics appear
-              here once you have created and run your first event.
+              {t("metrics.emptyNoEvents")}
             </p>
           </CardContent>
         </Card>
@@ -687,8 +689,8 @@ export default function OrganizerMetricsPage() {
     <div className="flex flex-col gap-5">
       <div data-tour="org-metrics-title">
         <PageHeader
-          title="Metrics"
-          description="A performance dashboard for your organization, across all of its events."
+          title={t("metrics.pageTitle")}
+          description={t("metrics.description")}
         />
       </div>
 
@@ -698,9 +700,9 @@ export default function OrganizerMetricsPage() {
       {/* Active-window line + a subtle inline loading hint while the range re-fetches. */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span>
-          Showing: <span className="font-medium text-foreground">{rangeLabel}</span>
+          {t("metrics.showing")} <span className="font-medium text-foreground">{rangeLabel}</span>
         </span>
-        {loading && <span className="text-muted-foreground/70">updating...</span>}
+        {loading && <span className="text-muted-foreground/70">{t("metrics.updating")}</span>}
       </div>
 
       {/* ── Empty state for THIS window: the org has events, but none of them have any
@@ -713,8 +715,7 @@ export default function OrganizerMetricsPage() {
               <IconCalendarStats className="size-6" />
             </div>
             <p className="max-w-md text-sm text-muted-foreground">
-              No activity in this timeframe. Try a wider range (or All time) to
-              see registrations, views, matches, and ratings.
+              {t("metrics.emptyNoActivity")}
             </p>
           </CardContent>
         </Card>
@@ -725,82 +726,82 @@ export default function OrganizerMetricsPage() {
       <div data-tour="org-metrics-stats" className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
         <StatCard
           icon={<IconCalendarEvent className="size-5" />}
-          label="Events run"
+          label={t("metrics.cards.eventsRun")}
           value={fmtInt(eventsCount)}
-          sub={`${fmtInt(totals.completed_events ?? 0)} completed`}
+          sub={t("metrics.cards.completed", { count: fmtInt(totals.completed_events ?? 0) })}
         />
         {/* Event views: total event-detail page loads in the selected window (from
             EventPageView server-side), with de-duped unique-viewer count underneath. */}
         <StatCard
           icon={<IconEye className="size-5" />}
-          label="Event views"
+          label={t("metrics.cards.eventViews")}
           value={fmtInt(totalViews)}
-          sub={`${fmtInt(uniqueViewers)} unique viewer${uniqueViewers !== 1 ? "s" : ""}`}
+          sub={t("metrics.cards.uniqueViewers", { count: uniqueViewers, formatted: fmtInt(uniqueViewers) })}
           valueClass="text-primary"
         />
         <StatCard
           icon={<IconUsers className="size-5" />}
-          label="Unique players"
+          label={t("metrics.cards.uniquePlayers")}
           value={fmtInt(uniquePlayers)}
-          sub="registered in range"
+          sub={t("metrics.cards.registeredInRange")}
         />
         <StatCard
           icon={<IconUsersGroup className="size-5" />}
-          label="Unique teams"
+          label={t("metrics.cards.uniqueTeams")}
           value={fmtInt(uniqueTeams)}
-          sub="registered in range"
+          sub={t("metrics.cards.registeredInRange")}
         />
         {/* Registrations: confirmed entrants vs incomplete (pending/rejected/etc). The big
             number is confirmed; the sub spells out the incomplete tail. */}
         <StatCard
           icon={<IconUserCheck className="size-5" />}
-          label="Confirmed registrations"
+          label={t("metrics.cards.confirmedRegistrations")}
           value={fmtInt(completeRegs)}
-          sub={`${fmtInt(incompleteRegs)} incomplete`}
+          sub={t("metrics.cards.incomplete", { count: fmtInt(incompleteRegs) })}
         />
         <StatCard
           icon={<IconSwords className="size-5" />}
-          label="Matches played"
+          label={t("metrics.cards.matchesPlayed")}
           value={fmtInt(totalMatches)}
-          sub="total across events"
+          sub={t("metrics.cards.totalAcrossEvents")}
         />
         <StatCard
           icon={<IconCrosshair className="size-5" />}
-          label="Total kills"
+          label={t("metrics.cards.totalKills")}
           value={fmtInt(totalKills)}
-          sub="tallied in all matches"
+          sub={t("metrics.cards.talliedInAllMatches")}
         />
         <StatCard
           icon={<IconCash className="size-5" />}
-          label="Prize money"
+          label={t("metrics.cards.prizeMoney")}
           value={fmtMoney(totalPrize)}
-          sub="awarded to date"
+          sub={t("metrics.cards.awardedToDate")}
           valueClass="text-gold"
         />
         <StatCard
           icon={<IconUsers className="size-5" />}
-          label="Avg participants"
+          label={t("metrics.cards.avgParticipants")}
           value={avgParticipants}
-          sub="per event"
+          sub={t("metrics.cards.perEvent")}
         />
         <StatCard
           icon={<IconStarFilled className="size-5" />}
-          label="Average rating"
+          label={t("metrics.cards.averageRating")}
           value={averageRating}
-          sub={`from ${fmtInt(ratingsCount)} rating${ratingsCount !== 1 ? "s" : ""}`}
+          sub={t("metrics.cards.fromRatings", { count: ratingsCount, formatted: fmtInt(ratingsCount) })}
           valueClass={ratingsCount > 0 ? "text-gold" : undefined}
         />
         <StatCard
           icon={<IconPercentage className="size-5" />}
-          label="Fill rate"
+          label={t("metrics.cards.fillRate")}
           value={fillRate != null ? `${fillRate}%` : "-"}
-          sub="of registration capacity"
+          sub={t("metrics.cards.ofRegistrationCapacity")}
         />
         <StatCard
           icon={<IconTrophy className="size-5" />}
-          label="Completion rate"
+          label={t("metrics.cards.completionRate")}
           value={completionRate != null ? `${completionRate}%` : "-"}
-          sub="events completed"
+          sub={t("metrics.cards.eventsCompleted")}
           valueClass="text-primary"
         />
       </div>
@@ -808,10 +809,10 @@ export default function OrganizerMetricsPage() {
       {/* ── Detail under pill Tabs (keeps the surface scannable as it grows). ── */}
       <Tabs defaultValue="trends" className="w-full">
         <TabsList data-tour="org-metrics-tabs" className="h-9">
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
-          <TabsTrigger value="leaderboards">Leaderboards</TabsTrigger>
-          <TabsTrigger value="events">Events</TabsTrigger>
+          <TabsTrigger value="trends">{t("metrics.tab.trends")}</TabsTrigger>
+          <TabsTrigger value="breakdown">{t("metrics.tab.breakdown")}</TabsTrigger>
+          <TabsTrigger value="leaderboards">{t("metrics.tab.leaderboards")}</TabsTrigger>
+          <TabsTrigger value="events">{t("metrics.tab.events")}</TabsTrigger>
         </TabsList>
 
         {/* ════════ TAB 1 — Trends: activity over time + prize distribution ════════ */}
@@ -820,14 +821,12 @@ export default function OrganizerMetricsPage() {
               Built from the IN-RANGE activity timestamps, so it tracks the selected window. */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Activity over time</CardTitle>
+              <CardTitle className="text-base">{t("metrics.charts.activityOverTime")}</CardTitle>
             </CardHeader>
             <CardContent>
               {monthly.length < 2 ? (
                 <div className="flex h-[280px] items-center justify-center text-center text-sm text-muted-foreground">
-                  Not enough activity in this timeframe to plot a trend. This
-                  chart fills in once there is activity across two or more
-                  months. Try a wider range.
+                  {t("metrics.charts.activityEmpty")}
                 </div>
               ) : (
                 <div className="h-[300px] w-full">
@@ -875,7 +874,7 @@ export default function OrganizerMetricsPage() {
                       <Area
                         type="monotone"
                         dataKey="views"
-                        name="Page views"
+                        name={t("metrics.charts.pageViews")}
                         stroke={C_PRIMARY}
                         strokeWidth={2.5}
                         fill="url(#gViews)"
@@ -883,7 +882,7 @@ export default function OrganizerMetricsPage() {
                       <Area
                         type="monotone"
                         dataKey="registrations"
-                        name="Registrations"
+                        name={t("metrics.charts.registrations")}
                         stroke={C_GOLD}
                         strokeWidth={2.5}
                         fill="url(#gRegs)"
@@ -891,7 +890,7 @@ export default function OrganizerMetricsPage() {
                       <Area
                         type="monotone"
                         dataKey="matches"
-                        name="Matches"
+                        name={t("metrics.charts.matches")}
                         stroke="#60a5fa"
                         strokeWidth={2.5}
                         fill="url(#gMatches)"
@@ -906,13 +905,12 @@ export default function OrganizerMetricsPage() {
           {/* Prize distribution by event (only when at least one event paid out). */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Prize money by event</CardTitle>
+              <CardTitle className="text-base">{t("metrics.charts.prizeByEvent")}</CardTitle>
             </CardHeader>
             <CardContent>
               {prizeRows.length === 0 ? (
                 <div className="flex h-[220px] items-center justify-center text-center text-sm text-muted-foreground">
-                  No prize payouts recorded yet. This chart fills in once event
-                  payouts are entered.
+                  {t("metrics.charts.prizeEmpty")}
                 </div>
               ) : (
                 <div className="h-[300px] w-full">
@@ -940,7 +938,7 @@ export default function OrganizerMetricsPage() {
                       />
                       <Tooltip
                         contentStyle={tooltipStyle}
-                        formatter={(v: any) => [fmtMoney(Number(v)), "Prize"]}
+                        formatter={(v: any) => [fmtMoney(Number(v)), t("metrics.charts.prize")]}
                       />
                       <Bar dataKey="prize" fill={C_GOLD} radius={[0, 4, 4, 0]}>
                         <LabelList
@@ -963,7 +961,7 @@ export default function OrganizerMetricsPage() {
           {/* Event type split (tournament vs scrims) as a donut. */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Events by type</CardTitle>
+              <CardTitle className="text-base">{t("metrics.charts.eventsByType")}</CardTitle>
             </CardHeader>
             <CardContent>
               {typeRows.length === 0 ? (
@@ -998,7 +996,7 @@ export default function OrganizerMetricsPage() {
           {/* Event status split (upcoming / ongoing / completed) as a donut. */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Events by status</CardTitle>
+              <CardTitle className="text-base">{t("metrics.charts.eventsByStatus")}</CardTitle>
             </CardHeader>
             <CardContent>
               {statusRows.length === 0 ? (
@@ -1033,7 +1031,7 @@ export default function OrganizerMetricsPage() {
           {/* Event mode split (online / LAN / hybrid) as a horizontal bar. */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="text-base">Events by mode</CardTitle>
+              <CardTitle className="text-base">{t("metrics.charts.eventsByMode")}</CardTitle>
             </CardHeader>
             <CardContent>
               {modeRows.length === 0 ? (
@@ -1061,9 +1059,9 @@ export default function OrganizerMetricsPage() {
                       />
                       <Tooltip
                         contentStyle={tooltipStyle}
-                        formatter={(v: any) => [fmtInt(Number(v)), "Events"]}
+                        formatter={(v: any) => [fmtInt(Number(v)), t("metrics.charts.events")]}
                       />
-                      <Bar dataKey="value" name="Events" fill={C_PRIMARY} radius={[4, 4, 0, 0]}>
+                      <Bar dataKey="value" name={t("metrics.charts.events")} fill={C_PRIMARY} radius={[4, 4, 0, 0]}>
                         <LabelList
                           dataKey="value"
                           position="top"
@@ -1083,19 +1081,19 @@ export default function OrganizerMetricsPage() {
           {/* Top teams: bar chart + ranked table side rows. */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Top teams by kills</CardTitle>
+              <CardTitle className="text-base">{t("metrics.charts.topTeams")}</CardTitle>
             </CardHeader>
             <CardContent>
               {topTeams.length === 0 ? (
-                <EmptyChart label="No team match stats recorded yet." />
+                <EmptyChart label={t("metrics.charts.noTeamStats")} />
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="h-10 w-10 p-2 text-foreground">#</TableHead>
-                      <TableHead className="h-10 p-2 text-foreground">Team</TableHead>
-                      <TableHead className="h-10 p-2 text-center text-foreground">Wins</TableHead>
-                      <TableHead className="h-10 p-2 text-right text-foreground">Kills</TableHead>
+                      <TableHead className="h-10 p-2 text-foreground">{t("metrics.table.team")}</TableHead>
+                      <TableHead className="h-10 p-2 text-center text-foreground">{t("metrics.table.wins")}</TableHead>
+                      <TableHead className="h-10 p-2 text-right text-foreground">{t("metrics.table.kills")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1131,18 +1129,18 @@ export default function OrganizerMetricsPage() {
           {/* Top players: ranked table by kills. */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Top players by kills</CardTitle>
+              <CardTitle className="text-base">{t("metrics.charts.topPlayers")}</CardTitle>
             </CardHeader>
             <CardContent>
               {topPlayers.length === 0 ? (
-                <EmptyChart label="No player match stats recorded yet." />
+                <EmptyChart label={t("metrics.charts.noPlayerStats")} />
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="h-10 w-10 p-2 text-foreground">#</TableHead>
-                      <TableHead className="h-10 p-2 text-foreground">Player</TableHead>
-                      <TableHead className="h-10 p-2 text-right text-foreground">Kills</TableHead>
+                      <TableHead className="h-10 p-2 text-foreground">{t("metrics.table.player")}</TableHead>
+                      <TableHead className="h-10 p-2 text-right text-foreground">{t("metrics.table.kills")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1174,18 +1172,17 @@ export default function OrganizerMetricsPage() {
         <TabsContent value="events" className="mt-4 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              Per event breakdown
+              {t("metrics.events.perEventBreakdown")}
             </span>
             <span className="text-sm text-muted-foreground">
-              {fmtInt(eventRows.length)}{" "}
-              {eventRows.length === 1 ? "event" : "events"}
-              {metrics?.events_truncated ? " (most recent shown)" : ""}
+              {t("metrics.events.count", { count: eventRows.length, formatted: fmtInt(eventRows.length) })}
+              {metrics?.events_truncated ? " " + t("metrics.events.mostRecentShown") : ""}
             </span>
           </div>
           <Card className="overflow-hidden p-0">
             {eventRows.length === 0 ? (
               <div className="p-6 text-center text-sm text-muted-foreground">
-                No events with activity in this timeframe. Try a wider range.
+                {t("metrics.events.emptyTable")}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -1194,15 +1191,15 @@ export default function OrganizerMetricsPage() {
                     <TableRow>
                       {/* chevron / expand affordance */}
                       <TableHead className="h-10 w-8 p-2" />
-                      <TableHead className="h-10 p-2 text-foreground">Event</TableHead>
-                      <TableHead className="h-10 p-2 text-foreground">Date</TableHead>
-                      <TableHead className="h-10 p-2 text-foreground">Status</TableHead>
-                      <TableHead className="h-10 p-2 text-center text-foreground">Participants</TableHead>
-                      <TableHead className="h-10 p-2 text-center text-foreground">Views</TableHead>
-                      <TableHead className="h-10 p-2 text-center text-foreground">Matches</TableHead>
-                      <TableHead className="h-10 p-2 text-center text-foreground">Kills</TableHead>
-                      <TableHead className="h-10 p-2 text-right text-foreground">Prize</TableHead>
-                      <TableHead className="h-10 p-2 text-center text-foreground">Rating</TableHead>
+                      <TableHead className="h-10 p-2 text-foreground">{t("metrics.table.event")}</TableHead>
+                      <TableHead className="h-10 p-2 text-foreground">{t("metrics.table.date")}</TableHead>
+                      <TableHead className="h-10 p-2 text-foreground">{t("metrics.table.status")}</TableHead>
+                      <TableHead className="h-10 p-2 text-center text-foreground">{t("metrics.table.participants")}</TableHead>
+                      <TableHead className="h-10 p-2 text-center text-foreground">{t("metrics.table.views")}</TableHead>
+                      <TableHead className="h-10 p-2 text-center text-foreground">{t("metrics.table.matches")}</TableHead>
+                      <TableHead className="h-10 p-2 text-center text-foreground">{t("metrics.table.kills")}</TableHead>
+                      <TableHead className="h-10 p-2 text-right text-foreground">{t("metrics.table.prize")}</TableHead>
+                      <TableHead className="h-10 p-2 text-center text-foreground">{t("metrics.table.rating")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1304,26 +1301,27 @@ export default function OrganizerMetricsPage() {
 // "Complete" = a confirmed entrant (team "active" or solo "registered"/"approved");
 // "incomplete" = any other registration status (pending/rejected/withdrawn/left/disqualified).
 function EventDetailPanel({ e }: { e: EventRow }) {
+  const t = useTranslations("organizer");
   // fill-rate for this event = confirmed-or-total participants over capacity (when known).
   const fill =
     e.capacity > 0 ? Math.round((e.participants / e.capacity) * 100) : null;
   return (
     <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
       {/* Registrations */}
-      <DetailGroup title="Registrations">
+      <DetailGroup title={t("metrics.detail.registrations")}>
         <DetailRow
           icon={<IconUserCheck className="size-3.5 text-primary" />}
-          label="Confirmed"
+          label={t("metrics.detail.confirmed")}
           value={fmtInt(e.complete_registrations)}
         />
         <DetailRow
           icon={<IconUserX className="size-3.5 text-muted-foreground" />}
-          label="Incomplete"
+          label={t("metrics.detail.incomplete")}
           value={fmtInt(e.incomplete_registrations)}
         />
         <DetailRow
           icon={<IconUsers className="size-3.5 text-muted-foreground" />}
-          label="Total / capacity"
+          label={t("metrics.detail.totalCapacity")}
           value={
             e.capacity > 0
               ? `${fmtInt(e.participants)} / ${fmtInt(e.capacity)}${fill != null ? ` (${fill}%)` : ""}`
@@ -1333,47 +1331,47 @@ function EventDetailPanel({ e }: { e: EventRow }) {
       </DetailGroup>
 
       {/* Audience (page views) */}
-      <DetailGroup title="Audience">
+      <DetailGroup title={t("metrics.detail.audience")}>
         <DetailRow
           icon={<IconEye className="size-3.5 text-primary" />}
-          label="Page views"
+          label={t("metrics.detail.pageViews")}
           value={fmtInt(e.views)}
         />
         <DetailRow
           icon={<IconUsers className="size-3.5 text-muted-foreground" />}
-          label="Unique viewers"
+          label={t("metrics.detail.uniqueViewers")}
           value={fmtInt(e.unique_viewers)}
         />
       </DetailGroup>
 
       {/* Competition (matches + kills) */}
-      <DetailGroup title="Competition">
+      <DetailGroup title={t("metrics.detail.competition")}>
         <DetailRow
           icon={<IconSwords className="size-3.5 text-muted-foreground" />}
-          label="Matches"
+          label={t("metrics.detail.matches")}
           value={fmtInt(e.matches)}
         />
         <DetailRow
           icon={<IconCrosshair className="size-3.5 text-muted-foreground" />}
-          label="Kills"
+          label={t("metrics.detail.kills")}
           value={fmtInt(e.kills)}
         />
       </DetailGroup>
 
       {/* Outcome (prize + rating) */}
-      <DetailGroup title="Outcome">
+      <DetailGroup title={t("metrics.detail.outcome")}>
         <DetailRow
           icon={<IconCash className="size-3.5 text-gold" />}
-          label="Prize money"
+          label={t("metrics.detail.prizeMoney")}
           value={e.prize_money > 0 ? fmtMoney(e.prize_money) : "-"}
         />
         <DetailRow
           icon={<IconStarFilled className="size-3.5 text-gold" />}
-          label="Rating"
+          label={t("metrics.detail.rating")}
           value={
             e.rating != null
               ? `${e.rating.toFixed(1)} (${fmtInt(e.ratings_count)})`
-              : "No ratings"
+              : t("metrics.detail.noRatings")
           }
         />
       </DetailGroup>
@@ -1424,9 +1422,10 @@ function DetailRow({
 // A calm, fixed-height empty state used inside chart cards when a split/leaderboard has
 // no rows yet (so the card keeps its shape instead of collapsing to nothing).
 function EmptyChart({ label }: { label?: string }) {
+  const t = useTranslations("organizer");
   return (
     <div className="flex h-[240px] items-center justify-center text-center text-sm text-muted-foreground">
-      {label || "No data to chart yet."}
+      {label || t("metrics.charts.noData")}
     </div>
   );
 }

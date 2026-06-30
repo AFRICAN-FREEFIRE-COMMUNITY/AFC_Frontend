@@ -61,6 +61,7 @@
 "use client";
 
 import React, { use, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -191,6 +192,8 @@ export default function OrganizerEventLeaderboardPage({
   const { slug: routeSlug } = use(params);
   const { token } = useAuth();
   const { membership, isOwner } = useOrganizer();
+  // i18n: organizer-facing page, keys under the "organizer" namespace (eventLeaderboard.*).
+  const t = useTranslations("organizer");
 
   // The org permission the backend enforces for results upload.
   const canUploadResults =
@@ -473,7 +476,10 @@ export default function OrganizerEventLeaderboardPage({
       setEditingMatch({
         match: {
           match_id: m.match_id,
-          match_name: `Match ${m.match_number} (${m.match_map})`,
+          match_name: t("eventLeaderboard.matchLabel", {
+            number: m.match_number,
+            map: m.match_map,
+          }),
         },
         view: "method",
         groupMatches: currentGroup?.matches ?? [],
@@ -500,7 +506,10 @@ export default function OrganizerEventLeaderboardPage({
     setEditingMatch({
       match: {
         match_id: m.match_id,
-        match_name: `Match ${m.match_number} (${m.match_map})`,
+        match_name: t("eventLeaderboard.matchLabel", {
+          number: m.match_number,
+          map: m.match_map,
+        }),
       },
       view: "method",
       // Use the PICKED group's matches (the picker may target a different group than the one shown).
@@ -540,17 +549,19 @@ export default function OrganizerEventLeaderboardPage({
   if (!canUploadResults) {
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Manage Leaderboard" back />
+        <PageHeader title={t("eventLeaderboard.manageTitle")} back />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <div className="flex size-12 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <IconLock className="size-6" />
             </div>
             <p className="max-w-sm text-sm text-muted-foreground">
-              You do not have permission to manage results for this organization.
+              {t("eventLeaderboard.noPermission")}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/organizer/leaderboards">Back to leaderboards</Link>
+              <Link href="/organizer/leaderboards">
+                {t("eventLeaderboard.backToLeaderboards")}
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -558,24 +569,26 @@ export default function OrganizerEventLeaderboardPage({
     );
   }
 
-  if (resolving) return <FullLoader text="Loading event..." />;
+  if (resolving)
+    return <FullLoader text={t("eventLeaderboard.loadingEvent")} />;
 
   // The slug didn't resolve to one of THIS org's events.
   if (notMine) {
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Manage Leaderboard" back />
+        <PageHeader title={t("eventLeaderboard.manageTitle")} back />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <div className="flex size-12 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <IconTrophy className="size-6" />
             </div>
             <p className="max-w-sm text-sm text-muted-foreground">
-              We couldn&apos;t find this event under your organization. You can
-              only manage leaderboards for your own events.
+              {t("eventLeaderboard.notMine")}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/organizer/leaderboards">Back to leaderboards</Link>
+              <Link href="/organizer/leaderboards">
+                {t("eventLeaderboard.backToLeaderboards")}
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -590,17 +603,20 @@ export default function OrganizerEventLeaderboardPage({
   // create steps; the only divergence is the terminal step (see header note).
   if (mode === "create") {
     const getStepTitle = () => {
-      if (wizardStep === 1) return "Basic Information";
-      if (wizardStep === 2) return "Configure Point System";
+      if (wizardStep === 1) return t("eventLeaderboard.wizard.basicInfo");
+      if (wizardStep === 2) return t("eventLeaderboard.wizard.configurePoints");
       if (wizardStep === 3) {
-        if (!enteringMatch) return "Match Overview";
-        if (enteringMatch.view === "method") return "Select Upload Method";
-        if (enteringMatch.view === "manual") return "Manual Input";
-        if (enteringMatch.view === "image_upload") return "Image Upload";
+        if (!enteringMatch) return t("eventLeaderboard.wizard.matchOverview");
+        if (enteringMatch.view === "method")
+          return t("eventLeaderboard.wizard.selectMethod");
+        if (enteringMatch.view === "manual")
+          return t("eventLeaderboard.wizard.manualInput");
+        if (enteringMatch.view === "image_upload")
+          return t("eventLeaderboard.wizard.imageUpload");
         if (enteringMatch.view === "room_file_upload")
-          return "3D Room File Upload";
+          return t("eventLeaderboard.wizard.roomFileUpload");
       }
-      if (wizardStep === 4) return "Edit Leaderboard";
+      if (wizardStep === 4) return t("eventLeaderboard.wizard.editLeaderboard");
       return "";
     };
 
@@ -608,7 +624,7 @@ export default function OrganizerEventLeaderboardPage({
       <div className="space-y-6 min-h-screen">
         <PageHeader
           back={wizardStep > 1 && !enteringMatch && wizardStep !== 4}
-          title="Create Leaderboard"
+          title={t("eventLeaderboard.createLeaderboard")}
           description={`${eventData.event_name} • ${getStepTitle()}`}
         />
 
@@ -761,9 +777,13 @@ export default function OrganizerEventLeaderboardPage({
                 <InfoTip id="leaderboards.detail._page" />
               </span>
             }
-            description={`${
-              detailsParticipantType === "solo" ? "Solo" : "Team"
-            } Tournament • ${eventData.stages?.length ?? 0} Stages`}
+            description={t("eventLeaderboard.tournamentDescription", {
+              type:
+                detailsParticipantType === "solo"
+                  ? t("eventLeaderboard.solo")
+                  : t("eventLeaderboard.team"),
+              count: eventData.stages?.length ?? 0,
+            })}
           />
         </div>
         {!editingMatch && (
@@ -777,7 +797,13 @@ export default function OrganizerEventLeaderboardPage({
               leaderboardName={
                 selectedMatchId === "overall"
                   ? eventData.event_name
-                  : `${eventData.event_name} - Match ${currentMatch?.match_number} (${currentMatch?.match_map})`
+                  : `${eventData.event_name} - ${t(
+                      "eventLeaderboard.matchLabel",
+                      {
+                        number: currentMatch?.match_number,
+                        map: currentMatch?.match_map,
+                      },
+                    )}`
               }
               teamRows={getTableData()}
               playerRows={getPlayerData()}
@@ -798,14 +824,11 @@ export default function OrganizerEventLeaderboardPage({
               <IconTrophy className="size-6" />
             </div>
             <p className="max-w-sm text-sm text-muted-foreground">
-              No leaderboard yet for this event. Leaderboards are created
-              automatically once each group has its maps set up. Add maps to this
-              event&apos;s groups in the event editor, then come back here to seed
-              competitors and enter results.
+              {t("eventLeaderboard.emptyState")}
             </p>
             <Button asChild variant="outline" size="sm">
               <Link href={`/organizer/events/${routeSlug}/edit`}>
-                Open event editor
+                {t("eventLeaderboard.openEventEditor")}
               </Link>
             </Button>
           </CardContent>
@@ -842,14 +865,14 @@ export default function OrganizerEventLeaderboardPage({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div className="space-y-2">
                 <Label>
-                  <IconUsers size={14} /> Group
+                  <IconUsers size={14} /> {t("eventLeaderboard.group")}
                 </Label>
                 <Select
                   value={selectedGroupId}
                   onValueChange={setSelectedGroupId}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select Group" />
+                    <SelectValue placeholder={t("eventLeaderboard.selectGroup")} />
                   </SelectTrigger>
                   <SelectContent>
                     {currentStage?.groups.map((g: any) => (
@@ -866,7 +889,7 @@ export default function OrganizerEventLeaderboardPage({
 
               <div className="space-y-2">
                 <Label>
-                  <IconMap size={14} /> View Type
+                  <IconMap size={14} /> {t("eventLeaderboard.viewType")}
                 </Label>
                 <Select
                   value={selectedMatchId}
@@ -876,13 +899,18 @@ export default function OrganizerEventLeaderboardPage({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="overall">Overall Leaderboard</SelectItem>
+                    <SelectItem value="overall">
+                      {t("eventLeaderboard.overallLeaderboard")}
+                    </SelectItem>
                     {currentGroup?.matches?.map((m: any) => (
                       <SelectItem
                         key={m.match_id}
                         value={m.match_id.toString()}
                       >
-                        Match {m.match_number} ({m.match_map})
+                        {t("eventLeaderboard.matchLabel", {
+                          number: m.match_number,
+                          map: m.match_map,
+                        })}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -891,7 +919,7 @@ export default function OrganizerEventLeaderboardPage({
 
               <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
                 <p className="text-[10px] font-semibold text-primary uppercase">
-                  Current Kill Points
+                  {t("eventLeaderboard.currentKillPoints")}
                 </p>
                 <p className="text-xl font-bold">
                   {currentGroup?.leaderboard?.kill_point || 0}
@@ -901,7 +929,7 @@ export default function OrganizerEventLeaderboardPage({
 
             <CardTitle className="text-lg flex items-center gap-2">
               <IconTrophy size={18} className="text-yellow-500" />
-              Rankings
+              {t("eventLeaderboard.rankings")}
             </CardTitle>
 
             {detailsParticipantType === "solo" ? (
@@ -910,13 +938,17 @@ export default function OrganizerEventLeaderboardPage({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Rank</TableHead>
-                      <TableHead>Player</TableHead>
+                      <TableHead>{t("eventLeaderboard.table.rank")}</TableHead>
+                      <TableHead>{t("eventLeaderboard.table.player")}</TableHead>
                       {selectedMatchId === "overall" && (
-                        <TableHead>Matches</TableHead>
+                        <TableHead>
+                          {t("eventLeaderboard.table.matches")}
+                        </TableHead>
                       )}
-                      <TableHead>Kills</TableHead>
-                      <TableHead className="text-right">Total Pts</TableHead>
+                      <TableHead>{t("eventLeaderboard.table.kills")}</TableHead>
+                      <TableHead className="text-right">
+                        {t("eventLeaderboard.table.totalPts")}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -926,7 +958,7 @@ export default function OrganizerEventLeaderboardPage({
                         <TableCell className="font-bold">
                           {row.competitor__user__username ||
                             row.username ||
-                            "Unknown"}
+                            t("eventLeaderboard.unknown")}
                         </TableCell>
                         {selectedMatchId === "overall" && (
                           <TableCell className="text-zinc-400">
@@ -945,7 +977,7 @@ export default function OrganizerEventLeaderboardPage({
                 </Table>
                 {getTableData().length === 0 && (
                   <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
-                    No result found!
+                    {t("eventLeaderboard.noResult")}
                   </div>
                 )}
               </>
@@ -956,8 +988,12 @@ export default function OrganizerEventLeaderboardPage({
                 onValueChange={(v) => setLeaderboardTab(v as "team" | "player")}
               >
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="team">Team Leaderboard</TabsTrigger>
-                  <TabsTrigger value="player">Player Leaderboard</TabsTrigger>
+                  <TabsTrigger value="team">
+                    {t("eventLeaderboard.teamLeaderboard")}
+                  </TabsTrigger>
+                  <TabsTrigger value="player">
+                    {t("eventLeaderboard.playerLeaderboard")}
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* ── Team Leaderboard ── */}
@@ -965,16 +1001,22 @@ export default function OrganizerEventLeaderboardPage({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Rank</TableHead>
-                        <TableHead>Team</TableHead>
+                        <TableHead>{t("eventLeaderboard.table.rank")}</TableHead>
+                        <TableHead>{t("eventLeaderboard.table.team")}</TableHead>
                         {selectedMatchId === "overall" && (
-                          <TableHead>Matches</TableHead>
+                          <TableHead>
+                            {t("eventLeaderboard.table.matches")}
+                          </TableHead>
                         )}
                         {selectedMatchId === "overall" && (
-                          <TableHead>Booyahs</TableHead>
+                          <TableHead>
+                            {t("eventLeaderboard.table.booyahs")}
+                          </TableHead>
                         )}
-                        <TableHead>Kills</TableHead>
-                        <TableHead className="text-right">Total Pts</TableHead>
+                        <TableHead>{t("eventLeaderboard.table.kills")}</TableHead>
+                        <TableHead className="text-right">
+                          {t("eventLeaderboard.table.totalPts")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -982,7 +1024,9 @@ export default function OrganizerEventLeaderboardPage({
                         <TableRow key={idx}>
                           <TableCell>#{idx + 1}</TableCell>
                           <TableCell className="font-bold">
-                            {row.team_name || row.username || "Unknown"}
+                            {row.team_name ||
+                              row.username ||
+                              t("eventLeaderboard.unknown")}
                           </TableCell>
                           {selectedMatchId === "overall" && (
                             <TableCell className="text-zinc-400">
@@ -1006,7 +1050,7 @@ export default function OrganizerEventLeaderboardPage({
                   </Table>
                   {getTableData().length === 0 && (
                     <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
-                      No result found!
+                      {t("eventLeaderboard.noResult")}
                     </div>
                   )}
                 </TabsContent>
@@ -1016,12 +1060,20 @@ export default function OrganizerEventLeaderboardPage({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Rank</TableHead>
-                        <TableHead>Player</TableHead>
-                        <TableHead>Team</TableHead>
-                        <TableHead className="text-right">Kills</TableHead>
-                        <TableHead className="text-right">Damage</TableHead>
-                        <TableHead className="text-right">Assists</TableHead>
+                        <TableHead>{t("eventLeaderboard.table.rank")}</TableHead>
+                        <TableHead>
+                          {t("eventLeaderboard.table.player")}
+                        </TableHead>
+                        <TableHead>{t("eventLeaderboard.table.team")}</TableHead>
+                        <TableHead className="text-right">
+                          {t("eventLeaderboard.table.kills")}
+                        </TableHead>
+                        <TableHead className="text-right">
+                          {t("eventLeaderboard.table.damage")}
+                        </TableHead>
+                        <TableHead className="text-right">
+                          {t("eventLeaderboard.table.assists")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1051,7 +1103,7 @@ export default function OrganizerEventLeaderboardPage({
                   </Table>
                   {getPlayerData().length === 0 && (
                     <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
-                      No player data available!
+                      {t("eventLeaderboard.noPlayerData")}
                     </div>
                   )}
                 </TabsContent>
@@ -1069,7 +1121,7 @@ export default function OrganizerEventLeaderboardPage({
             {/* ⓘ sit as siblings (not nested) - InfoTip is itself a button. */}
             <div className="flex gap-2 flex-wrap items-center">
               <Button onClick={handleStartEditMatch}>
-                <IconEdit size={18} /> Edit Match Results
+                <IconEdit size={18} /> {t("eventLeaderboard.editMatchResults")}
               </Button>
               <InfoTip id="leaderboards.detail.edit_match_results" />
               {currentGroup?.matches?.length > 0 && (
@@ -1078,7 +1130,8 @@ export default function OrganizerEventLeaderboardPage({
                     variant="outline"
                     onClick={() => setGroupEditOpen(true)}
                   >
-                    <IconUpload size={18} /> Upload / Edit Whole Group
+                    <IconUpload size={18} />{" "}
+                    {t("eventLeaderboard.uploadEditGroup")}
                   </Button>
                   <InfoTip id="leaderboards.detail.upload_edit_group" />
                 </>
@@ -1097,7 +1150,8 @@ export default function OrganizerEventLeaderboardPage({
                   defaultSubtitle={currentStage?.stage_name ?? ""}
                   trigger={
                     <Button variant="outline" size="sm">
-                      <IconDownload size={16} /> Export graphic
+                      <IconDownload size={16} />{" "}
+                      {t("eventLeaderboard.exportGraphic")}
                     </Button>
                   }
                 />
@@ -1217,9 +1271,9 @@ export default function OrganizerEventLeaderboardPage({
       <Dialog open={matchPickerOpen} onOpenChange={setMatchPickerOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Edit Match Results</DialogTitle>
+            <DialogTitle>{t("eventLeaderboard.editMatchResults")}</DialogTitle>
             <DialogDescription>
-              Select the group and match you want to edit.
+              {t("eventLeaderboard.pickerDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -1227,7 +1281,7 @@ export default function OrganizerEventLeaderboardPage({
             <div className="space-y-2">
               <Label>
                 <IconUsers size={14} className="inline mr-1" />
-                Group
+                {t("eventLeaderboard.group")}
               </Label>
               <Select
                 value={pickerGroupId}
@@ -1237,7 +1291,7 @@ export default function OrganizerEventLeaderboardPage({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select group" />
+                  <SelectValue placeholder={t("eventLeaderboard.pickerSelectGroup")} />
                 </SelectTrigger>
                 <SelectContent>
                   {currentStage?.groups?.map((g: any) => (
@@ -1258,14 +1312,14 @@ export default function OrganizerEventLeaderboardPage({
                   <div className="space-y-2">
                     <Label>
                       <IconMap size={14} className="inline mr-1" />
-                      Match
+                      {t("eventLeaderboard.match")}
                     </Label>
                     <Select
                       value={pickerMatchId}
                       onValueChange={setPickerMatchId}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select match" />
+                        <SelectValue placeholder={t("eventLeaderboard.selectMatch")} />
                       </SelectTrigger>
                       <SelectContent>
                         {pickerGroup?.matches?.map((m: any) => (
@@ -1273,7 +1327,10 @@ export default function OrganizerEventLeaderboardPage({
                             key={m.match_id}
                             value={m.match_id.toString()}
                           >
-                            Match {m.match_number} - {m.match_map}
+                            {t("eventLeaderboard.matchOption", {
+                              number: m.match_number,
+                              map: m.match_map,
+                            })}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -1285,10 +1342,10 @@ export default function OrganizerEventLeaderboardPage({
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setMatchPickerOpen(false)}>
-              Cancel
+              {t("eventLeaderboard.cancel")}
             </Button>
             <Button disabled={!pickerMatchId} onClick={handlePickerConfirm}>
-              Continue
+              {t("eventLeaderboard.continue")}
             </Button>
           </DialogFooter>
         </DialogContent>
