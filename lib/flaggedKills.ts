@@ -39,11 +39,28 @@ export type FlaggedKill = {
   effective_count: boolean; // resolved: does this player's kills count right now?
 };
 
+// An in-game team block from a match-log upload that matched NO registered team (owner 2026-06-30).
+// The panel attributes it to a registered team (or leaves it uncounted) - the team-level companion to
+// the per-player flags above, resolved on the SAME surface.
+export type UnmatchedTeamRow = {
+  block_id: number;
+  match_id: number;
+  team_name: string;
+  placement: number;
+  kills: number;
+  attributed_team_id: number | null;
+  attributed_team_name: string | null;
+};
+
+export type EventTeamOption = { tournament_team_id: number; team_name: string };
+
 export type FlaggedKillsResponse = {
   event_id: number;
   count_flagged_kills: boolean;
   flags: FlaggedKill[];
   flag_count: number;
+  unmatched_teams: UnmatchedTeamRow[];
+  event_teams: EventTeamOption[];
 };
 
 const authHeaders = (token: string, json = false): HeadersInit => ({
@@ -78,6 +95,22 @@ export const flaggedKillsApi = {
       method: "PATCH",
       headers: authHeaders(token, true),
       body: JSON.stringify({ flag_id: flagId, count_kills: count }),
+    });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.message || "Failed to update.");
+    return r.json();
+  },
+
+  // Attribute one unmatched in-game team block to a registered team (its placement + kills are scored
+  // for that team), or pass null to clear it ("don't count"). Recomputes the event standings.
+  attributeUnmatchedTeam: async (
+    blockId: number,
+    tournamentTeamId: number | null,
+    token: string,
+  ) => {
+    const r = await fetch(`${BASE}/events/flagged-kills/unmatched-team/`, {
+      method: "PATCH",
+      headers: authHeaders(token, true),
+      body: JSON.stringify({ block_id: blockId, tournament_team_id: tournamentTeamId }),
     });
     if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.message || "Failed to update.");
     return r.json();

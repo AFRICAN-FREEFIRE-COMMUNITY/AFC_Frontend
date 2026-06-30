@@ -26,5 +26,9 @@
   "updateFailed": "Não foi possível atualizar os abates sinalizados.",
   "loadFailed": "Não foi possível carregar os jogadores sinalizados.",
   "flaggedBadge": "{count} sinalizados",
-  "loading": "Carregando jogadores sinalizados..."
+  "loading": "Carregando jogadores sinalizados...",
+  "unmatchedTitle": "Equipas não encontradas ({count})",
+  "unmatchedSubtitle": "Estas equipas do jogo não correspondem a nenhuma equipa registada. Atribui cada uma delas a uma equipa deste evento ou mantém a opção «Não contar».",
+  "unmatchedMeta": "Posição n.º {placement}, {kills} pontos",
+  "unmatchedDontCount": "Não contes"
 }

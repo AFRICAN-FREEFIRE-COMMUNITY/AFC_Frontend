@@ -26,5 +26,9 @@
   "updateFailed": "Could not update flagged kills.",
   "loadFailed": "Could not load flagged players.",
   "flaggedBadge": "{count} flagged",
-  "loading": "Loading flagged players..."
+  "loading": "Loading flagged players...",
+  "unmatchedTitle": "Teams not found ({count})",
+  "unmatchedSubtitle": "These in-game teams did not match any registered team. Attribute each one to a team in this event, or leave it on \"Don't count\".",
+  "unmatchedMeta": "Placement #{placement}, {kills} kills",
+  "unmatchedDontCount": "Don't count"
 }

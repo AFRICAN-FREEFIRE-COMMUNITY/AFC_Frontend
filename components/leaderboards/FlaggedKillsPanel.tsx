@@ -26,7 +26,12 @@ import {
 import { IconFlag, IconAlertTriangle } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { flaggedKillsApi, FlaggedKill } from "@/lib/flaggedKills";
+import {
+  flaggedKillsApi,
+  FlaggedKill,
+  UnmatchedTeamRow,
+  EventTeamOption,
+} from "@/lib/flaggedKills";
 
 type Props = {
   eventId: number | string;
@@ -56,6 +61,9 @@ export function FlaggedKillsPanel({ eventId, token, canManage = true, onChanged 
   const [loading, setLoading] = useState(true);
   const [defaultOn, setDefaultOn] = useState(true);
   const [flags, setFlags] = useState<FlaggedKill[]>([]);
+  // Unmatched in-game team blocks + the registered teams to attribute them to (owner 2026-06-30).
+  const [unmatched, setUnmatched] = useState<UnmatchedTeamRow[]>([]);
+  const [eventTeams, setEventTeams] = useState<EventTeamOption[]>([]);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -65,6 +73,8 @@ export function FlaggedKillsPanel({ eventId, token, canManage = true, onChanged 
       const r = await flaggedKillsApi.get(eventId, token);
       setDefaultOn(r.count_flagged_kills);
       setFlags(r.flags);
+      setUnmatched(r.unmatched_teams ?? []);
+      setEventTeams(r.event_teams ?? []);
     } catch {
       toast.error(t("loadFailed"));
     } finally {
@@ -100,6 +110,26 @@ export function FlaggedKillsPanel({ eventId, token, canManage = true, onChanged 
     setBusy(true);
     try {
       await flaggedKillsApi.setFlag(flag.flag_id, fromSel(sel), token);
+      toast.success(t("updated"));
+      await afterChange();
+    } catch {
+      toast.error(t("updateFailed"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Attribute an unmatched in-game team block to a registered team ("" = don't count). Recomputes
+  // the standings on the server, then refetch + tell the parent to reload (owner 2026-06-30).
+  const onAttributeTeam = async (block: UnmatchedTeamRow, val: string) => {
+    if (!token || busy) return;
+    setBusy(true);
+    try {
+      await flaggedKillsApi.attributeUnmatchedTeam(
+        block.block_id,
+        val ? Number(val) : null,
+        token,
+      );
       toast.success(t("updated"));
       await afterChange();
     } catch {
@@ -221,6 +251,55 @@ export function FlaggedKillsPanel({ eventId, token, canManage = true, onChanged 
               ))}
             </TableBody>
           </Table>
+        )}
+
+        {/* Unmatched in-game teams (owner 2026-06-30): blocks from a match-log upload that matched NO
+            registered team. Attribute each to a team (scores its placement + kills) or leave it on
+            "Don't count". This is the team-level companion to the per-player flags above, so every
+            upload-attribution decision lives on this one panel - no re-upload. */}
+        {unmatched.length > 0 && (
+          <div className="mt-4 space-y-2 border-t pt-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-orange-400">
+              <IconAlertTriangle className="size-4" />
+              {t("unmatchedTitle", { count: unmatched.length })}
+            </div>
+            <p className="text-xs text-muted-foreground">{t("unmatchedSubtitle")}</p>
+            <div className="rounded-lg border divide-y">
+              {unmatched.map((b) => (
+                <div
+                  key={b.block_id}
+                  className="flex items-center justify-between gap-3 px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-xs font-medium">{b.team_name}</div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {t("unmatchedMeta", { placement: b.placement, kills: b.kills })}
+                    </div>
+                  </div>
+                  <Select
+                    value={b.attributed_team_id ? String(b.attributed_team_id) : "none"}
+                    onValueChange={(v) => onAttributeTeam(b, v === "none" ? "" : v)}
+                    disabled={!canManage || busy}
+                  >
+                    <SelectTrigger className="h-8 w-[170px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t("unmatchedDontCount")}</SelectItem>
+                      {eventTeams.map((et) => (
+                        <SelectItem
+                          key={et.tournament_team_id}
+                          value={String(et.tournament_team_id)}
+                        >
+                          {et.team_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>

@@ -26,5 +26,9 @@
   "updateFailed": "Impossible de mettre à jour les frags signalés.",
   "loadFailed": "Impossible de charger les joueurs signalés.",
   "flaggedBadge": "{count} signalé(s)",
-  "loading": "Chargement des joueurs signalés..."
+  "loading": "Chargement des joueurs signalés...",
+  "unmatchedTitle": "Équipes introuvables ({count})",
+  "unmatchedSubtitle": "Ces équipes présentes dans le jeu ne correspondent à aucune équipe enregistrée. Attribuez chacune d'entre elles à une équipe participant à cet événement, ou laissez l'option « Ne pas compter » sélectionnée.",
+  "unmatchedMeta": "Classement n° {placement}, {kills} kills",
+  "unmatchedDontCount": "Ne compte pas"
 }

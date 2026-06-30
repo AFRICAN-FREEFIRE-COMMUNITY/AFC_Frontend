@@ -186,12 +186,6 @@ export function FileUploadStep({
   const [approvedKeys, setApprovedKeys] = useState<Map<string, boolean>>(new Map());
   const [busyApproveKey, setBusyApproveKey] = useState<string | null>(null);
 
-  // ── Missing-teams resolver (owner 2026-06-30) ────────────────────────────────
-  // For each unmatched in-game team the admin picks a registered team to attribute its result to, or
-  // leaves it on "" (don't count). "Apply attributions" RE-UPLOADS the same file with the chosen map,
-  // so those blocks get scored for the picked teams (the upload is idempotent). Keyed by in-game name.
-  const [teamAttributions, setTeamAttributions] = useState<Record<string, string>>({});
-  const [applyingAttr, setApplyingAttr] = useState(false);
 
   // ── "Add to watchlist" from the upload review ────────────────────────────────
   // Calls the shared watchlistApi.add (lib/watchlist.ts -> POST auth/watchlist/, Bearer inside).
@@ -300,7 +294,7 @@ export function FileUploadStep({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleUpload = async (attributions?: Record<string, string>) => {
+  const handleUpload = async () => {
     if (!selectedFile) {
       toast.error("Please select a file to upload");
       return;
@@ -316,17 +310,6 @@ export function FileUploadStep({
     formPayload.append("match_id", match.match_id.toString());
     formPayload.append("file", selectedFile);
     formPayload.append("file_type", fileType);
-    // Manual team attribution (owner 2026-06-30): re-upload the same file mapping unmatched in-game
-    // team names to registered tournament_team_ids, so those blocks get scored for the chosen teams.
-    if (attributions && Object.keys(attributions).length > 0) {
-      const map: Record<string, number> = {};
-      for (const [name, id] of Object.entries(attributions)) {
-        if (id) map[name] = Number(id);
-      }
-      if (Object.keys(map).length > 0) {
-        formPayload.append("team_attributions", JSON.stringify(map));
-      }
-    }
 
     setUploading(true);
     try {
@@ -671,10 +654,10 @@ export function FileUploadStep({
             </div>
           )}
 
-          {/* Team blocks that matched NO registered team (owner 2026-06-30): tell the admin AND let
-              them attribute each one to a registered team, or leave it on "Don't count". Picking teams
-              and clicking Apply re-uploads the same file with the chosen mapping so those blocks are
-              scored for the picked teams (the upload is idempotent, so existing teams aren't doubled). */}
+          {/* Team blocks that matched NO registered team (owner 2026-06-30): tell the admin they exist;
+              the actual attribute/skip resolution lives in ONE place - the "Flagged player kills" panel
+              on the leaderboard, where each unmatched team is now listed with an attribute/skip dropdown
+              (alongside the per-player flags). So this is just a heads-up, not a second resolver. */}
           {uploadResult.missing_teams.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-semibold text-orange-400">
@@ -683,52 +666,21 @@ export function FileUploadStep({
                 {uploadResult.missing_teams.length})
               </div>
               <p className="text-xs text-muted-foreground">
-                These in-game teams did not match any registered team. Attribute each one to a team in
-                this event, or leave it on &quot;Don&apos;t count&quot; to skip it.
+                These in-game teams did not match any registered team. Resolve them in the
+                &quot;Flagged player kills&quot; panel on the leaderboard: attribute each one to a team,
+                or leave it uncounted.
               </p>
-              <div className="rounded-lg border divide-y">
+              <div className="flex flex-wrap gap-1.5">
                 {uploadResult.missing_teams.map((t, i) => (
-                  <div
+                  <Badge
                     key={`${t}-${i}`}
-                    className="flex items-center justify-between gap-3 px-3 py-2"
+                    variant="outline"
+                    className="rounded-full px-2 py-0.5 text-xs"
                   >
-                    <span className="min-w-0 truncate text-xs font-medium">{t}</span>
-                    <select
-                      className="h-8 shrink-0 rounded-md border bg-background px-2 text-xs"
-                      value={teamAttributions[t] ?? ""}
-                      onChange={(e) =>
-                        setTeamAttributions((prev) => ({ ...prev, [t]: e.target.value }))
-                      }
-                    >
-                      <option value="">Don&apos;t count</option>
-                      {(uploadResult.event_teams ?? []).map((et) => (
-                        <option
-                          key={et.tournament_team_id}
-                          value={String(et.tournament_team_id)}
-                        >
-                          {et.team_name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    {t}
+                  </Badge>
                 ))}
               </div>
-              {Object.values(teamAttributions).some(Boolean) && (
-                <Button
-                  size="sm"
-                  disabled={applyingAttr || uploading}
-                  onClick={async () => {
-                    setApplyingAttr(true);
-                    try {
-                      await handleUpload(teamAttributions);
-                    } finally {
-                      setApplyingAttr(false);
-                    }
-                  }}
-                >
-                  {applyingAttr ? "Applying..." : "Apply attributions"}
-                </Button>
-              )}
             </div>
           )}
 

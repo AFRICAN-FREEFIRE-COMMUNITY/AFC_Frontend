@@ -81,14 +81,10 @@ interface FileRow {
     parsed: number;
     saved: number;
     unmatched: number;
-    // Team uploads only (owner 2026-06-30): in-game team blocks that matched NO registered team, and
-    // every registered team in the event, so the per-file review can offer an attribute/skip dropdown.
+    // Team uploads only (owner 2026-06-30): in-game team blocks that matched NO registered team, named
+    // in a heads-up; the attribute/skip resolution lives in the Flagged panel on the leaderboard.
     missingTeams: string[];
-    eventTeams: { tournament_team_id: number; team_name: string }[];
   };
-  // Admin's per-file attribution choices for this row's unmatched teams: in-game name -> tt_id as a
-  // string ("" = don't count). Sent as team_attributions when the file is APPLIED (owner 2026-06-30).
-  attributions?: Record<string, string>;
   error?: string;
 }
 
@@ -188,17 +184,6 @@ export function MultiMapLogPanel({
     fd.append("file", row.file);
     fd.append("file_type", "match_result_file");
     if (dryRun) fd.append("dry_run", "true");
-    // Manual team attribution (owner 2026-06-30): on APPLY, send the admin's per-file mapping of
-    // unmatched in-game team names to registered tournament_team_ids so those blocks get scored.
-    if (!dryRun && row.attributions) {
-      const map: Record<string, number> = {};
-      for (const [name, id] of Object.entries(row.attributions)) {
-        if (id) map[name] = Number(id);
-      }
-      if (Object.keys(map).length > 0) {
-        fd.append("team_attributions", JSON.stringify(map));
-      }
-    }
     // Solo + team use different endpoints but the SAME multipart shape + dry_run contract.
     const endpoint = isSolo
       ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/upload-solo-match-result/`
@@ -220,24 +205,7 @@ export function MultiMapLogPanel({
     saved: (isSolo ? d.saved_rows : d.saved_players) ?? 0,
     unmatched: (isSolo ? d.missing_count : d.unmatched_count) ?? 0,
     missingTeams: Array.isArray(d.missing_teams) ? d.missing_teams : [],
-    eventTeams: Array.isArray(d.event_teams) ? d.event_teams : [],
   });
-
-  // Set the admin's attribution choice for one unmatched team on one file row (owner 2026-06-30). If
-  // the row already applied, drop it back to "reviewed" so the next "Apply all" re-runs it with the new
-  // choice (the preview + dropdowns stay visible). "Apply all" skips already-applied rows otherwise.
-  const setRowAttribution = (idx: number, teamName: string, ttId: string) =>
-    setRows((rs) =>
-      rs.map((r, i) =>
-        i === idx
-          ? {
-              ...r,
-              attributions: { ...(r.attributions ?? {}), [teamName]: ttId },
-              status: r.status === "applied" ? "reviewed" : r.status,
-            }
-          : r,
-      ),
-    );
 
   // Run a sequential pass over every row (dry-run preview OR real apply), updating each row's status.
   const runPass = async (dryRun: boolean) => {
@@ -412,40 +380,21 @@ export function MultiMapLogPanel({
               </div>
             )}
 
-            {/* Missing-teams resolver (owner 2026-06-30): after Review, any in-game team that matched
-                NO registered team is listed here. Pick a team to attribute its result to, or leave
-                "Don't count". The choice is sent as team_attributions when you Apply all. */}
+            {/* Unmatched teams notice (owner 2026-06-30): after Review/Apply, any in-game team that
+                matched NO registered team is named here as a heads-up. The actual attribute/skip
+                resolution lives in ONE place - the "Flagged player kills" panel on the leaderboard,
+                which now lists each unmatched team with an attribute/skip dropdown. */}
             {!isSolo &&
               row.preview &&
               row.status !== "error" &&
               (row.preview.missingTeams?.length ?? 0) > 0 && (
-                <div className="mt-2 space-y-1.5 rounded-md border border-amber-500/40 bg-amber-500/5 p-2">
-                  <p className="flex items-center gap-1 text-[11px] font-medium text-amber-600">
+                <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-2">
+                  <p className="flex items-center gap-1 text-[11px] text-amber-600">
                     <IconAlertTriangle size={12} />
                     {row.preview.missingTeams.length} team
-                    {row.preview.missingTeams.length === 1 ? "" : "s"} not found. Attribute or skip:
+                    {row.preview.missingTeams.length === 1 ? "" : "s"} not found:{" "}
+                    {row.preview.missingTeams.join(", ")}. Attribute them in the Flagged panel.
                   </p>
-                  {row.preview.missingTeams.map((tn) => (
-                    <div key={tn} className="flex items-center justify-between gap-2">
-                      <span className="min-w-0 truncate text-[11px]">{tn}</span>
-                      <select
-                        className="h-7 shrink-0 rounded-md border bg-background px-1.5 text-[11px]"
-                        value={row.attributions?.[tn] ?? ""}
-                        onChange={(e) => setRowAttribution(idx, tn, e.target.value)}
-                        disabled={busy}
-                      >
-                        <option value="">Don&apos;t count</option>
-                        {(row.preview?.eventTeams ?? []).map((et) => (
-                          <option
-                            key={et.tournament_team_id}
-                            value={String(et.tournament_team_id)}
-                          >
-                            {et.team_name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ))}
                 </div>
               )}
 
