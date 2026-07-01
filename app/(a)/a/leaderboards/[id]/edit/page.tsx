@@ -43,6 +43,7 @@ import {
   IconChevronDown,
   IconChevronRight,
   IconUpload,
+  IconFlag,
   IconCopy,
   IconRefresh,
   IconUserPlus,
@@ -1365,22 +1366,6 @@ export default function EditLeaderboardPage({
         />
       </span>
 
-      {/* Flagged-kill controls (owner 2026-06-30): only TEAM events have ringer flags (from the team
-          match-log file upload). The admin uploads results on THIS edit page, so the "Count flagged
-          players' kills" toggle + the per-player list must be here, not only on the view page. The
-          toggle is ON by default (Event.count_flagged_kills) and a fresh upload now applies it without
-          needing to toggle it off/on. key=flagRefreshKey remounts it after an upload rewrites the flags;
-          onChanged re-pulls the standings so toggling a player re-scores the tables live. */}
-      {eventData && participantType !== "solo" && (
-        <FlaggedKillsPanel
-          key={flagRefreshKey}
-          eventId={id}
-          token={token}
-          canManage
-          onChanged={fetchData}
-        />
-      )}
-
       {/* Stage tabs */}
       {/* data-tour anchor (leaderboard-edit-stage-group): admin tour "Stage and group picker"
           step. Stage is these tabs; the group selector renders just below when a stage has
@@ -1428,7 +1413,12 @@ export default function EditLeaderboardPage({
       {/* data-tour anchor (leaderboard-edit-match): admin tour "Edit individual match" step.
           These tabs are where one match's results, totals, scoring and uploads are re-entered. */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList data-tour="leaderboard-edit-match" className="grid w-full grid-cols-4">
+        {/* Flagging gets its OWN tab for team events (owner 2026-06-30) so the admin no longer scrolls
+            past the whole standings to reach the flagged-kills / unmatched-team controls. */}
+        <TabsList
+          data-tour="leaderboard-edit-match"
+          className={`grid w-full ${participantType === "solo" ? "grid-cols-4" : "grid-cols-5"}`}
+        >
           <TabsTrigger value="matches">
             <IconMap size={14} className="mr-1" />
             Match Results
@@ -1445,6 +1435,12 @@ export default function EditLeaderboardPage({
             <IconUpload size={14} className="mr-1" />
             Upload Results
           </TabsTrigger>
+          {participantType !== "solo" && (
+            <TabsTrigger value="flagging">
+              <IconFlag size={14} className="mr-1" />
+              Flagging
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* ── Match Results Tab ── */}
@@ -2536,6 +2532,22 @@ export default function EditLeaderboardPage({
             </>
           )}
         </TabsContent>
+
+        {/* ── Flagging Tab (team events only) ── the per-player ringer flags + the unmatched-team
+            attribution, in their own tab so they're one click away from the standings. */}
+        {participantType !== "solo" && (
+          <TabsContent value="flagging" className="mt-4 space-y-4">
+            {eventData && (
+              <FlaggedKillsPanel
+                key={flagRefreshKey}
+                eventId={id}
+                token={token}
+                canManage
+                onChanged={fetchData}
+              />
+            )}
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* ── Upload Results Drawer ── */}

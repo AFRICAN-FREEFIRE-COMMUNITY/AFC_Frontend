@@ -48,6 +48,15 @@ interface MemberUpdate {
   in_game_role: string;
 }
 
+// Roster role families + the 6-player cap (mirrors the backend's PLAYER_ROLES/STAFF_ROLES/MAX_PLAYERS
+// in afc_team/views.py, owner 2026-06-30). PLAYING roles fill the 6 slots and may play events; STAFF
+// (management) roles never play and are locked across the season. The UI forces extras into a STAFF
+// role (the playing options disable once 6 are filled) and warns before any move INTO a STAFF role; the
+// backend enforces the same rules regardless, so the UI is guidance, not the only guard.
+const PLAYER_ROLES = new Set(["team_captain", "vice_captain", "member"]);
+const STAFF_ROLES = new Set(["coach", "manager", "analyst"]);
+const MAX_PLAYERS = 6;
+
 type Params = Promise<{
   id: string;
 }>;
@@ -69,6 +78,21 @@ export default function page({ params }: { params: Params }) {
   );
   const [kickModalOpen, setKickModalOpen] = useState(false);
   const [memberToKick, setMemberToKick] = useState<any>(null);
+  // A pending move INTO a management (staff) role, held for an explicit confirm (owner 2026-06-30):
+  // staff can't play + the role is season-locked, so the change only applies after the warning dialog.
+  const [staffConfirm, setStaffConfirm] = useState<
+    { memberId: number; role: string; name: string } | null
+  >(null);
+
+  // The member's effective management role taking any unsaved pending change into account.
+  const effectiveRole = (m: any) =>
+    roleChanges.get(m.id)?.management_role ?? m.management_role;
+  // How many PLAYING members the team currently has (with pending edits applied). At the cap, the
+  // playing options are disabled for anyone not already playing -> they can only take a staff role.
+  const playingCount = (teamDetails?.members ?? []).filter((m: any) =>
+    PLAYER_ROLES.has(effectiveRole(m)),
+  ).length;
+  const playingFull = playingCount >= MAX_PLAYERS;
 
   useEffect(() => {
     if (!id) return; // Don't run if id is not available yet
@@ -268,6 +292,14 @@ export default function page({ params }: { params: Params }) {
         <PageHeader title={t("roster.pageTitle", { team: teamDetails.team_name })} back />
         <Card>
           <CardContent>
+            {/* Over-cap warning (owner 2026-06-30): a team can field at most 6 (captain + vice + 4).
+                When there are more playing members, the extras must be moved to a management role. */}
+            {playingCount > MAX_PLAYERS && (
+              <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-600">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>{t("roster.capWarning", { count: playingCount, max: MAX_PLAYERS })}</p>
+              </div>
+            )}
             <Table>
               <TableHeader>
                 <TableRow>
@@ -329,19 +361,45 @@ export default function page({ params }: { params: Params }) {
                         <Select
                           key={`management-${member.id}`}
                           value={currentManagementRole}
-                          onValueChange={(value) =>
-                            handleRoleChange(member.id, "managementRole", value)
-                          }
+                          onValueChange={(value) => {
+                            // Moving INTO a management/staff role -> warn + confirm first (it cannot
+                            // play events and is locked for the season). Other changes apply directly.
+                            if (
+                              STAFF_ROLES.has(value) &&
+                              !STAFF_ROLES.has(currentManagementRole)
+                            ) {
+                              setStaffConfirm({
+                                memberId: member.id,
+                                role: value,
+                                name: member.username,
+                              });
+                            } else {
+                              handleRoleChange(member.id, "managementRole", value);
+                            }
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="member">{t("roster.member")}</SelectItem>
-                            <SelectItem value="team_captain">
+                            {/* Playing options disable once the team has 6 playing members and THIS
+                                member isn't one of them - the extras must take a management role. */}
+                            <SelectItem
+                              value="member"
+                              disabled={playingFull && !PLAYER_ROLES.has(currentManagementRole)}
+                            >
+                              {t("roster.member")}
+                            </SelectItem>
+                            <SelectItem
+                              value="team_captain"
+                              disabled={playingFull && !PLAYER_ROLES.has(currentManagementRole)}
+                            >
                               {t("roster.teamCaptain")}
                             </SelectItem>
-                            <SelectItem value="vice_captain">
+                            <SelectItem
+                              value="vice_captain"
+                              disabled={playingFull && !PLAYER_ROLES.has(currentManagementRole)}
+                            >
                               {t("roster.viceCaptain")}
                             </SelectItem>
                             <SelectItem value="coach">{t("roster.coach")}</SelectItem>
@@ -485,6 +543,49 @@ export default function page({ params }: { params: Params }) {
                     {t("roster.removeFromTeam")}
                   </>
                 )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Confirm before moving a member INTO a management role (owner 2026-06-30): it cannot play
+            events and is locked for the season, so the change only applies after this warning. */}
+        <Dialog
+          open={!!staffConfirm}
+          onOpenChange={(o) => !o && setStaffConfirm(null)}
+        >
+          <DialogContent className="sm:max-w-[440px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                {t("roster.staffWarnTitle")}
+              </DialogTitle>
+              <DialogDescription>
+                {t("roster.staffWarnBody", {
+                  name: staffConfirm?.name ?? "",
+                  role: staffConfirm
+                    ? t(`roster.${staffConfirm.role}` as any)
+                    : "",
+                })}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setStaffConfirm(null)}>
+                {t("roster.cancel")}
+              </Button>
+              <Button
+                onClick={() => {
+                  if (staffConfirm) {
+                    handleRoleChange(
+                      staffConfirm.memberId,
+                      "managementRole",
+                      staffConfirm.role,
+                    );
+                  }
+                  setStaffConfirm(null);
+                }}
+              >
+                {t("roster.staffWarnConfirm")}
               </Button>
             </DialogFooter>
           </DialogContent>
