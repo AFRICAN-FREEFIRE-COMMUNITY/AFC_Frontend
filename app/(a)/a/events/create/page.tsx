@@ -215,16 +215,45 @@ export default function CreateEventPage() {
     prizepool: 5, prizepool_cash_value: 5, prize_distribution: 5, prize_currency: 5,
     event_rules: 6, rules_document: 6,
   };
-  const onInvalidSubmit = (errors: Record<string, { message?: string } | undefined>) => {
-    const fields = Object.keys(errors || {});
-    if (!fields.length) return;
-    setCurrentStep(Math.min(...fields.map((f) => FIELD_STEP[f] ?? 1)));
-    // Humanize the field keys ("competition_type" -> "Competition Type") so the toast names the fields
-    // to fill, not Zod's raw "expected string, received undefined".
-    const humanize = (f: string) =>
-      f.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    const names = fields.map(humanize).slice(0, 6);
-    toast.error(`Please complete these fields: ${names.join(", ")}`);
+  const onInvalidSubmit = (errors: Record<string, unknown>) => {
+    // Walk the RHF error tree down to leaf messages. Fields nest (stages[i].groups[j].<field>), so a
+    // top-level "stages" error is useless — this pinpoints the EXACT stage/group/field + its message.
+    const leaves: { path: string; message: string }[] = [];
+    const walk = (node: any, path: string) => {
+      if (!node || typeof node !== "object") return;
+      if (typeof node.message === "string" && node.message) {
+        leaves.push({ path, message: node.message });
+        return;
+      }
+      for (const k of Object.keys(node)) {
+        if (k === "ref" || k === "type") continue;
+        walk(node[k], path ? `${path}.${k}` : k);
+      }
+    };
+    walk(errors, "");
+    const topField = (leaves[0]?.path || Object.keys(errors || {})[0] || "").split(".")[0];
+    if (topField) setCurrentStep(FIELD_STEP[topField] ?? 1);
+    if (!leaves.length) {
+      toast.error("Some required fields are missing. Please review each step.");
+      return;
+    }
+    // "stages.2.groups.1.match_maps" -> "Stage 3 > Group 2 > Match Maps".
+    const humanizePath = (p: string) => {
+      const segs = p.split(".");
+      const parts: string[] = [];
+      for (let i = 0; i < segs.length; i++) {
+        if (/^\d+$/.test(segs[i])) continue;
+        const idx = /^\d+$/.test(segs[i + 1]) ? ` ${Number(segs[i + 1]) + 1}` : "";
+        const base = idx ? segs[i].replace(/s$/, "") : segs[i];
+        parts.push(base.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) + idx);
+      }
+      return parts.join(" › ");
+    };
+    // Replace Zod's raw "Invalid input: expected string, received undefined" with a plain "required".
+    const clean = (m: string) =>
+      /invalid input|expected .* received (undefined|nan|null)|^required$/i.test(m) ? "required" : m;
+    const lines = leaves.slice(0, 4).map((l) => `${humanizePath(l.path)}: ${clean(l.message)}`);
+    toast.error(`Please fix: ${lines.join("   •   ")}`, { duration: 9000 });
   };
 
   // ── Effects ─────────────────────────────────────────────────────────────────

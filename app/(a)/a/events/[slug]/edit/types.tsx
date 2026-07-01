@@ -148,6 +148,9 @@ export const EventFormSchema = z
     stages: z.array(StageSchema).min(1, "At least one stage required"),
     prizepool: z.string().min(1, "Prize pool required"),
     prizepool_cash_value: z.coerce.number().optional(),
+    // Prize currency (owner 2026-07-01): what the prize amounts are in, so the backend converts FROM
+    // the right one. Matches the create schema. Default USD.
+    prize_currency: z.string().optional(),
     // prize_distribution: z.record(z.string(), z.coerce.number()),
     prize_distribution: z.record(
       z.string(),

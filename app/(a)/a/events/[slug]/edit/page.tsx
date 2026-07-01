@@ -534,6 +534,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           stages: mappedStages,
           prizepool: eventDetails.prizepool,
           prizepool_cash_value: eventDetails.prizepool_cash_value ?? undefined,
+          // Prize currency (owner 2026-07-01): preselect the event's stored currency (default USD).
+          prize_currency:
+            (eventDetails as { prize_currency?: string }).prize_currency || "USD",
           prize_distribution: eventDetails.prize_distribution,
           event_rules: eventDetails.event_rules,
           rules_document: eventDetails.uploaded_rules_url || "",
@@ -1218,6 +1221,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         "prizepool_cash_value",
         (data.prizepool_cash_value ?? "").toString(),
       );
+      formData.append("prize_currency", (data.prize_currency || "USD").toString());
       // Duplication-bug fix (owner 2026-06-15): was hardcoded "2", which wrongly reset the event's
       // stage count on every save. Use the actual number of stages the form holds.
       formData.append("number_of_stages", String(data.stages?.length ?? 1));
@@ -1363,6 +1367,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         "prizepool_cash_value",
         (data.prizepool_cash_value ?? "").toString(),
       );
+      formData.append("prize_currency", (data.prize_currency || "USD").toString());
       // Duplication-bug fix (owner 2026-06-15): was hardcoded "2", which wrongly reset the event's
       // stage count on every save. Use the actual number of stages the form holds.
       formData.append("number_of_stages", String(data.stages?.length ?? 1));
@@ -1708,6 +1713,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
+        formData.append("prize_currency", (data.prize_currency || "USD").toString());
         // Duplication-bug fix (owner 2026-06-15): was hardcoded "2", which wrongly reset the event's
       // stage count on every save. Use the actual number of stages the form holds.
       formData.append("number_of_stages", String(data.stages?.length ?? 1));

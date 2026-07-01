@@ -26,6 +26,32 @@ import {
   formatPrizeKey,
 } from "@/lib/eventFormats";
 
+// Prize-currency options (owner 2026-07-01: "more currencies, not just usd and ngn"). A curated set of
+// major world + African currencies AFC events actually award in; every code is FxRate-supported so the
+// backend (get_total_prize_pool) can convert it to USD. USD is the platform base + the default.
+export const PRIZE_CURRENCIES: { code: string; name: string }[] = [
+  { code: "USD", name: "US Dollar" },
+  { code: "NGN", name: "Nigerian Naira" },
+  { code: "GHS", name: "Ghanaian Cedi" },
+  { code: "KES", name: "Kenyan Shilling" },
+  { code: "ZAR", name: "South African Rand" },
+  { code: "EGP", name: "Egyptian Pound" },
+  { code: "MAD", name: "Moroccan Dirham" },
+  { code: "XOF", name: "West African CFA Franc" },
+  { code: "XAF", name: "Central African CFA Franc" },
+  { code: "TZS", name: "Tanzanian Shilling" },
+  { code: "UGX", name: "Ugandan Shilling" },
+  { code: "RWF", name: "Rwandan Franc" },
+  { code: "ETB", name: "Ethiopian Birr" },
+  { code: "DZD", name: "Algerian Dinar" },
+  { code: "AOA", name: "Angolan Kwanza" },
+  { code: "MZN", name: "Mozambican Metical" },
+  { code: "ZMW", name: "Zambian Kwacha" },
+  { code: "EUR", name: "Euro" },
+  { code: "GBP", name: "British Pound" },
+  { code: "INR", name: "Indian Rupee" },
+];
+
 interface Step5Props {
   form: UseFormReturn<EventFormType>;
 }
@@ -133,8 +159,11 @@ export function Step5PrizePool({ form }: Step5Props) {
                     <SelectValue placeholder="Select currency" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="USD">USD ($) — US Dollar</SelectItem>
-                    <SelectItem value="NGN">NGN (₦) — Nigerian Naira</SelectItem>
+                    {PRIZE_CURRENCIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.code} - {c.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormControl>

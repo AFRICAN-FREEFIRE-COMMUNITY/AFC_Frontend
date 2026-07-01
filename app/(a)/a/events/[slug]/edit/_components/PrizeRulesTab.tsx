@@ -14,6 +14,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+// Shared prize-currency options (owner 2026-07-01: create + edit use the SAME list).
+import { PRIZE_CURRENCIES } from "@/app/(a)/a/events/create/_components/Step5PrizePool";
+import {
   Card,
   CardContent,
   CardHeader,
@@ -113,6 +122,39 @@ export default function PrizeRulesTab({
                   placeholder="e.g., 5000"
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Prize currency (owner 2026-07-01): pick what currency the amounts above are in so the
+            backend converts FROM the right one. Same list as the create wizard (Step5PrizePool). */}
+        <FormField
+          control={form.control}
+          name="prize_currency"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Prize Currency</FormLabel>
+              <FormControl>
+                <Select
+                  value={(field.value as string) || "USD"}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIZE_CURRENCIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.code} - {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <p className="text-muted-foreground text-xs">
+                The amounts above are treated as this currency for conversion + display.
+              </p>
               <FormMessage />
             </FormItem>
           )}
