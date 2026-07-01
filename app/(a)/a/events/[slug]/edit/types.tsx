@@ -514,7 +514,13 @@ export const validateStageData = (
       }
     }
 
-    // Validate groups
+    // Validate groups. A ROUND-ROBIN stage keeps its schedule (dates + maps) on the game-day MEETINGS
+    // (round_robin.game_days), NOT its base groups A/B/C, so only the base-group NAME is required for
+    // it. The per-group date/time/maps/teams checks below apply to non-round-robin stages (owner
+    // 2026-07-01: round-robin events could not be created/edited - "Group N: Playing Date required").
+    const isRoundRobinStage =
+      /round.?robin/i.test(stage.stage_format || "") ||
+      ((stage.round_robin?.round_robin_groups?.length ?? 0) > 0);
     if (stage.groups && stage.groups.length > 0) {
       stage.groups.forEach((group, gIdx) => {
         if (!group.group_name || group.group_name.trim() === "") {
@@ -528,6 +534,9 @@ export const validateStageData = (
             groupIndex: gIdx,
           });
         }
+
+        // Round-robin base groups carry no schedule (it lives on the meetings) - name is enough.
+        if (isRoundRobinStage) return;
 
         if (!group.playing_date) {
           errors.push({

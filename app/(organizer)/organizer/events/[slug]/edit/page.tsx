@@ -1658,7 +1658,34 @@ export default function OrganizerEditEventPage({
     return changes;
   };
 
-  const handleSaveChangesClick = (data: EventFormType) => {
+  // Round-robin schedule backfill (owner 2026-07-01) - mirrors the create + admin-edit flow. A
+  // round-robin stage keeps its schedule on the game-day meetings, so its base groups have no
+  // date/maps and would fail validateStageData. The backend ignores group date/maps for a round-robin
+  // stage, so copy the meetings' date/time/maps onto the base groups before validating + saving.
+  const backfillRoundRobinGroups = () => {
+    const stages = (form.getValues("stages") as any[]) || [];
+    stages.forEach((s, si) => {
+      const isRR =
+        /round.?robin/i.test(s?.stage_format || "") ||
+        (s?.round_robin?.round_robin_groups?.length ?? 0) > 0;
+      if (!isRR) return;
+      const days = s?.round_robin?.game_days || [];
+      const maps = Array.from(new Set(days.flatMap((d: any) => d?.match_maps || []))) as string[];
+      const date = days.map((d: any) => d?.playing_date).find(Boolean) || s?.start_date || "";
+      const time = days.map((d: any) => d?.playing_time).find(Boolean) || "18:00";
+      (s?.groups || []).forEach((g: any, gi: number) => {
+        if (!g?.playing_date) form.setValue(`stages.${si}.groups.${gi}.playing_date` as any, date);
+        if (!g?.playing_time) form.setValue(`stages.${si}.groups.${gi}.playing_time` as any, time);
+        if (!g?.match_maps || !g.match_maps.length)
+          form.setValue(`stages.${si}.groups.${gi}.match_maps` as any, maps.length ? maps : ["Bermuda"]);
+        if (!g?.match_count) form.setValue(`stages.${si}.groups.${gi}.match_count` as any, 1);
+        if (!g?.teams_qualifying) form.setValue(`stages.${si}.groups.${gi}.teams_qualifying` as any, 1);
+      });
+    });
+  };
+
+  const handleSaveChangesClick = (_data: EventFormType) => {
+    backfillRoundRobinGroups();
     const currentStages = form.getValues("stages");
     const validation = validateStageData(currentStages);
 
@@ -1670,7 +1697,7 @@ export default function OrganizerEditEventPage({
       return;
     }
 
-    setPendingSaveData(data);
+    setPendingSaveData(form.getValues());
     setShowSaveConfirmModal(true);
   };
 
