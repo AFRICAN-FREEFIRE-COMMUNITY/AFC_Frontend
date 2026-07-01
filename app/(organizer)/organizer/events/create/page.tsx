@@ -1058,12 +1058,42 @@ export default function OrganizerCreateEventPage() {
   // session, show the terms modal BEFORE submitting (the spec's "show on submit of a
   // paid org event and let the backend dedupe"). Free events submit straight through.
   // AFC-admin events never reach this page, so the gate is organizer-only by location.
+  // ── Round-robin schedule backfill (owner 2026-07-01) ────────────────────────────
+  // A ROUND-ROBIN stage keeps its schedule (dates + maps) on the game-day MEETINGS
+  // (round_robin.game_days), so its base groups (A/B/C) have no playing_date/match_maps and would
+  // FAIL the per-group GroupSchema ("Group N: Playing Date required") even though the meetings are
+  // fully set. The backend ignores group date/maps for a round-robin stage (it reads the meetings),
+  // so just before submitting we copy the meetings' date/time/maps onto the base groups to satisfy
+  // the form validator. Non-round-robin stages are untouched.
+  const backfillRoundRobinGroups = () => {
+    const stages = (form.getValues("stages") as any[]) || [];
+    stages.forEach((s, si) => {
+      const isRR =
+        /round.?robin/i.test(s?.stage_format || "") ||
+        (s?.round_robin?.round_robin_groups?.length ?? 0) > 0;
+      if (!isRR) return;
+      const days = s?.round_robin?.game_days || [];
+      const maps = Array.from(new Set(days.flatMap((d: any) => d?.match_maps || []))) as string[];
+      const date = days.map((d: any) => d?.playing_date).find(Boolean) || s?.start_date || "";
+      const time = days.map((d: any) => d?.playing_time).find(Boolean) || "18:00";
+      (s?.groups || []).forEach((g: any, gi: number) => {
+        if (!g?.playing_date) form.setValue(`stages.${si}.groups.${gi}.playing_date` as any, date);
+        if (!g?.playing_time) form.setValue(`stages.${si}.groups.${gi}.playing_time` as any, time);
+        if (!g?.match_maps || !g.match_maps.length)
+          form.setValue(`stages.${si}.groups.${gi}.match_maps` as any, maps.length ? maps : ["Bermuda"]);
+        if (!g?.match_count) form.setValue(`stages.${si}.groups.${gi}.match_count` as any, 1);
+        if (!g?.teams_qualifying) form.setValue(`stages.${si}.groups.${gi}.teams_qualifying` as any, 1);
+      });
+    });
+  };
+
   const handleCreateClick = () => {
     const isPaid = form.getValues("registration_type") === "paid";
     if (isPaid && !termsAcceptedRef.current) {
       setShowPaidTermsModal(true);
       return;
     }
+    backfillRoundRobinGroups();
     // @ts-ignore - resolver widens the form's internal TFieldValues generic (same
     // cast the original "Create Event" button used on form.handleSubmit(onSubmit)).
     form.handleSubmit(onSubmit, onInvalidSubmit)();
@@ -1074,6 +1104,7 @@ export default function OrganizerCreateEventPage() {
   const handleAcceptPaidTerms = () => {
     termsAcceptedRef.current = true;
     setShowPaidTermsModal(false);
+    backfillRoundRobinGroups();
     // @ts-ignore - resolver widens the form's internal TFieldValues generic.
     form.handleSubmit(onSubmit, onInvalidSubmit)();
   };
@@ -1128,7 +1159,14 @@ export default function OrganizerCreateEventPage() {
 
       <Form {...form}>
         {/* @ts-ignore - resolver widens the form's internal TFieldValues generic. */}
-        <form data-tour="org-event-create-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          data-tour="org-event-create-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleCreateClick();
+          }}
+          className="space-y-6"
+        >
           {currentStep === 1 && (
             <Step1EventDetails
               // @ts-ignore - reused admin step expects the stricter UseFormReturn.

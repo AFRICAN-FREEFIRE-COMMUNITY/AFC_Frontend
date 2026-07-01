@@ -224,7 +224,7 @@ export const adminNavLinks: AdminNavLink[] = [
     // sources. Page app/(a)/a/overlays/page.tsx lists every event -> Copy OBS link (reused
     // CopyOverlayLinkDialog) + a jump to its leaderboard (results + BroadcastControl). Gated to the
     // event/leaderboard admins (same set that manages leaderboards).
-    label: "OBS Overlays",
+    label: "Live Overlays",
     slug: "/a/overlays",
     icon: IconBroadcast,
     allowedRoles: ["head_admin", "event_admin"],

@@ -1,21 +1,22 @@
 "use client";
 
-// ── Admin · OBS Overlays (central overlay manager) ───────────────────────────
-// PURPOSE (owner 2026-07-01: "there should be a page to manage all these overlays"): one place that
-// lists EVERY event so an admin can grab that event's live-leaderboard OBS Browser Source link and
-// jump to where it is managed. Previously the overlay link + broadcast control lived only on each
-// event's leaderboard edit page; this is the cross-event index over them.
+// ── Admin · Live Overlays (central overlay + capture hub) ────────────────────
+// PURPOSE (owner 2026-07-01): one admin place to run the live leaderboard overlays. Renamed from
+// "OBS Overlays" because the browser-source works in OBS, vMix, or ANY software that takes a Browser
+// Source, so nothing here is OBS-specific.
 //
-// PER ROW:
-//   • Copy OBS overlay link  -> <CopyOverlayLinkDialog eventId> (components/overlay): ensures the
-//     event's read-only overlay_token and builds the browser-source URL (design/size/anim/columns/
-//     follow-broadcast). Same dialog used on the leaderboard edit page.
-//   • Leaderboard            -> /a/leaderboards/<event_id>/edit, where the results, the standings, the
-//     BroadcastControl (what the overlay shows) and the export live.
+// WHAT AN ADMIN DOES HERE:
+//   • Get the AFC Capture software (download + how-to link) — the desktop app that auto-uploads
+//     results + pushes live standings.
+//   • Per event:
+//       - Capture key   : POST events/<id>/upload/token/ (uploadTokenApi.ensure) — the WRITE key the
+//         desktop app authenticates with. Gate = AFC event admin OR the org (so admins can mint it).
+//       - Copy overlay link : <CopyOverlayLinkDialog> — the read-only browser-source URL.
+//       - Broadcast     : <BroadcastControl> in a dialog — SET / TRIGGER which stage/group (or a
+//         cumulative) the overlay shows, live, from here. The overlay follows within one poll.
+//       - Leaderboard   : jump to the full results page.
 //
-// DATA: GET events/get-all-events/ (Bearer admin token, AuthContext). Read-only list; all writes go
-// through the reused dialog + the leaderboard page. Look + feel mirrors the AFC admin idiom
-// (PageHeader green title, bg-card rounded-md border card, Input search, Badge status).
+// DATA: GET events/get-all-events/ (Bearer admin). Writes go through the reused dialog + controls.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react";
@@ -27,14 +28,27 @@ import { PageHeader } from "@/components/PageHeader";
 import { FullLoader } from "@/components/Loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { IconChartBar, IconBroadcast } from "@tabler/icons-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  IconChartBar,
+  IconBroadcast,
+  IconKey,
+  IconDownload,
+} from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { CopyOverlayLinkDialog } from "@/components/overlay/CopyOverlayLinkDialog";
+import { BroadcastControl } from "@/components/overlay/BroadcastControl";
+import { uploadTokenApi } from "@/lib/overlay";
 
-// Only the fields the list needs off get-all-events (which returns more).
 interface EventRow {
   event_id: number;
   event_name: string;
@@ -43,7 +57,61 @@ interface EventRow {
   organization_id?: number | null;
 }
 
-export default function AdminOverlaysPage() {
+// The AFC Capture installer served by this frontend (or a hosted override).
+const CAPTURE_DOWNLOAD_URL =
+  env.NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL || "/downloads/AFC-Capture.exe";
+
+// ── Per-row capture key: mint (or return) the event's upload token, then copy it. Own state so each
+//    row is independent. Gate is server-side (event admin OR org), so an AFC admin can mint any. ──
+function CaptureKeyButton({ eventId }: { eventId: number }) {
+  const [busy, setBusy] = useState(false);
+  const [key, setKey] = useState("");
+
+  const getAndCopy = async () => {
+    setBusy(true);
+    try {
+      const k = key || (await uploadTokenApi.ensure(eventId));
+      setKey(k);
+      await navigator.clipboard?.writeText(k);
+      toast.success("Capture key copied. Paste it into AFC Capture.");
+    } catch {
+      toast.error("Could not generate the capture key.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Button variant="outline" size="sm" onClick={getAndCopy} disabled={busy}>
+      <IconKey className="size-4" />
+      {key ? "Copy capture key" : "Capture key"}
+    </Button>
+  );
+}
+
+// ── Per-row broadcast control in a dialog (lazy: BroadcastControl only fetches when opened). ──
+function BroadcastDialog({ eventId }: { eventId: number }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <IconBroadcast className="size-4" />
+          Broadcast
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>What the overlay shows</DialogTitle>
+        </DialogHeader>
+        {/* Only mounts (and fetches) while the dialog is open. */}
+        {open ? <BroadcastControl eventId={eventId} /> : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default function AdminLiveOverlaysPage() {
   const { token } = useAuth();
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,8 +127,7 @@ export default function AdminOverlaysPage() {
           { headers: { Authorization: `Bearer ${token}` } },
         );
         const data = res.data as { events?: EventRow[] } | EventRow[];
-        const list = Array.isArray(data) ? data : (data.events ?? []);
-        if (!cancelled) setEvents(list);
+        if (!cancelled) setEvents(Array.isArray(data) ? data : (data.events ?? []));
       } catch {
         if (!cancelled) toast.error("Could not load events.");
       } finally {
@@ -82,12 +149,42 @@ export default function AdminOverlaysPage() {
   if (loading) return <FullLoader />;
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="OBS Overlays"
-        description="Copy the live-leaderboard browser source for any event, then manage what it shows from that event's leaderboard."
+        title="Live Overlays"
+        description="Run the live leaderboard overlays. The browser source works in OBS, vMix, or any software that takes a Browser Source."
       />
 
+      {/* ── AFC Capture software (download + how-to) ── */}
+      <Card className="bg-card rounded-md border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <IconDownload className="text-primary size-5" />
+            AFC Capture software
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-muted-foreground text-sm">
+            The Windows desktop app that runs on the room-hosting PC: it auto-uploads each round's
+            result and pushes live in-round standings to the overlay. It only works with the Free Fire
+            3D observer client on the same PC. Generate an event's capture key below, paste it into the
+            app, and leave it running while you host.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild>
+              <a href={CAPTURE_DOWNLOAD_URL} download>
+                <IconDownload className="size-4" />
+                Download AFC Capture
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/organizer/capture">Setup guide &amp; FAQ</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Per-event overlay controls ── */}
       <Card className="bg-card rounded-md border">
         <CardContent className="space-y-3 p-4">
           <div className="flex items-center gap-2">
@@ -130,12 +227,12 @@ export default function AdminOverlaysPage() {
                       ) : null}
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center gap-2">
-                      {/* Reused dialog: ensures the overlay token + builds the OBS browser-source URL. */}
+                      <CaptureKeyButton eventId={e.event_id} />
                       <CopyOverlayLinkDialog
                         eventId={e.event_id}
                         organizationId={orgId}
                       />
-                      {/* Where the BroadcastControl (what the overlay shows) + results live. */}
+                      <BroadcastDialog eventId={e.event_id} />
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/a/leaderboards/${e.event_id}/edit`}>
                           <IconChartBar className="size-4" />

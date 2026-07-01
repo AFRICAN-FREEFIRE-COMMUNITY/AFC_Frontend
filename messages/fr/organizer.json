@@ -866,9 +866,9 @@
     "download": "Télécharger"
   },
   "obsOverlay": {
-    "button": "Copier le lien vers la superposition OBS",
+    "button": "Copier le lien de superposition",
     "dialogTitle": "Affichage en superposition du classement en temps réel",
-    "dialogDescription": "Créez un lien à intégrer dans OBS en tant que source « navigateur ». Il affiche le design de votre choix avec des classements en temps réel qui se mettent à jour automatiquement.",
+    "dialogDescription": "Créez un lien à intégrer dans OBS, vMix ou tout autre logiciel en tant que « Source navigateur ». Il affiche le design de votre choix avec des classements en temps réel qui se mettent à jour automatiquement.",
     "stage": "Scène",
     "selectStage": "Sélectionnez une étape",
     "stageFallback": "Étape{id}",
@@ -901,7 +901,7 @@
     "link": "Lien superposé",
     "preparing": "Préparation du lien...",
     "copyTitle": "Copier le lien",
-    "obsHint": "Dans OBS : ajoutez une source « Navigateur » et collez ce lien. Réglez la largeur et la hauteur en fonction des dimensions que vous avez choisies.",
+    "obsHint": "Dans votre logiciel de streaming (OBS, vMix, etc.) : ajoutez une source « Navigateur » et collez ce lien. Réglez la largeur et la hauteur en fonction des dimensions que vous avez choisies.",
     "copyLink": "Copier le lien",
     "copied": "Lien de superposition copié.",
     "copyError": "Impossible de copier le lien. Sélectionnez-le et copiez-le manuellement.",

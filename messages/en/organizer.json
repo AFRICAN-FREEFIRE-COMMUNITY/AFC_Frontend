@@ -866,9 +866,9 @@
     "download": "Download"
   },
   "obsOverlay": {
-    "button": "Copy OBS overlay link",
+    "button": "Copy overlay link",
     "dialogTitle": "Live leaderboard overlay",
-    "dialogDescription": "Build a link to drop into OBS as a Browser Source. It shows your chosen design with live standings that update on their own.",
+    "dialogDescription": "Build a link to drop into OBS, vMix, or any software as a Browser Source. It shows your chosen design with live standings that update on their own.",
     "stage": "Stage",
     "selectStage": "Select a stage",
     "stageFallback": "Stage {id}",
@@ -901,7 +901,7 @@
     "link": "Overlay link",
     "preparing": "Preparing link...",
     "copyTitle": "Copy link",
-    "obsHint": "In OBS: add a Browser Source and paste this link. Set the width and height to match the size you picked.",
+    "obsHint": "In your streaming software (OBS, vMix, etc.): add a Browser Source and paste this link. Set the width and height to match the size you picked.",
     "copyLink": "Copy link",
     "copied": "Overlay link copied.",
     "copyError": "Could not copy the link. Select it and copy manually.",

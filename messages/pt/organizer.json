@@ -866,9 +866,9 @@
     "download": "Descarregar"
   },
   "obsOverlay": {
-    "button": "Copiar o link da sobreposição do OBS",
+    "button": "Copiar link da sobreposição",
     "dialogTitle": "Sobreposição da tabela de classificação em tempo real",
-    "dialogDescription": "Crie um link para inserir no OBS como fonte de navegador. Este mostra o design que escolheu com classificações em tempo real que se atualizam automaticamente.",
+    "dialogDescription": "Crie um link para inserir no OBS, no vMix ou em qualquer outro software como «Fonte do Navegador». Este link apresenta o design que escolheu com classificações em tempo real que se atualizam automaticamente.",
     "stage": "Palco",
     "selectStage": "Selecione uma fase",
     "stageFallback": "Etapa{id}",
@@ -901,7 +901,7 @@
     "link": "Link de sobreposição",
     "preparing": "A preparar o link...",
     "copyTitle": "Copiar link",
-    "obsHint": "No OBS: adiciona uma fonte de navegador e cola este link. Define a largura e a altura de acordo com o tamanho que escolheste.",
+    "obsHint": "No seu software de transmissão (OBS, vMix, etc.): adicione uma fonte de navegador e cole este link. Defina a largura e a altura de acordo com o tamanho que escolheu.",
     "copyLink": "Copiar link",
     "copied": "O link da sobreposição foi copiado.",
     "copyError": "Não foi possível copiar o link. Selecione-o e copie-o manualmente.",
