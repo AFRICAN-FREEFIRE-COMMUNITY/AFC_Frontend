@@ -90,6 +90,15 @@ import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
+// "Copy OBS overlay link" dialog (components/overlay/CopyOverlayLinkDialog.tsx): builds the public
+// live-overlay URL for this event's leaderboard. Mounted beside the header so an admin can grab the
+// OBS Browser Source link. Same component the organizer event leaderboard page mounts.
+import { CopyOverlayLinkDialog } from "@/components/overlay/CopyOverlayLinkDialog";
+// Broadcast control (components/overlay/BroadcastControl.tsx, owner 2026-07-01): lets the admin pick
+// which stage/group the live overlay shows, or combine groups/stages into a cumulative, WITHOUT
+// touching OBS. A "follow broadcast" overlay link (CopyOverlayLinkDialog with its follow switch on)
+// tracks this selection and updates within one poll. Same component the organizer page mounts.
+import { BroadcastControl } from "@/components/overlay/BroadcastControl";
 import { toast } from "sonner";
 // Shared advisory-watchlist badge + client (components/WatchTag.tsx, lib/watchlist.ts). One bulk
 // watchlistApi.tags call (recomputed when the standings reload) marks which standings team_ids /
@@ -1357,14 +1366,34 @@ export default function EditLeaderboardPage({
 
   return (
     <div className="space-y-4 pb-20">
-      {/* data-tour anchor (leaderboard-edit-title): admin tour "Edit leaderboard" step. */}
-      <span data-tour="leaderboard-edit-title" className="inline-flex">
-        <PageHeader
-          back
-          title={`Edit: ${eventData?.event_name ?? "Leaderboard"}`}
-          description="Edit match results, scoring configuration, and apply adjustments"
-        />
-      </span>
+      {/* Header row: the title + the "Copy OBS overlay link" action (live leaderboard overlay). */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        {/* data-tour anchor (leaderboard-edit-title): admin tour "Edit leaderboard" step. */}
+        <span data-tour="leaderboard-edit-title" className="inline-flex">
+          <PageHeader
+            back
+            title={`Edit: ${eventData?.event_name ?? "Leaderboard"}`}
+            description="Edit match results, scoring configuration, and apply adjustments"
+          />
+        </span>
+        {/* Overlay link picker. organizationId is null here (AFC admin surface uses the AFC-native
+            design library, same as this page's LeaderboardDesignsManager). Defaults to the currently
+            selected stage/group; the dialog lets the admin re-pick any stage/group. */}
+        {eventData && (
+          <CopyOverlayLinkDialog
+            eventId={id}
+            stageId={selectedStageId}
+            groupId={selectedGroupId}
+            stages={eventData?.stages ?? []}
+            organizationId={null}
+          />
+        )}
+      </div>
+
+      {/* Broadcast control: choose which stage/group the live overlay shows (or a stage/event/custom
+          cumulative) WITHOUT touching OBS. The "follow broadcast" overlay link tracks this. Sits under
+          the header so it reads as a distinct card. organizationId is null on the AFC admin surface. */}
+      {eventData && <BroadcastControl eventId={id} organizationId={null} />}
 
       {/* Stage tabs */}
       {/* data-tour anchor (leaderboard-edit-stage-group): admin tour "Stage and group picker"

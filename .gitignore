@@ -42,3 +42,4 @@ next-env.d.ts
 
 # local dev server log (never commit)
 _frontend.log
+public/downloads/

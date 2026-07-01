@@ -22,7 +22,10 @@ import { ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { NairaIcon } from "@/components/NairaIcon";
+// Money = the multi-currency chokepoint (components/Money.tsx): converts a stored NGN amount to the
+// viewer's display currency (CurrencyContext) so the home teaser price matches the rest of the shop
+// instead of being locked to Naira. Shop prices are stored in NGN, so from defaults to "NGN".
+import { Money } from "@/components/Money";
 import { env } from "@/lib/env";
 
 interface Variant {
@@ -115,9 +118,7 @@ export function FeaturedShop() {
                     <p className="flex items-center gap-1 text-sm text-muted-foreground">
                       {price !== null ? (
                         <>
-                          {t("featuredShop.from")}{" "}
-                          <NairaIcon className="size-3" />
-                          {price.toLocaleString()}
+                          {t("featuredShop.from")} <Money amount={price} />
                         </>
                       ) : (
                         t("featuredShop.viewOptions")

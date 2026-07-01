@@ -1,0 +1,112 @@
+{
+  "title": "Captura em direto",
+  "subtitle": "Preencha automaticamente a tua tabela de classificação e a sobreposição na transmissão diretamente a partir da aplicação do Free Fire.",
+  "download": {
+    "title": "1. Descarregar o AFC Capture",
+    "body": "Uma pequena aplicação para Windows que monitoriza o cliente do Free Fire e publica automaticamente os resultados de cada ronda no AFC, para que a tua tabela de classificação e a sobreposição sejam atualizadas sem qualquer necessidade de envio manual.",
+    "button": "Descarregar o AFC Capture (Windows)",
+    "comingSoon": "O download estará disponível em breve. O instalador assinado está a ser preparado.",
+    "requirement": "Apenas para Windows. Funciona apenas com o cliente do Free Fire para PC (o cliente de observação 3D ou de espectador) em execução no mesmo computador, e lê os ficheiros de resultados das partidas e de depuração desse cliente. Sem o cliente 3D, não tem nada para ler."
+  },
+  "key": {
+    "title": "2. Obtenha a sua chave de captura",
+    "body": "Escolha o evento que está a organizar, gere uma chave de captura e cole-a na aplicação. A chave está associada a este evento e pode ser regenerada a qualquer momento.",
+    "eventLabel": "Evento",
+    "eventPlaceholder": "Escolha um evento",
+    "generate": "Gerar chave de captura",
+    "keyLabel": "Tecla de captura",
+    "copy": "Copiar",
+    "copied": "A chave de captura foi copiada.",
+    "regenerate": "Regenerar",
+    "regenerateWarn": "A regeneração impede que a chave antiga funcione.",
+    "generated": "Tecla de captura pronta.",
+    "error": "Não foi possível criar a chave de captura. É necessário ter acesso para carregar resultados neste evento.",
+    "loadError": "Não foi possível carregar os seus eventos.",
+    "noEvents": "Ainda não tem eventos. Crie primeiro um evento."
+  },
+  "steps": {
+    "title": "3. Como utilizar",
+    "s1": "Descarregue e execute o AFC Capture e, em seguida, cole a sua chave de captura.",
+    "s2": "Escolha o evento, a fase e o grupo que estás a organizar e indica a pasta «Free Fire_64_Data» do Free Fire.",
+    "s3": "Deixa-o a funcionar enquanto organizas a sala personalizada. Os resultados de cada ronda são carregados automaticamente para o AFC.",
+    "s4": "Para a sobreposição durante a transmissão, abra a opção «Copiar link da sobreposição do OBS» na tabela de classificação do seu evento e adicione esse link como uma fonte do navegador. Trata-se de uma fonte do navegador, pelo que funciona no OBS, no vMix e em qualquer software de transmissão que suporte este tipo de fonte, não apenas no OBS.",
+    "s5": "A sobreposição é atualizada à medida que o jogo decorre e fixa-se no resultado oficial quando a ronda termina."
+  },
+  "editNote": {
+    "title": "Não está satisfeito com um valor em tempo real?",
+    "body": "Podes editar as estatísticas a qualquer momento na tabela de classificação desse evento. A sobreposição em tempo real atualiza-se de acordo com o que definires."
+  },
+  "privacy": {
+    "title": "Privacidade e requisitos",
+    "body": "O AFC Capture apenas lê o resultado do jogo e os ficheiros de registo do depurador. Nunca lê nem envia os teus dados de início de sessão do Free Fire. Para ver a classificação em tempo real, é necessário que a aplicação esteja a ser executada no PC do observador. As estatísticas em sobreposição em tempo real aplicam-se a eventos por equipas."
+  },
+  "faq": {
+    "title": "Perguntas e resolução de problemas",
+    "items": {
+      "what": {
+        "q": "O que é o AFC Capture e para que serve?",
+        "a": "É uma pequena aplicação para Windows que funciona no PC que aloja a tua sala personalizada. Este aplicações monitoriza o cliente do Free Fire para obter o resultado de cada ronda e envia-o automaticamente para o AFC, para que a tua tabela de classificação e a sobreposição na transmissão sejam atualizadas automaticamente. Também consegue ler eventos em tempo real durante a ronda (abates, derrubadas) e enviar classificações provisórias para a sobreposição enquanto a partida está a decorrer."
+      },
+      "need": {
+        "q": "O que é que preciso para o utilizar?",
+        "a": "Um computador com Windows que execute o cliente do Free Fire para PC (o cliente de observação ou espectador 3D) e que esteja a hospedar ou a assistir à sua sala personalizada. O AFC Capture lê os ficheiros desse cliente, pelo que não realiza qualquer ação num computador que não tenha o cliente 3D. Por enquanto, é compatível apenas com o Windows."
+      },
+      "setup": {
+        "q": "Como é que se configura?",
+        "a": "1) Descarregue e execute o AFC Capture. 2) Nesta página, selecione o seu evento e gere uma chave de captura; em seguida, copie-a. 3) Na janela «Definições» da aplicação, cole a chave e clique em «Obter a partir da chave» — isto preenche o evento e permite-lhe selecionar a fase e o grupo. 4) Defina a «Pasta de vigilância» para a pasta «Free Fire_64_Data» do Free Fire (utilize «Detetar» ou «Procurar»). 5) Guarde. Deixe a aplicação a funcionar enquanto hospeda a sala."
+      },
+      "key": {
+        "q": "Onde posso obter a minha chave de captura e o que é isso?",
+        "a": "Nesta página, na secção «Obter a sua chave de captura»: selecione o evento e clique em «Gerar». A chave está associada a esse evento específico, pelo que a aplicação pode identificar automaticamente o evento e as suas fases/grupos a partir dela. Cole-a nas «Definições» da aplicação e clique em «Obter a partir da chave»."
+      },
+      "nowindow": {
+        "q": "Executei-o, mas não abriu nada. Estará avariado?",
+        "a": "Não. O AFC Capture fica na bandeja do sistema (no canto inferior direito da barra de tarefas, por vezes por baixo da seta para cima). Na primeira vez que for executado, apresenta uma notificação na bandeja e abre a janela de Configurações. Clique com o botão direito do rato no ícone da bandeja a qualquer momento para aceder às Configurações, ao estado e à opção «Sair»."
+      },
+      "relaunch": {
+        "q": "Tenho de o relançar para cada novo evento?",
+        "a": "Não. Clique com o botão direito do rato no ícone da bandeja → Configurar, cole a chave de captura do novo evento → Obter a partir da chave (ou basta selecionar um Stage/Grupo diferente) e, em seguida, guarde. O programa reinicia internamente e continua a funcionar. Um evento de cada vez por aplicação; para enviar dois eventos em simultâneo, execute duas cópias."
+      },
+      "notuploading": {
+        "q": "Os resultados não estão a ser carregados nem a aparecer na tabela de classificação.",
+        "a": "Verifica se: a pasta «Watch» aponta para a pasta real «Free Fire_64_Data»; a chave de captura está correta e não foi regenerada; a opção «Envio automático» está ativada; e se uma ronda terminou efetivamente, de modo a que tenha sido criado um ficheiro «MatchResult». Abre a opção «Abrir registo» na barra de tarefas para veres o que foi detetado. Se os jogadores de uma equipa utilizaram IDs no jogo diferentes dos que registaram, esses serão assinalados para que os aprove na tabela de classificação."
+      },
+      "livenotupdating": {
+        "q": "A sobreposição em direto não está a atualizar-se durante um jogo.",
+        "a": "Certifique-se de que a opção «Classificação em tempo real» está ativada na aplicação e de que está definida uma pasta «Debugger» (se estiver em branco, utiliza-se a pasta «Watch»\\«Debugger»); de que a ligação da sobreposição tem a opção «Em tempo real» ativada; e de que o AFC Capture está a ser executado no PC do observador que acompanha todas as equipas. As classificações em tempo real durante a ronda aplicam-se a provas por equipas. Quando a ronda termina, a sobreposição fixa o resultado oficial."
+      },
+      "editstats": {
+        "q": "Um valor no painel de controlo parece estar errado. Posso corrigi-lo?",
+        "a": "Sim. Pode editar as estatísticas a qualquer momento na tabela de classificação desse evento. A sobreposição em tempo real atualiza-se de acordo com o que definir. A transmissão em tempo real é provisória; o controlo é todo seu."
+      },
+      "safe": {
+        "q": "É seguro? Que informações é que o programa lê no meu computador?",
+        "a": "A aplicação apenas abre os ficheiros com os resultados das partidas e o registo do depurador do Free Fire nas pastas que indicar. Nunca lê nem envia os seus dados de início de sessão do Free Fire nem qualquer outra informação. Limita-se a enviar os resultados das partidas e a classificação provisória para a AFC."
+      },
+      "software": {
+        "q": "A sobreposição só funciona no OBS?",
+        "a": "Não. A sobreposição é uma fonte de navegador, pelo que funciona no OBS, no vMix e em qualquer software de transmissão que suporte uma fonte de navegador. Adicione o link da sobreposição como uma fonte de navegador e defina o tamanho da sua área de trabalho."
+      },
+      "multiple": {
+        "q": "Posso mostrar mais do que uma sobreposição ao mesmo tempo?",
+        "a": "Sim. Cada sobreposição é um link independente (com o seu próprio design e quadro). Adicione várias como «Fontes do navegador» separadas — um quadro de classificação principal, uma tabela de MVP, um cartão dos melhores assassinos — e todas elas são atualizadas em simultâneo a partir do mesmo evento."
+      },
+      "solo": {
+        "q": "Funciona para eventos individuais?",
+        "a": "O carregamento automático dos resultados por ronda funciona nos vossos eventos. A sobreposição em direto durante a ronda está disponível, por enquanto, apenas para eventos por equipas."
+      },
+      "leaked": {
+        "q": "Partilhei a minha chave de captura por engano. E agora?",
+        "a": "Nesta página, gere novamente a chave de captura. A chave antiga deixa de funcionar imediatamente. Cole a nova chave na aplicação e clique em «Guardar»."
+      },
+      "warning": {
+        "q": "O Windows apresenta um aviso quando o executo.",
+        "a": "A versão pode não estar assinada, pelo que o Windows SmartScreen poderá apresentar um aviso na primeira execução. Clique em «Mais informações» e, em seguida, em «Executar na mesma». Uma versão com assinatura de código elimina este aviso."
+      },
+      "osupport": {
+        "q": "Existe uma versão para Mac ou Linux?",
+        "a": "Por enquanto, apenas para Windows, porque, segundo o que se diz, o cliente do Free Fire para PC funciona no Windows."
+      }
+    }
+  }
+}

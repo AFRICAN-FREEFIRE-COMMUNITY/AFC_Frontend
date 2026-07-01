@@ -141,12 +141,27 @@ const FIELD_LABELS: Record<FieldType, string> = {
   base_total: "BASE TOTAL",
   bonus: "BONUS",
   penalty: "PENALTY",
+  // ── Rich LIVE-only stats (owner 2026-07-01, spec §12) ──
+  // Placeable columns bound to the in-round debugger stats (see FieldType in lib/leaderboardDesigns).
+  // They render real values only while the overlay feed is LIVE; in the official per-round standings
+  // they are 0/blank. Uppercase to match the existing palette-chip label convention above.
+  deaths: "DEATHS",
+  knockdowns: "KNOCKDOWNS",
+  headshots: "HEADSHOTS",
+  most_used_weapon: "MOST-USED WEAPON",
+  survival_time: "SURVIVAL TIME",
+  revives_received: "REVIVES RECEIVED",
+  gloowall_used: "GLOOWALL USED",
+  medkit_used: "MEDKIT USED",
 };
 
-// Canonical display order for the palette chips.
+// Canonical display order for the palette chips. Rich LIVE-only stats trail the per-round stats so the
+// palette reads "standings columns first, live extras last".
 const FIELD_ORDER: FieldType[] = [
   "pos", "team_name", "team_logo", "booyah", "placement_points", "kill_points",
   "total_points", "rush_points", "kills", "matches", "base_total", "bonus", "penalty",
+  "deaths", "knockdowns", "headshots", "most_used_weapon", "survival_time",
+  "revives_received", "gloowall_used", "medkit_used",
 ];
 
 // Default x_pct per field type when first added to group 0 (group 1 offset by ~43).
@@ -155,6 +170,10 @@ const DEFAULT_X: Record<FieldType, number> = {
   placement_points: 40.3, kill_points: 45.4, total_points: 49.2,
   rush_points: 44.0, kills: 44.0, matches: 40.0, base_total: 47.0,
   bonus: 42.0, penalty: 42.0,
+  // Rich LIVE-only stats: default to the right half of the row (past the point columns); the admin
+  // drags each to its final X per column group after adding.
+  deaths: 52.0, knockdowns: 55.0, headshots: 58.0, most_used_weapon: 62.0,
+  survival_time: 66.0, revives_received: 60.0, gloowall_used: 64.0, medkit_used: 68.0,
 };
 
 // Default text alignment when a field is first added (left for name/logo, center for numbers).
@@ -194,6 +213,19 @@ function mockCellValue(rankIndex: number, field: FieldType): string {
     case "base_total": return String(tp);
     case "bonus": return "0";
     case "penalty": return "0";
+    // Rich LIVE-only stats (spec §12): the editor preview has no real live feed, so show a
+    // representative mock derived from the row so the admin can size/position the column while
+    // designing. On the actual overlay these fill from the in-round debugger snapshot (live) and are
+    // 0/blank in the official per-round feed.
+    case "deaths": return String(Math.max(0, 24 - kp)); // rough inverse of kills
+    case "knockdowns": return String(kp + 2);
+    case "headshots": return String(Math.round(kp * 0.4));
+    case "most_used_weapon": return ["MP40", "M1887", "AK", "M4A1", "UMP"][rankIndex % 5];
+    case "survival_time":
+      return `${8 + (rankIndex % 6)}:${String((rankIndex * 7) % 60).padStart(2, "0")}`;
+    case "revives_received": return String(rankIndex % 4);
+    case "gloowall_used": return String(3 + (rankIndex % 5));
+    case "medkit_used": return String(2 + (rankIndex % 4));
     default: return "";
   }
 }

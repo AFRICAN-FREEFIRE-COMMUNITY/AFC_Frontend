@@ -1,0 +1,112 @@
+{
+  "title": "Capture en direct",
+  "subtitle": "Remplissez automatiquement votre classement et votre incrustation en direct depuis le client Free Fire.",
+  "download": {
+    "title": "1. Télécharger AFC Capture",
+    "body": "Une petite application Windows qui surveille le client Free Fire et publie automatiquement les résultats de chaque manche sur AFC, ce qui permet à votre classement et à votre superposition de s'actualiser sans aucune intervention manuelle.",
+    "button": "Télécharger AFC Capture (Windows)",
+    "comingSoon": "Téléchargement disponible prochainement. Le programme d'installation signé est en cours de préparation.",
+    "requirement": "Windows uniquement. Il fonctionne uniquement avec le client PC de Free Fire (le client d'observation 3D ou de spectateur) exécuté sur le même PC, et lit les fichiers de résultats de match et de débogage de ce client. Sans le client 3D, il n'a rien à lire."
+  },
+  "key": {
+    "title": "2. Obtenez votre clé de capture",
+    "body": "Choisissez l'événement que vous organisez, générez une clé d'enregistrement, puis collez-la dans l'application. La clé est associée à cet événement et peut être régénérée à tout moment.",
+    "eventLabel": "Événement",
+    "eventPlaceholder": "Choisissez un événement",
+    "generate": "Générer une clé de capture",
+    "keyLabel": "Touche de capture",
+    "copy": "Copier",
+    "copied": "Clé de capture copiée.",
+    "regenerate": "Régénérer",
+    "regenerateWarn": "La régénération empêche l'ancienne clé de fonctionner.",
+    "generated": "Clé de capture prête.",
+    "error": "Impossible de créer la clé de capture. Vous devez disposer d'un accès « result-upload » pour cet événement.",
+    "loadError": "Impossible de charger vos événements.",
+    "noEvents": "Vous n'avez encore aucun événement. Créez d'abord un événement."
+  },
+  "steps": {
+    "title": "3. Mode d'emploi",
+    "s1": "Téléchargez et lancez AFC Capture, puis collez votre clé de capture.",
+    "s2": "Sélectionnez l'événement, le niveau et le groupe que vous gérez, puis indiquez le dossier « Free Fire_64_Data » de Free Fire.",
+    "s3": "Laissez le programme tourner pendant que vous animez la salle personnalisée. Les résultats de chaque manche sont automatiquement transférés vers l'AFC.",
+    "s4": "Pour l'overlay en direct, cliquez sur « Copier le lien de l'overlay OBS » dans le classement de votre événement, puis ajoutez ce lien en tant que « Source navigateur ». Comme il s'agit d'une source navigateur, elle fonctionne dans OBS, vMix et tout autre logiciel de streaming prenant en charge ce type de source, et pas uniquement dans OBS.",
+    "s5": "La superposition s'actualise au fur et à mesure du déroulement du match et affiche le résultat officiel dès la fin du round."
+  },
+  "editNote": {
+    "title": "Une valeur en temps réel ne vous convient pas ?",
+    "body": "Vous pouvez modifier les statistiques à tout moment dans le classement de cet événement. L'affichage en temps réel se met à jour automatiquement en fonction de vos modifications."
+  },
+  "privacy": {
+    "title": "Confidentialité et conditions requises",
+    "body": "AFC Capture se contente de lire le résultat du match et les fichiers journaux du débogueur. L'application ne lit ni ne transmet jamais vos identifiants Free Fire. Pour consulter le classement en temps réel, l'application doit être en cours d'exécution sur l'ordinateur de l'observateur. Les statistiques en superposition en temps réel s'appliquent aux épreuves par équipe."
+  },
+  "faq": {
+    "title": "Questions et dépannage",
+    "items": {
+      "what": {
+        "q": "Qu'est-ce qu'AFC Capture et à quoi sert-il ?",
+        "a": "Il s'agit d'une petite application Windows qui s'exécute sur le PC hébergeant votre salle personnalisée. Elle surveille le client Free Fire pour connaître le résultat de chaque manche et le transmet automatiquement à AFC, ce qui permet à votre classement et à votre overlay en direct de se mettre à jour automatiquement. Elle peut également lire en temps réel les événements survenant pendant les manches (éliminations, knockdowns) et afficher les classements provisoires sur l'overlay pendant le déroulement d'un match."
+      },
+      "need": {
+        "q": "De quoi ai-je besoin pour l'utiliser ?",
+        "a": "Un PC Windows sur lequel est installé le client PC de Free Fire (le client d'observation ou de spectateur en 3D) et qui héberge ou permet de suivre votre salle personnalisée. AFC Capture lit les fichiers de ce client ; il ne fonctionne donc pas sur un PC ne disposant pas du client 3D. Pour l'instant, il est uniquement compatible avec Windows."
+      },
+      "setup": {
+        "q": "Comment dois-je le configurer ?",
+        "a": "1) Téléchargez et lancez AFC Capture. 2) Sur cette page, sélectionnez votre événement et générez une clé de capture, puis copiez-la. 3) Dans la fenêtre « Paramètres » de l'application, collez la clé et cliquez sur « Récupérer à partir de la clé » : cela remplit automatiquement les champs relatifs à l'événement et vous permet de choisir la carte et le groupe. 4) Indiquez le dossier « Free Fire_64_Data » de Free Fire dans le champ « Dossier à surveiller » (utilisez les options « Détecter » ou « Parcourir »). 5) Enregistrez. Laissez l'application en cours d'exécution pendant que vous hébergez la salle."
+      },
+      "key": {
+        "q": "Où puis-je obtenir ma clé de capture, et à quoi sert-elle ?",
+        "a": "Sur cette page, dans la section « Obtenir votre clé de capture » : sélectionnez l'événement, puis cliquez sur « Générer ». La clé est associée à cet événement spécifique ; elle permet ainsi à l'application d'identifier automatiquement l'événement ainsi que ses étapes et ses groupes. Collez-la dans les paramètres de l'application, puis cliquez sur « Récupérer à partir de la clé »."
+      },
+      "nowindow": {
+        "q": "Je l'ai lancé, mais rien ne s'est ouvert. Est-ce qu'il ne fonctionne pas ?",
+        "a": "Non. AFC Capture s'installe dans votre barre d'état système (en bas à droite de la barre des tâches, parfois sous la flèche vers le haut). Lors de son premier lancement, il affiche une notification dans la barre d'état système et ouvre la fenêtre « Paramètres ». Cliquez à tout moment avec le bouton droit de la souris sur l'icône de la barre d'état système pour accéder aux paramètres, consulter l'état du programme et le fermer."
+      },
+      "relaunch": {
+        "q": "Dois-je le relancer à chaque nouvel événement ?",
+        "a": "Non. Faites un clic droit sur l'icône de la barre d'état → Configurer, collez la clé de capture du nouvel événement → Récupérer à partir de la clé (ou choisissez simplement une autre scène/un autre groupe), puis Enregistrer. L'application redémarre en arrière-plan et continue de fonctionner. Un seul événement à la fois par application ; pour envoyer deux événements simultanément, lancez deux instances."
+      },
+      "notuploading": {
+        "q": "Les résultats ne sont pas enregistrés ou n'apparaissent pas dans le classement.",
+        "a": "Vérifiez que : le dossier de surveillance pointe bien vers le véritable dossier « Free Fire_64_Data » ; que la clé de capture est correcte et n'a pas été régénérée ; que l'option « Soumission automatique » est activée ; et qu'une manche s'est bien terminée, ce qui a entraîné la création d'un fichier MatchResult. Cliquez sur « Ouvrir le journal » depuis la barre d'état pour voir ce qui a été détecté. Si les joueurs d’une équipe ont utilisé des identifiants en jeu différents de ceux qu’ils ont enregistrés, ceux-ci apparaissent signalés et doivent être validés par vos soins dans le classement."
+      },
+      "livenotupdating": {
+        "q": "La superposition en direct ne se met pas à jour pendant un match.",
+        "a": "Assurez-vous que l'option « Classement en direct » est activée dans l'application et qu'un dossier « Debugger » est défini (si ce champ est laissé vide, le système utilise le dossier « Watch »\\« Debugger ») ; que l'option « En direct » est activée pour votre lien de superposition ; et qu'AFC Capture est en cours d'exécution sur le PC observateur qui suit toutes les équipes. Le classement en direct pendant la manche s'applique aux épreuves par équipes. À la fin de la manche, l'overlay affiche le résultat officiel."
+      },
+      "editstats": {
+        "q": "Une valeur affichée sur le tableau en temps réel semble erronée. Puis-je la corriger ?",
+        "a": "Oui. Vous pouvez modifier les statistiques à tout moment dans le classement de cet événement. L'affichage en temps réel se met à jour en fonction de vos modifications. Les résultats en temps réel sont provisoires ; c'est vous qui gardez le contrôle."
+      },
+      "safe": {
+        "q": "Est-ce sans danger ? Quelles informations le programme récupère-t-il sur mon PC ?",
+        "a": "Il se contente d'ouvrir les fichiers contenant les résultats des parties et le journal du débogueur de Free Fire dans les dossiers que vous lui indiquez. Il ne lit ni ne transmet jamais vos identifiants de connexion à Free Fire, ni aucune autre information. Il envoie uniquement les résultats des parties et le classement provisoire à l'AFC."
+      },
+      "software": {
+        "q": "La superposition fonctionne-t-elle uniquement dans OBS ?",
+        "a": "Non. L'overlay provient d'un navigateur ; il fonctionne donc dans OBS, vMix et tout autre logiciel de streaming prenant en charge les sources navigateur. Ajoutez le lien de l'overlay en tant que source navigateur et définissez la taille de votre zone d'affichage."
+      },
+      "multiple": {
+        "q": "Puis-je afficher plusieurs superpositions à la fois ?",
+        "a": "Oui. Chaque superposition constitue un lien à part entière (avec son propre design et son propre tableau). Vous pouvez en ajouter plusieurs en tant que sources de navigateur distinctes — un classement général, un tableau des MVP, une carte des meilleurs tueurs — et elles se mettent toutes à jour simultanément à partir du même événement."
+      },
+      "solo": {
+        "q": "Est-ce que ça fonctionne pour les événements en solo ?",
+        "a": "Le téléchargement automatique des résultats par manche fonctionne pour vos épreuves. L'affichage en direct pendant les manches est pour l'instant réservé aux épreuves par équipe."
+      },
+      "leaked": {
+        "q": "J'ai communiqué ma clé de capture par erreur. Que faire maintenant ?",
+        "a": "Sur cette page, régénérez la clé de capture. L'ancienne clé cesse immédiatement de fonctionner. Collez la nouvelle clé dans l'application, puis cliquez sur « Enregistrer »."
+      },
+      "warning": {
+        "q": "Windows affiche un message d'avertissement lorsque je le lance.",
+        "a": "Il se peut que la version ne soit pas signée, ce qui peut déclencher un avertissement de Windows SmartScreen lors de la première exécution. Cliquez sur « Plus d'informations », puis sur « Exécuter quand même ». Une version signée supprime cet avertissement."
+      },
+      "osupport": {
+        "q": "Existe-t-il une version pour Mac ou Linux ?",
+        "a": "Uniquement sous Windows pour l'instant, car le client PC de Free Fire ne fonctionne que sous Windows."
+      }
+    }
+  }
+}

@@ -108,6 +108,11 @@ const NAV_ITEMS = [
   // (the nav item always shows; the page itself shows a lock notice when the
   // caller lacks the permission). See app/(organizer)/organizer/leaderboards/page.tsx.
   { key: "leaderboards", href: "/organizer/leaderboards" },
+  // "Live Capture" - download the AFC Capture desktop client + get the event capture key +
+  // how-to (auto-populate the leaderboard/overlay from the Free Fire client). Informational,
+  // so it is not permission-gated at the nav level; the capture-key generation itself is
+  // backend-gated. See app/(organizer)/organizer/capture/page.tsx.
+  { key: "capture", href: "/organizer/capture" },
   // "Design" - the org's leaderboard-design request surface (submit + history),
   // gated per-page on the membership's can_submit_designs permission (or owner).
   { key: "design", href: "/organizer/design" },

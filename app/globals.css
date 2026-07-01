@@ -126,6 +126,32 @@
   }
 }
 
+/* ── OBS live-overlay pages (app/overlay/*) ──────────────────────────────────
+   The overlay routes are broadcast graphics loaded as an OBS Browser Source, so the
+   page itself must be fully see-through (only the leaderboard board paints). app/overlay/
+   layout.tsx adds `class="overlay"` to <html> on mount (and removes it on unmount), and this
+   rule forces the body transparent, overriding the `@layer base body{ bg-background }` above.
+   PageGradient also returns null on /overlay (path-aware) so no gradient bleeds through. */
+html.overlay body {
+  background: transparent !important;
+}
+
+/* Cell "flash" pulse for the overlay's anim=flash mode: a brief brightness pop when a standings
+   value changes between polls. Only `filter` is animated here so it never fights the inline
+   transform each cell already carries for its align + FLIP-glide positioning. Count-up (anim=fade)
+   + the row glide are handled in JS / inline transitions inside DesignBoard. */
+@keyframes overlay-cell-flash {
+  0% {
+    filter: brightness(2.4);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+.overlay-cell-flash {
+  animation: overlay-cell-flash 0.6s ease-out;
+}
+
 @utility container {
 	margin-inline: auto;
 	width: 95%;

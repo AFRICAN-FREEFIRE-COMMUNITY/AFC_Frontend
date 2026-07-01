@@ -3,6 +3,9 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { env } from "@/lib/env";
 import { formatMoneyInput } from "@/lib/utils";
+// Money = the multi-currency chokepoint: the total prize pool is summed on the backend in USD
+// (events/get-total-prize-pool/) and shown here in the VIEWER's currency (CurrencyContext).
+import { Money } from "@/components/Money";
 import {
   IconCalendar,
   IconMoneybag,
@@ -18,6 +21,9 @@ export const HomeBoxes = () => {
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalTournaments, setTotalTournaments] = useState<number>(0);
   const [totalKills, setTotalKills] = useState<number>(0);
+  // Total prize pool across all hosted events, summed on the backend in USD
+  // (events/get-total-prize-pool/) and rendered via <Money from="USD"/> below.
+  const [totalPrizeUsd, setTotalPrizeUsd] = useState<number>(0);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -30,10 +36,14 @@ export const HomeBoxes = () => {
       const totalKills = await axios(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-kills/`,
       );
+      const prize = await axios(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-prize-pool/`,
+      );
 
       setTotalUsers(users?.data?.total_users);
       setTotalTournaments(tournaments?.data?.total_tournaments);
       setTotalKills(totalKills?.data?.total_kills);
+      setTotalPrizeUsd(prize?.data?.total_prize_pool_usd ?? 0);
     };
 
     fetchUsers();
@@ -80,7 +90,9 @@ export const HomeBoxes = () => {
           <CardTitle>{t("boxes.totalPrizePool")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-gold">$5,750</p>
+          <p className="text-4xl font-bold text-gold">
+            <Money amount={totalPrizeUsd} from="USD" />
+          </p>
         </CardContent>
       </Card>
     </div>

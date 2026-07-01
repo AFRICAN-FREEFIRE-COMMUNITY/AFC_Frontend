@@ -134,6 +134,15 @@ import { InfoTip } from "@/components/ui/info-tip";
 // Calls leaderboardDesignsApi.downloadEventStageGraphic, which hits
 // GET events/<eventId>/stages/<stageId>/graphic/ and returns a PNG blob.
 import { EventStageExportGraphicDialog } from "./_components/EventStageExportGraphicDialog";
+// "Copy OBS overlay link" dialog (components/overlay/CopyOverlayLinkDialog.tsx): builds the public
+// live-overlay URL for this event's leaderboard so the organizer can drop it into OBS as a Browser
+// Source. Shared with the admin leaderboard edit page. Org-scoped design library (organizationId).
+import { CopyOverlayLinkDialog } from "@/components/overlay/CopyOverlayLinkDialog";
+// Broadcast control (components/overlay/BroadcastControl.tsx, owner 2026-07-01): lets the organizer pick
+// which stage/group the live overlay shows, or combine groups/stages into a cumulative, WITHOUT touching
+// OBS. A "follow broadcast" overlay link (CopyOverlayLinkDialog with its follow switch on) tracks this
+// selection and updates within one poll. Shared with the admin leaderboard edit page.
+import { BroadcastControl } from "@/components/overlay/BroadcastControl";
 
 type Params = { slug: string };
 // The match-edit sub-views, mirroring the admin [id] page's MatchView union.
@@ -793,6 +802,18 @@ export default function OrganizerEventLeaderboardPage({
                 create_event / edit_event), so manual creation is redundant. The AFC
                 admin leaderboards list already hides its Create button for the same
                 reason. The create wizard code is kept but no longer reachable. */}
+            {/* Live OBS overlay link: builds the public /overlay/leaderboard/<token> URL for this
+                event's leaderboard (org-scoped design library). Defaults to the on-screen stage/group;
+                the dialog lets the organizer re-pick. Mirror mount on the admin edit page. */}
+            {eventId && (
+              <CopyOverlayLinkDialog
+                eventId={eventId}
+                stageId={selectedStageId}
+                groupId={selectedGroupId}
+                stages={eventData?.stages ?? []}
+                organizationId={organizationId}
+              />
+            )}
             <DownloadLeaderboardButton
               leaderboardName={
                 selectedMatchId === "overall"
@@ -813,6 +834,16 @@ export default function OrganizerEventLeaderboardPage({
           </div>
         )}
       </div>
+
+      {/* Broadcast control: switch what the live overlay shows (group / stage-cumulative /
+          event-cumulative / custom) WITHOUT touching OBS. Only meaningful once a leaderboard exists
+          (there are stages/groups to broadcast) and not while editing a match. Passes the org id for
+          parity with the overlay link dialog. */}
+      {!editingMatch && hasAnyLeaderboard && eventId && (
+        <div className="mb-4">
+          <BroadcastControl eventId={eventId} organizationId={organizationId} />
+        </div>
+      )}
 
       {/* ── Empty state: no leaderboard yet ──
           Leaderboards auto-create when the event's groups + maps are set up, so the

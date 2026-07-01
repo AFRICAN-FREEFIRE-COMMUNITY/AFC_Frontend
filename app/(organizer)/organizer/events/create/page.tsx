@@ -69,6 +69,9 @@ import { IconLock } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../../_components/OrganizerContext";
+// Draft auto-save (owner 2026-07-01): persist the in-progress wizard so Back/refresh doesn't lose work.
+import { useEventCreateDraft } from "@/hooks/useEventCreateDraft";
+import { EventDraftResumeDialog } from "@/components/events/EventDraftResumeDialog";
 
 // Reuse the admin schema + every admin step component (Approach A). Importing from the
 // admin _components/ folder keeps a single source of truth - the organizer flow can't
@@ -254,6 +257,41 @@ export default function OrganizerCreateEventPage() {
   const publishToTournamentsWatch = form.watch("publish_to_tournaments");
   const publishToNewsWatch = form.watch("publish_to_news");
   const registration_restriction = form.watch("registration_restriction");
+
+  // ── Draft auto-save (owner 2026-07-01) ──────────────────────────────────────
+  // Persist the in-progress wizard to localStorage (debounced), keyed per ORG, so navigating Back /
+  // refreshing doesn't wipe the organizer's work. Files (banner/rules) aren't serialized -> re-attach
+  // after a resume. Mirrors the admin create page. See useEventCreateDraft.
+  const draftWatch = form.watch();
+  const {
+    savedDraft: eventDraft,
+    clear: clearEventDraft,
+    discard: discardEventDraft,
+    markResumed: markEventDraftResumed,
+  } = useEventCreateDraft({
+    storageKey: `afc:event-create-draft:org:${organizationId}`,
+    active: true,
+    snapshot: () => ({
+      values: form.getValues(),
+      currentStep,
+      stageNames,
+      rulesInputMethod,
+    }),
+    deps: [draftWatch, currentStep, stageNames, rulesInputMethod],
+    // Only treat it as a real draft once an event name has been typed (avoids prompting for a blank form).
+    shouldSave: (b) => !!String((b.values as { event_name?: string })?.event_name || "").trim(),
+  });
+
+  const resumeEventDraft = () => {
+    if (!eventDraft) return;
+    // @ts-ignore - saved values were produced by this same form's getValues().
+    form.reset(eventDraft.values);
+    setStageNames(eventDraft.stageNames?.length ? eventDraft.stageNames : ["Stage 1"]);
+    setCurrentStep(eventDraft.currentStep || 1);
+    setRulesInputMethod(eventDraft.rulesInputMethod === "upload" ? "upload" : "type");
+    markEventDraftResumed();
+    toast.info("Draft restored. If you had a banner or rules file, re-attach it.");
+  };
   const hasFinalAction =
     saveToDraftsWatch || publishToTournamentsWatch || publishToNewsWatch;
 
@@ -938,6 +976,7 @@ export default function OrganizerCreateEventPage() {
             }
           }
           toast.success(res.message || "Event created successfully!");
+          clearEventDraft(); // wizard submitted -> drop the saved localStorage draft
           router.push("/organizer/events");
         } else if (response.status === 400 && res.code === "paid_terms_required") {
           // Backend says this org must accept the paid-event terms first. Open the
@@ -1012,6 +1051,17 @@ export default function OrganizerCreateEventPage() {
 
   return (
     <div>
+      {/* Resume-or-start-fresh prompt when a saved draft exists (owner 2026-07-01). */}
+      <EventDraftResumeDialog
+        open={!!eventDraft}
+        savedAt={eventDraft?.savedAt}
+        title="Resume your unsaved event?"
+        description="You started creating an event and didn't finish. Resume where you left off, or start fresh. Re-attach any banner or rules file after resuming."
+        resumeLabel="Resume"
+        discardLabel="Start fresh"
+        onResume={resumeEventDraft}
+        onDiscard={discardEventDraft}
+      />
       <div data-tour="org-event-create-title">
         <PageHeader
           title="Create New Event"

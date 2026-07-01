@@ -11,6 +11,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+// Draft auto-save (owner 2026-07-01): persist the in-progress wizard so Back/refresh doesn't lose work.
+import { useEventCreateDraft } from "@/hooks/useEventCreateDraft";
+import { EventDraftResumeDialog } from "@/components/events/EventDraftResumeDialog";
 
 import {
   EventFormSchema,
@@ -163,6 +166,42 @@ export default function CreateEventPage() {
   const registration_restriction = form.watch("registration_restriction");
   const hasFinalAction =
     saveToDraftsWatch || publishToTournamentsWatch || publishToNewsWatch;
+
+  // ── Draft auto-save (owner 2026-07-01) ──────────────────────────────────────
+  // Persist the whole in-progress wizard to localStorage (debounced) so navigating Back / a refresh
+  // does NOT wipe an organizer's work. `draftWatch` subscribes to every field so any edit re-arms the
+  // save; currentStep/stageNames/rulesInputMethod are the wizard's extra state. Files (banner/rules
+  // doc) can't be JSON-serialized, so they're re-attached after a resume. See useEventCreateDraft.
+  const draftWatch = form.watch();
+  const {
+    savedDraft: eventDraft,
+    clear: clearEventDraft,
+    discard: discardEventDraft,
+    markResumed: markEventDraftResumed,
+  } = useEventCreateDraft({
+    storageKey: "afc:event-create-draft:admin",
+    active: !duplicateSlug, // don't restore/collide while the ?duplicate= prefill runs
+    snapshot: () => ({
+      values: form.getValues(),
+      currentStep,
+      stageNames,
+      rulesInputMethod,
+    }),
+    deps: [draftWatch, currentStep, stageNames, rulesInputMethod],
+    // Only treat it as a real draft once an event name has been typed (avoids prompting for a blank form).
+    shouldSave: (b) => !!String((b.values as { event_name?: string })?.event_name || "").trim(),
+  });
+
+  const resumeEventDraft = () => {
+    if (!eventDraft) return;
+    // @ts-ignore - saved values were produced by this same form's getValues().
+    form.reset(eventDraft.values);
+    setStageNames(eventDraft.stageNames?.length ? eventDraft.stageNames : ["Stage 1"]);
+    setCurrentStep(eventDraft.currentStep || 1);
+    setRulesInputMethod(eventDraft.rulesInputMethod === "upload" ? "upload" : "type");
+    markEventDraftResumed();
+    toast.info("Draft restored. If you had a banner or rules file, re-attach it.");
+  };
 
   // ── Effects ─────────────────────────────────────────────────────────────────
 
@@ -993,6 +1032,7 @@ export default function CreateEventPage() {
             }
           }
           toast.success(res.message || "Event created successfully!");
+          clearEventDraft(); // wizard submitted -> drop the saved localStorage draft
           router.push("/a/events");
         } else {
           toast.error(
@@ -1011,6 +1051,17 @@ export default function CreateEventPage() {
 
   return (
     <div>
+      {/* Resume-or-start-fresh prompt when a saved draft exists (owner 2026-07-01). */}
+      <EventDraftResumeDialog
+        open={!!eventDraft}
+        savedAt={eventDraft?.savedAt}
+        title="Resume your unsaved event?"
+        description="You started creating an event and didn't finish. Resume where you left off, or start fresh. Re-attach any banner or rules file after resuming."
+        resumeLabel="Resume"
+        discardLabel="Start fresh"
+        onResume={resumeEventDraft}
+        onDiscard={discardEventDraft}
+      />
       <PageHeader
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         // data-tour anchor: admin tour "Create new event" step (events-lb area, create sub-page).

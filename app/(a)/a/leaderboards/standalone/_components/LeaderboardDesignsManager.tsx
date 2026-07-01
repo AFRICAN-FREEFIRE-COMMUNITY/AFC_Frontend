@@ -128,6 +128,10 @@ interface FormState {
   showTitle: boolean;
   showSubtitle: boolean;
   isDefault: boolean;
+  // Transparent overlay flag (owner 2026-07-01): when on, the design has no opaque background so the
+  // OBS live overlay (app/overlay/leaderboard/[token] -> DesignBoard) + the PNG export render only
+  // the placed columns on a see-through canvas. Persisted as `transparent_background` on the design.
+  transparentBackground: boolean;
   igFile: File | null;
   ytFile: File | null;
   igPreview: string;
@@ -143,6 +147,7 @@ const EMPTY_FORM: FormState = {
   showTitle: true,
   showSubtitle: true,
   isDefault: false,
+  transparentBackground: false,
   igFile: null,
   ytFile: null,
   igPreview: "",
@@ -303,6 +308,7 @@ export function LeaderboardDesignsManager({
       showTitle: d.show_title,
       showSubtitle: d.show_subtitle,
       isDefault: d.is_default,
+      transparentBackground: d.transparent_background ?? false,
       igFile: null,
       ytFile: null,
       igPreview: d.background_instagram || "",
@@ -394,6 +400,8 @@ export function LeaderboardDesignsManager({
         fd.append("show_title", String(form.showTitle));
         fd.append("show_subtitle", String(form.showSubtitle));
         fd.append("is_default", String(form.isDefault));
+        // Transparent overlay flag (owner 2026-07-01): PATCHed alongside the other style fields.
+        fd.append("transparent_background", String(form.transparentBackground));
         if (form.igFile) fd.append("background_instagram", form.igFile);
         if (form.ytFile) fd.append("background_youtube", form.ytFile);
         if (organizationId != null)
@@ -985,6 +993,26 @@ export function LeaderboardDesignsManager({
                     checked={form.isDefault}
                     onCheckedChange={(v) =>
                       setForm((f) => ({ ...f, isDefault: v }))
+                    }
+                  />
+                </div>
+                {/* Transparent background (owner 2026-07-01): for the OBS live overlay. When on, the
+                    design renders with NO opaque background so only the placed columns/logos/text show
+                    over the stream. The background uploads become optional (the overlay ignores them).
+                    Read back by DesignBoard (app/overlay/leaderboard/_components) via the feed's
+                    design.transparent_background. */}
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="design-transparent" className="font-normal">
+                    Transparent background
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      (for live overlay)
+                    </span>
+                  </Label>
+                  <Switch
+                    id="design-transparent"
+                    checked={form.transparentBackground}
+                    onCheckedChange={(v) =>
+                      setForm((f) => ({ ...f, transparentBackground: v }))
                     }
                   />
                 </div>

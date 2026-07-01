@@ -53,7 +53,18 @@ export interface LeaderboardDesignLogo {
 // row of its column_group. Available stats (mirror OrgLeaderboardDesignField.FIELD_CHOICES):
 export type FieldType =
   | "pos" | "team_name" | "team_logo" | "booyah" | "placement_points" | "kill_points"
-  | "total_points" | "rush_points" | "kills" | "matches" | "base_total" | "bonus" | "penalty";
+  | "total_points" | "rush_points" | "kills" | "matches" | "base_total" | "bonus" | "penalty"
+  // ── Rich LIVE-only stats (owner 2026-07-01, spec §12 + memory project_freefire_live_capture §2/§2b) ──
+  // These come ONLY from the in-round debugger stream the capture client tails (Tier 2), NOT from the
+  // per-round MatchResult / round_robin standings. So a design column bound to one of these renders a
+  // real value while the overlay feed is in LIVE mode (events/overlay/feed/?live=1 -> the Redis
+  // snapshot at overlay:live:<event>:<stage>:<group>) and 0/blank in the official per-round feed.
+  // Only the stats VERIFIED available in the client logs are exposed (we never add damage,
+  // grenades-thrown, or revive-giver, whose data does not exist anywhere in the client). Added to the
+  // DesignFieldsEditor palette + the CopyOverlayLinkDialog column chooser, rendered by DesignBoard via
+  // row[field.field_type].
+  | "deaths" | "knockdowns" | "headshots" | "most_used_weapon" | "survival_time"
+  | "revives_received" | "gloowall_used" | "medkit_used";
 
 export type TextAlign = "left" | "center" | "right";
 
@@ -136,6 +147,11 @@ export interface LeaderboardDesign {
   background_youtube: string | null; // 1920x1080 landscape background URL
   text_color: string; // hex, drives the standings text
   accent_color: string; // hex, drives the rank highlight
+  // Transparent overlay flag (owner 2026-07-01): when true the design has NO opaque background
+  // fill, so the OBS overlay (app/overlay/leaderboard/[token] -> DesignBoard) and the PNG export
+  // render only the placed columns/logos/text on a see-through canvas. Toggled in
+  // LeaderboardDesignsManager; serialized by afc_organizers._serialize_design; read by DesignBoard.
+  transparent_background: boolean;
   show_title: boolean;
   show_subtitle: boolean;
   max_rows: number; // how many standings rows the render fits (1..50)
@@ -474,6 +490,10 @@ export const leaderboardDesignsApi = {
     if (opts.title) params.title = opts.title;
     if (opts.subtitle) params.subtitle = opts.subtitle;
     if (opts.page) params.page = opts.page;
+    // Cache-bust (owner 2026-07-01): the export URL is otherwise identical across renders, so the
+    // browser served a STALE cached PNG after a design edit ("export doesn't give the updated design").
+    // A unique param forces a fresh server render every time.
+    params._ts = Date.now();
     return axios
       .get(`${BASE}/leaderboards/standalone/${lbId}/graphic/`, {
         params,
@@ -509,6 +529,8 @@ export const leaderboardDesignsApi = {
     if (opts.subtitle) params.subtitle = opts.subtitle;
     if (opts.page) params.page = opts.page;
     if (opts.groupId != null && opts.groupId !== "") params.group_id = opts.groupId;
+    // Cache-bust: force a fresh render after a design edit (see downloadGraphic).
+    params._ts = Date.now();
     return axios
       .get(`${BASE}/events/${eventId}/stages/${stageId}/graphic/`, {
         params,

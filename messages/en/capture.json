@@ -1,0 +1,112 @@
+{
+  "title": "Live Capture",
+  "subtitle": "Auto-populate your leaderboard and on-stream overlay straight from the Free Fire client.",
+  "download": {
+    "title": "1. Download AFC Capture",
+    "body": "A small Windows app that watches the Free Fire client and posts each round's results to AFC automatically, so your leaderboard and overlay update without any manual upload.",
+    "button": "Download AFC Capture (Windows)",
+    "comingSoon": "Download coming soon. The signed installer is being prepared.",
+    "requirement": "Windows only. It works only with the Free Fire PC client (the 3D observer or spectator client) running on the same PC, and reads that client's match result and debugger files. Without the 3D client it has nothing to read."
+  },
+  "key": {
+    "title": "2. Get your capture key",
+    "body": "Pick the event you are hosting, generate a capture key, and paste it into the app. The key is tied to this event and can be regenerated any time.",
+    "eventLabel": "Event",
+    "eventPlaceholder": "Choose an event",
+    "generate": "Generate capture key",
+    "keyLabel": "Capture key",
+    "copy": "Copy",
+    "copied": "Capture key copied.",
+    "regenerate": "Regenerate",
+    "regenerateWarn": "Regenerating stops the old key from working.",
+    "generated": "Capture key ready.",
+    "error": "Could not create the capture key. You need result-upload access on this event.",
+    "loadError": "Could not load your events.",
+    "noEvents": "You have no events yet. Create an event first."
+  },
+  "steps": {
+    "title": "3. How to use it",
+    "s1": "Download and run AFC Capture, then paste your capture key.",
+    "s2": "Pick the event, stage and group you are running, and point it at your Free Fire \"Free Fire_64_Data\" folder.",
+    "s3": "Leave it running while you host the custom room. Each round's results upload to AFC on their own.",
+    "s4": "For the on-stream overlay, open \"Copy OBS overlay link\" on your event's leaderboard and add that link as a Browser Source. It is a browser source, so it works in OBS, vMix, and any streaming software that supports one, not just OBS.",
+    "s5": "The overlay updates as the match plays and locks to the official result when the round ends."
+  },
+  "editNote": {
+    "title": "Not happy with a live value?",
+    "body": "You can edit the stats any time on that event's leaderboard. The live overlay updates to match whatever you set."
+  },
+  "privacy": {
+    "title": "Privacy and requirements",
+    "body": "AFC Capture only reads the match result and debugger log files. It never reads or uploads your Free Fire login. Live standings need the app running on the observer PC. Live overlay stats apply to team events."
+  },
+  "faq": {
+    "title": "Questions and troubleshooting",
+    "items": {
+      "what": {
+        "q": "What is AFC Capture and what does it do?",
+        "a": "It is a small Windows app that runs on the PC hosting your custom room. It watches the Free Fire client for each round's result and uploads it to AFC automatically, so your leaderboard and on-stream overlay update on their own. It can also read live in-round events (kills, knockdowns) and push provisional standings to the overlay while a match is being played."
+      },
+      "need": {
+        "q": "What do I need to use it?",
+        "a": "A Windows PC running the Free Fire PC client (the 3D observer or spectator client) that is hosting or spectating your custom room. AFC Capture reads that client's files, so it does nothing on a PC without the 3D client. It is Windows only for now."
+      },
+      "setup": {
+        "q": "How do I set it up?",
+        "a": "1) Download and run AFC Capture. 2) On this page, pick your event and generate a capture key, then copy it. 3) In the app's Settings window paste the key and click 'Fetch from key' — it fills in the event and lets you pick the stage and group. 4) Point 'Watch folder' at your Free Fire 'Free Fire_64_Data' folder (use Detect or Browse). 5) Save. Leave it running while you host the room."
+      },
+      "key": {
+        "q": "Where do I get my capture key, and what is it?",
+        "a": "On this page, under 'Get your capture key': pick the event and click Generate. The key is tied to that one event, so the app can auto-resolve the event and its stages/groups from it. Paste it into the app's Settings and click 'Fetch from key'."
+      },
+      "nowindow": {
+        "q": "I ran it but nothing opened. Is it broken?",
+        "a": "No. AFC Capture lives in your system tray (bottom-right of the taskbar, sometimes under the up-arrow). On first run it shows a tray notification and opens the Settings window. Right-click the tray icon any time for Settings, status, and Quit."
+      },
+      "relaunch": {
+        "q": "Do I have to relaunch it for every new event?",
+        "a": "No. Right-click the tray icon → Configure, paste the new event's capture key → Fetch from key (or just pick a different Stage/Group), then Save. It restarts internally and keeps running. One event at a time per app; to feed two events at once, run two copies."
+      },
+      "notuploading": {
+        "q": "Results are not uploading or not showing on the leaderboard.",
+        "a": "Check: the Watch folder points at the real 'Free Fire_64_Data' folder; the capture key is correct and not regenerated; 'Auto-submit' is on; and a round has actually finished so a MatchResult file was written. Open 'Open log' from the tray to see what it detected. If a team's players used different in-game IDs than they registered, those show as flagged for you to approve on the leaderboard."
+      },
+      "livenotupdating": {
+        "q": "The live overlay is not updating during a match.",
+        "a": "Make sure 'Live standings' is on in the app and a Debugger folder is set (blank uses Watch folder\\Debugger); that your overlay link has Live turned on; and that AFC Capture is running on the observer PC that spectates all teams. Live in-round standings apply to team events. When the round ends the overlay locks to the official result."
+      },
+      "editstats": {
+        "q": "A value on the live board looks wrong. Can I fix it?",
+        "a": "Yes. Edit the stats any time on that event's leaderboard. The live overlay updates to match whatever you set. The live feed is provisional; you stay in control."
+      },
+      "safe": {
+        "q": "Is it safe? What does it read from my PC?",
+        "a": "It only opens the match result files and the Free Fire debugger log in the folders you point it at. It never reads or uploads your Free Fire login or anything else. It only sends match results and provisional standings to AFC."
+      },
+      "software": {
+        "q": "Does the overlay only work in OBS?",
+        "a": "No. The overlay is a browser source, so it works in OBS, vMix, and any streaming software that supports a Browser Source. Add the overlay link as a Browser Source and set your canvas size."
+      },
+      "multiple": {
+        "q": "Can I show more than one overlay at once?",
+        "a": "Yes. Each overlay is its own link (its own design and board). Add several as separate Browser Sources — a main leaderboard, an MVP table, a top-kill card — and they all update together from the same event."
+      },
+      "solo": {
+        "q": "Does it work for solo events?",
+        "a": "Per-round result auto-upload works for your events. The live in-round overlay is team events for now."
+      },
+      "leaked": {
+        "q": "I shared my capture key by mistake. What now?",
+        "a": "On this page, regenerate the capture key. The old key stops working immediately. Paste the new one into the app and Save."
+      },
+      "warning": {
+        "q": "Windows shows a warning when I run it.",
+        "a": "The build may be unsigned, so Windows SmartScreen can warn on first run. Click 'More info' then 'Run anyway'. A code-signed release removes this warning."
+      },
+      "osupport": {
+        "q": "Is there a Mac or Linux version?",
+        "a": "Windows only for now, because the Free Fire PC client it reads runs on Windows."
+      }
+    }
+  }
+}
