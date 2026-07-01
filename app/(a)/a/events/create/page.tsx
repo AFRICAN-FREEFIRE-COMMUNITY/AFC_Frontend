@@ -203,6 +203,30 @@ export default function CreateEventPage() {
     toast.info("Draft restored. If you had a banner or rules file, re-attach it.");
   };
 
+  // ── Invalid-submit surfacing (owner 2026-07-01) ─────────────────────────────────
+  // "Create event" / "Save to draft" used form.handleSubmit(onSubmit, onInvalidSubmit) with NO invalid handler, so a
+  // failing validation silently did nothing (dead button). Jump to the erroring step + toast which
+  // fields are wrong so the admin always sees WHY it didn't submit.
+  const FIELD_STEP: Record<string, number> = {
+    event_name: 1, competition_type: 1, participant_type: 1, event_type: 1, is_public: 1,
+    registration_open_date: 1, registration_end_date: 1, start_date: 1, end_date: 1,
+    max_teams_or_players: 1, registration_type: 1, registration_fee: 1,
+    event_mode: 2, number_of_stages: 3, stages: 4,
+    prizepool: 5, prizepool_cash_value: 5, prize_distribution: 5, prize_currency: 5,
+    event_rules: 6, rules_document: 6,
+  };
+  const onInvalidSubmit = (errors: Record<string, { message?: string } | undefined>) => {
+    const fields = Object.keys(errors || {});
+    if (!fields.length) return;
+    setCurrentStep(Math.min(...fields.map((f) => FIELD_STEP[f] ?? 1)));
+    // Humanize the field keys ("competition_type" -> "Competition Type") so the toast names the fields
+    // to fill, not Zod's raw "expected string, received undefined".
+    const humanize = (f: string) =>
+      f.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const names = fields.map(humanize).slice(0, 6);
+    toast.error(`Please complete these fields: ${names.join(", ")}`);
+  };
+
   // ── Effects ─────────────────────────────────────────────────────────────────
 
   // Enforce draft/publish mutual exclusivity
@@ -826,6 +850,9 @@ export default function CreateEventPage() {
           "prizepool_cash_value",
           (data.prizepool_cash_value ?? "").toString(),
         );
+        // Currency the prize amounts are in (owner 2026-07-01) so the backend converts FROM the right
+        // one; default USD (the platform base). Read by create_event -> Event.prize_currency.
+        formData.append("prize_currency", (data.prize_currency || "USD").toString());
 
         const finalEventStatus = data.save_to_drafts
           ? "draft"
@@ -1081,7 +1108,7 @@ export default function CreateEventPage() {
 
       <Form {...form}>
         {/* @ts-ignore */}
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-6">
           {currentStep === 1 && (
             <Step1EventDetails
               form={form}
@@ -1158,7 +1185,7 @@ export default function CreateEventPage() {
                   // data-tour anchor (event-create-save): final-step "Create Event" submit.
                   data-tour="event-create-save"
                   // @ts-ignore
-                  onClick={form.handleSubmit(onSubmit)}
+                  onClick={form.handleSubmit(onSubmit, onInvalidSubmit)}
                   disabled={currentStep !== 9 || isPending || !hasFinalAction}
                 >
                   {isPending ? "Creating..." : "Create Event"}

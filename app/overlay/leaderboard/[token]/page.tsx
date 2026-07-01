@@ -62,7 +62,21 @@ function OverlayLeaderboardInner() {
   // interval is in seconds; live mode overrides to the snappy 2s cadence (spec §5.2 / §11.2).
   const intervalSec = live ? 2 : Math.max(2, Number(sp.get("interval")) || 10);
 
-  const [feed, setFeed] = useState<OverlayFeed | null>(null);
+  // Persist the last feed per overlay URL so a page RELOAD (OBS "refresh browser source") repaints the
+  // BACKGROUND + last standings INSTANTLY from cache instead of flashing dark while the first poll is
+  // in flight; the fresh feed replaces it within one poll (owner 2026-07-01: "backgrounds always on,
+  // screen shouldn't go dark when reloading"). Keyed by the exact render target.
+  const cacheKey = `afc:overlay:feed:${token}|${stage ?? ""}|${group ?? ""}|${design ?? ""}|${sizeParam ?? ""}|${colsParam ?? ""}|${live ? 1 : 0}`;
+
+  const [feed, setFeed] = useState<OverlayFeed | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      return cached ? (JSON.parse(cached) as OverlayFeed) : null;
+    } catch {
+      return null;
+    }
+  });
   const [error, setError] = useState<string | null>(null);
   // Keep the latest abort controller so a slow poll is cancelled when the next fires / on unmount.
   const abortRef = useRef<AbortController | null>(null);
@@ -94,6 +108,12 @@ function OverlayLeaderboardInner() {
         if (!cancelled) {
           setFeed(data);
           setError(null);
+          // Cache the freshest feed so the next reload repaints instantly (see cacheKey above).
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+          } catch {
+            /* quota / disabled storage -> skip; the overlay still works, just re-fetches on reload */
+          }
         }
       } catch (err: any) {
         // Ignore intentional aborts; surface anything else quietly (broadcast graphic — no toasts).

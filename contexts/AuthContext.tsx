@@ -123,19 +123,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Cookie configuration
 const COOKIE_NAME = "auth_token";
 const COOKIE_OPTIONS = {
-  // Cookie lifetime is STORAGE ONLY — it is NOT the session timeout. The real timeout is the
-  // backend's 3h IDLE window (SessionToken: expires_at slides forward on every authed request via
-  // validate_token -> touch()), so an actively-used session never expires and a 3h-idle one does.
+  // Cookie lifetime = the backend SessionToken idle window, kept IN SYNC at 3h (owner 2026-07-01:
+  // "keep the session at 3h for both, not 7 days"). SLIDING: the cookie is re-written on activity so
+  // an actively-used session never lapses, and it now slides on BOTH axios successes (the response
+  // interceptor below) AND raw fetch() successes (the window.fetch wrapper below).
   //
-  // BUG FIX (owner 2026-06-15: "logs out mid-use, not up to 3h"): the cookie used to be pinned to
-  // 3h (3/24) and only slid on AXIOS successes, so on fetch-heavy / SSR pages (or a slide race) the
-  // cookie lapsed WHILE the backend token was still alive — logging an active user out early. We now
-  // give the cookie a long life (7d) and let the backend be the single source of truth: while active,
-  // the backend keeps sliding so requests succeed; once idle past 3h the backend token expires and the
-  // next request 401s, which the response interceptor below turns into a clean logout (via the
-  // get-user-profile revalidation path). So the 3h-idle behaviour is preserved, without the early
-  // mid-use logout.
-  expires: 7, // days (storage only; backend SessionToken 3h-idle is the actual timeout)
+  // The fetch() wrapper is what makes a 3h cookie safe again: the 2026-06-15 "logs out mid-use" bug
+  // was caused by the 3h cookie only sliding on AXIOS calls, so fetch-heavy pages (e.g. the
+  // leaderboard) let it lapse while the backend token was still alive. Sliding on raw fetch too keeps
+  // it alive there. Once idle past 3h BOTH the cookie and the backend token expire together, so the
+  // user is cleanly logged out — never the "still logged in but every action 401s" state.
+  expires: 3 / 24, // 3 hours (matches the backend SessionToken idle window)
   secure: process.env.NODE_ENV === "production", // HTTPS only in production
   sameSite: "strict" as const,
   path: "/",
@@ -341,9 +339,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return config;
     });
 
+    // ── Raw fetch() coverage (owner 2026-07-01) ──────────────────────────────────────────────────
+    // Many surfaces (e.g. the leaderboard action endpoints) call window.fetch directly, so they
+    // bypass the axios interceptor above: the cookie never slid on their activity (so a 3h cookie
+    // lapsed mid-use) AND an expired-token 401 was left as a bare toast with no logout ("invalid
+    // session token but still logged in"). Wrap fetch so raw calls to the backend get the SAME
+    // treatment as axios: slide the 3h cookie on success, and on a genuine 401 revalidate once
+    // against get-user-profile (which, if the token is truly dead, 401s through the axios interceptor
+    // above and logs the user out cleanly). Only backend-API responses are inspected; the wrapper
+    // NEVER alters the response, so non-API fetches (Next prefetch, etc.) are untouched.
+    const originalFetch = window.fetch;
+    window.fetch = async (...args: Parameters<typeof window.fetch>) => {
+      const res = await originalFetch(...args);
+      try {
+        const input = args[0];
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.href
+              : (input as Request)?.url || "";
+        if (token && url.includes(env.NEXT_PUBLIC_BACKEND_API_URL)) {
+          if (res.ok) {
+            const now = Date.now();
+            if (now - lastCookieBumpAt > COOKIE_BUMP_THROTTLE_MS) {
+              lastCookieBumpAt = now;
+              Cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
+            }
+          } else if (
+            res.status === 401 &&
+            !url.includes("/auth/get-user-profile") &&
+            !revalidatingRef.current
+          ) {
+            revalidatingRef.current = true;
+            axios
+              .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-user-profile/`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              .catch(() => {})
+              .finally(() => {
+                revalidatingRef.current = false;
+              });
+          }
+        }
+      } catch {
+        // never let the wrapper break a real fetch
+      }
+      return res;
+    };
+
     return () => {
       axios.interceptors.response.eject(interceptor);
       axios.interceptors.request.eject(localeInterceptor);
+      window.fetch = originalFetch;
     };
   }, [token]);
 

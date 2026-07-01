@@ -6,6 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { EventFormType } from "./types";
@@ -102,6 +109,38 @@ export function Step5PrizePool({ form }: Step5Props) {
                   placeholder="e.g., 5000"
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Currency the prize amounts above are entered in, so the backend knows what to convert FROM
+            (owner 2026-07-01). Default USD (the platform base). Binds to prize_currency; sent on submit
+            + read by get_total_prize_pool + the <Money from={prize_currency}> displays. */}
+        <FormField
+          // @ts-ignore
+          control={form.control}
+          name="prize_currency"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Prize Currency</FormLabel>
+              <FormControl>
+                <Select
+                  value={(field.value as string) || "USD"}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD ($) — US Dollar</SelectItem>
+                    <SelectItem value="NGN">NGN (₦) — Nigerian Naira</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <p className="text-muted-foreground text-xs">
+                The amounts above are treated as this currency for conversion + display.
+              </p>
               <FormMessage />
             </FormItem>
           )}

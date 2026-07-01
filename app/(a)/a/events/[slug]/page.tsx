@@ -24,6 +24,7 @@ import { cn, formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
 import { TabsContent } from "@radix-ui/react-tabs";
 import {
   IconCalendar,
+  IconChartBar,
   IconCurrencyDollar,
   IconExternalLink,
   IconLoader2,
@@ -893,6 +894,14 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           <Button className="flex-1 lg:flex-none" asChild variant="outline">
             <Link href={`/a/events/${slug}/ocr`}>
               OCR Results
+            </Link>
+          </Button>
+          {/* Jump to THIS event's leaderboard (results, standings, OBS overlay link, broadcast control).
+              The leaderboard edit route is keyed by the numeric event id (owner 2026-07-01). */}
+          <Button className="flex-1 lg:flex-none" asChild variant="outline">
+            <Link href={`/a/leaderboards/${eventDetails.event_id}/edit`}>
+              <IconChartBar />
+              Leaderboard
             </Link>
           </Button>
           <Button className="flex-1 lg:flex-none" asChild>

@@ -751,6 +751,9 @@ export default function OrganizerCreateEventPage() {
           "prizepool_cash_value",
           (data.prizepool_cash_value ?? "").toString(),
         );
+        // Currency the prize amounts are in (owner 2026-07-01) so the backend converts FROM the right
+        // one; default USD (the platform base). Read by create_event -> Event.prize_currency.
+        formData.append("prize_currency", (data.prize_currency || "USD").toString());
 
         const finalEventStatus = data.save_to_drafts
           ? "draft"
@@ -997,6 +1000,31 @@ export default function OrganizerCreateEventPage() {
     });
   };
 
+  // ── Invalid-submit surfacing (owner 2026-07-01) ─────────────────────────────────
+  // "Create event" / "Save to draft" used form.handleSubmit(onSubmit) with NO invalid handler, so a
+  // failing Zod validation just... did nothing (silent dead button). Map each field to its wizard step
+  // so we can JUMP the user to the problem AND toast exactly which fields are wrong.
+  const FIELD_STEP: Record<string, number> = {
+    event_name: 1, competition_type: 1, participant_type: 1, event_type: 1, is_public: 1,
+    registration_open_date: 1, registration_end_date: 1, start_date: 1, end_date: 1,
+    max_teams_or_players: 1, registration_type: 1, registration_fee: 1,
+    event_mode: 2, number_of_stages: 3, stages: 4,
+    prizepool: 5, prizepool_cash_value: 5, prize_distribution: 5, prize_currency: 5,
+    event_rules: 6, rules_document: 6,
+  };
+  const onInvalidSubmit = (errors: Record<string, { message?: string } | undefined>) => {
+    const fields = Object.keys(errors || {});
+    if (!fields.length) return;
+    const step = Math.min(...fields.map((f) => FIELD_STEP[f] ?? 1));
+    setCurrentStep(step);
+    // Humanize the field keys ("competition_type" -> "Competition Type") so the toast names the fields
+    // to fill, not Zod's raw "expected string, received undefined".
+    const humanize = (f: string) =>
+      f.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const names = fields.map(humanize).slice(0, 6);
+    toast.error(`Please complete these fields: ${names.join(", ")}`);
+  };
+
   // ── Paid-event submit gate ─────────────────────────────────────────────────────
   // Wraps the create action. For a PAID org event that hasn't been accepted yet this
   // session, show the terms modal BEFORE submitting (the spec's "show on submit of a
@@ -1010,7 +1038,7 @@ export default function OrganizerCreateEventPage() {
     }
     // @ts-ignore - resolver widens the form's internal TFieldValues generic (same
     // cast the original "Create Event" button used on form.handleSubmit(onSubmit)).
-    form.handleSubmit(onSubmit)();
+    form.handleSubmit(onSubmit, onInvalidSubmit)();
   };
 
   // Organizer accepted the paid-event terms: remember it for this session, close the
@@ -1019,7 +1047,7 @@ export default function OrganizerCreateEventPage() {
     termsAcceptedRef.current = true;
     setShowPaidTermsModal(false);
     // @ts-ignore - resolver widens the form's internal TFieldValues generic.
-    form.handleSubmit(onSubmit)();
+    form.handleSubmit(onSubmit, onInvalidSubmit)();
   };
 
   // ── Permission gate ───────────────────────────────────────────────────────────

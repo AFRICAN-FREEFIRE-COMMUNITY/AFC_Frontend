@@ -301,12 +301,17 @@ export function DesignBoard({
   const canvasH = box.h;
   const yt = size === "youtube";
 
-  // ── Reveal gate: flip to revealed one frame after mount so the entry transition plays. ──
+  // ── Reveal gate (owner 2026-07-01): flip to revealed one frame AFTER the background image has
+  // painted, so the rows / logos / freeform text animate IN over a SOLID background instead of over a
+  // dark/blank frame ("screen goes dark when animating in / reloading"). bgReady is set by the bg
+  // <img> onLoad/onError below, or immediately when there is no bg (transparent design). ──
+  const [bgReady, setBgReady] = useState(false);
   const [revealed, setRevealed] = useState(false);
   useEffect(() => {
+    if (!bgReady) return;
     const id = requestAnimationFrame(() => setRevealed(true));
     return () => cancelAnimationFrame(id);
-  }, []);
+  }, [bgReady]);
   const animated = anim !== "none";
 
   // ── Active PAGE (owner 2026-06-14 multi-page designs). ──
@@ -397,6 +402,11 @@ export function DesignBoard({
       ? bgSrc.background_youtube || bgSrc.background_instagram || ""
       : bgSrc.background_instagram || bgSrc.background_youtube || "";
 
+  // No background to wait for (transparent design, or a design with no art) => rows can reveal now.
+  useEffect(() => {
+    if (!bgUrl) setBgReady(true);
+  }, [bgUrl]);
+
   const textColor = design.text_color || "#ffffff";
 
   return (
@@ -419,6 +429,14 @@ export function DesignBoard({
           <img
             src={bgUrl}
             alt=""
+            // Load eagerly + hold the row reveal until it has painted, so the background is ALWAYS on
+            // and the data animates in over it (never a dark frame). onError still releases the gate so
+            // a missing bg can't freeze the overlay.
+            loading="eager"
+            // @ts-ignore - fetchpriority is a valid DOM attr not yet in the React types on this version.
+            fetchpriority="high"
+            onLoad={() => setBgReady(true)}
+            onError={() => setBgReady(true)}
             className="pointer-events-none absolute inset-0 size-full object-cover"
           />
         ) : null}

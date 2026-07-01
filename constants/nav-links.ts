@@ -1,5 +1,6 @@
 import {
   IconArticle,
+  IconBroadcast,
   IconBuilding,
   IconCalendar,
   IconChartBarPopular,
@@ -217,6 +218,16 @@ export const adminNavLinks: AdminNavLink[] = [
     slug: "/a/broadcasts",
     icon: IconMessage,
     allowedRoles: ["head_admin", "event_admin", "organizer_admin", "metrics_admin"],
+  },
+  {
+    // OBS Overlays (owner 2026-07-01): the cross-event manager for the live-leaderboard browser
+    // sources. Page app/(a)/a/overlays/page.tsx lists every event -> Copy OBS link (reused
+    // CopyOverlayLinkDialog) + a jump to its leaderboard (results + BroadcastControl). Gated to the
+    // event/leaderboard admins (same set that manages leaderboards).
+    label: "OBS Overlays",
+    slug: "/a/overlays",
+    icon: IconBroadcast,
+    allowedRoles: ["head_admin", "event_admin"],
   },
   {
     label: "Admin News",
