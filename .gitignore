@@ -42,4 +42,7 @@ next-env.d.ts
 
 # local dev server log (never commit)
 _frontend.log
-public/downloads/
+# AFC Capture installer is served from the same site (/downloads/AFC-Capture.exe), so the exe IS
+# committed; ignore anything else that lands in that folder (build scratch, other binaries).
+public/downloads/*
+!public/downloads/AFC-Capture.exe

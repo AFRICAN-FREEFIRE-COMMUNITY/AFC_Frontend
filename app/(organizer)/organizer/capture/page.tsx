@@ -79,7 +79,12 @@ export default function OrganizerCapturePage() {
   const { token } = useAuth();
   const organizationId = membership.organization.organization_id;
 
-  const downloadUrl = env.NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL;
+  // The AFC Capture installer is served by THIS frontend from public/downloads/AFC-Capture.exe
+  // (committed to the repo, so it ships inside the prod image at /downloads/AFC-Capture.exe -> no
+  // separate host needed). NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL is an optional override (e.g. a CDN/signed
+  // release URL); when unset the button points at the bundled copy, so the download always works.
+  const downloadUrl =
+    env.NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL || "/downloads/AFC-Capture.exe";
 
   // ── The org's events (for the capture-key picker). Same fetch shape as the organizer Leaderboards
   //    page: get-all-events scoped by organization_id, Bearer from AuthContext. ──
