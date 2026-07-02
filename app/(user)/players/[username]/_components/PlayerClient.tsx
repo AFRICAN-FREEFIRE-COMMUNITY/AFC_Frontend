@@ -177,6 +177,9 @@ interface PublicPlayer {
   uid: string | null;
   discord_username: string | null;
   profile_picture: string | null;
+  // Present ONLY when the viewer is an AFC admin (backend gate in get_public_player_stats):
+  // the player's esport image (broadcast-media asset), owner 2026-07-02.
+  esport_image?: string | null;
   esports_picture: string | null;
   in_game_role: string | null;
   management_role: string | null;
@@ -577,6 +580,23 @@ export function PlayerClient({ username }: { username: string }) {
                   {player.username?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+              {/* Esport image (ADMIN viewers only - the backend simply omits it for everyone
+                  else, so this renders for admins alone). Click opens full size. */}
+              {player.esport_image ? (
+                <a
+                  href={player.esport_image}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={t("playerProfile.esportImage")}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={player.esport_image}
+                    alt=""
+                    className="size-16 rounded-md border object-cover"
+                  />
+                </a>
+              ) : null}
               <div>
                 <CardTitle className="text-2xl md:text-3xl">
                   {player.username}

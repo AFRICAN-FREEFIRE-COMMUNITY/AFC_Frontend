@@ -963,6 +963,25 @@ const Page = ({ params }: { params: Params }) => {
                                 {/* Member name links to the public player profile; the flag is the
                                     member's own country (these locations derive the team country). */}
                                 <span className="inline-flex items-center gap-1.5">
+                                  {/* Esport image thumbnail (owner 2026-07-02): the backend returns
+                                      member.esport_image ONLY to this team's members and AFC
+                                      admins (get_team_details gate) - other viewers get null, so
+                                      nothing renders for them. Click-to-open full size. */}
+                                  {member.esport_image ? (
+                                    <a
+                                      href={member.esport_image}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      title={t("teamDetail.esportImage")}
+                                    >
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
+                                        src={member.esport_image}
+                                        alt=""
+                                        className="size-7 rounded-md border object-cover"
+                                      />
+                                    </a>
+                                  ) : null}
                                   <CountryFlag country={member.country} />
                                   <PlayerLink name={member.username} />
                                 </span>

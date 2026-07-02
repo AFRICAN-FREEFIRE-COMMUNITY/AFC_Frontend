@@ -216,6 +216,7 @@
   "teamDetail.transferSuccess": "Ownership transferred successfully!",
   "teamDetail.transferFailed": "Failed to transfer ownership",
   "teamDetail.loadApplicationsFailed": "Failed to load player market applications.",
+  "teamDetail.esportImage": "Esport image",
   "roster.pageTitle": "Manage Roster: {team}",
   "roster.name": "Name",
   "roster.inGameRole": "In-game Role",
@@ -635,5 +636,6 @@
   "organization.describeIssueError": "Please describe the issue",
   "organization.reportSuccess": "Report submitted. AFC will review it.",
   "organization.reportFailed": "Failed to submit your report",
-  "organization.loadFailed": "Failed to load organization"
+  "organization.loadFailed": "Failed to load organization",
+  "playerProfile.esportImage": "Esport image"
 }

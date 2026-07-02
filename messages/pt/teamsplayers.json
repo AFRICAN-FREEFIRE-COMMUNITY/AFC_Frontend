@@ -228,7 +228,8 @@
     "exitTeamFailed": "Falha ao sair da equipe",
     "transferSuccess": "Propriedade transferida com sucesso!",
     "transferFailed": "Falha ao transferir propriedade",
-    "loadApplicationsFailed": "Falha ao carregar aplicações do mercado de jogadores."
+    "loadApplicationsFailed": "Falha ao carregar aplicações do mercado de jogadores.",
+    "esportImage": "Imagem de desporto eletrónico"
   },
   "roster": {
     "pageTitle": "Gerenciar Elenco: {team}",
@@ -669,5 +670,8 @@
     "reportSuccess": "Relatório enviado. A AFC irá revisá-lo.",
     "reportFailed": "Falha ao enviar seu relatório",
     "loadFailed": "Falha ao carregar organização"
+  },
+  "playerProfile": {
+    "esportImage": "Imagem de desporto eletrónico"
   }
 }

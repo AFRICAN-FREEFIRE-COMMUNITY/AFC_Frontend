@@ -228,7 +228,8 @@
     "exitTeamFailed": "Échec de la sortie de l'équipe",
     "transferSuccess": "Propriété transférée avec succès !",
     "transferFailed": "Échec du transfert de propriété",
-    "loadApplicationsFailed": "Échec du chargement des candidatures du marché des joueurs."
+    "loadApplicationsFailed": "Échec du chargement des candidatures du marché des joueurs.",
+    "esportImage": "Image liée à l'e-sport"
   },
   "roster": {
     "pageTitle": "Gérer l'effectif : {team}",
@@ -669,5 +670,8 @@
     "reportSuccess": "Rapport envoyé. AFC l'examinera.",
     "reportFailed": "Échec de l'envoi de votre rapport",
     "loadFailed": "Échec du chargement de l'organisation"
+  },
+  "playerProfile": {
+    "esportImage": "Image liée à l'e-sport"
   }
 }

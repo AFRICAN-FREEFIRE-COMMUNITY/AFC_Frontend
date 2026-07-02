@@ -16,9 +16,16 @@ import { toast } from "sonner";
 import Cookies from "js-cookie";
 
 import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { IconFlag, IconLoader2, IconPhotoOff, IconPhotoCheck } from "@tabler/icons-react";
+import { IconFlag, IconLoader2, IconPhotoOff, IconPhotoCheck, IconUpload } from "@tabler/icons-react";
 
 const authHeaders = () => ({ Authorization: `Bearer ${Cookies.get("auth_token")}` });
 
@@ -42,6 +49,39 @@ interface PlayerRow {
 
 export function MediaAuditCard({ eventId }: { eventId: number }) {
   const t = useTranslations("organizer");
+  // Lightbox (owner 2026-07-02): the clicked thumb's full-size image; null = closed.
+  const [lightbox, setLightbox] = useState<{ src: string; label: string } | null>(null);
+  // ADMIN media upload (owner 2026-07-02): AFC admins can set a team's logo / a player's esport
+  // image right here (POST events/<id>/media-upload/, admin-gated server-side too). Organizers
+  // see the panel but not the Upload buttons.
+  const { isAdminByRoleOrRoles } = useAuth();
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  const uploadMedia = async (
+    kind: "team_logo" | "player_image",
+    id: number,
+    file: File,
+  ) => {
+    const key = `${kind}-${id}`;
+    setUploading(key);
+    try {
+      const fd = new FormData();
+      fd.append("kind", kind);
+      fd.append(kind === "team_logo" ? "team_id" : "user_id", String(id));
+      fd.append("file", file);
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/media-upload/`,
+        fd,
+        { headers: { Authorization: `Bearer ${Cookies.get("auth_token")}` } },
+      );
+      toast.success(t("mediaAudit.uploaded"));
+      load();
+    } catch {
+      toast.error(t("mediaAudit.uploadFailed"));
+    } finally {
+      setUploading(null);
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [players, setPlayers] = useState<PlayerRow[]>([]);
@@ -121,6 +161,8 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
     flaggedState,
     onFlag,
     onSuppress,
+    onUpload,
+    uploadingState,
   }: {
     label: string;
     sub?: string | null;
@@ -130,11 +172,22 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
     flaggedState: boolean;
     onFlag: () => void;
     onSuppress: (remove: boolean) => void;
+    onUpload?: (file: File) => void;
+    uploadingState?: boolean;
   }) => (
     <div className="flex items-center gap-2 py-1.5">
       {img ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={img} alt="" className="size-7 rounded border object-contain" />
+        // Click-to-enlarge (owner 2026-07-02): small thumbs are hard to judge; clicking opens the
+        // full-size image in a lightbox dialog so logos/esport images can be checked clearly.
+        <button
+          type="button"
+          onClick={() => setLightbox({ src: img, label })}
+          className="cursor-zoom-in"
+          aria-label={`${t("mediaAudit.viewLarger")}: ${label}`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={img} alt="" className="size-7 rounded border object-contain" />
+        </button>
       ) : (
         <IconPhotoOff className="text-muted-foreground size-7 rounded border p-1" />
       )}
@@ -143,6 +196,33 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
         {sub ? <p className="text-muted-foreground truncate text-[0.65rem]">{sub}</p> : null}
       </div>
       <div className="ml-auto flex items-center gap-1">
+        {/* Admin upload (owner 2026-07-02): replace or add the media in place. Hidden file input
+            triggered by the button; the backend re-encodes + the audit refetches. */}
+        {onUpload ? (
+          <label className="inline-flex">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onUpload(f);
+                e.target.value = "";
+              }}
+            />
+            <span
+              role="button"
+              title={t("mediaAudit.upload")}
+              className="hover:bg-accent inline-flex h-6 cursor-pointer items-center rounded-md px-1.5 text-[0.65rem]"
+            >
+              {uploadingState ? (
+                <IconLoader2 className="size-3 animate-spin" />
+              ) : (
+                <IconUpload className="size-3" />
+              )}
+            </span>
+          </label>
+        ) : null}
         {missing ? (
           <Badge variant="outline" className="rounded-full border-amber-500/50 px-2 py-0 text-[0.6rem] text-amber-500">
             {t("mediaAudit.missing")}
@@ -206,6 +286,8 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
                   flaggedState={x.flagged}
                   onFlag={() => flag("team_logo", x.team_id)}
                   onSuppress={(remove) => suppress("team_logo", x.team_id, remove)}
+                  onUpload={isAdminByRoleOrRoles ? (f) => uploadMedia("team_logo", x.team_id, f) : undefined}
+                  uploadingState={uploading === `team_logo-${x.team_id}`}
                 />
               ))
             )}
@@ -230,12 +312,30 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
                   flaggedState={x.flagged}
                   onFlag={() => flag("esports_image", x.user_id)}
                   onSuppress={(remove) => suppress("esports_image", x.user_id, remove)}
+                  onUpload={isAdminByRoleOrRoles ? (f) => uploadMedia("player_image", x.user_id, f) : undefined}
+                  uploadingState={uploading === `player_image-${x.user_id}`}
                 />
               ))
             )}
           </div>
         </div>
       </div>
+      {/* Full-size media lightbox (owner 2026-07-02). */}
+      <Dialog open={!!lightbox} onOpenChange={(o) => !o && setLightbox(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm">{lightbox?.label}</DialogTitle>
+          </DialogHeader>
+          {lightbox ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={lightbox.src}
+              alt={lightbox.label}
+              className="max-h-[70vh] w-full rounded-md border object-contain"
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

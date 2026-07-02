@@ -797,5 +797,9 @@
   "mediaAudit.noTeams": "No registered teams yet.",
   "mediaAudit.noPlayers": "No roster players yet.",
   "mediaAudit.loading": "Checking broadcast media...",
-  "mediaAudit.loadError": "Could not load the media audit."
+  "mediaAudit.loadError": "Could not load the media audit.",
+  "mediaAudit.viewLarger": "View larger",
+  "mediaAudit.upload": "Upload image",
+  "mediaAudit.uploaded": "Media updated.",
+  "mediaAudit.uploadFailed": "Could not upload the image."
 }

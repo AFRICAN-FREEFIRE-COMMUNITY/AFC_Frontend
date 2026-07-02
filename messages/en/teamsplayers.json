@@ -228,7 +228,8 @@
     "exitTeamFailed": "Failed to exit team",
     "transferSuccess": "Ownership transferred successfully!",
     "transferFailed": "Failed to transfer ownership",
-    "loadApplicationsFailed": "Failed to load player market applications."
+    "loadApplicationsFailed": "Failed to load player market applications.",
+    "esportImage": "Esport image"
   },
   "roster": {
     "pageTitle": "Manage Roster: {team}",
@@ -669,5 +670,8 @@
     "reportSuccess": "Report submitted. AFC will review it.",
     "reportFailed": "Failed to submit your report",
     "loadFailed": "Failed to load organization"
+  },
+  "playerProfile": {
+    "esportImage": "Esport image"
   }
 }
