@@ -89,6 +89,8 @@ import {
 } from "@/app/(a)/a/events/create/_components/Step2And3";
 import { Step4StageOrdering } from "@/app/(a)/a/events/create/_components/Step4StageOrdering";
 import { Step5PrizePool } from "@/app/(a)/a/events/create/_components/Step5PrizePool";
+// Prize distribution must add up to the compulsory cash value (owner 2026-07-02).
+import { validatePrizeDistribution } from "@/app/(a)/a/events/create/_components/PrizeDistributionSummary";
 import { Step6EventRules } from "@/app/(a)/a/events/create/_components/Step6EventRules";
 import { Step7PublishSave } from "@/app/(a)/a/events/create/_components/Step7PublishSave";
 import { StepSponsorRequirement } from "@/app/(a)/a/events/create/_components/StepSponsorRequirement";
@@ -1092,6 +1094,21 @@ export default function OrganizerCreateEventPage() {
     if (isPaid && !termsAcceptedRef.current) {
       setShowPaidTermsModal(true);
       return;
+    }
+    // Compulsory prizes (owner 2026-07-02): a real (non-draft) event needs a cash value AND a
+    // distribution that adds up to it; tells the organizer the exact over/under + jumps to step 5.
+    const _pv = form.getValues();
+    if (!_pv.save_to_drafts) {
+      const _pe = validatePrizeDistribution(
+        _pv.prize_distribution,
+        _pv.prizepool_cash_value,
+        (_pv.prize_currency as string) || "USD",
+      );
+      if (_pe) {
+        toast.error(_pe, { duration: 9000 });
+        setCurrentStep(5);
+        return;
+      }
     }
     backfillRoundRobinGroups();
     // @ts-ignore - resolver widens the form's internal TFieldValues generic (same

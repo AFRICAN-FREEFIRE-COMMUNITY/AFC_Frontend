@@ -177,10 +177,27 @@ export default function AdminLiveOverlaysPage() {
                 Download AFC Capture
               </a>
             </Button>
-            <Button variant="outline" asChild>
-              <Link href="/organizer/capture">Setup guide &amp; FAQ</Link>
-            </Button>
           </div>
+          {/* Setup guide INLINE (owner 2026-07-02): admins run overlays from here, so the steps live on
+              this admin page instead of linking out to the organizer portal's /organizer/capture page
+              (which is organizer-scoped and the wrong context for an admin). */}
+          <ol className="text-muted-foreground ml-4 list-decimal space-y-1 text-xs">
+            <li>Install and open AFC Capture on the PC running the Free Fire 3D observer client.</li>
+            <li>
+              Generate the event&apos;s <b>Capture key</b> below and paste it into AFC Capture.
+            </li>
+            <li>
+              Copy the event&apos;s overlay link and add it as a Browser Source in OBS, vMix, or any
+              software.
+            </li>
+            <li>
+              Use <b>Broadcast</b> to choose which stage or group (or a cumulative) the overlay shows.
+            </li>
+            <li>
+              Leave AFC Capture running while you host: it auto-uploads each round and pushes live
+              standings to the overlay.
+            </li>
+          </ol>
         </CardContent>
       </Card>
 

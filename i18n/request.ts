@@ -21,12 +21,34 @@
  */
 
 import { getRequestConfig } from "next-intl/server";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "./config";
 
 // The cookie the language switcher writes and we read here. NEXT_LOCALE is also
 // next-intl's own default cookie name, so the convention stays consistent.
 const LOCALE_COOKIE = "NEXT_LOCALE";
+
+// Best-match a browser Accept-Language header to one of our supported locales (en/fr/pt).
+// WHY (owner 2026-07-02): an ANONYMOUS visitor has no NEXT_LOCALE cookie yet (the cookie is written
+// on login from their country, or by the in-app language switcher). Without this, every logged-out
+// visitor got English — e.g. a Cabo Verde user opening a public team link from Instagram saw the whole
+// team page in English. We now honour the browser's own language for them. A logged-in user (who has
+// the cookie) is unaffected; the cookie always wins. Parses "pt-BR,pt;q=0.9,en;q=0.8" -> "pt".
+function localeFromAcceptLanguage(header: string | null): Locale | null {
+  if (!header) return null;
+  const ranked = header
+    .split(",")
+    .map((part) => {
+      const [tag, q] = part.trim().split(";q=");
+      // Fold "pt-BR" / "pt-PT" down to the base language "pt".
+      return { tag: tag.split("-")[0].toLowerCase(), q: q ? parseFloat(q) : 1 };
+    })
+    .sort((a, b) => b.q - a.q);
+  for (const { tag } of ranked) {
+    if (isLocale(tag)) return tag;
+  }
+  return null;
+}
 
 /**
  * Recursively merge `override` onto `base`, returning a new object. Nested
@@ -147,7 +169,19 @@ export default getRequestConfig(async () => {
   // against LOCALES. Anything unrecognised (or absent) falls back to English.
   const store = await cookies();
   const cookieValue = store.get(LOCALE_COOKIE)?.value;
-  const locale: Locale = isLocale(cookieValue) ? cookieValue : DEFAULT_LOCALE;
+  // The explicit cookie choice always wins. Only when it is missing/invalid (an anonymous visitor who
+  // hasn't picked a language and isn't logged in) do we fall back to the browser's Accept-Language,
+  // then finally English. Reading headers() adds no dynamic-rendering cost here: cookies() above
+  // already makes this config dynamic per request.
+  let locale: Locale;
+  if (isLocale(cookieValue)) {
+    locale = cookieValue;
+  } else {
+    const requestHeaders = await headers();
+    locale =
+      localeFromAcceptLanguage(requestHeaders.get("accept-language")) ??
+      DEFAULT_LOCALE;
+  }
 
   const messages = await loadMessages(locale);
 

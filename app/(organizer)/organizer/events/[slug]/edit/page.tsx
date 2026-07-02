@@ -584,6 +584,10 @@ export default function OrganizerEditEventPage({
           stages: mappedStages,
           prizepool: eventDetails.prizepool,
           prizepool_cash_value: eventDetails.prizepool_cash_value ?? undefined,
+          // Prize currency (owner 2026-07-02): the org edit page never loaded this, so it always
+          // showed USD even for an NGN event. Load it from the detail echo (mirrors the admin edit).
+          prize_currency:
+            (eventDetails as { prize_currency?: string }).prize_currency || "USD",
           prize_distribution: eventDetails.prize_distribution,
           event_rules: eventDetails.event_rules,
           rules_document: eventDetails.uploaded_rules_url || "",
@@ -1276,6 +1280,9 @@ export default function OrganizerEditEventPage({
         "prizepool_cash_value",
         (data.prizepool_cash_value ?? "").toString(),
       );
+      // Prize currency (owner 2026-07-02): the org edit page was NOT sending this, so an organizer's
+      // NGN pick silently reverted to USD on save. Mirror the admin edit + create pages.
+      formData.append("prize_currency", (data.prize_currency || "USD").toString());
       // Real stage count (matches the admin edit page). The old hardcoded "2" corrupted
       // Event.number_of_stages for any 1- or 3-stage org event on every organizer save. (fix 2026-06-20)
       formData.append("number_of_stages", String(data.stages?.length ?? 1));
@@ -1418,6 +1425,9 @@ export default function OrganizerEditEventPage({
         "prizepool_cash_value",
         (data.prizepool_cash_value ?? "").toString(),
       );
+      // Prize currency (owner 2026-07-02): the org edit page was NOT sending this, so an organizer's
+      // NGN pick silently reverted to USD on save. Mirror the admin edit + create pages.
+      formData.append("prize_currency", (data.prize_currency || "USD").toString());
       // Real stage count (matches the admin edit page). The old hardcoded "2" corrupted
       // Event.number_of_stages for any 1- or 3-stage org event on every organizer save. (fix 2026-06-20)
       formData.append("number_of_stages", String(data.stages?.length ?? 1));
@@ -1783,6 +1793,13 @@ export default function OrganizerEditEventPage({
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
+        // Prize cash value + currency (owner 2026-07-02): this save path omitted BOTH, so it wiped the
+        // cash value + reverted the currency to USD. Send them like the other save paths do.
+        formData.append(
+          "prizepool_cash_value",
+          (data.prizepool_cash_value ?? "").toString(),
+        );
+        formData.append("prize_currency", (data.prize_currency || "USD").toString());
         // Real stage count (matches the admin edit page). The old hardcoded "2" corrupted
       // Event.number_of_stages for any 1- or 3-stage org event on every organizer save. (fix 2026-06-20)
       formData.append("number_of_stages", String(data.stages?.length ?? 1));

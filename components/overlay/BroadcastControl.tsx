@@ -172,6 +172,16 @@ export function BroadcastControl({ eventId }: BroadcastControlProps) {
     return true; // event-wide always valid
   }, [scope, selStage, selGroup, customGroupIds]);
 
+  // When Set-live is disabled, say EXACTLY what's still needed (owner 2026-07-02: "are there
+  // conditions set for it... it should say"). Empty string once the selection is ready.
+  const setLiveHint = useMemo(() => {
+    if (canSet) return "";
+    if (scope === "group") return t("broadcast.needStageGroup");
+    if (scope === "stage") return t("broadcast.needStage");
+    if (scope === "custom") return t("broadcast.needCustomGroups");
+    return "";
+  }, [canSet, scope, t]);
+
   // ── Persist the chosen selection, then reflect it as the new live status. ──
   const onSetLive = async () => {
     if (!canSet) return;
@@ -328,6 +338,10 @@ export function BroadcastControl({ eventId }: BroadcastControlProps) {
               {saved ? (
                 <span className="font-medium text-foreground">
                   {t("broadcast.live", { selection: describe(saved) })}
+                </span>
+              ) : setLiveHint ? (
+                <span className="text-amber-600 dark:text-amber-400">
+                  {setLiveHint}
                 </span>
               ) : (
                 t("broadcast.noneLive")

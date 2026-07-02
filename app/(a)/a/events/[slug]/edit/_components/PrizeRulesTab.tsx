@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/select";
 // Shared prize-currency options (owner 2026-07-01: create + edit use the SAME list).
 import { PRIZE_CURRENCIES } from "@/app/(a)/a/events/create/_components/Step5PrizePool";
+// Shared live distribution-vs-cash-value check (owner 2026-07-02: same rule as the create wizard).
+import { PrizeDistributionSummary } from "@/app/(a)/a/events/create/_components/PrizeDistributionSummary";
 import {
   Card,
   CardContent,
@@ -102,7 +104,9 @@ export default function PrizeRulesTab({
           name="prizepool_cash_value"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Prize Pool Cash Value</FormLabel>
+              <FormLabel>
+                Prize Pool Cash Value <span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -122,6 +126,9 @@ export default function PrizeRulesTab({
                   placeholder="e.g., 5000"
                 />
               </FormControl>
+              <p className="text-muted-foreground text-xs">
+                Required. Your prize distribution below must add up to this amount.
+              </p>
               <FormMessage />
             </FormItem>
           )}
@@ -204,6 +211,13 @@ export default function PrizeRulesTab({
           >
             + Add Prize Position
           </Button>
+
+          {/* Live tally: does the distribution add up to the cash value? Tells over/under + by how much. */}
+          <PrizeDistributionSummary
+            distribution={prizeDistribution}
+            cashValue={form.watch("prizepool_cash_value")}
+            currency={(form.watch("prize_currency") as string) || "USD"}
+          />
         </div>
 
         <Separator />

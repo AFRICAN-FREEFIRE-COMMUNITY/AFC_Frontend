@@ -26,6 +26,8 @@ import { Step1EventDetails } from "./_components/Step1EventDetails";
 import { Step2EventMode, Step3StageCount } from "./_components/Step2And3";
 import { Step4StageOrdering } from "./_components/Step4StageOrdering";
 import { Step5PrizePool } from "./_components/Step5PrizePool";
+// Prize distribution must add up to the compulsory cash value (owner 2026-07-02).
+import { validatePrizeDistribution } from "./_components/PrizeDistributionSummary";
 import { Step6EventRules } from "./_components/Step6EventRules";
 import { Step7PublishSave } from "./_components/Step7PublishSave";
 import { StepSponsorRequirement } from "./_components/StepSponsorRequirement";
@@ -262,6 +264,23 @@ export default function CreateEventPage() {
   // date/maps for a round-robin stage, so just before submit we copy the meetings' date/time/maps onto
   // the base groups to satisfy the validator. Non-round-robin stages are untouched. Then submit.
   const handleFinalSubmit = () => {
+    // Compulsory prizes (owner 2026-07-02): a real (non-draft) event needs a cash value AND a
+    // distribution that adds up to it. Tells the admin exactly how far over/under they are + jumps
+    // to the prize step. Drafts can be saved incomplete.
+    const _pv = form.getValues();
+    if (!_pv.save_to_drafts) {
+      const _pe = validatePrizeDistribution(
+        _pv.prize_distribution,
+        _pv.prizepool_cash_value,
+        (_pv.prize_currency as string) || "USD",
+      );
+      if (_pe) {
+        toast.error(_pe, { duration: 9000 });
+        setCurrentStep(5);
+        return;
+      }
+    }
+
     const stages = (form.getValues("stages") as any[]) || [];
     stages.forEach((s, si) => {
       const isRR =

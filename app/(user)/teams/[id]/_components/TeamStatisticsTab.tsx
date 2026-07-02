@@ -107,6 +107,11 @@ type TournamentPerformance = {
 
 type RecentMatch = {
   event_name: string;
+  // Stage + group of this match (owner 2026-07-02): a multi-stage event has separate leaderboards per
+  // stage/group, so the per-match breakdown is sub-grouped by them instead of one flat list. Optional
+  // for a legacy match with no group.
+  stage_name?: string | null;
+  group_name?: string | null;
   match_number: number;
   match_map: string;
   placement: number;
@@ -114,6 +119,29 @@ type RecentMatch = {
   total_points: number;
   match_date: string;
 };
+
+// Group an event's matches by (stage, group) so a multi-stage event shows each leaderboard on its own,
+// preserving first-seen order. Matches with no stage/group collapse into one unlabelled section.
+function groupMatchesByStageGroup(matches: RecentMatch[]) {
+  const order: string[] = [];
+  const byKey = new Map<
+    string,
+    { stage: string | null; group: string | null; rows: RecentMatch[] }
+  >();
+  for (const m of matches) {
+    const key = `${m.stage_name ?? ""}||${m.group_name ?? ""}`;
+    if (!byKey.has(key)) {
+      byKey.set(key, {
+        stage: m.stage_name ?? null,
+        group: m.group_name ?? null,
+        rows: [],
+      });
+      order.push(key);
+    }
+    byKey.get(key)!.rows.push(m);
+  }
+  return order.map((k) => byKey.get(k)!);
+}
 
 type TierHistoryEntry = {
   season_id: number;
@@ -1100,51 +1128,76 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                                   {t("teamStats.noPerMatchRecords")}
                                 </p>
                               ) : (
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow>
-                                      <TableHead className="h-9 p-2 text-foreground">
-                                        {t("teamStats.match")}
-                                      </TableHead>
-                                      <TableHead className="h-9 p-2 text-foreground">
-                                        {t("teamStats.map")}
-                                      </TableHead>
-                                      <TableHead className="h-9 p-2 text-center text-foreground">
-                                        {t("teamStats.placement")}
-                                      </TableHead>
-                                      <TableHead className="h-9 p-2 text-center text-foreground">
-                                        {t("teamStats.kills")}
-                                      </TableHead>
-                                      <TableHead className="h-9 p-2 text-right text-foreground">
-                                        {t("teamStats.points")}
-                                      </TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {matches.map((m, mi) => (
-                                      <TableRow
-                                        key={`${perf.event_id}-${m.match_number}-${mi}`}
-                                        className="text-xs"
-                                      >
-                                        <TableCell className="p-2">
-                                          {t("teamStats.matchNumber", { number: m.match_number })}
-                                        </TableCell>
-                                        <TableCell className="p-2">
-                                          {m.match_map || "-"}
-                                        </TableCell>
-                                        <TableCell className="p-2 text-center">
-                                          {`#${m.placement}`}
-                                        </TableCell>
-                                        <TableCell className="p-2 text-center">
-                                          {m.kills}
-                                        </TableCell>
-                                        <TableCell className="p-2 text-right">
-                                          {m.total_points}
-                                        </TableCell>
-                                      </TableRow>
-                                    ))}
-                                  </TableBody>
-                                </Table>
+                                // Break the event's matches down by stage/group (owner 2026-07-02): a
+                                // two-stage event no longer lumps every leaderboard into one flat list.
+                                // Each stage/group gets a header + its own kills/points subtotal; the
+                                // event total stays in the summary boxes above.
+                                <div className="space-y-3">
+                                  {groupMatchesByStageGroup(matches).map((grp, gi) => {
+                                    const gKills = grp.rows.reduce((s, m) => s + (m.kills || 0), 0);
+                                    const gPoints = grp.rows.reduce((s, m) => s + (m.total_points || 0), 0);
+                                    const label = [grp.stage, grp.group].filter(Boolean).join(" · ");
+                                    return (
+                                      <div key={`${label}-${gi}`}>
+                                        {label ? (
+                                          <div className="mb-1 flex items-center justify-between gap-2">
+                                            <span className="text-[0.68rem] font-semibold uppercase tracking-wide text-primary">
+                                              {label}
+                                            </span>
+                                            <span className="text-[0.68rem] text-muted-foreground">
+                                              {t("teamStats.kills")}: {gKills} · {t("teamStats.points")}: {gPoints}
+                                            </span>
+                                          </div>
+                                        ) : null}
+                                        <Table>
+                                          <TableHeader>
+                                            <TableRow>
+                                              <TableHead className="h-9 p-2 text-foreground">
+                                                {t("teamStats.match")}
+                                              </TableHead>
+                                              <TableHead className="h-9 p-2 text-foreground">
+                                                {t("teamStats.map")}
+                                              </TableHead>
+                                              <TableHead className="h-9 p-2 text-center text-foreground">
+                                                {t("teamStats.placement")}
+                                              </TableHead>
+                                              <TableHead className="h-9 p-2 text-center text-foreground">
+                                                {t("teamStats.kills")}
+                                              </TableHead>
+                                              <TableHead className="h-9 p-2 text-right text-foreground">
+                                                {t("teamStats.points")}
+                                              </TableHead>
+                                            </TableRow>
+                                          </TableHeader>
+                                          <TableBody>
+                                            {grp.rows.map((m, mi) => (
+                                              <TableRow
+                                                key={`${perf.event_id}-${label}-${m.match_number}-${mi}`}
+                                                className="text-xs"
+                                              >
+                                                <TableCell className="p-2">
+                                                  {t("teamStats.matchNumber", { number: m.match_number })}
+                                                </TableCell>
+                                                <TableCell className="p-2">
+                                                  {m.match_map || "-"}
+                                                </TableCell>
+                                                <TableCell className="p-2 text-center">
+                                                  {`#${m.placement}`}
+                                                </TableCell>
+                                                <TableCell className="p-2 text-center">
+                                                  {m.kills}
+                                                </TableCell>
+                                                <TableCell className="p-2 text-right">
+                                                  {m.total_points}
+                                                </TableCell>
+                                              </TableRow>
+                                            ))}
+                                          </TableBody>
+                                        </Table>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               )}
                             </div>
                           </TableCell>
