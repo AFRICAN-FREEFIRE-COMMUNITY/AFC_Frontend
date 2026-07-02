@@ -438,6 +438,18 @@ export function DesignBoard({
             onLoad={() => setBgReady(true)}
             onError={() => setBgReady(true)}
             className="pointer-events-none absolute inset-0 size-full object-cover"
+            // BG behaviour (owner 2026-07-02, design.background_behavior): "persistent" (default)
+            // paints the bg statically — always on, never animates. "animate" fades the bg in WITH
+            // the content on every load/refresh of the overlay page (opacity keyed on the same
+            // revealed gate the rows use, so bg + rows animate in together).
+            style={
+              design.background_behavior === "animate"
+                ? {
+                    opacity: revealed ? 1 : 0,
+                    transition: "opacity 700ms ease-out",
+                  }
+                : undefined
+            }
           />
         ) : null}
 

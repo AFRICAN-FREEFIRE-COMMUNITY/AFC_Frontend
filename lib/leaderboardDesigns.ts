@@ -52,7 +52,9 @@ export interface LeaderboardDesignLogo {
 // A "connected column" binds to a real standings stat (field_type) and is drawn at x_pct for every
 // row of its column_group. Available stats (mirror OrgLeaderboardDesignField.FIELD_CHOICES):
 export type FieldType =
-  | "pos" | "team_name" | "team_logo" | "booyah" | "placement_points" | "kill_points"
+  // esports_image (owner 2026-07-02): the player's esports photo — image cell like team_logo;
+  // blank on team standings rows, populated by solo/versus/MVP feeds.
+  | "pos" | "team_name" | "team_logo" | "esports_image" | "booyah" | "placement_points" | "kill_points"
   | "total_points" | "rush_points" | "kills" | "matches" | "base_total" | "bonus" | "penalty"
   // ── Rich LIVE-only stats (owner 2026-07-01, spec §12 + memory project_freefire_live_capture §2/§2b) ──
   // These come ONLY from the in-round debugger stream the capture client tails (Tier 2), NOT from the
@@ -152,6 +154,9 @@ export interface LeaderboardDesign {
   // render only the placed columns/logos/text on a see-through canvas. Toggled in
   // LeaderboardDesignsManager; serialized by afc_organizers._serialize_design; read by DesignBoard.
   transparent_background: boolean;
+  // BG behaviour on the live overlay (owner 2026-07-02): "persistent" = always on, never animates
+  // (default); "animate" = the bg animates in with the content on every load/refresh.
+  background_behavior?: "persistent" | "animate";
   show_title: boolean;
   show_subtitle: boolean;
   max_rows: number; // how many standings rows the render fits (1..50)

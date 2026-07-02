@@ -8,13 +8,9 @@
 // WHAT AN ADMIN DOES HERE:
 //   • Get the AFC Capture software (download + how-to link) — the desktop app that auto-uploads
 //     results + pushes live standings.
-//   • Per event:
-//       - Capture key   : POST events/<id>/upload/token/ (uploadTokenApi.ensure) — the WRITE key the
-//         desktop app authenticates with. Gate = AFC event admin OR the org (so admins can mint it).
-//       - Copy overlay link : <CopyOverlayLinkDialog> — the read-only browser-source URL.
-//       - Broadcast     : <BroadcastControl> in a dialog — SET / TRIGGER which stage/group (or a
-//         cumulative) the overlay shows, live, from here. The overlay follows within one poll.
-//       - Leaderboard   : jump to the full results page.
+//   • Pick an event → the per-event OVERLAY STUDIO (/a/overlays/[eventId]) opens with EVERYTHING
+//     inline (owner 2026-07-02: no dialogs): every design as a live preview + per-link animation
+//     controls, the Timer scene, the Broadcast control, and the capture key.
 //
 // DATA: GET events/get-all-events/ (Bearer admin). Writes go through the reused dialog + controls.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,23 +27,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  IconChartBar,
   IconBroadcast,
-  IconKey,
+  IconChevronRight,
   IconDownload,
 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
-import { CopyOverlayLinkDialog } from "@/components/overlay/CopyOverlayLinkDialog";
-import { BroadcastControl } from "@/components/overlay/BroadcastControl";
-import { uploadTokenApi } from "@/lib/overlay";
 
 interface EventRow {
   event_id: number;
@@ -60,56 +45,6 @@ interface EventRow {
 // The AFC Capture installer served by this frontend (or a hosted override).
 const CAPTURE_DOWNLOAD_URL =
   env.NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL || "/downloads/AFC-Capture-Setup.exe";
-
-// ── Per-row capture key: mint (or return) the event's upload token, then copy it. Own state so each
-//    row is independent. Gate is server-side (event admin OR org), so an AFC admin can mint any. ──
-function CaptureKeyButton({ eventId }: { eventId: number }) {
-  const [busy, setBusy] = useState(false);
-  const [key, setKey] = useState("");
-
-  const getAndCopy = async () => {
-    setBusy(true);
-    try {
-      const k = key || (await uploadTokenApi.ensure(eventId));
-      setKey(k);
-      await navigator.clipboard?.writeText(k);
-      toast.success("Capture key copied. Paste it into AFC Capture.");
-    } catch {
-      toast.error("Could not generate the capture key.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Button variant="outline" size="sm" onClick={getAndCopy} disabled={busy}>
-      <IconKey className="size-4" />
-      {key ? "Copy capture key" : "Capture key"}
-    </Button>
-  );
-}
-
-// ── Per-row broadcast control in a dialog (lazy: BroadcastControl only fetches when opened). ──
-function BroadcastDialog({ eventId }: { eventId: number }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <IconBroadcast className="size-4" />
-          Broadcast
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>What the overlay shows</DialogTitle>
-        </DialogHeader>
-        {/* Only mounts (and fetches) while the dialog is open. */}
-        {open ? <BroadcastControl eventId={eventId} /> : null}
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 export default function AdminLiveOverlaysPage() {
   const { token } = useAuth();
@@ -156,7 +91,7 @@ export default function AdminLiveOverlaysPage() {
       />
 
       {/* ── AFC Capture software (download + how-to) ── */}
-      <Card className="bg-card rounded-md border">
+      <Card className="bg-card rounded-md border" data-tour="overlays-capture">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <IconDownload className="text-primary size-5" />
@@ -202,7 +137,7 @@ export default function AdminLiveOverlaysPage() {
       </Card>
 
       {/* ── Per-event overlay controls ── */}
-      <Card className="bg-card rounded-md border">
+      <Card className="bg-card rounded-md border" data-tour="overlays-events">
         <CardContent className="space-y-3 p-4">
           <div className="flex items-center gap-2">
             <IconBroadcast className="text-primary size-5" />
@@ -224,7 +159,6 @@ export default function AdminLiveOverlaysPage() {
               </p>
             ) : (
               filtered.map((e) => {
-                const orgId = e.organization ?? e.organization_id ?? null;
                 return (
                   <div
                     key={e.event_id}
@@ -244,16 +178,10 @@ export default function AdminLiveOverlaysPage() {
                       ) : null}
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center gap-2">
-                      <CaptureKeyButton eventId={e.event_id} />
-                      <CopyOverlayLinkDialog
-                        eventId={e.event_id}
-                        organizationId={orgId}
-                      />
-                      <BroadcastDialog eventId={e.event_id} />
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/a/leaderboards/${e.event_id}/edit`}>
-                          <IconChartBar className="size-4" />
-                          Leaderboard
+                        <Link href={`/a/overlays/${e.event_id}`}>
+                          Open overlays
+                          <IconChevronRight className="size-4" />
                         </Link>
                       </Button>
                     </div>

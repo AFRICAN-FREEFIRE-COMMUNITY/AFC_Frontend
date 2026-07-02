@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+// MVPs tab (owner 2026-07-02): criteria-arranged event MVP. See _components/MvpTab.tsx.
+import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
 import {
   Table,
   TableBody,
@@ -94,11 +96,7 @@ import { PageHeader } from "@/components/PageHeader";
 // live-overlay URL for this event's leaderboard. Mounted beside the header so an admin can grab the
 // OBS Browser Source link. Same component the organizer event leaderboard page mounts.
 import { CopyOverlayLinkDialog } from "@/components/overlay/CopyOverlayLinkDialog";
-// Broadcast control (components/overlay/BroadcastControl.tsx, owner 2026-07-01): lets the admin pick
-// which stage/group the live overlay shows, or combine groups/stages into a cumulative, WITHOUT
-// touching OBS. A "follow broadcast" overlay link (CopyOverlayLinkDialog with its follow switch on)
-// tracks this selection and updates within one poll. Same component the organizer page mounts.
-import { BroadcastControl } from "@/components/overlay/BroadcastControl";
+// Broadcast control moved to the Live Overlays studio (owner 2026-07-02) — no longer mounted here.
 import { toast } from "sonner";
 // Shared advisory-watchlist badge + client (components/WatchTag.tsx, lib/watchlist.ts). One bulk
 // watchlistApi.tags call (recomputed when the standings reload) marks which standings team_ids /
@@ -1390,10 +1388,10 @@ export default function EditLeaderboardPage({
         )}
       </div>
 
-      {/* Broadcast control: choose which stage/group the live overlay shows (or a stage/event/custom
-          cumulative) WITHOUT touching OBS. The "follow broadcast" overlay link tracks this. Sits under
-          the header so it reads as a distinct card. organizationId is null on the AFC admin surface. */}
-      {eventData && <BroadcastControl eventId={id} organizationId={null} />}
+      {/* Broadcast control REMOVED from this page (owner 2026-07-02): it now lives on the Live
+          Overlays studio (/a/overlays/<eventId>) where the rest of the overlay management is, so it
+          was redundant here. (The organizer leaderboard page keeps its copy until organizers get a
+          studio of their own.) */}
 
       {/* Stage tabs */}
       {/* data-tour anchor (leaderboard-edit-stage-group): admin tour "Stage and group picker"
@@ -1446,7 +1444,7 @@ export default function EditLeaderboardPage({
             past the whole standings to reach the flagged-kills / unmatched-team controls. */}
         <TabsList
           data-tour="leaderboard-edit-match"
-          className={`grid w-full ${participantType === "solo" ? "grid-cols-4" : "grid-cols-5"}`}
+          className={`grid w-full ${participantType === "solo" ? "grid-cols-5" : "grid-cols-6"}`}
         >
           <TabsTrigger value="matches">
             <IconMap size={14} className="mr-1" />
@@ -1470,7 +1468,17 @@ export default function EditLeaderboardPage({
               Flagging
             </TabsTrigger>
           )}
+          {/* MVPs (owner 2026-07-02): event-wide MVP by arranged criteria; see MvpTab. */}
+          <TabsTrigger value="mvp" data-tour="leaderboard-mvp-tab">
+            <IconTrophy size={14} className="mr-1" />
+            MVPs
+          </TabsTrigger>
         </TabsList>
+
+        {/* ── MVPs Tab: event-scoped (ignores the stage/group pickers above). ── */}
+        <TabsContent value="mvp" className="mt-4">
+          <MvpTab eventId={id} />
+        </TabsContent>
 
         {/* ── Match Results Tab ── */}
         <TabsContent value="matches" className="mt-4 space-y-4">

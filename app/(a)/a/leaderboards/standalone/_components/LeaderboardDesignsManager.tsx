@@ -132,6 +132,8 @@ interface FormState {
   // OBS live overlay (app/overlay/leaderboard/[token] -> DesignBoard) + the PNG export render only
   // the placed columns on a see-through canvas. Persisted as `transparent_background` on the design.
   transparentBackground: boolean;
+  // BG behaviour on the live overlay (owner 2026-07-02): persistent (always on) | animate (in on load).
+  backgroundBehavior: string;
   igFile: File | null;
   ytFile: File | null;
   igPreview: string;
@@ -148,6 +150,7 @@ const EMPTY_FORM: FormState = {
   showSubtitle: true,
   isDefault: false,
   transparentBackground: false,
+  backgroundBehavior: "persistent",
   igFile: null,
   ytFile: null,
   igPreview: "",
@@ -309,6 +312,7 @@ export function LeaderboardDesignsManager({
       showSubtitle: d.show_subtitle,
       isDefault: d.is_default,
       transparentBackground: d.transparent_background ?? false,
+      backgroundBehavior: d.background_behavior ?? "persistent",
       igFile: null,
       ytFile: null,
       igPreview: d.background_instagram || "",
@@ -402,6 +406,7 @@ export function LeaderboardDesignsManager({
         fd.append("is_default", String(form.isDefault));
         // Transparent overlay flag (owner 2026-07-01): PATCHed alongside the other style fields.
         fd.append("transparent_background", String(form.transparentBackground));
+        fd.append("background_behavior", form.backgroundBehavior);
         if (form.igFile) fd.append("background_instagram", form.igFile);
         if (form.ytFile) fd.append("background_youtube", form.ytFile);
         if (organizationId != null)
@@ -1015,6 +1020,32 @@ export function LeaderboardDesignsManager({
                       setForm((f) => ({ ...f, transparentBackground: v }))
                     }
                   />
+                </div>
+                {/* Background behaviour on the LIVE overlay (owner 2026-07-02): "Always on" keeps the
+                    bg painted before the rows reveal and never animates it (no dark flash);
+                    "Animates in" makes the bg fade in with the content on every load/refresh.
+                    Persisted as design.background_behavior; honoured by DesignBoard. */}
+                <div className="flex items-center justify-between gap-3">
+                  <Label className="font-normal">
+                    Background behaviour
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      (live overlay)
+                    </span>
+                  </Label>
+                  <Select
+                    value={form.backgroundBehavior}
+                    onValueChange={(v) =>
+                      setForm((f) => ({ ...f, backgroundBehavior: v }))
+                    }
+                  >
+                    <SelectTrigger className="h-8 w-44 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="persistent">Always on (never leaves)</SelectItem>
+                      <SelectItem value="animate">Animates in on load</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>

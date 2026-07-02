@@ -106,7 +106,8 @@ const FIELD_LABELS: Record<string, string> = {
 // Canonical order so the checkboxes read the same way every time (mirror the editor palette order:
 // per-round standings columns first, rich live-only stats last).
 const FIELD_ORDER: FieldType[] = [
-  "pos", "team_name", "team_logo", "booyah", "placement_points", "kill_points",
+  "pos", "team_name", "team_logo",
+  "esports_image", "booyah", "placement_points", "kill_points",
   "total_points", "rush_points", "kills", "matches", "base_total", "bonus", "penalty",
   "deaths", "knockdowns", "headshots", "most_used_weapon", "survival_time",
   "revives_received", "gloowall_used", "medkit_used",

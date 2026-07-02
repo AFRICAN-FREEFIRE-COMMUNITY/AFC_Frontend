@@ -246,3 +246,97 @@ export const broadcastApi = {
     return res.data;
   },
 };
+
+// ── EVENT OVERLAYS (owner 2026-07-02, studio v2) ─────────────────────────────
+// Saved, NAMED overlays per event: created from a design (kind "leaderboard") or as a scene (kind
+// "timer"), renamed, duplicated, deleted. Each overlay's public link is STABLE
+// (/overlay/view/<overlay_token>/<id>): it polls overlayConfigApi below, so studio edits (design,
+// stage/group, animations, timer trigger) update what the SAME link renders — no re-copying into OBS.
+// BE: afc_tournament_and_scrims/views_overlays.py (CRUD via the broadcast gate; config feed public).
+
+export type OverlayKind = "leaderboard" | "timer";
+
+// kind "leaderboard": design_id, follow, stage_id, group_id, anim, reveal, interval, live.
+// kind "timer":       end_at (ISO), label.
+export type OverlayConfig = Record<string, unknown>;
+
+export interface EventOverlayRow {
+  id: number;
+  name: string;
+  kind: OverlayKind;
+  config: OverlayConfig;
+  active: boolean;
+  updated_at?: string;
+}
+
+export const overlaysApi = {
+  list: async (eventId: number | string): Promise<EventOverlayRow[]> => {
+    const res = await axios.get<{ overlays: EventOverlayRow[] }>(
+      `${BASE}/events/${eventId}/overlays/`,
+      { headers: authHeaders() },
+    );
+    return res.data.overlays ?? [];
+  },
+  create: async (
+    eventId: number | string,
+    body: { name: string; kind: OverlayKind; config?: OverlayConfig },
+  ): Promise<EventOverlayRow> => {
+    const res = await axios.post<EventOverlayRow>(
+      `${BASE}/events/${eventId}/overlays/create/`,
+      body,
+      { headers: authHeaders() },
+    );
+    return res.data;
+  },
+  // Partial edit: rename (name), reconfigure (config replaces wholesale), trigger/hide (active).
+  update: async (
+    eventId: number | string,
+    overlayId: number,
+    body: { name?: string; config?: OverlayConfig; active?: boolean },
+  ): Promise<EventOverlayRow> => {
+    const res = await axios.post<EventOverlayRow>(
+      `${BASE}/events/${eventId}/overlays/${overlayId}/update/`,
+      body,
+      { headers: authHeaders() },
+    );
+    return res.data;
+  },
+  duplicate: async (
+    eventId: number | string,
+    overlayId: number,
+  ): Promise<EventOverlayRow> => {
+    const res = await axios.post<EventOverlayRow>(
+      `${BASE}/events/${eventId}/overlays/${overlayId}/duplicate/`,
+      {},
+      { headers: authHeaders() },
+    );
+    return res.data;
+  },
+  remove: async (eventId: number | string, overlayId: number): Promise<void> => {
+    await axios.post(
+      `${BASE}/events/${eventId}/overlays/${overlayId}/delete/`,
+      {},
+      { headers: authHeaders() },
+    );
+  },
+};
+
+// PUBLIC config poll behind every overlay's stable link (no auth: the token is the capability).
+export interface OverlayConfigFeed {
+  kind: OverlayKind;
+  name: string;
+  config: OverlayConfig;
+  active: boolean;
+  event_id: number;
+  server_time: string;
+}
+
+export const overlayConfigApi = async (
+  token: string,
+  overlayId: number | string,
+): Promise<OverlayConfigFeed> => {
+  const res = await axios.get<OverlayConfigFeed>(`${BASE}/events/overlay/config/`, {
+    params: { token, overlay: overlayId },
+  });
+  return res.data;
+};

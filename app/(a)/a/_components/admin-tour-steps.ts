@@ -81,6 +81,9 @@ export type AdminTourStep = {
 // suffix (afc_admin_tour_<pageKey>_done), so renaming one re-shows that tour.
 export type AdminTourPageKey =
   | "dashboard"
+  // ── Live Overlays (owner 2026-07-02): the broadcast overlay hub + per-event studio ──
+  | "live-overlays-list"
+  | "live-overlays-studio"
   | "events"
   | "teams"
   | "rankings"
@@ -1776,6 +1779,65 @@ export const ADMIN_TOUR_STEPS: Record<AdminTourPageKey, AdminTourStep[]> = {
       side: "bottom",
       align: "end",
     },
+    {
+      element: '[data-tour="leaderboard-mvp-tab"]',
+      title: "Event MVPs",
+      description:
+        "Pick the event's MVP: arrange criteria like tie-breakers (kills, damage, assists, ...) and choose whether the MVP comes from the overall event or only the winning team.",
+      side: "top",
+      align: "center",
+    },
+  ],
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LIVE OVERLAYS (owner 2026-07-02): the broadcast overlay hub. The list page picks
+  // an event; the per-event STUDIO manages its saved overlays (stable links), the
+  // timer scene, the broadcast control and the capture key.
+  // ═══════════════════════════════════════════════════════════════════════════
+  "live-overlays-list": [
+    SIDEBAR_STEP,
+    {
+      element: '[data-tour="overlays-capture"]',
+      title: "AFC Capture software",
+      description:
+        "Download the desktop app that runs on the room-hosting PC. It auto-uploads each round's result and pushes live in-round standings to your overlays.",
+      side: "bottom",
+      align: "start",
+    },
+    {
+      element: '[data-tour="overlays-events"]',
+      title: "Pick an event",
+      description:
+        "Every event is listed here. Open one to manage ALL of its overlays: designs with live previews, the countdown timer scene, the broadcast control and the capture key.",
+      side: "top",
+      align: "center",
+    },
+  ],
+  "live-overlays-studio": [
+    {
+      element: '[data-tour="studio-new-overlay"]',
+      title: "Create an overlay",
+      description:
+        "Make a new overlay from any leaderboard design, or add a countdown timer scene. Each overlay gets ONE permanent link you add to OBS/vMix once.",
+      side: "bottom",
+      align: "start",
+    },
+    {
+      element: '[data-tour="studio-cards"]',
+      title: "Your saved overlays",
+      description:
+        "Each card is one overlay with a LIVE preview of its real link. Change its design, stage or group, animations, or trigger the timer - the same link updates in OBS by itself. Rename, duplicate or delete from the card.",
+      side: "top",
+      align: "center",
+    },
+    {
+      element: '[data-tour="studio-broadcast"]',
+      title: "Broadcast control",
+      description:
+        "Overlays set to 'Follow the broadcast selection' show whatever you pick here - switch the live stage or group without touching OBS.",
+      side: "top",
+      align: "center",
+    },
   ],
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -2462,6 +2524,10 @@ export function resolveAdminTourPageKey(
     return "events-lb-leaderboards-create";
   if (/^\/a\/leaderboards\/[^/]+$/.test(path))
     return "events-lb-leaderboards-view";
+
+  // ── Live Overlays: the per-event studio before the bare hub root.
+  if (/^\/a\/overlays\/[^/]+$/.test(path)) return "live-overlays-studio";
+  if (path === "/a/overlays") return "live-overlays-list";
 
   // ── Teams (combined teams+players page; sub-routes reuse the parent tour).
   if (path.startsWith("/a/teams")) return "teams";
