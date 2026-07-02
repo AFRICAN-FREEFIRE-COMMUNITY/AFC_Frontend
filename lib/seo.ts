@@ -444,6 +444,13 @@ export const siteConfig = {
 // 2. Default Site Metadata
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
+  // Meta (Facebook) business domain verification (owner 2026-07-02, WhatsApp Cloud API setup):
+  // renders <meta name="facebook-domain-verification" .../> into the SERVER-rendered <head> of
+  // every page (the root layout uses defaultMetadata), which is what Meta's crawler requires -
+  // the tag must be in the initial HTML, not injected by JS. Covers the landing page + home + all.
+  other: {
+    "facebook-domain-verification": "vzijils4eoxk88929c5tvlsmbhz2ym",
+  },
   title: {
     default: `${siteConfig.name} | Free Fire Esports Platform`,
     template: `%s | ${siteConfig.shortName}`,
