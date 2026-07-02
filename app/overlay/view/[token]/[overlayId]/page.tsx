@@ -24,7 +24,11 @@ import { useParams } from "next/navigation";
 import { env } from "@/lib/env";
 import { overlayConfigApi, type OverlayConfigFeed } from "@/lib/overlay";
 
-const POLL_MS = 3000;
+// 1s poll (owner 2026-07-02: "when you trigger or load new options it should update in OBS as
+// fast as possible") - the config feed is a light single-row read, so studio changes (trigger,
+// design/team/bg swaps, live options) land on the OBS source within ~1s and play their entrance
+// animation immediately. Was 3s.
+const POLL_MS = 1000;
 
 // ── Build the inner leaderboard URL from a saved config (mirrors CopyOverlayLinkDialog). ──
 function leaderboardUrl(token: string, eventId: number, cfg: Record<string, any>): string {
