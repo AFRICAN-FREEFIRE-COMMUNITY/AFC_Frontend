@@ -79,6 +79,11 @@ import {
   useBlacklistCounts,
   BlacklistCountCell,
 } from "./useBlacklistCounts";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the team list + ghost-team list
+// re-fetch on each tick (and on tab return) so this tab updates without a manual reload.
+// The ghost create/delete dialogs hold their own form state, so a background refresh
+// never touches anything mid-typing.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // ── Ghost Teams (provisional placeholder teams used by Rankings & Tiering) ───
 // Shape mirrors the backend serialize_ghost() payload (afc_rankings/admin_ghost.py):
@@ -145,8 +150,10 @@ export const TeamsAdminContent = () => {
 
   // live ghost-teams admin API (afc_rankings); ghost teams are provisional
   // placeholders that hold tournament results until a real team claims them.
-  const fetchGhostTeams = async () => {
-    setGhostLoading(true);
+  // Live refresh (owner 2026-07-02): background=true skips the "Loading ghost teams..."
+  // row so an automatic refresh never flashes the table away.
+  const fetchGhostTeams = async (background = false) => {
+    if (!background) setGhostLoading(true);
     try {
       const res = await rankingsAdminApi.ghostList();
       setGhostTeams(res?.results ?? []);
@@ -159,9 +166,12 @@ export const TeamsAdminContent = () => {
     }
   };
 
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load; later ticks
+  // re-fetch the ghost list in the background (no loading-row flash).
+  const tick = useLiveTick();
   useEffect(() => {
-    fetchGhostTeams();
-  }, []);
+    fetchGhostTeams(tick > 0);
+  }, [tick]);
 
   const handleCreateGhost = async () => {
     if (!ghostFormReady || creatingGhost) return;
@@ -215,8 +225,11 @@ export const TeamsAdminContent = () => {
     }
   };
 
-  const fetchTeams = async () => {
-    startTransition(async () => {
+  // Live refresh (owner 2026-07-02): background=true runs the same fetch OUTSIDE the
+  // transition so `pending` stays false and the full-page FullLoader never flashes on
+  // an automatic refresh. Manual calls (mount, ban/unban onSuccess) keep the loader.
+  const fetchTeams = async (background = false) => {
+    const run = async () => {
       try {
         const res = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`,
@@ -230,26 +243,16 @@ export const TeamsAdminContent = () => {
       } catch (error: any) {
         toast.error(error?.response?.data.message);
       }
-    });
+    };
+    if (background) void run();
+    else startTransition(run);
   };
 
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load (with loader);
+  // later ticks re-fetch the team list in the background (no spinner flash).
   useEffect(() => {
-    startTransition(async () => {
-      try {
-        const res = await axios(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`,
-        );
-
-        if (res.statusText === "OK") {
-          setTeams(res.data.teams);
-        } else {
-          toast.error("Oops! An error occurred");
-        }
-      } catch (error: any) {
-        toast.error(error?.response?.data.message);
-      }
-    });
-  }, []);
+    fetchTeams(tick > 0);
+  }, [tick]);
 
   const filteredTeams = useMemo(() => {
     if (!teams) return [];

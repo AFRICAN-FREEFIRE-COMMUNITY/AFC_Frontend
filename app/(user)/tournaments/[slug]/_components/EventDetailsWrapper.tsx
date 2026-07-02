@@ -129,6 +129,9 @@ import { MemberSelfEditModal } from "./MemberSelfEditModal";
 // Public "Qualified field" provenance banner (event linking P2): who entered this
 // event through fired qualification links. Self-hides when there are none.
 import { QualifiedFromBanner } from "@/components/qualified-from-banner";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the event-details fetch below re-runs
+// on each tick so standings / registered teams / structure / room details update by themselves.
+import { useLiveTick } from "@/hooks/useLiveTick";
 // localStorage key for the saved register-for-event payload, so it survives the Stripe
 // redirect. Keyed by payment_id; the success page reads `${PAID_REG_KEY_PREFIX}${payment_id}`.
 const PAID_REG_KEY_PREFIX = "afc_evt_reg_";
@@ -3225,6 +3228,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   };
   const searchParams = useSearchParams();
 
+  // Live refresh (owner 2026-07-02): heartbeat the read-only event-details fetch subscribes to
+  // (see the tick effect below fetchEventDetails), so this page updates without manual reloads.
+  const tick = useLiveTick();
+
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -3739,9 +3746,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     }
   }, [searchParams, router, inviteToken, t]);
 
-  const fetchEventDetails = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  // Live refresh (owner 2026-07-02): `background = true` = silent re-pull on the live tick -
+  // no full-page loader flash, no stage-tab reset, and failures stay quiet (last good data
+  // keeps rendering). Foreground calls (initial load, post-register/leave) behave as before.
+  const fetchEventDetails = useCallback(async (background = false) => {
+    if (!background) {
+      setIsLoading(true);
+      setError(null);
+    }
 
     try {
       const endpoint = token
@@ -3773,14 +3785,19 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
       setEventDetails(details);
 
-      if (details?.stages?.length > 0) {
+      // Live refresh: never reset the user's selected stage tab on a background re-pull.
+      if (details?.stages?.length > 0 && !background) {
         setActiveStageTab(details.stages[0].stage_name);
       }
     } catch (err) {
-      toast.error(t("detail.loadFailed"));
-      setError(t("detail.loadFailed"));
+      // Live refresh: a failed background tick stays silent (no toast spam / error page);
+      // the page simply keeps showing the last successfully fetched data.
+      if (!background) {
+        toast.error(t("detail.loadFailed"));
+        setError(t("detail.loadFailed"));
+      }
     } finally {
-      setIsLoading(false);
+      if (!background) setIsLoading(false);
     }
   }, [slug, token, t]);
 
@@ -3834,6 +3851,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     }
   }, [token, eventDetails?.event_id]);
 
+  // Live refresh (owner 2026-07-02): `tick` in the deps re-pulls the viewer's registered roster
+  // (read-only, silent-fail, no spinner) so sponsor approval/rejection notices update live.
   useEffect(() => {
     if (
       eventDetails?.is_registered &&
@@ -3843,6 +3862,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       fetchPageRoster();
     }
   }, [
+    tick,
     eventDetails?.is_registered,
     eventDetails?.participant_type,
     eventDetails?.event_id,
@@ -4064,6 +4084,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       fetchUser();
     }
   }, [fetchEventDetails, slug, token, authLoading, t]);
+
+  // Live refresh (owner 2026-07-02): on each site-wide tick, silently re-pull the read-only
+  // event details (standings, registered teams, structure, room details, waitlist counts).
+  // Kept SEPARATE from the mount effect above so the user-team fetch there (which toasts
+  // "no team" for team-less users) never re-runs on a background tick.
+  useEffect(() => {
+    if (tick === 0 || !slug || authLoading) return;
+    fetchEventDetails(true);
+  }, [tick, fetchEventDetails, slug, authLoading]);
 
   // Live roster-edit-window tick (owner 2026-06-23): the server roster_edit_open is a SNAPSHOT from
   // the last fetch, so a page left open past the deadline kept showing the Edit Roster button +

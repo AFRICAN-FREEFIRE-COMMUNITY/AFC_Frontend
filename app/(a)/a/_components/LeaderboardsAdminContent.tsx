@@ -59,6 +59,9 @@ import {
 import { ITEMS_PER_PAGE } from "@/constants";
 import { matchesSearch } from "@/lib/search";
 import { InfoTip } from "@/components/ui/info-tip";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the event + leaderboard lists
+// re-fetch on each tick (and on tab return) so this tab updates without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 // Standalone (event-less) leaderboards section — the shared list + "Create standalone" button.
 // Additive: it sits below the existing event-leaderboard table and does not touch that UI.
 import { StandaloneLeaderboardList } from "../leaderboards/standalone/_components/StandaloneLeaderboardList";
@@ -102,8 +105,11 @@ export const LeaderboardsAdminContent = () => {
 
   const [pending, startTransition] = useTransition();
 
-  const fetchEvents = () => {
-    startTransition(async () => {
+  // Live refresh (owner 2026-07-02): background=true runs the same fetch OUTSIDE the
+  // transition so `pending` stays false and the full-page FullLoader never flashes on
+  // an automatic refresh. The manual mount load keeps the loader.
+  const fetchEvents = (background = false) => {
+    const run = async () => {
       try {
         const eventsResponse = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
@@ -125,12 +131,17 @@ export const LeaderboardsAdminContent = () => {
           error?.response?.data?.message || "Failed to fetch event data.",
         );
       }
-    });
+    };
+    if (background) void run();
+    else startTransition(run);
   };
 
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load (with loader);
+  // later ticks re-fetch in the background (no spinner flash).
+  const tick = useLiveTick();
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    fetchEvents(tick > 0);
+  }, [tick]);
 
   useEffect(() => {
     setEventsPage(1);

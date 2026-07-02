@@ -13,6 +13,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the watchlist re-fetches on each
+// tick (and on tab return) so new entries appear without a manual reload. The add dialog
+// holds its own name/reason state, so a background refresh never touches typed input.
+import { useLiveTick } from "@/hooks/useLiveTick";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   watchlistApi,
@@ -112,8 +116,10 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const fetchEntries = useCallback(async () => {
-    setLoading(true);
+  // Live refresh (owner 2026-07-02): background=true skips the FullLoader swap so an
+  // automatic refresh never flashes the table away mid-view.
+  const fetchEntries = useCallback(async (background = false) => {
+    if (!background) setLoading(true);
     try {
       const res = await watchlistApi.list({
         subject_type: tab,
@@ -130,9 +136,13 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
     }
   }, [tab, search, labels.loadError]);
 
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load (with loader); later
+  // ticks (or a tab/search change after the first tick) refresh in the background. Tab and
+  // search state live outside the fetch, so a background refresh never resets them.
+  const tick = useLiveTick();
   useEffect(() => {
-    fetchEntries();
-  }, [fetchEntries]);
+    fetchEntries(tick > 0);
+  }, [fetchEntries, tick]);
 
   const submitAdd = async () => {
     if (!name.trim() || !reason.trim()) return;

@@ -1,6 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the voting analytics + the
+// categories/nominees/sections lists re-fetch on each tick (and on tab return) so the
+// dashboard updates without a manual reload. The create/edit modals hold their own form
+// state, so a background refresh never touches anything mid-typing.
+import { useLiveTick } from "@/hooks/useLiveTick";
 import {
   Card,
   CardContent,
@@ -440,10 +445,12 @@ export default function Page() {
   }, [apiFetch]);
 
   // Load all voting analytics data
-  const loadVotingAnalytics = useCallback(async () => {
+  // Live refresh (owner 2026-07-02): background=true skips the loading flag so an
+  // automatic refresh never flashes the full-page loader.
+  const loadVotingAnalytics = useCallback(async (background = false) => {
     if (!token) return;
 
-    setLoading(true);
+    if (!background) setLoading(true);
     try {
       const [
         votingMetrics,
@@ -551,15 +558,17 @@ export default function Page() {
     }
   }, [token]);
 
-  const fetchInitialData = useCallback(async () => {
-    setFetchingData(true);
+  // Live refresh (owner 2026-07-02): background=true skips the fetchingData flag (and is
+  // forwarded to loadVotingAnalytics) so an automatic refresh never flashes the FullLoader.
+  const fetchInitialData = useCallback(async (background = false) => {
+    if (!background) setFetchingData(true);
     try {
       await Promise.all([
         fetchCategories(),
         fetchNominees(),
         fetchSections(),
         fetchActivities(),
-        loadVotingAnalytics(),
+        loadVotingAnalytics(background),
       ]);
     } catch (err) {
       toast.error("Failed to load initial data");
@@ -574,12 +583,16 @@ export default function Page() {
     loadVotingAnalytics,
   ]);
 
-  // run on mount and when token becomes available
+  // run on mount and when token becomes available.
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load (with loader); later
+  // ticks re-fetch all the read-only dashboard data in the background. Filter/tab state
+  // lives outside the fetches, so a background refresh never resets them.
+  const tick = useLiveTick();
   useEffect(() => {
     if (token) {
-      fetchInitialData();
+      fetchInitialData(tick > 0);
     }
-  }, [token, fetchInitialData]);
+  }, [token, tick, fetchInitialData]);
 
   // Auto dismiss message after 5 seconds
   useEffect(() => {

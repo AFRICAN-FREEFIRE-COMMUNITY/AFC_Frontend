@@ -53,6 +53,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { toast } from "sonner";
+// Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the news list
+// (articles + reaction counts) so the feed stays current without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 const page = () => {
   // Localized strings for the news list chrome (titles, filters, empty states,
@@ -62,6 +65,8 @@ const page = () => {
   const [pending, startTransition] = useTransition();
   const [news, setNews] = useState<any>();
   const { openAuthModal } = useAuthModal();
+  // Live refresh (owner 2026-07-02): shared tick re-runs the list fetch below.
+  const tick = useLiveTick();
 
   const requireAuth = (action: () => void) => {
     if (!token) {
@@ -140,7 +145,13 @@ const page = () => {
   }, [searchQuery, selectedCategory, dateFilter]);
 
   useEffect(() => {
-    startTransition(async () => {
+    // Live refresh (owner 2026-07-02): tick > 0 = a background re-pull. It runs
+    // OUTSIDE the transition so the FullLoader (gated on `pending`) never flashes.
+    // search/category/date filters and the current page are separate state (the
+    // page-reset effect above doesn't key on `news`), so nothing jumps; errors
+    // stay silent instead of re-toasting every tick.
+    const background = tick > 0;
+    const load = async () => {
       try {
         // get-all-news now folds reaction data into each item (likes, dislikes,
         // is_liked_by_user, is_disliked_by_user). Pass the viewer's auth token so
@@ -178,10 +189,16 @@ const page = () => {
 
         setNews(newsWithCounts);
       } catch (error: any) {
-        toast.error(error?.response?.data.message || t("toast.loadFailed"));
+        if (!background)
+          toast.error(error?.response?.data.message || t("toast.loadFailed"));
       }
-    });
-  }, [token]);
+    };
+    if (background) {
+      load();
+    } else {
+      startTransition(load);
+    }
+  }, [token, tick]);
 
   const handleVote = async (
     newsDetails: any,

@@ -45,6 +45,7 @@ import {
 } from "@/lib/zodSchemas";
 import axios from "axios";
 import { env } from "@/lib/env";
+import { compressImageForUpload } from "@/lib/imageCompress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Input } from "@/components/ui/input";
@@ -133,7 +134,7 @@ const Page = () => {
     setEsportUploading(true);
     try {
       const fd = new FormData();
-      fd.append("esport_image", file);
+      fd.append("esport_image", await compressImageForUpload(file));
       const res = await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/upload-esport-image/`,
         fd,
@@ -142,8 +143,12 @@ const Page = () => {
       setEsportPreview(res.data.esport_image_url);
       toast.success(t("edit.esport.saved"));
     } catch (error: any) {
+      // 413 = the request body outgrew the server's limit (nginx answers before Django, so
+      // there is no JSON message) - tell the user it is a SIZE problem, not a mystery.
       toast.error(
-        error?.response?.data?.message || t("edit.esport.uploadFailed"),
+        error?.response?.status === 413
+          ? t("edit.esport.tooLarge")
+          : error?.response?.data?.message || t("edit.esport.uploadFailed"),
       );
     } finally {
       setEsportUploading(false);
@@ -333,6 +338,110 @@ const Page = () => {
                   </FormItem>
                 )}
               />
+
+              {/* Esport image moved HERE (owner 2026-07-02): right under the profile
+                  picture so players immediately find where to upload it. */}
+      {/* ── Esport Image ── a SEPARATE asset from the profile picture (owner 2026-06-12).
+          Organizers use it as the player's image in event graphics, and events can REQUIRE it
+          before registration. Uploads hit POST /auth/upload-esport-image/ immediately (its own
+          flow, not part of the form above); replace-only - there is no way to remove it.
+          data-tour anchor (guided welcome tour): the esport-image card. Targeted by the
+          "profile" stop's final driver step in guided-tour-stops.ts (owner 2026-06-14). */}
+      <Card className="mt-4" data-tour="profile-esports">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            {t("edit.esport.title")}
+            <InfoTip
+              text={t("edit.esport.infoTip")}
+              className="ml-1.5"
+            />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* THE WARNING (owner, verbatim intent): own picture only, esport-style bust shot,
+              no branded shirts - violations can ban the player AND their team. */}
+          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+            <p className="font-semibold text-destructive">
+              {t("edit.esport.warningTitle")}
+            </p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+              <li>
+                {t("edit.esport.warningOwnPictureLead")}{" "}
+                <span className="font-medium text-foreground">
+                  {t("edit.esport.warningOwnPictureBold")}
+                </span>
+                {t("edit.esport.warningOwnPictureTail")}
+              </li>
+              <li>{t("edit.esport.warningBust")}</li>
+              <li>
+                {t("edit.esport.warningNoBrandLead")}{" "}
+                <span className="font-medium text-foreground">
+                  {t("edit.esport.warningNoBrandBold")}
+                </span>{" "}
+                {t("edit.esport.warningNoBrandTail")}
+              </li>
+              <li className="text-destructive">
+                {t("edit.esport.warningBan")}
+              </li>
+            </ul>
+          </div>
+
+          {/* SAMPLES (owner 2026-06-12: "lets have samples to show them") - three reference shots
+              shipped in public/esport-samples/ so players see exactly what an esport image looks
+              like before uploading their own. */}
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-foreground">
+              {t("edit.esport.samplesTitle")}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {["sample-1.jpg", "sample-2.png", "sample-3.webp"].map((f) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={f}
+                  src={`/esport-samples/${f}`}
+                  alt={t("edit.esport.sampleAlt")}
+                  className="h-32 w-24 rounded-md border object-cover"
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-start gap-4">
+            {/* Current image (or placeholder). Esport shots are portrait, so a tall preview. */}
+            <div className="h-40 w-32 overflow-hidden rounded-md border bg-muted/30">
+              {esportPreview || user.esport_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={esportPreview || user.esport_image_url || ""}
+                  alt={t("edit.esport.currentAlt")}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
+                  {t("edit.esport.noImageYet")}
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-[220px] space-y-2">
+              <Input
+                type="file"
+                accept="image/*"
+                disabled={esportUploading}
+                onChange={(e) => handleEsportImagePick(e.target.files?.[0] ?? null)}
+              />
+              <p className="text-xs text-muted-foreground">
+                {user.esport_image_url
+                  ? t("edit.esport.replaceNote")
+                  : t("edit.esport.uploadNote")}
+              </p>
+              {esportUploading && (
+                <Loader text={t("edit.esport.uploading")} />
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
               <FormField
                 control={form.control}
                 name="fullName"
@@ -636,107 +745,7 @@ const Page = () => {
         </CardContent>
       </Card>
 
-      {/* ── Esport Image ── a SEPARATE asset from the profile picture (owner 2026-06-12).
-          Organizers use it as the player's image in event graphics, and events can REQUIRE it
-          before registration. Uploads hit POST /auth/upload-esport-image/ immediately (its own
-          flow, not part of the form above); replace-only - there is no way to remove it.
-          data-tour anchor (guided welcome tour): the esport-image card. Targeted by the
-          "profile" stop's final driver step in guided-tour-stops.ts (owner 2026-06-14). */}
-      <Card className="mt-4" data-tour="profile-esports">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            {t("edit.esport.title")}
-            <InfoTip
-              text={t("edit.esport.infoTip")}
-              className="ml-1.5"
-            />
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* THE WARNING (owner, verbatim intent): own picture only, esport-style bust shot,
-              no branded shirts - violations can ban the player AND their team. */}
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
-            <p className="font-semibold text-destructive">
-              {t("edit.esport.warningTitle")}
-            </p>
-            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-              <li>
-                {t("edit.esport.warningOwnPictureLead")}{" "}
-                <span className="font-medium text-foreground">
-                  {t("edit.esport.warningOwnPictureBold")}
-                </span>
-                {t("edit.esport.warningOwnPictureTail")}
-              </li>
-              <li>{t("edit.esport.warningBust")}</li>
-              <li>
-                {t("edit.esport.warningNoBrandLead")}{" "}
-                <span className="font-medium text-foreground">
-                  {t("edit.esport.warningNoBrandBold")}
-                </span>{" "}
-                {t("edit.esport.warningNoBrandTail")}
-              </li>
-              <li className="text-destructive">
-                {t("edit.esport.warningBan")}
-              </li>
-            </ul>
-          </div>
 
-          {/* SAMPLES (owner 2026-06-12: "lets have samples to show them") - three reference shots
-              shipped in public/esport-samples/ so players see exactly what an esport image looks
-              like before uploading their own. */}
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-foreground">
-              {t("edit.esport.samplesTitle")}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {["sample-1.jpg", "sample-2.png", "sample-3.webp"].map((f) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={f}
-                  src={`/esport-samples/${f}`}
-                  alt={t("edit.esport.sampleAlt")}
-                  className="h-32 w-24 rounded-md border object-cover"
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-start gap-4">
-            {/* Current image (or placeholder). Esport shots are portrait, so a tall preview. */}
-            <div className="h-40 w-32 overflow-hidden rounded-md border bg-muted/30">
-              {esportPreview || user.esport_image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={esportPreview || user.esport_image_url || ""}
-                  alt={t("edit.esport.currentAlt")}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
-                  {t("edit.esport.noImageYet")}
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 min-w-[220px] space-y-2">
-              <Input
-                type="file"
-                accept="image/*"
-                disabled={esportUploading}
-                onChange={(e) => handleEsportImagePick(e.target.files?.[0] ?? null)}
-              />
-              <p className="text-xs text-muted-foreground">
-                {user.esport_image_url
-                  ? t("edit.esport.replaceNote")
-                  : t("edit.esport.uploadNote")}
-              </p>
-              {esportUploading && (
-                <Loader text={t("edit.esport.uploading")} />
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

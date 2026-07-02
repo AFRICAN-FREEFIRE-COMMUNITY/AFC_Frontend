@@ -21,6 +21,9 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+// Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the three read-only
+// lists below so the latest-events / player-market blocks stay current without a reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
@@ -165,6 +168,8 @@ export function HomeLatestSections() {
   const [playerPosts, setPlayerPosts] = useState<PlayerPost[]>([]);
   const [evFilter, setEvFilter] = useState<"all" | "tournament" | "scrims">("all");
   const [pmFilter, setPmFilter] = useState<"all" | "teams" | "players">("all");
+  // Live refresh (owner 2026-07-02): shared tick re-runs the load below.
+  const tick = useLiveTick();
 
   useEffect(() => {
     // Fire all three in parallel; each is independently optional (a failure or empty
@@ -183,7 +188,10 @@ export function HomeLatestSections() {
         setPlayerPosts(pp.value.data?.posts ?? pp.value.data ?? []);
     };
     load();
-  }, [API]);
+    // Live refresh (owner 2026-07-02): tick re-pulls the lists in the background.
+    // allSettled already keeps the current data on a transient failure, and the
+    // evFilter/pmFilter selections live in separate state so they are untouched.
+  }, [tick, API]);
 
   // ── events: filter + newest 4 ──
   const evCounts = {

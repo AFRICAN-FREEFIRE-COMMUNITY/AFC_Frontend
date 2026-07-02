@@ -23,6 +23,9 @@ import { homeNavLinks } from "@/constants/nav-links";
 // Shared-chrome strings live in messages/en/common.json under the "common"
 // namespace; this Client Component reads them via the useTranslations() hook.
 import { useTranslations } from "next-intl";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the notifications
+// fetch so the bell badge + dropdown list stay current without a page refresh.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 export const Header = () => {
   const pathname = usePathname();
@@ -36,6 +39,8 @@ export const Header = () => {
   const { user, token } = useAuth();
 
   const [notifications, setNotifications] = useState([]);
+  // Live refresh (owner 2026-07-02): heartbeat tick for the notifications fetch below.
+  const tick = useLiveTick();
 
   const fetchNotifications = useCallback(async () => {
     if (!user || !token) return;
@@ -54,9 +59,11 @@ export const Header = () => {
     } catch (error) {}
   }, [user, token]);
 
+  // Live refresh (owner 2026-07-02): tick re-runs the read-only fetch (no spinner state
+  // here, so background refreshes are already flash-free).
   useEffect(() => {
     fetchNotifications();
-  }, [fetchNotifications]);
+  }, [tick, fetchNotifications]);
 
   // Calculate unread notification count
   const unreadCount = notifications.filter((n: any) => !n.is_read).length;

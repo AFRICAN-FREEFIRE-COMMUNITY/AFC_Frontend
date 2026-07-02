@@ -30,6 +30,10 @@ import { rankingsApi } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { cn } from "@/lib/utils";
 import { InfoTip } from "@/components/ui/info-tip";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the seasons list + transfer log
+// re-fetch on each tick (and on tab return) so this page updates without a manual reload.
+// The dialogs hold their own form snapshots, so a background refresh never touches them.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 interface Season {
   season_id: number;
@@ -139,11 +143,14 @@ export default function SeasonsAdminPage() {
     }
   }, []);
 
-  // initial load on mount.
+  // initial load on mount + live refresh (owner 2026-07-02): tick 0 = the normal first
+  // load (with the "Loading seasons…" row); later ticks re-fetch both read-only lists in
+  // the background without flipping `loading`, so the tables never flash away.
+  const tick = useLiveTick();
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      setLoading(true);
+      if (tick === 0) setLoading(true);
       const rows = await loadSeasons();
       if (cancelled) return;
       const act = rows.find((s) => s.is_active) ?? rows[0];
@@ -153,7 +160,7 @@ export default function SeasonsAdminPage() {
     return () => {
       cancelled = true;
     };
-  }, [loadSeasons, loadTransferLog]);
+  }, [tick, loadSeasons, loadTransferLog]);
 
   // re-fetch seasons + the active season's transfer log after any write.
   const refresh = useCallback(async () => {

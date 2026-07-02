@@ -37,6 +37,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { organizersApi } from "@/lib/organizers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+// Live refresh (owner 2026-07-02): re-pull the read-only rating aggregate on the site-wide tick.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // Aggregate shape returned by getEventRating(). my_score is null for anonymous
 // callers (and for logged-in users who haven't rated yet).
@@ -83,9 +85,12 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
     }
   }, [eventId]);
 
+  // Live refresh (owner 2026-07-02): `tick` re-pulls the aggregate (average + count) so it
+  // updates live. Silent + spinnerless; the comment box state is separate, so typing is safe.
+  const tick = useLiveTick();
   useEffect(() => {
     if (eventId) fetchRating();
-  }, [eventId, fetchRating]);
+  }, [tick, eventId, fetchRating]);
 
   // Clicking a star upserts the caller's score, then refreshes the aggregate so
   // the average + count reflect the new rating immediately.

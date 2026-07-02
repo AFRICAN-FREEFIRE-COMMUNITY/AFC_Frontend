@@ -96,6 +96,9 @@ import {
 import { ReportDialog } from "@/components/player/ReportDialog";
 // Public fan/hater reactions (owner 2026-06-20): counts visible to all, tap to react.
 import { FanHater } from "@/components/profile/FanHater";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only public-stats
+// fetch so the profile (stats, registered events, tier) updates without a manual refresh.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types: mirror the public endpoint response exactly (do not add fields the
@@ -286,6 +289,9 @@ export function PlayerClient({ username }: { username: string }) {
   // which events-played rows are expanded (per-match drill-down)
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
+  // Live refresh (owner 2026-07-02): heartbeat tick for the profile fetch effect below.
+  const tick = useLiveTick();
+
   // Is the logged-in viewer looking at their OWN profile? Drives the owner-only
   // Edit Profile / Disconnect actions. Case-insensitive guard on the IGN.
   const isOwnProfile =
@@ -304,8 +310,15 @@ export function PlayerClient({ username }: { username: string }) {
     if (!ign) return;
     let active = true;
 
-    setLoading(true);
-    setNotFound(false);
+    // Live refresh (owner 2026-07-02): tick > 0 = a background heartbeat refetch. It skips
+    // the FullLoader (no flash; keeps the active tab, range filter, and expanded rows
+    // mounted) and never flips the not-found state or toasts on a transient error - the
+    // profile already on screen simply stays up until the next successful tick.
+    const background = tick > 0;
+    if (!background) {
+      setLoading(true);
+      setNotFound(false);
+    }
 
     axios
       .post(
@@ -320,7 +333,7 @@ export function PlayerClient({ username }: { username: string }) {
         setPlayer(res.data.player as PublicPlayer);
       })
       .catch((error: any) => {
-        if (!active) return;
+        if (!active || background) return;
         // 404 → player genuinely doesn't exist; show the not-found state. Anything
         // else is a transient/server error → toast and show not-found shell.
         if (error?.response?.status === 404) {
@@ -333,13 +346,13 @@ export function PlayerClient({ username }: { username: string }) {
         }
       })
       .finally(() => {
-        if (active) setLoading(false);
+        if (active && !background) setLoading(false);
       });
 
     return () => {
       active = false;
     };
-  }, [ign, token]);
+  }, [ign, token, tick]);
 
   // ── Own-profile only: check Discord connection so we can show Disconnect ──
   useEffect(() => {

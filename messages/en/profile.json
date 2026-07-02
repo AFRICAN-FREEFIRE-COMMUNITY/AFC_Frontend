@@ -20,7 +20,9 @@
     "esportsImageLabel": "Esports Image",
     "esportsImageAlt": "{name}'s esports image",
     "esportsImageEmpty": "No esports image yet",
-    "esportsImageHint": "Add one from Edit Profile"
+    "esportsImageHint": "Add one from Edit Profile",
+    "esportImage": "Esport image",
+    "esportImageMissing": "No esport image yet. Tap to upload yours."
   },
   "discord": {
     "disconnectTitle": "Are you absolutely sure?",
@@ -283,7 +285,8 @@
       "uploadNote": "Picking a file uploads it immediately. Esport images cannot be removed, only replaced.",
       "uploading": "Uploading esport image...",
       "saved": "Esport image saved.",
-      "uploadFailed": "Failed to upload the esport image."
+      "uploadFailed": "Failed to upload the esport image.",
+      "tooLarge": "That image is too large. The maximum size is 15MB - please pick a smaller photo (a normal phone picture works)."
     },
     "identityLocked": "Locked while you're registered for an event. You can edit this again once your events are over.",
     "statsVisible": {

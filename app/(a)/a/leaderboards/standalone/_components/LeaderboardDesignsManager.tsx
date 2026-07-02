@@ -85,6 +85,10 @@ import {
 } from "@tabler/icons-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Loader } from "@/components/Loader";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the design LIBRARY LIST re-fetches
+// on each tick (and on tab return). Only the read-only table refreshes - the create/edit
+// dialog and the fields editor keep their own working state, so nothing mid-edit is touched.
+import { useLiveTick } from "@/hooks/useLiveTick";
 import {
   leaderboardDesignsApi,
   type LeaderboardDesign,
@@ -207,8 +211,10 @@ export function LeaderboardDesignsManager({
   const [fieldsEditorDesign, setFieldsEditorDesign] = useState<LeaderboardDesign | null>(null);
 
   // ── Load the library. ──
-  const load = useCallback(async () => {
-    setLoading(true);
+  // Live refresh (owner 2026-07-02): background=true skips the "Loading designs..." state
+  // so an automatic refresh never flashes the table away mid-view.
+  const load = useCallback(async (background = false) => {
+    if (!background) setLoading(true);
     try {
       const res = await leaderboardDesignsApi.list(organizationId);
       setDesigns(res?.results ?? []);
@@ -221,9 +227,12 @@ export function LeaderboardDesignsManager({
     }
   }, [organizationId]);
 
+  // Live refresh (owner 2026-07-02): re-run the read-only list fetch on the site-wide tick
+  // (tick 0 = the normal first load with the loading state).
+  const tick = useLiveTick();
   useEffect(() => {
-    load();
-  }, [load]);
+    load(tick > 0);
+  }, [load, tick]);
 
   // ── Track the available width of the preview column (drives the computed canvas size). ──
   useEffect(() => {

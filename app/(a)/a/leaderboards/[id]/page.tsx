@@ -39,6 +39,8 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { env } from "@/lib/env";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-pulls the standings in place.
+import { useLiveTick } from "@/hooks/useLiveTick";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -74,6 +76,8 @@ export default function IndividualLeaderboardPage({
   const resolvedParams = use(params);
   const { id } = resolvedParams;
   const { token } = useAuth();
+  // Live refresh (owner 2026-07-02): tick advances every 30s while the tab is visible.
+  const tick = useLiveTick();
 
   const [eventData, setEventData] = useState<any>(null);
   const [eventSlug, setEventSlug] = useState<string>("");
@@ -147,8 +151,14 @@ export default function IndividualLeaderboardPage({
   };
 
   useEffect(() => {
+    // Live refresh (owner 2026-07-02): standings re-pull on the site-wide tick. Paused while a
+    // match editor or the whole-group editor is open so a background refetch can't reseed them
+    // mid-edit. Stage/group/match selections live in separate state and are never reset by this
+    // (fetchLeaderboard only seeds them when still unset). No spinner: the FullLoader only
+    // gates the very first load (!eventData).
+    if (tick > 0 && (editingMatch || groupEditOpen)) return;
     fetchLeaderboard();
-  }, [id, token]);
+  }, [tick, id, token]);
 
   // Run the slug lookup once after eventData loads (if slug wasn't in the leaderboard response)
   useEffect(() => {

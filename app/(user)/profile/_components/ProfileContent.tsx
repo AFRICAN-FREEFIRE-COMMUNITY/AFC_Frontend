@@ -349,6 +349,30 @@ export const ProfileContent = () => {
                 {t("card.team")} <TeamLink name={user.team} />
               </p>
             )}
+            {/* ── Esport image (owner 2026-07-02): visible on the profile VIEW so players see it
+                without opening the edit page. Full image (object-contain, natural aspect), with a
+                clear call-to-action when none is uploaded yet. Upload/replace lives on the edit
+                page right under the profile picture. ── */}
+            <div className="mb-4 w-full max-w-[220px]">
+              <p className="text-muted-foreground mb-1 text-center text-xs font-medium uppercase tracking-wide">
+                {t("card.esportImage")}
+              </p>
+              {user.esport_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.esport_image_url}
+                  alt={t("card.esportImage")}
+                  className="max-h-56 w-full rounded-md border object-contain"
+                />
+              ) : (
+                <Link
+                  href="/profile/edit"
+                  className="text-primary block rounded-md border border-dashed p-3 text-center text-xs hover:underline"
+                >
+                  {t("card.esportImageMissing")}
+                </Link>
+              )}
+            </div>
             {user.role !== "user" && (
               <Badge className="mb-4" variant="secondary">
                 {t("card.role")} <span className="capitalize">{user.role}</span>

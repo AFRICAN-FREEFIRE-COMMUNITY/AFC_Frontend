@@ -27,6 +27,9 @@ import { FullLoader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
+// Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the selected
+// event's standings so the leaderboard updates while a tournament is running.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 const LeaderboardPage = () => {
   const { token } = useAuth();
@@ -65,6 +68,52 @@ const LeaderboardPage = () => {
     };
     fetchEventsList();
   }, []);
+
+  // 1b. Live refresh (owner 2026-07-02): on every tick, re-pull the events list and
+  // the SELECTED event's leaderboard in the background. Deliberately does NOT go
+  // through handleEventSelect (which shows the details spinner and resets the active
+  // stage/group/match selection) - it swaps eventDetails in place so the standings
+  // update under whatever the user is currently looking at.
+  const tick = useLiveTick();
+  useEffect(() => {
+    if (tick === 0) return; // tick 0 = mount; the initial effects above handle it
+    (async () => {
+      try {
+        const res = await fetch(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`
+        );
+        const data = await res.json();
+        setEventsList(data.events || []);
+      } catch (error) {
+        // best-effort background refresh: keep the current list on failure
+      }
+      if (!selectedEventId) return;
+      try {
+        const res = await fetch(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboard-details-for-event/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ event_id: selectedEventId }),
+          }
+        );
+        const data = await res.json();
+        // Only swap in fresh data when it still carries stages - a transient
+        // error/empty payload must not blank out the standings on screen.
+        if (data && data.stages && data.stages.length > 0) {
+          setEventDetails(data);
+        }
+      } catch (error) {
+        // best-effort background refresh: keep the current standings on failure
+      }
+    })();
+    // Only the tick drives this background pass; selectedEventId/token changes are
+    // already handled by handleEventSelect (with its proper loading/reset flow).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick]);
 
   // 2. Fetch specific Leaderboard details when an event is selected
   const handleEventSelect = async (eventId: string) => {

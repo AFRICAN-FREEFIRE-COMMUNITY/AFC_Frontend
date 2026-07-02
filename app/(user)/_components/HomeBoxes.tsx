@@ -14,6 +14,9 @@ import {
 } from "@tabler/icons-react";
 import axios from "axios";
 import { useEffect, useState } from "react";
+// Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the stat counts
+// while the tab is visible so the boxes update without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 export const HomeBoxes = () => {
   // Stat-box labels on the authed home page (namespace == messages/en/home.json).
@@ -24,6 +27,8 @@ export const HomeBoxes = () => {
   // Total prize pool across all hosted events, summed on the backend in USD
   // (events/get-total-prize-pool/) and rendered via <Money from="USD"/> below.
   const [totalPrizeUsd, setTotalPrizeUsd] = useState<number>(0);
+  // Live refresh (owner 2026-07-02): re-run the count fetches on the shared tick.
+  const tick = useLiveTick();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -47,7 +52,9 @@ export const HomeBoxes = () => {
     };
 
     fetchUsers();
-  }, []);
+    // Live refresh (owner 2026-07-02): tick re-runs these read-only count fetches
+    // in place (no spinner state on this component, so nothing flashes).
+  }, [tick]);
 
   return (
     <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4 mb-4">

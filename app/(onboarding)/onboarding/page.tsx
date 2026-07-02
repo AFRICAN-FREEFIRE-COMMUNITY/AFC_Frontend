@@ -26,6 +26,7 @@ import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
+import { compressImageForUpload } from "@/lib/imageCompress";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -117,7 +118,7 @@ export default function OnboardingPage() {
     setBusy(true);
     try {
       const fd = new FormData();
-      fd.append("esport_image", esportFile);
+      fd.append("esport_image", await compressImageForUpload(esportFile));
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/upload-esport-image/`,
         fd,

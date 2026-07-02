@@ -48,6 +48,7 @@ import {
   type StandaloneLeaderboardHeader,
   type RankingTier,
 } from "@/lib/standaloneLeaderboards";
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // Stream P3: human labels for leaderboard.ranking_tier, rendered as a chip beside the status badge
 // on ranked leaderboards. Mirrors the same map on the standalone view page.
@@ -97,8 +98,10 @@ export function StandaloneLeaderboardList({
     }
   };
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  // `background` (live refresh) skips the loading row + the error toast, so a silent
+  // background poll never flashes the table away or spams failure toasts.
+  const load = useCallback(async (background = false) => {
+    if (!background) setLoading(true);
     try {
       const params: Record<string, any> = { limit: 50 };
       if (organizationId) params.organization_id = organizationId;
@@ -106,17 +109,22 @@ export function StandaloneLeaderboardList({
       // Envelope is {results,...}; tolerate a bare array just in case.
       setRows(res?.results ?? res ?? []);
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || "Failed to load standalone leaderboards.",
-      );
+      if (!background)
+        toast.error(
+          err?.response?.data?.message || "Failed to load standalone leaderboards.",
+        );
     } finally {
       setLoading(false);
     }
   }, [organizationId]);
 
+  // Live refresh (owner 2026-07-02): re-run the read-only list fetch on the site-wide tick
+  // (tick 0 = the normal first load). The delete dialog holds its own row snapshot
+  // (deleteTarget), so a background row refresh never disturbs an open confirmation.
+  const tick = useLiveTick();
   useEffect(() => {
-    load();
-  }, [load]);
+    load(tick > 0);
+  }, [load, tick]);
 
   return (
     <Card className="rounded-md">

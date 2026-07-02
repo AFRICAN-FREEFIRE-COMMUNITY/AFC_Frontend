@@ -18,12 +18,17 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
+// Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the two latest
+// articles so the home teaser stays current without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 export const LatestNews = () => {
   // Strings for the home-page "Latest News" teaser (namespace == messages/en/home.json).
   const t = useTranslations("home");
   const [pending, startTransition] = useTransition();
   const [news, setNews] = useState<any>();
+  // Live refresh (owner 2026-07-02): shared tick re-runs the load below.
+  const tick = useLiveTick();
 
   const categories = [
     { value: "all", label: t("latestNews.categories.all") },
@@ -37,7 +42,11 @@ export const LatestNews = () => {
   };
 
   useEffect(() => {
-    startTransition(async () => {
+    // Live refresh (owner 2026-07-02): tick > 0 = a background re-pull. It runs
+    // OUTSIDE the transition so the <Loader/> (gated on `pending`) never flashes,
+    // and errors stay silent instead of re-toasting every tick.
+    const background = tick > 0;
+    const load = async () => {
       try {
         const res = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`,
@@ -45,14 +54,19 @@ export const LatestNews = () => {
 
         if (res.statusText === "OK") {
           setNews(res.data.news.splice(0, 2));
-        } else {
+        } else if (!background) {
           toast.error(t("latestNews.toast.error"));
         }
       } catch (error: any) {
-        toast.error(error?.response?.data.message);
+        if (!background) toast.error(error?.response?.data.message);
       }
-    });
-  }, []);
+    };
+    if (background) {
+      load();
+    } else {
+      startTransition(load);
+    }
+  }, [tick]);
 
   return (
     <Card>

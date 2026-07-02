@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useTransition, useMemo } from "react";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the news list re-fetches on each
+// tick (and on tab return) so scheduled/new articles appear without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -153,8 +156,11 @@ const page = () => {
     setCurrentPage(1);
   }, [searchQuery, filterCategory, filterStatus, dateFilter]);
 
-  const fetchNews = () => {
-    startTransition(async () => {
+  // Live refresh (owner 2026-07-02): background=true runs the same fetch OUTSIDE the
+  // transition so `pending` stays false and the full-page FullLoader never flashes on
+  // an automatic refresh. Manual calls (mount, delete onSuccess) keep the loader.
+  const fetchNews = (background = false) => {
+    const run = async () => {
       try {
         // get-all-news already folds the like/dislike COUNTS and the caller's own liked/disliked
         // state into this ONE response (it reads the viewer from the Bearer token). So we pass the
@@ -178,12 +184,18 @@ const page = () => {
       } catch (error: any) {
         toast.error(error?.response?.data.message);
       }
-    });
+    };
+    if (background) void run();
+    else startTransition(run);
   };
 
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load (with loader);
+  // later ticks re-fetch in the background. Search/filter/pagination state lives
+  // outside the fetch, so a background refresh never resets them.
+  const tick = useLiveTick();
   useEffect(() => {
-    fetchNews();
-  }, []);
+    fetchNews(tick > 0);
+  }, [tick]);
 
   const clearFilters = () => {
     setSearchQuery("");

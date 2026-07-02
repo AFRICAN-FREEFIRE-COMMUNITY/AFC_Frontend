@@ -65,6 +65,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only public-org
+// fetch so the org's event list/statuses update without a manual refresh.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // ── Types - the public-endpoint payload (lib/organizers.ts getOrganizationPublic) ──
 // Only the org's own events[] entries are listed here; rating is null until
@@ -406,12 +409,21 @@ const Page = ({ params }: { params: Params }) => {
   // deleted) so we can show the clean empty state instead of a broken page.
   const [notFound, setNotFound] = useState(false);
 
+  // Live refresh (owner 2026-07-02): heartbeat tick for the fetch effect below.
+  const tick = useLiveTick();
+
   useEffect(() => {
     if (!slug) return;
 
     let active = true; // guard against setting state after unmount
-    setIsLoading(true);
-    setNotFound(false);
+    // Live refresh (owner 2026-07-02): tick > 0 = a background heartbeat refetch; skip
+    // the FullLoader (no flash) and leave the page up on a transient error (no toast,
+    // no not-found flip) - the stale org stays visible until the next successful tick.
+    const background = tick > 0;
+    if (!background) {
+      setIsLoading(true);
+      setNotFound(false);
+    }
 
     (async () => {
       try {
@@ -419,7 +431,7 @@ const Page = ({ params }: { params: Params }) => {
         const data = await organizersApi.getOrganizationPublic(decodedSlug);
         if (active) setOrg(data);
       } catch (err: any) {
-        if (!active) return;
+        if (!active || background) return;
         // 404 → the org isn't publicly visible: show the not-found state.
         if (err?.response?.status === 404) {
           setNotFound(true);
@@ -429,14 +441,14 @@ const Page = ({ params }: { params: Params }) => {
           );
         }
       } finally {
-        if (active) setIsLoading(false);
+        if (active && !background) setIsLoading(false);
       }
     })();
 
     return () => {
       active = false;
     };
-  }, [slug]);
+  }, [slug, tick]);
 
   if (isLoading) return <FullLoader />;
 

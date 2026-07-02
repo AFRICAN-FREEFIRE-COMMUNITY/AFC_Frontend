@@ -55,6 +55,7 @@ import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../_components/OrganizerContext";
+import { useLiveTick } from "@/hooks/useLiveTick";
 // Duplicate action: clones an event into a fresh draft (config + stage/group structure
 // only) via POST /events/<id>/duplicate-event/. Shared with the admin events list; gated
 // here on the same can_create_events permission as the "Create event" button, since the
@@ -158,8 +159,10 @@ export default function OrganizerEventsPage() {
   // Load the selected org's events. Extracted from the effect so the Unpublish action
   // can re-fetch afterwards (a freshly-drafted event then drops off this published-only
   // list). get-all-events filters is_draft=False, so every row here is a published event.
-  const loadEvents = async () => {
-    setLoading(true);
+  // `background` (live refresh) skips the loading row + the error toast, so a silent
+  // background poll never flashes the table away or spams failure toasts.
+  const loadEvents = async (background = false) => {
+    if (!background) setLoading(true);
     try {
       const res = await axios.get(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
@@ -172,20 +175,25 @@ export default function OrganizerEventsPage() {
       );
       setEvents(res.data?.events ?? []);
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || t("eventsList.toast.loadFailed"),
-      );
+      if (!background)
+        toast.error(
+          err?.response?.data?.message || t("eventsList.toast.loadFailed"),
+        );
     } finally {
       setLoading(false);
     }
   };
 
+  // Live refresh (owner 2026-07-02): re-run the read-only events fetch on the site-wide tick
+  // (tick 0 = the normal first load; background ticks skip the loading row).
+  const tick = useLiveTick();
+
   // ── Load the selected org's events. Re-runs when the org switches (the layout
   // re-mounts this subtree keyed on slug, so organizationId is always current). ──
   useEffect(() => {
-    loadEvents();
+    loadEvents(tick > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organizationId, token]);
+  }, [organizationId, token, tick]);
 
   // ── Unpublish an event (published -> draft) ─────────────────────────────────
   // One-click parity with the admin events list. Calls POST /events/edit-event/ with

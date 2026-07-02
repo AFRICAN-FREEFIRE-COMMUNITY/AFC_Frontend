@@ -46,6 +46,8 @@ import Link from "next/link";
 // Broadcast media hygiene (owner 2026-07-02): also surfaced on the event view page.
 import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
 import { useRouter } from "next/navigation";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-pulls this page's read-only data.
+import { useLiveTick } from "@/hooks/useLiveTick";
 import { use, useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { GroupResultModal } from "../_components/GroupResultModal";
@@ -318,6 +320,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const [tierSaving, setTierSaving] = useState(false);
 
   const [pending, startTransition] = useTransition();
+  // Live refresh (owner 2026-07-02): tick advances every 30s while the tab is visible.
+  const tick = useLiveTick();
   const [eventDetails, setEventDetails] = useState<EventDetails>();
   const [adminDetails, setAdminDetails] = useState<AdminEventDetails>();
   const [inviteLinks, setInviteLinks] = useState<InviteLink[]>([]);
@@ -392,7 +396,9 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   // mutates the event calls this to pull fresh data and re-render in place, instead of a
   // window.location.reload(). Used by the initial load effect below AND passed as the
   // onSuccess of the page's action modals (add teams, edit roster, registrations, etc.).
-  const refetchEvent = useCallback(async () => {
+  // Live refresh (owner 2026-07-02): `background` = a tick-driven refresh; it skips the invite-links
+  // spinner + error toasts so nothing flashes while the data silently updates in place.
+  const refetchEvent = useCallback(async (background = false) => {
     if (!slug || !token) return;
     try {
       const config = {
@@ -435,14 +441,16 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
       // If event is private, fetch invite links
       if (ed && !ed.is_public) {
-        fetchInviteLinks(ed.event_id);
+        fetchInviteLinks(ed.event_id, background);
       }
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.detail ||
         "Failed to fetch event details.";
-      toast.error(errorMessage);
+      // Live refresh (owner 2026-07-02): no toast on background ticks (a transient network
+      // blip would otherwise toast every 30s); auth errors still redirect below.
+      if (!background) toast.error(errorMessage);
       // Only redirect to login if it's an auth error (401 or 403)
       if (error.response?.status === 401 || error.response?.status === 403) {
         router.push("/login");
@@ -455,10 +463,19 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   useEffect(() => {
     // Wait for auth context to load before making API calls
     if (!slug || authLoading || !token) return;
+    // Live refresh (owner 2026-07-02): ticks re-pull the event + admin stats in place. No
+    // startTransition (pending drives the FullLoader = a full-page flash) and paused while the
+    // sponsor dialog is open (refetchEvent re-seeds sponsorForm and would clobber typing).
+    if (tick > 0) {
+      if (!showSponsorDialog) refetchEvent(true);
+      return;
+    }
     startTransition(() => {
       refetchEvent();
     });
-  }, [slug, token, authLoading, refetchEvent]);
+    // showSponsorDialog intentionally omitted: it only gates the background tick above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick, slug, token, authLoading, refetchEvent]);
 
   // Manually override the event's tournament tier (head/super admin only; owner 2026-06-30).
   // Pass { tournament_tier } to pin a tier, or { reset: true } to clear the override + re-classify.
@@ -481,10 +498,12 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     }
   };
 
-  const fetchInviteLinks = async (eventId: number) => {
+  // Live refresh (owner 2026-07-02): `background` skips the loading flag so the invite-links
+  // list never flashes its spinner on a tick-driven refresh.
+  const fetchInviteLinks = async (eventId: number, background = false) => {
     if (!token) return;
 
-    setLoadingInvites(true);
+    if (!background) setLoadingInvites(true);
     try {
       const config = {
         headers: {
@@ -503,7 +522,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     } catch (error: any) {
       console.error("Failed to fetch invite links:", error);
     } finally {
-      setLoadingInvites(false);
+      if (!background) setLoadingInvites(false);
     }
   };
 

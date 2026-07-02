@@ -37,6 +37,9 @@ import {
 } from "@/components/rankings/TransferWindowBanner";
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 import { useAuth } from "@/contexts/AuthContext";
+// Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the monthly
+// standings / quarterly tiers so the ladders update without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 // The claim-request dialog (logged-in users) + its target shape. Opened from the "Claim" button
 // on a ghost row below; it POSTs to the user-facing ghost request-claim endpoints (see the
 // component header for the exact endpoints).
@@ -192,10 +195,16 @@ function RankingsView() {
   // The ghost the user is requesting to claim (null = dialog closed). Set by the per-row "Claim"
   // button; consumed by <ClaimGhostDialog/> at the bottom of this view.
   const [claimTarget, setClaimTarget] = useState<ClaimGhostTarget | null>(null);
+  // Live refresh (owner 2026-07-02): shared tick re-runs the standings fetch below.
+  const tick = useLiveTick();
 
   useEffect(() => {
     let active = true;
-    setLoading(true); setOpen(null);
+    // Live refresh (owner 2026-07-02): tick > 0 = a background re-pull - keep the
+    // current rows on screen (no loader flash) and leave the expanded row open.
+    // Search / country filter / claim dialog live in separate state, untouched.
+    const background = tick > 0;
+    if (!background) { setLoading(true); setOpen(null); }
     (async () => {
       try {
         if (subject === "teams") {
@@ -208,7 +217,7 @@ function RankingsView() {
       } finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
-  }, [subject]);
+  }, [subject, tick]);
 
   const all: any[] = subject === "teams" ? teams : players;
   // Distinct countries present in the current rows (for the filter dropdown), sorted.
@@ -527,6 +536,10 @@ function TiersView() {
   // Season returned on the quarterly envelope - carries rankings_published + tiers_published.
   const [season, setSeason] = useState<SeasonFlags | null>(null);
   const [loading, setLoading] = useState(true);
+  // Live refresh (owner 2026-07-02): shared tick re-runs the quarterly fetch below.
+  // The seasons() effect is deliberately NOT wired - it auto-selects the active
+  // season, so a background re-run would clobber the user's season pick.
+  const tick = useLiveTick();
 
   useEffect(() => {
     rankingsApi.seasons().then((r) => {
@@ -537,12 +550,16 @@ function TiersView() {
   }, []);
 
   useEffect(() => {
-    let active = true; setLoading(true);
+    let active = true;
+    // Live refresh (owner 2026-07-02): tick > 0 = a background re-pull - keep the
+    // tier bands on screen (no loader flash); season pick, search, and country
+    // filter live in separate state and stay untouched.
+    if (tick === 0) setLoading(true);
     rankingsApi.teamsQuarterly(seasonId)
       .then((r) => { if (active) { setTeams(r.results); setSeason((r.season as SeasonFlags) ?? null); } })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [seasonId]);
+  }, [seasonId, tick]);
 
   // Tiers not published yet → backend sends tier=null on every row even though rankings are published.
   const tiersHidden = season?.tiers_published === false;

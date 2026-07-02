@@ -39,6 +39,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/Loader";
 import { sponsorsApi, MySubmissionRow } from "@/lib/sponsors";
+// Live refresh (owner 2026-07-02): re-pull the read-only submission statuses on the site-wide
+// tick so pending -> approved/rejected pills flip without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // Fallback row title when the engagement has no label (label is optional on
 // follow_social / join_group configs). Maps each engagement type to its i18n
@@ -139,20 +142,25 @@ export const SponsorRequirementsCard: React.FC<
   // The submission id currently being resubmitted (disables its button).
   const [resubmittingId, setResubmittingId] = useState<number | null>(null);
 
-  const fetchRows = useCallback(async () => {
+  // Live refresh (owner 2026-07-02): background=true = a silent tick re-pull; on failure it
+  // keeps the last good rows instead of blanking (hiding) the card mid-session.
+  const fetchRows = useCallback(async (background = false) => {
     try {
       const res = await sponsorsApi.mySubmissions(eventId);
       setRows(res.results || []);
     } catch {
       // Non-fatal supplementary UI (same stance as fetchPageRoster): a failed
       // fetch just hides the card.
-      setRows([]);
+      if (!background) setRows([]);
     }
   }, [eventId]);
 
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load; later ticks are background.
+  // The resubmit drafts live in separate state (keyed by submission id), so typing is safe.
+  const tick = useLiveTick();
   useEffect(() => {
-    fetchRows();
-  }, [fetchRows]);
+    fetchRows(tick > 0);
+  }, [tick, fetchRows]);
 
   // Player fixes a rejected value; the row returns to pending server-side.
   const handleResubmit = async (row: MySubmissionRow) => {

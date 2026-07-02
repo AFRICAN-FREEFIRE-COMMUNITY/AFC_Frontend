@@ -25,6 +25,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
+import { compressImageForUpload } from "@/lib/imageCompress";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,7 +113,7 @@ export function MemberSelfEditModal({ event, onSuccess }: MemberSelfEditModalPro
         // 2) Esport image (its own replace-only endpoint) only after the identity save succeeded.
         if (needEsportImg && esportFile) {
           const fd = new FormData();
-          fd.append("esport_image", esportFile);
+          fd.append("esport_image", await compressImageForUpload(esportFile));
           await axios.post(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/upload-esport-image/`,
             fd,

@@ -18,6 +18,8 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-pulls the read-only ranking.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 import { env } from "@/lib/env";
 import { Badge } from "@/components/ui/badge";
@@ -115,24 +117,43 @@ export default function MvpTab({ eventId }: { eventId: number | string }) {
     setMvp(d.mvp);
   };
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  // Live refresh (owner 2026-07-02): `background` = a tick-driven refresh. It skips the loading
+  // spinner + error toast, and only updates the READ-ONLY side (ranking table, per-map winners,
+  // MVP header, criteria catalog) - the admin's in-progress criteria arrangement + scope picker
+  // are form state and must never be clobbered by a background refetch.
+  const load = useCallback(async (background = false) => {
+    if (!background) setLoading(true);
     try {
       const res = await axios.get<MvpResponse>(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/mvp/`,
         { headers: authHeaders() },
       );
-      applyResponse(res.data);
+      if (background) {
+        const d = res.data;
+        setMeta(d.criteria_meta);
+        setPlayers(d.players);
+        setMapMvps(d.map_mvps ?? []);
+        setMvp(d.mvp);
+      } else {
+        applyResponse(res.data);
+      }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Could not load the MVP ranking.");
+      if (!background) {
+        toast.error(err?.response?.data?.message || "Could not load the MVP ranking.");
+      }
     } finally {
-      setLoading(false);
+      if (!background) setLoading(false);
     }
   }, [eventId]);
 
+  // Live refresh (owner 2026-07-02): the current-winners list re-pulls on the site-wide tick
+  // (tick 0 = the normal first load). Skipped while "Save & recompute" is in flight so a stale
+  // GET can't race the POST's recomputed response.
+  const tick = useLiveTick();
   useEffect(() => {
-    load();
-  }, [load]);
+    if (tick > 0 && saving) return;
+    load(tick > 0);
+  }, [tick, load]);
 
   const move = (idx: number, dir: -1 | 1) => {
     setCriteria((prev) => {

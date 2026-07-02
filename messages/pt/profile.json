@@ -20,7 +20,9 @@
     "esportsImageLabel": "Imagem de eSports",
     "esportsImageAlt": "{name}",
     "esportsImageEmpty": "Ainda não há nenhuma imagem relacionada com os eSports",
-    "esportsImageHint": "Adicionar um em «Editar perfil»"
+    "esportsImageHint": "Adicionar um em «Editar perfil»",
+    "esportImage": "Imagem de desporto eletrónico",
+    "esportImageMissing": "Ainda não há nenhuma imagem de desporto. Toca para carregares a tua."
   },
   "discord": {
     "disconnectTitle": "Tem certeza absoluta?",
@@ -283,7 +285,8 @@
       "uploadNote": "Selecionar um arquivo o carrega imediatamente. Imagens de esport não podem ser removidas, apenas substituídas.",
       "uploading": "Carregando imagem de esport...",
       "saved": "Imagem de esport salva.",
-      "uploadFailed": "Falha ao carregar a imagem de esport."
+      "uploadFailed": "Falha ao carregar a imagem de esport.",
+      "tooLarge": "Essa imagem é demasiado grande. O tamanho máximo é de 15 MB — por favor, escolha uma fotografia mais pequena (uma fotografia normal tirada com o telemóvel serve)."
     },
     "identityLocked": "Bloqueado enquanto estiver registado para um evento. Pode editar isto novamente assim que os seus eventos terminarem.",
     "statsVisible": {

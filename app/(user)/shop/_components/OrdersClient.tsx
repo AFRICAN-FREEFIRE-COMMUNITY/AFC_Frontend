@@ -49,6 +49,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the orders fetch so
+// order status changes (paid/completed/pincode delivery) show without a page refresh.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 export interface OrderItem {
   product_name: string;
@@ -77,7 +80,12 @@ export default function OrdersClient() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  // Live refresh (owner 2026-07-02): heartbeat tick for the fetch effect below.
+  const tick = useLiveTick();
 
+  // Live refresh (owner 2026-07-02): tick re-runs this read-only fetch. isLoading is only
+  // true on first mount (the loader never re-sets it), so background refreshes never flash
+  // the spinner; currentPage is untouched, so pagination is preserved.
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -98,7 +106,7 @@ export default function OrdersClient() {
     if (token) {
       fetchOrders();
     }
-  }, [token]);
+  }, [tick, token]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {

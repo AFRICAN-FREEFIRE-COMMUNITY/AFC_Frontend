@@ -101,6 +101,9 @@ import {
   type ReportTarget,
 } from "@/app/(user)/_components/MarketReportDialog";
 import { TransferWindowBanner } from "@/components/rankings/TransferWindowBanner";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only market
+// fetches (posts, applications, trial invites) so the lists update without a refresh.
+import { useLiveTick } from "@/hooks/useLiveTick";
 // Subtle clickable names -> public player / team profiles.
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -527,6 +530,11 @@ function PlayerMarketPage() {
   // UID, state filter). Author English lives in messages/en/playerMarket.json.
   const t = useTranslations("playerMarket");
 
+  // Live refresh (owner 2026-07-02): heartbeat tick for the read-only fetch effects below
+  // (posts lists, applications, trial invites). tick > 0 = a background refresh, which
+  // skips the loading flags + error toasts so nothing flashes or nags every 30s.
+  const tick = useLiveTick();
+
   const [activeTab, setActiveTab] = useState("teams");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
@@ -920,6 +928,10 @@ function PlayerMarketPage() {
 
   useEffect(() => {
     if (!token || !user) return;
+    // Live refresh (owner 2026-07-02): tick re-runs this read-only chain (current team ->
+    // team applications OR my applications); background refreshes (tick > 0) skip the tab
+    // loading flags + error toasts.
+    const background = tick > 0;
 
     // First fetch the user's current team to determine their role
     axios
@@ -947,25 +959,29 @@ function PlayerMarketPage() {
 
         if (leader) {
           // Fetch applications to their team
-          setLoadingTeamApps(true);
+          if (!background) setLoadingTeamApps(true);
           axios
             .get(
               `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-applications/`,
               { headers: { Authorization: `Bearer ${token}` } },
             )
             .then((r) => setTeamApplications(r.data))
-            .catch(() => toast.error("Failed to load team applications."))
+            .catch(() => {
+              if (!background) toast.error("Failed to load team applications.");
+            })
             .finally(() => setLoadingTeamApps(false));
         } else {
           // Fetch their own applications
-          setLoadingMyApps(true);
+          if (!background) setLoadingMyApps(true);
           axios
             .get(
               `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-my-applications/`,
               { headers: { Authorization: `Bearer ${token}` } },
             )
             .then((r) => setMyApplications(r.data))
-            .catch(() => toast.error("Failed to load your applications."))
+            .catch(() => {
+              if (!background) toast.error("Failed to load your applications.");
+            })
             .finally(() => setLoadingMyApps(false));
 
           // NOTE: trial invites are fetched in their own effect below (gated on
@@ -974,17 +990,19 @@ function PlayerMarketPage() {
       })
       .catch(() => {
         // No team or failed - still fetch my applications
-        setLoadingMyApps(true);
+        if (!background) setLoadingMyApps(true);
         axios
           .get(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-my-applications/`,
             { headers: { Authorization: `Bearer ${token}` } },
           )
           .then((r) => setMyApplications(r.data))
-          .catch(() => toast.error("Failed to load your applications."))
+          .catch(() => {
+            if (!background) toast.error("Failed to load your applications.");
+          })
           .finally(() => setLoadingMyApps(false));
       });
-  }, [token, user]);
+  }, [token, user, tick]);
 
   // ── Residential-location bootstrap (feature 3) ──
   // Resolve the player's own country + its states once (used to LOCK the state picker on the
@@ -1033,21 +1051,28 @@ function PlayerMarketPage() {
   useEffect(() => {
     if (!token) return;
 
-    setLoadingInvites(true);
+    // Live refresh (owner 2026-07-02): background refreshes (tick > 0) skip the loading
+    // flag + error toast so the Trial Invites tab never flashes.
+    if (tick === 0) setLoadingInvites(true);
     axios
       .get(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/my-trial-invites/`,
         { headers: { Authorization: `Bearer ${token}` } },
       )
       .then((r) => setMyTrialInvites(r.data))
-      .catch(() => toast.error("Failed to load trial invites."))
+      .catch(() => {
+        if (tick === 0) toast.error("Failed to load trial invites.");
+      })
       .finally(() => setLoadingInvites(false));
-  }, [token]);
+  }, [token, tick]);
 
   useEffect(() => {
     // Send the Bearer token when signed in so the list endpoints can compute is_owner per card (the
     // My Posts tab + the inline Edit/Delete buttons depend on it). The endpoints stay public, so a
     // guest (no token) still loads the market - they just own nothing. Re-runs when the token resolves.
+    // Live refresh (owner 2026-07-02): tick re-runs both read-only list fetches. The loading
+    // flags start true and are never re-set here, so background refreshes never flash the
+    // lists; error toasts are skipped on background too (tick > 0).
     const authConfig = token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
@@ -1057,7 +1082,9 @@ function PlayerMarketPage() {
         authConfig,
       )
       .then((res) => setTeamPosts(res.data))
-      .catch(() => toast.error("Failed to load team posts."))
+      .catch(() => {
+        if (tick === 0) toast.error("Failed to load team posts.");
+      })
       .finally(() => setLoadingTeams(false));
 
     axios
@@ -1066,9 +1093,11 @@ function PlayerMarketPage() {
         authConfig,
       )
       .then((res) => setPlayerPosts(res.data))
-      .catch(() => toast.error("Failed to load player posts."))
+      .catch(() => {
+        if (tick === 0) toast.error("Failed to load player posts.");
+      })
       .finally(() => setLoadingPlayers(false));
-  }, [token]);
+  }, [token, tick]);
 
   // Teams tab filters
   const [teamSearch, setTeamSearch] = useState("");

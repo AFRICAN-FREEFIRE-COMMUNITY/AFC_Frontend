@@ -58,6 +58,9 @@ import {
   ProductMediaGallery,
   ProductMediaItem,
 } from "./ProductMediaGallery";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the products/categories
+// fetch so stock changes + newly activated products show without a page refresh.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // 1. Interfaces based on the API response (now generalised past diamonds).
 interface Variant {
@@ -124,12 +127,17 @@ export default function ShopClient() {
   // Wishlist: the set of product ids this user has saved, so each card's heart renders
   // filled (saved) vs outline (not). Seeded from GET /shop/wishlist/ids/ when signed in.
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  // Live refresh (owner 2026-07-02): heartbeat tick for the fetch effect below.
+  const tick = useLiveTick();
 
   // 2. Fetch products + live categories in parallel.
+  // Live refresh (owner 2026-07-02): background=true skips the full-page spinner so the
+  // heartbeat refetch never flashes the grid; search/category/page state is untouched
+  // (setActiveCategory keeps the user's pick via the `prev ||` guard).
   useEffect(() => {
-    const fetchShop = async () => {
+    const fetchShop = async (background = false) => {
       try {
-        setLoading(true);
+        if (!background) setLoading(true);
 
         // Storefront is PUBLIC: both endpoints are auth-free so anonymous visitors can
         // browse. (Products previously used the admin-only /view-all-products/, which 403'd
@@ -178,10 +186,10 @@ export default function ShopClient() {
         setLoading(false);
       }
     };
-    fetchShop();
-    // No auth dependency: the storefront endpoints are public, so fetch once on mount
-    // (works for anonymous and logged-in users alike).
-  }, []);
+    fetchShop(tick > 0);
+    // No auth dependency: the storefront endpoints are public (works for anonymous and
+    // logged-in users alike). tick re-runs the fetch on the live-refresh heartbeat.
+  }, [tick]);
 
   // 2b. Seed the "already saved" set so each card's heart shows the right state on load.
   // Wishlist is per-user, so only fetch when signed in; anonymous visitors keep an empty

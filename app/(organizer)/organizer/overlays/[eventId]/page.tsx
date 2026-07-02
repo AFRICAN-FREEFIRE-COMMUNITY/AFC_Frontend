@@ -21,6 +21,7 @@ import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "@/app/(organizer)/organizer/_components/OrganizerContext";
 import { EventOverlayStudio } from "@/components/overlay/EventOverlayStudio";
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 export default function OrganizerEventOverlayStudioPage() {
   const t = useTranslations("organizer");
@@ -34,6 +35,11 @@ export default function OrganizerEventOverlayStudioPage() {
   const [loading, setLoading] = useState(true);
   const [eventName, setEventName] = useState("");
   const [belongsToOrg, setBelongsToOrg] = useState(false);
+
+  // Live refresh (owner 2026-07-02): re-run the read-only name/ownership resolve on the site-wide
+  // tick (picks up an event rename without a manual reload). `loading` only starts true, so no
+  // FullLoader flash; errors only toast on the initial load (tick 0).
+  const tick = useLiveTick();
 
   useEffect(() => {
     if (!token || !eventId || !organizationId) return;
@@ -55,7 +61,7 @@ export default function OrganizerEventOverlayStudioPage() {
           setEventName(ev?.event_name || `Event ${eventId}`);
         }
       } catch {
-        if (!cancelled) toast.error(t("studio.loadError"));
+        if (!cancelled && tick === 0) toast.error(t("studio.loadError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -63,7 +69,7 @@ export default function OrganizerEventOverlayStudioPage() {
     return () => {
       cancelled = true;
     };
-  }, [token, eventId, organizationId, t]);
+  }, [token, eventId, organizationId, t, tick]);
 
   if (loading) return <FullLoader />;
 

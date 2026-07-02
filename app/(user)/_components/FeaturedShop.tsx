@@ -27,6 +27,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 // instead of being locked to Naira. Shop prices are stored in NGN, so from defaults to "NGN".
 import { Money } from "@/components/Money";
 import { env } from "@/lib/env";
+// Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the active-products
+// teaser so new/retired shop items show up without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 interface Variant {
   price: string;
@@ -52,6 +55,8 @@ export function FeaturedShop() {
   const t = useTranslations("home");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  // Live refresh (owner 2026-07-02): shared tick re-runs the product fetch below.
+  const tick = useLiveTick();
 
   useEffect(() => {
     let active = true;
@@ -63,7 +68,9 @@ export function FeaturedShop() {
         if (active) setProducts((res.data?.products ?? []).slice(0, 4));
       } catch {
         // Soft-fail: the home teaser just shows its empty state if the shop is unreachable.
-        if (active) setProducts([]);
+        // Live refresh (owner 2026-07-02): only on the INITIAL load - a transient failure
+        // during a background tick keeps the current list instead of blanking the teaser.
+        if (active && tick === 0) setProducts([]);
       } finally {
         if (active) setLoading(false);
       }
@@ -71,7 +78,9 @@ export function FeaturedShop() {
     return () => {
       active = false;
     };
-  }, []);
+    // Live refresh (owner 2026-07-02): tick re-pulls in the background. `loading` is
+    // only true on first mount, so re-runs never flash the skeleton.
+  }, [tick]);
 
   return (
     <Card>

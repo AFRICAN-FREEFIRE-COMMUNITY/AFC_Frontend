@@ -37,6 +37,9 @@ import { InfoTip } from "@/components/ui/info-tip";
 // i18n time: render the order date in the VIEWER's own timezone + language instead
 // of the old formatDate() helper (UTC at SSR + hardcoded English month). Hydration-safe.
 import { LocalTime } from "@/components/LocalTime";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the order-detail fetch
+// so the status badge (pending -> paid) updates without a manual refresh.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 export default function OrderDetailsPage() {
   // Localized copy for the single order detail page (messages/en/shop.json -> "orderDetail").
@@ -46,7 +49,11 @@ export default function OrderDetailsPage() {
   const { token } = useAuth();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  // Live refresh (owner 2026-07-02): heartbeat tick for the fetch effect below.
+  const tick = useLiveTick();
 
+  // Live refresh (owner 2026-07-02): tick re-runs this read-only fetch. `loading` is only
+  // true on first mount (never re-set), so background refreshes never flash the spinner.
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
@@ -63,7 +70,7 @@ export default function OrderDetailsPage() {
     };
 
     if (token && id) fetchOrderDetails();
-  }, [id, token]);
+  }, [tick, id, token]);
 
   if (loading) {
     return (

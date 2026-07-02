@@ -41,6 +41,9 @@ import { toast } from "sonner";
 // i18n: copy lives in messages/en/tournaments.json under "list.*" / "organizers.*"
 // (useTranslations resolves the NEXT_LOCALE cookie locale, en fallback).
 import { useTranslations } from "next-intl";
+// Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the events list
+// (and the organizer directory) so statuses/counts update without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // --- Types ---
 interface Event {
@@ -243,7 +246,11 @@ const EventList: React.FC<{ events: Event[]; searchQuery: string }> = ({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, events]);
+    // Live refresh (owner 2026-07-02): key on events.length instead of the array
+    // identity - a background refetch returns a NEW array of the same list every
+    // tick, which used to reset the page. Filter changes still reset via
+    // searchQuery / the length changing.
+  }, [searchQuery, events.length]);
 
   const filtered = useMemo(() => {
     if (!searchQuery) return events;
@@ -501,7 +508,10 @@ const OrganizerDirectory: React.FC<{
   const [orgVerFilter, setOrgVerFilter] = useState<OrgVerFilter>("all");
   const [orgSort, setOrgSort] = useState<OrgSort>("events");
 
-  // ── load the directory once ──
+  // Live refresh (owner 2026-07-02): shared tick re-pulls the directory below.
+  const tick = useLiveTick();
+
+  // ── load the directory (initial + background tick re-pulls) ──
   useEffect(() => {
     let active = true;
     (async () => {
@@ -509,7 +519,9 @@ const OrganizerDirectory: React.FC<{
         const data = await organizersApi.getOrganizationsDirectory();
         if (active) setOrgs(data.organizations || []);
       } catch (err: any) {
-        if (active) {
+        // Live refresh (owner 2026-07-02): only toast on the INITIAL load - a
+        // transient background failure keeps the current directory silently.
+        if (active && tick === 0) {
           toast.error(
             err?.response?.data?.message || t("organizers.loadFailed"),
           );
@@ -521,10 +533,13 @@ const OrganizerDirectory: React.FC<{
     return () => {
       active = false;
     };
-    // Load the directory once on mount; `t` only feeds the error toast and is
-    // stable per locale, so it is intentionally not a dependency here.
+    // Live refresh (owner 2026-07-02): tick re-runs the fetch in the background
+    // (isLoading is only true on first mount, so the Loader never re-flashes; the
+    // drilled-into org + search/sort/filter state are untouched). `t` only feeds
+    // the error toast and is stable per locale, so it is intentionally not a
+    // dependency here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tick]);
 
   // ── synthetic "AFC Official" card ──
   // AFC runs events directly (organization is null on those). They aren't an
@@ -819,8 +834,10 @@ const EventsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadEvents = useCallback(async () => {
-    setIsLoading(true);
+  // Live refresh (owner 2026-07-02): `background` skips the FullLoader so tick
+  // re-pulls swap the data in place without flashing the page.
+  const loadEvents = useCallback(async (background = false) => {
+    if (!background) setIsLoading(true);
     setError(null);
     try {
       const response = await fetch(
@@ -831,15 +848,21 @@ const EventsPage = () => {
       const data = await response.json();
       setEvents(data.events || []);
     } catch {
-      setError(t("list.loadError"));
+      // Live refresh (owner 2026-07-02): a transient background failure keeps the
+      // current list on screen instead of swapping it for the error banner.
+      if (!background) setError(t("list.loadError"));
     } finally {
       setIsLoading(false);
     }
   }, [t]);
 
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load; ticks > 0
+  // re-run the fetch in the background. Filters/sort/tab live in separate state
+  // and the pagination reset now keys on events.length, so nothing jumps.
+  const tick = useLiveTick();
   useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+    loadEvents(tick > 0);
+  }, [tick, loadEvents]);
 
   // Derive sorted unique month options from all events
   const monthOptions = useMemo(() => {

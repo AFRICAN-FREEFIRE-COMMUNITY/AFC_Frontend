@@ -24,6 +24,7 @@ import { IconBroadcast, IconChevronRight } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "@/app/(organizer)/organizer/_components/OrganizerContext";
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 interface EventRow {
   event_id: number;
@@ -41,6 +42,12 @@ export default function OrganizerOverlaysListPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
 
+  // Live refresh (owner 2026-07-02): re-run the read-only org events fetch on the site-wide tick.
+  // `loading` only starts true (never reset), so background refreshes don't flash the FullLoader;
+  // errors only toast on the initial load (tick 0). The search box `q` filters client-side, so it
+  // is untouched by a background refetch.
+  const tick = useLiveTick();
+
   useEffect(() => {
     if (!token || !organizationId) return;
     let cancelled = false;
@@ -57,7 +64,7 @@ export default function OrganizerOverlaysListPage() {
         const data = res.data as { events?: EventRow[] } | EventRow[];
         if (!cancelled) setEvents(Array.isArray(data) ? data : (data.events ?? []));
       } catch {
-        if (!cancelled) toast.error(t("studio.loadError"));
+        if (!cancelled && tick === 0) toast.error(t("studio.loadError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -65,7 +72,7 @@ export default function OrganizerOverlaysListPage() {
     return () => {
       cancelled = true;
     };
-  }, [token, organizationId, t]);
+  }, [token, organizationId, t, tick]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();

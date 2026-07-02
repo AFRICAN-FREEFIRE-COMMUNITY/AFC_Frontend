@@ -71,6 +71,7 @@ import {
 import { BroadcastControl } from "@/components/overlay/BroadcastControl";
 // Media hygiene (owner 2026-07-02): missing/bad team logos + player esport images for this event.
 import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 const PREVIEW_W = 380; // card preview width; the overlay renders 1920x1080 and is scaled to fit
 
@@ -816,6 +817,20 @@ export function EventOverlayStudio({
   useEffect(() => {
     load();
   }, [load]);
+
+  // Live refresh (owner 2026-07-02): on the site-wide tick, re-pull ONLY the saved-overlays list
+  // (never the full `load` - that would flash the FullLoader and reset the "New overlay" design
+  // pick; designs/stages/token change rarely and stay as loaded). Cards keep stable row.id keys,
+  // so per-card local state (inline rename draft, timer/booyah drafts) survives the row refresh.
+  // Silent on failure - no toasts from a background poll.
+  const tick = useLiveTick();
+  useEffect(() => {
+    if (tick === 0 || !eventId) return;
+    overlaysApi
+      .list(eventId)
+      .then(setOverlays)
+      .catch(() => {});
+  }, [tick, eventId]);
 
   // ── Create: a leaderboard overlay FROM the picked design, or a timer scene. ──
   const addLeaderboard = async () => {

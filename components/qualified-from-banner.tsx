@@ -21,6 +21,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { IconTrophy } from "@tabler/icons-react";
 import { env } from "@/lib/env";
+// Live refresh (owner 2026-07-02): re-pull the read-only inbound links on the site-wide tick
+// so the banner appears live the moment a qualification link fires.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 interface InboundRow {
   source_event_name: string;
@@ -32,6 +35,9 @@ interface InboundRow {
 
 export function QualifiedFromBanner({ eventId }: { eventId: number }) {
   const [rows, setRows] = useState<InboundRow[]>([]);
+
+  // Live refresh (owner 2026-07-02): tick in the deps below (silent-fail, spinnerless fetch).
+  const tick = useLiveTick();
 
   useEffect(() => {
     let cancelled = false;
@@ -48,7 +54,7 @@ export function QualifiedFromBanner({ eventId }: { eventId: number }) {
     return () => {
       cancelled = true;
     };
-  }, [eventId]);
+  }, [eventId, tick]);
 
   if (rows.length === 0) return null;
 

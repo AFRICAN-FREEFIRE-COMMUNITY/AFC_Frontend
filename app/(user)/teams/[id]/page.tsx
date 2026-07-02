@@ -124,6 +124,9 @@ import { CountryFlag } from "@/lib/countryFlag";
 // blacklists affecting this team via GET /organizers/blacklists/mine/?team_id= (no manual id
 // entry), then posts to /organizers/blacklists/<id>/request-lift/. See RequestBlacklistLift.tsx.
 import { RequestBlacklistLift } from "./_components/RequestBlacklistLift";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only team-details +
+// join-requests + market-applications fetches so the page updates without a manual refresh.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -185,6 +188,9 @@ const Page = ({ params }: { params: Params }) => {
     resolver: zodResolver(FormSchema),
   });
 
+  // Live refresh (owner 2026-07-02): heartbeat tick for the read-only fetch effects below.
+  const tick = useLiveTick();
+
   useEffect(() => {
     if (!id) return; // Don't run if id is not available yet
 
@@ -221,10 +227,12 @@ const Page = ({ params }: { params: Params }) => {
 
         setJoinRequests(requestResponse.data.join_requests);
       } catch (error: any) {
-        toast.error(error.response.data.message);
+        // Live refresh (owner 2026-07-02): no error toast on a background refresh (a
+        // transient hiccup would nag every 30s); the first load still reports failures.
+        if (tick === 0) toast.error(error.response.data.message);
       }
     });
-  }, [id, user?.in_game_name, token]);
+  }, [id, user?.in_game_name, token, tick]);
 
   // inside your component after you fetch teamDetails
   const isMember = teamDetails?.members?.some(
@@ -506,15 +514,19 @@ const Page = ({ params }: { params: Params }) => {
 
   useEffect(() => {
     if (!hasFullAccess || !token) return;
-    setLoadingApplications(true);
+    // Live refresh (owner 2026-07-02): tick re-runs this read-only fetch; background
+    // refreshes (tick > 0) skip the Requests-tab loading state + error toast.
+    if (tick === 0) setLoadingApplications(true);
     axios
       .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/view-applications/`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setPlayerMarketApplications(res.data))
-      .catch(() => toast.error(t("teamDetail.loadApplicationsFailed")))
+      .catch(() => {
+        if (tick === 0) toast.error(t("teamDetail.loadApplicationsFailed"));
+      })
       .finally(() => setLoadingApplications(false));
-  }, [hasFullAccess, token]);
+  }, [hasFullAccess, token, tick]);
 
   const appStats = useMemo(() => ({
     total: playerMarketApplications.length,
@@ -525,7 +537,10 @@ const Page = ({ params }: { params: Params }) => {
     ).length,
   }), [playerMarketApplications]);
 
-  if (pending) return <FullLoader />;
+  // Live refresh (owner 2026-07-02): only show the full-page loader while there is no data
+  // yet. A background transition (live tick / silent refreshTeamDetails) keeps the page
+  // mounted, so the active tab, pagination, and scroll position all survive the refetch.
+  if (pending && !teamDetails) return <FullLoader />;
 
   // Letter avatars (read-only) for the Overview tab. The backend LIVE-DERIVES the team's available
   // letters (member union ∪ manual extras) in get-team-details. We split member-derived letters

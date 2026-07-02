@@ -55,6 +55,9 @@ import { CheckCircle2Icon } from "lucide-react"; // Removed unused 'TrendingUp'
 import Link from "next/link";
 import React, { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the events list + stat counts
+// re-fetch on each tick (and on tab return) so this page updates without a manual reload.
+import { useLiveTick } from "@/hooks/useLiveTick";
 import { DeleteEventModal } from "../events/_components/DeleteEventModal";
 // Duplicate action: clones an event into a fresh draft (config + stage/group structure
 // only) via POST /events/<id>/duplicate-event/. Shared with the organizer events list.
@@ -137,8 +140,11 @@ export const EventsAdminContent = () => {
     }
   };
 
-  const fetchEvents = () => {
-    startTransition(async () => {
+  // Live refresh (owner 2026-07-02): background=true runs the same fetch OUTSIDE the
+  // transition so `pending` stays false and the full-page FullLoader never flashes on
+  // an automatic refresh. Manual calls (mount, unpublish, delete) keep the loader.
+  const fetchEvents = (background = false) => {
+    const run = async () => {
       try {
         const eventsResponse = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
@@ -181,12 +187,17 @@ export const EventsAdminContent = () => {
           error?.response?.data?.message || "Failed to fetch event data.",
         );
       }
-    });
+    };
+    if (background) void run();
+    else startTransition(run);
   };
 
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load (with loader);
+  // later ticks re-fetch in the background (no spinner flash).
+  const tick = useLiveTick();
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    fetchEvents(tick > 0);
+  }, [tick]);
 
   // --- Search Filtering Logic ---
   // Match the search box across name, type, and status via the shared matchesSearch

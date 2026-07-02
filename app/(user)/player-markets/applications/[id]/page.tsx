@@ -44,6 +44,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 // Subtle clickable names -> public team / player profiles.
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only
+// application-details fetch (the trial chat below already polls itself every 5s).
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -246,19 +249,27 @@ export default function ApplicationDetailPage({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Live refresh (owner 2026-07-02): heartbeat tick so the application status / trial
+  // state stays current without a manual refresh (the chat already polls every 5s).
+  const tick = useLiveTick();
+
   // ── Fetch application details ─────────────────────────────────────────────
   useEffect(() => {
     if (!token) return;
-    setLoadingDetails(true);
+    // Live refresh (owner 2026-07-02): background refreshes (tick > 0) skip the loading
+    // flag + error toast so the page never flashes while typing in the chat below.
+    if (tick === 0) setLoadingDetails(true);
     axios
       .get(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/application-details/?application_id=${id}`,
         { headers: { Authorization: `Bearer ${token}` } },
       )
       .then((res) => setDetails(res.data))
-      .catch(() => toast.error("Failed to load application details."))
+      .catch(() => {
+        if (tick === 0) toast.error("Failed to load application details.");
+      })
       .finally(() => setLoadingDetails(false));
-  }, [token, id]);
+  }, [token, id, tick]);
 
   // ── Fetch + poll messages ─────────────────────────────────────────────────
   useEffect(() => {

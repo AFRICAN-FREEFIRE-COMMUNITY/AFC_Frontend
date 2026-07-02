@@ -33,6 +33,7 @@ import {
 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 interface EventRow {
   event_id: number;
@@ -52,6 +53,11 @@ export default function AdminLiveOverlaysPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
 
+  // Live refresh (owner 2026-07-02): re-run the read-only events fetch on the site-wide tick.
+  // `loading` only starts true (never reset), so background refreshes don't flash the FullLoader;
+  // fetch errors only toast on the initial load (tick 0), never on background ticks.
+  const tick = useLiveTick();
+
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
@@ -64,7 +70,7 @@ export default function AdminLiveOverlaysPage() {
         const data = res.data as { events?: EventRow[] } | EventRow[];
         if (!cancelled) setEvents(Array.isArray(data) ? data : (data.events ?? []));
       } catch {
-        if (!cancelled) toast.error("Could not load events.");
+        if (!cancelled && tick === 0) toast.error("Could not load events.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -72,7 +78,7 @@ export default function AdminLiveOverlaysPage() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, tick]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();

@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import Cookies from "js-cookie";
 
 import { env } from "@/lib/env";
+import { compressImageForUpload } from "@/lib/imageCompress";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -47,6 +48,115 @@ interface PlayerRow {
   flagged: boolean;
 }
 
+// ── MediaRow: one team-logo / player-image line. MODULE-LEVEL on purpose (owner bug 2026-07-02):
+// defined inside the card it was recreated on every state change (lightbox open, upload refetch),
+// remounting all rows and resetting the list's scroll to the top. Stable identity + stable keys
+// keep the scroll position through zooms and uploads. ──
+const MediaRow = ({
+    label,
+    sub,
+    img,
+    missing,
+    suppressedState,
+    flaggedState,
+    onFlag,
+    onSuppress,
+    onUpload,
+    uploadingState,
+    t,
+    onZoom,
+  }: {
+    label: string;
+    sub?: string | null;
+    img: string | null;
+    missing: boolean;
+    suppressedState: boolean;
+    flaggedState: boolean;
+    onFlag: () => void;
+    onSuppress: (remove: boolean) => void;
+    onUpload?: (file: File) => void;
+    uploadingState?: boolean;
+    t: ReturnType<typeof useTranslations>;
+    onZoom: (src: string, label: string) => void;
+  }) => (
+    <div className="flex items-center gap-2 py-1.5">
+      {img ? (
+        // Click-to-enlarge (owner 2026-07-02): small thumbs are hard to judge; clicking opens the
+        // full-size image in a lightbox dialog so logos/esport images can be checked clearly.
+        <button
+          type="button"
+          onClick={() => onZoom(img, label)}
+          className="cursor-zoom-in"
+          aria-label={`${t("mediaAudit.viewLarger")}: ${label}`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={img} alt="" className="size-7 rounded border object-contain" />
+        </button>
+      ) : (
+        <IconPhotoOff className="text-muted-foreground size-7 rounded border p-1" />
+      )}
+      <div className="min-w-0">
+        <p className="truncate text-xs font-medium">{label}</p>
+        {sub ? <p className="text-muted-foreground truncate text-[0.65rem]">{sub}</p> : null}
+      </div>
+      <div className="ml-auto flex items-center gap-1">
+        {/* Admin upload (owner 2026-07-02): replace or add the media in place. Hidden file input
+            triggered by the button; the backend re-encodes + the audit refetches. */}
+        {onUpload ? (
+          <label className="inline-flex">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onUpload(f);
+                e.target.value = "";
+              }}
+            />
+            <span
+              role="button"
+              title={t("mediaAudit.upload")}
+              className="hover:bg-accent inline-flex h-6 cursor-pointer items-center rounded-md px-1.5 text-[0.65rem]"
+            >
+              {uploadingState ? (
+                <IconLoader2 className="size-3 animate-spin" />
+              ) : (
+                <IconUpload className="size-3" />
+              )}
+            </span>
+          </label>
+        ) : null}
+        {missing ? (
+          <Badge variant="outline" className="rounded-full border-amber-500/50 px-2 py-0 text-[0.6rem] text-amber-500">
+            {t("mediaAudit.missing")}
+          </Badge>
+        ) : (
+          <>
+            {flaggedState ? (
+              <Badge variant="outline" className="rounded-full border-red-500/50 px-2 py-0 text-[0.6rem] text-red-500">
+                {t("mediaAudit.flaggedBadge")}
+              </Badge>
+            ) : (
+              <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[0.65rem]" onClick={onFlag}>
+                <IconFlag className="size-3" />
+                {t("mediaAudit.flag")}
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-1.5 text-[0.65rem]"
+              onClick={() => onSuppress(suppressedState)}
+            >
+              {suppressedState ? t("mediaAudit.restore") : t("mediaAudit.suppress")}
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
 export function MediaAuditCard({ eventId }: { eventId: number }) {
   const t = useTranslations("organizer");
   // Lightbox (owner 2026-07-02): the clicked thumb's full-size image; null = closed.
@@ -68,7 +178,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
       const fd = new FormData();
       fd.append("kind", kind);
       fd.append(kind === "team_logo" ? "team_id" : "user_id", String(id));
-      fd.append("file", file);
+      fd.append("file", await compressImageForUpload(file));
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/media-upload/`,
         fd,
@@ -152,106 +262,6 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
   const missingTeams = teams.filter((x) => !x.has_logo);
   const missingPlayers = players.filter((x) => !x.has_image);
 
-  const Row = ({
-    label,
-    sub,
-    img,
-    missing,
-    suppressedState,
-    flaggedState,
-    onFlag,
-    onSuppress,
-    onUpload,
-    uploadingState,
-  }: {
-    label: string;
-    sub?: string | null;
-    img: string | null;
-    missing: boolean;
-    suppressedState: boolean;
-    flaggedState: boolean;
-    onFlag: () => void;
-    onSuppress: (remove: boolean) => void;
-    onUpload?: (file: File) => void;
-    uploadingState?: boolean;
-  }) => (
-    <div className="flex items-center gap-2 py-1.5">
-      {img ? (
-        // Click-to-enlarge (owner 2026-07-02): small thumbs are hard to judge; clicking opens the
-        // full-size image in a lightbox dialog so logos/esport images can be checked clearly.
-        <button
-          type="button"
-          onClick={() => setLightbox({ src: img, label })}
-          className="cursor-zoom-in"
-          aria-label={`${t("mediaAudit.viewLarger")}: ${label}`}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={img} alt="" className="size-7 rounded border object-contain" />
-        </button>
-      ) : (
-        <IconPhotoOff className="text-muted-foreground size-7 rounded border p-1" />
-      )}
-      <div className="min-w-0">
-        <p className="truncate text-xs font-medium">{label}</p>
-        {sub ? <p className="text-muted-foreground truncate text-[0.65rem]">{sub}</p> : null}
-      </div>
-      <div className="ml-auto flex items-center gap-1">
-        {/* Admin upload (owner 2026-07-02): replace or add the media in place. Hidden file input
-            triggered by the button; the backend re-encodes + the audit refetches. */}
-        {onUpload ? (
-          <label className="inline-flex">
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onUpload(f);
-                e.target.value = "";
-              }}
-            />
-            <span
-              role="button"
-              title={t("mediaAudit.upload")}
-              className="hover:bg-accent inline-flex h-6 cursor-pointer items-center rounded-md px-1.5 text-[0.65rem]"
-            >
-              {uploadingState ? (
-                <IconLoader2 className="size-3 animate-spin" />
-              ) : (
-                <IconUpload className="size-3" />
-              )}
-            </span>
-          </label>
-        ) : null}
-        {missing ? (
-          <Badge variant="outline" className="rounded-full border-amber-500/50 px-2 py-0 text-[0.6rem] text-amber-500">
-            {t("mediaAudit.missing")}
-          </Badge>
-        ) : (
-          <>
-            {flaggedState ? (
-              <Badge variant="outline" className="rounded-full border-red-500/50 px-2 py-0 text-[0.6rem] text-red-500">
-                {t("mediaAudit.flaggedBadge")}
-              </Badge>
-            ) : (
-              <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[0.65rem]" onClick={onFlag}>
-                <IconFlag className="size-3" />
-                {t("mediaAudit.flag")}
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-1.5 text-[0.65rem]"
-              onClick={() => onSuppress(suppressedState)}
-            >
-              {suppressedState ? t("mediaAudit.restore") : t("mediaAudit.suppress")}
-            </Button>
-          </>
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <div className="bg-card rounded-md border p-4 shadow-sm">
@@ -277,7 +287,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
               <p className="text-muted-foreground py-3 text-xs italic">{t("mediaAudit.noTeams")}</p>
             ) : (
               teams.map((x) => (
-                <Row
+                <MediaRow
                   key={x.team_id}
                   label={x.team_name}
                   img={x.logo_url}
@@ -288,6 +298,8 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
                   onSuppress={(remove) => suppress("team_logo", x.team_id, remove)}
                   onUpload={isAdminByRoleOrRoles ? (f) => uploadMedia("team_logo", x.team_id, f) : undefined}
                   uploadingState={uploading === `team_logo-${x.team_id}`}
+                  t={t}
+                  onZoom={(src, label) => setLightbox({ src, label })}
                 />
               ))
             )}
@@ -302,7 +314,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
               <p className="text-muted-foreground py-3 text-xs italic">{t("mediaAudit.noPlayers")}</p>
             ) : (
               players.map((x) => (
-                <Row
+                <MediaRow
                   key={x.user_id}
                   label={x.in_game_name}
                   sub={x.team_name}
@@ -314,6 +326,8 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
                   onSuppress={(remove) => suppress("esports_image", x.user_id, remove)}
                   onUpload={isAdminByRoleOrRoles ? (f) => uploadMedia("player_image", x.user_id, f) : undefined}
                   uploadingState={uploading === `player_image-${x.user_id}`}
+                  t={t}
+                  onZoom={(src, label) => setLightbox({ src, label })}
                 />
               ))
             )}

@@ -62,6 +62,7 @@ import { formatDate } from "@/lib/utils";
 import { matchesSearch } from "@/lib/search";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../_components/OrganizerContext";
+import { useLiveTick } from "@/hooks/useLiveTick";
 // Standalone (event-less) leaderboards section — shared with the admin surface, scoped here to this
 // org via organizationId so the organizer only sees + creates leaderboards owned by their org.
 import { StandaloneLeaderboardList } from "@/app/(a)/a/leaderboards/standalone/_components/StandaloneLeaderboardList";
@@ -147,6 +148,11 @@ export default function OrganizerLeaderboardsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Live refresh (owner 2026-07-02): re-run both read-only list fetches on the site-wide tick.
+  // Background ticks skip the loading row + error toasts; the search box filters client-side,
+  // so a background refetch never resets it.
+  const tick = useLiveTick();
+
   // ── Load this org's events + every leaderboard (intersected client-side). ──
   // Re-runs when the org switches: the portal layout re-mounts this subtree keyed
   // on slug, so organizationId is always current for the selected org.
@@ -158,8 +164,8 @@ export default function OrganizerLeaderboardsPage() {
       return;
     }
 
-    const load = async () => {
-      setLoading(true);
+    const load = async (background = false) => {
+      if (!background) setLoading(true);
       try {
         // Both reads are public/read-only but carry the Bearer so an org-scoped
         // backend can authorise the caller against the organization.
@@ -181,16 +187,17 @@ export default function OrganizerLeaderboardsPage() {
         setEvents(eventsRes.data?.events ?? []);
         setLeaderboards(leaderboardsRes.data?.leaderboards ?? []);
       } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message || t("leaderboards.loadError"),
-        );
+        if (!background)
+          toast.error(
+            err?.response?.data?.message || t("leaderboards.loadError"),
+          );
       } finally {
         setLoading(false);
       }
     };
 
-    load();
-  }, [organizationId, token, canUploadResults]);
+    load(tick > 0);
+  }, [organizationId, token, canUploadResults, tick]);
 
   // ── Per-event leaderboard counts ──────────────────────────────────────────────
   // get-all-leaderboards is unscoped, so we intersect it with THIS org's events:

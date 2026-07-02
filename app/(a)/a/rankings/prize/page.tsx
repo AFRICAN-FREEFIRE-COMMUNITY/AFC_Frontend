@@ -30,6 +30,11 @@ import { toast } from "sonner";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { InfoTip } from "@/components/ui/info-tip";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; the prize payout list re-fetches
+// on each tick (and on tab return) so auto-synced payouts appear without a manual reload.
+// The add/edit/delete dialogs hold their own form state, so a background refresh never
+// touches anything mid-typing.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 // Live shape returned by admin_prize.serialize_prize (read its dict for the exact fields).
 type PrizeRow = {
@@ -104,8 +109,10 @@ export default function PrizeMoneyPage() {
       });
   }, []);
 
-  async function loadPrizes(id?: number | null) {
-    setLoading(true);
+  // Live refresh (owner 2026-07-02): background=true skips the loading flag so an
+  // automatic refresh never flips the page back to the FullLoader.
+  async function loadPrizes(id?: number | null, background = false) {
+    if (!background) setLoading(true);
     try {
       const r = await rankingsAdminApi.prizes(id ? { season_id: id } : undefined);
       setRows(r.results ?? []);
@@ -117,11 +124,14 @@ export default function PrizeMoneyPage() {
   }
 
   // Load on mount and whenever the active season resolves / changes.
+  // Live refresh (owner 2026-07-02): tick 0 = the normal first load (with loader);
+  // later ticks re-fetch the payout list in the background (no spinner flash).
+  const tick = useLiveTick();
   useEffect(() => {
     if (seasonId === undefined) return;
-    loadPrizes(seasonId);
+    loadPrizes(seasonId, tick > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seasonId]);
+  }, [seasonId, tick]);
 
   // ---- Add prize dialog ----
   const [addOpen, setAddOpen] = useState(false);

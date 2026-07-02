@@ -41,6 +41,9 @@ import { ProductMediaGallery } from "./ProductMediaGallery";
 // Multi-currency money chokepoint: shows the saved product's starting price in the
 // viewer's display currency (CurrencyContext) instead of the old NGN-only formatter.
 import { Money } from "@/components/Money";
+// Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the wishlist fetch so
+// saves/removes made elsewhere (shop grid, product page, another tab) show up here.
+import { useLiveTick } from "@/hooks/useLiveTick";
 
 export default function WishlistClient() {
   // Localized copy for the saved-items page (messages/en/shop.json -> "wishlist").
@@ -50,15 +53,19 @@ export default function WishlistClient() {
   const [loading, setLoading] = useState(true);
   // Which row currently has an in-flight Remove, so we disable only that button.
   const [removingId, setRemovingId] = useState<number | null>(null);
+  // Live refresh (owner 2026-07-02): heartbeat tick for the fetch effect below.
+  const tick = useLiveTick();
 
   // Load the saved list on mount. Per-user, so it waits for the token (the page is wrapped
   // in ProtectedRoute, so a token is expected by the time this renders).
+  // Live refresh (owner 2026-07-02): background=true skips the full-page spinner so the
+  // heartbeat refetch never flashes the list.
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
-    const fetchWishlist = async () => {
+    const fetchWishlist = async (background = false) => {
       try {
-        setLoading(true);
+        if (!background) setLoading(true);
         const res = await getMyWishlist(token);
         if (!cancelled) setProducts(res.products);
       } catch (error) {
@@ -67,11 +74,11 @@ export default function WishlistClient() {
         if (!cancelled) setLoading(false);
       }
     };
-    fetchWishlist();
+    fetchWishlist(tick > 0);
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [tick, token]);
 
   // Remove a product from the saved list. toggleWishlist flips it off server-side; on
   // success we drop it from the local list so the card disappears without a refetch.
