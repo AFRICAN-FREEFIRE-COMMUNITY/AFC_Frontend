@@ -187,7 +187,7 @@ export function EventStageExportGraphicDialog({
     try {
       const selectedDesign = designs.find((d) => String(d.id) === designId);
       const pageCount = selectedDesign?.pages?.length ?? 0;
-      const safe = (title.trim() || defaultTitle || "leaderboard").replace(
+      const safe = (defaultTitle || "leaderboard").replace(
         /[^a-z0-9\-_ ]/gi,
         "",
       );
@@ -206,8 +206,8 @@ export function EventStageExportGraphicDialog({
       const baseOpts = {
         designId: designId === AUTO ? null : Number(designId),
         size,
-        title: title.trim(),
-        subtitle: subtitle.trim(),
+        title: "",
+        subtitle: "",
         groupId: selGroup === ALL_GROUPS ? null : selGroup,
       };
 
@@ -394,36 +394,8 @@ export function EventStageExportGraphicDialog({
               </Select>
             </div>
 
-            {/* ── Title (prefilled with event name) ───────────────────────
-                The backend uses this as the graphic's headline text. */}
-            <div className="space-y-2">
-              <Label htmlFor="event-export-title">
-                {t("exportGraphic.title")}
-              </Label>
-              <Input
-                id="event-export-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={t("exportGraphic.titlePlaceholder")}
-              />
-            </div>
-
-            {/* ── Subtitle (prefilled with stage name) ────────────────────
-                Shown beneath the title; identifies the stage/round. */}
-            <div className="space-y-2">
-              <Label htmlFor="event-export-subtitle">
-                {t("exportGraphic.subtitle")}{" "}
-                <span className="text-xs text-muted-foreground">
-                  {t("exportGraphic.optional")}
-                </span>
-              </Label>
-              <Input
-                id="event-export-subtitle"
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                placeholder={t("exportGraphic.subtitlePlaceholder")}
-              />
-            </div>
+            {/* Title/subtitle inputs REMOVED (owner 2026-07-02): headers are authored as freeform
+                TEXT elements inside the design (WYSIWYG), so the export draws no separate header. */}
           </div>
 
           <DialogFooter>

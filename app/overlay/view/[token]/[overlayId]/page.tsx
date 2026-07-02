@@ -42,6 +42,8 @@ function leaderboardUrl(token: string, eventId: number, cfg: Record<string, any>
   qp.set("reveal", String(cfg.reveal || "staggered"));
   qp.set("interval", String(cfg.interval || 10));
   if (cfg.live) qp.set("live", "1"); // in-round Tier-2 snapshot from the capture client (2s poll)
+  // Per-overlay background behaviour (owner 2026-07-02): overrides the design's stored default.
+  if (cfg.bg_behavior) qp.set("bg", String(cfg.bg_behavior));
   return `/overlay/leaderboard/${token}?${qp.toString()}`;
 }
 
@@ -108,6 +110,191 @@ function TimerView({ feed, offset }: { feed: OverlayConfigFeed; offset: number }
   );
 }
 
+// ── Booyah banner scene (owner 2026-07-02): fires when a team wins a map. ──
+// NO auto-hide (owner 2026-07-02: "remove auto hide from all overlays"): the banner stays on until
+// the operator hits Hide in the studio, or the next booyah trigger replaces it. shown_at keys the
+// pop-in animation so a re-trigger animates again.
+function BooyahView({ feed }: { feed: OverlayConfigFeed }) {
+  const cfg = feed.config as {
+    team_name?: string; team_logo?: string | null; match_map?: string; shown_at?: string;
+  };
+  if (!feed.active || !cfg?.team_name) return null;
+  // Design template (owner 2026-07-02): the picked design's bg + colors set the look; the booyah
+  // team's ROSTER (player esport images + names) rides below the team plaque.
+  const design = feed.booyah?.design;
+  const roster = feed.booyah?.roster ?? [];
+  const text = design?.text_color || "#ffffff";
+  const accent = design?.accent_color || "#34d27b";
+
+  return (
+    <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
+      {design?.background && !design.transparent ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={design.background} alt="" className="absolute inset-0 size-full object-cover" />
+      ) : null}
+      <div
+        key={cfg.shown_at || "booyah"}
+        className="relative flex flex-col items-center gap-4"
+        style={{ animation: "afc-booyah-in 700ms cubic-bezier(0.16,1,0.3,1) both" }}
+      >
+        <div
+          className="font-black uppercase tracking-widest"
+          style={{ color: accent, fontSize: "8rem", lineHeight: 1, textShadow: "0 6px 32px rgba(0,0,0,0.95)" }}
+        >
+          BOOYAH!
+        </div>
+        <div
+          className="flex items-center gap-4 rounded-2xl border bg-black/75 px-10 py-4"
+          style={{ borderColor: `${accent}80` }}
+        >
+          {cfg.team_logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={cfg.team_logo} alt="" style={{ height: 72, width: 72, objectFit: "contain" }} />
+          ) : null}
+          <div>
+            <p className="text-4xl font-bold" style={{ color: text, textShadow: "0 3px 16px rgba(0,0,0,0.9)" }}>
+              {cfg.team_name}
+            </p>
+            {cfg.match_map ? (
+              <p className="text-lg uppercase tracking-[0.2em] opacity-70" style={{ color: text }}>
+                {cfg.match_map}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        {/* The booyah team's players: esport image + name per member (fixed-size cells). */}
+        {roster.length > 0 ? (
+          <div className="flex flex-wrap items-start justify-center gap-3">
+            {roster.map((pl, i) => (
+              <div
+                key={`${pl.name}-${i}`}
+                className="flex w-28 flex-col items-center gap-1.5 rounded-xl border bg-black/70 p-2.5"
+                style={{ borderColor: `${accent}50` }}
+              >
+                {pl.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={pl.image}
+                    alt=""
+                    className="rounded-md"
+                    style={{ height: 72, width: 72, objectFit: "cover" }}
+                  />
+                ) : (
+                  <div
+                    className="flex items-center justify-center rounded-md text-3xl font-bold"
+                    style={{ height: 72, width: 72, background: "#111", color: accent }}
+                  >
+                    {pl.name.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <p className="max-w-full truncate text-xs font-semibold" style={{ color: text }}>
+                  {pl.name}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      <style jsx global>{`
+        @keyframes afc-booyah-in {
+          from { opacity: 0; transform: scale(0.7); }
+          60%  { opacity: 1; transform: scale(1.06); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ── Head-to-head scene (owner 2026-07-02, v1): 2-3 TEAM or PLAYER slots compared on their
+// THIS-EVENT stats, styled by the picked design (bg + colors). The full "versus" design-editor
+// type (placeable slots) is the next phase; this layout is the AFC house style.
+const H2H_STAT_LABELS: Record<string, string> = {
+  kills: "KILLS", damage: "DAMAGE", assists: "ASSISTS", deaths: "DEATHS",
+  headshots: "HEADSHOTS", survival_seconds: "SURVIVAL (S)", matches: "MATCHES",
+  points: "POINTS", booyahs: "BOOYAHS",
+};
+
+function H2HView({ feed }: { feed: OverlayConfigFeed }) {
+  const h2h = feed.h2h;
+  if (!feed.active || !h2h || h2h.competitors.length < 2) return null;
+  const design = h2h.design;
+  const text = design?.text_color || "#ffffff";
+  const accent = design?.accent_color || "#34d27b";
+  // Which stat rows show: the VERSUS design's picked stat_keys (order = display order,
+  // owner 2026-07-02 "shows based off what is in the design selected"); when the design has
+  // none configured, every stat present on the competitors, in the canonical order above.
+  const picked = (design as any)?.stat_keys as string[] | undefined;
+  const keys = (picked && picked.length
+    ? picked.filter((k) => k in H2H_STAT_LABELS)
+    : Object.keys(H2H_STAT_LABELS)
+  ).filter((k) => h2h.competitors.some((c) => c.stats[k] !== undefined));
+
+  return (
+    <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
+      {design?.background && !design.transparent ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={design.background} alt="" className="absolute inset-0 size-full object-cover" />
+      ) : null}
+      <div
+        className="relative flex items-stretch gap-6"
+        style={{ animation: "afc-h2h-in 700ms cubic-bezier(0.16,1,0.3,1) both" }}
+      >
+        {h2h.competitors.map((c, i) => (
+          <div key={`${c.name}-${i}`} className="flex items-center gap-6">
+            {i > 0 ? (
+              <div
+                className="self-center rounded-full border px-5 py-2 text-3xl font-black"
+                style={{ color: accent, borderColor: accent, background: "rgba(0,0,0,0.75)" }}
+              >
+                VS
+              </div>
+            ) : null}
+            <div
+              className="flex w-72 flex-col items-center gap-3 rounded-2xl border bg-black/75 p-6"
+              style={{ borderColor: `${accent}80` }}
+            >
+              {c.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={c.image}
+                  alt=""
+                  style={{ height: 120, width: 120, objectFit: "contain" }}
+                  className="rounded-md"
+                />
+              ) : null}
+              <p
+                className="max-w-full truncate text-center text-2xl font-bold"
+                style={{ color: text, textShadow: "0 3px 14px rgba(0,0,0,0.9)" }}
+              >
+                {c.name}
+              </p>
+              <div className="w-full space-y-1.5">
+                {keys.map((k) => (
+                  <div key={k} className="flex items-center justify-between text-sm">
+                    <span className="uppercase tracking-wider opacity-70" style={{ color: text }}>
+                      {H2H_STAT_LABELS[k]}
+                    </span>
+                    <span className="text-lg font-bold" style={{ color: accent }}>
+                      {c.stats[k] ?? 0}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <style jsx global>{`
+        @keyframes afc-h2h-in {
+          from { opacity: 0; transform: translateY(30px) scale(0.94); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function OverlayViewPage() {
   const params = useParams<{ token: string; overlayId: string }>();
   const token = params?.token ?? "";
@@ -148,6 +335,12 @@ export default function OverlayViewPage() {
 
   if (feed.kind === "timer") {
     return <TimerView feed={feed} offset={offsetRef.current} />;
+  }
+  if (feed.kind === "booyah") {
+    return <BooyahView feed={feed} />;
+  }
+  if (feed.kind === "h2h") {
+    return <H2HView feed={feed} />;
   }
 
   // Leaderboard: render the existing overlay page inside a full-viewport iframe. Keyed by the

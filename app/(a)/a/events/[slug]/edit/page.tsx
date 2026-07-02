@@ -44,6 +44,8 @@ import {
 
 import BasicInfoTab from "./_components/BasicInfoTab";
 import RegisteredTeamsTab from "./_components/RegisteredTeamsTab";
+// Broadcast media hygiene (owner 2026-07-02): shown under Registered Teams.
+import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
 import PrizeRulesTab from "./_components/PrizeRulesTab";
 import ActionsTab from "./_components/ActionsTab";
 // F6 (owner 2026-06-19): manage co-organizing orgs (invite / accept / revoke) for this event.
@@ -2063,6 +2065,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 // modals call this onSuccess to re-pull the event and re-render the roster.
                 onRefresh={fetchEventDetails}
               />
+              {/* Broadcast media hygiene (owner 2026-07-02): also on the EDIT page - missing team
+                  logos / player esport images, flag bad art, per-event hide/show. Same card the
+                  overlay studio + event view mount. */}
+              {eventDetails?.event_id ? (
+                <div className="mt-4">
+                  <MediaAuditCard eventId={eventDetails.event_id} />
+                </div>
+              ) : null}
             </TabsContent>
 
             <TabsContent value="stages_groups">

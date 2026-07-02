@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -72,6 +73,7 @@ import {
 import {
   IconLoader2,
   IconPalette,
+  IconCopyPlus,
   IconPencil,
   IconPhoto,
   IconPlus,
@@ -125,8 +127,6 @@ interface FormState {
   textColor: string;
   accentColor: string;
   maxRows: number;
-  showTitle: boolean;
-  showSubtitle: boolean;
   isDefault: boolean;
   // Transparent overlay flag (owner 2026-07-01): when on, the design has no opaque background so the
   // OBS live overlay (app/overlay/leaderboard/[token] -> DesignBoard) + the PNG export render only
@@ -134,6 +134,9 @@ interface FormState {
   transparentBackground: boolean;
   // BG behaviour on the live overlay (owner 2026-07-02): persistent (always on) | animate (in on load).
   backgroundBehavior: string;
+  // Design type (owner 2026-07-02): leaderboard | versus; versusStatKeys = the H2H stat rows.
+  designType: string;
+  versusStatKeys: string[];
   igFile: File | null;
   ytFile: File | null;
   igPreview: string;
@@ -146,11 +149,11 @@ const EMPTY_FORM: FormState = {
   textColor: "#FFFFFF",
   accentColor: "#34d27b", // AFC primary green
   maxRows: 16,
-  showTitle: true,
-  showSubtitle: true,
   isDefault: false,
   transparentBackground: false,
   backgroundBehavior: "persistent",
+  designType: "leaderboard",
+  versusStatKeys: [],
   igFile: null,
   ytFile: null,
   igPreview: "",
@@ -308,11 +311,11 @@ export function LeaderboardDesignsManager({
       textColor: d.text_color || "#FFFFFF",
       accentColor: d.accent_color || "#34d27b",
       maxRows: d.max_rows ?? 16,
-      showTitle: d.show_title,
-      showSubtitle: d.show_subtitle,
       isDefault: d.is_default,
       transparentBackground: d.transparent_background ?? false,
       backgroundBehavior: d.background_behavior ?? "persistent",
+      designType: d.design_type ?? "leaderboard",
+      versusStatKeys: d.versus_config?.stat_keys ?? [],
       igFile: null,
       ytFile: null,
       igPreview: d.background_instagram || "",
@@ -400,13 +403,12 @@ export function LeaderboardDesignsManager({
         fd.append("name", form.name.trim());
         fd.append("text_color", form.textColor);
         fd.append("accent_color", form.accentColor);
-        fd.append("max_rows", String(form.maxRows));
-        fd.append("show_title", String(form.showTitle));
-        fd.append("show_subtitle", String(form.showSubtitle));
-        fd.append("is_default", String(form.isDefault));
+        fd.append("max_rows", String(form.maxRows));        fd.append("is_default", String(form.isDefault));
         // Transparent overlay flag (owner 2026-07-01): PATCHed alongside the other style fields.
         fd.append("transparent_background", String(form.transparentBackground));
         fd.append("background_behavior", form.backgroundBehavior);
+        fd.append("design_type", form.designType);
+        fd.append("versus_config", JSON.stringify({ stat_keys: form.versusStatKeys }));
         if (form.igFile) fd.append("background_instagram", form.igFile);
         if (form.ytFile) fd.append("background_youtube", form.ytFile);
         if (organizationId != null)
@@ -633,6 +635,24 @@ export function LeaderboardDesignsManager({
                             aria-label={`Edit ${d.name}`}
                           >
                             <IconPencil className="size-4" />
+                          </Button>
+                          {/* Duplicate (owner 2026-07-02): full copy - scalars, logos, placed
+                              fields, texts and pages - named "<name> copy". */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            aria-label={`Duplicate ${d.name}`}
+                            onClick={async () => {
+                              try {
+                                const copy = await leaderboardDesignsApi.duplicate(d.id);
+                                toast.success(`Duplicated as "${copy.name}".`);
+                                load();
+                              } catch {
+                                toast.error("Could not duplicate the design.");
+                              }
+                            }}
+                          >
+                            <IconCopyPlus className="size-4" />
                           </Button>
                           {/* Opens the DesignFieldsEditor for columns, text, groups, and fonts. */}
                           <Button
@@ -956,36 +976,8 @@ export function LeaderboardDesignsManager({
 
               {/* Toggles. */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="design-show-title" className="font-normal">
-                    Show title{" "}
-                    <span className="text-xs text-muted-foreground">
-                      (leaderboard name)
-                    </span>
-                  </Label>
-                  <Switch
-                    id="design-show-title"
-                    checked={form.showTitle}
-                    onCheckedChange={(v) =>
-                      setForm((f) => ({ ...f, showTitle: v }))
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="design-show-subtitle" className="font-normal">
-                    Show subtitle{" "}
-                    <span className="text-xs text-muted-foreground">
-                      (stage / group)
-                    </span>
-                  </Label>
-                  <Switch
-                    id="design-show-subtitle"
-                    checked={form.showSubtitle}
-                    onCheckedChange={(v) =>
-                      setForm((f) => ({ ...f, showSubtitle: v }))
-                    }
-                  />
-                </div>
+                {/* Show-title/subtitle toggles REMOVED (owner 2026-07-02): use freeform text
+                    elements in the fields editor for headers (WYSIWYG, full styling). */}
                 <div className="flex items-center justify-between">
                   <Label htmlFor="design-default" className="font-normal">
                     Set as default
@@ -1021,32 +1013,59 @@ export function LeaderboardDesignsManager({
                     }
                   />
                 </div>
-                {/* Background behaviour on the LIVE overlay (owner 2026-07-02): "Always on" keeps the
-                    bg painted before the rows reveal and never animates it (no dark flash);
-                    "Animates in" makes the bg fade in with the content on every load/refresh.
-                    Persisted as design.background_behavior; honoured by DesignBoard. */}
+                {/* Design TYPE (owner 2026-07-02): "Versus" designs power the studio's head-to-head
+                    overlays - the background/colors above set the look, and the checkboxes pick which
+                    stat rows each competitor slot shows (design.versus_config.stat_keys). */}
                 <div className="flex items-center justify-between gap-3">
                   <Label className="font-normal">
-                    Background behaviour
+                    Design type
                     <span className="ml-1 text-xs text-muted-foreground">
-                      (live overlay)
+                      (leaderboard or head-to-head)
                     </span>
                   </Label>
                   <Select
-                    value={form.backgroundBehavior}
-                    onValueChange={(v) =>
-                      setForm((f) => ({ ...f, backgroundBehavior: v }))
-                    }
+                    value={form.designType}
+                    onValueChange={(v) => setForm((f) => ({ ...f, designType: v }))}
                   >
                     <SelectTrigger className="h-8 w-44 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="persistent">Always on (never leaves)</SelectItem>
-                      <SelectItem value="animate">Animates in on load</SelectItem>
+                      <SelectItem value="leaderboard">Leaderboard</SelectItem>
+                      <SelectItem value="versus">Versus (head-to-head)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                {form.designType === "versus" ? (
+                  <div className="space-y-1.5">
+                    <Label className="font-normal text-xs text-muted-foreground">
+                      Stat rows the head-to-head shows (in this order)
+                    </Label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        ["kills", "Kills"], ["points", "Points"], ["booyahs", "Booyahs"],
+                        ["matches", "Matches"], ["damage", "Damage (players)"],
+                        ["assists", "Assists (players)"], ["deaths", "Deaths (3D room)"],
+                        ["headshots", "Headshots (3D room)"], ["survival_seconds", "Survival (3D room)"],
+                      ].map(([key, label]) => (
+                        <label key={key} className="flex cursor-pointer items-center gap-2 text-xs">
+                          <Checkbox
+                            checked={form.versusStatKeys.includes(key)}
+                            onCheckedChange={(v) =>
+                              setForm((f) => ({
+                                ...f,
+                                versusStatKeys: v === true
+                                  ? [...f.versusStatKeys, key]
+                                  : f.versusStatKeys.filter((k) => k !== key),
+                              }))
+                            }
+                          />
+                          {label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

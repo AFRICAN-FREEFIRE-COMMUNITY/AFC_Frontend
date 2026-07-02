@@ -173,7 +173,7 @@ export default function MvpTab({ eventId }: { eventId: number | string }) {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+    <div className="grid gap-4 lg:grid-cols-[320px_1fr]" data-tour="leaderboard-mvp-panel">
       {/* ── Criteria arrangement + scope. ── */}
       <Card>
         <CardHeader>

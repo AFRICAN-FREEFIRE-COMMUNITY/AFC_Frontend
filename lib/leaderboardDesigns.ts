@@ -51,6 +51,16 @@ export interface LeaderboardDesignLogo {
 // ── Positionable connected-column fields + freeform text + uploaded fonts (owner 2026-06-14) ──
 // A "connected column" binds to a real standings stat (field_type) and is drawn at x_pct for every
 // row of its column_group. Available stats (mirror OrgLeaderboardDesignField.FIELD_CHOICES):
+// Editable header (title/subtitle) styling. All keys optional; missing = legacy defaults.
+export interface HeaderStyle {
+  x_pct?: number;
+  y_pct?: number;
+  font_size_pct?: number;
+  color?: string;
+  font_id?: number | null;
+  align?: TextAlign;
+}
+
 export type FieldType =
   // esports_image (owner 2026-07-02): the player's esports photo — image cell like team_logo;
   // blank on team standings rows, populated by solo/versus/MVP feeds.
@@ -157,6 +167,14 @@ export interface LeaderboardDesign {
   // BG behaviour on the live overlay (owner 2026-07-02): "persistent" = always on, never animates
   // (default); "animate" = the bg animates in with the content on every load/refresh.
   background_behavior?: "persistent" | "animate";
+  // Design TYPE (owner 2026-07-02): "leaderboard" (standings rows) or "versus" (a head-to-head
+  // look: competitor slots + the stat rows in versus_config.stat_keys). Rendered by H2HView.
+  design_type?: "leaderboard" | "versus";
+  versus_config?: { stat_keys?: string[] };
+  // Title/subtitle styling (owner 2026-07-02): position/size/color/font/align for the header text
+  // when show_title/show_subtitle are on. {} = the legacy fixed top-center header.
+  title_style?: HeaderStyle;
+  subtitle_style?: HeaderStyle;
   show_title: boolean;
   show_subtitle: boolean;
   max_rows: number; // how many standings rows the render fits (1..50)
@@ -181,6 +199,15 @@ export type GraphicSize = "instagram" | "youtube";
 // from the query string on GET and from the body on POST; PATCH/DELETE key off the design id.
 export const leaderboardDesignsApi = {
   // GET organizers/leaderboard-designs/?organization_id=<id?> -> {results, total_count}
+  // Full copy of a design (scalars+logos+fields+texts+pages). Owner 2026-07-02.
+  duplicate: (designId: number) =>
+    axios
+      .post<LeaderboardDesign>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/duplicate/`,
+        {},
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
   list: (organizationId?: number | null) =>
     axios
       .get<{ results: LeaderboardDesign[]; total_count: number }>(

@@ -336,7 +336,7 @@ export default function IndividualLeaderboardPage({
                 <InfoTip id="leaderboards.detail._page" />
               </span>
             }
-            description={`${detailsParticipantType === "solo" ? "Solo" : "Team"} Tournament • ${eventData.stages.length} Stages`}
+            description={`${detailsParticipantType === "solo" ? "Solo" : "Team"} Tournament • ${eventData?.stages?.length ?? 0} Stages`}
           />
         </span>
         {!editingMatch && (

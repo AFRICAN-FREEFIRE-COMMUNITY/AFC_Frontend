@@ -69,6 +69,9 @@ export type OrganizerTourStep = {
 // (afc_org_tour_<pageKey>_done) and as the i18n key segment, so renaming one
 // re-shows that tour and orphans its strings.
 export type OrganizerTourPageKey =
+  // Live Overlays (owner 2026-07-02): the org-gated overlay studio.
+  | "overlays"
+  | "overlays-studio"
   | "overview"
   | "profile"
   | "events"
@@ -114,6 +117,38 @@ export const ORGANIZER_TOUR_STEPS: Record<
   OrganizerTourPageKey,
   OrganizerTourStep[]
 > = {
+  // Live Overlays list (app/(organizer)/organizer/overlays/page.tsx)
+  overlays: [
+    ORG_SIDEBAR_STEP,
+    {
+      id: "list",
+      element: '[data-tour="org-overlays-list"]',
+      side: "top",
+      align: "center",
+    },
+  ],
+  // Per-event overlay studio (app/(organizer)/organizer/overlays/[eventId]/page.tsx —
+  // the SHARED EventOverlayStudio, so the anchors match the admin studio's).
+  "overlays-studio": [
+    {
+      id: "new",
+      element: '[data-tour="studio-new-overlay"]',
+      side: "bottom",
+      align: "start",
+    },
+    {
+      id: "cards",
+      element: '[data-tour="studio-cards"]',
+      side: "top",
+      align: "center",
+    },
+    {
+      id: "broadcast",
+      element: '[data-tour="studio-broadcast"]',
+      side: "top",
+      align: "center",
+    },
+  ],
   // Overview (app/(organizer)/organizer/overview/page.tsx)
   overview: [
     ORG_SIDEBAR_STEP,
@@ -515,6 +550,8 @@ export function resolveOrganizerTourPageKey(
   // /organizer/events/create never falls through to the /organizer/events list.
 
   // Simple exact pages.
+  if (/^\/organizer\/overlays\/[^/]+$/.test(path)) return "overlays-studio";
+  if (path === "/organizer/overlays") return "overlays";
   if (path === "/organizer/overview") return "overview";
   if (path === "/organizer/profile") return "profile";
   if (path === "/organizer/members") return "members";

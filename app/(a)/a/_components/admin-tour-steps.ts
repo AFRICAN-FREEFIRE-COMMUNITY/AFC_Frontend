@@ -1783,7 +1783,23 @@ export const ADMIN_TOUR_STEPS: Record<AdminTourPageKey, AdminTourStep[]> = {
       element: '[data-tour="leaderboard-mvp-tab"]',
       title: "Event MVPs",
       description:
-        "Pick the event's MVP: arrange criteria like tie-breakers (kills, damage, assists, ...) and choose whether the MVP comes from the overall event or only the winning team.",
+        "An MVP is decided for EVERY map by your arranged criteria (kills, damage, assists, and the 3D-room stats once ingested); the event MVP is the player with the most map MVPs. Pick whether MVPs come from the overall event or the winning team of each map.",
+      side: "top",
+      align: "center",
+    },
+    {
+      element: '[data-tour="leaderboard-tie-breakers"]',
+      title: "Tie-breakers (Scoring Config tab)",
+      description:
+        "When teams finish level on points, this arrangement breaks the tie: booyahs, kills, placement points, even Map MVPs won. Like maps, it can apply to the whole event or be overridden per stage or per group.",
+      side: "top",
+      align: "center",
+    },
+    {
+      element: '[data-tour="leaderboard-debugger-backfill"]',
+      title: "Debugger log backfill (Upload tab)",
+      description:
+        "Upload the observer PC's debugger-*.log to add deaths, knockdowns, headshots, revives and survival time to matches AFTER the fact. Map each detected round to its match and apply - players are matched by their Free Fire UID, and the 3D-room MVP criteria unlock automatically.",
       side: "top",
       align: "center",
     },

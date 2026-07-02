@@ -43,6 +43,8 @@ import {
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
+// Broadcast media hygiene (owner 2026-07-02): also surfaced on the event view page.
+import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -2362,6 +2364,13 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Broadcast media hygiene (owner 2026-07-02): also visible on the event VIEW page - which
+          teams/players are missing logos/esport images, flag bad art, per-event hide/show. Same
+          card the overlay studio mounts (components/overlay/MediaAuditCard). */}
+      <div className="mt-4">
+        <MediaAuditCard eventId={eventDetails.event_id} />
+      </div>
     </div>
   );
 };

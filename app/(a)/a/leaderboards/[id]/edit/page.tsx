@@ -22,6 +22,10 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // MVPs tab (owner 2026-07-02): criteria-arranged event MVP. See _components/MvpTab.tsx.
 import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
+// Debugger-log backfill (owner 2026-07-02): fills 3D-room rich stats post-hoc. See the panel file.
+import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/DebuggerBackfillPanel";
+// Tie-breakers (owner 2026-07-02): arranged equal-points ordering, apply-to-all|stage|group.
+import TieBreakersPanel from "@/app/(a)/a/leaderboards/_components/TieBreakersPanel";
 import {
   Table,
   TableBody,
@@ -2188,6 +2192,15 @@ export default function EditLeaderboardPage({
 
         {/* ── Scoring Config Tab ── */}
         <TabsContent value="scoring" className="mt-4 space-y-4">
+          {/* Tie-breakers (owner 2026-07-02): how EQUAL-POINT teams are ordered. Scope follows the
+              stage tabs + group picker above (this stage / this group), or the whole event. */}
+          <TieBreakersPanel
+            eventId={id}
+            stageId={selectedStageId}
+            stageName={currentStage?.stage_name}
+            groupId={selectedGroupId}
+            groupName={currentGroup?.group_name}
+          />
           {groupMatches.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-sm text-muted-foreground">
@@ -2494,6 +2507,19 @@ export default function EditLeaderboardPage({
 
         {/* ── Upload Results Tab ── */}
         <TabsContent value="upload" className="mt-4 space-y-4">
+          {/* Debugger-log rich-stat backfill (owner 2026-07-02): event-wide, so it lists EVERY
+              stage/group/match as a mapping target, not just the selected group. */}
+          <DebuggerBackfillPanel
+            eventId={id}
+            matchOptions={(eventData?.stages ?? []).flatMap((st: any) =>
+              (st.groups ?? []).flatMap((g: any) =>
+                (g.matches ?? []).map((m: any) => ({
+                  match_id: m.match_id,
+                  label: `${st.stage_name} · ${g.group_name} · Match ${m.match_number} (${m.match_map || "-"})`,
+                })),
+              ),
+            )}
+          />
           {groupMatches.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-sm text-muted-foreground">

@@ -113,6 +113,8 @@ const NAV_ITEMS = [
   // so it is not permission-gated at the nav level; the capture-key generation itself is
   // backend-gated. See app/(organizer)/organizer/capture/page.tsx.
   { key: "capture", href: "/organizer/capture" },
+  // Live Overlays studio (owner 2026-07-02): org-gated overlay management (own designs/data only).
+  { key: "overlays", href: "/organizer/overlays" },
   // "Design" - the org's leaderboard-design request surface (submit + history),
   // gated per-page on the membership's can_submit_designs permission (or owner).
   { key: "design", href: "/organizer/design" },

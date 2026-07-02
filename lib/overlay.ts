@@ -254,7 +254,7 @@ export const broadcastApi = {
 // stage/group, animations, timer trigger) update what the SAME link renders — no re-copying into OBS.
 // BE: afc_tournament_and_scrims/views_overlays.py (CRUD via the broadcast gate; config feed public).
 
-export type OverlayKind = "leaderboard" | "timer";
+export type OverlayKind = "leaderboard" | "timer" | "booyah" | "h2h";
 
 // kind "leaderboard": design_id, follow, stage_id, group_id, anim, reveal, interval, live.
 // kind "timer":       end_at (ISO), label.
@@ -329,6 +329,35 @@ export interface OverlayConfigFeed {
   active: boolean;
   event_id: number;
   server_time: string;
+  // kind "h2h" only: the RESOLVED competitor slots (this-event stats) + the picked design's look,
+  // bundled with the poll so the public page needs one request. See views_overlays._h2h_payload.
+  // kind "booyah" only: the picked design's look + the booyah team's roster (players' names +
+  // esport images), resolved per poll (views_overlays._booyah_payload).
+  booyah?: {
+    design: {
+      background: string | null;
+      text_color: string;
+      accent_color: string;
+      transparent: boolean;
+    } | null;
+    roster: Array<{ name: string; image: string | null }>;
+  };
+  h2h?: {
+    mode: "team" | "player";
+    competitors: Array<{
+      name: string;
+      image: string | null;
+      stats: Record<string, number>;
+    }>;
+    design: {
+      background: string | null;
+      text_color: string;
+      accent_color: string;
+      transparent: boolean;
+      // The versus design's picked stat rows (order = display order); [] = show everything.
+      stat_keys?: string[];
+    } | null;
+  };
 }
 
 export const overlayConfigApi = async (

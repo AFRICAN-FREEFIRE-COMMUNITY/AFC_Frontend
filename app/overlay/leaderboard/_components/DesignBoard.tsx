@@ -256,6 +256,9 @@ export interface DesignBoardProps {
   // overlay:live:<event>:<stage>:<group>). The page passes feed.live straight through; when true a
   // subtle "LIVE" badge is drawn in the top-right corner. Off => no badge (official per-round feed).
   live?: boolean;
+  // Per-OVERLAY background behaviour override (owner 2026-07-02): the studio's stable links carry
+  // ?bg=persistent|animate, which beats the design's stored background_behavior default.
+  bgBehaviorOverride?: "persistent" | "animate" | null;
 }
 
 export function DesignBoard({
@@ -268,6 +271,7 @@ export function DesignBoard({
   title,
   subtitle,
   live = false,
+  bgBehaviorOverride = null,
 }: DesignBoardProps) {
   useDesignFonts(design);
 
@@ -443,7 +447,7 @@ export function DesignBoard({
             // the content on every load/refresh of the overlay page (opacity keyed on the same
             // revealed gate the rows use, so bg + rows animate in together).
             style={
-              design.background_behavior === "animate"
+              (bgBehaviorOverride ?? design.background_behavior) === "animate"
                 ? {
                     opacity: revealed ? 1 : 0,
                     transition: "opacity 700ms ease-out",
@@ -480,35 +484,8 @@ export function DesignBoard({
             </span>
           </div>
         ) : null}
-
-        {/* ── Title / subtitle (top-centered broadcast header, from the feed's board). ── */}
-        {design.show_title && title ? (
-          <div
-            className="absolute left-1/2 -translate-x-1/2 text-center font-extrabold"
-            style={{
-              top: "3%",
-              fontSize: canvasH * 0.05,
-              color: textColor,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {title}
-          </div>
-        ) : null}
-        {design.show_subtitle && subtitle ? (
-          <div
-            className="absolute left-1/2 -translate-x-1/2 text-center font-semibold"
-            style={{
-              top: "9%",
-              fontSize: canvasH * 0.03,
-              color: textColor,
-              opacity: 0.85,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {subtitle}
-          </div>
-        ) : null}
+        {/* Title/subtitle headers REMOVED (owner 2026-07-02): freeform TEXT elements in the
+            design cover headers WYSIWYG, so the separate show_title/show_subtitle system is gone. */}
 
         {/* ── Positioned logos (drawn above the bg, below the data). ── */}
         {design.logos.map((logo) => {

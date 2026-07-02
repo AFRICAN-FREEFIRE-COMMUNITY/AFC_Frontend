@@ -56,6 +56,10 @@ function OverlayLeaderboardInner() {
   const design = sp.get("design");
   const sizeParam = asSize(sp.get("size"));
   const anim = asAnim(sp.get("anim"));
+  // Per-overlay bg behaviour override (owner 2026-07-02): ?bg=persistent|animate beats the design's
+  // stored background_behavior (which stays as the default for plain links).
+  const bgParam = sp.get("bg");
+  const bgBehavior = bgParam === "animate" || bgParam === "persistent" ? bgParam : null;
   const reveal = asReveal(sp.get("reveal"));
   const colsParam = sp.get("cols");
   const live = sp.get("live") === "1";
@@ -149,6 +153,7 @@ function OverlayLeaderboardInner() {
 
   return (
     <DesignBoard
+      bgBehaviorOverride={bgBehavior}
       design={feed.design}
       standings={feed.standings}
       size={sizeParam ?? feed.size}

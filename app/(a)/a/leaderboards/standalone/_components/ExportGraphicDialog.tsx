@@ -71,7 +71,6 @@ export function ExportGraphicButton({
   const [designId, setDesignId] = useState<string>(AUTO);
   const [size, setSize] = useState<GraphicSize>("instagram");
   const [title, setTitle] = useState(defaultTitle);
-  const [subtitle, setSubtitle] = useState("");
   const [downloading, setDownloading] = useState(false);
 
   // ── Load the library when the dialog opens; default-select the library default. ──
@@ -100,7 +99,6 @@ export function ExportGraphicButton({
   useEffect(() => {
     if (open && !prevOpenRef.current) {
       setTitle(defaultTitle);
-      setSubtitle("");
       setSize("instagram");
       loadDesigns();
     }
@@ -135,8 +133,8 @@ export function ExportGraphicButton({
       const baseOpts = {
         designId: designId === AUTO ? null : Number(designId),
         size,
-        title: title.trim(),
-        subtitle: subtitle.trim(),
+        title: "",
+        subtitle: "",
       };
 
       if (pageCount > 1) {
@@ -250,28 +248,9 @@ export function ExportGraphicButton({
               </Select>
             </div>
 
-            {/* Title (prefilled with the leaderboard name) + subtitle (stage/group). */}
-            <div className="space-y-2">
-              <Label htmlFor="export-title">Title</Label>
-              <Input
-                id="export-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Leaderboard title"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="export-subtitle">
-                Subtitle{" "}
-                <span className="text-xs text-muted-foreground">(optional)</span>
-              </Label>
-              <Input
-                id="export-subtitle"
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                placeholder="e.g. Grand Finals - Group A"
-              />
-            </div>
+            {/* Title/subtitle inputs REMOVED (owner 2026-07-02): headers are authored as freeform
+                TEXT elements inside the design (WYSIWYG), so the export no longer draws a separate
+                title/subtitle layer. */}
           </div>
 
           <DialogFooter>
