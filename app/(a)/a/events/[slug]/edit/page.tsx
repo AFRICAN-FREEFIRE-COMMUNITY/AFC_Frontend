@@ -1664,7 +1664,31 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setShowSaveConfirmModal(true);
   };
 
+  // Distribution-vs-cash-value guard (owner 2026-07-02): the prize distribution MUST add up to
+  // the cash value exactly - saves are blocked with a message saying how far off it is.
+  const prizeDistributionMismatch = (data: EventFormType): string | null => {
+    const cash = Number(data.prizepool_cash_value);
+    if (!cash || Number.isNaN(cash)) return null; // no cash value set = nothing to check against
+    const sum = Object.values(data.prize_distribution || {}).reduce(
+      (acc, v) => acc + (Number(String(v).replace(/[^0-9.]/g, "")) || 0),
+      0,
+    );
+    if (sum === cash) return null;
+    const diff = Math.abs(cash - sum);
+    const ccy = (data.prize_currency || "USD").toString();
+    return sum > cash
+      ? `Your prize distribution adds up to ${sum} ${ccy}, which is ${diff} ${ccy} MORE than the prize pool cash value (${cash} ${ccy}). Adjust the amounts so they match exactly.`
+      : `Your prize distribution adds up to ${sum} ${ccy}, which is ${diff} ${ccy} LESS than the prize pool cash value (${cash} ${ccy}). Adjust the amounts so they match exactly.`;
+  };
+
   const onSubmit = async (data: EventFormType) => {
+    {
+      const mismatch = prizeDistributionMismatch(data);
+      if (mismatch) {
+        toast.error(mismatch);
+        return;
+      }
+    }
     if (!eventDetails?.event_id) {
       toast.error("Event ID is missing");
       return;
@@ -1744,6 +1768,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
         formData.append("event_mode", data.event_mode);
         formData.append("prizepool", data.prizepool);
+        // THE "disappearing cash value" bug (owner 2026-07-02): this main save path never sent
+        // prizepool_cash_value (the two per-tab paths did), so the backend kept the old value and
+        // the refetch re-seeded the field empty - typed input silently vanished on save.
+        formData.append(
+          "prizepool_cash_value",
+          (data.prizepool_cash_value ?? "").toString(),
+        );
         formData.append("prize_currency", (data.prize_currency || "USD").toString());
         // Duplication-bug fix (owner 2026-06-15): was hardcoded "2", which wrongly reset the event's
       // stage count on every save. Use the actual number of stages the form holds.

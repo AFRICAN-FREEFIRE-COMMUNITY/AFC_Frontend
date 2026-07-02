@@ -21,6 +21,12 @@
 //     • ConfigurePointSystem - placement + kill/assist/damage points
 //     • MatchOverviewStep    - per-match result entry (drives the 4 step components)
 //     • EditLeaderboardStep  - fine-tune generated rows
+//   Management tools (owner 2026-07-02 organizer parity, from the admin EDIT page):
+//     • MvpTab               - event MVP by arranged criteria (events/<id>/mvp/)
+//     • TieBreakersPanel     - equal-points ordering, all|stage|group scope
+//     • DebuggerBackfillPanel - post-hoc debugger-log rich-stat fill
+//     • Total Leaderboard adjustments tab + "Redo this map" + WatchTag standings
+//       badges (ported inline - see the "Manage leaderboard tools" section below)
 //   None of these components hard-code an admin role or an /a/ redirect, so they
 //   drop straight into the organizer portal. Each already reads its Bearer token
 //   from AuthContext (useAuth), and the backend now gates the underlying
@@ -63,8 +69,28 @@
 import React, { use, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+// Destructive confirm for "Redo this map" (organizer parity with the admin edit page,
+// owner 2026-07-02 organizer parity): wiping a map's results needs an explicit confirm.
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -92,15 +118,21 @@ import {
 } from "@/components/ui/table";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
+  IconDatabaseImport,
+  IconDeviceFloppy,
   IconDownload,
   IconEdit,
+  IconLoader2,
   IconLock,
   IconMap,
   IconPlus,
+  IconRefresh,
+  IconScale,
   IconTrophy,
   IconUpload,
   IconUsers,
 } from "@tabler/icons-react";
+import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
@@ -143,6 +175,30 @@ import { CopyOverlayLinkDialog } from "@/components/overlay/CopyOverlayLinkDialo
 // OBS. A "follow broadcast" overlay link (CopyOverlayLinkDialog with its follow switch on) tracks this
 // selection and updates within one poll. Shared with the admin leaderboard edit page.
 import { BroadcastControl } from "@/components/overlay/BroadcastControl";
+// ── Leaderboard MANAGEMENT TOOLS (owner 2026-07-02 organizer parity) ──────────
+// The admin leaderboard edit page (app/(a)/a/leaderboards/[id]/edit) grew four tools organizers
+// also need on THEIR events. All four reuse the SAME admin components / endpoints; the backend
+// already authorises organizers (see each note), so this page only mounts them:
+//   • MvpTab               - event MVP by arranged criteria. GET/POST events/<id>/mvp/
+//                            (gate _broadcast_gate = AFC event admin OR org can_edit_events).
+//   • TieBreakersPanel     - arranged equal-points ordering, apply to all|stage|group.
+//                            GET/POST events/<id>/tie-breakers/ (same _broadcast_gate).
+//   • DebuggerBackfillPanel - post-hoc 3D-room debugger-log upload that fills rich player stats
+//                            (deaths/headshots/survival...). POST events/<id>/debugger-backfill/
+//                            (same _broadcast_gate).
+// They render inside the "Manage leaderboard" pill-tab section below the standings card,
+// mirroring the admin page's tab idiom. Reused admin components keep their English copy (same
+// precedent as ManualMatchResultStep etc. above); the tab labels + everything ELSE authored on
+// this page is i18n'd (organizer.eventLeaderboard.*).
+import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
+import TieBreakersPanel from "@/app/(a)/a/leaderboards/_components/TieBreakersPanel";
+import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/DebuggerBackfillPanel";
+// Advisory watchlist badges (owner 2026-07-02 organizer parity): one bulk watchlistApi.tags call
+// per group marks which standings team_ids/player_ids are watched; <WatchTag> renders next to the
+// flagged names, exactly like the admin edit page. Backend gate (admin OR organizer) is
+// server-side (afc_auth/views_watchlist.py); badges are advisory + best-effort.
+import { WatchTag } from "@/components/WatchTag";
+import { watchlistApi } from "@/lib/watchlist";
 
 type Params = { slug: string };
 // The match-edit sub-views, mirroring the admin [id] page's MatchView union.
@@ -207,6 +263,10 @@ export default function OrganizerEventLeaderboardPage({
   // The org permission the backend enforces for results upload.
   const canUploadResults =
     membership.permissions.can_upload_results || isOwner;
+  // MVPs / tie-breakers / debugger backfill are gated server-side by _broadcast_gate
+  // (org can_edit_events), NOT can_upload_results - so those tabs only show when the
+  // member holds that permission (owner 2026-07-02 organizer parity).
+  const canEditEvents = membership.permissions.can_edit_events || isOwner;
   const organizationId = membership.organization.organization_id;
 
   // ── slug → event resolution state ──
@@ -244,6 +304,21 @@ export default function OrganizerEventLeaderboardPage({
   // Whole-group editor sub-view (replaces the main view card, same inline-replace
   // pattern as editingMatch). Acts on the selected group; uploading is inside it.
   const [groupEditOpen, setGroupEditOpen] = useState(false);
+
+  // ── Management-tools state (owner 2026-07-02 organizer parity) ──
+  // Redo this map: in-flight flag for the destructive "clear this map" action
+  // (POST /events/clear-match-result/, gate = admin OR org can_upload_results).
+  const [redoingMap, setRedoingMap] = useState(false);
+  // Total Leaderboard adjustments: per-entity point delta (positive = bonus, negative =
+  // penalty, applied to the FIRST map, same semantics as the admin edit page) + save flag.
+  const [adjustments, setAdjustments] = useState<Record<number, number>>({});
+  const [savingAdjust, setSavingAdjust] = useState(false);
+  // Advisory watchlist: which of the displayed standings ids are watched (bulk-tagged per
+  // group via watchlistApi.tags; see the effect below). Mirrors the admin edit page.
+  const [watched, setWatched] = useState<{
+    teamIds: Set<number>;
+    playerIds: Set<number>;
+  }>({ teamIds: new Set(), playerIds: new Set() });
 
   // ── Create-leaderboard wizard state ──
   // mode "view" = the leaderboard view/edit surface; mode "create" = the wizard.
@@ -372,11 +447,77 @@ export default function OrganizerEventLeaderboardPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStageId]);
 
-  // Reset match to overall when the selected group changes (admin parity).
+  // Reset match to overall when the selected group changes (admin parity). Pending
+  // total-leaderboard adjustments are per-group deltas, so drop them too (admin parity).
   useEffect(() => {
     if (!selectedGroupId) return;
     setSelectedMatchId("overall");
+    setAdjustments({});
   }, [selectedGroupId]);
+
+  // ── Watchlist tags (owner 2026-07-02 organizer parity) ────────────────────────
+  // Mark which standings rows are on the AFC-wide advisory watchlist so <WatchTag> can flag
+  // them (ported from the admin edit page). Ids come from the SELECTED group's loaded data:
+  // overall rows + per-match team/solo rows + each team's per-player rows. Id semantics differ
+  // by mode (admin parity): in TEAM mode a standings row id is the team id and players[] carry
+  // player ids; in SOLO mode a standings row id is the player (competitor) id. One bulk
+  // watchlistApi.tags call per group change; best-effort (badges are advisory only).
+  useEffect(() => {
+    const stage = eventData?.stages?.find(
+      (s: any) => s.stage_id.toString() === selectedStageId,
+    );
+    const group = stage?.groups?.find(
+      (g: any) => g.group_id.toString() === selectedGroupId,
+    );
+    const isTeam = eventData?.participant_type !== "solo";
+    const teamIds = new Set<number>();
+    const playerIds = new Set<number>();
+    const bucket = isTeam ? teamIds : playerIds;
+    // overall standings rows (tournament_team_id in team mode, competitor_id in solo mode).
+    for (const e of group?.overall_leaderboard ?? []) {
+      const eid = e.tournament_team_id ?? e.competitor_id;
+      if (eid) bucket.add(eid);
+    }
+    // per-match rows + each team's per-player rows (players only exist in team mode).
+    for (const m of group?.matches ?? []) {
+      for (const stat of m.stats ?? []) {
+        const sid = stat.tournament_team_id ?? stat.competitor_id;
+        if (sid) bucket.add(sid);
+        for (const p of stat.players ?? []) {
+          if (p.player_id) playerIds.add(p.player_id);
+        }
+      }
+    }
+    const teamArr = [...teamIds];
+    const playerArr = [...playerIds];
+    if (teamArr.length === 0 && playerArr.length === 0) {
+      setWatched({ teamIds: new Set(), playerIds: new Set() });
+      return;
+    }
+    let cancelled = false;
+    watchlistApi
+      .tags({ teamIds: teamArr, playerIds: playerArr })
+      .then((res) => {
+        if (cancelled) return;
+        setWatched({
+          teamIds: new Set(res.watched_team_ids),
+          playerIds: new Set(res.watched_player_ids),
+        });
+      })
+      .catch(() => {
+        /* badges are best-effort; ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [eventData, selectedStageId, selectedGroupId]);
+
+  // Is this standings-row entity (a team in team mode, a player in solo mode) watched?
+  const isEntityWatched = (id?: number) =>
+    id != null &&
+    (eventData?.participant_type !== "solo"
+      ? watched.teamIds.has(id)
+      : watched.playerIds.has(id));
 
   // ── Derived helpers (ported 1:1 from the admin [id] page) ─────────────────────
   const currentStage = eventData?.stages?.find(
@@ -529,6 +670,158 @@ export default function OrganizerEventLeaderboardPage({
   const handleEditComplete = () => {
     fetchLeaderboard();
     setEditingMatch(null);
+  };
+
+  // ── Redo this map (owner 2026-07-02 organizer parity) ─────────────────────────
+  // Wipe the currently selected map's results (stats reset, result_inputted -> False) so the
+  // organizer can re-enter them from scratch. Other maps in the group are untouched. Ported
+  // from the admin edit page; hits BE POST /events/clear-match-result/ (gate = AFC event admin
+  // OR org can_upload_results, i.e. this page's own gate), then re-fetches so the map repaints
+  // blank. Only offered while a SPECIFIC match is selected (not the overall view); gated
+  // behind an AlertDialog because it is destructive.
+  const handleRedoMap = async () => {
+    if (selectedMatchId === "overall") return;
+    setRedoingMap(true);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/clear-match-result/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ match_id: Number(selectedMatchId), force: true }),
+        },
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || err.detail || "");
+      }
+      toast.success(t("eventLeaderboard.redoMap.success"));
+      // Back to the overall view (the cleared map has nothing left to show), refresh the
+      // standings and the flagged-kills panel (a wiped map also wipes its ringer flags).
+      setSelectedMatchId("overall");
+      fetchLeaderboard();
+      setFlagRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      toast.error(err.message || t("eventLeaderboard.redoMap.error"));
+    } finally {
+      setRedoingMap(false);
+    }
+  };
+
+  // ── Total Leaderboard adjustments (owner 2026-07-02 organizer parity) ─────────
+  // Apply overall point deltas: a positive adjustment adds bonus points, a negative one adds
+  // penalty points, both onto the FIRST map of the group (same semantics as the admin edit
+  // page's Total Leaderboard tab). Rows are rebuilt from the first map's SAVED stats (the same
+  // data the admin page seeds its edit rows from) and re-posted through the proven per-map save
+  // endpoints (edit-match-result / edit-solo-match-result, gate = org can_upload_results), so
+  // the backend recomputes that map's totals and the overall standings shift by the delta.
+  // NOTE: the request shape deliberately mirrors this page's other result saves (players keyed
+  // by user_id, bonus/penalty included on team rows) - the shape the backend actually reads -
+  // rather than the admin handler's stale variant.
+  const handleSaveAdjustments = async () => {
+    if (!currentGroup?.leaderboard?.leaderboard_id) {
+      toast.error(t("eventLeaderboard.tools.noLeaderboard"));
+      return;
+    }
+    const hasChanges = Object.values(adjustments).some((v) => v !== 0);
+    if (!hasChanges) {
+      toast.info(t("eventLeaderboard.tools.noAdjustments"));
+      return;
+    }
+    const firstMatch = currentGroup?.matches?.[0];
+    const stats: any[] = firstMatch?.stats ?? [];
+    if (!firstMatch || stats.length === 0) {
+      toast.error(t("eventLeaderboard.tools.noMatches"));
+      return;
+    }
+
+    setSavingAdjust(true);
+    try {
+      // Fold each entity's delta into the first map's saved bonus/penalty. placement 0 marks a
+      // not-played row in the saved stats (backend convention), so those re-save as played=false
+      // to keep "placements unique among played teams" validation happy.
+      const updatedRows = stats.map((stat: any) => {
+        const rid = stat.competitor_id ?? stat.tournament_team_id ?? 0;
+        const adj = adjustments[rid] ?? 0;
+        return {
+          id: rid,
+          placement: stat.placement ?? 0,
+          kills: stat.kills ?? 0,
+          played: (stat.placement ?? 0) > 0,
+          bonus_points: Math.max(
+            0,
+            (stat.bonus_points ?? 0) + (adj > 0 ? adj : 0),
+          ),
+          penalty_points: Math.max(
+            0,
+            (stat.penalty_points ?? 0) + (adj < 0 ? Math.abs(adj) : 0),
+          ),
+          // Saved per-player rows = the players who actually played this map (they are only
+          // persisted for played players), re-sent unchanged keyed by user_id.
+          players: (stat.players ?? []).map((p: any) => ({
+            user_id: p.player_id,
+            kills: p.kills ?? 0,
+            damage: p.damage ?? 0,
+            assists: p.assists ?? 0,
+            played: true,
+          })),
+        };
+      });
+
+      let endpoint: string;
+      let body: any;
+      if (detailsParticipantType === "solo") {
+        endpoint = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-solo-match-result/`;
+        body = {
+          match_id: firstMatch.match_id.toString(),
+          rows: updatedRows.map((r) => ({
+            competitor_id: r.id,
+            placement: r.placement,
+            kills: r.kills,
+            played: r.played,
+            bonus_points: r.bonus_points,
+            penalty_points: r.penalty_points,
+          })),
+        };
+      } else {
+        endpoint = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-result/`;
+        body = {
+          match_id: firstMatch.match_id,
+          results: updatedRows.map((r) => ({
+            tournament_team_id: r.id,
+            placement: r.placement,
+            played: r.played,
+            bonus_points: r.bonus_points,
+            penalty_points: r.penalty_points,
+            players: r.players,
+          })),
+        };
+      }
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || err.detail || "");
+      }
+
+      toast.success(t("eventLeaderboard.tools.adjustmentsSaved"));
+      setAdjustments({});
+      fetchLeaderboard();
+    } catch (err: any) {
+      toast.error(err.message || t("eventLeaderboard.tools.adjustmentsError"));
+    } finally {
+      setSavingAdjust(false);
+    }
   };
 
   // ── Create-wizard handlers ────────────────────────────────────────────────────
@@ -769,6 +1062,14 @@ export default function OrganizerEventLeaderboardPage({
     );
   }
 
+  // Overall standings of the selected group ordered by effective total - feeds the
+  // Total Leaderboard adjustments tab below (owner 2026-07-02 organizer parity).
+  const sortedOverall: any[] = [...(currentGroup?.overall_leaderboard ?? [])].sort(
+    (a: any, b: any) =>
+      (b.effective_total ?? b.total_points ?? 0) -
+      (a.effective_total ?? a.total_points ?? 0),
+  );
+
   // ── VIEW + EDIT-RESULTS SURFACE (mirrors the admin [id] page) ──────────────────
   return (
     <div className="space-y-2 pb-20">
@@ -987,9 +1288,20 @@ export default function OrganizerEventLeaderboardPage({
                       <TableRow key={idx}>
                         <TableCell>#{idx + 1}</TableCell>
                         <TableCell className="font-bold">
-                          {row.competitor__user__username ||
-                            row.username ||
-                            t("eventLeaderboard.unknown")}
+                          <span className="inline-flex items-center gap-2">
+                            {row.competitor__user__username ||
+                              row.username ||
+                              t("eventLeaderboard.unknown")}
+                            {/* Advisory watchlist flag (solo mode: row id = player). */}
+                            {isEntityWatched(
+                              row.competitor_id ?? row.tournament_team_id,
+                            ) && (
+                              <WatchTag
+                                label={t("eventLeaderboard.watch.label")}
+                                reason={t("eventLeaderboard.watch.reason")}
+                              />
+                            )}
+                          </span>
                         </TableCell>
                         {selectedMatchId === "overall" && (
                           <TableCell className="text-zinc-400">
@@ -1055,9 +1367,20 @@ export default function OrganizerEventLeaderboardPage({
                         <TableRow key={idx}>
                           <TableCell>#{idx + 1}</TableCell>
                           <TableCell className="font-bold">
-                            {row.team_name ||
-                              row.username ||
-                              t("eventLeaderboard.unknown")}
+                            <span className="inline-flex items-center gap-2">
+                              {row.team_name ||
+                                row.username ||
+                                t("eventLeaderboard.unknown")}
+                              {/* Advisory watchlist flag (team mode: row id = team). */}
+                              {isEntityWatched(
+                                row.tournament_team_id ?? row.competitor_id,
+                              ) && (
+                                <WatchTag
+                                  label={t("eventLeaderboard.watch.label")}
+                                  reason={t("eventLeaderboard.watch.reason")}
+                                />
+                              )}
+                            </span>
                           </TableCell>
                           {selectedMatchId === "overall" && (
                             <TableCell className="text-zinc-400">
@@ -1114,7 +1437,16 @@ export default function OrganizerEventLeaderboardPage({
                             #{idx + 1}
                           </TableCell>
                           <TableCell className="font-bold">
-                            {player.username}
+                            <span className="inline-flex items-center gap-2">
+                              {player.username}
+                              {/* Advisory watchlist flag for this player. */}
+                              {watched.playerIds.has(player.player_id) && (
+                                <WatchTag
+                                  label={t("eventLeaderboard.watch.label")}
+                                  reason={t("eventLeaderboard.watch.reason")}
+                                />
+                              )}
+                            </span>
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
                             {player.team_name}
@@ -1166,6 +1498,47 @@ export default function OrganizerEventLeaderboardPage({
                   </Button>
                   <InfoTip id="leaderboards.detail.upload_edit_group" />
                 </>
+              )}
+              {/* Redo this map (owner 2026-07-02 organizer parity): clears ONLY the selected
+                  map's results so they can be re-entered. Only offered while a specific match
+                  is on screen (not the overall view). Destructive -> AlertDialog confirm.
+                  Calls handleRedoMap -> POST /events/clear-match-result/. */}
+              {selectedMatchId !== "overall" && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" disabled={redoingMap}>
+                      {redoingMap ? (
+                        <span className="flex items-center gap-2">
+                          <IconLoader2 size={14} className="animate-spin" />
+                          {t("eventLeaderboard.redoMap.clearing")}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <IconRefresh size={14} />
+                          {t("eventLeaderboard.redoMap.button")}
+                        </span>
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {t("eventLeaderboard.redoMap.title")}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t("eventLeaderboard.redoMap.description")}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>
+                        {t("eventLeaderboard.cancel")}
+                      </AlertDialogCancel>
+                      <AlertDialogAction onClick={handleRedoMap}>
+                        {t("eventLeaderboard.redoMap.confirm")}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
               {/* Export graphic - only meaningful on the cumulative overall view. */}
               {selectedMatchId === "overall" && selectedStageId && (
@@ -1283,6 +1656,238 @@ export default function OrganizerEventLeaderboardPage({
           />
         </div>
       )}
+
+      {/* ── Manage leaderboard tools (owner 2026-07-02 organizer parity) ──
+          Pill-tab section mirroring the admin edit page's tab idiom, scoped to THIS org's
+          event. "Total Leaderboard" (overall point adjustments) rides this page's own
+          can_upload_results gate; Tie-breakers / MVPs / Debugger backfill call endpoints the
+          backend gates on org can_edit_events (_broadcast_gate), so those three tabs only
+          render for members holding that permission. Hidden while a match or the whole-group
+          editor is open (same visibility rule as the standings card above). */}
+      {!editingMatch &&
+        !groupEditOpen &&
+        eventData &&
+        hasAnyLeaderboard &&
+        eventId && (
+          <div className="mt-4">
+            <Tabs defaultValue="total">
+              <TabsList
+                className={`grid w-full ${canEditEvents ? "grid-cols-4" : "grid-cols-1"}`}
+              >
+                <TabsTrigger value="total">
+                  <IconTrophy size={14} className="mr-1" />
+                  {t("eventLeaderboard.tools.totalTab")}
+                </TabsTrigger>
+                {canEditEvents && (
+                  <>
+                    <TabsTrigger value="tiebreakers">
+                      <IconScale size={14} className="mr-1" />
+                      {t("eventLeaderboard.tools.tieBreakersTab")}
+                    </TabsTrigger>
+                    <TabsTrigger value="mvp">
+                      <IconTrophy size={14} className="mr-1" />
+                      {t("eventLeaderboard.tools.mvpTab")}
+                    </TabsTrigger>
+                    <TabsTrigger value="backfill">
+                      <IconDatabaseImport size={14} className="mr-1" />
+                      {t("eventLeaderboard.tools.backfillTab")}
+                    </TabsTrigger>
+                  </>
+                )}
+              </TabsList>
+
+              {/* ── Total Leaderboard adjustments ── overall standings of the selected group
+                  with a per-row Adjust delta (positive = bonus, negative = penalty, folded
+                  into the FIRST map by handleSaveAdjustments - admin-page semantics). */}
+              <TabsContent value="total" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("eventLeaderboard.tools.totalTitle")}</CardTitle>
+                    <CardDescription>
+                      {t("eventLeaderboard.tools.totalDescription")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {sortedOverall.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-8 text-center">
+                        {t("eventLeaderboard.tools.noData")}
+                      </p>
+                    ) : (
+                      <>
+                        <div className="rounded-md border overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>
+                                  {t("eventLeaderboard.table.rank")}
+                                </TableHead>
+                                <TableHead>
+                                  {detailsParticipantType === "team"
+                                    ? t("eventLeaderboard.table.team")
+                                    : t("eventLeaderboard.table.player")}
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  {t("eventLeaderboard.table.booyahs")}
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  {t("eventLeaderboard.table.kills")}
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  {t("eventLeaderboard.tools.placePts")}
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  {t("eventLeaderboard.table.totalPts")}
+                                </TableHead>
+                                <TableHead className="w-28">
+                                  {t("eventLeaderboard.tools.adjust")}
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {sortedOverall.map((entry: any, idx: number) => {
+                                const entityId =
+                                  entry.tournament_team_id ??
+                                  entry.competitor_id ??
+                                  0;
+                                const adj = adjustments[entityId] ?? 0;
+                                return (
+                                  <TableRow key={entityId || idx}>
+                                    <TableCell className="text-muted-foreground">
+                                      #{idx + 1}
+                                    </TableCell>
+                                    <TableCell className="font-medium">
+                                      <span className="inline-flex items-center gap-2">
+                                        {entry.team_name ??
+                                          entry.competitor__user__username ??
+                                          t("eventLeaderboard.unknown")}
+                                        {/* Advisory watchlist flag (team in team mode, player in solo). */}
+                                        {isEntityWatched(entityId) && (
+                                          <WatchTag
+                                            label={t(
+                                              "eventLeaderboard.watch.label",
+                                            )}
+                                            reason={t(
+                                              "eventLeaderboard.watch.reason",
+                                            )}
+                                          />
+                                        )}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      {entry.total_booyah ?? 0}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      {entry.total_kills ?? 0}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      {entry.placement_sum ?? 0}
+                                    </TableCell>
+                                    {/* Live preview: saved total + the pending (unsaved) delta. */}
+                                    <TableCell className="text-right font-semibold">
+                                      {(
+                                        (entry.effective_total ??
+                                          entry.total_points ??
+                                          0) + adj
+                                      ).toFixed(1)}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Input
+                                        type="number"
+                                        className="h-8 w-24"
+                                        value={adj || ""}
+                                        placeholder="0"
+                                        onChange={(e) => {
+                                          const v = parseInt(e.target.value);
+                                          setAdjustments((prev) => ({
+                                            ...prev,
+                                            [entityId]: isNaN(v) ? 0 : v,
+                                          }));
+                                        }}
+                                      />
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={handleSaveAdjustments}
+                            disabled={
+                              savingAdjust ||
+                              Object.values(adjustments).every((v) => v === 0)
+                            }
+                          >
+                            {savingAdjust ? (
+                              <span className="flex items-center gap-2">
+                                <IconLoader2
+                                  size={14}
+                                  className="animate-spin"
+                                />
+                                {t("eventLeaderboard.tools.saving")}
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                <IconDeviceFloppy size={14} />
+                                {t("eventLeaderboard.tools.saveAdjustments")}
+                              </span>
+                            )}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {canEditEvents && (
+                <>
+                  {/* ── Tie-breakers ── equal-points ordering; scope follows the on-screen
+                      stage/group (admin mount passes the same props on its Scoring tab). */}
+                  <TabsContent value="tiebreakers" className="mt-4">
+                    <TieBreakersPanel
+                      eventId={eventId}
+                      stageId={selectedStageId}
+                      stageName={currentStage?.stage_name}
+                      groupId={selectedGroupId}
+                      groupName={currentGroup?.group_name}
+                    />
+                  </TabsContent>
+
+                  {/* ── MVPs ── event-scoped (ignores the stage/group pickers), admin parity. */}
+                  <TabsContent value="mvp" className="mt-4">
+                    <MvpTab eventId={eventId} />
+                  </TabsContent>
+
+                  {/* ── Debugger backfill ── event-wide: every stage/group/match is a mapping
+                      target (same flatMap the admin mount builds on its Upload tab). */}
+                  <TabsContent value="backfill" className="mt-4">
+                    <DebuggerBackfillPanel
+                      eventId={eventId}
+                      matchOptions={(eventData?.stages ?? []).flatMap(
+                        (st: any) =>
+                          (st.groups ?? []).flatMap((g: any) =>
+                            (g.matches ?? []).map((m: any) => ({
+                              match_id: m.match_id,
+                              label: `${st.stage_name} · ${g.group_name} · ${t(
+                                "eventLeaderboard.matchLabel",
+                                {
+                                  number: m.match_number,
+                                  map: m.match_map || "-",
+                                },
+                              )}`,
+                            })),
+                          ),
+                      )}
+                    />
+                  </TabsContent>
+                </>
+              )}
+            </Tabs>
+          </div>
+        )}
 
       {/* ── Whole-group editor: upload (bulk) + manual edit + Save all, per group ── */}
       {groupEditOpen && currentGroup && (

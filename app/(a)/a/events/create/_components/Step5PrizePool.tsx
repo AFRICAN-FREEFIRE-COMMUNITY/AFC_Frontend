@@ -192,13 +192,25 @@ export function Step5PrizePool({ form }: Step5Props) {
               <Input value={formatPrizeKey(key)} disabled className="col-span-1" />
               <div className="col-span-3 flex items-center justify-end gap-1">
                 <Input
-                  type="text"
+                  type="number"
+                  min="0"
+                  inputMode="numeric"
+                  onKeyDown={(e) => {
+                    // Numbers only (owner 2026-07-02): prize amounts must be plain numbers so the
+                    // distribution can be summed and checked against the cash value.
+                    if (
+                      !/^[0-9.]$/.test(e.key) &&
+                      !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
                   value={value || ""}
                   onChange={(e) => {
                     const updated = { ...prizeDistribution, [key]: e.target.value };
                     form.setValue("prize_distribution", updated, { shouldDirty: true });
                   }}
-                  placeholder="e.g., $2,000 or 2000 Diamonds"
+                  placeholder="e.g., 2000"
                 />
                 <Button
                   type="button"

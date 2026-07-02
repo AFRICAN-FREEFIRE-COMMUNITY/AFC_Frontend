@@ -19,7 +19,7 @@
 // CONSUMED BY:
 //  - app/(a)/a/events/[slug]/edit/page.tsx            (admin edit wizard, passes eventId)
 //  - app/(organizer)/organizer/events/[slug]/edit/page.tsx (organizer edit wizard,
-//    hideAdminReviewLink + eventId)
+//    reviewSponsorsHref=/organizer/events/<slug>/sponsors + eventId)
 
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -65,11 +65,15 @@ interface SponsorTabProps {
   onSave: () => void;
   saving: boolean;
   // ── Organizer reuse ─────────────────────────────────────────────────────────
-  // When true, the "Review Sponsors" shortcut is hidden because it deep-links into
-  // the ADMIN route (/a/events/<slug>/sponsors), which an organizer can't reach. The
-  // sponsor toggle + accounts editing all still work. The admin edit page leaves this
-  // undefined (defaults false), so its "Review Sponsors" button is unchanged.
+  // When true, the "Review Sponsors" shortcut is hidden entirely. Kept for any caller
+  // with no sponsor-review surface at all; the organizer edit page used to pass this
+  // but now passes reviewSponsorsHref instead (owner 2026-07-02 organizer parity).
+  // The admin edit page leaves it undefined (defaults false), so its button is unchanged.
   hideAdminReviewLink?: boolean;
+  // Where the "Review Sponsors" shortcut points. Defaults to the ADMIN review page
+  // (/a/events/<slug>/sponsors). The organizer edit page passes its own scoped page
+  // (/organizer/events/<slug>/sponsors) so organizers land on a route they can reach.
+  reviewSponsorsHref?: string;
   // ── Sponsor-system P2 ───────────────────────────────────────────────────────
   // The event's numeric id, needed by the sponsorship endpoints (they key on
   // event_id, not slug). Both edit pages pass eventDetails.event_id. When absent
@@ -84,6 +88,7 @@ export default function SponsorTab({
   onSave,
   saving,
   hideAdminReviewLink = false,
+  reviewSponsorsHref,
   eventId = null,
 }: SponsorTabProps) {
   const { token } = useAuth();
@@ -262,12 +267,13 @@ export default function SponsorTab({
               events created before the sponsor system redesign keep working. New
               events should use the builder above instead.
             </p>
-            {/* "Review Sponsors" deep-links into the admin route, so it's hidden
-                on the organizer surface (hideAdminReviewLink). Lives in the body
-                (not the summary) so clicking it never toggles the details. */}
+            {/* "Review Sponsors" points at the ADMIN review page by default; callers
+                with their own review surface override it via reviewSponsorsHref (the
+                organizer edit page passes /organizer/events/<slug>/sponsors). Lives in
+                the body (not the summary) so clicking it never toggles the details. */}
             {sponsorForm.is_sponsored && !hideAdminReviewLink && (
               <Button size="sm" variant="secondary" asChild className="shrink-0">
-                <Link href={`/a/events/${slug}/sponsors`}>
+                <Link href={reviewSponsorsHref ?? `/a/events/${slug}/sponsors`}>
                   <IconUserCheck className="size-3.5 mr-1" />
                   Review Sponsors
                 </Link>

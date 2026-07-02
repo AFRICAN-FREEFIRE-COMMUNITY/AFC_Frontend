@@ -109,6 +109,15 @@ import { SaveConfirmModal } from "@/app/(a)/a/events/[slug]/edit/_components/Sav
 import StagesGroupsTab from "@/app/(a)/a/events/[slug]/edit/_components/StagesGroupsTab";
 import SponsorTab from "@/app/(a)/a/events/[slug]/edit/_components/SponsorTab";
 import WaitlistTab from "@/app/(a)/a/events/[slug]/edit/_components/WaitlistTab";
+// Broadcast media hygiene (owner 2026-07-02 organizer parity): the SAME card the admin edit page
+// mounts under Registered Teams - missing team logos / player esport images, flag bad art,
+// per-event hide/show. Self-contained (loads events/<id>/media-audit itself); the backend
+// media-audit endpoints already authorise the event's organizer, so this is a pure mount.
+import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
+// Co-organizers manager (F6): invite another org to co-own this event, reused verbatim from the
+// admin edit page. Backend (organizers.py co-organizer endpoints) only lets the PRIMARY org's
+// OWNER (or an AFC admin) invite/revoke, so this page mounts it only when isOwner (below).
+import CoOrganizersPanel from "@/app/(a)/a/events/[slug]/edit/_components/CoOrganizersPanel";
 // Linked-events (qualification links) editor — the SAME component the admin edit page + the event
 // DETAIL pages mount (components/event-links.tsx -> lib/eventLinks.ts -> events/<id>/links/*). The
 // backend already authorises the event's organizer on those endpoints, so reusing it here gives the
@@ -2129,7 +2138,19 @@ export default function OrganizerEditEventPage({
               <RegisteredTeamsTab
                 eventDetails={eventDetails}
                 updateCompetitorStatus={updateCompetitorStatus}
+                // In-place refresh (owner 2026-07-02 organizer parity): the tab's Add-Teams /
+                // Edit-Roster modals call this onSuccess to re-pull the event and re-render the
+                // roster without a manual reload (same wiring as the admin edit page).
+                onRefresh={fetchEventDetails}
               />
+              {/* Broadcast media hygiene (owner 2026-07-02 organizer parity): missing team logos /
+                  player esport images, flag bad art, per-event hide/show. Same card the admin edit
+                  page + overlay studio mount; the backend already allows the event's organizer. */}
+              {eventDetails?.event_id ? (
+                <div className="mt-4">
+                  <MediaAuditCard eventId={eventDetails.event_id} />
+                </div>
+              ) : null}
             </TabsContent>
 
             <TabsContent value="stages_groups">
@@ -2152,6 +2173,10 @@ export default function OrganizerEditEventPage({
                 onToggleVisibility={toggleVisibility}
                 onAddNewStage={addNewStage}
                 onSaveChanges={() => handleSaveChangesClick(form.getValues())}
+                // In-place refresh (owner 2026-07-02 organizer parity): the stage/group
+                // Add-Teams modals + stage reordering call this onSuccess to re-pull the
+                // event and re-render the new rosters/order (same as the admin edit page).
+                onRefresh={fetchEventDetails}
               />
             </TabsContent>
 
@@ -2186,7 +2211,7 @@ export default function OrganizerEditEventPage({
               />
             </TabsContent>
 
-            <TabsContent value="actions">
+            <TabsContent value="actions" className="space-y-4">
               {/* hideDiscord: hides only the "Sync Discord Roles" control; every other
                   event action (start / cancel / complete / seed / advance / broadcast /
                   visibility / export) stays available to the organizer. */}
@@ -2198,11 +2223,25 @@ export default function OrganizerEditEventPage({
                 onRefresh={fetchEventDetails}
                 hideDiscord
               />
+              {/* F6 co-organizers (owner 2026-07-02 organizer parity): manage which OTHER orgs
+                  co-own this event, same panel the admin edit page mounts. The backend only lets
+                  the PRIMARY org's OWNER (or an AFC admin) invite/revoke, so it renders only for
+                  isOwner - a can_edit_events member would just get 403s from every action in it.
+                  primaryOrgSlug = the context org's slug (the org guard above already proved the
+                  event is homed to it), so the picker excludes the owning org itself. */}
+              {isOwner && (
+                <CoOrganizersPanel
+                  eventId={eventDetails.event_id}
+                  primaryOrgSlug={orgSlug}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="sponsor">
-              {/* hideAdminReviewLink: the "Review Sponsors" shortcut deep-links into
-                  the admin route, so it's hidden on the organizer surface.
+              {/* reviewSponsorsHref (owner 2026-07-02 organizer parity): the "Review Sponsors"
+                  shortcut used to be hidden here (hideAdminReviewLink) because it deep-linked
+                  into the admin route. Organizers now have their own scoped review page at
+                  /organizer/events/<slug>/sponsors, so point the shortcut there instead.
                   eventId powers the new sponsorship builder (P2): SponsorTab loads
                   sponsorsApi.forEvent(eventId) and diff-saves attach/detach/configure
                   (the configure endpoint allows the event's organizer too). */}
@@ -2212,7 +2251,7 @@ export default function OrganizerEditEventPage({
                 setSponsorForm={setSponsorForm}
                 onSave={saveSponsorRequirement}
                 saving={savingSponsor}
-                hideAdminReviewLink
+                reviewSponsorsHref={`/organizer/events/${slug}/sponsors`}
                 eventId={eventDetails?.event_id ?? null}
               />
             </TabsContent>

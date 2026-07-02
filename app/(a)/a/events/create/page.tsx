@@ -884,6 +884,28 @@ export default function CreateEventPage() {
   // ── Submit ───────────────────────────────────────────────────────────────────
 
   const onSubmit = (data: EventFormType) => {
+    // Distribution-vs-cash-value guard (owner 2026-07-02): block create when the prize
+    // distribution does not add up to the cash value, with the exact difference in the message.
+    {
+      const cash = Number(data.prizepool_cash_value);
+      if (cash && !Number.isNaN(cash)) {
+        const sum = Object.values(data.prize_distribution || {}).reduce(
+          (acc: number, v) => acc + (Number(String(v).replace(/[^0-9.]/g, "")) || 0),
+          0,
+        );
+        if (sum !== cash) {
+          const diff = Math.abs(cash - sum);
+          const ccy = (data.prize_currency || "USD").toString();
+          toast.error(
+            sum > cash
+              ? `Your prize distribution adds up to ${sum} ${ccy}, which is ${diff} ${ccy} MORE than the prize pool cash value (${cash} ${ccy}). Adjust the amounts so they match exactly.`
+              : `Your prize distribution adds up to ${sum} ${ccy}, which is ${diff} ${ccy} LESS than the prize pool cash value (${cash} ${ccy}). Adjust the amounts so they match exactly.`,
+          );
+          return;
+        }
+      }
+    }
+
     // Mirror the backend 400: require_discord=true demands a non-empty invite link.
     if (data.require_discord && !data.discord_invite_link?.trim()) {
       toast.error("Add a Discord invite link to require Discord for registration.");

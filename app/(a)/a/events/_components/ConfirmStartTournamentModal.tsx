@@ -36,17 +36,26 @@ export const ConfirmStartTournamentModal = ({
 }) => {
   const [pending, startTransition] = useTransition();
   const [clearExisting, setClearExisting] = useState(false);
+  // Registration-still-open override (owner 2026-07-02): the seed endpoint 400s with
+  // requires_force when registration has not closed yet. We show the reason IN the dialog
+  // (a toast alone vanished before people read it) and offer an explicit "Start anyway".
+  const [forceNotice, setForceNotice] = useState<string | null>(null);
   const { token } = useAuth();
 
   const isTeam = participantType !== "solo";
 
-  const handleStart = () => {
+  const handleStart = (forceBeforeRegEnd = false) => {
     startTransition(async () => {
       try {
         if (isTeam) {
           const res = await axios.post(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seed-event-competitors-to-stage/`,
-            { stage_id: `${stageId}`, clear_existing: clearExisting },
+            {
+              stage_id: `${stageId}`,
+              clear_existing: clearExisting,
+              // Explicit acknowledgement that registration is still open (see forceNotice).
+              ...(forceBeforeRegEnd ? { force_before_registration_end: true } : {}),
+            },
             { headers: { Authorization: `Bearer ${token}` } },
           );
           toast.success(res.data.message || "Tournament started successfully");
@@ -59,10 +68,17 @@ export const ConfirmStartTournamentModal = ({
           toast.success(res.data.message || "Tournament started successfully");
         }
 
+        setForceNotice(null);
         onClose?.();
         onSuccess?.();
       } catch (e: any) {
-        toast.error(e.response?.data?.message || "Failed to start");
+        const data = e.response?.data;
+        if (e.response?.status === 400 && data?.requires_force) {
+          // Keep the dialog open and show WHY, with an explicit Start-anyway path.
+          setForceNotice(data.message || "Registration is still open for this event.");
+        } else {
+          toast.error(data?.message || "Failed to start");
+        }
       }
     });
   };
@@ -95,6 +111,16 @@ export const ConfirmStartTournamentModal = ({
             </div>
           )}
 
+          {forceNotice && (
+            <div className="mt-4 rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 text-left">
+              <p className="text-sm font-medium text-amber-500">Registration is still open</p>
+              <p className="text-xs text-muted-foreground mt-1">{forceNotice}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Use "Start anyway" to begin with the competitors registered so far.
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-3 mt-6">
             <Button
               variant="outline"
@@ -104,7 +130,7 @@ export const ConfirmStartTournamentModal = ({
             >
               Cancel
             </Button>
-            <Button className="flex-1" onClick={handleStart} disabled={pending}>
+            <Button className="flex-1" onClick={() => handleStart(!!forceNotice)} disabled={pending}>
               {pending ? (
                 <Loader text="Starting..." />
               ) : (
