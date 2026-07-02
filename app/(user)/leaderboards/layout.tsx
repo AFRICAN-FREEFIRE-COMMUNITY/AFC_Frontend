@@ -7,7 +7,7 @@ import { generatePageMetadata } from "@/lib/seo";
 export const metadata: Metadata = generatePageMetadata({
   title: "Leaderboards",
   description:
-    "Live Free Fire leaderboards on the African Freefire Community. Track top teams and players by kills, wins, and points across tournaments and scrims in Africa.",
+    "Live Free Fire leaderboards on the African Free Fire Community. Track top teams and players by kills, wins, and points across tournaments and scrims in Africa.",
   keywords: [
     "Free Fire leaderboard",
     "Free Fire top players",

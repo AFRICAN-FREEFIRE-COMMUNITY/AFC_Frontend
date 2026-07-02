@@ -298,6 +298,11 @@
       "clear": "Limpar",
       "explainerAlt": "Grelha de referência para avatares de cartas do Free Fire",
       "saveNote": "Os avatares das tuas letras ficam guardados quando clicas em «Guardar alterações»."
+    },
+    "whatsapp": {
+      "numberLabel": "Número do WhatsApp",
+      "numberDescription": "Adicione o seu número do WhatsApp (com o código do país) para receber os detalhes da sala do torneio diretamente no seu WhatsApp.",
+      "optInLabel": "Envia-me os IDs das salas e as palavras-passe pelo WhatsApp"
     }
   },
   "password": {

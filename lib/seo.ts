@@ -3,7 +3,7 @@
 
 // // Site configuration
 // export const siteConfig = {
-//   name: "African Freefire Community",
+//   name: "African Free Fire Community",
 //   shortName: "AFC",
 //   description:
 //     "The official platform for African Free Fire esports. Join teams, compete in tournaments, track player stats, and stay updated with the latest Free Fire news across Africa.",
@@ -18,7 +18,7 @@
 //     discord: "https://discord.gg/afc",
 //   },
 //   email: "info@africanfreefirecommunity.com",
-//   creator: "African Freefire Community",
+//   creator: "African Free Fire Community",
 //   keywords: [
 //     "Free Fire",
 //     "Free Fire Africa",
@@ -395,7 +395,7 @@ import { env } from "./env";
 
 // 1. Centralized Site Configuration
 export const siteConfig = {
-  name: "African Freefire Community",
+  name: "African Free Fire Community",
   shortName: "AFC",
   description:
     "The official platform for African Free Fire esports. Join teams, compete in tournaments, track player stats, and stay updated with the latest news across Africa.",
@@ -419,7 +419,7 @@ export const siteConfig = {
     discord: "https://discord.gg/afc",
   },
   email: "info@africanfreefirecommunity.com",
-  creator: "African Freefire Community",
+  creator: "African Free Fire Community",
   keywords: [
     "Free Fire",
     "Free Fire Africa",
@@ -432,7 +432,7 @@ export const siteConfig = {
     "Free Fire Nigeria",
     "Nigeria Free Fire tournament",
     "Free Fire clash cup Nigeria",
-    "African Freefire Community",
+    "African Free Fire Community",
     "Free Fire West Africa",
     "Free Fire Ghana",
     "Free Fire Kenya",

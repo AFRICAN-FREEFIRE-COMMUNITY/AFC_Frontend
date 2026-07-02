@@ -12,7 +12,7 @@ import { siteConfig } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How African Freefire Community collects, uses, and protects your data across our Free Fire esports platform.",
+    "How African Free Fire Community collects, uses, and protects your data across our Free Fire esports platform.",
   alternates: { canonical: `${siteConfig.url}/privacy-policy` },
 };
 
@@ -43,7 +43,7 @@ const page = async () => {
             </p>
             <p>
               <strong className="text-black dark:text-white">Entity:</strong>{" "}
-              African Freefire Community (AFC)
+              African Free Fire Community (AFC)
             </p>
           </div>
 
@@ -53,7 +53,7 @@ const page = async () => {
               1. Introduction
             </h2>
             <p>
-              The African Freefire Community (“AFC”, “we”, “our”, or “us”)
+              The African Free Fire Community (“AFC”, “we”, “our”, or “us”)
               operates a competitive esports and community platform serving
               players across Africa. This Privacy Policy explains how AFC
               collects, uses, stores, protects, and shares information when
@@ -473,7 +473,7 @@ const page = async () => {
               14. Contact Information
             </h2>
             <p>For data queries, complaints, or access requests, contact:</p>
-            <p>African Freefire Community (AFC)</p>
+            <p>African Free Fire Community (AFC)</p>
             <p>
               Email:{" "}
               <a

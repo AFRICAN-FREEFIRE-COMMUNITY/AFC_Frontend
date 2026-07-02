@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     parts.length > 0
       ? `${title} - ${parts.join(" • ")}`
-      : `${title} is a competitive tournament on African Freefire Community. Register now!`;
+      : `${title} is a competitive tournament on African Free Fire Community. Register now!`;
 
   // Link-embed image FALLBACK CHAIN (owner 2026-06-14): the event banner, else the
   // organizing org's logo, else the AFC branded card. resolveOgImage proxies a

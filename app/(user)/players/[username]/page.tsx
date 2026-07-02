@@ -72,7 +72,7 @@ export async function generateMetadata({
     if (!player) {
       return buildEntityMetadata({
         title: ign,
-        description: `View ${ign}'s Free Fire player profile, stats, and tournament history on African Freefire Community.`,
+        description: `View ${ign}'s Free Fire player profile, stats, and tournament history on African Free Fire Community.`,
         path: `/players/${username}`,
         type: "profile",
         omitImage: true,
@@ -95,7 +95,7 @@ export async function generateMetadata({
     const description =
       statBits.length > 0
         ? `${lead} ${statBits.join(" · ")}. View full stats and tournament history on AFC.`
-        : `${lead} View stats, roles, and tournament history on African Freefire Community.`;
+        : `${lead} View stats, roles, and tournament history on African Free Fire Community.`;
 
     return buildEntityMetadata({
       title: player.username,
@@ -119,7 +119,7 @@ export async function generateMetadata({
     console.error("Error generating player metadata:", error);
     return buildEntityMetadata({
       title: ign,
-      description: `View ${ign}'s Free Fire player profile on African Freefire Community.`,
+      description: `View ${ign}'s Free Fire player profile on African Free Fire Community.`,
       path: `/players/${username}`,
       type: "profile",
       omitImage: true,

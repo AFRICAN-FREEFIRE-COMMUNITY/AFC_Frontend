@@ -4,7 +4,7 @@ import OrdersClient from "../shop/_components/OrdersClient";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Orders | African Freefire Community",
+  title: "Orders | African Free Fire Community",
 };
 
 const page = () => {

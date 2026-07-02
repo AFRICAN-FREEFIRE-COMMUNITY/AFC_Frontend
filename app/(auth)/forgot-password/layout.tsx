@@ -4,7 +4,7 @@ import { generatePageMetadata } from "@/lib/seo";
 export const metadata: Metadata = generatePageMetadata({
   title: "Forgot Password",
   description:
-    "Reset your African Freefire Community account password. Enter your email to receive password reset instructions.",
+    "Reset your African Free Fire Community account password. Enter your email to receive password reset instructions.",
   keywords: ["forgot password", "reset password", "AFC account recovery"],
   url: "/forgot-password",
   noIndex: true,

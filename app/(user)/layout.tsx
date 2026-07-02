@@ -20,7 +20,7 @@ import { OnboardingGate } from "./_components/OnboardingGate";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Teams | Africa Freefire Community",
+  title: "Teams | African Free Fire Community",
 };
 
 const layout = ({ children }: { children: ReactNode }) => {

@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!team) {
     return buildEntityMetadata({
       title: teamName,
-      description: `View the ${teamName} Free Fire team on African Freefire Community: roster, stats, and tournament history.`,
+      description: `View the ${teamName} Free Fire team on African Free Fire Community: roster, stats, and tournament history.`,
       path: `/teams/${id}`,
       omitImage: true,
     });

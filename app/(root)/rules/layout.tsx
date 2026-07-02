@@ -8,7 +8,7 @@ import { siteConfig } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Tournament Rules",
   description:
-    "The official rules for African Freefire Community tournaments and scrims: eligibility, formats, scoring, and conduct.",
+    "The official rules for African Free Fire Community tournaments and scrims: eligibility, formats, scoring, and conduct.",
   alternates: { canonical: `${siteConfig.url}/rules` },
 };
 

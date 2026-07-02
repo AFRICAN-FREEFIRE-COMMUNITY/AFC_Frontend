@@ -9,7 +9,7 @@ import { generatePageMetadata } from "@/lib/seo";
 export const metadata: Metadata = generatePageMetadata({
   title: "Player Market",
   description:
-    "The African Freefire Community Player Market. Find Free Fire players looking for teams and teams recruiting players across Africa, with roles and availability.",
+    "The African Free Fire Community Player Market. Find Free Fire players looking for teams and teams recruiting players across Africa, with roles and availability.",
   keywords: [
     "Free Fire player market",
     "Free Fire recruitment",

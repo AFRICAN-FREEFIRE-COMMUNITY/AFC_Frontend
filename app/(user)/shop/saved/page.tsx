@@ -9,7 +9,7 @@ import WishlistClient from "../_components/WishlistClient";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Saved Items | African Freefire Community",
+  title: "Saved Items | African Free Fire Community",
 };
 
 const page = () => {

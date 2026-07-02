@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = {
-  title: "Cart | African Freefire Community",
+  title: "Cart | African Free Fire Community",
 };
 
 const page = async () => {

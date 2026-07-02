@@ -166,6 +166,8 @@ const Page = () => {
       // stats_visible default: false (private). Overwritten in form.reset below from user.stats_visible.
       // The backend also defaults to false (hidden) for new accounts, so this is consistent.
       stats_visible: false,
+      whatsapp_number: "",
+      whatsapp_opt_in: false,
     },
   });
 
@@ -192,6 +194,9 @@ const Page = () => {
         // stats_visible: seed the toggle from the user's saved preference. AuthContext maps this
         // from the get-user-profile payload (defaults false when the field is absent/new account).
         stats_visible: user.stats_visible ?? false,
+        // WhatsApp prefs: seed from the saved profile values (AuthContext maps them).
+        whatsapp_number: user.whatsapp_number ?? "",
+        whatsapp_opt_in: user.whatsapp_opt_in ?? false,
       });
     }
   }, [user, form]);
@@ -217,6 +222,10 @@ const Page = () => {
         // the string and coerces it (request.data.get("stats_visible") -> "true"/"false" -> bool).
         // Always send it so the field is never silently left as the old value when the user flips it.
         formData.append("stats_visible", data.stats_visible ? "true" : "false");
+        // WhatsApp notifications (owner 2026-07-02): number + opt-in ride the same full-form
+        // save; the backend only writes them when the keys are present.
+        formData.append("whatsapp_number", data.whatsapp_number ?? "");
+        formData.append("whatsapp_opt_in", data.whatsapp_opt_in ? "true" : "false");
         // letter_avatars: the owned Free Fire letters (A-Z). ONLY sent once hydrated (see
         // letterAvatarsLoaded) so a save before the profile GET resolves cannot wipe the stored
         // letters; when hydrated, an explicit empty [] is a legitimate "clear all". FormData can't
@@ -487,6 +496,53 @@ const Page = () => {
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* ── WhatsApp notifications (owner 2026-07-02, Zernio) ─────────────────────────
+                  Number + explicit opt-in for tournament room details on WhatsApp. Both live on
+                  UserProfile; sent in the same FormData; get-user-profile echoes them so this
+                  form reflects truth on reload. Opt-in is REQUIRED consent (Meta policy) - the
+                  backend only messages users with opt-in true AND a number set. */}
+              <FormField
+                control={form.control}
+                name="whatsapp_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="space-y-2 rounded-lg border p-4">
+                      <Label htmlFor="whatsapp-number" className="text-sm font-medium">
+                        {t("edit.whatsapp.numberLabel")}
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        {t("edit.whatsapp.numberDescription")}
+                      </p>
+                      <FormControl>
+                        <Input
+                          id="whatsapp-number"
+                          placeholder="+234 801 234 5678"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormField
+                        control={form.control}
+                        name="whatsapp_opt_in"
+                        render={({ field: optField }) => (
+                          <div className="flex items-center justify-between pt-1">
+                            <p className="text-xs text-muted-foreground">
+                              {t("edit.whatsapp.optInLabel")}
+                            </p>
+                            <Switch
+                              id="whatsapp-opt-in-toggle"
+                              checked={optField.value ?? false}
+                              onCheckedChange={optField.onChange}
+                            />
+                          </div>
+                        )}
+                      />
                     </div>
                     <FormMessage />
                   </FormItem>

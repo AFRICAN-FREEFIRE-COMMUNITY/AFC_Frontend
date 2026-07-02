@@ -3,7 +3,7 @@ import { generatePageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = generatePageMetadata({
   title: "Manage News",
-  description: "Create, edit, and manage news articles and announcements for the African Freefire Community.",
+  description: "Create, edit, and manage news articles and announcements for the African Free Fire Community.",
   keywords: ["manage news", "admin news", "AFC content"],
   url: "/a/news",
   noIndex: true,

@@ -27,7 +27,7 @@
 //           </h2>
 
 //           <p className="text-sm md:text-base text-muted-foreground mb-4 md:mb-6 max-w-md mx-auto">
-//             Thank you for your participation in the Nigerian Freefire Community
+//             Thank you for your participation in the Nigerian Free Fire Community
 //             Awards 2025. The voting period has ended and we are now tallying the
 //             results.
 //           </p>

@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 export const metadata: Metadata = generatePageMetadata({
   title: "About Us",
   description:
-    "Learn about the African Freefire Community (AFC) - our mission to foster competitive esports, develop talent, and create opportunities for Free Fire players across Africa.",
+    "Learn about the African Free Fire Community (AFC) - our mission to foster competitive esports, develop talent, and create opportunities for Free Fire players across Africa.",
   keywords: [
     "about AFC",
     "African esports organization",
@@ -27,7 +27,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="text-sm md:text-base text-muted-foreground">
             <p>
-              The African Freefire Community (AFC) is dedicated to fostering a
+              The African Free Fire Community (AFC) is dedicated to fostering a
               competitive and supportive environment for Freefire players across
               Africa. Our mission is to promote esports, develop talent, and
               create opportunities for players to showcase their skills on a
@@ -42,7 +42,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="text-sm md:text-base text-muted-foreground">
             <p>
-              We envision a thriving African Freefire esports scene that is
+              We envision a thriving African Free Fire esports scene that is
               recognized worldwide for its talent, passion, and professionalism.
               Through our efforts, we aim to elevate African players and teams
               to compete at the highest levels of international tournaments.

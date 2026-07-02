@@ -61,7 +61,7 @@
     },
     "afcCard": {
       "name": "AFC Oficial",
-      "description": "Eventos realizados diretamente pela comunidade African Freefire. Ligas principais, majors e scrims semanais da comunidade."
+      "description": "Eventos realizados diretamente pela comunidade African Free Fire. Ligas principais, majors e scrims semanais da comunidade."
     },
     "detail": {
       "allOrganizers": "Todos os organizadores",
@@ -94,7 +94,7 @@
   "detail": {
     "bannerAlt": "Banner do Evento",
     "organizedBy": "Organizado por {name}",
-    "afcOfficial": "African Freefire Community",
+    "afcOfficial": "African Free Fire Community",
     "date": "Data: <date></date>",
     "time": "Hora: <time></time>",
     "prizePool": "Premiação: {value}",

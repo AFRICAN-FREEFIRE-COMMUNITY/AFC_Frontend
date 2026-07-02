@@ -11,7 +11,7 @@ import { siteConfig } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "The terms governing use of the African Freefire Community Free Fire esports platform.",
+    "The terms governing use of the African Free Fire Community Free Fire esports platform.",
   alternates: { canonical: `${siteConfig.url}/terms-of-service` },
 };
 
@@ -41,7 +41,7 @@ const page = async () => {
             </p>
             <p>
               <strong className="text-black dark:text-white">Entity:</strong>{" "}
-              African Freefire Community (AFC)
+              African Free Fire Community (AFC)
             </p>
             <p>
               <strong className="text-black dark:text-white">
@@ -57,7 +57,7 @@ const page = async () => {
               1. Introduction & Agreement
             </h2>
             <p>
-              Welcome to the African Freefire Community (“AFC”, “we”, “our”, or
+              Welcome to the African Free Fire Community (“AFC”, “we”, “our”, or
               “us”). These Terms of Service (“Terms”) govern your use of all AFC
               websites, platforms, tournaments, services, Discord integrations,
               digital storefronts, and any related products.
@@ -645,7 +645,7 @@ const page = async () => {
             <h2 className="font-medium text-xl md:text-2xl mb-1 text-black dark:text-white">
               22. Contact Information
             </h2>
-            <p>African Freefire Community (AFC)</p>
+            <p>African Free Fire Community (AFC)</p>
             <p>
               Official Email:{" "}
               <a

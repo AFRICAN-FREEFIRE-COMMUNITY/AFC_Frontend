@@ -61,7 +61,7 @@
     },
     "afcCard": {
       "name": "AFC Officiel",
-      "description": "Événements gérés directement par la communauté African Freefire. Ligues phares, tournois majeurs et scrims communautaires hebdomadaires."
+      "description": "Événements gérés directement par la communauté African Free Fire. Ligues phares, tournois majeurs et scrims communautaires hebdomadaires."
     },
     "detail": {
       "allOrganizers": "Tous les organisateurs",
@@ -94,7 +94,7 @@
   "detail": {
     "bannerAlt": "Bannière de l'événement",
     "organizedBy": "Organisé par {name}",
-    "afcOfficial": "African Freefire Community",
+    "afcOfficial": "African Free Fire Community",
     "date": "Date: <date></date>",
     "time": "Heure : <time></time>",
     "prizePool": "Cagnotte : {value}",

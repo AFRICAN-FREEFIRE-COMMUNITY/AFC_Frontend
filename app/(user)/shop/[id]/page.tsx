@@ -75,7 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const priceLine =
       startingPrice != null ? `From $${startingPrice.toLocaleString()}. ` : "";
     const description =
-      `${priceLine}${plainDesc || `Buy ${product.name} on the African Freefire Community shop.`}`.slice(
+      `${priceLine}${plainDesc || `Buy ${product.name} on the African Free Fire Community shop.`}`.slice(
         0,
         180,
       );
@@ -91,7 +91,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return buildEntityMetadata({
       title: "AFC Shop",
       description:
-        "Browse official African Freefire Community merchandise and rewards.",
+        "Browse official African Free Fire Community merchandise and rewards.",
       path: `/shop/${id}`,
     });
   }

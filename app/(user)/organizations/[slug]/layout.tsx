@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return buildEntityMetadata({
       title: "Organization",
       description:
-        "View Free Fire tournament organizers and their events on African Freefire Community.",
+        "View Free Fire tournament organizers and their events on African Free Fire Community.",
       path: `/organizations/${slug}`,
     });
   }

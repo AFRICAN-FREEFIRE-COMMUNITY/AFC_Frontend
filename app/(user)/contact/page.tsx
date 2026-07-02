@@ -13,7 +13,7 @@ import { PageHeader } from "@/components/PageHeader";
 export const metadata: Metadata = generatePageMetadata({
   title: "Contact Us",
   description:
-    "Get in touch with the African Freefire Community (AFC). Contact us via email, Discord, or social media for inquiries, partnerships, or support.",
+    "Get in touch with the African Free Fire Community (AFC). Contact us via email, Discord, or social media for inquiries, partnerships, or support.",
   keywords: [
     "contact AFC",
     "Free Fire African contact",

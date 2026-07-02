@@ -9,7 +9,7 @@ import { generatePageMetadata } from "@/lib/seo";
 export const metadata: Metadata = generatePageMetadata({
   title: "Team & Player Rankings",
   description:
-    "Official African Freefire Community rankings and tiers. See where Free Fire teams and players stand across Africa each season, with tier placements and points.",
+    "Official African Free Fire Community rankings and tiers. See where Free Fire teams and players stand across Africa each season, with tier placements and points.",
   keywords: [
     "Free Fire rankings",
     "Free Fire tiers",

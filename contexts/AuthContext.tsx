@@ -95,6 +95,10 @@ export interface User {
   // (app/(user)/profile/edit/page.tsx) renders a Switch that sends "true"/"false" in the
   // edit-profile FormData; login() -> fetchUser() refreshes this value after save.
   stats_visible?: boolean;
+  // WhatsApp notifications (owner 2026-07-02, Zernio): number + opt-in, edited on profile/edit,
+  // consumed by the backend room-details broadcast (whatsapp_zernio).
+  whatsapp_number?: string;
+  whatsapp_opt_in?: boolean;
 
   stats: UserStats;
 }
@@ -461,6 +465,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Defaults false (private) so a missing field from an older payload never accidentally
         // exposes stats that the user did not explicitly opt in to sharing.
         stats_visible: dbUser.stats_visible ?? false,
+        // WhatsApp notification prefs (get-user-profile echoes them from UserProfile).
+        whatsapp_number: dbUser.whatsapp_number ?? "",
+        whatsapp_opt_in: dbUser.whatsapp_opt_in ?? false,
         stats: dbUser.stats,
       };
 

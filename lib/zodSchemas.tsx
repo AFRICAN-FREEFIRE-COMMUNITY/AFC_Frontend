@@ -141,6 +141,11 @@ export const EditProfileFormSchema = z.object({
   // value unchanged. The profile edit page (app/(user)/profile/edit/page.tsx) seeds this from
   // user.stats_visible (AuthContext.User.stats_visible, mapped from get-user-profile).
   stats_visible: z.boolean().optional(),
+  // WhatsApp notifications (owner 2026-07-02, Zernio): the number room details are sent to +
+  // the explicit opt-in. Both optional - absent keys leave the backend values unchanged
+  // (POST /auth/edit-profile/ only writes them when present, mirroring stats_visible).
+  whatsapp_number: z.string().max(20).optional(),
+  whatsapp_opt_in: z.boolean().optional(),
   // country: z.enum(countries, { message: "Country is required" }),
 });
 

@@ -4,7 +4,7 @@ import { generatePageMetadata } from "@/lib/seo";
 export const metadata: Metadata = generatePageMetadata({
   title: "Verify Email",
   description:
-    "Verify your email address to complete your African Freefire Community account registration.",
+    "Verify your email address to complete your African Free Fire Community account registration.",
   keywords: ["verify email", "email verification", "AFC account"],
   url: "/verify-token",
   noIndex: true,

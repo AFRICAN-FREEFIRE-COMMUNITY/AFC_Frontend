@@ -8,7 +8,7 @@ import { generatePageMetadata } from "@/lib/seo";
 export const metadata: Metadata = generatePageMetadata({
   title: "Login",
   description:
-    "Login to your African Freefire Community account. Access your player profile, team management, and compete in tournaments.",
+    "Login to your African Free Fire Community account. Access your player profile, team management, and compete in tournaments.",
   keywords: ["login", "sign in", "AFC account", "Free Fire login"],
   url: "/login",
 });

@@ -111,7 +111,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return buildEntityMetadata({
       title: "News",
       description:
-        "Read the latest Free Fire news and updates from the African Freefire Community.",
+        "Read the latest Free Fire news and updates from the African Free Fire Community.",
       path: `/news/${slug}`,
       type: "article",
     });

@@ -30,7 +30,7 @@
     "retry": "Tentar novamente"
   },
   "brand": {
-    "name": "African Freefire Community",
+    "name": "African Free Fire Community",
     "shortName": "AFC"
   },
   "header": {
@@ -75,7 +75,7 @@
     "termsOfService": "Termos de Serviço",
     "privacyPolicy": "Política de Privacidade",
     "rules": "Regras",
-    "copyright": "© {year} African Freefire Community. Todos os direitos reservados.",
+    "copyright": "© {year} African Free Fire Community. Todos os direitos reservados.",
     "poweredBy": "Desenvolvido pela AFC Hub"
   },
   "notifications": {

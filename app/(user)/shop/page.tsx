@@ -11,7 +11,7 @@ import { generatePageMetadata } from "@/lib/seo";
 export const metadata: Metadata = generatePageMetadata({
   title: "Shop",
   description:
-    "Shop official African Freefire Community merch and rewards: jerseys, apparel, and Free Fire gear. Pay securely and support the AFC scene.",
+    "Shop official African Free Fire Community merch and rewards: jerseys, apparel, and Free Fire gear. Pay securely and support the AFC scene.",
   url: "/shop",
 });
 

@@ -8,7 +8,7 @@ import { siteConfig } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Free Fire Glossary",
   description:
-    "Free Fire esports terms explained: tournament formats, scoring, roles, and the lingo used across the African Freefire Community.",
+    "Free Fire esports terms explained: tournament formats, scoring, roles, and the lingo used across the African Free Fire Community.",
   alternates: { canonical: `${siteConfig.url}/glossary` },
 };
 

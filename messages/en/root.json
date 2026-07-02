@@ -1,7 +1,7 @@
 {
   "rules": {
     "title": "AFC Handbook",
-    "description": "The official governing framework for all African Freefire Community competitions.",
+    "description": "The official governing framework for all African Free Fire Community competitions.",
     "searchPlaceholder": "Search rules (e.g. 'cheating', 'salary', 'tier')...",
     "noResults": "No specific rule found for \"{query}\".",
     "supportTitle": "Rule Discrepancies?",

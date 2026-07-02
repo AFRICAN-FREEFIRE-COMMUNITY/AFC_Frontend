@@ -8,7 +8,7 @@ import { generatePageMetadata } from "@/lib/seo";
 export const metadata: Metadata = generatePageMetadata({
   title: "Create Account",
   description:
-    "Join the African Freefire Community. Create your free account to compete in tournaments, join teams, and connect with Free Fire players across Africa.",
+    "Join the African Free Fire Community. Create your free account to compete in tournaments, join teams, and connect with Free Fire players across Africa.",
   keywords: [
     "create account",
     "sign up",

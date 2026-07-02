@@ -12,7 +12,7 @@ import { SavedAddresses } from "../_components/SavedAddresses";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Saved Addresses | African Freefire Community",
+  title: "Saved Addresses | African Free Fire Community",
 };
 
 const page = () => {

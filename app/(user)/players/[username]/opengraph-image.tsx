@@ -120,7 +120,7 @@ export default async function Image({
             AFC
           </div>
           <div style={{ fontSize: 22, color: MUTED }}>
-            African Freefire Community
+            African Free Fire Community
           </div>
         </div>
 
