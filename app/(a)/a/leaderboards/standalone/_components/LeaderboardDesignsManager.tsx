@@ -408,7 +408,8 @@ export function LeaderboardDesignsManager({
         fd.append("transparent_background", String(form.transparentBackground));
         fd.append("background_behavior", form.backgroundBehavior);
         fd.append("design_type", form.designType);
-        fd.append("versus_config", JSON.stringify({ stat_keys: form.versusStatKeys }));
+        // versus_config (slots + stat rows) is edited in the fields editor now (owner 2026-07-02);
+        // this dialog no longer writes it, so a Save here can never clobber the designer's layout.
         if (form.igFile) fd.append("background_instagram", form.igFile);
         if (form.ytFile) fd.append("background_youtube", form.ytFile);
         if (organizationId != null)
@@ -628,14 +629,9 @@ export function LeaderboardDesignsManager({
                     <TableCell className="p-2 text-xs">
                       {canManage && (
                         <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEdit(d)}
-                            aria-label={`Edit ${d.name}`}
-                          >
-                            <IconPencil className="size-4" />
-                          </Button>
+                          {/* Modal-edit retired (owner 2026-07-02, studio consolidation): every
+                              setting now lives in the designer (the canvas button), so existing
+                              designs have ONE editing surface. The modal remains for Add design. */}
                           {/* Duplicate (owner 2026-07-02): full copy - scalars, logos, placed
                               fields, texts and pages - named "<name> copy". */}
                           <Button
@@ -1037,34 +1033,11 @@ export function LeaderboardDesignsManager({
                   </Select>
                 </div>
                 {form.designType === "versus" ? (
-                  <div className="space-y-1.5">
-                    <Label className="font-normal text-xs text-muted-foreground">
-                      Stat rows the head-to-head shows (in this order)
-                    </Label>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {[
-                        ["kills", "Kills"], ["points", "Points"], ["booyahs", "Booyahs"],
-                        ["matches", "Matches"], ["damage", "Damage (players)"],
-                        ["assists", "Assists (players)"], ["deaths", "Deaths (3D room)"],
-                        ["headshots", "Headshots (3D room)"], ["survival_seconds", "Survival (3D room)"],
-                      ].map(([key, label]) => (
-                        <label key={key} className="flex cursor-pointer items-center gap-2 text-xs">
-                          <Checkbox
-                            checked={form.versusStatKeys.includes(key)}
-                            onCheckedChange={(v) =>
-                              setForm((f) => ({
-                                ...f,
-                                versusStatKeys: v === true
-                                  ? [...f.versusStatKeys, key]
-                                  : f.versusStatKeys.filter((k) => k !== key),
-                              }))
-                            }
-                          />
-                          {label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Place the competitor slots and pick the stat rows in the fields &amp; text
+                    editor (the pencil-canvas button on the design card) - everything visual now
+                    lives there, on the full-size canvas.
+                  </p>
                 ) : null}
               </div>
             </div>

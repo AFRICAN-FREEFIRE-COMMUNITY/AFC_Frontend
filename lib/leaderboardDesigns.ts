@@ -170,7 +170,7 @@ export interface LeaderboardDesign {
   // Design TYPE (owner 2026-07-02): "leaderboard" (standings rows) or "versus" (a head-to-head
   // look: competitor slots + the stat rows in versus_config.stat_keys). Rendered by H2HView.
   design_type?: "leaderboard" | "versus";
-  versus_config?: { stat_keys?: string[] };
+  versus_config?: { stat_keys?: string[]; slots?: { x_pct: number; y_pct: number }[] };
   // Title/subtitle styling (owner 2026-07-02): position/size/color/font/align for the header text
   // when show_title/show_subtitle are on. {} = the legacy fixed top-center header.
   title_style?: HeaderStyle;

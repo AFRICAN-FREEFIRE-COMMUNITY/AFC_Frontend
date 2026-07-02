@@ -230,6 +230,70 @@ function H2HView({ feed }: { feed: OverlayConfigFeed }) {
     : Object.keys(H2H_STAT_LABELS)
   ).filter((k) => h2h.competitors.some((c) => c.stats[k] !== undefined));
 
+  // Placeable slots (owner 2026-07-02): when the versus design placed slot positions, each
+  // competitor card is ABSOLUTELY positioned at its slot centre; otherwise the default centered
+  // row (with VS plaques) renders as before.
+  const slots = (design as any)?.slots as { x_pct: number; y_pct: number }[] | undefined;
+  const placed = !!(slots && slots.length >= 2);
+
+  const CompetitorCard = ({ c }: { c: (typeof h2h.competitors)[number] }) => (
+    <div
+      className="flex w-72 flex-col items-center gap-3 rounded-2xl border bg-black/75 p-6"
+      style={{ borderColor: `${accent}80` }}
+    >
+      {c.image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={c.image} alt="" style={{ height: 120, width: 120, objectFit: "contain" }} className="rounded-md" />
+      ) : null}
+      <p className="max-w-full truncate text-center text-2xl font-bold" style={{ color: text, textShadow: "0 3px 14px rgba(0,0,0,0.9)" }}>
+        {c.name}
+      </p>
+      <div className="w-full space-y-1.5">
+        {keys.map((k) => (
+          <div key={k} className="flex items-center justify-between text-sm">
+            <span className="uppercase tracking-wider opacity-70" style={{ color: text }}>
+              {H2H_STAT_LABELS[k]}
+            </span>
+            <span className="text-lg font-bold" style={{ color: accent }}>
+              {c.stats[k] ?? 0}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (placed) {
+    return (
+      <div className="relative h-screen w-screen overflow-hidden">
+        {design?.background && !design.transparent ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={design.background} alt="" className="absolute inset-0 size-full object-cover" />
+        ) : null}
+        {h2h.competitors.slice(0, slots!.length).map((c, i) => (
+          <div
+            key={`${c.name}-${i}`}
+            className="absolute"
+            style={{
+              left: `${slots![i].x_pct}%`,
+              top: `${slots![i].y_pct}%`,
+              transform: "translate(-50%, -50%)",
+              animation: "afc-h2h-in 700ms cubic-bezier(0.16,1,0.3,1) both",
+            }}
+          >
+            <CompetitorCard c={c} />
+          </div>
+        ))}
+        <style jsx global>{`
+          @keyframes afc-h2h-in {
+            from { opacity: 0; transform: translate(-50%, -44%) scale(0.94); }
+            to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
       {design?.background && !design.transparent ? (

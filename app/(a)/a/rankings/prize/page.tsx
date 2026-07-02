@@ -36,6 +36,8 @@ type PrizeRow = {
   payout_id: number;
   event_id: number;
   event_name: string | null;
+  // Auto-synced from the event's prize pool + final standings (owner 2026-07-02); manual rows false.
+  auto_synced?: boolean;
   tournament_team_id: number | null;
   team_id: number | null;
   team_name: string | null;
@@ -301,7 +303,7 @@ export default function PrizeMoneyPage() {
             <InfoTip id="rankings.prize._page" className="ml-1.5" />
           </span>
         }
-        description="Record tournament prize payouts. Amounts are entered directly in Naira, there is no exchange-rate system."
+        description="Completed events fill in automatically from their prize pools (converted to Naira). Add or edit rows manually for evaluation-only adjustments - edited rows are never overwritten by the auto-sync."
         action={
           // ⓘ sits beside the add-prize button (sibling, not nested).
           <div className="flex items-center gap-1">
@@ -366,7 +368,14 @@ export default function PrizeMoneyPage() {
               ) : (
                 rows.map((r) => (
                   <TableRow key={r.payout_id}>
-                    <TableCell className="font-medium">{r.event_name ?? "-"}</TableCell>
+                    <TableCell className="font-medium">
+                      {r.event_name ?? "-"}
+                      {r.auto_synced ? (
+                        <span className="text-primary border-primary/50 ml-2 rounded-full border px-2 py-0.5 text-[0.6rem] uppercase">
+                          auto
+                        </span>
+                      ) : null}
+                    </TableCell>
                     <TableCell>{r.team_name ?? "-"}</TableCell>
                     <TableCell className="text-right font-semibold tabular-nums text-primary">
                       {fmt(amountNumber(r.amount))}

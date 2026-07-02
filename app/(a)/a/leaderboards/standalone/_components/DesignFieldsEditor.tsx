@@ -66,6 +66,8 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -328,6 +330,58 @@ export function DesignFieldsEditor({
   // groups read/write the active page's column_groups, and the background uses the page's image.
   // pages: the explicit page rows (empty = single-page design, so no tabs are shown).
   const [pages, setPages] = useState<LeaderboardDesignPage[]>([]);
+
+  // ── VERSUS mode (owner 2026-07-02: everything editable in ONE place - the designer). ──
+  // When design_type === "versus" the canvas doubles as the SLOT placer: drag 2-3 competitor
+  // boxes at full size (the head-to-head overlay positions cards at these exact % coords), and
+  // the sidebar picks the stat rows. Saved straight onto design.versus_config (PATCH), same
+  // instant-persist idiom as fields/texts.
+  // Follows the LIVE type select below (not the stale design prop), so switching to Versus
+  // reveals the slot tools immediately without a reopen.
+  const [dsTypeSeed] = useState(((design as any).design_type as string) || "leaderboard");
+  void dsTypeSeed;
+  const [versusSlots, setVersusSlots] = useState<{ x_pct: number; y_pct: number }[]>([]);
+  const [versusStatKeys, setVersusStatKeys] = useState<string[]>([]);
+  const versusDragIdx = useRef<number | null>(null);
+
+  // ── Design settings drafts (owner 2026-07-02, studio consolidation): the whole Edit-design
+  // modal folded into the designer sidebar - name, type, colours, max rows, default, transparent,
+  // and (single-page designs) the design-level backgrounds. Each control saves instantly via the
+  // design PATCH, then onSaved() refreshes the library list.
+  const [dsName, setDsName] = useState("");
+  const [dsTextColor, setDsTextColor] = useState("#FFFFFF");
+  const [dsAccentColor, setDsAccentColor] = useState("#34d27b");
+  const [dsMaxRows, setDsMaxRows] = useState(16);
+  const [dsDefault, setDsDefault] = useState(false);
+  const [dsTransparent, setDsTransparent] = useState(false);
+  const [dsType, setDsType] = useState("leaderboard");
+  const dsTypeIsVersus = dsType === "versus";
+
+  const saveDesignSettings = async (patch: Record<string, string | Blob>) => {
+    if (!canManage) return;
+    try {
+      const fd = new FormData();
+      for (const [k, v] of Object.entries(patch)) fd.append(k, v);
+      await leaderboardDesignsApi.update(design.id, fd);
+      onSaved?.();
+    } catch {
+      toast.error("Could not save the design settings.");
+    }
+  };
+
+  const saveVersusConfig = async (
+    slots: { x_pct: number; y_pct: number }[],
+    statKeys: string[],
+  ) => {
+    if (!canManage) return;
+    try {
+      const fd = new FormData();
+      fd.append("versus_config", JSON.stringify({ stat_keys: statKeys, slots }));
+      await leaderboardDesignsApi.update(design.id, fd);
+    } catch {
+      toast.error("Could not save the versus layout.");
+    }
+  };
   const [currentPageId, setCurrentPageId] = useState<number | null>(null);
   const [addingPage, setAddingPage] = useState(false);
   // Which page id is being deleted right now (drives the spinner on that tab's delete button).
@@ -611,6 +665,18 @@ export function DesignFieldsEditor({
     const pageRows = design.pages ?? [];
     const initialPageId = pageRows.length > 0 ? pageRows[0].id : null;
     setPages(pageRows);
+    // Versus layout drafts (owner 2026-07-02): seed slots + stat rows from the saved config so an
+    // instant-save (drag/checkbox) never clobbers what was already configured.
+    setVersusSlots(((design as any).versus_config?.slots ?? []) as { x_pct: number; y_pct: number }[]);
+    setVersusStatKeys(((design as any).versus_config?.stat_keys ?? []) as string[]);
+    // Design settings drafts (studio consolidation).
+    setDsName(design.name ?? "");
+    setDsTextColor(design.text_color || "#FFFFFF");
+    setDsAccentColor(design.accent_color || "#34d27b");
+    setDsMaxRows(design.max_rows ?? 16);
+    setDsDefault(!!design.is_default);
+    setDsTransparent(!!design.transparent_background);
+    setDsType(((design as any).design_type as string) || "leaderboard");
     setCurrentPageId(initialPageId);
 
     // Determine the active source for the FIRST render: the first page (if any) or the design level.
@@ -1489,6 +1555,182 @@ export function DesignFieldsEditor({
                   writes that image to every page row. The returned design.pages replaces local state.
             For design-level (legacy single-page) backgrounds, the LeaderboardDesignsManager handles
             the upload via the design PATCH; no controls needed here when pages.length === 0. */}
+        {/* ── Design settings (owner 2026-07-02, studio consolidation): everything the old
+            Edit-design modal held, now living where you SEE the result. Instant-saves. ── */}
+        {canManage && (
+          <div className="rounded-md border bg-card p-3 space-y-3">
+            <p className="text-xs font-medium text-foreground">Design settings</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="col-span-2 space-y-1">
+                <Label className="text-[0.65rem]">Name</Label>
+                <Input
+                  value={dsName}
+                  onChange={(e) => setDsName(e.target.value)}
+                  onBlur={() => dsName.trim() && saveDesignSettings({ name: dsName.trim() })}
+                  className="h-7 text-xs"
+                  maxLength={120}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[0.65rem]">Design type</Label>
+                <Select
+                  value={dsType}
+                  onValueChange={(v) => {
+                    setDsType(v);
+                    saveDesignSettings({ design_type: v });
+                  }}
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="leaderboard">Leaderboard</SelectItem>
+                    <SelectItem value="versus">Versus (head-to-head)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[0.65rem]">Max rows</Label>
+                <Input
+                  type="number" min={1} max={50}
+                  value={dsMaxRows}
+                  onChange={(e) => setDsMaxRows(e.target.valueAsNumber || 1)}
+                  onBlur={() => saveDesignSettings({ max_rows: String(dsMaxRows) })}
+                  className="h-7 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[0.65rem]">Text colour</Label>
+                <Input
+                  type="color"
+                  value={dsTextColor}
+                  onChange={(e) => setDsTextColor(e.target.value)}
+                  onBlur={() => saveDesignSettings({ text_color: dsTextColor })}
+                  className="h-7 w-full p-0.5"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[0.65rem]">Accent colour</Label>
+                <Input
+                  type="color"
+                  value={dsAccentColor}
+                  onChange={(e) => setDsAccentColor(e.target.value)}
+                  onBlur={() => saveDesignSettings({ accent_color: dsAccentColor })}
+                  className="h-7 w-full p-0.5"
+                />
+              </div>
+              <div className="col-span-2 flex items-center justify-between">
+                <Label className="text-[0.65rem]">Set as default (auto-selected on export)</Label>
+                <Switch
+                  checked={dsDefault}
+                  onCheckedChange={(v: boolean) => {
+                    setDsDefault(v);
+                    saveDesignSettings({ is_default: String(v) });
+                  }}
+                />
+              </div>
+              <div className="col-span-2 flex items-center justify-between">
+                <Label className="text-[0.65rem]">Transparent background (live overlay)</Label>
+                <Switch
+                  checked={dsTransparent}
+                  onCheckedChange={(v: boolean) => {
+                    setDsTransparent(v);
+                    saveDesignSettings({ transparent_background: String(v) });
+                  }}
+                />
+              </div>
+              {pages.length === 0 ? (
+                <>
+                  {/* Single-page designs upload their design-level backgrounds here (multi-page
+                      designs use the Page backgrounds card below instead). */}
+                  <div className="space-y-1">
+                    <Label className="text-[0.65rem]">Background (YouTube 16:9)</Label>
+                    <input
+                      type="file" accept="image/*" className="w-full text-[0.65rem]"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) saveDesignSettings({ background_youtube: f });
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[0.65rem]">Background (Instagram 4:5)</Label>
+                    <input
+                      type="file" accept="image/*" className="w-full text-[0.65rem]"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) saveDesignSettings({ background_instagram: f });
+                      }}
+                    />
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+        )}
+
+        {/* ── Versus layout (owner 2026-07-02): slots + stat rows, edited HERE in the designer
+            (moved out of the Edit-design modal so the whole design lives in one place). ── */}
+        {dsTypeIsVersus && canManage && (
+          <div className="rounded-md border bg-card p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-foreground">Versus layout</p>
+              <div className="flex gap-1">
+                {versusSlots.length < 3 && (
+                  <Button
+                    type="button" variant="outline" size="sm" className="h-6 px-2 text-[0.65rem]"
+                    onClick={() => {
+                      const next = [...versusSlots, { x_pct: 20 + versusSlots.length * 30, y_pct: 55 }];
+                      setVersusSlots(next);
+                      saveVersusConfig(next, versusStatKeys);
+                    }}
+                  >
+                    + Slot
+                  </Button>
+                )}
+                {versusSlots.length > 0 && (
+                  <Button
+                    type="button" variant="ghost" size="sm" className="h-6 px-2 text-[0.65rem]"
+                    onClick={() => {
+                      const next = versusSlots.slice(0, -1);
+                      setVersusSlots(next);
+                      saveVersusConfig(next, versusStatKeys);
+                    }}
+                  >
+                    Remove last
+                  </Button>
+                )}
+              </div>
+            </div>
+            <p className="text-[0.65rem] text-muted-foreground">
+              Drag the numbered boxes on the canvas - the head-to-head places each competitor card
+              exactly there. Tick the stat rows every card shows (in this order).
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                ["kills", "Kills"], ["points", "Points"], ["booyahs", "Booyahs"],
+                ["matches", "Matches"], ["damage", "Damage (players)"],
+                ["assists", "Assists (players)"], ["deaths", "Deaths (3D room)"],
+                ["headshots", "Headshots (3D room)"], ["survival_seconds", "Survival (3D room)"],
+              ].map(([key, label]) => (
+                <label key={key} className="flex cursor-pointer items-center gap-2 text-xs">
+                  <Checkbox
+                    checked={versusStatKeys.includes(key)}
+                    onCheckedChange={(v: boolean | string) => {
+                      const next = v === true
+                        ? [...versusStatKeys, key]
+                        : versusStatKeys.filter((k) => k !== key);
+                      setVersusStatKeys(next);
+                      saveVersusConfig(versusSlots, next);
+                    }}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         {pages.length > 0 && canManage && (
           <div className="rounded-md border bg-card p-3">
             <p className="mb-2 text-xs font-medium text-foreground">Page backgrounds</p>
@@ -1741,6 +1983,47 @@ export function DesignFieldsEditor({
                   if (e.target === canvasRef.current) setSelected(null);
                 }}
               >
+                {/* ── VERSUS slots (owner 2026-07-02): full-size drag placement on the real canvas.
+                    Pointer-drag updates local %; release persists versus_config in one PATCH. ── */}
+                {dsTypeIsVersus
+                  ? versusSlots.map((sl, i) => (
+                      <div
+                        key={`vslot-${i}`}
+                        className="border-primary/80 bg-primary/15 text-primary absolute z-20 flex cursor-grab items-center justify-center rounded-lg border-2 text-2xl font-black select-none"
+                        style={{
+                          left: `${sl.x_pct}%`,
+                          top: `${sl.y_pct}%`,
+                          width: "16%",
+                          height: "44%",
+                          transform: "translate(-50%, -50%)",
+                          touchAction: "none",
+                        }}
+                        onPointerDown={(e) => {
+                          if (!canManage) return;
+                          (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+                          versusDragIdx.current = i;
+                        }}
+                        onPointerMove={(e) => {
+                          if (versusDragIdx.current !== i || !canvasRef.current) return;
+                          const r = canvasRef.current.getBoundingClientRect();
+                          const x_pct = Math.min(97, Math.max(3, ((e.clientX - r.left) / r.width) * 100));
+                          const y_pct = Math.min(95, Math.max(5, ((e.clientY - r.top) / r.height) * 100));
+                          setVersusSlots((prev) => prev.map((p2, j) => (j === i ? { x_pct, y_pct } : p2)));
+                        }}
+                        onPointerUp={() => {
+                          if (versusDragIdx.current !== i) return;
+                          versusDragIdx.current = null;
+                          setVersusSlots((cur) => {
+                            saveVersusConfig(cur, versusStatKeys);
+                            return cur;
+                          });
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                    ))
+                  : null}
+
                 {/* Background image (YouTube preferred). */}
                 {bgUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element

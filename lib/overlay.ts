@@ -356,6 +356,8 @@ export interface OverlayConfigFeed {
       transparent: boolean;
       // The versus design's picked stat rows (order = display order); [] = show everything.
       stat_keys?: string[];
+      // Placeable competitor slot positions (centre %, 2-3); [] = default centered row.
+      slots?: { x_pct: number; y_pct: number }[];
     } | null;
   };
 }
