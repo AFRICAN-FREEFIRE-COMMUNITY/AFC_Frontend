@@ -59,7 +59,7 @@ interface EventRow {
 
 // The AFC Capture installer served by this frontend (or a hosted override).
 const CAPTURE_DOWNLOAD_URL =
-  env.NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL || "/downloads/AFC-Capture.exe";
+  env.NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL || "/downloads/AFC-Capture-Setup.exe";
 
 // ── Per-row capture key: mint (or return) the event's upload token, then copy it. Own state so each
 //    row is independent. Gate is server-side (event admin OR org), so an AFC admin can mint any. ──

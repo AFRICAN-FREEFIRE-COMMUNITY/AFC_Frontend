@@ -79,12 +79,13 @@ export default function OrganizerCapturePage() {
   const { token } = useAuth();
   const organizationId = membership.organization.organization_id;
 
-  // The AFC Capture installer is served by THIS frontend from public/downloads/AFC-Capture.exe
-  // (committed to the repo, so it ships inside the prod image at /downloads/AFC-Capture.exe -> no
-  // separate host needed). NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL is an optional override (e.g. a CDN/signed
-  // release URL); when unset the button points at the bundled copy, so the download always works.
+  // The AFC Capture INSTALLER is served by THIS frontend from public/downloads/AFC-Capture-Setup.exe
+  // (an Inno Setup wrapper around the PyInstaller exe: installs it, adds a searchable Start-menu entry
+  // + desktop icon + uninstaller, so operators no longer hunt for a loose exe — owner 2026-07-02).
+  // Committed to the repo, so it ships inside the prod image -> no separate host needed.
+  // NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL is an optional override (e.g. a CDN/signed release URL).
   const downloadUrl =
-    env.NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL || "/downloads/AFC-Capture.exe";
+    env.NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL || "/downloads/AFC-Capture-Setup.exe";
 
   // ── The org's events (for the capture-key picker). Same fetch shape as the organizer Leaderboards
   //    page: get-all-events scoped by organization_id, Bearer from AuthContext. ──
