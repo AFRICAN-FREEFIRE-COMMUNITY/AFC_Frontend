@@ -491,7 +491,22 @@ export const validateStageData = (
       });
     }
 
-    if (!stage.groups || stage.groups.length === 0) {
+    // Round-robin stages keep their groups in round_robin.round_robin_groups (base groups A/B/C),
+    // NOT in stage.groups - checking stage.groups here wrongly failed every RR stage with
+    // "At least one group is required" (owner 2026-07-03). Detect RR FIRST, then count the right list.
+    const isRRForGroupCount =
+      /round.?robin/i.test(stage.stage_format || "") ||
+      ((stage.round_robin?.round_robin_groups?.length ?? 0) > 0);
+    if (isRRForGroupCount) {
+      if ((stage.round_robin?.round_robin_groups?.length ?? 0) === 0) {
+        errors.push({
+          field: `stages.${sIdx}.round_robin`,
+          message: `Stage ${sIdx + 1}: At least one round-robin base group (A/B/C) is required`,
+          tab: "stages_groups",
+          stageIndex: sIdx,
+        });
+      }
+    } else if (!stage.groups || stage.groups.length === 0) {
       errors.push({
         field: `stages.${sIdx}.groups`,
         message: `Stage ${sIdx + 1}: At least one group is required`,

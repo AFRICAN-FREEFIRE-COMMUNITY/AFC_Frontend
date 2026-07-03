@@ -762,13 +762,25 @@ export default function ActionsTab({
                 </Button>
               </div>
             ) : (
-              <Button
-                size="sm"
-                onClick={onStartTournament}
-                disabled={status !== "upcoming"}
-              >
-                <Play className="h-4 w-4 mr-1" /> Start
-              </Button>
+              <div className="flex flex-col items-end gap-1">
+                {/* Day-of start fix (owner 2026-07-03): the daily date-sweep flips events to
+                    "ongoing" ON their start date, so gating Start on status==="upcoming" made the
+                    button permanently faded exactly on match day with no explanation. Start now
+                    stays enabled for upcoming AND ongoing events (the seed endpoint has its own
+                    guards); only finished/cancelled events lock it, WITH the reason shown. */}
+                <Button
+                  size="sm"
+                  onClick={onStartTournament}
+                  disabled={status === "completed" || status === "cancelled"}
+                >
+                  <Play className="h-4 w-4 mr-1" /> Start
+                </Button>
+                {(status === "completed" || status === "cancelled") && (
+                  <p className="text-muted-foreground text-[0.7rem]">
+                    This event is {status}. Reopen it before starting.
+                  </p>
+                )}
+              </div>
             )}
           </div>
 

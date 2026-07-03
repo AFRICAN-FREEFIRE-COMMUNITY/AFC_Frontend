@@ -59,7 +59,9 @@ interface RosterTeam {
   team_name: string;
 }
 interface RosterGroup {
-  group_id: number;
+  // number for standard StageGroups / RR base groups; the string "rr-unassigned-<stage_id>"
+  // is the RR stage's seeded-but-unassigned pool (owner 2026-07-03).
+  group_id: number | string;
   group_name: string;
   teams?: RosterTeam[];
 }
@@ -76,7 +78,7 @@ function TeamChip({
   team,
   disabled,
 }: {
-  groupId: number;
+  groupId: number | string;
   team: RosterTeam;
   disabled: boolean;
 }) {
@@ -141,8 +143,8 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
   const [moving, setMoving] = useState(false);
   // Pending force-confirm move (the team has results in its current group).
   const [pendingForce, setPendingForce] = useState<{
-    from: number;
-    to: number;
+    from: number | string;
+    to: number | string;
     ttId: number;
     name: string;
   } | null>(null);
@@ -158,13 +160,13 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
         { event_id: eventId },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      // Keep only NON-round-robin stages that have at least one group with a teams[] array (team
-      // events / seeded). RR stages are excluded — their teams aren't DnD-movable (see header).
+      // Keep stages that have at least one group with a teams[] array. ROUND-ROBIN stages are
+      // included since 2026-07-03 (owner: "SEMI FINALS isn't showing"): their zones are the BASE
+      // groups (A/B/C) + the "Unassigned" seeded pool, and the move endpoint has a real RR branch
+      // (game-day lobbies derive from base groups, so moves reshape future lobbies automatically).
       const all: RosterStage[] = res.data?.stages ?? [];
       setStages(
-        all.filter(
-          (s) => !s.is_round_robin && (s.groups ?? []).some((g) => Array.isArray(g.teams)),
-        ),
+        all.filter((s) => (s.groups ?? []).some((g) => Array.isArray(g.teams))),
       );
     } catch {
       /* best-effort: the mover just won't render if rosters can't load */
@@ -178,7 +180,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
   }, [fetchRosters]);
 
   // POST the move; returns "ok" | "needs_force" | "error".
-  const doMove = async (from: number, to: number, ttId: number, force: boolean) => {
+  const doMove = async (from: number | string, to: number | string, ttId: number, force: boolean) => {
     const res = await axios
       .post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seeding/move-team/`,
@@ -194,11 +196,16 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
     return res;
   };
 
+  // Group ids may be numeric (StageGroups / RR base groups) OR the RR pool string
+  // "rr-unassigned-<stage_id>" (owner 2026-07-03) - normalise without forcing Number().
+  const parseGid = (raw: string): number | string =>
+    /^\d+$/.test(raw) ? Number(raw) : raw;
+
   const onDragStart = (ev: DragStartEvent) => {
     const id = String(ev.active.id); // t:<groupId>:<ttId>
     const [, gid, ttId] = id.split(":");
     for (const s of stages) {
-      const g = s.groups.find((x) => x.group_id === Number(gid));
+      const g = s.groups.find((x) => String(x.group_id) === gid);
       const t = g?.teams?.find((x) => x.tournament_team_id === Number(ttId));
       if (t) {
         setActiveTeam(t);
@@ -212,13 +219,13 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
     if (!ev.over) return;
     const [, fromStr, ttStr] = String(ev.active.id).split(":");
     const toStr = String(ev.over.id).replace("g:", "");
-    const from = Number(fromStr);
-    const to = Number(toStr);
+    const from = parseGid(fromStr);
+    const to = parseGid(toStr);
     const ttId = Number(ttStr);
-    if (!from || !to || !ttId || from === to) return;
+    if (!from || !to || !ttId || String(from) === String(to)) return;
 
     const name =
-      stages.flatMap((s) => s.groups).find((g) => g.group_id === from)?.teams?.find(
+      stages.flatMap((s) => s.groups).find((g) => String(g.group_id) === String(from))?.teams?.find(
         (t) => t.tournament_team_id === ttId,
       )?.team_name ?? "team";
 
