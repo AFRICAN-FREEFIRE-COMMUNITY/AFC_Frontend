@@ -1327,5 +1327,25 @@
     "upload": "Upload image",
     "uploaded": "Media updated.",
     "uploadFailed": "Could not upload the image."
+  },
+  "broadcastKit": {
+    "title": "Broadcast Kit",
+    "summary": "{teams} teams",
+    "description": "Download the Free Fire PC client files for this event, already customized. Unzip into your Free Fire_64_Data folder, then launch the observer client.",
+    "warnLetters": "{count} team(s) have no assigned letter, so they get no in-game flag. Assign letters on the Registered Teams tab.",
+    "warnLogos": "{count} team(s) have a letter but no logo, so their flag will be blank.",
+    "colTeam": "Team",
+    "colLetter": "Letter",
+    "colLogo": "Logo",
+    "colPlayers": "Players",
+    "none": "none",
+    "casterName": "Caster name (optional)",
+    "casterUid": "Caster UID (optional)",
+    "billboard": "Billboard image (optional)",
+    "skybox": "Skybox image (optional)",
+    "download": "Download kit",
+    "downloaded": "Kit downloaded.",
+    "downloadFailed": "Could not build the kit.",
+    "noTeams": "No teams registered yet."
   }
 }

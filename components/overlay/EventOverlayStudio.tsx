@@ -71,6 +71,7 @@ import {
 import { BroadcastControl } from "@/components/overlay/BroadcastControl";
 // Media hygiene (owner 2026-07-02): missing/bad team logos + player esport images for this event.
 import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
+import { BroadcastKitCard } from "@/components/overlay/BroadcastKitCard";
 import { useLiveTick } from "@/hooks/useLiveTick";
 
 const PREVIEW_W = 380; // card preview width; the overlay renders 1920x1080 and is scaled to fit
@@ -1015,6 +1016,8 @@ export function EventOverlayStudio({
           <BroadcastControl eventId={eventId} />
         </div>
         <MediaAuditCard eventId={eventId} />
+        {/* Broadcast Kit (owner 2026-07-03): download the customized FF PC client files. */}
+        <BroadcastKitCard eventId={eventId} />
       </div>
     </div>
   );

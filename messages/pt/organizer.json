@@ -1327,5 +1327,25 @@
     "upload": "Carregar imagem",
     "uploaded": "Os ficheiros multimédia foram atualizados.",
     "uploadFailed": "Não foi possível carregar a imagem."
+  },
+  "broadcastKit": {
+    "title": "Kit de transmissão",
+    "summary": "{teams} equipas",
+    "description": "Descarrega os ficheiros do cliente do Free Fire para PC relativos a este evento, já personalizados. Descompacta-os na pasta Free Fire_64_Data e, em seguida, inicia o cliente de observador.",
+    "warnLetters": "{count} As equipas não têm nenhuma letra atribuída, pelo que não têm bandeira no jogo. Atribua letras no separador «Equipas registadas».",
+    "warnLogos": "{count} Algumas equipas têm uma letra, mas não têm logótipo, pelo que a sua bandeira ficará em branco.",
+    "colTeam": "Equipa",
+    "colLetter": "Carta",
+    "colLogo": "Logótipo",
+    "colPlayers": "Jogadores",
+    "none": "nenhum",
+    "casterName": "Nome do lançador (opcional)",
+    "casterUid": "UID do utilizador (opcional)",
+    "billboard": "Imagem do cartaz (opcional)",
+    "skybox": "Imagem do Skybox (opcional)",
+    "download": "Descarregar o kit",
+    "downloaded": "Kit descarregado.",
+    "downloadFailed": "Não foi possível montar o kit.",
+    "noTeams": "Ainda não há equipas inscritas."
   }
 }

@@ -1327,5 +1327,25 @@
     "upload": "Télécharger une image",
     "uploaded": "Mise à jour des médias.",
     "uploadFailed": "Impossible de télécharger l'image."
+  },
+  "broadcastKit": {
+    "title": "Kit de diffusion",
+    "summary": "{teams} équipes",
+    "description": "Téléchargez les fichiers du client PC de Free Fire pour cet événement, déjà personnalisés. Décompressez-les dans votre dossier Free Fire_64_Data, puis lancez le client d'observateur.",
+    "warnLetters": "{count} Ces équipes n'ont pas de lettre attribuée ; elles n'apparaissent donc pas dans le jeu. Attribuez-leur une lettre dans l'onglet « Équipes inscrites ».",
+    "warnLogos": "{count} Certaines équipes ont une lettre mais pas de logo ; leur drapeau sera donc vierge.",
+    "colTeam": "Équipe",
+    "colLetter": "Lettre",
+    "colLogo": "Logo",
+    "colPlayers": "Joueurs",
+    "none": "aucun",
+    "casterName": "Nom du lanceur (facultatif)",
+    "casterUid": "UID de l'auteur (facultatif)",
+    "billboard": "Image de l'affiche (facultative)",
+    "skybox": "Image Skybox (facultative)",
+    "download": "Télécharger le kit",
+    "downloaded": "Kit téléchargé.",
+    "downloadFailed": "Je n'ai pas réussi à monter le kit.",
+    "noTeams": "Aucune équipe n'est encore inscrite."
   }
 }
