@@ -19,6 +19,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DEFAULT_IMAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+// Team country flag beside team names in the registered / waitlist / group-roster tables (owner
+// 2026-07-03). team_country comes from get_event_details (tournament_teams + waitlist) and
+// get_event_group_rosters (_team_payload). CountryFlag renders nothing when blank/unresolvable.
+import { CountryFlag } from "@/lib/countryFlag";
 import { matchesSearch } from "@/lib/search";
 import { cn, formatDate, formatMoneyInput, formattedWord } from "@/lib/utils";
 import { TabsContent } from "@radix-ui/react-tabs";
@@ -276,6 +280,8 @@ interface RosterTeam {
   tournament_team_id: number;
   team_id: number;
   team_name: string;
+  // The team's auto-derived country (get_event_group_rosters _team_payload); drives the flag.
+  team_country?: string | null;
   team_tag: string | null;
   competitor_status: string;
   players: RosterPlayer[];
@@ -1918,7 +1924,11 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       .map((team) => (
                       <TableRow key={team.team_id || team.player_id}>
                         <TableCell className="capitalize font-medium">
-                          {team.team_name}
+                          <span className="inline-flex items-center gap-1.5">
+                            {/* Flag beside the registered team name (team's country). */}
+                            <CountryFlag country={team.team_country} />
+                            {team.team_name}
+                          </span>
                         </TableCell>
                         <TableCell className="capitalize">
                           <span
@@ -1993,7 +2003,11 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       .map((team: any) => (
                         <TableRow key={team.team_id || team.player_id}>
                           <TableCell className="capitalize font-medium">
-                            {team.team_name}
+                            <span className="inline-flex items-center gap-1.5">
+                              {/* Flag beside the waitlisted team name (team's country). */}
+                              <CountryFlag country={team.team_country} />
+                              {team.team_name}
+                            </span>
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
                             {team.registered_at
@@ -2731,7 +2745,9 @@ function GroupRostersPanel({
                           >
                             <CardHeader className="pb-2">
                               <CardTitle className="flex items-center justify-between gap-2 flex-wrap text-sm">
-                                <span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  {/* Flag beside the group-roster team name (team's country). */}
+                                  <CountryFlag country={team.team_country} />
                                   {team.team_name}
                                   {team.team_tag ? ` (${team.team_tag})` : ""}
                                 </span>

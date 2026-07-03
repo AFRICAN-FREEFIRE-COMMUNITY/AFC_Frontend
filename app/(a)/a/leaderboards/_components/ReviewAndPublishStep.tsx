@@ -34,6 +34,11 @@ import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { DownloadLeaderboardButton } from "./DownloadLeaderboardButton";
+// Team country flag beside team names in the review tables (per-map, Total Leaderboard, Team +
+// Player tabs) (owner 2026-07-03). team_country rides on each stat / overall row
+// (get_all_leaderboard_details_for_event) and is carried onto the player rows below. The PNG/canvas
+// export path (DownloadLeaderboardButton) is design-driven and intentionally left untouched.
+import { CountryFlag } from "@/lib/countryFlag";
 
 // ── Canvas helpers ─────────────────────────────────────────────────────────────
 
@@ -259,6 +264,8 @@ interface MatchStat {
   competitor_id?: number;
   tournament_team_id?: number;
   team_name?: string;
+  // The team's auto-derived country (team rows); drives the flag beside the name.
+  team_country?: string | null;
   placement: number;
   username?: string;
   kills: number;
@@ -283,6 +290,8 @@ interface OverallEntry {
   tournament_team_id?: number;
   competitor__user__username?: string;
   team_name?: string;
+  // The team's auto-derived country (team rows); drives the flag beside the name.
+  team_country?: string | null;
   total_kills: number;
   total_booyah: number;
   total_points: number;
@@ -293,6 +302,8 @@ interface PlayerEntry {
   player_id: number;
   username: string;
   team_name: string;
+  // The player's team country, inherited from its team stat; drives the flag on the Player tab.
+  team_country?: string | null;
   total_kills: number;
   total_damage: number;
   total_assists: number;
@@ -383,6 +394,8 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
                 player_id: player.player_id,
                 username: player.username,
                 team_name: teamStat.team_name ?? "-",
+                // Carry the team's country onto the player row so the Player tab shows the same flag.
+                team_country: teamStat.team_country,
                 total_kills: player.kills,
                 total_damage: player.damage,
                 total_assists: player.assists,
@@ -509,7 +522,11 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
                             {idx + 1}
                           </TableCell>
                           <TableCell className="font-medium">
-                            {stat.username ?? stat.team_name ?? "-"}
+                            <span className="inline-flex items-center gap-1.5">
+                              {/* Flag beside the team name (team's country; solo -> none). */}
+                              <CountryFlag country={stat.team_country} />
+                              {stat.username ?? stat.team_name ?? "-"}
+                            </span>
                           </TableCell>
                           <TableCell className="text-right">
                             {stat.placement}
@@ -570,7 +587,11 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
                         <Badge variant="outline">#{idx + 1}</Badge>
                       </TableCell>
                       <TableCell className="font-medium">
-                        {getEntityName(entry)}
+                        <span className="inline-flex items-center gap-1.5">
+                          {/* Flag beside the team name (team's country; solo -> none). */}
+                          <CountryFlag country={entry.team_country} />
+                          {getEntityName(entry)}
+                        </span>
                       </TableCell>
                       <TableCell className="text-right">
                         {entry.total_booyah}
@@ -631,9 +652,13 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
                           <Badge variant="outline">#{idx + 1}</Badge>
                         </TableCell>
                         <TableCell className="font-medium">
-                          {entry.team_name ??
-                            entry.competitor__user__username ??
-                            "-"}
+                          <span className="inline-flex items-center gap-1.5">
+                            {/* Flag beside the team name (team's country). */}
+                            <CountryFlag country={entry.team_country} />
+                            {entry.team_name ??
+                              entry.competitor__user__username ??
+                              "-"}
+                          </span>
                         </TableCell>
                         <TableCell className="text-right">
                           {entry.total_booyah}
@@ -675,7 +700,11 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
                           {player.username}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
-                          {player.team_name}
+                          <span className="inline-flex items-center gap-1.5">
+                            {/* Flag beside the player's team name (team's country). */}
+                            <CountryFlag country={player.team_country} />
+                            {player.team_name}
+                          </span>
                         </TableCell>
                         <TableCell className="text-right font-semibold">
                           {player.total_kills}

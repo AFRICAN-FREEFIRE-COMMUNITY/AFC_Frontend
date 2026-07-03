@@ -33,6 +33,10 @@ import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
+// Team country flag beside team names in the group standings modal (owner 2026-07-03). team_country
+// rides on each standings row (overall_leaderboard / match.stats from
+// get_all_leaderboard_details_for_event) and is carried onto the mapped rows below. Blank -> no flag.
+import { CountryFlag } from "@/lib/countryFlag";
 
 interface GroupResultModalProps {
   activeGroup: any; // The group object from the parent component
@@ -107,6 +111,8 @@ export const GroupResultModal = ({
           // Solo rows carry competitor__user__username; TEAM rows carry team_name.
           // Fall back so team-event leaderboards aren't blank.
           username: entry.competitor__user__username ?? entry.team_name,
+          // Team country for the flag beside the name (team rows only; solo -> undefined -> no flag).
+          teamCountry: entry.team_country,
           kills: entry.total_kills,
           // Show effective_total (placement+kills+bonus-penalty + any Point-Rush
           // carry-over) - this is what the backend ranks by, so the Points number
@@ -128,6 +134,8 @@ export const GroupResultModal = ({
         .map((s: any) => ({
           rank: s.placement,
           username: s.username,
+          // Team country for the flag (team rows only; solo -> undefined -> no flag).
+          teamCountry: s.team_country,
           kills: s.kills,
           points: s.total_points,
           isQualified: false,
@@ -245,6 +253,8 @@ export const GroupResultModal = ({
                                 className="text-amber-400 shrink-0"
                               />
                             )}
+                            {/* Flag beside the team name (team's country; solo -> none). */}
+                            <CountryFlag country={row.teamCountry} />
                             <span>{row.username}</span>
                             {/* Point-Rush carry-over hint: banked bonus seeded into
                                 this stage's total. Only shown when > 0. */}

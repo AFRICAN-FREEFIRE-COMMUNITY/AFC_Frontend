@@ -51,6 +51,10 @@ import { SendNotificationModal } from "../../../_components/SendNotificationModa
 // then render <WatchTag> next to those names so staff see the flag right on the registered roster.
 import { WatchTag } from "@/components/WatchTag";
 import { watchlistApi } from "@/lib/watchlist";
+// Team country flag shown beside every registered team name (owner 2026-07-03). The team's
+// auto-derived country rides on each tournament_teams[] row as team_country (get_event_details,
+// afc_tournament_and_scrims/views.py). CountryFlag renders nothing when it's blank/unresolvable.
+import { CountryFlag } from "@/lib/countryFlag";
 import { IconChevronDown, IconUser, IconSearch } from "@tabler/icons-react";
 import { DisqualifyModal } from "../../../_components/DisqualifyModal";
 import { RemoveTeamModal } from "../../../_components/RemoveTeamModal";
@@ -690,6 +694,8 @@ export default function RegisteredTeamsTab({
                             isOpen && "rotate-180",
                           )}
                         />
+                        {/* Flag beside the team name (team's auto-derived country). */}
+                        <CountryFlag country={team.team_country} />
                         <span className="capitalize">{team.team_name}</span>
                         <Badge
                           variant="outline"

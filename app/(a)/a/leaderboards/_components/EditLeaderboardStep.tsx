@@ -28,6 +28,10 @@ import {
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+// Team country flag beside team names in the per-map team editor + Total Leaderboard (owner
+// 2026-07-03). team_country rides on each stat / overall row (get_all_leaderboard_details_for_event)
+// and is threaded onto EditRow below. Solo/blank -> CountryFlag renders nothing.
+import { CountryFlag } from "@/lib/countryFlag";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -36,6 +40,8 @@ interface RawStat {
   tournament_team_id?: number;
   username?: string;
   team_name?: string;
+  // The team's auto-derived country (team rows); drives the flag beside the name.
+  team_country?: string | null;
   placement: number;
   kills: number;
   placement_points: number;
@@ -58,6 +64,8 @@ interface OverallEntry {
   tournament_team_id?: number;
   competitor__user__username?: string;
   team_name?: string;
+  // The team's auto-derived country (team rows); drives the flag beside the name.
+  team_country?: string | null;
   total_kills: number;
   total_booyah: number;
   total_points: number;
@@ -68,6 +76,8 @@ interface OverallEntry {
 interface EditRow {
   id: number; // competitor_id or tournament_team_id
   name: string;
+  // Team country for the flag (undefined for solo rows -> no flag).
+  teamCountry?: string | null;
   placement: number;
   kills: number;
   bonus_points: number;
@@ -87,6 +97,7 @@ function statToEditRow(stat: RawStat): EditRow {
   return {
     id: stat.competitor_id ?? stat.tournament_team_id ?? 0,
     name: stat.username ?? stat.team_name ?? "-",
+    teamCountry: stat.team_country,
     placement: stat.placement,
     kills: stat.kills,
     bonus_points: stat.bonus_points ?? 0,
@@ -342,7 +353,11 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
                       {currentRows.map((row, idx) => (
                         <TableRow key={row.id}>
                           <TableCell className="font-medium">
-                            {row.name}
+                            <span className="inline-flex items-center gap-1.5">
+                              {/* Flag beside the team name (team's country; solo -> none). */}
+                              <CountryFlag country={row.teamCountry} />
+                              {row.name}
+                            </span>
                           </TableCell>
                           <TableCell>
                             <Input
@@ -438,7 +453,11 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
                       {currentRows.map((row, idx) => (
                         <TableRow key={row.id}>
                           <TableCell className="font-medium">
-                            {row.name}
+                            <span className="inline-flex items-center gap-1.5">
+                              {/* Flag beside the team name (team's country; solo -> none). */}
+                              <CountryFlag country={row.teamCountry} />
+                              {row.name}
+                            </span>
                           </TableCell>
                           <TableCell>
                             <Input
@@ -523,7 +542,11 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
                     return (
                       <TableRow key={id || idx}>
                         <TableCell className="font-medium">
-                          {getEntityName(entry)}
+                          <span className="inline-flex items-center gap-1.5">
+                            {/* Flag beside the team name (team's country; solo -> none). */}
+                            <CountryFlag country={entry.team_country} />
+                            {getEntityName(entry)}
+                          </span>
                         </TableCell>
                         <TableCell className="text-right">
                           {entry.total_booyah}

@@ -127,6 +127,10 @@ import {
 } from "@tabler/icons-react";
 import { DEFAULT_IMAGE } from "@/constants";
 import { env } from "@/lib/env";
+// Team country flag beside team names in the organizer registered-teams table (owner 2026-07-03).
+// team_country rides on each tournament_teams[] row (get_event_details). CountryFlag renders nothing
+// when the value is blank/unresolvable.
+import { CountryFlag } from "@/lib/countryFlag";
 import { useAuth } from "@/contexts/AuthContext";
 // Viewer-timezone instant rendering (i18n hard rule): invite created/used/expiry
 // stamps are real UTC instants -> formatLocalTime; calendar-only fields
@@ -1474,7 +1478,13 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
                       .filter((tt: any) => !tt.is_waitlisted)
                       .map((team: any) => (
                         <TableRow key={team.team_id || team.player_id}>
-                          <TableCell className="capitalize font-medium">{team.team_name}</TableCell>
+                          <TableCell className="capitalize font-medium">
+                            <span className="inline-flex items-center gap-1.5">
+                              {/* Flag beside the registered team name (team's country). */}
+                              <CountryFlag country={team.team_country} />
+                              {team.team_name}
+                            </span>
+                          </TableCell>
                           <TableCell className="capitalize">
                             <span
                               className={cn(

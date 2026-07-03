@@ -52,11 +52,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+// Team country flag beside each team chip in the group-mover tree (owner 2026-07-03). team_country
+// rides on each team from get_event_group_rosters (_team_payload). Blank -> CountryFlag renders nothing.
+import { CountryFlag } from "@/lib/countryFlag";
 
 interface RosterTeam {
   tournament_team_id: number;
   team_id: number;
   team_name: string;
+  // The team's auto-derived country; drives the flag on the draggable chip.
+  team_country?: string | null;
 }
 interface RosterGroup {
   // number for standard StageGroups / RR base groups; the string "rr-unassigned-<stage_id>"
@@ -98,6 +103,8 @@ function TeamChip({
       title="Drag to another group to move this team"
     >
       <IconGripVertical size={13} className="text-muted-foreground shrink-0" />
+      {/* Flag beside the team name on the draggable chip (team's country). */}
+      <CountryFlag country={team.team_country} className="shrink-0" />
       <span className="capitalize truncate">{team.team_name}</span>
     </div>
   );
@@ -296,6 +303,8 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
             {activeTeam ? (
               <div className="flex items-center gap-1.5 rounded-md border bg-card px-2 py-1.5 text-xs shadow-lg">
                 <IconGripVertical size={13} className="text-muted-foreground" />
+                {/* Flag beside the team name on the drag overlay (team's country). */}
+                <CountryFlag country={activeTeam.team_country} className="shrink-0" />
                 <span className="capitalize">{activeTeam.team_name}</span>
               </div>
             ) : null}

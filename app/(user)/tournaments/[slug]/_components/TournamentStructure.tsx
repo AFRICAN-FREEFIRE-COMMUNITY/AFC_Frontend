@@ -130,6 +130,13 @@ function rowName(row: any, idx: number): string {
     `#${row.placement ?? idx + 1}`
   );
 }
+// The team's country for a squad standings row, so TeamLink can show its flag (owner 2026-06-20).
+// The backend adds `team_country` to the overall_leaderboard rows; the rows are raw Django .values()
+// dicts, so we also accept the un-flattened `tournament_team__team__country` key (mirrors how rowName
+// reads both shapes). Solo rows have no team, so this returns undefined and no flag renders. The value
+// is an ISO-2 code OR a full country name; countryToIso2 (inside TeamLink) resolves either.
+const rowCountry = (row: any): string | undefined =>
+  row.team_country ?? row.tournament_team__team__country ?? undefined;
 const rowKills = (row: any) => row.total_kills ?? row.kills ?? 0;
 // Summed placement points for the row. Backend returns it as `placement_sum` on the overall
 // standings (single-map stats expose `placement_points`); always renders a number, 0 when none.
@@ -740,7 +747,12 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                                   {participantType === "solo" ? (
                                     <PlayerLink name={rowName(row, idx)} />
                                   ) : (
-                                    <TeamLink name={rowName(row, idx)} />
+                                    // Squad rows show the team's country flag before the name
+                                    // (owner 2026-06-20); TeamLink renders it when rowCountry resolves.
+                                    <TeamLink
+                                      name={rowName(row, idx)}
+                                      country={rowCountry(row)}
+                                    />
                                   )}
                                 </td>
                                 <td className="px-3 py-2.5 text-center border-t border-border/60">

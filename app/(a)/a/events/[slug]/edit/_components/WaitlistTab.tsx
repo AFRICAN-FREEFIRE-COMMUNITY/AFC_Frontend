@@ -20,6 +20,9 @@ import {
 } from "@/components/ui/table";
 import { cn, formatDate } from "@/lib/utils";
 import { IconLoader2 } from "@tabler/icons-react";
+// Team country flag shown beside each waitlisted team name (owner 2026-07-03). team_country rides
+// on each waitlist_competitors[] row (get_event_details). Blank/solo -> CountryFlag renders nothing.
+import { CountryFlag } from "@/lib/countryFlag";
 
 export interface WaitlistForm {
   is_waitlist_enabled: boolean;
@@ -47,6 +50,8 @@ export interface WaitlistForm {
 interface WaitlistEntry {
   position?: number;
   name?: string;
+  // The team's auto-derived country (squad rows only); drives the flag beside the name.
+  team_country?: string | null;
   registration_date?: string | null;
   // ids used to promote: solo carries registered_competitor_id, squad carries tournament_team_id
   registered_competitor_id?: number;
@@ -318,7 +323,11 @@ export default function WaitlistTab({
                         {entry.position ?? i + 1}
                       </TableCell>
                       <TableCell className="font-medium capitalize">
-                        {entry.name}
+                        <span className="inline-flex items-center gap-1.5">
+                          {/* Flag beside the waitlisted team name (team's country). */}
+                          <CountryFlag country={entry.team_country} />
+                          {entry.name}
+                        </span>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {entry.registration_date

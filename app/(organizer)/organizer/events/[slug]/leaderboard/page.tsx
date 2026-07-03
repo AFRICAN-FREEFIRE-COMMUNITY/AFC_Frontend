@@ -198,6 +198,11 @@ import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/Debugger
 // flagged names, exactly like the admin edit page. Backend gate (admin OR organizer) is
 // server-side (afc_auth/views_watchlist.py); badges are advisory + best-effort.
 import { WatchTag } from "@/components/WatchTag";
+// Team country flag beside team names in the team + player standings and the adjust-points table
+// (owner 2026-07-03). Each row (overall_leaderboard / match.stats from
+// get_all_leaderboard_details_for_event) carries team_country; player rows inherit it below. Mirrors
+// the admin leaderboard view. CountryFlag renders nothing when the value is blank/unresolvable.
+import { CountryFlag } from "@/lib/countryFlag";
 import { watchlistApi } from "@/lib/watchlist";
 
 type Params = { slug: string };
@@ -561,6 +566,8 @@ export default function OrganizerEventLeaderboardPage({
                 player_id: player.player_id,
                 username: player.username,
                 team_name: teamStat.team_name ?? "-",
+                // Carry the team's country onto the player row so the Player tab shows the same flag.
+                team_country: teamStat.team_country,
                 total_kills: player.kills,
                 total_damage: player.damage,
                 total_assists: player.assists,
@@ -580,6 +587,8 @@ export default function OrganizerEventLeaderboardPage({
             player_id: player.player_id,
             username: player.username,
             team_name: teamStat.team_name ?? "-",
+            // Carry the team's country onto the player row so the Player tab shows the same flag.
+            team_country: teamStat.team_country,
             total_kills: player.kills,
             total_damage: player.damage,
             total_assists: player.assists,
@@ -1368,6 +1377,8 @@ export default function OrganizerEventLeaderboardPage({
                           <TableCell>#{idx + 1}</TableCell>
                           <TableCell className="font-bold">
                             <span className="inline-flex items-center gap-2">
+                              {/* Flag beside the team name (team's country). */}
+                              <CountryFlag country={row.team_country} />
                               {row.team_name ||
                                 row.username ||
                                 t("eventLeaderboard.unknown")}
@@ -1449,7 +1460,11 @@ export default function OrganizerEventLeaderboardPage({
                             </span>
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {player.team_name}
+                            <span className="inline-flex items-center gap-1.5">
+                              {/* Flag beside the player's team name (team's country). */}
+                              <CountryFlag country={player.team_country} />
+                              {player.team_name}
+                            </span>
                           </TableCell>
                           <TableCell className="text-right font-bold text-primary">
                             {player.total_kills}
@@ -1757,6 +1772,8 @@ export default function OrganizerEventLeaderboardPage({
                                     </TableCell>
                                     <TableCell className="font-medium">
                                       <span className="inline-flex items-center gap-2">
+                                        {/* Flag beside the team name (team's country). */}
+                                        <CountryFlag country={entry.team_country} />
                                         {entry.team_name ??
                                           entry.competitor__user__username ??
                                           t("eventLeaderboard.unknown")}

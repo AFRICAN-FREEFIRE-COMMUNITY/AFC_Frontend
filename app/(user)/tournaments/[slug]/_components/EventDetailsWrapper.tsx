@@ -98,6 +98,10 @@ import { EventReviewCard } from "./EventReviewCard";
 import { InfoTip } from "@/components/ui/info-tip";
 // Subtle clickable name -> public player/team profile (used in standings + lists).
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
+// Country flag shown beside a team name (owner 2026-06-20). The registered-teams list below renders its
+// own cards (not TeamLink), so it uses CountryFlag directly; countryToIso2 gates it so an unresolvable
+// country simply shows no flag. Team.country is auto-derived server-side (afc_team _derive_team_country).
+import { CountryFlag, countryToIso2 } from "@/lib/countryFlag";
 // Paid-event registration client (Stripe). startPaidRegistration() below calls
 // initRegistrationPayment, then the success page verifies + completes registration.
 import { eventPaymentsApi } from "@/lib/api/eventPayments";
@@ -306,6 +310,9 @@ interface EventDetails {
     team_name: string;
     team_id: number;
     status: string;
+    // The team's auto-derived country (owner 2026-06-20), added by the backend so the registered-teams
+    // list can show a flag before the name. ISO-2 code OR full name; absent on legacy payloads -> no flag.
+    team_country?: string | null;
   }[];
   event_status: string;
   registration_link: string;
@@ -1423,6 +1430,13 @@ const StageResultsTable: React.FC<{
                   // Group standings expose placement_sum; per-match rows expose placement_points.
                   const placePts = row.placement_sum ?? row.placement_points ?? 0;
                   const placement = row.placement ?? idx + 1;
+                  // The team's country for a squad row, so TeamLink can show its flag before the name
+                  // (owner 2026-06-20). Backend adds `team_country`; the raw .values() rows may instead
+                  // carry the un-flattened key. Solo rows have no team -> undefined -> no flag renders.
+                  const teamCountry =
+                    row.team_country ??
+                    row.tournament_team__team__country ??
+                    undefined;
 
                   return (
                     <TableRow
@@ -1438,7 +1452,7 @@ const StageResultsTable: React.FC<{
                         {/* Competitor name links to the public team or player
                             profile depending on the event's participant type. */}
                         {participantType === "squad" ? (
-                          <TeamLink name={username} />
+                          <TeamLink name={username} country={teamCountry} />
                         ) : (
                           <PlayerLink name={username} />
                         )}
@@ -5647,7 +5661,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                           {index + 1}
                         </div>
                         <div>
-                          <p className="font-white group-hover:text-primary font-semibold text-base">
+                          <p className="font-white group-hover:text-primary font-semibold text-base inline-flex items-center gap-1.5">
+                            {/* Team country flag before the name (owner 2026-06-20), matching the flag
+                                shown beside team names in standings. Hidden when the country can't be
+                                resolved, so an unknown/missing value never shows a broken icon. */}
+                            {countryToIso2(team.team_country) && (
+                              <CountryFlag country={team.team_country} />
+                            )}
                             {team.team_name}
                           </p>
                         </div>

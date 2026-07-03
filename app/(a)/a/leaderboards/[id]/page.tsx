@@ -39,6 +39,10 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { env } from "@/lib/env";
+// Team country flag beside team names in the team + player standings (owner 2026-07-03). Each
+// standings row (overall_leaderboard / match.stats from get_all_leaderboard_details_for_event)
+// carries team_country; the player rows inherit it from their team stat below. Blank -> no flag.
+import { CountryFlag } from "@/lib/countryFlag";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-pulls the standings in place.
 import { useLiveTick } from "@/hooks/useLiveTick";
 import { useAuth } from "@/contexts/AuthContext";
@@ -224,6 +228,8 @@ export default function IndividualLeaderboardPage({
                 player_id: player.player_id,
                 username: player.username,
                 team_name: teamStat.team_name ?? "-",
+                // Carry the team's country onto the player row so the Player tab shows the same flag.
+                team_country: teamStat.team_country,
                 total_kills: player.kills,
                 total_damage: player.damage,
                 total_assists: player.assists,
@@ -243,6 +249,8 @@ export default function IndividualLeaderboardPage({
             player_id: player.player_id,
             username: player.username,
             team_name: teamStat.team_name ?? "-",
+            // Carry the team's country onto the player row so the Player tab shows the same flag.
+            team_country: teamStat.team_country,
             total_kills: player.kills,
             total_damage: player.damage,
             total_assists: player.assists,
@@ -570,7 +578,11 @@ export default function IndividualLeaderboardPage({
                         <TableRow key={idx}>
                           <TableCell>#{idx + 1}</TableCell>
                           <TableCell className="font-bold">
-                            {row.team_name || row.username || "Unknown"}
+                            <span className="inline-flex items-center gap-1.5">
+                              {/* Flag beside the team name (team's country). */}
+                              <CountryFlag country={row.team_country} />
+                              {row.team_name || row.username || "Unknown"}
+                            </span>
                           </TableCell>
                           {selectedMatchId === "overall" && (
                             <TableCell className="text-zinc-400">
@@ -624,7 +636,11 @@ export default function IndividualLeaderboardPage({
                             {player.username}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {player.team_name}
+                            <span className="inline-flex items-center gap-1.5">
+                              {/* Flag beside the player's team name (team's country). */}
+                              <CountryFlag country={player.team_country} />
+                              {player.team_name}
+                            </span>
                           </TableCell>
                           <TableCell className="text-right font-bold text-primary">
                             {player.total_kills}

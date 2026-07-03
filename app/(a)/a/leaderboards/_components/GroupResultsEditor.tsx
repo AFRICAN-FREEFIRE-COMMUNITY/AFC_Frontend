@@ -53,6 +53,10 @@ import {
   IconChevronRight,
   IconArrowLeft,
 } from "@tabler/icons-react";
+// Team country flag beside team names in the placement editor + per-team player groups (owner
+// 2026-07-03). team_country rides on each stat row (get_all_leaderboard_details_for_event) and is
+// threaded onto EditRow / TeamPlayerGroup below. Solo/blank -> CountryFlag renders nothing.
+import { CountryFlag } from "@/lib/countryFlag";
 
 // ── Shapes (subset of the leaderboard-details API rows) ──────────────────────
 interface RawPlayer {
@@ -67,6 +71,8 @@ interface RawStat {
   tournament_team_id?: number;
   username?: string;
   team_name?: string;
+  // The team's auto-derived country (team rows); drives the flag beside the name.
+  team_country?: string | null;
   placement: number;
   kills: number;
   bonus_points?: number;
@@ -88,6 +94,8 @@ interface GroupData {
 interface EditRow {
   id: number;
   name: string;
+  // Team country for the flag (undefined for solo rows -> no flag).
+  teamCountry?: string | null;
   placement: number;
   kills: number;
   bonus_points: number;
@@ -105,6 +113,8 @@ interface PlayerEditRow {
 interface TeamPlayerGroup {
   teamId: number;
   teamName: string;
+  // Team country for the flag beside the group's team name.
+  teamCountry?: string | null;
   players: PlayerEditRow[];
 }
 
@@ -113,6 +123,7 @@ function statToEditRow(stat: RawStat): EditRow {
   return {
     id: stat.competitor_id ?? stat.tournament_team_id ?? 0,
     name: stat.username ?? stat.team_name ?? "-",
+    teamCountry: stat.team_country,
     placement: stat.placement,
     kills: stat.kills,
     bonus_points: stat.bonus_points ?? 0,
@@ -124,6 +135,7 @@ function statToTeamPlayerGroup(stat: RawStat): TeamPlayerGroup {
   return {
     teamId: stat.tournament_team_id ?? 0,
     teamName: stat.team_name ?? "-",
+    teamCountry: stat.team_country,
     players: (stat.players ?? []).map((p) => ({
       player_id: p.player_id,
       username: p.username,
@@ -427,7 +439,13 @@ export function GroupResultsEditor({
                     <TableBody>
                       {currentRows.map((row, idx) => (
                         <TableRow key={row.id}>
-                          <TableCell className="font-medium">{row.name}</TableCell>
+                          <TableCell className="font-medium">
+                            <span className="inline-flex items-center gap-1.5">
+                              {/* Flag beside the team name (team's country; solo -> none). */}
+                              <CountryFlag country={row.teamCountry} />
+                              {row.name}
+                            </span>
+                          </TableCell>
                           <TableCell>
                             <Input
                               type="number"
@@ -531,6 +549,8 @@ export function GroupResultsEditor({
                               ) : (
                                 <IconChevronRight size={16} className="text-muted-foreground" />
                               )}
+                              {/* Flag beside the team name in the per-team player group header. */}
+                              <CountryFlag country={tg.teamCountry} />
                               <span className="font-medium text-sm">{tg.teamName}</span>
                             </div>
                             <Badge variant="secondary">

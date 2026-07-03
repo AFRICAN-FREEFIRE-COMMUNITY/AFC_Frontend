@@ -59,6 +59,10 @@ import {
 } from "@/components/ui/table";
 import { IconLock, IconTrophy, IconSearch } from "@tabler/icons-react";
 import { env } from "@/lib/env";
+// Team country flag beside each team name in the organizer group-roster tree (owner 2026-07-03).
+// team_country rides on each team from get_event_group_rosters (_team_payload). Mirrors the admin
+// events group tab. CountryFlag renders nothing when the value is blank/unresolvable.
+import { CountryFlag } from "@/lib/countryFlag";
 import { matchesSearch } from "@/lib/search";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
@@ -81,6 +85,8 @@ interface RosterTeam {
   tournament_team_id: number;
   team_id: number;
   team_name: string;
+  // The team's auto-derived country (get_event_group_rosters _team_payload); drives the flag.
+  team_country?: string | null;
   team_tag: string | null;
   competitor_status: string;
   players: RosterPlayer[];
@@ -403,7 +409,9 @@ export default function OrganizerEventGroupsPage({
                           >
                             <CardHeader className="pb-2">
                               <CardTitle className="flex items-center justify-between gap-2 flex-wrap text-sm">
-                                <span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  {/* Flag beside the group-roster team name (team's country). */}
+                                  <CountryFlag country={team.team_country} />
                                   {team.team_name}
                                   {team.team_tag ? ` (${team.team_tag})` : ""}
                                 </span>

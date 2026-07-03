@@ -93,6 +93,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { env } from "@/lib/env";
+// Team country flag beside team names in the per-map placement editor, per-team player groups, and
+// the Total Leaderboard (owner 2026-07-03). team_country rides on each stat / overall row
+// (get_all_leaderboard_details_for_event) and is threaded onto EditRow / TeamPlayerGroup below.
+// Solo/blank -> CountryFlag renders nothing.
+import { CountryFlag } from "@/lib/countryFlag";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -142,6 +147,8 @@ interface RawStat {
   tournament_team_id?: number;
   username?: string;
   team_name?: string;
+  // The team's auto-derived country (team rows); drives the flag beside the name.
+  team_country?: string | null;
   placement: number;
   kills: number;
   placement_points: number;
@@ -180,6 +187,8 @@ interface OverallEntry {
   tournament_team_id?: number;
   competitor__user__username?: string;
   team_name?: string;
+  // The team's auto-derived country (team rows); drives the flag beside the name.
+  team_country?: string | null;
   total_kills: number;
   total_booyah: number;
   // Aggregated point breakdown the backend already returns per row in overall_leaderboard
@@ -194,6 +203,8 @@ interface OverallEntry {
 interface EditRow {
   id: number;
   name: string;
+  // Team country for the flag (undefined for solo rows -> no flag).
+  teamCountry?: string | null;
   placement: number;
   kills: number;
   bonus_points: number;
@@ -213,6 +224,8 @@ interface PlayerEditRow {
 interface TeamPlayerGroup {
   teamId: number;
   teamName: string;
+  // Team country for the flag beside the group's team name.
+  teamCountry?: string | null;
   players: PlayerEditRow[];
 }
 
@@ -222,6 +235,7 @@ function statToEditRow(stat: RawStat): EditRow {
   return {
     id: stat.competitor_id ?? stat.tournament_team_id ?? 0,
     name: stat.username ?? stat.team_name ?? "-",
+    teamCountry: stat.team_country,
     placement: stat.placement,
     kills: stat.kills,
     bonus_points: stat.bonus_points ?? 0,
@@ -234,6 +248,7 @@ function statToTeamPlayerGroup(stat: RawStat): TeamPlayerGroup {
   return {
     teamId: stat.tournament_team_id ?? 0,
     teamName: stat.team_name ?? "-",
+    teamCountry: stat.team_country,
     players: (stat.players ?? []).map((p) => ({
       player_id: p.player_id,
       username: p.username,
@@ -554,6 +569,7 @@ export default function EditLeaderboardPage({
         return {
           teamId,
           teamName: stat.team_name ?? roster.team_name ?? "-",
+          teamCountry: stat.team_country,
           players: roster.members.map((mem) => {
             const sp = savedByUid.get(mem.player_id);
             return {
@@ -1569,6 +1585,8 @@ export default function EditLeaderboardPage({
                               <TableRow key={row.id}>
                                 <TableCell className="font-medium">
                                   <span className="inline-flex items-center gap-2">
+                                    {/* Flag beside the team name (team's country; solo -> none). */}
+                                    <CountryFlag country={row.teamCountry} />
                                     {row.name}
                                     {/* Advisory watchlist flag (team in team mode, player in solo). */}
                                     {isEntityWatched(row.id) && (
@@ -1707,6 +1725,8 @@ export default function EditLeaderboardPage({
                                       />
                                     )}
                                     <span className="font-medium text-sm inline-flex items-center gap-2">
+                                      {/* Flag beside the team name in the per-team player group. */}
+                                      <CountryFlag country={group.teamCountry} />
                                       {group.teamName}
                                       {/* Advisory watchlist flag for this team. */}
                                       {watched.teamIds.has(group.teamId) && (
@@ -2137,6 +2157,8 @@ export default function EditLeaderboardPage({
                               </TableCell>
                               <TableCell className="font-medium">
                                 <span className="inline-flex items-center gap-2">
+                                  {/* Flag beside the team name (team's country; solo -> none). */}
+                                  <CountryFlag country={entry.team_country} />
                                   {getEntityName(entry)}
                                   {/* Advisory watchlist flag (entityId is team in team mode, player in solo). */}
                                   {isEntityWatched(entityId) && (
