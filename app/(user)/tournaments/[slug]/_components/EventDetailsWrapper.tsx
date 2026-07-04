@@ -57,7 +57,7 @@ import { formatMoneyInput } from "@/lib/utils";
 // interpolated "Used at: {time}" invite message). See components/LocalTime.tsx.
 import { LocalTime } from "@/components/LocalTime";
 import { LocalEventTime } from "@/components/LocalEventTime";
-import { formatLocalTime } from "@/lib/i18n/time";
+import { formatLocalTime, zonedWallClockToInstant } from "@/lib/i18n/time";
 import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -4785,9 +4785,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // Determine if user can register
   const canRegister = eventDetails.is_public || hasValidInvite;
 
+  // The timezone the event's naive date+time strings were entered in. NEVER the viewer's browser
+  // clock: use the event's stored organizer timezone, and for legacy events created before that field
+  // existed, fall back to the AFC base timezone (Africa/Lagos) - NOT the browser - so every viewer
+  // resolves the SAME instant. (owner 2026-07-04: registration showed "closed" for a viewer west of
+  // the event tz while it was actually open, because the window was parsed in each browser's local
+  // time. Users must SEE the time in their own tz, but the underlying instant is one global moment.)
+  const eventWallClockTz = eventDetails.timezone || "Africa/Lagos";
   const combineDateAndTime = (date: string, time?: string | null) => {
+    if (time) {
+      const inst = zonedWallClockToInstant(date, time, eventWallClockTz);
+      if (inst) return inst;
+    }
     if (!time) return new Date(date);
-    return new Date(`${date}T${time}`);
+    return new Date(`${date}T${time}`); // defensive last resort (malformed date/time only)
   };
 
   const now = new Date();
