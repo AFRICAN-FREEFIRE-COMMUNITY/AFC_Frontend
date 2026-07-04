@@ -34,6 +34,8 @@ export default function OrganizerEventOverlayStudioPage() {
 
   const [loading, setLoading] = useState(true);
   const [eventName, setEventName] = useState("");
+  // Event slug -> the organizer leaderboard quick-jump href (owner 2026-07-04 parity: admins get it).
+  const [slug, setSlug] = useState("");
   const [belongsToOrg, setBelongsToOrg] = useState(false);
 
   // Live refresh (owner 2026-07-02): re-run the read-only name/ownership resolve on the site-wide
@@ -59,6 +61,7 @@ export default function OrganizerEventOverlayStudioPage() {
         if (!cancelled) {
           setBelongsToOrg(!!ev);
           setEventName(ev?.event_name || `Event ${eventId}`);
+          setSlug(ev?.slug || "");
         }
       } catch {
         if (!cancelled && tick === 0) toast.error(t("studio.loadError"));
@@ -87,7 +90,7 @@ export default function OrganizerEventOverlayStudioPage() {
       eventName={eventName}
       organizationId={organizationId}
       backHref="/organizer/overlays"
-      leaderboardHref={null}
+      leaderboardHref={slug ? `/organizer/events/${slug}/leaderboard` : null}
     />
   );
 }
