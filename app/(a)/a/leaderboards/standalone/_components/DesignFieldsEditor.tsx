@@ -133,6 +133,8 @@ const FIELD_LABELS: Record<FieldType, string> = {
   pos: "POS",
   team_name: "TEAM NAME",
   team_logo: "TEAM LOGO",
+  // Team country flag column (owner 2026-07-04): image cell, resolves row.team_country to a flag.
+  team_flag: "TEAM FLAG",
   // Player esport image (owner 2026-07-02): image cell like team_logo; player-scoped renders.
   esports_image: "PLAYER IMAGE",
   booyah: "BOOYAH",
@@ -162,7 +164,7 @@ const FIELD_LABELS: Record<FieldType, string> = {
 // Canonical display order for the palette chips. Rich LIVE-only stats trail the per-round stats so the
 // palette reads "standings columns first, live extras last".
 const FIELD_ORDER: FieldType[] = [
-  "pos", "team_name", "team_logo", "esports_image", "booyah", "placement_points", "kill_points",
+  "pos", "team_name", "team_logo", "team_flag", "esports_image", "booyah", "placement_points", "kill_points",
   "total_points", "rush_points", "kills", "matches", "base_total", "bonus", "penalty",
   "deaths", "knockdowns", "headshots", "most_used_weapon", "survival_time",
   "revives_received", "gloowall_used", "medkit_used",
@@ -170,7 +172,7 @@ const FIELD_ORDER: FieldType[] = [
 
 // Default x_pct per field type when first added to group 0 (group 1 offset by ~43).
 const DEFAULT_X: Record<FieldType, number> = {
-  pos: 8.6, team_name: 13.0, team_logo: 6.5, esports_image: 6.5, booyah: 33.2,
+  pos: 8.6, team_name: 13.0, team_logo: 6.5, team_flag: 20.0, esports_image: 6.5, booyah: 33.2,
   placement_points: 40.3, kill_points: 45.4, total_points: 49.2,
   rush_points: 44.0, kills: 44.0, matches: 40.0, base_total: 47.0,
   bonus: 42.0, penalty: 42.0,
@@ -184,6 +186,7 @@ const DEFAULT_X: Record<FieldType, number> = {
 const DEFAULT_ALIGN: Partial<Record<FieldType, TextAlign>> = {
   team_name: "left",
   team_logo: "center",
+  team_flag: "center",
   esports_image: "center",
 };
 
@@ -208,6 +211,7 @@ function mockCellValue(rankIndex: number, field: FieldType): string {
     case "pos": return String(rankIndex + 1);
     case "team_name": return name;
     case "team_logo": return "[logo]";
+    case "team_flag": return "[flag]";
     case "esports_image": return "[photo]";
     case "booyah": return String(booyah);
     case "placement_points": return String(pp);

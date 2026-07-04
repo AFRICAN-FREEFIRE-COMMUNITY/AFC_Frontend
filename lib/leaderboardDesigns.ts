@@ -64,7 +64,7 @@ export interface HeaderStyle {
 export type FieldType =
   // esports_image (owner 2026-07-02): the player's esports photo — image cell like team_logo;
   // blank on team standings rows, populated by solo/versus/MVP feeds.
-  | "pos" | "team_name" | "team_logo" | "esports_image" | "booyah" | "placement_points" | "kill_points"
+  | "pos" | "team_name" | "team_logo" | "team_flag" | "esports_image" | "booyah" | "placement_points" | "kill_points"
   | "total_points" | "rush_points" | "kills" | "matches" | "base_total" | "bonus" | "penalty"
   // ── Rich LIVE-only stats (owner 2026-07-01, spec §12 + memory project_freefire_live_capture §2/§2b) ──
   // These come ONLY from the in-round debugger stream the capture client tails (Tier 2), NOT from the

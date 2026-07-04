@@ -40,6 +40,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { env } from "@/lib/env";
+import { countryToIso2 } from "@/lib/countryFlag";
 import type {
   LeaderboardDesign,
   LeaderboardDesignField,
@@ -83,7 +84,7 @@ const DEFAULT_GROUP: DesignColumnGroup = {
 
 // A field_type renders as an IMAGE (team logo / player picture) rather than text.
 const isImageField = (ft: string) =>
-  ft === "team_logo" || ft.endsWith("_logo") || ft.includes("image");
+  ft === "team_logo" || ft === "team_flag" || ft.endsWith("_logo") || ft.includes("image");
 
 // CSS translate for a cell's horizontal alignment about its x_pct anchor (mirrors the editor cell:
 // left = anchor at start, right = anchor at end, center = anchor at middle) + vertical centering.
@@ -582,7 +583,15 @@ export function DesignBoard({
                 >
                   <CellValue
                     fieldType={field.field_type as FieldType}
-                    value={row[field.field_type]}
+                    value={
+                      // Country flag column (owner 2026-07-04): the row carries team_country (an
+                      // ISO-2 or full name); resolve it to a flagcdn image URL for the image cell.
+                      field.field_type === "team_flag"
+                        ? (countryToIso2(row.team_country as string)
+                            ? `https://flagcdn.com/w160/${countryToIso2(row.team_country as string)}.png`
+                            : "")
+                        : row[field.field_type]
+                    }
                     anim={anim}
                     sizePx={fSizePx}
                   />
