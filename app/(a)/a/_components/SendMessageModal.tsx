@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { BroadcastTokenInserts } from "@/app/(a)/a/_components/BroadcastTokenInserts";
 import { Loader } from "@/components/Loader";
 import { cn } from "@/lib/utils";
 import { Bell, Mail, MessageSquare, Send } from "lucide-react";
@@ -175,6 +176,10 @@ export const SendMessageModal = ({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
+            {/* Time/money tokens (owner 2026-07-04): each recipient sees them in their own tz/currency. */}
+            <div className="mt-1">
+              <BroadcastTokenInserts onInsert={(tok) => setMessage((m) => (m ? m + " " : "") + tok)} />
+            </div>
           </div>
 
           {/* Optional deep link: gives the recipient a "Take me there" button. */}

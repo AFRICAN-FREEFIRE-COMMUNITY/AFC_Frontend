@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { BroadcastTokenInserts } from "@/app/(a)/a/_components/BroadcastTokenInserts";
 import { Loader } from "@/components/Loader";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -327,6 +328,10 @@ export const SendNotificationModal = ({
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                     />
+                    {/* Time/money tokens (owner 2026-07-04): rendered in each recipient's tz/currency. */}
+                    <div className="mt-1">
+                      <BroadcastTokenInserts onInsert={(tok) => setMessage((m) => (m ? m + " " : "") + tok)} />
+                    </div>
                   </div>
                 </>
               ) : (
