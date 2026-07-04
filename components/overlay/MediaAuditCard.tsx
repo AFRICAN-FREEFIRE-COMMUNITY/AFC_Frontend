@@ -312,6 +312,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
     kind: "team_logo" | "player_image",
     id: number,
     file: File,
+    force = false,
   ) => {
     const key = `${kind}-${id}`;
     setUploading(key);
@@ -320,6 +321,9 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
       fd.append("kind", kind);
       fd.append(kind === "team_logo" ? "team_id" : "user_id", String(id));
       fd.append("file", await compressImageForUpload(file));
+      // force=true bypasses the player-image face check (owner 2026-07-04): a trusted admin can
+      // knowingly place a non-face placeholder after the "no face detected" prompt below.
+      if (force) fd.append("force", "true");
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/media-upload/`,
         fd,
@@ -327,8 +331,20 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
       );
       toast.success(t("mediaAudit.uploaded"));
       load();
-    } catch {
-      toast.error(t("mediaAudit.uploadFailed"));
+    } catch (err: any) {
+      // The backend rejects a player image with no detectable face (code "no_face") so a logo can't
+      // land in a player's esport-image slot. Offer an explicit override rather than a dead end.
+      if (err?.response?.status === 400 && err?.response?.data?.code === "no_face") {
+        toast.error(err.response.data.message || t("mediaAudit.noFace"), {
+          action: {
+            label: t("mediaAudit.uploadAnyway"),
+            onClick: () => uploadMedia(kind, id, file, true),
+          },
+          duration: 8000,
+        });
+      } else {
+        toast.error(t("mediaAudit.uploadFailed"));
+      }
     } finally {
       setUploading(null);
     }

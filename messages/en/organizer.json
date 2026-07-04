@@ -1332,7 +1332,9 @@
     "downloadFailed": "Download failed",
     "fileName": "File name",
     "size": "Size",
-    "format": "Format"
+    "format": "Format",
+    "noFace": "This image has no detectable face. A player esport image should be a photo of the player, not a logo.",
+    "uploadAnyway": "Upload anyway"
   },
   "broadcastKit": {
     "title": "Broadcast Kit",

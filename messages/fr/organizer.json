@@ -1332,7 +1332,9 @@
     "downloadFailed": "Échec du téléchargement",
     "fileName": "Nom du fichier",
     "size": "Taille",
-    "format": "Format"
+    "format": "Format",
+    "noFace": "Cette image ne comporte aucun visage identifiable. Une image de joueur d'e-sport doit être une photo du joueur, et non un logo.",
+    "uploadAnyway": "Téléverser quand même"
   },
   "broadcastKit": {
     "title": "Kit de diffusion",
