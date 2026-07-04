@@ -4,5 +4,19 @@
     "searchPlayersPlaceholder": "Pesquisar jogadores...",
     "noTeamsMatch": "Não há equipas que correspondam a «{query}»",
     "noPlayersMatch": "Não há jogadores que correspondam a «{query}»"
+  },
+  "checkin": {
+    "userTitle": "Check-in",
+    "userExplain": "O organizador exige que faça o check-in para este evento. Toque no botão durante o período de check-in para confirmar que está disponível. Caso contrário, poderá ser transferido para a lista de espera.",
+    "userButton": "Fazer o check-in",
+    "userDone": "Fez o check-in",
+    "userOpen": "Já está aberto",
+    "userCheckedIn": "O seu check-in foi concluído.",
+    "userFailed": "Não foi possível efetuar o seu check-in.",
+    "userNotOpen": "O check-in ainda não começou.",
+    "userClosed": "O check-in já terminou.",
+    "userSquadProgress": "{done} {total}, da vossa equipa, já se registaram.",
+    "userSquadReady": "A vossa equipa está pronta.",
+    "userSquadWaiting": "À espera dos colegas de equipa."
   }
 }

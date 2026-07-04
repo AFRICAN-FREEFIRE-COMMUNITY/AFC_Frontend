@@ -4,5 +4,19 @@
     "searchPlayersPlaceholder": "Rechercher des joueurs...",
     "noTeamsMatch": "Aucune équipe ne correspond à « {query} »",
     "noPlayersMatch": "Aucun joueur ne correspond à « {query} »."
+  },
+  "checkin": {
+    "userTitle": "Enregistrement",
+    "userExplain": "L'organisateur vous demande de vous enregistrer pour cet événement. Appuyez sur le bouton pendant la période d'enregistrement pour confirmer votre disponibilité. Si vous ne le faites pas, vous risquez d'être placé sur la liste d'attente.",
+    "userButton": "Enregistrement",
+    "userDone": "Enregistré(e)",
+    "userOpen": "Ouvert actuellement",
+    "userCheckedIn": "Votre enregistrement est effectué.",
+    "userFailed": "Nous n'avons pas pu enregistrer votre arrivée.",
+    "userNotOpen": "L'enregistrement n'est pas encore ouvert.",
+    "userClosed": "L'enregistrement est terminé.",
+    "userSquadProgress": "{done} {total}s membres de votre équipe se sont enregistrés.",
+    "userSquadReady": "Votre équipe est prête.",
+    "userSquadWaiting": "En attendant mes coéquipiers."
   }
 }

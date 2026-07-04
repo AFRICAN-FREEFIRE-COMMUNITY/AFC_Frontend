@@ -23,6 +23,7 @@ import { IconLoader2 } from "@tabler/icons-react";
 // Team country flag shown beside each waitlisted team name (owner 2026-07-03). team_country rides
 // on each waitlist_competitors[] row (get_event_details). Blank/solo -> CountryFlag renders nothing.
 import { CountryFlag } from "@/lib/countryFlag";
+import CheckinSettingsCard from "./CheckinSettingsCard";
 
 export interface WaitlistForm {
   is_waitlist_enabled: boolean;
@@ -368,6 +369,10 @@ export default function WaitlistTab({
           </CardContent>
         </Card>
       )}
+
+      {/* Check-in (owner 2026-07-04): sits with the waitlist settings because non-checked-in
+          competitors are relegated to the waitlist. Self-contained (own state + endpoints). */}
+      <CheckinSettingsCard eventId={eventId} />
     </div>
   );
 }

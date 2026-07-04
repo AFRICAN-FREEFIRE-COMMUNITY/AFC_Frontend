@@ -4,5 +4,19 @@
     "searchPlayersPlaceholder": "Search players...",
     "noTeamsMatch": "No teams match \"{query}\"",
     "noPlayersMatch": "No players match \"{query}\""
+  },
+  "checkin": {
+    "userTitle": "Check-in",
+    "userExplain": "The organizer requires you to check in for this event. Tap the button during the check-in window to confirm you are available. If you do not, you may be moved to the waitlist.",
+    "userButton": "Check in",
+    "userDone": "Checked in",
+    "userOpen": "Open now",
+    "userCheckedIn": "You are checked in.",
+    "userFailed": "Could not check you in.",
+    "userNotOpen": "Check-in has not opened yet.",
+    "userClosed": "Check-in has closed.",
+    "userSquadProgress": "{done} of {total} of your team have checked in.",
+    "userSquadReady": "Your team is ready.",
+    "userSquadWaiting": "Waiting on teammates."
   }
 }

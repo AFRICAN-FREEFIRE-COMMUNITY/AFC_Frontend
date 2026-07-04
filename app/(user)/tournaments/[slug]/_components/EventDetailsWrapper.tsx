@@ -130,6 +130,7 @@ import { SponsorRequirementsCard } from "./SponsorRequirementsCard";
 // Pre-register requirements heads-up (asset + sponsor requirements), shown to all viewers (owner 2026-06-20).
 import { EventRequirementsCard } from "./EventRequirementsCard";
 import { MemberSelfEditModal } from "./MemberSelfEditModal";
+import { CheckinCard } from "./CheckinCard";
 // Public "Qualified field" provenance banner (event linking P2): who entered this
 // event through fired qualification links. Self-hides when there are none.
 import { QualifiedFromBanner } from "@/components/qualified-from-banner";
@@ -5454,6 +5455,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   }}
                 />
               )}
+
+              {/* Check-in (owner 2026-07-04): self-contained - renders only when the organizer has
+                  turned check-in on and this user is registered. Lets the player tap "Check in"
+                  inside the window; a squad is eligible only when all its players check in. */}
+              {eventDetails?.event_id && <CheckinCard eventId={eventDetails.event_id} />}
 
               {/* LEAVE: only before the event starts (the roster-edit window is for EDITING, not
                   leaving) - and, for a team event, only a manager. Solo registrants can leave too. */}
