@@ -359,22 +359,8 @@ export default function IndividualLeaderboardPage({
         </span>
         {!editingMatch && (
           <div className="flex gap-2 w-full md:w-auto">
-            {/* data-tour anchor (leaderboard-view-download): admin tour "Download leaderboard"
-                step. DownloadLeaderboardButton doesn't forward arbitrary DOM props, so the
-                anchor sits on a wrapping span around it. */}
-            <span data-tour="leaderboard-view-download" className="inline-flex flex-1">
-            <DownloadLeaderboardButton
-              leaderboardName={
-                selectedMatchId === "overall"
-                  ? eventData.event_name
-                  : `${eventData.event_name} - Match ${currentMatch?.match_number} (${currentMatch?.match_map})`
-              }
-              teamRows={getTableData()}
-              playerRows={getPlayerData()}
-              participantType={detailsParticipantType}
-              killPoint={Number(currentGroup?.leaderboard?.kill_point ?? 1)}
-            />
-            </span>
+            {/* Old fixed-template "Download" button removed (owner 2026-07-04): the design-based
+                "Export graphic" below supersedes it. */}
             {/* Design-based export (owner 2026-06-16): pick a CUSTOM design + size and render the
                 selected stage's standings onto it (the Download button above uses the fixed AFC
                 template, which is why a freshly-edited design never showed up there). */}

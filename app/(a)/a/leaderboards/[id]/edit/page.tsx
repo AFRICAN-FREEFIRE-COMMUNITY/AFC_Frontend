@@ -101,6 +101,7 @@ import { CountryFlag } from "@/lib/countryFlag";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
+import { EventStageExportGraphicDialog } from "@/app/(organizer)/organizer/events/[slug]/leaderboard/_components/EventStageExportGraphicDialog";
 // "Copy OBS overlay link" dialog (components/overlay/CopyOverlayLinkDialog.tsx): builds the public
 // live-overlay URL for this event's leaderboard. Mounted beside the header so an admin can grab the
 // OBS Browser Source link. Same component the organizer event leaderboard page mounts.
@@ -1404,6 +1405,23 @@ export default function EditLeaderboardPage({
             groupId={selectedGroupId}
             stages={eventData?.stages ?? []}
             organizationId={null}
+          />
+        )}
+        {/* Export graphic on the EDIT page too (owner 2026-07-04): previously only on the view page.
+            Renders the selected stage/group standings onto a chosen custom design + size. */}
+        {eventData && (
+          <EventStageExportGraphicDialog
+            eventId={id}
+            stageId={selectedStageId}
+            groupId={selectedGroupId}
+            stages={eventData?.stages ?? []}
+            organizationId={eventData?.organization_id ?? null}
+            defaultTitle={eventData?.event_name}
+            defaultSubtitle={
+              eventData?.stages?.find(
+                (s: any) => s.stage_id.toString() === selectedStageId,
+              )?.stage_name ?? ""
+            }
           />
         )}
       </div>
