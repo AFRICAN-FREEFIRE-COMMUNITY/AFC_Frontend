@@ -20,10 +20,17 @@ export const PageGradient = () => {
   // Overlay pages are transparent broadcast graphics — never paint the site gradient there.
   if (pathname?.startsWith("/overlay")) return null;
 
+  // NOTE (owner 2026-07-04): the old `bg-[url('/gaming-pattern.png')]` layer was removed - that
+  // asset does not exist (public/gaming-pattern.png -> 404 on every page load), so the layer painted
+  // nothing while firing a broken request. The gradient interpolation is pinned to sRGB
+  // (`bg-linear-to-br/srgb`): Tailwind v4's default is OKLAB, and fading a colour THROUGH
+  // `transparent` in OKLAB passes through muddy desaturated greys that low-end mobile GPUs render as
+  // visible banding/noise over the dark background (a user reported scanline noise on mobile - though
+  // that screenshot was also WhatsApp-JPEG-compressed, which alone mangles dark gradients). sRGB
+  // interpolation keeps the fade-to-transparent clean.
   return (
     <div>
-      <div className="fixed inset-0 bg-[url('/gaming-pattern.png')] opacity-5 pointer-events-none"></div>
-      <div className="fixed inset-0 bg-gradient-to-br from-primary/20 via-transparent to-gold/20 pointer-events-none"></div>
+      <div className="fixed inset-0 bg-linear-to-br/srgb from-primary/20 via-transparent to-gold/20 pointer-events-none"></div>
     </div>
   );
 };
