@@ -138,6 +138,27 @@ export const EditMatchModal = ({
     }
   };
 
+  // Release the room ID+PASS to the WAITLIST (owner 2026-07-04): when a registered team no-shows,
+  // send this map's room to the waitlist per the event's waitlist mode (or the manual-pick prompt).
+  const [releasing, setReleasing] = useState(false);
+  const releaseToWaitlist = async () => {
+    setReleasing(true);
+    try {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (dirty.current) { await persist(); setSaveState("saved"); dirty.current = false; }
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/room/release-to-waitlist/`,
+        { match_id: matchId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success(res.data?.message || "Room details sent to the waitlist.");
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to release room to the waitlist");
+    } finally {
+      setReleasing(false);
+    }
+  };
+
   // Sync the parent when the modal closes so the next open seeds from the just-saved values
   // (the per-keystroke save deliberately skips the refetch to avoid closing the modal mid-edit).
   const handleOpenChange = (next: boolean) => {
@@ -262,6 +283,22 @@ export const EditMatchModal = ({
                 <Send className="size-4 mr-1" />
               )}
               Send to players
+            </Button>
+            {/* Release to the waitlist (owner 2026-07-04): on a no-show, send this map's room ID+PASS
+                to the waitlist per the event's waitlist mode (manual mode prompts to pick a team). */}
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={releaseToWaitlist}
+              disabled={releasing || nothingEntered}
+            >
+              {releasing ? (
+                <Loader2 className="size-4 animate-spin mr-1" />
+              ) : (
+                <Send className="size-4 mr-1" />
+              )}
+              Send to waitlist
             </Button>
           </div>
         </form>
