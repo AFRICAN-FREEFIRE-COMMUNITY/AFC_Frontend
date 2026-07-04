@@ -145,6 +145,15 @@ import { LinkedEventsCard } from "@/components/event-links";
 import { H2HBracketCard } from "@/components/h2h-bracket";
 // Broadcast media hygiene (owner 2026-07-02): same card the admin view page mounts.
 import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
+// Ratings + anonymous feedback card (organizer parity E1): same component the admin
+// event page mounts on its Engagement tab. Reads GET events/<id>/rating/ (public) +
+// event-comments/<id>/ (org_can_event(can_view_reviews) - the owning org passes for its
+// OWN event), so an organizer finally SEES the ratings players leave on their events.
+import { EventReviewsCard } from "@/components/event-reviews-admin";
+// "Download media" ZIP button (organizer parity E2): every registered team's logo +
+// every rostered/solo player's esport image. Backend events/download-esport-media/
+// already admits the platform organizer role, so no BE change was needed.
+import { DownloadEventMediaButton } from "@/components/esport-media";
 // Round-Robin stage standings (shared with the admin Stages & Groups tab).
 import { RoundRobinResultsModal } from "@/app/(a)/a/events/_components/RoundRobinResultsModal";
 // Shared delete confirm -> POST /events/delete-event/ (org branch: can_edit_events).
@@ -717,6 +726,14 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
               <IconScan className="size-4" /> {t("eventDetail.ocrResults")}
             </Link>
           </Button>
+          {/* Download event media ZIP (organizer parity E2, mirrors the admin header):
+              every registered team's logo + every rostered/solo player's esport image,
+              for use in event graphics. Own button owns its fetch + options popover.
+              Gated the same as export/registration surfaces (edit OR manage-registrations);
+              the backend events/download-esport-media/ authorizes the organizer role. */}
+          {(canEdit || canManageRegs) && (
+            <DownloadEventMediaButton eventId={details.event_id} />
+          )}
           {/* Round-Robin standings (shared modal, one per "br - round robin" stage).
               The modal owns its trigger button + fetch (get-round-robin-standings). */}
           {(canEdit || canUploadResults) &&
@@ -1585,6 +1602,13 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
               </CardContent>
             </Card>
           </div>
+
+          {/* ── Ratings + anonymous feedback (organizer parity E1) ──
+              Same card the admin Engagement tab mounts. Aggregate rating (GET
+              events/<id>/rating/) is public; comments (event-comments/<id>/, text +
+              date only) lazy-load on expand and are gated by org_can_event -> the
+              OWNING org reads its OWN event's feedback, a 403 degrades to a toast. */}
+          <EventReviewsCard eventId={details.event_id} />
         </TabsContent>
       </Tabs>
 
