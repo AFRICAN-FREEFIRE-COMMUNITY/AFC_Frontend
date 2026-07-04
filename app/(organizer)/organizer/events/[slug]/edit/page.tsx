@@ -1817,6 +1817,14 @@ export default function OrganizerEditEventPage({
         formData.append("registration_open_date", data.registration_open_date);
         formData.append("registration_end_date", data.registration_end_date);
         formData.append("registration_link", data.registration_link || "");
+        // Registration-requirement toggles (owner 2026-07-04 bug fix): live on Basic Info but in the
+        // separate waitlistForm state, previously only sent by saveWaitlistSettings - so toggling one
+        // and hitting THIS main Save didn't persist it (reverted on refresh). Re-send here too.
+        formData.append("require_team_logo", waitlistForm.require_team_logo ? "True" : "False");
+        formData.append("require_esport_images", waitlistForm.require_esport_images ? "True" : "False");
+        formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
+        formData.append("require_player_profile_image", waitlistForm.require_player_profile_image ? "True" : "False");
+        formData.append("min_letter_avatars", String(Number(waitlistForm.min_letter_avatars ?? 0) || 0));
         // Paid-vs-free registration (re-sent on save so the values persist).
         appendRegistrationFeeFields(formData, data);
         // Compulsory event/registration times + editor tz (re-sent so an edit actually
