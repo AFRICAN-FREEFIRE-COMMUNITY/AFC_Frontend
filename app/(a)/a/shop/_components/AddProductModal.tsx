@@ -92,6 +92,8 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
       description: "", // Explicitly provide empty string
       is_limited_stock: false,
       status: "active",
+      currency: "NGN", // selling currency (owner 2026-07-04 route); NGN-only today
+
       variants: [
         {
           sku: "",
@@ -246,6 +248,30 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
                             {opt.label}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Selling currency (owner 2026-07-04): the MULTI-CURRENCY ROUTE. Only NGN is offered
+                  today (the store charges + ships in Naira). To enable more later, add options here
+                  AND expand _SUPPORTED_SELL_CURRENCIES + the checkout/payout path on the backend. */}
+              <FormField
+                // @ts-ignore
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Selling currency</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || "NGN"}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="NGN" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="NGN">Naira (NGN)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

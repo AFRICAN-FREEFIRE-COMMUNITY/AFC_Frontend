@@ -484,6 +484,9 @@ export const AddProductSchema = z.object({
   description: z.string().default(""),
   is_limited_stock: z.boolean().default(false),
   status: z.string().default("active"),
+  // Selling currency (owner 2026-07-04): multi-currency ROUTE only. NGN-only today (the store charges
+  // + ships in Naira); the field/plumbing exist so more can be enabled later without a refactor.
+  currency: z.string().default("NGN"),
   variants: z
     .array(
       z.object({
