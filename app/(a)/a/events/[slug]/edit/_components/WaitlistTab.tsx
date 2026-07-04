@@ -24,6 +24,7 @@ import { IconLoader2 } from "@tabler/icons-react";
 // on each waitlist_competitors[] row (get_event_details). Blank/solo -> CountryFlag renders nothing.
 import { CountryFlag } from "@/lib/countryFlag";
 import CheckinSettingsCard from "./CheckinSettingsCard";
+import AutoSeedCard from "./AutoSeedCard";
 
 export interface WaitlistForm {
   is_waitlist_enabled: boolean;
@@ -373,6 +374,9 @@ export default function WaitlistTab({
       {/* Check-in (owner 2026-07-04): sits with the waitlist settings because non-checked-in
           competitors are relegated to the waitlist. Self-contained (own state + endpoints). */}
       <CheckinSettingsCard eventId={eventId} />
+
+      {/* Fully-automatic event (owner 2026-07-04): auto-seed available teams into groups at start. */}
+      <AutoSeedCard eventId={eventId} initialEnabled={(eventDetails as any)?.auto_seed_on_start} />
     </div>
   );
 }

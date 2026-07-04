@@ -42,7 +42,7 @@
 
 "use client";
 
-import React, { use, useEffect, useState } from "react";
+import React, { use, useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,6 +68,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { useOrganizer } from "../../../_components/OrganizerContext";
+// ── ORGANIZER PARITY F1 (owner 2026-07-04): the SAME manual group-management controls AFC admins
+// already have on the event-edit "Stages & Groups" tab, surfaced here for an organizer's OWN events.
+// All three are the SHARED admin components, reused verbatim (never rebuilt) so behaviour + backend
+// wiring stay identical to the admin surface:
+//   • GroupTeamMover  — drag a team between a stage's groups. Self-contained DnD; POSTs
+//                       /events/seeding/move-team/ (org-inclusive via seeding_management._seeding_gate).
+//   • AddTeamsModal   — add already-registered teams straight into ONE group (mode="group" -> POST
+//                       /events/add-teams-to-group/, org-inclusive since 2026-07-02).
+//   • RemoveTeamModal — remove a team from the event entirely (POST /events/remove-team-from-event/,
+//                       org-inclusive via _resolve_event_team; backend blocks once results exist).
+// Gate: this page only renders past the canView guard (can_manage_registrations || isOwner), which is
+// the EXACT permission each of those backend endpoints enforces, so no extra front-end gating is
+// needed. The admin wiring these mirror lives in .../events/[slug]/edit/_components/StagesGroupsTab.tsx.
+import GroupTeamMover from "@/app/(a)/a/events/[slug]/edit/_components/GroupTeamMover";
+import { AddTeamsModal } from "@/app/(a)/a/events/_components/AddTeamsModal";
+import { RemoveTeamModal } from "@/app/(a)/a/events/_components/RemoveTeamModal";
 
 type Params = { slug: string };
 
@@ -179,33 +195,37 @@ export default function OrganizerEventGroupsPage({
   // POSTs { slug } (the backend accepts slug or event_id; the organizer FE sends
   // slug to match the rest of /organizer/events/*). Never errors the page on failure
   // — leaves an empty state so a partially-seeded event still renders.
+  // Extracted from the load effect so the F1 group-management controls below can re-pull the tree in
+  // place after a mutation (AddTeamsModal / RemoveTeamModal onSuccess). Flipping `loading` briefly also
+  // remounts the GroupTeamMover (which owns a SEPARATE fetch), so an add/remove is reflected there too.
+  const loadRosters = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-group-rosters/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ slug: routeSlug }),
+        },
+      );
+      if (res.ok) {
+        setData(await res.json());
+      }
+    } catch (err) {
+      console.error("Failed to load group rosters for", routeSlug, err);
+    } finally {
+      setLoading(false);
+    }
+  }, [routeSlug, token]);
+
   useEffect(() => {
     if (!canView || notMine || resolving) return;
-    const load = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-group-rosters/`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ slug: routeSlug }),
-          },
-        );
-        if (res.ok) {
-          setData(await res.json());
-        }
-      } catch (err) {
-        console.error("Failed to load group rosters for", routeSlug, err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [routeSlug, token, canView, notMine, resolving]);
+    loadRosters();
+  }, [canView, notMine, resolving, loadRosters]);
 
   // ── IGN filter helpers (same logic as the admin GroupRostersPanel) ────────────
   // Use the shared matchesSearch() helper instead of raw .toLowerCase().includes so
@@ -307,6 +327,11 @@ export default function OrganizerEventGroupsPage({
         />
       </div>
 
+      {/* ORGANIZER PARITY F1: drag a team from one of a stage's groups into another (team events only).
+          The shared admin GroupTeamMover is self-contained: it does its own POST
+          /events/get-event-group-rosters/ + /events/seeding/move-team/, so it needs only the event id. */}
+      {data && !data.is_solo && <GroupTeamMover eventId={data.event_id} />}
+
       {/* Empty event (no stages at all). */}
       {(!data || data.stages.length === 0) && (
         <p className="text-muted-foreground italic">
@@ -346,15 +371,29 @@ export default function OrganizerEventGroupsPage({
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
                         <span>{group.group_name}</span>
-                        <span className="text-muted-foreground text-xs">
-                          {data.is_solo
-                            ? t("groups.playerCount", {
-                                count: group.player_count,
-                              })
-                            : t("groups.teamCount", {
-                                count: group.team_count,
-                              })}
-                        </span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* ORGANIZER PARITY F1: add already-registered teams straight into THIS group.
+                              Squad-events only, matching the admin StagesGroupsTab gate. onSuccess
+                              re-pulls the whole tree so the new members show at once. */}
+                          {!data.is_solo &&
+                            data.participant_type === "squad" && (
+                              <AddTeamsModal
+                                mode="group"
+                                targetId={group.group_id}
+                                targetName={`${stage.stage_name} › ${group.group_name}`}
+                                onSuccess={loadRosters}
+                              />
+                            )}
+                          <span className="text-muted-foreground text-xs">
+                            {data.is_solo
+                              ? t("groups.playerCount", {
+                                  count: group.player_count,
+                                })
+                              : t("groups.teamCount", {
+                                  count: group.team_count,
+                                })}
+                          </span>
+                        </div>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-2 space-y-2">
@@ -415,12 +454,25 @@ export default function OrganizerEventGroupsPage({
                                   {team.team_name}
                                   {team.team_tag ? ` (${team.team_tag})` : ""}
                                 </span>
-                                <Badge
-                                  variant="outline"
-                                  className="capitalize rounded-full px-2 py-0.5 text-xs"
-                                >
-                                  {team.competitor_status}
-                                </Badge>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge
+                                    variant="outline"
+                                    className="capitalize rounded-full px-2 py-0.5 text-xs"
+                                  >
+                                    {team.competitor_status}
+                                  </Badge>
+                                  {/* ORGANIZER PARITY F1: remove this team from the event entirely
+                                      (frees the slot; the backend blocks it once the team has match
+                                      results). Shared admin modal, reused as-is; onSuccess re-pulls
+                                      the tree. */}
+                                  <RemoveTeamModal
+                                    team_id={team.team_id}
+                                    event_id={data.event_id}
+                                    name={team.team_name}
+                                    showLabel
+                                    onSuccess={loadRosters}
+                                  />
+                                </div>
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-0">

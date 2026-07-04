@@ -210,6 +210,10 @@ export function LeaderboardDesignsManager({
   // Fields+text editor: which design (if any) has the DesignFieldsEditor open.
   const [fieldsEditorDesign, setFieldsEditorDesign] = useState<LeaderboardDesign | null>(null);
 
+  // One-click AFC default-design generator (owner 2026-07-04): which preset (12 | 15 | 24) is being
+  // created right now, or null. Drives the per-button spinner + disables the trio while in flight.
+  const [creatingDefault, setCreatingDefault] = useState<12 | 15 | 24 | null>(null);
+
   // ── Load the library. ──
   // Live refresh (owner 2026-07-02): background=true skips the "Loading designs..." state
   // so an automatic refresh never flashes the table away mid-view.
@@ -508,6 +512,29 @@ export function LeaderboardDesignsManager({
     });
   };
 
+  // ── Create a ready-to-use AFC default design (12 / 15 / 24 teams). ──
+  // POSTs the create-default endpoint (leaderboardDesignsApi.createDefault ->
+  // afc_organizers.views_leaderboard_design.create_default_design), which builds a design with the
+  // AFC dark/green theme + the standard columns (POS, TEAM logo+name, KILLS, PLACEMENT POINTS,
+  // BOOYAHS, TOTAL POINTS) pre-placed for the chosen size: 12/15 = one column, 24 = two 12-row
+  // columns. On success we reload the library so the new design appears; it is then editable in the
+  // DesignFieldsEditor like any other. The org-scoping (organizationId) matches the manager's library.
+  const handleCreateDefault = async (preset: 12 | 15 | 24) => {
+    if (!canManage || creatingDefault !== null) return;
+    setCreatingDefault(preset);
+    try {
+      const res = await leaderboardDesignsApi.createDefault(preset, organizationId);
+      toast.success(`Created "${res.design.name}".`);
+      load();
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to create the default design.",
+      );
+    } finally {
+      setCreatingDefault(null);
+    }
+  };
+
   // ── Delete a design. ──
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -541,9 +568,40 @@ export function LeaderboardDesignsManager({
           />
         </CardTitle>
         {canManage && (
-          <Button size="sm" onClick={openCreate}>
-            <IconPlus className="size-4" /> Add design
-          </Button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {/* One-click AFC default designs (owner 2026-07-04): each button creates a ready-to-use
+                design for a team-capacity preset (12 / 15 = one column; 24 = two 12-row columns) and
+                refreshes the list. Handy starting point that stays fully editable afterwards. */}
+            <div className="flex items-center gap-1.5">
+              <span className="hidden text-xs text-muted-foreground sm:inline">
+                Create default AFC design
+              </span>
+              {([12, 15, 24] as const).map((preset) => (
+                <Button
+                  key={preset}
+                  variant="outline"
+                  size="sm"
+                  disabled={creatingDefault !== null}
+                  onClick={() => handleCreateDefault(preset)}
+                  title={
+                    preset === 24
+                      ? "AFC default: more than 15 teams (two 12-row columns, 24 capacity)"
+                      : `AFC default: ${preset} teams (one column)`
+                  }
+                  aria-label={`Create AFC default design for ${preset} teams`}
+                >
+                  {creatingDefault === preset ? (
+                    <IconLoader2 className="size-4 animate-spin" />
+                  ) : (
+                    preset
+                  )}
+                </Button>
+              ))}
+            </div>
+            <Button size="sm" onClick={openCreate}>
+              <IconPlus className="size-4" /> Add design
+            </Button>
+          </div>
         )}
       </CardHeader>
       <CardContent>

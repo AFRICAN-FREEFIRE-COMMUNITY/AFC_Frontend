@@ -220,6 +220,27 @@ export const leaderboardDesignsApi = {
       )
       .then((r) => r.data),
 
+  // POST organizers/leaderboard-designs/create-default/ (multipart) -> {design, note}.
+  // One-click "Create default AFC design": builds a ready-to-use design (AFC dark/green theme +
+  // the standard columns POS / TEAM logo+name / KILLS / PLACEMENT POINTS / BOOYAHS / TOTAL POINTS)
+  // sized for a team-capacity preset: 12 (one 12-row column), 15 (one 15-row column), or 24 (two
+  // 12-row columns). organizationId scopes it to that org's library; omit/null = the AFC-native
+  // library. `note` explains how the AFC + org logos were handled. Backed by
+  // afc_organizers.views_leaderboard_design.create_default_design. Consumed by
+  // LeaderboardDesignsManager's "Create default AFC design" 12/15/24 buttons.
+  createDefault: (preset: 12 | 15 | 24, organizationId?: number | null) => {
+    const fd = new FormData();
+    fd.append("preset", String(preset));
+    if (organizationId != null) fd.append("organization_id", String(organizationId));
+    return axios
+      .post<{ design: LeaderboardDesign; note?: string }>(
+        `${BASE}/organizers/leaderboard-designs/create-default/`,
+        fd,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data);
+  },
+
   // POST organizers/leaderboard-designs/ (multipart) -> {design}. The caller builds the FormData
   // (name + optional background_instagram/background_youtube files + style fields + is_default +
   // organization_id when org-scoped). We do NOT set Content-Type so axios writes the boundary.
