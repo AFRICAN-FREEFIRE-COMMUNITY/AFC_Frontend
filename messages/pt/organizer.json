@@ -684,6 +684,25 @@
     "empty": "A sua organização ainda não criou nenhum evento.",
     "createFirst": "Cria o teu primeiro evento",
     "draftBadge": "Rascunho",
+    "stats": {
+      "totalEvents": "Total de eventos",
+      "totalEventsSub": "Torneios e jogos de treino",
+      "totalTournaments": "Total de torneios",
+      "totalTournamentsSub": "Torneios inscritos",
+      "totalScrims": "Total de jogos de treino",
+      "totalScrimsSub": "Telas registadas",
+      "upcoming": "Próximos eventos",
+      "upcomingSub": "Eventos em fase de planeamento ou com inscrições abertas",
+      "ongoing": "Eventos em curso",
+      "ongoingSub": "Eventos atualmente em curso",
+      "completed": "Eventos concluídos",
+      "completedSub": "Eventos já concluídos",
+      "avgParticipants": "Média de participantes",
+      "avgParticipantsSub": "Por evento"
+    },
+    "pagination": {
+      "showing": "A apresentar «{from}» - {to} de {total}"
+    },
     "status": {
       "unknown": "desconhecido"
     },
@@ -1089,6 +1108,18 @@
       "confirm": "Refazer mapa",
       "success": "O mapa foi apagado. Pode voltar a introduzir resultados para este mapa.",
       "error": "Não foi possível limpar os resultados do mapa"
+    },
+    "addPlayer": {
+      "button": "Adicionar jogador",
+      "title": "Adicionar jogador ao plantel",
+      "description": "Adicione um jogador a {team} para este evento.",
+      "empty": "Não há jogadores elegíveis para adicionar. Todos os membros ativos desta equipa já constam do plantel.",
+      "add": "Adicionar",
+      "adding": "A adicionar...",
+      "close": "Fechar",
+      "loadTeamError": "Não foi possível carregar os membros da equipa",
+      "success": "Jogador adicionado ao plantel.",
+      "error": "Não foi possível adicionar o jogador ao plantel"
     },
     "tools": {
       "totalTab": "Classificação Geral",

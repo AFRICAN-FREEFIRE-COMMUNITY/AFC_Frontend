@@ -684,6 +684,25 @@
     "empty": "Votre organisation n'a encore créé aucun événement.",
     "createFirst": "Créez votre premier événement",
     "draftBadge": "Brouillon",
+    "stats": {
+      "totalEvents": "Nombre total d'événements",
+      "totalEventsSub": "Tournois et matchs d'entraînement",
+      "totalTournaments": "Nombre total de tournois",
+      "totalTournamentsSub": "Tournois inscrits",
+      "totalScrims": "Nombre total de matchs d'entraînement",
+      "totalScrimsSub": "Scrims enregistrés",
+      "upcoming": "Événements à venir",
+      "upcomingSub": "Événements en cours de préparation ou ouverts aux inscriptions",
+      "ongoing": "Événements en cours",
+      "ongoingSub": "Événements en cours",
+      "completed": "Événements passés",
+      "completedSub": "Événements terminés",
+      "avgParticipants": "Nombre moyen de participants",
+      "avgParticipantsSub": "Par événement"
+    },
+    "pagination": {
+      "showing": "Affichage de {from} - {to} de {total}"
+    },
     "status": {
       "unknown": "inconnu"
     },
@@ -1089,6 +1108,18 @@
       "confirm": "Refaire la carte",
       "success": "La carte a été effacée. Vous pouvez à nouveau saisir des résultats pour cette carte.",
       "error": "Échec de la suppression des résultats de la carte"
+    },
+    "addPlayer": {
+      "button": "Ajouter un joueur",
+      "title": "Ajouter un joueur à l'effectif",
+      "description": "Ajoutez un joueur à {team} pour cet événement.",
+      "empty": "Il n'y a aucun joueur éligible à ajouter. Tous les joueurs actifs de cette équipe figurent déjà dans l'effectif.",
+      "add": "Ajouter",
+      "adding": "Ajout en cours...",
+      "close": "Fermer",
+      "loadTeamError": "Impossible de charger les membres de l'équipe",
+      "success": "Le joueur a été ajouté à l'effectif.",
+      "error": "Impossible d'ajouter le joueur à l'effectif"
     },
     "tools": {
       "totalTab": "Classement général",

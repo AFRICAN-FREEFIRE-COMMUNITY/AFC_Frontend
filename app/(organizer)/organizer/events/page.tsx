@@ -25,7 +25,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import axios from "axios";
@@ -42,17 +42,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+// Pagination primitives - the SAME shadcn set the admin events list uses
+// (app/(a)/a/_components/EventsAdminContent.tsx), so the control looks identical here.
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  IconCalendar,
   IconCalendarEvent,
+  IconClock,
   IconEyeOff,
   IconExternalLink,
   IconPlus,
   IconPencil,
+  IconSwords,
+  IconTrendingUp,
   IconTrophy,
+  IconUsers,
   IconUsersGroup,
 } from "@tabler/icons-react";
+import { CheckCircle2Icon } from "lucide-react";
 import { env } from "@/lib/env";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatMoneyInput } from "@/lib/utils";
+// Shared page-size constant (15) - same value the admin list paginates by.
+import { ITEMS_PER_PAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../_components/OrganizerContext";
 import { useLiveTick } from "@/hooks/useLiveTick";
@@ -61,6 +80,11 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 // here on the same can_create_events permission as the "Create event" button, since the
 // backend authorises duplication exactly like creation (AFC admin OR org can_create_events).
 import { DuplicateEventButton } from "@/app/(a)/a/events/_components/DuplicateEventButton";
+// Per-row DELETE: the SAME modal the admin events list uses. It POSTs /events/delete-event/
+// with { event_id }. The backend authorises an org member who holds can_edit_events on the
+// event's owning org (org_can_event(user, "can_edit_events", event)) - i.e. exactly the
+// canEditEvents gate below - so reusing it here needs no backend change.
+import { DeleteEventModal } from "@/app/(a)/a/events/_components/DeleteEventModal";
 // One-click ZIP of an event's registered team logos + player esport images.
 import { DownloadEventMediaButton } from "@/components/esport-media";
 
@@ -78,6 +102,10 @@ interface OrgEvent {
   is_public?: boolean;
   is_draft?: boolean;
   rankings_verified?: boolean;
+  // Max teams/players for this event (get-all-events returns it as number_of_participants).
+  // Feeds the "Avg. Participants" summary card only; optional so the list still renders if
+  // a backend build omits it.
+  number_of_participants?: number;
 }
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -155,6 +183,9 @@ export default function OrganizerEventsPage() {
   const [loading, setLoading] = useState(true);
   // Which event row is mid-unpublish (drives its button's pending state + disables it).
   const [unpublishingId, setUnpublishingId] = useState<string | null>(null);
+  // Current table page (1-based). Mirrors the admin events list's pagination; the org list
+  // used to render every row at once. Page size = ITEMS_PER_PAGE (15), same as admin.
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Load the selected org's events. Extracted from the effect so the Unpublish action
   // can re-fetch afterwards (a freshly-drafted event then drops off this published-only
@@ -222,6 +253,47 @@ export default function OrganizerEventsPage() {
     }
   };
 
+  // ── Summary stats (org-scoped, mirrors the admin events cards) ──────────────
+  // The admin list pulls these from site-wide count endpoints; here we compute them
+  // straight off the ORG's already-loaded `events` array (the get-all-events?organization_id
+  // fetch above), so every number counts only THIS organization's events. Recomputed with
+  // useMemo whenever the events list changes (load / unpublish / delete).
+  const stats = useMemo(() => {
+    const statusOf = (e: OrgEvent) => (e.event_status || "").toLowerCase();
+    const typeOf = (e: OrgEvent) => (e.competition_type || "").toLowerCase();
+    const totalParticipants = events.reduce(
+      (sum, e) => sum + (Number(e.number_of_participants) || 0),
+      0,
+    );
+    return {
+      total: events.length,
+      tournaments: events.filter((e) => typeOf(e) === "tournament").length,
+      scrims: events.filter((e) => typeOf(e) === "scrim").length,
+      upcoming: events.filter((e) => statusOf(e) === "upcoming").length,
+      ongoing: events.filter((e) => statusOf(e) === "ongoing").length,
+      completed: events.filter((e) => statusOf(e) === "completed").length,
+      // Average of max teams/players across the org's events (0 when the org has none).
+      avgParticipants: events.length
+        ? Math.round(totalParticipants / events.length)
+        : 0,
+    };
+  }, [events]);
+
+  // ── Pagination (mirrors the admin events list) ──────────────────────────────
+  // Slice the org's events into pages of ITEMS_PER_PAGE. No search box on this page,
+  // so the full events array is the paginated source.
+  const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
+  const paginatedEvents = events.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  // Keep the page in range when the list shrinks (e.g. after a delete/unpublish drops the
+  // last row on the final page), so we never strand the user on an empty page.
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) setCurrentPage(totalPages);
+  }, [totalPages, currentPage]);
+
   return (
     <div className="flex flex-col gap-5">
       <div data-tour="org-events-title">
@@ -241,6 +313,150 @@ export default function OrganizerEventsPage() {
           }
         />
       </div>
+
+      {/* ── Summary stat cards ──────────────────────────────────────────────────
+          The same row of totals the admin events list shows, but computed org-scoped
+          from `stats` (this org's loaded events only). Same Card markup/classes as the
+          admin cards (app/(a)/a/_components/EventsAdminContent.tsx) so they read as the
+          same component. Shown only once loaded and the org has at least one event, so
+          the empty state isn't preceded by a row of zeroes. */}
+      {!loading && events.length > 0 && (
+        <div className="grid gap-2 grid-cols-1 md:grid-cols-2 2xl:grid-cols-4">
+          {/* Total events homed to this org (every row in the list). */}
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("eventsList.stats.totalEvents")}
+              </CardTitle>
+              <IconCalendar className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatMoneyInput(stats.total)}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {t("eventsList.stats.totalEventsSub")}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Tournaments (competition_type === "tournament"). */}
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("eventsList.stats.totalTournaments")}
+              </CardTitle>
+              <IconTrophy className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatMoneyInput(stats.tournaments)}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {t("eventsList.stats.totalTournamentsSub")}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Scrims (competition_type === "scrim"). */}
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("eventsList.stats.totalScrims")}
+              </CardTitle>
+              <IconSwords className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatMoneyInput(stats.scrims)}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {t("eventsList.stats.totalScrimsSub")}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Upcoming (event_status === "upcoming"). */}
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("eventsList.stats.upcoming")}
+              </CardTitle>
+              <IconClock className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatMoneyInput(stats.upcoming)}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {t("eventsList.stats.upcomingSub")}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Ongoing (event_status === "ongoing"). */}
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("eventsList.stats.ongoing")}
+              </CardTitle>
+              <IconTrendingUp className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatMoneyInput(stats.ongoing)}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {t("eventsList.stats.ongoingSub")}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Completed (event_status === "completed"). */}
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("eventsList.stats.completed")}
+              </CardTitle>
+              <CheckCircle2Icon className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatMoneyInput(stats.completed)}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {t("eventsList.stats.completedSub")}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Avg. participants: mean of number_of_participants across the org's events. */}
+          <Card className="hover:shadow-lg transition-shadow gap-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("eventsList.stats.avgParticipants")}
+              </CardTitle>
+              <IconUsers className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatMoneyInput(stats.avgParticipants)}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {t("eventsList.stats.avgParticipantsSub")}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Card>
         <CardHeader className="border-b">
@@ -270,19 +486,22 @@ export default function OrganizerEventsPage() {
               )}
             </div>
           ) : (
-            <Table data-tour="org-events-table">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("eventsList.table.name")}</TableHead>
-                  <TableHead>{t("eventsList.table.type")}</TableHead>
-                  <TableHead>{t("eventsList.table.date")}</TableHead>
-                  <TableHead>{t("eventsList.table.status")}</TableHead>
-                  <TableHead>{t("eventsList.table.rankings")}</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {events.map((event) => (
+            // Fragment wraps the table + its pagination footer (mirrors the admin list).
+            <>
+              <Table data-tour="org-events-table">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("eventsList.table.name")}</TableHead>
+                    <TableHead>{t("eventsList.table.type")}</TableHead>
+                    <TableHead>{t("eventsList.table.date")}</TableHead>
+                    <TableHead>{t("eventsList.table.status")}</TableHead>
+                    <TableHead>{t("eventsList.table.rankings")}</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* Only the current page's slice - see paginatedEvents above. */}
+                  {paginatedEvents.map((event) => (
                   <TableRow key={event.event_id}>
                     {/* Name + draft badge inline so drafts read at a glance. */}
                     <TableCell>
@@ -350,6 +569,20 @@ export default function OrganizerEventsPage() {
                               : t("eventsList.actions.unpublish")}
                           </Button>
                         )}
+                        {/* Delete → permanently remove this event. Reuses the admin's
+                            DeleteEventModal, which POSTs /events/delete-event/ { event_id }.
+                            Gated on canEditEvents (can_edit_events || isOwner) to match the
+                            backend delete_event gate org_can_event(user, "can_edit_events",
+                            event). onSuccess re-fetches so the deleted row drops off the list. */}
+                        {canEditEvents && (
+                          <DeleteEventModal
+                            eventId={event.event_id}
+                            eventName={event.event_name}
+                            onSuccess={() => loadEvents()}
+                            isIcon
+                            size="sm"
+                          />
+                        )}
                         {/* Duplicate → clone this event into a fresh draft, then deep-link
                             into editing the copy ("/organizer/events/<new-slug>/edit"). Gated
                             on can_create_events / owner to match the backend duplicate gate. */}
@@ -402,8 +635,75 @@ export default function OrganizerEventsPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+              {/* Pagination footer - same control + "Showing X-Y of Z" summary the admin
+                  events list renders. Hidden while everything fits on a single page. */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="hidden md:block text-sm text-muted-foreground">
+                    {t("eventsList.pagination.showing", {
+                      from: (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                      to: Math.min(currentPage * ITEMS_PER_PAGE, events.length),
+                      total: events.length,
+                    })}
+                  </p>
+                  <Pagination className="w-full md:w-auto mx-0">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() =>
+                            setCurrentPage((p) => Math.max(1, p - 1))
+                          }
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page === totalPages ||
+                            Math.abs(page - currentPage) <= 1,
+                        )
+                        .map((page, idx, arr) => (
+                          <React.Fragment key={page}>
+                            {idx > 0 && arr[idx - 1] !== page - 1 && (
+                              <PaginationItem>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            )}
+                            <PaginationItem>
+                              <PaginationLink
+                                isActive={currentPage === page}
+                                onClick={() => setCurrentPage(page)}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            setCurrentPage((p) => Math.min(totalPages, p + 1))
+                          }
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

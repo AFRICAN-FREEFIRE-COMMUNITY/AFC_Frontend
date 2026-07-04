@@ -684,6 +684,25 @@
     "empty": "Your organization hasn't created any events yet.",
     "createFirst": "Create your first event",
     "draftBadge": "Draft",
+    "stats": {
+      "totalEvents": "Total Events",
+      "totalEventsSub": "Tournaments & Scrims",
+      "totalTournaments": "Total Tournaments",
+      "totalTournamentsSub": "Registered tournaments",
+      "totalScrims": "Total Scrims",
+      "totalScrimsSub": "Registered scrims",
+      "upcoming": "Upcoming Events",
+      "upcomingSub": "Events in planning or open for registration",
+      "ongoing": "Ongoing Events",
+      "ongoingSub": "Currently active events",
+      "completed": "Completed Events",
+      "completedSub": "Events that have concluded",
+      "avgParticipants": "Avg. Participants",
+      "avgParticipantsSub": "Per event"
+    },
+    "pagination": {
+      "showing": "Showing {from}-{to} of {total}"
+    },
     "status": {
       "unknown": "unknown"
     },
@@ -1089,6 +1108,18 @@
       "confirm": "Redo map",
       "success": "Map cleared. You can re-enter results for this map.",
       "error": "Failed to clear map results"
+    },
+    "addPlayer": {
+      "button": "Add player",
+      "title": "Add player to roster",
+      "description": "Add a player to {team} for this event.",
+      "empty": "No eligible players to add. Every playing member of this team is already on the roster.",
+      "add": "Add",
+      "adding": "Adding...",
+      "close": "Close",
+      "loadTeamError": "Failed to load team members",
+      "success": "Player added to the roster.",
+      "error": "Failed to add player to roster"
     },
     "tools": {
       "totalTab": "Total Leaderboard",

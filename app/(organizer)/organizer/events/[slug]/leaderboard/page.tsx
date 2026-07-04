@@ -131,6 +131,7 @@ import {
   IconSettings,
   IconTrophy,
   IconUpload,
+  IconUserPlus,
   IconUsers,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
@@ -270,6 +271,20 @@ const EMPTY_WIZARD_FORM: WizardFormData = {
   completed_match_ids: [],
 };
 
+// ── Roster rules (mirrors the admin leaderboard editor, owner 2026-06-15) ─────
+// Only PLAYING-role members (team_captain / vice_captain / member) may be added to an event
+// roster; STAFF (coach / manager / analyst) are rejected by the add_player_to_event_roster view.
+// Roles come from team/get-team-details/ -> team.members[].management_role. Matches
+// afc_team/views.py PLAYER_ROLES.
+const PLAYER_ROLES = ["team_captain", "vice_captain", "member"];
+
+// A selectable candidate for the inline add-player dialog: a PLAYING-role team member whose
+// `id` is the User.user_id the add-player endpoint expects (same shape the admin page uses).
+interface AddPlayerCandidate {
+  id: number;
+  username: string;
+}
+
 export default function OrganizerEventLeaderboardPage({
   params,
 }: {
@@ -288,6 +303,13 @@ export default function OrganizerEventLeaderboardPage({
   // (org can_edit_events), NOT can_upload_results - so those tabs only show when the
   // member holds that permission (owner 2026-07-02 organizer parity).
   const canEditEvents = membership.permissions.can_edit_events || isOwner;
+  // "Add player to event roster" is gated server-side by add_player_to_event_roster on
+  // AFC event admin OR org can_manage_registrations (NOT can_upload_results) - so the inline
+  // "Add player" control below only shows for a member holding that permission. Same precedent
+  // as the MVP / tie-breaker tabs gating on canEditEvents: gate each control on the exact
+  // permission its backend endpoint enforces, not blindly on can_upload_results.
+  const canManageRegistrations =
+    membership.permissions.can_manage_registrations || isOwner;
   const organizationId = membership.organization.organization_id;
 
   // ── slug → event resolution state ──
@@ -349,6 +371,20 @@ export default function OrganizerEventLeaderboardPage({
     teamIds: Set<number>;
     playerIds: Set<number>;
   }>({ teamIds: new Set(), playerIds: new Set() });
+
+  // ── Add-player dialog state (roster parity with the admin edit page, owner 2026-07-04) ──
+  // addPlayerTeam: the team whose "Add player" dialog is open (its tournament_team_id + name).
+  // addPlayerCandidates: the loaded eligible PLAYING-role members. loadingCandidates /
+  // addingPlayerId: per-phase in-flight flags. Mirrors the admin edit page's state 1:1.
+  const [addPlayerTeam, setAddPlayerTeam] = useState<{
+    teamId: number;
+    teamName: string;
+  } | null>(null);
+  const [addPlayerCandidates, setAddPlayerCandidates] = useState<
+    AddPlayerCandidate[]
+  >([]);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [addingPlayerId, setAddingPlayerId] = useState<number | null>(null);
 
   // ── Create-leaderboard wizard state ──
   // mode "view" = the leaderboard view/edit surface; mode "create" = the wizard.
@@ -621,6 +657,117 @@ export default function OrganizerEventLeaderboardPage({
         }
       }
       return players.sort((a, b) => b.total_kills - a.total_kills);
+    }
+  };
+
+  // ── Add player to event roster (roster parity with the admin edit page, owner 2026-07-04) ──
+  // Inline twin of the admin control (openAddPlayer / handleAddPlayer + the per-team "Add player"
+  // button in app/(a)/a/leaderboards/[id]/edit/page.tsx). Lets an organizer holding
+  // can_manage_registrations patch a single missing player onto a team's EVENT roster WITHOUT
+  // re-sending the whole roster. Entry point: the per-team "Add player" button in the Team
+  // Leaderboard tab below (each team standings row carries tournament_team_id + team_name).
+  //
+  // openAddPlayer loads the team's members from team/get-team-details/ (the SAME call the admin
+  // uses), keeps only PLAYING roles (PLAYER_ROLES; STAFF are rejected by the backend), and drops
+  // anyone who already carries stats for this team anywhere in the loaded event data - a
+  // best-effort dedupe mirroring the admin's rosterByTeam filter. A player already rostered but
+  // WITHOUT stats yet is caught by the endpoint's clean 409, which is the definitive guard.
+  const openAddPlayer = async (teamId: number, teamName: string) => {
+    setAddPlayerTeam({ teamId, teamName });
+    setAddPlayerCandidates([]);
+    setLoadingCandidates(true);
+    try {
+      // POST team/get-team-details/ { team_name } -> team.members[]{ id (user_id), username,
+      // management_role }. Consumed the same way as the admin add-player flow.
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ team_name: teamName }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          data.message ||
+            data.detail ||
+            t("eventLeaderboard.addPlayer.loadTeamError"),
+        );
+      }
+      const members: any[] = data.team?.members ?? [];
+      // user_ids that already carry stats for THIS tournament_team anywhere in the loaded
+      // leaderboard data (best-effort dedupe; see the note above).
+      const rosteredIds = new Set<number>();
+      for (const stage of eventData?.stages ?? []) {
+        for (const group of stage.groups ?? []) {
+          for (const match of group.matches ?? []) {
+            for (const teamStat of match.stats ?? []) {
+              if (teamStat.tournament_team_id === teamId) {
+                for (const p of teamStat.players ?? [])
+                  rosteredIds.add(p.player_id);
+              }
+            }
+          }
+        }
+      }
+      const candidates: AddPlayerCandidate[] = members
+        // PLAYING roles only; default a missing role to "member" (a PLAYING role).
+        .filter((m) => PLAYER_ROLES.includes(m.management_role ?? "member"))
+        // Not already showing stats on this event's roster.
+        .filter((m) => !rosteredIds.has(m.id))
+        .map((m) => ({ id: m.id, username: m.username }));
+      setAddPlayerCandidates(candidates);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || t("eventLeaderboard.addPlayer.loadTeamError"));
+    } finally {
+      setLoadingCandidates(false);
+    }
+  };
+
+  // POST the chosen member to /events/add-player-to-event-roster/ (backend view
+  // add_player_to_event_roster, gated on AFC event admin OR org can_manage_registrations), then
+  // re-fetch the standings so the new player appears - the same refresh the neighbouring edit
+  // actions (Edit Match Results, multi-map upload) do via fetchLeaderboard(). Payload mirrors the
+  // admin exactly: { event_id, tournament_team_id, user_id }.
+  const handleAddPlayer = async (userId: number) => {
+    if (!addPlayerTeam) return;
+    setAddingPlayerId(userId);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/add-player-to-event-roster/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            event_id: eventId,
+            tournament_team_id: addPlayerTeam.teamId,
+            user_id: userId,
+          }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          data.message || data.detail || t("eventLeaderboard.addPlayer.error"),
+        );
+      }
+      toast.success(data.message || t("eventLeaderboard.addPlayer.success"));
+      setAddPlayerTeam(null);
+      // Refresh the leaderboard so the newly-added player shows in the standings.
+      await fetchLeaderboard();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || t("eventLeaderboard.addPlayer.error"));
+    } finally {
+      setAddingPlayerId(null);
     }
   };
 
@@ -1484,6 +1631,17 @@ export default function OrganizerEventLeaderboardPage({
                         <TableHead className="text-right">
                           {t("eventLeaderboard.table.totalPts")}
                         </TableHead>
+                        {/* Trailing action column: the per-team "Add player" control. Only
+                            present for a member who can manage registrations (the permission the
+                            add-player endpoint enforces); header label is sr-only so the standings
+                            table stays clean. */}
+                        {canManageRegistrations && (
+                          <TableHead className="text-right">
+                            <span className="sr-only">
+                              {t("eventLeaderboard.addPlayer.button")}
+                            </span>
+                          </TableHead>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1524,6 +1682,31 @@ export default function OrganizerEventLeaderboardPage({
                           <TableCell className="text-right font-bold text-primary">
                             {(row.total_points || row.total_pts || 0).toFixed(1)}
                           </TableCell>
+                          {/* Per-team "Add player" entry point. Opens the same dialog the admin
+                              edit page uses (openAddPlayer) scoped to this team's
+                              tournament_team_id + name; the add itself POSTs to
+                              /events/add-player-to-event-roster/. Mirrors the admin control. */}
+                          {canManageRegistrations && (
+                            <TableCell className="text-right">
+                              {row.tournament_team_id && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs"
+                                  onClick={() =>
+                                    openAddPlayer(
+                                      row.tournament_team_id,
+                                      row.team_name,
+                                    )
+                                  }
+                                >
+                                  <IconUserPlus size={14} className="mr-1" />
+                                  {t("eventLeaderboard.addPlayer.button")}
+                                </Button>
+                              )}
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>
@@ -2157,6 +2340,77 @@ export default function OrganizerEventLeaderboardPage({
             </Button>
             <Button disabled={!pickerMatchId} onClick={handlePickerConfirm}>
               {t("eventLeaderboard.continue")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Add-player dialog (roster parity with the admin edit page, owner 2026-07-04) ──
+          Driven by openAddPlayer / handleAddPlayer. Lists the team's eligible PLAYING-role
+          members; clicking one adds them to this event's roster via
+          /events/add-player-to-event-roster/ (backend add_player_to_event_roster, gated on AFC
+          event admin OR org can_manage_registrations) then re-fetches the standings. Closes by
+          clearing addPlayerTeam. Ported 1:1 from the admin edit page. */}
+      <Dialog
+        open={!!addPlayerTeam}
+        onOpenChange={(o) => !o && setAddPlayerTeam(null)}
+      >
+        <DialogContent className="flex flex-col max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle>{t("eventLeaderboard.addPlayer.title")}</DialogTitle>
+            <DialogDescription>
+              {addPlayerTeam
+                ? t("eventLeaderboard.addPlayer.description", {
+                    team: addPlayerTeam.teamName,
+                  })
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-2 py-1">
+            {loadingCandidates ? (
+              <div className="flex items-center justify-center py-8">
+                <IconLoader2 className="animate-spin size-6 text-primary" />
+              </div>
+            ) : addPlayerCandidates.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-8">
+                {t("eventLeaderboard.addPlayer.empty")}
+              </p>
+            ) : (
+              addPlayerCandidates.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                >
+                  <span className="text-xs font-medium">{c.username}</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="text-xs"
+                    disabled={addingPlayerId !== null}
+                    onClick={() => handleAddPlayer(c.id)}
+                  >
+                    {addingPlayerId === c.id ? (
+                      <span className="flex items-center gap-2">
+                        <IconLoader2 size={14} className="animate-spin" />
+                        {t("eventLeaderboard.addPlayer.adding")}
+                      </span>
+                    ) : (
+                      t("eventLeaderboard.addPlayer.add")
+                    )}
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setAddPlayerTeam(null)}
+              disabled={addingPlayerId !== null}
+            >
+              {t("eventLeaderboard.addPlayer.close")}
             </Button>
           </DialogFooter>
         </DialogContent>
