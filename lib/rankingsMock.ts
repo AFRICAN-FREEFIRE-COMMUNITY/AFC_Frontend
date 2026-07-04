@@ -87,5 +87,5 @@ export const mockTransferLog = [
   { id: 1, action: "opened", new_close: "2026-04-14", by: "headadmin", at: "2026-04-01", reason: "Season 2 transfer window open." },
 ];
 
-export const TIER_LABELS: Record<number, string> = { 0: "Elite", 1: "Competitive", 2: "Rising", 3: "Entry" };
+export const TIER_LABELS: Record<number, string> = { 0: "Tier 1", 1: "Tier 2", 2: "Tier 3", 3: "Tier 4" };
 export const ngn = (n: number) => "₦" + n.toLocaleString();

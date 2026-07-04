@@ -236,7 +236,7 @@ function toBackend(c: ScoringConfig, raw: BackendConfig | null): BackendConfig {
       ],
       default_tier: raw?.tier_thresholds?.default_tier ?? 3,
       labels: raw?.tier_thresholds?.labels ?? {
-        "0": "Elite", "1": "Competitive", "2": "Rising", "3": "Entry",
+        "0": "Tier 1", "1": "Tier 2", "2": "Tier 3", "3": "Tier 4",
       },
     },
     scrim: {
@@ -609,7 +609,7 @@ export default function ScoringConfigPage() {
         <StatCard
           icon={<IconStack2 className="size-4" />}
           title="Tiers" value={4}
-          sub="Elite · Competitive · Rising · Entry"
+          sub="Tier 1 · Tier 2 · Tier 3 · Tier 4"
         />
       </div>
 

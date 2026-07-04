@@ -429,7 +429,7 @@
     "tiersGradeBody": "Chaque trimestre, les <b>équipes</b> sont classées en quatre niveaux (les joueurs ne sont pas classés par niveau). Il répond à la question « dans quelle ligue est mon équipe ? » Le niveau d'une équipe est maintenu pour tout le trimestre suivant.",
     "fourTeamTiers": "Les quatre niveaux d'équipe",
     "tierMinPoints": "{min}+ points",
-    "participationFloor": "Une équipe doit jouer au moins <b>2 tournois</b> au cours du trimestre pour se classer au-dessus du niveau Entrée.",
+    "participationFloor": "Une équipe doit participer à au moins <b>deux tournois</b> au cours du trimestre pour se classer au-dessus du niveau 4.",
     "howPointsEarned": "Comment les points sont gagnés",
     "pointsKills": "Éliminations et classements de chaque match (compressés, donc plus n'est pas infiniment mieux).",
     "pointsTournaments": "Les tournois plus importants multiplient vos points (Niveau 1 x2, Niveau 2 x1.5, Niveau 3 x1).",
@@ -469,7 +469,7 @@
     "participation": "Participation",
     "tiersIntro": "Classement des équipes pour la saison. Seules les équipes sont classées par paliers.",
     "tiersIntroElite": "Atteignez le sommet pour devenir",
-    "elite": "Élite",
+    "elite": "Niveau 1",
     "tiersIntroTap": "Touchez une équipe pour voir son analyse complète.",
     "season": "Saison",
     "seasonCurrent": " · actuelle",
@@ -478,7 +478,7 @@
     "loadingTiers": "Chargement des paliers",
     "teamCount": "{count, plural, one {# équipe} other {# équipes}}",
     "minPts": "{min}+ pts",
-    "noEliteYet": "Aucune équipe n'a encore atteint le rang Élite cette saison.",
+    "noEliteYet": "Aucune équipe n'a encore atteint le niveau 1 cette saison.",
     "tournamentsPlayed": "{count}/2 tournois",
     "totalKills": "Total d'éliminations",
     "tournamentPts": "Pts de tournoi",
@@ -491,7 +491,8 @@
     "periodMonthly": "mensuels",
     "periodQuarterly": "trimestriels",
     "rankingsLabel": "Classements",
-    "loadFailed": "Échec du chargement des classements"
+    "loadFailed": "Échec du chargement des classements",
+    "month": "Mois"
   },
   "claimGhost": {
     "claimTeamTitle": "Revendiquer cette équipe fantôme",

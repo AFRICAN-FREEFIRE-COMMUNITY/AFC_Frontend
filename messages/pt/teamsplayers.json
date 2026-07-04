@@ -429,7 +429,7 @@
     "tiersGradeBody": "A cada trimestre, as <b>equipes</b> são classificadas em quatro níveis (jogadores não são nivelados). Ele responde \"em qual liga minha equipe está.\" O nível de uma equipe é mantido durante todo o próximo trimestre.",
     "fourTeamTiers": "Os quatro níveis de equipe",
     "tierMinPoints": "{min}+ pontos",
-    "participationFloor": "Uma equipe deve jogar pelo menos <b>2 torneios</b> no trimestre para se classificar acima da Entrada.",
+    "participationFloor": "Uma equipa tem de disputar, pelo menos<b>, dois torneios</b> neste trimestre para ficar classificada acima do Nível 4.",
     "howPointsEarned": "Como os pontos são ganhos",
     "pointsKills": "Abates e classificações de cada partida (comprimidos, então mais não é infinitamente melhor).",
     "pointsTournaments": "Torneios maiores multiplicam seus pontos (Nível 1 x2, Nível 2 x1.5, Nível 3 x1).",
@@ -469,7 +469,7 @@
     "participation": "Participação",
     "tiersIntro": "Classificação da equipe para a temporada. Apenas equipes são classificadas por nível.",
     "tiersIntroElite": "Chegue ao topo para se tornar",
-    "elite": "Elite",
+    "elite": "Nível 1",
     "tiersIntroTap": "Toque em uma equipe para ver seu detalhamento completo.",
     "season": "Temporada",
     "seasonCurrent": " · atual",
@@ -478,7 +478,7 @@
     "loadingTiers": "Carregando níveis",
     "teamCount": "{count, plural, one {# equipe} other {# equipes}}",
     "minPts": "{min}+ pts",
-    "noEliteYet": "Nenhuma equipe alcançou o nível Elite nesta temporada ainda.",
+    "noEliteYet": "Nenhuma equipa alcançou ainda o Nível 1 nesta época.",
     "tournamentsPlayed": "{count}/2 torneios",
     "totalKills": "Total de abates",
     "tournamentPts": "Pts de torneio",
@@ -491,7 +491,8 @@
     "periodMonthly": "mensais",
     "periodQuarterly": "trimestrais",
     "rankingsLabel": "Classificações",
-    "loadFailed": "Falha ao carregar classificações"
+    "loadFailed": "Falha ao carregar classificações",
+    "month": "Mês"
   },
   "claimGhost": {
     "claimTeamTitle": "Reivindicar esta equipe fantasma",

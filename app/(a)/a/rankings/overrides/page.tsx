@@ -117,7 +117,7 @@ function TierOverrideDialog({
               <SelectContent>
                 {TIERS.map((t) => (
                   <SelectItem key={t} value={String(t)}>
-                    Tier {t} · {TIER_LABELS[t]}
+                    {TIER_LABELS[t]}
                   </SelectItem>
                 ))}
               </SelectContent>

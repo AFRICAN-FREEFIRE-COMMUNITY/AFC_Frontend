@@ -429,7 +429,7 @@
     "tiersGradeBody": "Each quarter, <b>teams</b> are graded into four tiers (players aren't tiered). It answers \"which league is my team in.\" A team's tier holds for the whole next quarter.",
     "fourTeamTiers": "The four team tiers",
     "tierMinPoints": "{min}+ points",
-    "participationFloor": "A team must play at least <b>2 tournaments</b> in the quarter to rank above Entry.",
+    "participationFloor": "A team must play at least <b>2 tournaments</b> in the quarter to rank above Tier 4.",
     "howPointsEarned": "How points are earned",
     "pointsKills": "Kills and placements from every match (compressed, so more isn't infinitely better).",
     "pointsTournaments": "Bigger tournaments multiply your points (Tier 1 x2, Tier 2 x1.5, Tier 3 x1).",
@@ -469,7 +469,7 @@
     "participation": "Participation",
     "tiersIntro": "Team grade for the season. Only teams are tiered.",
     "tiersIntroElite": "Reach the top to become",
-    "elite": "Elite",
+    "elite": "Tier 1",
     "tiersIntroTap": "Tap a team for its full breakdown.",
     "season": "Season",
     "seasonCurrent": " · current",
@@ -478,7 +478,7 @@
     "loadingTiers": "Loading tiers",
     "teamCount": "{count, plural, one {# team} other {# teams}}",
     "minPts": "{min}+ pts",
-    "noEliteYet": "No teams have reached Elite this season yet.",
+    "noEliteYet": "No teams have reached Tier 1 this season yet.",
     "tournamentsPlayed": "{count}/2 tournaments",
     "totalKills": "Total kills",
     "tournamentPts": "Tournament pts",
@@ -491,7 +491,8 @@
     "periodMonthly": "monthly",
     "periodQuarterly": "quarterly",
     "rankingsLabel": "Rankings",
-    "loadFailed": "Failed to load rankings"
+    "loadFailed": "Failed to load rankings",
+    "month": "Month"
   },
   "claimGhost": {
     "claimTeamTitle": "Claim this ghost team",

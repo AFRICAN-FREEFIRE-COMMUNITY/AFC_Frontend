@@ -192,6 +192,12 @@ function RankingsView() {
   // Country filter (owner 2026-06-30): view the rankings for one country. "" = all countries.
   // Client-side (every row already carries r.country for the flag), so no extra request.
   const [countryFilter, setCountryFilter] = useState("");
+  // Season + month picker (owner 2026-07-04: "when i click on ranking i cant change seasons").
+  // Monthly rankings are per-MONTH, and a season spans up to 3 months, so a season pick drives a
+  // month list and the monthly endpoint is fetched for the chosen month. undefined month = current.
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [seasonId, setSeasonId] = useState<number | undefined>(undefined);
+  const [monthSel, setMonthSel] = useState<string | undefined>(undefined);
   // The ghost the user is requesting to claim (null = dialog closed). Set by the per-row "Claim"
   // button; consumed by <ClaimGhostDialog/> at the bottom of this view.
   const [claimTarget, setClaimTarget] = useState<ClaimGhostTarget | null>(null);
@@ -208,16 +214,48 @@ function RankingsView() {
     (async () => {
       try {
         if (subject === "teams") {
-          const r = await rankingsApi.teamsMonthly(); if (!active) return;
+          const r = await rankingsApi.teamsMonthly(monthSel); if (!active) return;
           setTeams(r.results); setMonth(r.month ?? ""); setSeason((r.season as SeasonFlags) ?? null);
         } else {
-          const r = await rankingsApi.playersMonthly(); if (!active) return;
+          const r = await rankingsApi.playersMonthly(monthSel); if (!active) return;
           setPlayers(r.results); setMonth(r.month ?? ""); setSeason((r.season as SeasonFlags) ?? null);
         }
       } finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
-  }, [subject, tick]);
+  }, [subject, tick, monthSel]);
+
+  // Load the season list once (owner 2026-07-04 season picker), auto-selecting the active season.
+  useEffect(() => {
+    rankingsApi.seasons().then((r) => {
+      setSeasons(r.results);
+      const active = r.results.find((s) => s.is_active) ?? r.results[0];
+      setSeasonId((prev) => prev ?? active?.season_id);
+    }).catch(() => { /* season picker just stays empty if the list can't load */ });
+  }, []);
+
+  // ISO months ("2026-05") spanned by the selected season, newest first, capped at the current month
+  // so we never offer a future month with no data.
+  const seasonMonths = useMemo(() => {
+    const s = seasons.find((x) => x.season_id === seasonId);
+    if (!s) return [] as string[];
+    const out: string[] = [];
+    const d = new Date(s.start_date + "T00:00:00");
+    const end = new Date(s.end_date + "T00:00:00");
+    const nowKey = new Date().toISOString().slice(0, 7);
+    while (d <= end) {
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (key <= nowKey) out.push(key);
+      d.setMonth(d.getMonth() + 1);
+    }
+    return out.reverse();
+  }, [seasons, seasonId]);
+
+  // When the season changes, snap the month to that season's latest available month.
+  useEffect(() => {
+    if (seasonMonths.length) setMonthSel(seasonMonths[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seasonId]);
 
   const all: any[] = subject === "teams" ? teams : players;
   // Distinct countries present in the current rows (for the filter dropdown), sorted.
@@ -228,12 +266,18 @@ function RankingsView() {
   // Use the shared matchesSearch() helper (lib/search.ts) instead of a raw .includes so the
   // search box is punctuation/space/accent-insensitive and folds stylized "fancy font" IGNs
   // (typing "ve" finds "V-E"). The searched field is the team_name or username for the active tab.
-  // Country filter applied alongside the search ("" = all countries).
-  const rows = all.filter(
-    (r) =>
-      matchesSearch(subject === "teams" ? r.team_name : r.username, q) &&
-      (!countryFilter || r.country === countryFilter),
-  );
+  //
+  // Country RE-RANK (owner 2026-07-04): when a country is picked, number rows 1..N WITHIN that
+  // country - a team 8th overall may be 3rd among its own country. `all` already arrives in global
+  // rank order, so the country-scoped index + 1 IS the country rank; with no country filter we keep
+  // the backend's global r.rank. Search only filters what's shown, it never changes the rank, so the
+  // rank is assigned on the country-scoped list BEFORE the search filter is applied.
+  const countryScoped: any[] = countryFilter
+    ? all.filter((r) => r.country === countryFilter)
+    : all;
+  const rows = countryScoped
+    .map((r, i) => ({ ...r, _rank: countryFilter ? i + 1 : r.rank }))
+    .filter((r) => matchesSearch(subject === "teams" ? r.team_name : r.username, q));
   // Month label ("June 2026"): no <LocalTime> month-year mode exists, so format inline
   // but in the VIEWER's locale (month names follow the language) + their timezone,
   // instead of the old hardcoded "en-US" / UTC. Falls back to "This month" when unset.
@@ -253,6 +297,31 @@ function RankingsView() {
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <SearchBar value={q} onChange={setQ} placeholder={subject === "teams" ? t("rankings.searchTeams") : t("rankings.searchPlayers")} />
+          {/* Season + month picker (owner 2026-07-04): change which period's monthly rankings show. */}
+          {seasons.length > 0 && (
+            <Select value={seasonId ? String(seasonId) : undefined} onValueChange={(v) => setSeasonId(Number(v))}>
+              <SelectTrigger className="h-9 w-full sm:w-40"><SelectValue placeholder={t("rankings.season")} /></SelectTrigger>
+              <SelectContent>
+                {seasons.map((s) => (
+                  <SelectItem key={s.season_id} value={String(s.season_id)}>
+                    {s.name}{s.is_active ? t("rankings.seasonCurrent") : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {seasonMonths.length > 1 && (
+            <Select value={monthSel} onValueChange={setMonthSel}>
+              <SelectTrigger className="h-9 w-full sm:w-36"><SelectValue placeholder={t("rankings.month")} /></SelectTrigger>
+              <SelectContent>
+                {seasonMonths.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {new Intl.DateTimeFormat(getActiveLocale(), { month: "long", year: "numeric", timeZone: getBrowserTimeZone() }).format(new Date(m + "-01T00:00:00"))}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           {/* Country filter (owner 2026-06-30): see the rankings for one country. Only shown when the
               data has countries to choose from. "__all" sentinel = all countries (Radix Select can't
               use an empty-string value). */}
@@ -321,7 +390,7 @@ function RankingsView() {
                     <React.Fragment key={id}>
                       <TableRow className="cursor-pointer" onClick={() => setOpen(isOpen ? null : id)}>
                         <TableCell className="font-semibold text-muted-foreground">
-                          <span className="inline-flex items-center"><IconHash className="size-3" />{r.rank}</span>
+                          <span className="inline-flex items-center"><IconHash className="size-3" />{r._rank ?? r.rank}</span>
                         </TableCell>
                         <TableCell className="font-medium">
                           {/* Ghost rows (is_ghost) have NO public profile, so they must
@@ -453,7 +522,7 @@ function TierTeamRow({ row, elite }: { row: any; elite?: boolean }) {
       >
         <span className={cn("inline-flex w-9 shrink-0 items-center font-semibold",
           elite ? "text-amber-400" : "text-muted-foreground")}>
-          {elite ? <IconCrown className="size-5" /> : <><IconHash className="size-3" />{row.rank}</>}
+          {elite ? <IconCrown className="size-5" /> : <><IconHash className="size-3" />{(row as any)._rank ?? row.rank}</>}
         </span>
         <span className={cn("flex-1 truncate font-medium", elite && "text-lg font-bold")}>{row.team_name}</span>
         {/* Ghost teams have no profile. The tier row renders the name as plain text
