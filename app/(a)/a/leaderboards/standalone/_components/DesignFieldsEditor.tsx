@@ -202,6 +202,31 @@ const MOCK_TEAMS: [string, number, number, number, number][] = [
   ["ARENDT", 0, 18, 11, 29], ["SHEDOO", 0, 15, 8, 23],
 ];
 
+// ── Sample images for image/logo fields on the editor canvas (owner 2026-07-04) ────────────────
+// Image columns (team logo, player photo, team flag) used to render a text placeholder ("[logo]",
+// "[photo]") which made it impossible to judge how a real image would sit. Now the canvas paints a
+// realistic SAMPLE image at the field's box size so placement + proportions are visible while
+// designing. Logo + photo are self-contained inline SVGs (no network); the flag reuses flagcdn (the
+// same source the live overlay resolves team_country to), so what you place is what you get.
+const SAMPLE_LOGO_SVG =
+  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'>" +
+  "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2334d27b'/><stop offset='1' stop-color='%231f7a4d'/></linearGradient></defs>" +
+  "<path d='M60 6 L106 24 V64 C106 92 86 108 60 116 C34 108 14 92 14 64 V24 Z' fill='url(%23g)' stroke='%23ffffff' stroke-width='3'/>" +
+  "<path d='M60 34 l7 20 h21 l-17 13 6 21 -17 -13 -17 13 6 -21 -17 -13 h21 z' fill='%23ffffff'/></svg>";
+const SAMPLE_PHOTO_SVG =
+  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 130'>" +
+  "<rect width='100' height='130' rx='6' fill='%232a2f3a'/>" +
+  "<circle cx='50' cy='48' r='23' fill='%235b6472'/>" +
+  "<path d='M12 130 C12 96 30 82 50 82 C70 82 88 96 88 130 Z' fill='%235b6472'/></svg>";
+const SAMPLE_IMAGE_SRC: Partial<Record<FieldType, string>> = {
+  team_logo: `data:image/svg+xml,${SAMPLE_LOGO_SVG}`,
+  esports_image: `data:image/svg+xml,${SAMPLE_PHOTO_SVG}`,
+  team_flag: "https://flagcdn.com/w160/ng.png",
+};
+// Field types whose canvas cell is an IMAGE (mirrors DesignBoard.isImageField on the overlay side).
+const isImageFieldType = (ft: FieldType): boolean =>
+  ft === "team_logo" || ft === "team_flag" || ft === "esports_image";
+
 // Derive a mock cell value for a given field type + row index (0-based within standings).
 function mockCellValue(rankIndex: number, field: FieldType): string {
   const t = MOCK_TEAMS[rankIndex];
@@ -2096,13 +2121,38 @@ export function DesignFieldsEditor({
                           if (rankIdx >= MOCK_TEAMS.length) return null;
                           const topPct =
                             grp.row_start_pct + ri * grp.row_height_pct;
-                          const cellText = mockCellValue(rankIdx, field.field_type);
                           const transformX =
                             field.align === "left"
                               ? "translateX(0)"
                               : field.align === "right"
                               ? "translateX(-100%)"
                               : "translateX(-50%)";
+                          // Image fields render a SAMPLE image at the box size (owner 2026-07-04) so
+                          // the operator sees how a real logo/photo/flag will sit; text fields render
+                          // the mock value. The box uses fSizePx * 1.35, matching DesignBoard's image
+                          // cell on the live overlay so the preview matches the broadcast output.
+                          if (isImageFieldType(field.field_type)) {
+                            const boxPx = fSizePx * 1.35;
+                            return (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                key={`${field.draftId}-r${ri}`}
+                                src={SAMPLE_IMAGE_SRC[field.field_type]}
+                                alt=""
+                                className="pointer-events-none absolute"
+                                style={{
+                                  left: `${fieldX(field)}%`,
+                                  top: `${topPct}%`,
+                                  width: boxPx,
+                                  height: boxPx,
+                                  objectFit: "contain",
+                                  transform: `${transformX} translateY(-50%)`,
+                                  opacity: 0.9,
+                                }}
+                              />
+                            );
+                          }
+                          const cellText = mockCellValue(rankIdx, field.field_type);
                           return (
                             <span
                               key={`${field.draftId}-r${ri}`}
