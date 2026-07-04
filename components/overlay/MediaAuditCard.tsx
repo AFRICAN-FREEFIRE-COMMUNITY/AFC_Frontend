@@ -26,7 +26,32 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { IconFlag, IconLoader2, IconPhotoOff, IconPhotoCheck, IconUpload } from "@tabler/icons-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { IconFlag, IconLoader2, IconPhotoOff, IconPhotoCheck, IconUpload, IconDownload } from "@tabler/icons-react";
+
+// Size presets for the per-item Download control (owner 2026-07-04). "original" keeps source dims;
+// "custom" reveals width/height inputs. The named presets mirror the Free Fire asset slots so a
+// downloaded logo/image drops straight into a broadcast folder.
+const DOWNLOAD_SIZE_PRESETS: { value: string; label: string; w?: number; h?: number }[] = [
+  { value: "original", label: "Original size" },
+  { value: "108x130", label: "108 x 130 (head / role)", w: 108, h: 130 },
+  { value: "512x512", label: "512 x 512", w: 512, h: 512 },
+  { value: "1000x1000", label: "1000 x 1000 (backpack / gloo)", w: 1000, h: 1000 },
+  { value: "custom", label: "Custom size" },
+];
 
 const authHeaders = () => ({ Authorization: `Bearer ${Cookies.get("auth_token")}` });
 
@@ -48,6 +73,116 @@ interface PlayerRow {
   flagged: boolean;
 }
 
+// ── DownloadControl: a popover on a media row to download that ONE logo/image with a chosen file
+// name + size (owner 2026-07-04). Module-level (stable identity, same reason as MediaRow). Drives
+// MediaAuditCard.downloadSingle -> events/download-single-media/. ──
+const DownloadControl = ({
+  defaultName,
+  onDownload,
+  t,
+}: {
+  defaultName: string;
+  onDownload: (opts: { filename: string; width?: number; height?: number; format: "png" | "jpg" }) => void;
+  t: ReturnType<typeof useTranslations>;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [filename, setFilename] = useState(defaultName);
+  const [sizePreset, setSizePreset] = useState("original");
+  const [cw, setCw] = useState("512");
+  const [ch, setCh] = useState("512");
+  const [format, setFormat] = useState<"png" | "jpg">("png");
+
+  const go = () => {
+    let width: number | undefined;
+    let height: number | undefined;
+    const preset = DOWNLOAD_SIZE_PRESETS.find((p) => p.value === sizePreset);
+    if (sizePreset === "custom") {
+      width = Math.max(1, parseInt(cw, 10) || 0) || undefined;
+      height = Math.max(1, parseInt(ch, 10) || 0) || undefined;
+    } else if (preset?.w && preset?.h) {
+      width = preset.w;
+      height = preset.h;
+    }
+    onDownload({ filename: (filename || defaultName).trim(), width, height, format });
+    setOpen(false);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <span
+          role="button"
+          title={t("mediaAudit.download")}
+          className="hover:bg-accent inline-flex h-6 cursor-pointer items-center rounded-md px-1.5 text-[0.65rem]"
+        >
+          <IconDownload className="size-3" />
+        </span>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-60 space-y-2 p-3">
+        <p className="text-xs font-semibold">{t("mediaAudit.downloadTitle")}</p>
+        <div className="space-y-1">
+          <Label className="text-[0.65rem]">{t("mediaAudit.fileName")}</Label>
+          <Input
+            value={filename}
+            onChange={(e) => setFilename(e.target.value)}
+            className="h-7 text-xs"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-[0.65rem]">{t("mediaAudit.size")}</Label>
+          <Select value={sizePreset} onValueChange={setSizePreset}>
+            <SelectTrigger className="h-7 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DOWNLOAD_SIZE_PRESETS.map((p) => (
+                <SelectItem key={p.value} value={p.value} className="text-xs">
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {sizePreset === "custom" ? (
+          <div className="flex items-center gap-1">
+            <Input
+              value={cw}
+              onChange={(e) => setCw(e.target.value)}
+              inputMode="numeric"
+              className="h-7 text-xs"
+              aria-label="width"
+            />
+            <span className="text-muted-foreground text-xs">x</span>
+            <Input
+              value={ch}
+              onChange={(e) => setCh(e.target.value)}
+              inputMode="numeric"
+              className="h-7 text-xs"
+              aria-label="height"
+            />
+          </div>
+        ) : null}
+        <div className="space-y-1">
+          <Label className="text-[0.65rem]">{t("mediaAudit.format")}</Label>
+          <Select value={format} onValueChange={(v) => setFormat(v as "png" | "jpg")}>
+            <SelectTrigger className="h-7 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="png" className="text-xs">PNG</SelectItem>
+              <SelectItem value="jpg" className="text-xs">JPG</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button size="sm" className="h-7 w-full text-xs" onClick={go}>
+          <IconDownload className="mr-1 size-3" />
+          {t("mediaAudit.download")}
+        </Button>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 // ── MediaRow: one team-logo / player-image line. MODULE-LEVEL on purpose (owner bug 2026-07-02):
 // defined inside the card it was recreated on every state change (lightbox open, upload refetch),
 // remounting all rows and resetting the list's scroll to the top. Stable identity + stable keys
@@ -62,6 +197,7 @@ const MediaRow = ({
     onFlag,
     onSuppress,
     onUpload,
+    onDownload,
     uploadingState,
     t,
     onZoom,
@@ -75,6 +211,7 @@ const MediaRow = ({
     onFlag: () => void;
     onSuppress: (remove: boolean) => void;
     onUpload?: (file: File) => void;
+    onDownload?: (opts: { filename: string; width?: number; height?: number; format: "png" | "jpg" }) => void;
     uploadingState?: boolean;
     t: ReturnType<typeof useTranslations>;
     onZoom: (src: string, label: string) => void;
@@ -100,6 +237,10 @@ const MediaRow = ({
         {sub ? <p className="text-muted-foreground truncate text-[0.65rem]">{sub}</p> : null}
       </div>
       <div className="ml-auto flex items-center gap-1">
+        {/* Per-item download with custom name + size (owner 2026-07-04). Only when an image exists. */}
+        {onDownload && img ? (
+          <DownloadControl defaultName={label} onDownload={onDownload} t={t} />
+        ) : null}
         {/* Admin upload (owner 2026-07-02): replace or add the media in place. Hidden file input
             triggered by the button; the backend re-encodes + the audit refetches. */}
         {onUpload ? (
@@ -190,6 +331,39 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
       toast.error(t("mediaAudit.uploadFailed"));
     } finally {
       setUploading(null);
+    }
+  };
+
+  // Download ONE team logo / player image with a chosen file name + size (owner 2026-07-04). Posts to
+  // events/download-single-media/ (views.download_single_media) and saves the returned image blob.
+  const downloadSingle = async (
+    kind: "team_logo" | "player_image",
+    id: number,
+    opts: { filename: string; width?: number; height?: number; format: "png" | "jpg" },
+  ) => {
+    try {
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/download-single-media/`,
+        {
+          kind,
+          [kind === "team_logo" ? "team_id" : "user_id"]: id,
+          filename: opts.filename,
+          width: opts.width,
+          height: opts.height,
+          format: opts.format,
+        },
+        { headers: authHeaders(), responseType: "blob" },
+      );
+      const url = URL.createObjectURL(res.data as Blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${opts.filename || "media"}.${opts.format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error(t("mediaAudit.downloadFailed"));
     }
   };
   const [loading, setLoading] = useState(true);
@@ -297,6 +471,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
                   onFlag={() => flag("team_logo", x.team_id)}
                   onSuppress={(remove) => suppress("team_logo", x.team_id, remove)}
                   onUpload={isAdminByRoleOrRoles ? (f) => uploadMedia("team_logo", x.team_id, f) : undefined}
+                  onDownload={(opts) => downloadSingle("team_logo", x.team_id, opts)}
                   uploadingState={uploading === `team_logo-${x.team_id}`}
                   t={t}
                   onZoom={(src, label) => setLightbox({ src, label })}
@@ -325,6 +500,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
                   onFlag={() => flag("esports_image", x.user_id)}
                   onSuppress={(remove) => suppress("esports_image", x.user_id, remove)}
                   onUpload={isAdminByRoleOrRoles ? (f) => uploadMedia("player_image", x.user_id, f) : undefined}
+                  onDownload={(opts) => downloadSingle("player_image", x.user_id, opts)}
                   uploadingState={uploading === `player_image-${x.user_id}`}
                   t={t}
                   onZoom={(src, label) => setLightbox({ src, label })}

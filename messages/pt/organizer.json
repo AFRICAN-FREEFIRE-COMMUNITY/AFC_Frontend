@@ -1326,7 +1326,13 @@
     "viewLarger": "Ver em tamanho maior",
     "upload": "Carregar imagem",
     "uploaded": "Os ficheiros multimédia foram atualizados.",
-    "uploadFailed": "Não foi possível carregar a imagem."
+    "uploadFailed": "Não foi possível carregar a imagem.",
+    "download": "Descarregar",
+    "downloadTitle": "Descarregar imagem",
+    "downloadFailed": "O download falhou",
+    "fileName": "Nome do ficheiro",
+    "size": "Tamanho",
+    "format": "Formato"
   },
   "broadcastKit": {
     "title": "Kit de transmissão",

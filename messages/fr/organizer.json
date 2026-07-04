@@ -1326,7 +1326,13 @@
     "viewLarger": "Agrandir l'image",
     "upload": "Télécharger une image",
     "uploaded": "Mise à jour des médias.",
-    "uploadFailed": "Impossible de télécharger l'image."
+    "uploadFailed": "Impossible de télécharger l'image.",
+    "download": "Télécharger",
+    "downloadTitle": "Télécharger l'image",
+    "downloadFailed": "Échec du téléchargement",
+    "fileName": "Nom du fichier",
+    "size": "Taille",
+    "format": "Format"
   },
   "broadcastKit": {
     "title": "Kit de diffusion",

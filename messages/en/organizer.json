@@ -1326,7 +1326,13 @@
     "viewLarger": "View larger",
     "upload": "Upload image",
     "uploaded": "Media updated.",
-    "uploadFailed": "Could not upload the image."
+    "uploadFailed": "Could not upload the image.",
+    "download": "Download",
+    "downloadTitle": "Download image",
+    "downloadFailed": "Download failed",
+    "fileName": "File name",
+    "size": "Size",
+    "format": "Format"
   },
   "broadcastKit": {
     "title": "Broadcast Kit",
