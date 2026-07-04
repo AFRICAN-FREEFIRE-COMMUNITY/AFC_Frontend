@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -46,25 +45,12 @@ import {
   IconUsers,
   IconPlus,
   IconX,
-  IconChevronDown,
-  IconChevronRight,
   IconUpload,
   IconFlag,
-  IconRefresh,
-  IconUserPlus,
 } from "@tabler/icons-react";
-// Redo map (owner 2026-06-15): destructive confirm before wiping one map's results.
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+// Redo map, per-team player expand/collapse, and the roster "Add player" control now live inside
+// the shared <MatchResultsGrid> (components/leaderboards/MatchResultsGrid.tsx), so the AlertDialog
+// primitives + IconChevron*/IconRefresh/IconUserPlus/Checkbox they used are imported there, not here.
 import {
   Sheet,
   SheetContent,
@@ -126,6 +112,15 @@ import type { DraftRow } from "@/lib/api/ocr";
 // here is unchanged: it stays controlled by this page's shared selectedMatchId and re-saves the
 // map's results via handleSaveMatch after a scoring save (so points recompute).
 import { ScoringConfigPanel } from "../../_components/ScoringConfigPanel";
+// Match Results grid (owner 2026-07-04 organizer parity): the always-editable per-map grid
+// (placement/kills/bonus/penalty/played + per-player expandable rows + live Match Leaderboard
+// preview + Save this map / Save all maps / Redo this map), extracted VERBATIM from this tab into
+// a shared component so the organizer leaderboard page can mount the SAME grid. This page stays
+// the source of truth for the editing state (editRows/playerGroups/selectedMatchId are shared with
+// the Total Leaderboard + Scoring tabs), so the grid is fully controlled: it receives that state +
+// the handlers below and renders identically. No `labels` are passed here, so it renders the exact
+// English the tab always shipped (admin surface is i18n-exempt). Zero behaviour change.
+import { MatchResultsGrid } from "@/components/leaderboards/MatchResultsGrid";
 
 type Params = { id: string };
 
@@ -1302,606 +1297,39 @@ export default function EditLeaderboardPage({
 
         {/* ── Match Results Tab ── */}
         <TabsContent value="matches" className="mt-4 space-y-4">
-          {groupMatches.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                No matches found for this group.
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {/* Map selector */}
-              {/* data-tour anchor (leaderboard-edit-match-list): admin tour "Match list" step.
-                  Every map in the selected group renders as a button; click one to load its
-                  editable results below. */}
-              <div data-tour="leaderboard-edit-match-list" className="flex gap-2 flex-wrap">
-                {groupMatches.map((m) => (
-                  <Button
-                    key={m.match_id}
-                    variant={
-                      selectedMatchId === m.match_id ? "default" : "secondary"
-                    }
-                    size="sm"
-                    onClick={() => setSelectedMatchId(m.match_id)}
-                  >
-                    {m.match_map}
-                  </Button>
-                ))}
-              </div>
-
-              {selectedMatchId !== null && currentRows.length === 0 && (
-                <Card>
-                  <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                    No results have been entered for this map yet.
-                  </CardContent>
-                </Card>
-              )}
-
-              {selectedMatchId !== null && currentRows.length > 0 && (
-                <>
-                  {/* ── Team / Solo placement table ── */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">
-                        {participantType === "team"
-                          ? "Team Placements"
-                          : "Player Results"}
-                      </CardTitle>
-                      <CardDescription>
-                        {participantType === "team"
-                          ? "Edit team placement and participation for this map."
-                          : "Edit placement, kills, and bonus/penalty points."}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="rounded-md border overflow-hidden">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>
-                                {participantType === "team" ? "Team" : "Player"}
-                              </TableHead>
-                              <TableHead className="w-28">Placement</TableHead>
-                              {participantType === "solo" && (
-                                <TableHead className="w-28">Kills</TableHead>
-                              )}
-                              {participantType === "solo" && (
-                                <TableHead className="w-28">
-                                  Bonus Pts
-                                </TableHead>
-                              )}
-                              {participantType === "solo" && (
-                                <TableHead className="w-28">
-                                  Penalty Pts
-                                </TableHead>
-                              )}
-                              <TableHead className="w-20 text-center">
-                                Played
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {currentRows.map((row, idx) => (
-                              <TableRow key={row.id}>
-                                <TableCell className="font-medium">
-                                  <span className="inline-flex items-center gap-2">
-                                    {/* Flag beside the team name (team's country; solo -> none). */}
-                                    <CountryFlag country={row.teamCountry} />
-                                    {row.name}
-                                    {/* Advisory watchlist flag (team in team mode, player in solo). */}
-                                    {isEntityWatched(row.id) && (
-                                      <WatchTag reason="On the advisory watchlist" />
-                                    )}
-                                  </span>
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    className="h-8 w-24"
-                                    value={row.placement || ""}
-                                    onChange={(e) =>
-                                      updateRow(
-                                        selectedMatchId,
-                                        idx,
-                                        "placement",
-                                        parseInt(e.target.value) || 0,
-                                      )
-                                    }
-                                  />
-                                </TableCell>
-                                {participantType === "solo" && (
-                                  <TableCell>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      className="h-8 w-24"
-                                      value={row.kills || ""}
-                                      onChange={(e) =>
-                                        updateRow(
-                                          selectedMatchId,
-                                          idx,
-                                          "kills",
-                                          parseInt(e.target.value) || 0,
-                                        )
-                                      }
-                                    />
-                                  </TableCell>
-                                )}
-                                {participantType === "solo" && (
-                                  <TableCell>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      className="h-8 w-24"
-                                      value={row.bonus_points || ""}
-                                      onChange={(e) =>
-                                        updateRow(
-                                          selectedMatchId,
-                                          idx,
-                                          "bonus_points",
-                                          parseInt(e.target.value) || 0,
-                                        )
-                                      }
-                                    />
-                                  </TableCell>
-                                )}
-                                {participantType === "solo" && (
-                                  <TableCell>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      className="h-8 w-24"
-                                      value={row.penalty_points || ""}
-                                      onChange={(e) =>
-                                        updateRow(
-                                          selectedMatchId,
-                                          idx,
-                                          "penalty_points",
-                                          parseInt(e.target.value) || 0,
-                                        )
-                                      }
-                                    />
-                                  </TableCell>
-                                )}
-                                <TableCell className="text-center">
-                                  <Checkbox
-                                    checked={row.played}
-                                    onCheckedChange={(v) =>
-                                      updateRow(
-                                        selectedMatchId,
-                                        idx,
-                                        "played",
-                                        !!v,
-                                      )
-                                    }
-                                  />
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* ── Player Stats (team mode only) ── */}
-                  {participantType === "team" &&
-                    currentPlayerGroups.length > 0 && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">
-                            Player Stats
-                          </CardTitle>
-                          <CardDescription>
-                            Edit individual player kills, damage, and assists
-                            for each team. Click a team to expand.
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          {currentPlayerGroups.map((group, teamIdx) => {
-                            const key = `${selectedMatchId}-${group.teamId}`;
-                            const isExpanded = expandedTeams[key] ?? false;
-                            return (
-                              <div
-                                key={group.teamId}
-                                className="border rounded-lg overflow-hidden"
-                              >
-                                {/* Team header */}
-                                <button
-                                  onClick={() => toggleTeam(key)}
-                                  className="w-full flex items-center justify-between px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors text-left"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    {isExpanded ? (
-                                      <IconChevronDown
-                                        size={16}
-                                        className="text-muted-foreground"
-                                      />
-                                    ) : (
-                                      <IconChevronRight
-                                        size={16}
-                                        className="text-muted-foreground"
-                                      />
-                                    )}
-                                    <span className="font-medium text-sm inline-flex items-center gap-2">
-                                      {/* Flag beside the team name in the per-team player group. */}
-                                      <CountryFlag country={group.teamCountry} />
-                                      {group.teamName}
-                                      {/* Advisory watchlist flag for this team. */}
-                                      {watched.teamIds.has(group.teamId) && (
-                                        <WatchTag reason="On the advisory watchlist" />
-                                      )}
-                                    </span>
-                                  </div>
-                                  <Badge variant="secondary">
-                                    {group.players.length} player
-                                    {group.players.length !== 1 ? "s" : ""}
-                                  </Badge>
-                                </button>
-
-                                {/* Player rows */}
-                                {isExpanded && (
-                                  <div className="border-t">
-                                    {group.players.length === 0 ? (
-                                      <p className="text-sm text-muted-foreground text-center py-4">
-                                        No player data available for this team.
-                                      </p>
-                                    ) : (
-                                      <Table>
-                                        <TableHeader>
-                                          <TableRow>
-                                            <TableHead>Player</TableHead>
-                                            <TableHead className="w-28">
-                                              Kills
-                                            </TableHead>
-                                            <TableHead className="w-28">
-                                              Damage
-                                            </TableHead>
-                                            <TableHead className="w-28">
-                                              Assists
-                                            </TableHead>
-                                            <TableHead className="w-20 text-center">
-                                              Played
-                                            </TableHead>
-                                          </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                          {group.players.map(
-                                            (player, playerIdx) => (
-                                              <TableRow key={player.player_id}>
-                                                <TableCell className="font-medium">
-                                                  <span className="inline-flex items-center gap-2">
-                                                    {player.username}
-                                                    {/* Advisory watchlist flag for this player. */}
-                                                    {watched.playerIds.has(
-                                                      player.player_id,
-                                                    ) && (
-                                                      <WatchTag reason="On the advisory watchlist" />
-                                                    )}
-                                                  </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                  <Input
-                                                    type="number"
-                                                    min="0"
-                                                    className="h-8 w-24"
-                                                    value={player.kills || ""}
-                                                    onChange={(e) =>
-                                                      updatePlayerRow(
-                                                        selectedMatchId,
-                                                        teamIdx,
-                                                        playerIdx,
-                                                        "kills",
-                                                        parseInt(
-                                                          e.target.value,
-                                                        ) || 0,
-                                                      )
-                                                    }
-                                                  />
-                                                </TableCell>
-                                                <TableCell>
-                                                  <Input
-                                                    type="number"
-                                                    min="0"
-                                                    className="h-8 w-24"
-                                                    value={player.damage || ""}
-                                                    onChange={(e) =>
-                                                      updatePlayerRow(
-                                                        selectedMatchId,
-                                                        teamIdx,
-                                                        playerIdx,
-                                                        "damage",
-                                                        parseInt(
-                                                          e.target.value,
-                                                        ) || 0,
-                                                      )
-                                                    }
-                                                  />
-                                                </TableCell>
-                                                <TableCell>
-                                                  <Input
-                                                    type="number"
-                                                    min="0"
-                                                    className="h-8 w-24"
-                                                    value={player.assists || ""}
-                                                    onChange={(e) =>
-                                                      updatePlayerRow(
-                                                        selectedMatchId,
-                                                        teamIdx,
-                                                        playerIdx,
-                                                        "assists",
-                                                        parseInt(
-                                                          e.target.value,
-                                                        ) || 0,
-                                                      )
-                                                    }
-                                                  />
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                  <Checkbox
-                                                    checked={player.played}
-                                                    onCheckedChange={(v) =>
-                                                      updatePlayerRow(
-                                                        selectedMatchId,
-                                                        teamIdx,
-                                                        playerIdx,
-                                                        "played",
-                                                        !!v,
-                                                      )
-                                                    }
-                                                  />
-                                                </TableCell>
-                                              </TableRow>
-                                            ),
-                                          )}
-                                        </TableBody>
-                                      </Table>
-                                    )}
-
-                                    {/* ── Add player to event roster (Roster Rules,
-                                        owner 2026-06-15) ── per-team picker of PLAYING-role
-                                        members not yet rostered; adds via
-                                        /events/add-player-to-event-roster/ then refetches. */}
-                                    <div className="px-4 py-3 border-t">
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="text-xs"
-                                        onClick={() =>
-                                          openAddPlayer(
-                                            group.teamId,
-                                            group.teamName,
-                                          )
-                                        }
-                                      >
-                                        <IconUserPlus size={14} className="mr-1" />
-                                        Add player
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </CardContent>
-                      </Card>
-                    )}
-
-                  {/* ── Match Leaderboard ── */}
-                  {matchLeaderboard.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">
-                          Match Leaderboard
-                        </CardTitle>
-                        <CardDescription>
-                          Calculated standings for this map. Edit bonus and
-                          penalty points, then save above.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="rounded-md border overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead className="w-14">Rank</TableHead>
-                                <TableHead>
-                                  {participantType === "team"
-                                    ? "Team"
-                                    : "Player"}
-                                </TableHead>
-                                <TableHead className="text-right w-24">
-                                  Placement
-                                </TableHead>
-                                <TableHead className="text-right w-24">
-                                  Place Pts
-                                </TableHead>
-                                <TableHead className="text-right w-24">
-                                  Kill Pts
-                                </TableHead>
-                                <TableHead className="w-28">Bonus</TableHead>
-                                <TableHead className="w-28">Penalty</TableHead>
-                                <TableHead className="text-right w-24">
-                                  Total
-                                </TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {matchLeaderboard.map((stat, idx) => {
-                                const statId =
-                                  stat.competitor_id ??
-                                  stat.tournament_team_id ??
-                                  0;
-                                const editIdx = currentRows.findIndex(
-                                  (r) => r.id === statId,
-                                );
-                                const editRow =
-                                  editIdx >= 0
-                                    ? currentRows[editIdx]
-                                    : undefined;
-                                const bonus =
-                                  editRow?.bonus_points ?? stat.bonus_points;
-                                const penalty =
-                                  editRow?.penalty_points ??
-                                  stat.penalty_points;
-                                const liveTotal =
-                                  stat.placement_points +
-                                  stat.kill_points +
-                                  bonus -
-                                  penalty;
-                                return (
-                                  <TableRow key={statId || idx}>
-                                    <TableCell className="text-muted-foreground font-medium">
-                                      #{idx + 1}
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                      <span className="inline-flex items-center gap-2">
-                                        {stat.username ?? stat.team_name ?? "-"}
-                                        {/* Advisory watchlist flag (statId is team in team mode, player in solo). */}
-                                        {isEntityWatched(statId) && (
-                                          <WatchTag reason="On the advisory watchlist" />
-                                        )}
-                                      </span>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      {stat.placement}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      {stat.placement_points}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      {stat.kill_points}
-                                    </TableCell>
-                                    <TableCell>
-                                      <Input
-                                        type="number"
-                                        min="0"
-                                        className="h-8 w-24"
-                                        value={bonus || ""}
-                                        disabled={editIdx < 0}
-                                        onChange={(e) =>
-                                          updateRow(
-                                            selectedMatchId,
-                                            editIdx,
-                                            "bonus_points",
-                                            parseInt(e.target.value) || 0,
-                                          )
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell>
-                                      <Input
-                                        type="number"
-                                        min="0"
-                                        className="h-8 w-24"
-                                        value={penalty || ""}
-                                        disabled={editIdx < 0}
-                                        onChange={(e) =>
-                                          updateRow(
-                                            selectedMatchId,
-                                            editIdx,
-                                            "penalty_points",
-                                            parseInt(e.target.value) || 0,
-                                          )
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell className="text-right font-semibold text-primary">
-                                      {liveTotal.toFixed(1)}
-                                    </TableCell>
-                                  </TableRow>
-                                );
-                              })}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Save buttons: this map only, or every map in the group at once.
-                      "Save all maps" fans out one save per map (handleSaveAllMaps). */}
-                  {/* data-tour anchor (leaderboard-edit-save): admin tour "Save changes" step. */}
-                  <div data-tour="leaderboard-edit-save" className="flex flex-wrap justify-end gap-2">
-                    {/* Redo this map (owner 2026-06-15): clears ONLY the selected map's
-                        results so it can be re-entered. Destructive -> AlertDialog confirm.
-                        Calls handleRedoMap -> POST /events/clear-match-result/. */}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="destructive"
-                          className="mr-auto"
-                          disabled={redoingMap || savingMatch || savingAllMaps}
-                        >
-                          {redoingMap ? (
-                            <span className="flex items-center gap-2">
-                              <IconLoader2 size={14} className="animate-spin" />
-                              Clearing…
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-2">
-                              <IconRefresh size={14} />
-                              Redo this map
-                            </span>
-                          )}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Redo this map?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This clears all results for this map. Other maps are not
-                            affected. You can then re-enter the results.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleRedoMap}>
-                            Redo map
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                    <Button
-                      variant="outline"
-                      onClick={handleSaveAllMaps}
-                      disabled={savingAllMaps || savingMatch}
-                    >
-                      {savingAllMaps ? (
-                        <span className="flex items-center gap-2">
-                          <IconLoader2 size={14} className="animate-spin" />
-                          Saving all maps…
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-2">
-                          <IconDeviceFloppy size={14} />
-                          Save all maps ({groupMatchIds.length})
-                        </span>
-                      )}
-                    </Button>
-                    <Button
-                      onClick={handleSaveMatch}
-                      disabled={savingMatch || savingAllMaps}
-                    >
-                      {savingMatch ? (
-                        <span className="flex items-center gap-2">
-                          <IconLoader2 size={14} className="animate-spin" />
-                          Saving…
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-2">
-                          <IconDeviceFloppy size={14} />
-                          Save this map
-                        </span>
-                      )}
-                    </Button>
-                  </div>
-                </>
-              )}
-            </>
-          )}
+          {/* The Match Results grid is now a shared component (components/leaderboards/
+              MatchResultsGrid.tsx) so the organizer leaderboard editor renders the SAME grid.
+              This page still owns the editing state (selectedMatchId / editRows / playerGroups are
+              shared with the Total Leaderboard + Scoring tabs), so the grid is fully controlled by
+              the props below. Passing no `labels` renders the exact English this tab always shipped;
+              the two data-tour anchors keep the admin tour steps working. Zero behaviour change. */}
+          <MatchResultsGrid
+            participantType={participantType}
+            groupMatches={groupMatches}
+            selectedMatchId={selectedMatchId}
+            onSelectMatch={setSelectedMatchId}
+            currentRows={currentRows}
+            currentPlayerGroups={currentPlayerGroups}
+            matchLeaderboard={matchLeaderboard}
+            expandedTeams={expandedTeams}
+            onToggleTeam={toggleTeam}
+            onUpdateRow={updateRow}
+            onUpdatePlayerRow={updatePlayerRow}
+            isEntityWatched={isEntityWatched}
+            watchedTeamIds={watched.teamIds}
+            watchedPlayerIds={watched.playerIds}
+            canAddPlayer
+            onOpenAddPlayer={openAddPlayer}
+            onSaveMatch={handleSaveMatch}
+            savingMatch={savingMatch}
+            onSaveAllMaps={handleSaveAllMaps}
+            savingAllMaps={savingAllMaps}
+            groupMatchCount={groupMatchIds.length}
+            onRedoMap={handleRedoMap}
+            redoingMap={redoingMap}
+            dataTourMatchList="leaderboard-edit-match-list"
+            dataTourSave="leaderboard-edit-save"
+          />
         </TabsContent>
 
         {/* ── Total Leaderboard Tab ── */}

@@ -2,5 +2,17 @@
   "registeredTeams.searchTeamsPlaceholder": "Search teams...",
   "registeredTeams.searchPlayersPlaceholder": "Search players...",
   "registeredTeams.noTeamsMatch": "No teams match \"{query}\"",
-  "registeredTeams.noPlayersMatch": "No players match \"{query}\""
+  "registeredTeams.noPlayersMatch": "No players match \"{query}\"",
+  "checkin.userTitle": "Check-in",
+  "checkin.userExplain": "The organizer requires you to check in for this event. Tap the button during the check-in window to confirm you are available. If you do not, you may be moved to the waitlist.",
+  "checkin.userButton": "Check in",
+  "checkin.userDone": "Checked in",
+  "checkin.userOpen": "Open now",
+  "checkin.userCheckedIn": "You are checked in.",
+  "checkin.userFailed": "Could not check you in.",
+  "checkin.userNotOpen": "Check-in has not opened yet.",
+  "checkin.userClosed": "Check-in has closed.",
+  "checkin.userSquadProgress": "{done} of {total} of your team have checked in.",
+  "checkin.userSquadReady": "Your team is ready.",
+  "checkin.userSquadWaiting": "Waiting on teammates."
 }

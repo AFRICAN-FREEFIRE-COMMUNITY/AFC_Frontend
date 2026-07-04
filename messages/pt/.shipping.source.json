@@ -1,0 +1,8 @@
+{
+  "picker.heading": "Delivery method",
+  "picker.hint": "Choose a courier to deliver your order.",
+  "picker.loading": "Finding delivery options...",
+  "picker.none": "No delivery options are available for this address right now.",
+  "picker.eta": "{eta} delivery",
+  "picker.free": "Free"
+}

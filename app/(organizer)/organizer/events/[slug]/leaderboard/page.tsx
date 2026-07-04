@@ -215,6 +215,22 @@ import { ScoringConfigPanel } from "@/app/(a)/a/leaderboards/_components/Scoring
 // flagged names, exactly like the admin edit page. Backend gate (admin OR organizer) is
 // server-side (afc_auth/views_watchlist.py); badges are advisory + best-effort.
 import { WatchTag } from "@/components/WatchTag";
+// Match Results grid (owner 2026-07-04 organizer parity): the SAME always-editable per-map grid
+// the AFC admin editor has (placement/kills/bonus/penalty/played + per-player expandable rows +
+// live Match Leaderboard preview + Save this map / Save all maps / Redo this map), extracted into a
+// shared component. Mounted below as a new "Match Results" tool tab, wired to this page's own
+// group-scoped editing state (gridEditRows / gridPlayerGroups / gridMatchId, seeded from the same
+// get-all-leaderboard-details-for-event stats) and a next-intl `labels` object. Saves go through
+// /events/edit-match-result/ & /events/edit-solo-match-result/ (backend gate = AFC event admin OR
+// org can_upload_results = this page's baseline gate); the per-team "Add player" control is gated on
+// can_manage_registrations via canAddPlayer. The EditRow / PlayerEditRow / TeamPlayerGroup shapes are
+// reused from the component so the seed helpers below stay type-aligned with the grid.
+import {
+  MatchResultsGrid,
+  type EditRow as GridEditRow,
+  type PlayerEditRow as GridPlayerEditRow,
+  type TeamPlayerGroup as GridTeamPlayerGroup,
+} from "@/components/leaderboards/MatchResultsGrid";
 // Team country flag beside team names in the team + player standings and the adjust-points table
 // (owner 2026-07-03). Each row (overall_leaderboard / match.stats from
 // get_all_leaderboard_details_for_event) carries team_country; player rows inherit it below. Mirrors
@@ -283,6 +299,64 @@ const PLAYER_ROLES = ["team_captain", "vice_captain", "member"];
 interface AddPlayerCandidate {
   id: number;
   username: string;
+}
+
+// ── Match Results grid seed types + helpers (owner 2026-07-04 organizer parity) ──
+// The stat shape returned per map by get-all-leaderboard-details-for-event (team_country + the
+// per-player breakdown ride along on team rows). statToEditRow / statToTeamPlayerGroup mirror the
+// admin editor's inline helpers 1:1, turning saved stats into the editable rows the shared
+// <MatchResultsGrid> renders. GridEditRow / GridTeamPlayerGroup are re-exported from the component
+// so these stay type-aligned with the grid.
+interface GridRawPlayer {
+  player_id: number;
+  username: string;
+  kills: number;
+  damage: number;
+  assists: number;
+}
+interface GridRawStat {
+  competitor_id?: number;
+  tournament_team_id?: number;
+  username?: string;
+  team_name?: string;
+  team_country?: string | null;
+  placement: number;
+  kills: number;
+  bonus_points?: number;
+  penalty_points?: number;
+  players?: GridRawPlayer[];
+}
+
+// A saved stat row -> one editable placement row (team country drives the flag; solo -> none).
+function statToEditRow(stat: GridRawStat): GridEditRow {
+  return {
+    id: stat.competitor_id ?? stat.tournament_team_id ?? 0,
+    name: stat.username ?? stat.team_name ?? "-",
+    teamCountry: stat.team_country,
+    placement: stat.placement,
+    kills: stat.kills,
+    bonus_points: stat.bonus_points ?? 0,
+    penalty_points: stat.penalty_points ?? 0,
+    played: true,
+  };
+}
+
+// Fallback per-team player group from the saved stats' players[] (used when the registered roster
+// is not loaded / the team has no registered members). Mirrors the admin editor helper.
+function statToTeamPlayerGroup(stat: GridRawStat): GridTeamPlayerGroup {
+  return {
+    teamId: stat.tournament_team_id ?? 0,
+    teamName: stat.team_name ?? "-",
+    teamCountry: stat.team_country,
+    players: (stat.players ?? []).map((p) => ({
+      player_id: p.player_id,
+      username: p.username,
+      kills: p.kills ?? 0,
+      damage: p.damage ?? 0,
+      assists: p.assists ?? 0,
+      played: true,
+    })),
+  };
 }
 
 export default function OrganizerEventLeaderboardPage({
@@ -385,6 +459,38 @@ export default function OrganizerEventLeaderboardPage({
   >([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [addingPlayerId, setAddingPlayerId] = useState<number | null>(null);
+
+  // ── Match Results grid state (owner 2026-07-04 organizer parity) ──
+  // The always-editable per-map grid needs its OWN state, kept SEPARATE from the standings-view
+  // cursor above (selectedMatchId is a string "overall"|id that drives which standings the view card
+  // shows; the grid edits a specific numeric map). Seeded from the selected group's saved stats +
+  // the registered roster by the group-change effect below, exactly like the admin editor:
+  //   • rosterByTeam       - registered PLAYING roster per team (so subs with no saved stat still
+  //                          show, pre-filled), from get-event-details (team events only).
+  //   • gridMatchId        - the numeric map currently being edited in the grid.
+  //   • gridEditRows       - matchId -> editable placement rows.
+  //   • gridPlayerGroups   - matchId -> per-team player rows (team mode).
+  //   • gridExpandedTeams  - which team groups are expanded, keyed `${gridMatchId}-${teamId}`.
+  //   • gridSaving*/gridRedoing - in-flight flags for this map / all maps / redo.
+  const [rosterByTeam, setRosterByTeam] = useState<
+    Map<
+      number,
+      { team_name: string; members: { player_id: number; username: string }[] }
+    >
+  >(new Map());
+  const [gridMatchId, setGridMatchId] = useState<number | null>(null);
+  const [gridEditRows, setGridEditRows] = useState<
+    Record<number, GridEditRow[]>
+  >({});
+  const [gridPlayerGroups, setGridPlayerGroups] = useState<
+    Record<number, GridTeamPlayerGroup[]>
+  >({});
+  const [gridExpandedTeams, setGridExpandedTeams] = useState<
+    Record<string, boolean>
+  >({});
+  const [gridSavingMatch, setGridSavingMatch] = useState(false);
+  const [gridSavingAllMaps, setGridSavingAllMaps] = useState(false);
+  const [gridRedoing, setGridRedoing] = useState(false);
 
   // ── Create-leaderboard wizard state ──
   // mode "view" = the leaderboard view/edit surface; mode "create" = the wizard.
@@ -585,6 +691,120 @@ export default function OrganizerEventLeaderboardPage({
       ? watched.teamIds.has(id)
       : watched.playerIds.has(id));
 
+  // ── Registered roster for the Match Results grid (owner 2026-07-04 organizer parity) ──
+  // Pull the registered PLAYING roster per team (POST get-event-details {slug} ->
+  // tournament_teams[].members) so the grid's Player Stats section can show a team's registered
+  // players ALWAYS (pre-filled), overlaying any saved per-player kills. Mirrors the admin editor's
+  // fetchRoster. Team events only (solo has no team roster). Best-effort: on failure the grid falls
+  // back to whatever per-player stats the leaderboard saved (statToTeamPlayerGroup).
+  const fetchRoster = async (slug: string) => {
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ slug }),
+        },
+      );
+      const data = await res.json();
+      const details = data.event_details ?? data;
+      const teams: any[] = details.tournament_teams ?? [];
+      const map = new Map<
+        number,
+        { team_name: string; members: { player_id: number; username: string }[] }
+      >();
+      for (const tt of teams) {
+        if (tt?.tournament_team_id == null) continue;
+        map.set(tt.tournament_team_id, {
+          team_name: tt.team_name ?? "-",
+          members: (tt.members ?? []).map((m: any) => ({
+            player_id: m.player_id,
+            username: m.username,
+          })),
+        });
+      }
+      setRosterByTeam(map);
+    } catch {
+      // Non-fatal: the grid still shows saved per-player stats.
+    }
+  };
+
+  useEffect(() => {
+    if (eventSlug && eventData?.participant_type !== "solo") {
+      fetchRoster(eventSlug);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventSlug, eventData?.participant_type]);
+
+  // ── Seed the Match Results grid when the selected group (or the loaded data / roster) changes ──
+  // Ported 1:1 from the admin editor's group-change effect: for every map in the selected group,
+  // build the editable placement rows (statToEditRow) and the per-team player rows. The player rows
+  // start from the REGISTERED ROSTER when we have it (so subs show up), overlaying any saved
+  // per-player kills/damage/assists; a roster member counts as "played" by default ONLY when they
+  // carry a saved per-player stat for THIS map (Free Fire squad caps a match at 4 played, and the
+  // details API has no per-player played flag). Falls back to the saved players[] when the roster
+  // is not loaded / empty. gridMatchId defaults to the group's first map.
+  useEffect(() => {
+    if (!selectedGroupId || !eventData) return;
+    const stage = eventData.stages?.find(
+      (s: any) => s.stage_id.toString() === selectedStageId,
+    );
+    const group = stage?.groups?.find(
+      (g: any) => g.group_id.toString() === selectedGroupId,
+    );
+    if (!group) return;
+
+    const groupMatches: any[] = group.matches ?? [];
+    setGridMatchId(groupMatches[0]?.match_id ?? null);
+
+    const initialRows: Record<number, GridEditRow[]> = {};
+    const initialPlayerGroups: Record<number, GridTeamPlayerGroup[]> = {};
+
+    for (const m of groupMatches) {
+      initialRows[m.match_id] = (m.stats ?? []).map((s: GridRawStat) =>
+        statToEditRow(s),
+      );
+      initialPlayerGroups[m.match_id] = (m.stats ?? []).map(
+        (stat: GridRawStat) => {
+          const teamId = stat.tournament_team_id ?? 0;
+          const roster = rosterByTeam.get(teamId);
+          if (!roster || roster.members.length === 0) {
+            return statToTeamPlayerGroup(stat);
+          }
+          const savedByUid = new Map<number, GridRawPlayer>();
+          for (const p of stat.players ?? []) {
+            if (p?.player_id != null) savedByUid.set(p.player_id, p);
+          }
+          return {
+            teamId,
+            teamName: stat.team_name ?? roster.team_name ?? "-",
+            teamCountry: stat.team_country,
+            players: roster.members.map((mem) => {
+              const sp = savedByUid.get(mem.player_id);
+              return {
+                player_id: mem.player_id,
+                username: mem.username,
+                kills: sp?.kills ?? 0,
+                damage: sp?.damage ?? 0,
+                assists: sp?.assists ?? 0,
+                played: sp != null,
+              };
+            }),
+          };
+        },
+      );
+    }
+
+    setGridEditRows(initialRows);
+    setGridPlayerGroups(initialPlayerGroups);
+    setGridExpandedTeams({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGroupId, eventData, rosterByTeam, selectedStageId]);
+
   // ── Derived helpers (ported 1:1 from the admin [id] page) ─────────────────────
   const currentStage = eventData?.stages?.find(
     (s: any) => s.stage_id.toString() === selectedStageId,
@@ -595,6 +815,24 @@ export default function OrganizerEventLeaderboardPage({
   const currentMatch = currentGroup?.matches?.find(
     (m: any) => m.match_id.toString() === selectedMatchId,
   );
+
+  // ── Match Results grid derived values (owner 2026-07-04 organizer parity) ──
+  // Slice the loaded grid state for the currently selected NUMERIC grid map (gridMatchId), plus the
+  // live Match Leaderboard preview (this map's saved stats sorted by effective total) and the id
+  // list for the "Save all maps" fan-out. Mirrors the admin editor's currentRows / currentPlayerGroups
+  // / matchLeaderboard / groupMatchIds derivations.
+  const gridGroupMatches: any[] = currentGroup?.matches ?? [];
+  const currentGridRows =
+    gridMatchId !== null ? (gridEditRows[gridMatchId] ?? []) : [];
+  const currentGridPlayerGroups =
+    gridMatchId !== null ? (gridPlayerGroups[gridMatchId] ?? []) : [];
+  const gridCurrentMatch = gridGroupMatches.find(
+    (m: any) => m.match_id === gridMatchId,
+  );
+  const gridMatchLeaderboard = [...(gridCurrentMatch?.stats ?? [])].sort(
+    (a: any, b: any) => (b.effective_total ?? 0) - (a.effective_total ?? 0),
+  );
+  const gridMatchIds = gridGroupMatches.map((m: any) => m.match_id);
 
   // Does ANY group in the event already have a saved leaderboard? Drives the
   // "create a leaderboard" empty state vs the normal view surface.
@@ -1095,6 +1333,227 @@ export default function OrganizerEventLeaderboardPage({
     fetchLeaderboard();
   };
 
+  // ── Match Results grid edit handlers (owner 2026-07-04 organizer parity) ──
+  // Controlled-input updaters for the shared <MatchResultsGrid>, ported 1:1 from the admin editor.
+  // updateGridRow patches one placement row; updateGridPlayerRow patches one player's stat AND
+  // auto-ticks "Played" when a positive stat is entered (a player who did not play has no stats),
+  // so the save never silently drops a player whose kills were typed with Played left unticked (the
+  // save only sends played=true players, to respect the 4-per-squad cap). toggleGridTeam expands or
+  // collapses one team's player group.
+  const updateGridRow = (
+    matchId: number,
+    idx: number,
+    field: keyof Omit<GridEditRow, "id" | "name">,
+    value: number | boolean,
+  ) => {
+    setGridEditRows((prev) => {
+      const rows = [...(prev[matchId] ?? [])];
+      rows[idx] = { ...rows[idx], [field]: value };
+      return { ...prev, [matchId]: rows };
+    });
+  };
+
+  const updateGridPlayerRow = (
+    matchId: number,
+    teamIdx: number,
+    playerIdx: number,
+    field: keyof Omit<GridPlayerEditRow, "player_id" | "username">,
+    value: number | boolean,
+  ) => {
+    setGridPlayerGroups((prev) => {
+      const groups = (prev[matchId] ?? []).map((g, ti) => {
+        if (ti !== teamIdx) return g;
+        const players = g.players.map((p, pi) => {
+          if (pi !== playerIdx) return p;
+          const next = { ...p, [field]: value };
+          if (field !== "played" && typeof value === "number" && value > 0) {
+            next.played = true;
+          }
+          return next;
+        });
+        return { ...g, players };
+      });
+      return { ...prev, [matchId]: groups };
+    });
+  };
+
+  const toggleGridTeam = (key: string) => {
+    setGridExpandedTeams((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // ── Match Results grid save handlers (owner 2026-07-04 organizer parity) ──
+  // Build the exact per-map save request from the loaded grid state (solo -> edit-solo-match-result
+  // /rows; team -> edit-match-result/results[] with nested players[] keyed by user_id, only the
+  // players who actually played this map). Mirrors the admin editor's buildMatchSaveRequest so the
+  // grid saves identically. Backend gate on both endpoints = AFC event admin OR org
+  // can_upload_results (this page's baseline gate). Returns null when the map has no rows loaded.
+  const buildGridSaveRequest = (
+    matchId: number,
+  ): { endpoint: string; body: any } | null => {
+    const rows = gridEditRows[matchId] ?? [];
+    if (rows.length === 0) return null;
+
+    if (detailsParticipantType === "solo") {
+      return {
+        endpoint: `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-solo-match-result/`,
+        body: {
+          match_id: matchId.toString(),
+          rows: rows.map((r) => ({
+            competitor_id: r.id,
+            placement: r.placement,
+            kills: r.kills,
+            played: r.played,
+            bonus_points: r.bonus_points,
+            penalty_points: r.penalty_points,
+          })),
+        },
+      };
+    }
+
+    const groups = gridPlayerGroups[matchId] ?? [];
+    return {
+      endpoint: `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-result/`,
+      body: {
+        match_id: matchId,
+        results: rows.map((r) => {
+          const teamGroup = groups.find((g) => g.teamId === r.id);
+          return {
+            tournament_team_id: r.id,
+            placement: r.placement,
+            played: r.played,
+            bonus_points: r.bonus_points,
+            penalty_points: r.penalty_points,
+            // Only the players who actually played this map (squad rules cap a match at 4 played).
+            players: (teamGroup?.players ?? [])
+              .filter((p) => p.played)
+              .map((p) => ({
+                user_id: p.player_id,
+                kills: p.kills,
+                damage: p.damage,
+                assists: p.assists,
+                played: true,
+              })),
+          };
+        }),
+      },
+    };
+  };
+
+  // POST one map's results; throws on a non-OK response so single + bulk callers count uniformly.
+  const saveGridMatchById = async (matchId: number): Promise<void> => {
+    const req = buildGridSaveRequest(matchId);
+    if (!req) return; // nothing entered for this map -> skip (not an error)
+    const res = await fetch(req.endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(req.body),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || err.detail || "Save failed");
+    }
+  };
+
+  // Save the currently selected grid map, then refresh the standings + the flagged-kills panel (a
+  // team save can create/clear ringer flags).
+  const handleSaveGridMatch = async () => {
+    if (gridMatchId === null) return;
+    setGridSavingMatch(true);
+    try {
+      await saveGridMatchById(gridMatchId);
+      toast.success(t("eventLeaderboard.matchResults.saveSuccess"));
+      fetchLeaderboard();
+      setFlagRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      toast.error(err.message || t("eventLeaderboard.matchResults.saveError"));
+    } finally {
+      setGridSavingMatch(false);
+    }
+  };
+
+  // Save EVERY map in the current group at once (fans out one per-map save via Promise.allSettled,
+  // same idiom as the admin editor). Surfaces the actual backend reason on failure, and does NOT
+  // refetch on any failure (a refetch reseeds the grid from the server and would wipe the input the
+  // organizer just typed into the maps that failed) so they can correct + retry.
+  const handleSaveAllGridMaps = async () => {
+    const saveableIds = gridMatchIds.filter(
+      (mid) => (gridEditRows[mid] ?? []).length > 0,
+    );
+    if (saveableIds.length === 0) {
+      toast.error(t("eventLeaderboard.matchResults.noMapsToSave"));
+      return;
+    }
+    setGridSavingAllMaps(true);
+    try {
+      const results = await Promise.allSettled(
+        saveableIds.map((mid) => saveGridMatchById(mid)),
+      );
+      const rejected = results.filter(
+        (r): r is PromiseRejectedResult => r.status === "rejected",
+      );
+      const ok = saveableIds.length - rejected.length;
+      if (rejected.length > 0) {
+        const reason =
+          rejected[0].reason?.message ||
+          t("eventLeaderboard.matchResults.retryHint");
+        toast.error(
+          t("eventLeaderboard.matchResults.savedSomeMaps", {
+            ok,
+            total: saveableIds.length,
+            failed: rejected.length,
+            reason,
+          }),
+        );
+      } else {
+        toast.success(
+          t("eventLeaderboard.matchResults.savedAllMaps", { count: ok }),
+        );
+        fetchLeaderboard();
+        setFlagRefreshKey((k) => k + 1);
+      }
+    } catch (err: any) {
+      toast.error(err.message || t("eventLeaderboard.matchResults.saveGroupError"));
+    } finally {
+      setGridSavingAllMaps(false);
+    }
+  };
+
+  // Redo (clear) the grid's currently selected map so it can be re-entered from scratch. Unlike the
+  // standings-view handleRedoMap (which acts on the string selectedMatchId and returns to overall),
+  // this acts on the numeric gridMatchId and STAYS on the grid. POST /events/clear-match-result/
+  // (gate = AFC event admin OR org can_upload_results), then refresh the standings + flagged-kills.
+  const handleGridRedoMap = async () => {
+    if (gridMatchId === null) return;
+    setGridRedoing(true);
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/clear-match-result/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ match_id: gridMatchId, force: true }),
+        },
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || err.detail || "");
+      }
+      toast.success(t("eventLeaderboard.redoMap.success"));
+      fetchLeaderboard();
+      setFlagRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      toast.error(err.message || t("eventLeaderboard.redoMap.error"));
+    } finally {
+      setGridRedoing(false);
+    }
+  };
+
   // ── Create-wizard handlers ────────────────────────────────────────────────────
   // Enter the wizard from the empty state. Steps: BasicInfo → ConfigurePoints →
   // MatchOverview (which opens the 4 reused result-entry steps per match). When the
@@ -1340,6 +1799,61 @@ export default function OrganizerEventLeaderboardPage({
       (b.effective_total ?? b.total_points ?? 0) -
       (a.effective_total ?? a.total_points ?? 0),
   );
+
+  // ── Match Results grid labels (owner 2026-07-04 organizer parity) ──
+  // The shared <MatchResultsGrid> ships English defaults for the ADMIN (i18n-exempt); the organizer
+  // surface is NOT exempt, so every string is passed through next-intl here. Grid-specific copy lives
+  // under eventLeaderboard.matchResults.*; shared labels reuse existing eventLeaderboard keys
+  // (table.*, tools.*, addPlayer.*, redoMap.*, watch.*, cancel). playerCount / saveAllMaps take a
+  // count for ICU pluralization.
+  const matchGridLabels = {
+    noMatches: t("eventLeaderboard.matchResults.noMatches"),
+    noResults: t("eventLeaderboard.matchResults.noResults"),
+    teamPlacementsTitle: t("eventLeaderboard.matchResults.teamPlacementsTitle"),
+    playerResultsTitle: t("eventLeaderboard.matchResults.playerResultsTitle"),
+    teamPlacementsDesc: t("eventLeaderboard.matchResults.teamPlacementsDesc"),
+    playerResultsDesc: t("eventLeaderboard.matchResults.playerResultsDesc"),
+    team: t("eventLeaderboard.table.team"),
+    player: t("eventLeaderboard.table.player"),
+    placement: t("eventLeaderboard.matchResults.placement"),
+    kills: t("eventLeaderboard.table.kills"),
+    bonusPts: t("eventLeaderboard.matchResults.bonusPts"),
+    penaltyPts: t("eventLeaderboard.matchResults.penaltyPts"),
+    played: t("eventLeaderboard.matchResults.played"),
+    playerStatsTitle: t("eventLeaderboard.matchResults.playerStatsTitle"),
+    playerStatsDesc: t("eventLeaderboard.matchResults.playerStatsDesc"),
+    noPlayerData: t("eventLeaderboard.matchResults.noPlayerData"),
+    damage: t("eventLeaderboard.table.damage"),
+    assists: t("eventLeaderboard.table.assists"),
+    playerCount: (n: number) =>
+      t("eventLeaderboard.matchResults.playerCount", { count: n }),
+    addPlayer: t("eventLeaderboard.addPlayer.button"),
+    matchLeaderboardTitle: t(
+      "eventLeaderboard.matchResults.matchLeaderboardTitle",
+    ),
+    matchLeaderboardDesc: t(
+      "eventLeaderboard.matchResults.matchLeaderboardDesc",
+    ),
+    rank: t("eventLeaderboard.table.rank"),
+    placePts: t("eventLeaderboard.tools.placePts"),
+    killPts: t("eventLeaderboard.matchResults.killPts"),
+    bonus: t("eventLeaderboard.matchResults.bonus"),
+    penalty: t("eventLeaderboard.matchResults.penalty"),
+    total: t("eventLeaderboard.matchResults.total"),
+    redoButton: t("eventLeaderboard.redoMap.button"),
+    redoClearing: t("eventLeaderboard.redoMap.clearing"),
+    redoTitle: t("eventLeaderboard.redoMap.title"),
+    redoDescription: t("eventLeaderboard.redoMap.description"),
+    redoCancel: t("eventLeaderboard.cancel"),
+    redoConfirm: t("eventLeaderboard.redoMap.confirm"),
+    saveAllMaps: (n: number) =>
+      t("eventLeaderboard.matchResults.saveAllMaps", { count: n }),
+    savingAllMaps: t("eventLeaderboard.matchResults.savingAllMaps"),
+    saveThisMap: t("eventLeaderboard.matchResults.saveThisMap"),
+    saving: t("eventLeaderboard.tools.saving"),
+    watchLabel: t("eventLeaderboard.watch.label"),
+    watchReason: t("eventLeaderboard.watch.reason"),
+  };
 
   // ── VIEW + EDIT-RESULTS SURFACE (mirrors the admin [id] page) ──────────────────
   return (
@@ -2002,10 +2516,21 @@ export default function OrganizerEventLeaderboardPage({
         hasAnyLeaderboard &&
         eventId && (
           <div className="mt-4">
-            <Tabs defaultValue="total">
+            {/* Default to the Match Results grid (owner 2026-07-04 organizer parity): it is the
+                primary always-editable results surface, matching the admin editor whose first tab
+                is Match Results. Match Results + Total + Scoring ride this page's can_upload_results
+                baseline; Tie-breakers / MVPs / Debugger backfill need can_edit_events. */}
+            <Tabs defaultValue="matches">
               <TabsList
-                className={`grid w-full ${canEditEvents ? "grid-cols-5" : "grid-cols-2"}`}
+                className={`grid w-full ${canEditEvents ? "grid-cols-6" : "grid-cols-3"}`}
               >
+                {/* Match Results (owner 2026-07-04 organizer parity): the SAME always-editable per-map
+                    grid the admin editor has. Saves via edit-match-result / edit-solo-match-result,
+                    gated on can_upload_results (this page's baseline gate), so it always shows here. */}
+                <TabsTrigger value="matches">
+                  <IconMap size={14} className="mr-1" />
+                  {t("eventLeaderboard.matchResults.tab")}
+                </TabsTrigger>
                 <TabsTrigger value="total">
                   <IconTrophy size={14} className="mr-1" />
                   {t("eventLeaderboard.tools.totalTab")}
@@ -2034,6 +2559,42 @@ export default function OrganizerEventLeaderboardPage({
                   </>
                 )}
               </TabsList>
+
+              {/* ── Match Results grid ── the SAME always-editable per-map grid the admin editor
+                  has, wired to this page's group-scoped grid state (gridEditRows / gridPlayerGroups
+                  / gridMatchId) + next-intl labels. canEdit follows can_upload_results (this page's
+                  baseline gate); the per-team "Add player" control is gated on can_manage_registrations
+                  (canAddPlayer) since add_player_to_event_roster enforces that permission, not
+                  can_upload_results. Watchlist badges reuse this page's `watched` sets. */}
+              <TabsContent value="matches" className="mt-4 space-y-4">
+                <MatchResultsGrid
+                  participantType={detailsParticipantType}
+                  groupMatches={gridGroupMatches}
+                  selectedMatchId={gridMatchId}
+                  onSelectMatch={setGridMatchId}
+                  currentRows={currentGridRows}
+                  currentPlayerGroups={currentGridPlayerGroups}
+                  matchLeaderboard={gridMatchLeaderboard}
+                  expandedTeams={gridExpandedTeams}
+                  onToggleTeam={toggleGridTeam}
+                  onUpdateRow={updateGridRow}
+                  onUpdatePlayerRow={updateGridPlayerRow}
+                  isEntityWatched={isEntityWatched}
+                  watchedTeamIds={watched.teamIds}
+                  watchedPlayerIds={watched.playerIds}
+                  canAddPlayer={canManageRegistrations}
+                  onOpenAddPlayer={openAddPlayer}
+                  onSaveMatch={handleSaveGridMatch}
+                  savingMatch={gridSavingMatch}
+                  onSaveAllMaps={handleSaveAllGridMaps}
+                  savingAllMaps={gridSavingAllMaps}
+                  groupMatchCount={gridMatchIds.length}
+                  onRedoMap={handleGridRedoMap}
+                  redoingMap={gridRedoing}
+                  canEdit={canUploadResults}
+                  labels={matchGridLabels}
+                />
+              </TabsContent>
 
               {/* ── Total Leaderboard adjustments ── overall standings of the selected group
                   with a per-row Adjust delta (positive = bonus, negative = penalty, folded

@@ -1,0 +1,10 @@
+{
+  "picker": {
+    "heading": "Mode de livraison",
+    "hint": "Choisissez un transporteur pour la livraison de votre commande.",
+    "loading": "Recherche des options de livraison...",
+    "none": "Aucune option de livraison n'est disponible pour cette adresse pour le moment.",
+    "eta": "{eta} livraison",
+    "free": "Gratuit"
+  }
+}

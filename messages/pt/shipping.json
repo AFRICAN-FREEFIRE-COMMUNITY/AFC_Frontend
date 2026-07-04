@@ -1,0 +1,10 @@
+{
+  "picker": {
+    "heading": "Método de entrega",
+    "hint": "Escolha uma empresa de entregas para entregar a sua encomenda.",
+    "loading": "A procurar opções de entrega...",
+    "none": "De momento, não há opções de entrega disponíveis para esta morada.",
+    "eta": "{eta} entrega",
+    "free": "Gratuito"
+  }
+}
