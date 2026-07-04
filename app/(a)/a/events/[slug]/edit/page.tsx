@@ -2300,6 +2300,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             eventName={eventDetails.event_name}
             stageId={eventDetails.stages[0]?.stage_id}
             onClose={() => setOpenConfirmStartTournamentModal(false)}
+            // Refetch after starting (owner 2026-07-04): the modal seeds the stage but nothing
+            // re-pulled, so the stage looked empty until a manual reload.
+            onSuccess={fetchEventDetails}
           />
         )}
       </Form>

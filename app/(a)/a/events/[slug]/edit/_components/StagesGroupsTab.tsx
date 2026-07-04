@@ -715,7 +715,12 @@ export default function StagesGroupsTab({
                         />
                       )}
                     <SeedToGroupModal
-                      onSuccess={() => {}}
+                      // Refetch after seeding (owner 2026-07-04 bug fix): this was a no-op, so an
+                      // organizer seeded to groups, got "success", but the group rosters on this tab
+                      // (rendered from the one-time get-event-details snapshot) never updated -
+                      // "seeded but not showing". Mirrors the sibling AddTeamsModal above + the
+                      // Actions-tab seed, both of which already call onRefresh.
+                      onSuccess={() => onRefresh?.()}
                       stageId={stage?.stage_id}
                       participantType={eventDetails.participant_type}
                     />
