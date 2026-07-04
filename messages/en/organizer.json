@@ -1094,6 +1094,7 @@
       "tieBreakersTab": "Tie-breakers",
       "mvpTab": "MVPs",
       "backfillTab": "Debugger backfill",
+      "scoringTab": "Scoring Config",
       "totalTitle": "Total Leaderboard",
       "totalDescription": "Apply point adjustments to the overall standings. Positive values add bonus points; negative values add penalty points to the first map.",
       "noData": "No leaderboard data yet.",

@@ -50,7 +50,6 @@ import {
   IconChevronRight,
   IconUpload,
   IconFlag,
-  IconCopy,
   IconRefresh,
   IconUserPlus,
 } from "@tabler/icons-react";
@@ -66,15 +65,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuGroup,
-} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -130,6 +120,12 @@ import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
 import { MapSelectionStep } from "../../_components/MapSelectionStep";
 import { OCRReviewTable } from "../../_components/OCRReviewTable";
 import type { DraftRow } from "@/lib/api/ocr";
+// Scoring Config editor (owner 2026-07-04 organizer parity): the per-match kill/assist/damage +
+// placement-ladder editor and its "Apply to..." fan-out, extracted from this page into a shared
+// component so the organizer leaderboard page can mount the SAME tool on their events. Behaviour
+// here is unchanged: it stays controlled by this page's shared selectedMatchId and re-saves the
+// map's results via handleSaveMatch after a scoring save (so points recompute).
+import { ScoringConfigPanel } from "../../_components/ScoringConfigPanel";
 
 type Params = { id: string };
 
@@ -174,13 +170,6 @@ interface MatchData {
   match_map: string;
   stats: RawStat[];
   scoring_settings?: MatchScoringSettings;
-}
-
-interface MatchScoringConfig {
-  killPoint: string;
-  pointsPerAssist: string;
-  pointsPer1000Damage: string;
-  ranks: { id: string; val: string }[];
 }
 
 interface OverallEntry {
@@ -383,12 +372,9 @@ export default function EditLeaderboardPage({
   const [adjustments, setAdjustments] = useState<Record<number, number>>({});
   const [savingAdjust, setSavingAdjust] = useState(false);
 
-  // Per-match scoring config
-  const [matchScoring, setMatchScoring] = useState<
-    Record<number, MatchScoringConfig>
-  >({});
-  const [savingMatchScoring, setSavingMatchScoring] = useState(false);
-  const [applyingToAll, setApplyingToAll] = useState(false);
+  // Per-match scoring config now lives in the shared <ScoringConfigPanel> (mounted on the
+  // Scoring Config tab below). This page only supplies the stage/group/match context + token
+  // and re-saves the map's results after a scoring save via handleSaveMatch.
 
   // ── Data fetching ───────────────────────────────────────────────────────────
 
@@ -601,27 +587,8 @@ export default function EditLeaderboardPage({
     setOverall(group.overall_leaderboard ?? []);
     setAdjustments({});
 
-    // Per-match scoring config
-    const initialMatchScoring: Record<number, MatchScoringConfig> = {};
-    for (const m of groupMatches) {
-      const s = m.scoring_settings;
-      const placementPts = s?.placement_points ?? {};
-      const rankEntries = Object.entries(placementPts)
-        .map(([rank, val]) => ({ id: rank, val: String(val) }))
-        .sort((a, b) => parseInt(a.id) - parseInt(b.id));
-      const minRanks = 10;
-      const padded = [...rankEntries];
-      for (let i = padded.length + 1; i <= minRanks; i++) {
-        padded.push({ id: `new-${i}-${Date.now()}`, val: "0" });
-      }
-      initialMatchScoring[m.match_id] = {
-        killPoint: s?.kill_point?.toString() ?? "1",
-        pointsPerAssist: s?.points_per_assist?.toString() ?? "0",
-        pointsPer1000Damage: s?.points_per_1000_damage?.toString() ?? "0",
-        ranks: padded,
-      };
-    }
-    setMatchScoring(initialMatchScoring);
+    // Per-match scoring config is seeded by <ScoringConfigPanel> itself (from groupMatches'
+    // scoring_settings), so it is no longer initialised here.
   }, [selectedGroupId, eventData, rosterByTeam]);
 
   // ── Watchlist tags (owner 2026-06-21) ───────────────────────────────────────
@@ -708,14 +675,9 @@ export default function EditLeaderboardPage({
     (a, b) => b.effective_total - a.effective_total,
   );
 
-  // Match ID lists for batch scoring apply
+  // Match id list for the whole-group "Save all maps" fan-out (handleSaveAllMaps). The
+  // scoring-config "Apply to entire event" list is now derived inside <ScoringConfigPanel>.
   const groupMatchIds = groupMatches.map((m) => m.match_id);
-  const allMatchIds: number[] =
-    eventData?.stages?.flatMap((s: any) =>
-      (s.groups ?? []).flatMap((g: any) =>
-        (g.matches ?? []).map((m: any) => m.match_id as number),
-      ),
-    ) ?? [];
 
   // ── Edit row helpers ─────────────────────────────────────────────────────────
 
@@ -897,8 +859,8 @@ export default function EditLeaderboardPage({
   // ── Save ALL maps of the current group at once ───────────────────────────────
   // The user asked to edit a whole group in one go instead of map-by-map. Every map's
   // rows are already in editRows/playerGroups (loaded by the group-change effect), so
-  // this fans out one per-map save per map via Promise.allSettled (same idiom as
-  // handleApplyScoringToMatches), reports an "X of Y saved" summary, and refreshes once.
+  // this fans out one per-map save per map via Promise.allSettled (same idiom as the
+  // scoring "Apply to..." fan-out), reports an "X of Y saved" summary, and refreshes once.
   const handleSaveAllMaps = async () => {
     // Only maps that actually have rows loaded are saveable.
     const saveableIds = groupMatchIds.filter(
@@ -1131,189 +1093,9 @@ export default function EditLeaderboardPage({
     }
   };
 
-  // ── Save match scoring config ────────────────────────────────────────────────
-
-  const handleSaveMatchScoring = async () => {
-    if (selectedMatchId === null) return;
-    const config = matchScoring[selectedMatchId];
-    if (!config) return;
-
-    setSavingMatchScoring(true);
-    try {
-      const placementPointsObj: Record<string, number> = {};
-      config.ranks.forEach((r, idx) => {
-        placementPointsObj[(idx + 1).toString()] = parseFloat(r.val) || 0;
-      });
-
-      const body = {
-        match_id: selectedMatchId,
-        scoring_settings: {
-          kill_point: parseFloat(config.killPoint) || 0,
-          placement_points: placementPointsObj,
-          points_per_assist: parseFloat(config.pointsPerAssist) || 0,
-          points_per_1000_damage: parseFloat(config.pointsPer1000Damage) || 0,
-        },
-      };
-
-      const res = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-scoring-config/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
-        },
-      );
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || err.detail || "Update failed");
-      }
-
-      toast.success("Match scoring configuration updated!");
-      // Re-save match results immediately so points are recalculated
-      await handleSaveMatch();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update scoring");
-    } finally {
-      setSavingMatchScoring(false);
-    }
-  };
-
-  // ── Apply scoring config to multiple matches ─────────────────────────────────
-
-  const handleApplyScoringToMatches = async (
-    matchIds: number[],
-    label: string,
-  ) => {
-    if (selectedMatchId === null) return;
-    const config = matchScoring[selectedMatchId];
-    if (!config) return;
-
-    const placementPointsObj: Record<string, number> = {};
-    config.ranks.forEach((r, idx) => {
-      placementPointsObj[(idx + 1).toString()] = parseFloat(r.val) || 0;
-    });
-
-    const scoringSettings = {
-      kill_point: parseFloat(config.killPoint) || 0,
-      placement_points: placementPointsObj,
-      points_per_assist: parseFloat(config.pointsPerAssist) || 0,
-      points_per_1000_damage: parseFloat(config.pointsPer1000Damage) || 0,
-    };
-
-    setApplyingToAll(true);
-    try {
-      const results = await Promise.allSettled(
-        matchIds.map((matchId) =>
-          fetch(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-scoring-config/`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                match_id: matchId,
-                scoring_settings: scoringSettings,
-              }),
-            },
-          ),
-        ),
-      );
-
-      const failed = results.filter((r) => r.status === "rejected").length;
-
-      // Update local state for any matches already loaded in the current group
-      setMatchScoring((prev) => {
-        const updated = { ...prev };
-        for (const matchId of matchIds) {
-          if (matchId in updated) {
-            updated[matchId] = {
-              killPoint: config.killPoint,
-              pointsPerAssist: config.pointsPerAssist,
-              pointsPer1000Damage: config.pointsPer1000Damage,
-              ranks: config.ranks.map((r) => ({ ...r })),
-            };
-          }
-        }
-        return updated;
-      });
-
-      if (failed > 0) {
-        toast.warning(
-          `Applied to ${matchIds.length - failed} match${matchIds.length - failed !== 1 ? "es" : ""}. ${failed} failed.`,
-        );
-      } else {
-        toast.success(
-          `Scoring applied to ${matchIds.length} match${matchIds.length !== 1 ? "es" : ""} - ${label}!`,
-        );
-      }
-    } catch {
-      toast.error("Failed to apply scoring configuration");
-    } finally {
-      setApplyingToAll(false);
-    }
-  };
-
-  // ── Match scoring config helpers ─────────────────────────────────────────────
-
-  const updateMatchScoringField = (
-    matchId: number,
-    field: keyof Omit<MatchScoringConfig, "ranks">,
-    value: string,
-  ) => {
-    setMatchScoring((prev) => ({
-      ...prev,
-      [matchId]: { ...prev[matchId], [field]: value },
-    }));
-  };
-
-  const updateMatchScoringRank = (
-    matchId: number,
-    rankIdx: number,
-    val: string,
-  ) => {
-    setMatchScoring((prev) => {
-      const config = prev[matchId];
-      if (!config) return prev;
-      const ranks = config.ranks.map((r, i) =>
-        i === rankIdx ? { ...r, val } : r,
-      );
-      return { ...prev, [matchId]: { ...config, ranks } };
-    });
-  };
-
-  const addMatchScoringRank = (matchId: number) => {
-    setMatchScoring((prev) => {
-      const config = prev[matchId];
-      if (!config) return prev;
-      return {
-        ...prev,
-        [matchId]: {
-          ...config,
-          ranks: [...config.ranks, { id: `add-${Date.now()}`, val: "0" }],
-        },
-      };
-    });
-  };
-
-  const removeMatchScoringRank = (matchId: number, rankIdx: number) => {
-    setMatchScoring((prev) => {
-      const config = prev[matchId];
-      if (!config) return prev;
-      return {
-        ...prev,
-        [matchId]: {
-          ...config,
-          ranks: config.ranks.filter((_, i) => i !== rankIdx),
-        },
-      };
-    });
-  };
+  // Per-match scoring config save + "Apply to..." fan-out + the field/rank editors now live
+  // inside <ScoringConfigPanel> (Scoring Config tab). This page passes handleSaveMatch as the
+  // panel's onScoringSaved so a scoring save still re-saves the map's results (recomputing points).
 
   // ── Upload handlers ──────────────────────────────────────────────────────────
 
@@ -2241,308 +2023,19 @@ export default function EditLeaderboardPage({
             groupId={selectedGroupId}
             groupName={currentGroup?.group_name}
           />
-          {groupMatches.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                No matches found for this group.
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {/* Match selector */}
-              <div className="flex gap-2 flex-wrap">
-                {groupMatches.map((m) => (
-                  <Button
-                    key={m.match_id}
-                    variant={
-                      selectedMatchId === m.match_id ? "default" : "secondary"
-                    }
-                    size="sm"
-                    onClick={() => setSelectedMatchId(m.match_id)}
-                  >
-                    {m.match_map}
-                  </Button>
-                ))}
-              </div>
-
-              {selectedMatchId !== null &&
-                (() => {
-                  const config = matchScoring[selectedMatchId];
-                  if (!config) return null;
-                  return (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">
-                          Scoring Configuration
-                        </CardTitle>
-                        <CardDescription>
-                          Edit scoring for{" "}
-                          {
-                            groupMatches.find(
-                              (m) => m.match_id === selectedMatchId,
-                            )?.match_map
-                          }{" "}
-                          - Match{" "}
-                          {
-                            groupMatches.find(
-                              (m) => m.match_id === selectedMatchId,
-                            )?.match_number
-                          }
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        {/* Scalar fields */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg">
-                          <div className="space-y-2">
-                            <Label>Kill Point</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={config.killPoint}
-                              onChange={(e) =>
-                                updateMatchScoringField(
-                                  selectedMatchId,
-                                  "killPoint",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Pts / Assist</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={config.pointsPerAssist}
-                              onChange={(e) =>
-                                updateMatchScoringField(
-                                  selectedMatchId,
-                                  "pointsPerAssist",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Pts / 1000 Dmg</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={config.pointsPer1000Damage}
-                              onChange={(e) =>
-                                updateMatchScoringField(
-                                  selectedMatchId,
-                                  "pointsPer1000Damage",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        {/* Placement points */}
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <Label>Placement Points</Label>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                addMatchScoringRank(selectedMatchId)
-                              }
-                            >
-                              <IconPlus size={12} className="mr-1" /> Add Rank
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                            {config.ranks.map((r, i) => (
-                              <Card
-                                key={r.id}
-                                className="py-1 group relative border"
-                              >
-                                <CardContent className="p-2">
-                                  <div className="flex justify-between items-center mb-1">
-                                    <Label className="text-xs text-muted-foreground">
-                                      Rank {i + 1}
-                                    </Label>
-                                    {config.ranks.length > 10 && (
-                                      <button
-                                        onClick={() =>
-                                          removeMatchScoringRank(
-                                            selectedMatchId,
-                                            i,
-                                          )
-                                        }
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                                      >
-                                        <IconX size={10} />
-                                      </button>
-                                    )}
-                                  </div>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    value={r.val}
-                                    onChange={(e) =>
-                                      updateMatchScoringRank(
-                                        selectedMatchId,
-                                        i,
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="h-8"
-                                  />
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end gap-2">
-                          {/* Apply to multiple matches */}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="outline"
-                                disabled={applyingToAll || savingMatchScoring}
-                              >
-                                {applyingToAll ? (
-                                  <span className="flex items-center gap-2">
-                                    <IconLoader2 size={14} className="animate-spin" />
-                                    Applying…
-                                  </span>
-                                ) : (
-                                  <span className="flex items-center gap-2">
-                                    <IconCopy size={14} />
-                                    Apply to…
-                                    <IconChevronDown size={12} />
-                                  </span>
-                                )}
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-72 max-h-96 overflow-y-auto">
-                              <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
-                                Copy current config to…
-                              </DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-
-                              {/* Current group - quick access */}
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  handleApplyScoringToMatches(
-                                    groupMatchIds,
-                                    `this group`,
-                                  )
-                                }
-                              >
-                                <IconMap size={14} className="mr-2 text-muted-foreground" />
-                                This group
-                                <span className="ml-auto text-xs text-muted-foreground">
-                                  {groupMatchIds.length} match{groupMatchIds.length !== 1 ? "es" : ""}
-                                </span>
-                              </DropdownMenuItem>
-
-                              <DropdownMenuSeparator />
-
-                              {/* Dynamic: every stage + each of its groups */}
-                              {(eventData?.stages ?? []).map((stage: any) => {
-                                const stageIds: number[] =
-                                  (stage.groups ?? []).flatMap((g: any) =>
-                                    (g.matches ?? []).map((m: any) => m.match_id as number),
-                                  );
-                                return (
-                                  <DropdownMenuGroup key={stage.stage_id}>
-                                    {/* Stage row */}
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        handleApplyScoringToMatches(
-                                          stageIds,
-                                          stage.stage_name,
-                                        )
-                                      }
-                                    >
-                                      <IconTrophy size={14} className="mr-2 text-muted-foreground" />
-                                      <span className="font-medium">{stage.stage_name}</span>
-                                      <span className="ml-auto text-xs text-muted-foreground">
-                                        {stageIds.length} match{stageIds.length !== 1 ? "es" : ""}
-                                      </span>
-                                    </DropdownMenuItem>
-
-                                    {/* Group rows (indented) */}
-                                    {(stage.groups ?? []).map((group: any) => {
-                                      const groupIds: number[] = (group.matches ?? []).map(
-                                        (m: any) => m.match_id as number,
-                                      );
-                                      return (
-                                        <DropdownMenuItem
-                                          key={group.group_id}
-                                          className="pl-8"
-                                          onClick={() =>
-                                            handleApplyScoringToMatches(
-                                              groupIds,
-                                              `${stage.stage_name} › ${group.group_name}`,
-                                            )
-                                          }
-                                        >
-                                          <IconUsers size={13} className="mr-2 text-muted-foreground" />
-                                          {group.group_name}
-                                          <span className="ml-auto text-xs text-muted-foreground">
-                                            {groupIds.length} match{groupIds.length !== 1 ? "es" : ""}
-                                          </span>
-                                        </DropdownMenuItem>
-                                      );
-                                    })}
-                                  </DropdownMenuGroup>
-                                );
-                              })}
-
-                              <DropdownMenuSeparator />
-
-                              {/* Entire event */}
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  handleApplyScoringToMatches(
-                                    allMatchIds,
-                                    `entire event`,
-                                  )
-                                }
-                              >
-                                <IconSettings size={14} className="mr-2 text-muted-foreground" />
-                                Entire event
-                                <span className="ml-auto text-xs text-muted-foreground">
-                                  {allMatchIds.length} match{allMatchIds.length !== 1 ? "es" : ""}
-                                </span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-
-                          {/* Save current match only */}
-                          <Button
-                            onClick={handleSaveMatchScoring}
-                            disabled={savingMatchScoring || applyingToAll}
-                          >
-                            {savingMatchScoring ? (
-                              <span className="flex items-center gap-2">
-                                <IconLoader2 size={14} className="animate-spin" />
-                                Saving…
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-2">
-                                <IconDeviceFloppy size={14} />
-                                Save Scoring Config
-                              </span>
-                            )}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })()}
-            </>
-          )}
+          {/* Per-match scoring editor + "Apply to..." fan-out, now a shared component reused by
+              the organizer leaderboard page. Controlled by this page's shared selectedMatchId so
+              the Scoring tab tracks the Match Results / Upload tabs; onScoringSaved re-saves the
+              map's results after a scoring save so the stored points recompute (unchanged). */}
+          <ScoringConfigPanel
+            stages={eventData?.stages ?? []}
+            groupMatches={groupMatches}
+            token={token}
+            apiBase={env.NEXT_PUBLIC_BACKEND_API_URL}
+            selectedMatchId={selectedMatchId}
+            onSelectMatch={setSelectedMatchId}
+            onScoringSaved={handleSaveMatch}
+          />
         </TabsContent>
 
         {/* ── Upload Results Tab ── */}

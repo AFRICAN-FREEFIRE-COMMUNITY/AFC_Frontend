@@ -1094,6 +1094,7 @@
       "tieBreakersTab": "Critérios de desempate",
       "mvpTab": "MVP",
       "backfillTab": "Preenchimento do depurador",
+      "scoringTab": "Configuração de pontuação",
       "totalTitle": "Classificação Geral",
       "totalDescription": "Aplica ajustes de pontos à classificação geral. Os valores positivos atribuem pontos de bónus; os valores negativos atribuem pontos de penalização ao primeiro mapa.",
       "noData": "Ainda não há dados da tabela de classificação.",

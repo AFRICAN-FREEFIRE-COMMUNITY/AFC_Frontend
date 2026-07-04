@@ -128,6 +128,7 @@ import {
   IconPlus,
   IconRefresh,
   IconScale,
+  IconSettings,
   IconTrophy,
   IconUpload,
   IconUsers,
@@ -145,6 +146,15 @@ import { MatchMethodSelectionStep } from "@/app/(a)/a/leaderboards/_components/M
 import { ManualMatchResultStep } from "@/app/(a)/a/leaderboards/_components/ManualMatchResultStep";
 import { FileUploadStep } from "@/app/(a)/a/leaderboards/_components/FileUploadStep";
 import { ImageUploadStep } from "@/app/(a)/a/leaderboards/_components/ImageUploadStep";
+// Single-map OCR review flow (owner 2026-07-04 organizer parity): the SAME two-step upload the
+// admin edit page uses for the image_upload path — MapSelectionStep (pick map + drop screenshot,
+// POST /events/ocr-match-result/) then OCRReviewTable (edit + commit the extracted rows). Replaces
+// the older auto-OCR-and-save ImageUploadStep in the per-match EDIT flow so organizers can review
+// and correct rows before committing. Both components are role-agnostic and the endpoint already
+// authorises org can_upload_results. (ImageUploadStep is still used by the create wizard below.)
+import { MapSelectionStep } from "@/app/(a)/a/leaderboards/_components/MapSelectionStep";
+import { OCRReviewTable } from "@/app/(a)/a/leaderboards/_components/OCRReviewTable";
+import type { DraftRow } from "@/lib/api/ocr";
 import { DownloadLeaderboardButton } from "@/app/(a)/a/leaderboards/_components/DownloadLeaderboardButton";
 // Create-a-leaderboard wizard (same imports the admin create page uses).
 import { BasicInfoStep } from "@/app/(a)/a/leaderboards/_components/BasicInfoStep";
@@ -193,6 +203,12 @@ import { BroadcastControl } from "@/components/overlay/BroadcastControl";
 import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
 import TieBreakersPanel from "@/app/(a)/a/leaderboards/_components/TieBreakersPanel";
 import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/DebuggerBackfillPanel";
+// Scoring Config editor (owner 2026-07-04 organizer parity): the per-match kill/assist/damage +
+// placement-ladder editor + "Apply to..." fan-out, shared with the admin edit page's Scoring tab.
+// Mounted as a new tab in the "Manage leaderboard tools" section below. POSTs
+// /events/edit-match-scoring-config/, which the backend gates on org can_upload_results — this
+// page's own baseline gate — so it always shows here (like the Total Leaderboard tab).
+import { ScoringConfigPanel } from "@/app/(a)/a/leaderboards/_components/ScoringConfigPanel";
 // Advisory watchlist badges (owner 2026-07-02 organizer parity): one bulk watchlistApi.tags call
 // per group marks which standings team_ids/player_ids are watched; <WatchTag> renders next to the
 // flagged names, exactly like the admin edit page. Backend gate (admin OR organizer) is
@@ -306,6 +322,15 @@ export default function OrganizerEventLeaderboardPage({
   const [matchPickerOpen, setMatchPickerOpen] = useState(false);
   const [pickerGroupId, setPickerGroupId] = useState<string>("");
   const [pickerMatchId, setPickerMatchId] = useState<string>("");
+  // ── OCR review sub-flow state (image_upload edit path, owner 2026-07-04) ──
+  // The image_upload edit flow is a 2-step mini-stepper: MapSelectionStep (pick map + upload
+  // screenshot) hands a session up here, then OCRReviewTable takes over to edit + commit. null =
+  // still on the map picker. Reset on every fresh edit + on commit so a new upload starts clean.
+  const [ocrSession, setOcrSession] = useState<{
+    sessionId: string;
+    draftRows: DraftRow[];
+    engine?: string | null;
+  } | null>(null);
   // Whole-group editor sub-view (replaces the main view card, same inline-replace
   // pattern as editingMatch). Acts on the selected group; uploading is inside it.
   const [groupEditOpen, setGroupEditOpen] = useState(false);
@@ -627,6 +652,9 @@ export default function OrganizerEventLeaderboardPage({
 
   // ── Edit-results handlers (ported 1:1 from the admin [id] page) ───────────────
   const handleStartEditMatch = () => {
+    // Start the OCR mini-stepper fresh every time (a stale session from a prior match must not
+    // leak into a new one, since editingMatch alone drives which match the review commits to).
+    setOcrSession(null);
     if (selectedMatchId !== "overall") {
       const m = currentGroup?.matches?.find(
         (x: any) => x.match_id.toString() === selectedMatchId,
@@ -662,6 +690,7 @@ export default function OrganizerEventLeaderboardPage({
     );
     if (!m) return;
     setMatchPickerOpen(false);
+    setOcrSession(null); // fresh OCR mini-stepper for the picked match
     setEditingMatch({
       match: {
         match_id: m.match_id,
@@ -679,6 +708,7 @@ export default function OrganizerEventLeaderboardPage({
   const handleEditComplete = () => {
     fetchLeaderboard();
     setEditingMatch(null);
+    setOcrSession(null); // clear any in-flight OCR draft when the edit flow closes
   };
 
   // ── Redo this map (owner 2026-07-02 organizer parity) ─────────────────────────
@@ -831,6 +861,91 @@ export default function OrganizerEventLeaderboardPage({
     } finally {
       setSavingAdjust(false);
     }
+  };
+
+  // ── Recalc after a scoring-config save (owner 2026-07-04 organizer parity) ────
+  // The shared <ScoringConfigPanel> POSTs edit-match-scoring-config, which only STORES the new
+  // scoring_settings — it does not recompute the map's already-saved points. So, exactly like the
+  // admin edit page (whose onScoringSaved is handleSaveMatch), we re-save that map's SAVED stats
+  // through the proven per-map endpoints (edit-match-result / edit-solo-match-result, gate = org
+  // can_upload_results) so the backend recomputes its points against the new config, then refresh.
+  // Row shape mirrors handleSaveAdjustments (players keyed by user_id; placement 0 = not played).
+  // If the map has no saved results yet, there is nothing to recompute — just refresh (the config
+  // is stored and will apply on the next result save). matchId always belongs to the current group
+  // (the panel's groupMatches is currentGroup.matches).
+  const resaveMatchForRecalc = async (matchId: number) => {
+    const match = currentGroup?.matches?.find(
+      (m: any) => m.match_id === matchId,
+    );
+    const stats: any[] = match?.stats ?? [];
+    if (!match || stats.length === 0) {
+      fetchLeaderboard();
+      return;
+    }
+
+    const updatedRows = stats.map((stat: any) => {
+      const rid = stat.competitor_id ?? stat.tournament_team_id ?? 0;
+      return {
+        id: rid,
+        placement: stat.placement ?? 0,
+        kills: stat.kills ?? 0,
+        played: (stat.placement ?? 0) > 0,
+        bonus_points: stat.bonus_points ?? 0,
+        penalty_points: stat.penalty_points ?? 0,
+        players: (stat.players ?? []).map((p: any) => ({
+          user_id: p.player_id,
+          kills: p.kills ?? 0,
+          damage: p.damage ?? 0,
+          assists: p.assists ?? 0,
+          played: true,
+        })),
+      };
+    });
+
+    let endpoint: string;
+    let body: any;
+    if (detailsParticipantType === "solo") {
+      endpoint = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-solo-match-result/`;
+      body = {
+        match_id: matchId.toString(),
+        rows: updatedRows.map((r) => ({
+          competitor_id: r.id,
+          placement: r.placement,
+          kills: r.kills,
+          played: r.played,
+          bonus_points: r.bonus_points,
+          penalty_points: r.penalty_points,
+        })),
+      };
+    } else {
+      endpoint = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-result/`;
+      body = {
+        match_id: matchId,
+        results: updatedRows.map((r) => ({
+          tournament_team_id: r.id,
+          placement: r.placement,
+          played: r.played,
+          bonus_points: r.bonus_points,
+          penalty_points: r.penalty_points,
+          players: r.players,
+        })),
+      };
+    }
+
+    try {
+      await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+    } catch {
+      // Non-fatal: the scoring config is already stored; the standings just won't reflect the
+      // recompute until the next result save. The refresh below still runs.
+    }
+    fetchLeaderboard();
   };
 
   // ── Create-wizard handlers ────────────────────────────────────────────────────
@@ -1605,14 +1720,33 @@ export default function OrganizerEventLeaderboardPage({
         />
       )}
 
-      {editingMatch?.view === "image_upload" && (
-        <ImageUploadStep
-          // The admin [id] page calls ImageUploadStep without a match prop too;
-          // the component reads match?.match_id, so we pass the editing match here
-          // (an improvement that keeps the prop satisfied without changing behaviour).
-          match={editingMatch.match}
-          onNext={handleEditComplete}
+      {/* ── Image Upload = the OCR review mini-stepper (owner 2026-07-04 organizer parity) ──
+          Step 1 (no session yet): MapSelectionStep — pick which map this screenshot is for and
+          upload it (POST /events/ocr-match-result/). Step 2 (session ready): OCRReviewTable —
+          edit + commit the auto-extracted rows before they are written. Mirrors the admin edit
+          page exactly; onCommitted runs handleEditComplete (refresh + close, same as every other
+          edit path). `maps` is this match's group's matches (position drives the 1-based map_index
+          the backend expects). Replaces the older auto-OCR-and-save ImageUploadStep so organizers
+          can review/correct rows first. */}
+      {editingMatch?.view === "image_upload" && !ocrSession && (
+        <MapSelectionStep
+          matchId={editingMatch.match.match_id}
+          maps={editingMatch.groupMatches ?? currentGroup?.matches ?? []}
+          onSessionReady={(sessionId, draftRows, engine) =>
+            setOcrSession({ sessionId, draftRows, engine })
+          }
           onBack={() => setEditingMatch({ ...editingMatch, view: "method" })}
+        />
+      )}
+
+      {editingMatch?.view === "image_upload" && ocrSession && (
+        <OCRReviewTable
+          sessionId={ocrSession.sessionId}
+          draftRows={ocrSession.draftRows}
+          matchId={editingMatch.match.match_id}
+          engine={ocrSession.engine}
+          onCommitted={handleEditComplete}
+          onBack={() => setOcrSession(null)}
         />
       )}
 
@@ -1687,11 +1821,18 @@ export default function OrganizerEventLeaderboardPage({
           <div className="mt-4">
             <Tabs defaultValue="total">
               <TabsList
-                className={`grid w-full ${canEditEvents ? "grid-cols-4" : "grid-cols-1"}`}
+                className={`grid w-full ${canEditEvents ? "grid-cols-5" : "grid-cols-2"}`}
               >
                 <TabsTrigger value="total">
                   <IconTrophy size={14} className="mr-1" />
                   {t("eventLeaderboard.tools.totalTab")}
+                </TabsTrigger>
+                {/* Scoring Config (owner 2026-07-04 organizer parity): always shown — editing a
+                    match's scoring requires can_upload_results, which is this page's baseline gate
+                    (like the Total tab). The other three tools need can_edit_events. */}
+                <TabsTrigger value="scoring">
+                  <IconSettings size={14} className="mr-1" />
+                  {t("eventLeaderboard.tools.scoringTab")}
                 </TabsTrigger>
                 {canEditEvents && (
                   <>
@@ -1857,6 +1998,23 @@ export default function OrganizerEventLeaderboardPage({
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              {/* ── Scoring Config ── the shared per-match scoring editor + "Apply to..." fan-out,
+                  scoped to THIS group's matches (currentGroup.matches). Uncontrolled selection
+                  (this page has no shared match cursor for the tools tabs), so the panel manages
+                  its own selected map. onScoringSaved re-saves that map's results so the standings
+                  recompute against the new config (see resaveMatchForRecalc). Copy inside the panel
+                  is English (same precedent as the reused admin components above); only this tab
+                  label is i18n'd. */}
+              <TabsContent value="scoring" className="mt-4">
+                <ScoringConfigPanel
+                  stages={eventData?.stages ?? []}
+                  groupMatches={currentGroup?.matches ?? []}
+                  token={token}
+                  apiBase={env.NEXT_PUBLIC_BACKEND_API_URL}
+                  onScoringSaved={resaveMatchForRecalc}
+                />
               </TabsContent>
 
               {canEditEvents && (
