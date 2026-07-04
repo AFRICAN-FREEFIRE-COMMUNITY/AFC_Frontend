@@ -236,8 +236,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Slide the cookie's 7d storage window on activity. Write the AUTHORITATIVE in-scope
           // `token` (the validated session token) at the canonical path, NOT a re-read of the
           // cookie — re-reading could pick up a stale duplicate and re-persist the wrong token.
+          // Only slide on an AUTHENTICATED response (owner 2026-07-04 random-logout fix): the backend
+          // only touches/slides the SessionToken on requests that carry the Bearer token, so sliding
+          // the FE cookie on PUBLIC responses too kept the cookie alive while the backend token idled
+          // out past 3h -> the next authed action 401'd ("logged in but suddenly logged out"). Gating
+          // on the request's Authorization header keeps FE cookie expiry aligned with the backend.
+          const reqAuth = (response.config?.headers as Record<string, unknown> | undefined)?.[
+            "Authorization"
+          ];
+          const isAuthedRequest = typeof reqAuth === "string" && reqAuth.startsWith("Bearer ");
           const now = Date.now();
-          if (token && now - lastCookieBumpAt > COOKIE_BUMP_THROTTLE_MS) {
+          if (token && isAuthedRequest && now - lastCookieBumpAt > COOKIE_BUMP_THROTTLE_MS) {
             lastCookieBumpAt = now;
             Cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
           }
@@ -519,6 +528,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = useCallback(() => {
     // Remove the cookie (every copy, incl. stale duplicates) + clear the in-memory token.
     clearAuthCookieEverywhere();
+    // Also clear the localStorage mirror (owner 2026-07-04 random-logout hardening): login() writes
+    // localStorage["authToken"], and two surfaces (profile/edit, EventDetailsWrapper) re-login FROM
+    // it. If logout left it behind, a later re-login could fire with a DEAD token -> 401 -> logout.
+    try {
+      localStorage.removeItem("authToken");
+    } catch {
+      /* localStorage can throw in sandboxed contexts; never break logout over it */
+    }
     setAuthToken(null);
     setUser(null);
     setToken(null);

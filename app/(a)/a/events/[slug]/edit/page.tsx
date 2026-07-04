@@ -726,7 +726,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         error.response?.data?.detail ||
         "Failed to fetch event details.";
       toast.error(errorMessage);
-      router.push("/login");
+      // DO NOT hard-redirect to /login on a failed load (owner 2026-07-04 random-logout fix): this
+      // catch fired for ANY error - a transient 5xx, a timeout, a network blip - so a momentary
+      // backend hiccup while opening the edit page looked like a logout ("opening a page logs me
+      // out"). Genuine session expiry is handled by AuthContext's interceptor (revalidate-once +
+      // in-place login modal); here we just toast and let the user retry (reload).
     } finally {
       setLoadingEvent(false);
       setInitialLoading(false);

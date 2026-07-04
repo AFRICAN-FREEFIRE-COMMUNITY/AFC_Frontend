@@ -455,12 +455,14 @@ const Page = ({ params }: { params: Promise<Params> }) => {
         error.response?.data?.detail ||
         "Failed to fetch event details.";
       // Live refresh (owner 2026-07-02): no toast on background ticks (a transient network
-      // blip would otherwise toast every 30s); auth errors still redirect below.
+      // blip would otherwise toast every 30s).
       if (!background) toast.error(errorMessage);
-      // Only redirect to login if it's an auth error (401 or 403)
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        router.push("/login");
-      }
+      // DO NOT hard-redirect to /login here (owner 2026-07-04 random-logout fix). This runs on a 15s
+      // live-poll tick + on every window focus, so a single transient 401 (racing/expiring token) OR
+      // a 403 (a PERMISSION error, not auth) used to bounce the admin to /login mid-work - one of the
+      // "opening a page logs me out" reports. Genuine session expiry is owned by AuthContext's
+      // response interceptor (revalidates once against get-user-profile, shows the in-place login
+      // modal only if the session is truly dead), so this page surfaces the error and stays put.
     }
     // fetchInviteLinks is a stable local closure; intentionally not in deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
