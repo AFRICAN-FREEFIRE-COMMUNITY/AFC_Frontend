@@ -701,6 +701,7 @@
     },
     "actions": {
       "view": "Ver",
+      "publicPage": "Página pública",
       "edit": "Editar",
       "unpublishing": "A retirar da publicação...",
       "unpublish": "Retirar da publicação",

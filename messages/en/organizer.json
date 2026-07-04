@@ -701,6 +701,7 @@
     },
     "actions": {
       "view": "View",
+      "publicPage": "Public page",
       "edit": "Edit",
       "unpublishing": "Unpublishing...",
       "unpublish": "Unpublish",

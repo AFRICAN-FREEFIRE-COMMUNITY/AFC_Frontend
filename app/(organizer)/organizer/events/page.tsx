@@ -45,7 +45,7 @@ import {
 import {
   IconCalendarEvent,
   IconEyeOff,
-  IconLink,
+  IconExternalLink,
   IconPlus,
   IconPencil,
   IconTrophy,
@@ -312,14 +312,18 @@ export default function OrganizerEventsPage() {
                     </TableCell>
                     <TableCell>
                       {/* Row actions, right-aligned:
-                          • View      → the public event page (read-only), always shown.
+                          • View      → the ORGANIZER EVENT DETAIL dashboard (admin-style, with the
+                            Leaderboard / Edit / Groups / OCR buttons), always shown. This used to
+                            point at the PUBLIC /tournaments page, which is why organizers landed on
+                            the user-facing view with no management buttons (owner 2026-07-04 parity).
+                          • Public page → the read-only public /tournaments page (opens in a new tab).
                           • Edit      → the organizer event-EDIT page, gated on
                             can_edit_events / owner (matches the backend edit_event gate).
-                          • Results & Leaderboard → the org results route (built by a
-                            sibling agent), gated on can_upload_results / owner. */}
+                          • Results & Leaderboard → the org results route,
+                            gated on can_upload_results / owner. */}
                       <div className="flex flex-wrap items-center justify-end gap-2">
                         <Button asChild variant="outline" size="sm">
-                          <Link href={`/tournaments/${event.slug}`}>
+                          <Link href={`/organizer/events/${event.slug}`}>
                             {t("eventsList.actions.view")}
                           </Link>
                         </Button>
@@ -368,17 +372,16 @@ export default function OrganizerEventsPage() {
                             </Link>
                           </Button>
                         )}
-                        {/* Event detail hub (event linking P2): qualification links,
-                            chain map and the cross-event merge live there. Same gate as
-                            Edit (the backend authorizes links via can_edit_events). */}
-                        {canEditEvents && (
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/organizer/events/${event.slug}`}>
-                              <IconLink className="size-4" />
-                              {t("eventsList.actions.links")}
-                            </Link>
-                          </Button>
-                        )}
+                        {/* Public page: the read-only user-facing event page, opened in a new tab so
+                            the organizer can preview what players see without leaving their dashboard.
+                            (Replaces the old "Links" button, whose event-linking hub now lives on the
+                            View detail page above.) Always shown. */}
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/tournaments/${event.slug}`} target="_blank">
+                            <IconExternalLink className="size-4" />
+                            {t("eventsList.actions.publicPage")}
+                          </Link>
+                        </Button>
                         {/* Groups & Rosters: live-event seeding check (stage → group →
                             teams → players). Links to the new groups page; gated on the
                             registrations permission to match that page + the backend. */}

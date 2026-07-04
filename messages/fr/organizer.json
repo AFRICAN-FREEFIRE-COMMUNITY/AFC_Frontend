@@ -701,6 +701,7 @@
     },
     "actions": {
       "view": "Afficher",
+      "publicPage": "Page publique",
       "edit": "Modifier",
       "unpublishing": "Retrait de la publication...",
       "unpublish": "Retirer de la publication",
@@ -1094,7 +1095,7 @@
       "tieBreakersTab": "Critères de départage",
       "mvpTab": "MVP",
       "backfillTab": "Remplissage du débogueur",
-      "scoringTab": "Configuration des points",
+      "scoringTab": "Configuration de la notation",
       "totalTitle": "Classement général",
       "totalDescription": "Appliquez les ajustements de points au classement général. Les valeurs positives ajoutent des points de bonus ; les valeurs négatives ajoutent des points de pénalité à la première carte.",
       "noData": "Il n'y a pas encore de données concernant le classement.",
