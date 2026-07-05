@@ -605,6 +605,14 @@ export const leaderboardDesignsApi = {
       // The selected group (owner 2026-06-16): scope the export to ONE group's standings so the
       // image matches the per-group "Overall Leaderboard" shown on the page. Omit for stage-wide.
       groupId?: number | string | null;
+      // COMBINE selection (owner 2026-07-05, complaint B): merge the leaderboards of MULTIPLE units
+      // into one board. groupIds = individual groups; stageIds = whole stages (each expands to its
+      // groups on the backend). When either is non-empty the backend aggregates+re-ranks across them
+      // (reusing round_robin._aggregate_team_standings) instead of the single group/stage above. Serialised
+      // as CSV query params (?group_ids=1,2&stage_ids=3). Pair with page:"all" so a paginated combined
+      // board returns EVERY page (a ZIP when it paginates, a single PNG when it fits one page).
+      groupIds?: Array<number | string>;
+      stageIds?: Array<number | string>;
     },
   ): Promise<Blob> => {
     const params: Record<string, any> = { size: opts.size };
@@ -613,6 +621,10 @@ export const leaderboardDesignsApi = {
     if (opts.subtitle) params.subtitle = opts.subtitle;
     if (opts.page) params.page = opts.page;
     if (opts.groupId != null && opts.groupId !== "") params.group_id = opts.groupId;
+    // Combine (owner 2026-07-05): CSV of the selected group / stage ids. Only added when non-empty so
+    // a normal single-scope export is byte-identical to before.
+    if (opts.groupIds && opts.groupIds.length) params.group_ids = opts.groupIds.join(",");
+    if (opts.stageIds && opts.stageIds.length) params.stage_ids = opts.stageIds.join(",");
     // Cache-bust: force a fresh render after a design edit (see downloadGraphic).
     params._ts = Date.now();
     return axios

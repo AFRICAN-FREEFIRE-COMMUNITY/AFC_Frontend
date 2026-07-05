@@ -43,6 +43,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+// Combine picker (owner 2026-07-05, complaint B): a nested checklist of the event's stages + groups
+// so the user can merge SELECTED units into one downloadable leaderboard.
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -133,6 +136,17 @@ export function EventStageExportGraphicDialog({
   const [subtitle, setSubtitle] = useState(defaultSubtitle);
   const [downloading, setDownloading] = useState(false);
 
+  // ── COMBINE state (owner 2026-07-05, complaint B) ───────────────────────────
+  // When combineMode is on, the single stage/group pickers are replaced by a nested checklist and the
+  // download merges every SELECTED unit into ONE re-ranked board (backend ?group_ids=/?stage_ids= +
+  // page:"all"). combineStages holds WHOLE-stage selections (each expands to its groups on the
+  // backend); combineGroups holds individual group selections. A group whose stage is fully selected
+  // is implicitly included, so its own checkbox shows checked+disabled to avoid a redundant pick.
+  const [combineMode, setCombineMode] = useState(false);
+  const [combineStages, setCombineStages] = useState<Set<string>>(new Set());
+  const [combineGroups, setCombineGroups] = useState<Set<string>>(new Set());
+  const combineCount = combineStages.size + combineGroups.size;
+
   // Groups available for the currently-selected stage (drives the Group dropdown).
   const stageGroups =
     stages.find((s) => String(s.stage_id) === selStage)?.groups ?? [];
@@ -171,6 +185,10 @@ export function EventStageExportGraphicDialog({
       // Default the stage/group pickers to the page's current view (the passed stageId/groupId).
       setSelStage(String(stageId ?? stages[0]?.stage_id ?? ""));
       setSelGroup(groupId != null ? String(groupId) : ALL_GROUPS);
+      // Combine picker starts off (single-scope is the common case); clear any prior selection.
+      setCombineMode(false);
+      setCombineStages(new Set());
+      setCombineGroups(new Set());
       loadDesigns();
     }
     prevOpenRef.current = open;
@@ -178,11 +196,98 @@ export function EventStageExportGraphicDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultTitle, defaultSubtitle, loadDesigns, stageId, groupId]);
 
+  // ── Combine checklist toggles (owner 2026-07-05, complaint B) ─────────────
+  // Toggling a WHOLE stage drops its individual group picks (they become redundant — the backend
+  // expands a stage to all its groups). Group checkboxes are disabled while their stage is selected.
+  const toggleCombineStage = (sid: string) => {
+    setCombineStages((prev) => {
+      const next = new Set(prev);
+      if (next.has(sid)) next.delete(sid);
+      else next.add(sid);
+      return next;
+    });
+    setCombineGroups((prev) => {
+      const st = stages.find((s) => String(s.stage_id) === sid);
+      if (!st?.groups?.length) return prev;
+      const next = new Set(prev);
+      for (const g of st.groups) next.delete(String(g.group_id));
+      return next;
+    });
+  };
+  const toggleCombineGroup = (gid: string) => {
+    setCombineGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(gid)) next.delete(gid);
+      else next.add(gid);
+      return next;
+    });
+  };
+
+  // ── Combine download (owner 2026-07-05, complaint B) ──────────────────────
+  // Merge every SELECTED stage/group into ONE re-ranked board. We ALWAYS request page:"all" so a
+  // paginated combined board returns EVERY page: the backend replies with a ZIP when it spans more
+  // than one page, or a single PNG when it fits one page. We branch on the returned blob's MIME type
+  // to name the saved file (.zip vs .png).
+  const onDownloadCombined = async () => {
+    if (combineCount === 0) {
+      toast.error(t("exportGraphic.combineNoneSelected"));
+      return;
+    }
+    setDownloading(true);
+    try {
+      const safe = (defaultTitle || "leaderboard").replace(/[^a-z0-9\-_ ]/gi, "");
+      const blob = await leaderboardDesignsApi.downloadEventStageGraphic(
+        eventId,
+        // The URL needs a valid stage of this event (looked up for auth/existence); the combined
+        // standings come from group_ids/stage_ids, so the page's current stage is fine here.
+        selStage || stageId,
+        {
+          designId: designId === AUTO ? null : Number(designId),
+          size,
+          groupIds: [...combineGroups],
+          stageIds: [...combineStages],
+          page: "all",
+        },
+      );
+      const isZip = (blob.type || "").includes("zip");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${safe}-${size}-combined.${isZip ? "zip" : "png"}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success(
+        isZip
+          ? t("exportGraphic.combineDownloadedZip")
+          : t("exportGraphic.graphicDownloaded"),
+      );
+    } catch (err: any) {
+      let message = t("exportGraphic.exportError");
+      const data = err?.response?.data;
+      if (data instanceof Blob) {
+        try {
+          message = JSON.parse(await data.text())?.message || message;
+        } catch {
+          /* keep the default message */
+        }
+      } else if (data?.message) {
+        message = data.message;
+      }
+      toast.error(message);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   // ── Download: fetch PNG blob via auth-gated axios call + save ─────────────
   // downloadEventStageGraphic hits GET events/<eventId>/stages/<stageId>/graphic/
   // with the params serialised as query strings. The backend returns a PNG blob.
   // We object-URL it and click a hidden <a download> to trigger save-as.
   const onDownload = async () => {
+    // Combine mode has its own multi-unit + page:"all" flow (ZIP or PNG by blob type).
+    if (combineMode) return onDownloadCombined();
     setDownloading(true);
     try {
       const selectedDesign = designs.find((d) => String(d.id) === designId);
@@ -278,12 +383,37 @@ export function EventStageExportGraphicDialog({
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* ── Combine toggle (owner 2026-07-05, complaint B) ────────────
+                Turn ON to merge the leaderboards of MULTIPLE selected units (whole stages
+                and/or individual groups) into ONE downloadable board, instead of the single
+                stage/group below. Owner-locked: stages AND groups are both selectable, and a
+                selected stage expands to all its groups. */}
+            {stages.length > 0 && (
+              <div className="flex items-start gap-2 rounded-md border p-3">
+                <Checkbox
+                  id="combine-toggle"
+                  checked={combineMode}
+                  onCheckedChange={(v) => setCombineMode(v === true)}
+                  className="mt-0.5"
+                />
+                <div className="space-y-0.5">
+                  <Label htmlFor="combine-toggle" className="cursor-pointer">
+                    {t("exportGraphic.combineToggle")}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    {t("exportGraphic.combineHint")}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* ── Stage + Group pickers (owner 2026-06-16) ──────────────────
                 Choose EXACTLY which stage + group of the event to render, instead of
                 being locked to whatever the page is currently showing. "Whole stage"
                 renders every group combined; a specific group renders just that group's
-                Overall Leaderboard (the backend's group_id vs stage-wide path). */}
-            {stages.length > 0 && (
+                Overall Leaderboard (the backend's group_id vs stage-wide path). Hidden
+                while combining (the checklist below takes over). */}
+            {!combineMode && stages.length > 0 && (
               <>
                 <div className="space-y-2">
                   <Label>{t("exportGraphic.stage")}</Label>
@@ -333,6 +463,75 @@ export function EventStageExportGraphicDialog({
               </>
             )}
 
+            {/* ── Combine checklist (owner 2026-07-05, complaint B) ─────────
+                A nested checklist of the event's stages + their groups. Check a WHOLE stage
+                (its groups auto-include, shown checked+disabled) and/or individual groups; the
+                download sums+re-ranks every checked unit into one board. */}
+            {combineMode && stages.length > 0 && (
+              <div className="space-y-2">
+                <Label>{t("exportGraphic.combineSelectLabel")}</Label>
+                <div className="max-h-56 space-y-3 overflow-y-auto rounded-md border p-3">
+                  {stages.map((s) => {
+                    const sid = String(s.stage_id);
+                    const stageChecked = combineStages.has(sid);
+                    const groups = s.groups ?? [];
+                    return (
+                      <div key={sid} className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`cs-${sid}`}
+                            checked={stageChecked}
+                            onCheckedChange={() => toggleCombineStage(sid)}
+                          />
+                          <Label htmlFor={`cs-${sid}`} className="cursor-pointer font-medium">
+                            {s.stage_name ||
+                              t("exportGraphic.stageFallback", { id: s.stage_id })}
+                            <span className="ml-1 text-xs font-normal text-muted-foreground">
+                              {t("exportGraphic.combineWholeStageTag")}
+                            </span>
+                          </Label>
+                        </div>
+                        {groups.length > 0 && (
+                          <div className="ml-6 space-y-1.5">
+                            {groups.map((g) => {
+                              const gid = String(g.group_id);
+                              const gChecked = stageChecked || combineGroups.has(gid);
+                              return (
+                                <div key={gid} className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`cg-${gid}`}
+                                    checked={gChecked}
+                                    disabled={stageChecked}
+                                    onCheckedChange={() => toggleCombineGroup(gid)}
+                                  />
+                                  <Label
+                                    htmlFor={`cg-${gid}`}
+                                    className={
+                                      stageChecked
+                                        ? "text-muted-foreground"
+                                        : "cursor-pointer"
+                                    }
+                                  >
+                                    {g.group_name ||
+                                      t("exportGraphic.groupFallback", { id: g.group_id })}
+                                  </Label>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {combineCount > 0
+                    ? t("exportGraphic.combineSelectedCount", { count: combineCount })
+                    : t("exportGraphic.combineSelectHint")}
+                </p>
+              </div>
+            )}
+
             {/* ── Design picker ────────────────────────────────────────────
                 Lists the org's design library. "Default / plain background"
                 lets the backend choose the library default (or plain dark). */}
@@ -364,11 +563,20 @@ export function EventStageExportGraphicDialog({
                   {t("exportGraphic.noDesigns")}
                 </p>
               ) : null}
-              {/* Note shown when the selected design has multiple pages: one image per page. */}
-              {(designs.find((d) => String(d.id) === designId)?.pages?.length ??
-                0) > 1 && (
+              {/* Note shown when the selected design has multiple pages: one image per page.
+                  Hidden while combining (a combined board downloads as a single ZIP of all pages,
+                  not one image per page). */}
+              {!combineMode &&
+                (designs.find((d) => String(d.id) === designId)?.pages?.length ??
+                  0) > 1 && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("exportGraphic.multiPageNote")}
+                  </p>
+                )}
+              {/* Combine note: a paginated combined board is delivered as a ZIP of every page. */}
+              {combineMode && (
                 <p className="text-xs text-muted-foreground">
-                  {t("exportGraphic.multiPageNote")}
+                  {t("exportGraphic.combineMultiPageNote")}
                 </p>
               )}
             </div>
