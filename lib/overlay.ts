@@ -89,6 +89,11 @@ export interface OverlayFeedParams {
   token: string;
   stage?: string | number | null;
   group?: string | number | null;
+  // Per-overlay COMBINE (owner 2026-07-05, complaint C): comma-separated group ids and/or whole-stage
+  // ids to merge into ONE cumulative board. When set they supersede stage/group + broadcast-follow on
+  // the backend (_parse_overlay_combine -> _overlay_cumulative_rows). Empty/undefined => untouched.
+  groups?: string;
+  stages?: string;
   design?: string | number | null;
   size?: OverlaySize;
   live?: boolean;
@@ -103,6 +108,9 @@ export async function fetchOverlayFeed(
   const q: Record<string, string> = { token: params.token };
   if (params.stage != null && params.stage !== "") q.stage = String(params.stage);
   if (params.group != null && params.group !== "") q.group = String(params.group);
+  // Combine spec (csv of ids); only sent when non-empty so single/follow callers are unaffected.
+  if (params.groups) q.groups = params.groups;
+  if (params.stages) q.stages = params.stages;
   if (params.design != null && params.design !== "") q.design = String(params.design);
   if (params.size) q.size = params.size;
   if (params.live) q.live = "1";
@@ -256,7 +264,14 @@ export const broadcastApi = {
 
 export type OverlayKind = "leaderboard" | "timer" | "booyah" | "h2h";
 
-// kind "leaderboard": design_id, follow, stage_id, group_id, anim, reveal, interval, live.
+// kind "leaderboard": design_id, follow, anim, reveal, interval, live, bg_behavior, PLUS the standings
+//   selection, which is one of:
+//     • follow:true                          -> tracks the event's BroadcastControl selection;
+//     • scope:"single" (or absent) + stage_id + optional group_id   -> one group / whole stage (legacy);
+//     • scope:"combine" + group_ids:[..] and/or stage_ids:[..]      -> COMBINE those groups + whole
+//       stages into one cumulative board (owner 2026-07-05, complaint C; stages expand to their groups).
+//   The link is STABLE regardless: the card re-saves this config and the same /overlay/view link
+//   re-renders. Rows with no `scope` behave as single, so existing overlays are unchanged.
 // kind "timer":       end_at (ISO), label.
 export type OverlayConfig = Record<string, unknown>;
 
@@ -329,6 +344,12 @@ export interface OverlayConfigFeed {
   active: boolean;
   event_id: number;
   server_time: string;
+  // kind "leaderboard" only: the RESOLVED standings the overlay currently shows, bundled with the
+  // poll (owner 2026-07-05, complaint C) — combine configs return rows spanning every chosen
+  // group/stage. The stable link still RENDERS leaderboards via the inner /overlay/leaderboard iframe
+  // (which pulls the same rows from overlay_feed); this field is the config poll's own copy, so a
+  // direct consumer / verification sees the combined result without a second request.
+  standings?: OverlayStandingRow[];
   // kind "h2h" only: the RESOLVED competitor slots (this-event stats) + the picked design's look,
   // bundled with the poll so the public page needs one request. See views_overlays._h2h_payload.
   // kind "booyah" only: the picked design's look + the booyah team's roster (players' names +

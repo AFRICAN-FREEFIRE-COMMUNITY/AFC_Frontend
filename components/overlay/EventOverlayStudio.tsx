@@ -28,6 +28,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { FullLoader } from "@/components/Loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -366,45 +367,136 @@ function OverlayCard({
 
           {!cfg.follow ? (
             <>
-              <div className="space-y-1">
-                <Label className="text-xs">{t("studio.stage")}</Label>
+              {/* Standings SCOPE (owner 2026-07-05, complaint C): a single group/stage, or COMBINE
+                  many whole stages + individual groups into one cumulative board. Combine rides the
+                  ONE stable link as config {scope:"combine", group_ids, stage_ids}; no link change. */}
+              <div className="col-span-2 space-y-1">
+                <Label className="text-xs">{t("studio.scope")}</Label>
                 <Select
-                  value={String(cfg.stage_id ?? "")}
-                  onValueChange={(v) => saveCfg({ stage_id: Number(v), group_id: null })}
-                >
-                  <SelectTrigger className="h-8 w-full text-xs">
-                    <SelectValue placeholder={t("studio.stage")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stages.map((s) => (
-                      <SelectItem key={s.stage_id} value={String(s.stage_id)}>
-                        {s.stage_name || `${t("studio.stage")} ${s.stage_id}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">{t("studio.group")}</Label>
-                <Select
-                  value={cfg.group_id ? String(cfg.group_id) : "__all__"}
-                  onValueChange={(v) =>
-                    saveCfg({ group_id: v === "__all__" ? null : Number(v) })
-                  }
+                  value={String(cfg.scope || "single")}
+                  onValueChange={(v) => saveCfg({ scope: v })}
                 >
                   <SelectTrigger className="h-8 w-full text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__all__">{t("studio.allGroups")}</SelectItem>
-                    {stageGroups.map((g) => (
-                      <SelectItem key={g.group_id} value={String(g.group_id)}>
-                        {g.group_name || `${t("studio.group")} ${g.group_id}`}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="single">{t("studio.scopeSingle")}</SelectItem>
+                    <SelectItem value="combine">{t("studio.scopeCombine")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {cfg.scope === "combine" ? (
+                /* COMBINE picker: any mix of whole STAGES + individual GROUPS. Each toggle SAVES, so
+                   the same link re-renders the merged board. A whole-stage pick implicitly includes
+                   its groups (backend _expand_overlay_combine), so they show checked + disabled. */
+                <div className="col-span-2 space-y-1">
+                  <Label className="text-xs">{t("studio.combineUnits")}</Label>
+                  <p className="text-muted-foreground text-[0.65rem]">{t("studio.combineHint")}</p>
+                  <div className="max-h-44 space-y-2 overflow-y-auto rounded-md border p-2">
+                    {(() => {
+                      const stageIds: number[] = Array.isArray(cfg.stage_ids)
+                        ? cfg.stage_ids.map(Number)
+                        : [];
+                      const groupIds: number[] = Array.isArray(cfg.group_ids)
+                        ? cfg.group_ids.map(Number)
+                        : [];
+                      return stages.map((s) => {
+                        const sid = Number(s.stage_id);
+                        const stageOn = stageIds.includes(sid);
+                        return (
+                          <div key={sid} className="space-y-1">
+                            <label className="flex cursor-pointer items-center gap-2 text-xs font-medium">
+                              <Checkbox
+                                checked={stageOn}
+                                onCheckedChange={(v) =>
+                                  saveCfg({
+                                    stage_ids:
+                                      v === true
+                                        ? [...new Set([...stageIds, sid])]
+                                        : stageIds.filter((x) => x !== sid),
+                                  })
+                                }
+                              />
+                              {s.stage_name || `${t("studio.stage")} ${s.stage_id}`}
+                              <span className="text-muted-foreground">
+                                ({t("studio.wholeStage")})
+                              </span>
+                            </label>
+                            <div className="ml-5 space-y-1">
+                              {(s.groups ?? []).map((g) => {
+                                const gid = Number(g.group_id);
+                                return (
+                                  <label
+                                    key={gid}
+                                    className="flex cursor-pointer items-center gap-2 text-xs"
+                                  >
+                                    <Checkbox
+                                      checked={groupIds.includes(gid) || stageOn}
+                                      disabled={stageOn}
+                                      onCheckedChange={(v) =>
+                                        saveCfg({
+                                          group_ids:
+                                            v === true
+                                              ? [...new Set([...groupIds, gid])]
+                                              : groupIds.filter((x) => x !== gid),
+                                        })
+                                      }
+                                    />
+                                    {g.group_name || `${t("studio.group")} ${g.group_id}`}
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-1">
+                    <Label className="text-xs">{t("studio.stage")}</Label>
+                    <Select
+                      value={String(cfg.stage_id ?? "")}
+                      onValueChange={(v) => saveCfg({ stage_id: Number(v), group_id: null })}
+                    >
+                      <SelectTrigger className="h-8 w-full text-xs">
+                        <SelectValue placeholder={t("studio.stage")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {stages.map((s) => (
+                          <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                            {s.stage_name || `${t("studio.stage")} ${s.stage_id}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">{t("studio.group")}</Label>
+                    <Select
+                      value={cfg.group_id ? String(cfg.group_id) : "__all__"}
+                      onValueChange={(v) =>
+                        saveCfg({ group_id: v === "__all__" ? null : Number(v) })
+                      }
+                    >
+                      <SelectTrigger className="h-8 w-full text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__all__">{t("studio.allGroups")}</SelectItem>
+                        {stageGroups.map((g) => (
+                          <SelectItem key={g.group_id} value={String(g.group_id)}>
+                            {g.group_name || `${t("studio.group")} ${g.group_id}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
             </>
           ) : null}
 
@@ -847,8 +939,12 @@ export function EventOverlayStudio({
         config: {
           design_id: design.id,
           follow: false,
+          // Standings scope: "single" (one stage/group, the default) or "combine" (merge many).
+          scope: "single",
           stage_id: stages[0]?.stage_id ?? null,
           group_id: null,
+          group_ids: [],
+          stage_ids: [],
           anim: "fade",
           reveal: "staggered",
           interval: 10,

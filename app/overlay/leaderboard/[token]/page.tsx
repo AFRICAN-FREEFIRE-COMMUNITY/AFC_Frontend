@@ -53,6 +53,11 @@ function OverlayLeaderboardInner() {
 
   const stage = sp.get("stage");
   const group = sp.get("group");
+  // Per-overlay COMBINE (owner 2026-07-05, complaint C): ?groups=<csv>&stages=<csv> merge the listed
+  // groups + whole stages into one cumulative board. When present they supersede stage/group on the
+  // feed. Passed straight through to fetchOverlayFeed (backend _parse_overlay_combine expands them).
+  const groups = sp.get("groups");
+  const stages = sp.get("stages");
   const design = sp.get("design");
   const sizeParam = asSize(sp.get("size"));
   const anim = asAnim(sp.get("anim"));
@@ -70,7 +75,7 @@ function OverlayLeaderboardInner() {
   // BACKGROUND + last standings INSTANTLY from cache instead of flashing dark while the first poll is
   // in flight; the fresh feed replaces it within one poll (owner 2026-07-01: "backgrounds always on,
   // screen shouldn't go dark when reloading"). Keyed by the exact render target.
-  const cacheKey = `afc:overlay:feed:${token}|${stage ?? ""}|${group ?? ""}|${design ?? ""}|${sizeParam ?? ""}|${colsParam ?? ""}|${live ? 1 : 0}`;
+  const cacheKey = `afc:overlay:feed:${token}|${stage ?? ""}|${group ?? ""}|${groups ?? ""}|${stages ?? ""}|${design ?? ""}|${sizeParam ?? ""}|${colsParam ?? ""}|${live ? 1 : 0}`;
 
   const [feed, setFeed] = useState<OverlayFeed | null>(() => {
     if (typeof window === "undefined") return null;
@@ -102,6 +107,8 @@ function OverlayLeaderboardInner() {
             token,
             stage,
             group,
+            groups: groups ?? undefined,
+            stages: stages ?? undefined,
             design,
             size: sizeParam,
             live,
@@ -134,7 +141,7 @@ function OverlayLeaderboardInner() {
       abortRef.current?.abort();
     };
     // Re-subscribe whenever the token / target / cadence changes.
-  }, [token, stage, group, design, sizeParam, live, colsParam, intervalSec]);
+  }, [token, stage, group, groups, stages, design, sizeParam, live, colsParam, intervalSec]);
 
   // Before the first successful feed: render nothing (transparent) except a tiny status hint if
   // something is wrong, so OBS shows a clean empty source rather than a spinner.

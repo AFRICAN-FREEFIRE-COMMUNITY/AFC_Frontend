@@ -47,6 +47,7 @@ import {
   IconX,
   IconUpload,
   IconFlag,
+  IconBroadcast,
 } from "@tabler/icons-react";
 // Redo map, per-team player expand/collapse, and the roster "Add player" control now live inside
 // the shared <MatchResultsGrid> (components/leaderboards/MatchResultsGrid.tsx), so the AlertDialog
@@ -78,11 +79,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { EventStageExportGraphicDialog } from "@/app/(organizer)/organizer/events/[slug]/leaderboard/_components/EventStageExportGraphicDialog";
-// "Copy OBS overlay link" dialog (components/overlay/CopyOverlayLinkDialog.tsx): builds the public
-// live-overlay URL for this event's leaderboard. Mounted beside the header so an admin can grab the
-// OBS Browser Source link. Same component the organizer event leaderboard page mounts.
-import { CopyOverlayLinkDialog } from "@/components/overlay/CopyOverlayLinkDialog";
-// Broadcast control moved to the Live Overlays studio (owner 2026-07-02) — no longer mounted here.
+import Link from "next/link";
+// Live Overlays STUDIO link (owner 2026-07-05, complaint C): the legacy per-selection "Copy OBS
+// overlay link" dialog was removed - every OBS link now lives in the studio (/a/overlays/<eventId>)
+// as ONE stable per-overlay link the streamer pastes once, so a stage/group change never changes it.
+// Broadcast control also lives in the studio (moved 2026-07-02).
 import { toast } from "sonner";
 // Shared advisory-watchlist badge + client (components/WatchTag.tsx, lib/watchlist.ts). One bulk
 // watchlistApi.tags call (recomputed when the standings reload) marks which standings team_ids /
@@ -1172,17 +1173,16 @@ export default function EditLeaderboardPage({
             description="Edit match results, scoring configuration, and apply adjustments"
           />
         </span>
-        {/* Overlay link picker. organizationId is null here (AFC admin surface uses the AFC-native
-            design library, same as this page's LeaderboardDesignsManager). Defaults to the currently
-            selected stage/group; the dialog lets the admin re-pick any stage/group. */}
+        {/* Live Overlays studio link (owner 2026-07-05, complaint C): replaces the removed per-selection
+            "Copy OBS overlay link" dialog. The studio is where every OBS link lives now - each saved
+            overlay has ONE stable link, and the WHICH-leaderboard choice (including combining groups /
+            stages) is driven from the overlay card, not baked into the URL. */}
         {eventData && (
-          <CopyOverlayLinkDialog
-            eventId={id}
-            stageId={selectedStageId}
-            groupId={selectedGroupId}
-            stages={eventData?.stages ?? []}
-            organizationId={null}
-          />
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/a/overlays/${id}`}>
+              <IconBroadcast className="size-4" /> Live overlays
+            </Link>
+          </Button>
         )}
         {/* Export graphic on the EDIT page too (owner 2026-07-04): previously only on the view page.
             Renders the selected stage/group standings onto a chosen custom design + size. */}

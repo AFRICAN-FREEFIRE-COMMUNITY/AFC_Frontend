@@ -35,10 +35,22 @@ function leaderboardUrl(token: string, eventId: number, cfg: Record<string, any>
   const qp = new URLSearchParams();
   qp.set("type", "event");
   qp.set("event", String(eventId));
-  // follow-broadcast omits stage+group so the board tracks the BroadcastControl selection.
+  // follow-broadcast omits stage+group+groups+stages so the board tracks the BroadcastControl
+  // selection. Otherwise the saved config's standings scope decides what this ONE stable link renders:
+  //   • scope "combine" -> ?groups=<csv>&stages=<csv> (owner 2026-07-05, complaint C): merge the
+  //     chosen groups + whole stages into one cumulative board;
+  //   • single (default / legacy, no scope) -> the single ?stage=/?group=.
+  // Editing the card re-saves config, so the SAME link re-renders the new scope with no re-copy.
   if (!cfg.follow) {
-    if (cfg.stage_id) qp.set("stage", String(cfg.stage_id));
-    if (cfg.group_id) qp.set("group", String(cfg.group_id));
+    if (cfg.scope === "combine") {
+      const groupIds = Array.isArray(cfg.group_ids) ? cfg.group_ids : [];
+      const stageIds = Array.isArray(cfg.stage_ids) ? cfg.stage_ids : [];
+      if (groupIds.length) qp.set("groups", groupIds.join(","));
+      if (stageIds.length) qp.set("stages", stageIds.join(","));
+    } else {
+      if (cfg.stage_id) qp.set("stage", String(cfg.stage_id));
+      if (cfg.group_id) qp.set("group", String(cfg.group_id));
+    }
   }
   if (cfg.design_id) qp.set("design", String(cfg.design_id));
   qp.set("size", "youtube");

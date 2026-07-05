@@ -133,6 +133,7 @@ import {
   IconUpload,
   IconUserPlus,
   IconUsers,
+  IconBroadcast,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
@@ -177,14 +178,15 @@ import { InfoTip } from "@/components/ui/info-tip";
 // Calls leaderboardDesignsApi.downloadEventStageGraphic, which hits
 // GET events/<eventId>/stages/<stageId>/graphic/ and returns a PNG blob.
 import { EventStageExportGraphicDialog } from "./_components/EventStageExportGraphicDialog";
-// "Copy OBS overlay link" dialog (components/overlay/CopyOverlayLinkDialog.tsx): builds the public
-// live-overlay URL for this event's leaderboard so the organizer can drop it into OBS as a Browser
-// Source. Shared with the admin leaderboard edit page. Org-scoped design library (organizationId).
-import { CopyOverlayLinkDialog } from "@/components/overlay/CopyOverlayLinkDialog";
+// Live Overlays STUDIO link (owner 2026-07-05, complaint C): the legacy per-selection "Copy OBS overlay
+// link" dialog was removed - every OBS link now lives in the studio (/organizer/overlays/<eventId>) as
+// ONE stable per-overlay link the streamer pastes once. The WHICH-leaderboard choice (including
+// combining groups / stages) is driven from the overlay card, so a stage/group change never changes the
+// link. This page just links across to that studio.
 // Broadcast control (components/overlay/BroadcastControl.tsx, owner 2026-07-01): lets the organizer pick
 // which stage/group the live overlay shows, or combine groups/stages into a cumulative, WITHOUT touching
-// OBS. A "follow broadcast" overlay link (CopyOverlayLinkDialog with its follow switch on) tracks this
-// selection and updates within one poll. Shared with the admin leaderboard edit page.
+// OBS. A "follow broadcast" overlay (the studio card's follow switch) tracks this selection and updates
+// within one poll. Shared with the admin leaderboard edit page.
 import { BroadcastControl } from "@/components/overlay/BroadcastControl";
 // ── Leaderboard MANAGEMENT TOOLS (owner 2026-07-02 organizer parity) ──────────
 // The admin leaderboard edit page (app/(a)/a/leaderboards/[id]/edit) grew four tools organizers
@@ -1888,17 +1890,16 @@ export default function OrganizerEventLeaderboardPage({
                 create_event / edit_event), so manual creation is redundant. The AFC
                 admin leaderboards list already hides its Create button for the same
                 reason. The create wizard code is kept but no longer reachable. */}
-            {/* Live OBS overlay link: builds the public /overlay/leaderboard/<token> URL for this
-                event's leaderboard (org-scoped design library). Defaults to the on-screen stage/group;
-                the dialog lets the organizer re-pick. Mirror mount on the admin edit page. */}
+            {/* Live Overlays studio link (owner 2026-07-05, complaint C): replaces the removed
+                per-selection "Copy OBS overlay link" dialog. Each saved overlay in the studio has ONE
+                stable link the streamer pastes once; the WHICH-leaderboard choice (single group/stage,
+                or a COMBINE of many) is driven from the overlay card, not the URL. */}
             {eventId && (
-              <CopyOverlayLinkDialog
-                eventId={eventId}
-                stageId={selectedStageId}
-                groupId={selectedGroupId}
-                stages={eventData?.stages ?? []}
-                organizationId={organizationId}
-              />
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/organizer/overlays/${eventId}`}>
+                  <IconBroadcast className="size-4" /> {t("studio.openStudioLink")}
+                </Link>
+              </Button>
             )}
             <DownloadLeaderboardButton
               leaderboardName={
