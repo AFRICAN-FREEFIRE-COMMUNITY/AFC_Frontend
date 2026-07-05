@@ -1125,7 +1125,7 @@
       "totalTab": "Classement général",
       "tieBreakersTab": "Critères de départage",
       "mvpTab": "MVP",
-      "topKillersTab": "Les principales causes de décès",
+      "topKillersTab": "Meilleurs tueurs",
       "backfillTab": "Remplissage du débogueur",
       "scoringTab": "Configuration de la notation",
       "totalTitle": "Classement général",
@@ -1169,8 +1169,8 @@
       "saveSuccess": "Les résultats du match ont été enregistrés !",
       "saveError": "Échec de l'enregistrement des résultats du match",
       "noMapsToSave": "Aucune carte n'a encore été enregistrée dans ce groupe.",
-      "savedAllMaps": "J'ai enregistré toutes les {count, plural, one {# carte} other {# cartes}} de ce groupe.",
-      "savedSomeMaps": "{ok}s de cartes de {total} ont été enregistrées. Échec de l'accès à {failed} : {reason}",
+      "savedAllMaps": "{count, plural, one {# carte enregistrée} other {# cartes enregistrées}} dans ce groupe.",
+      "savedSomeMaps": "{ok} carte(s) sur {total} enregistrée(s). Échec pour {failed} : {reason}",
       "saveGroupError": "Impossible d'enregistrer les cartes du groupe",
       "retryHint": "Ouvrez la carte qui pose problème et réessayez."
     }
@@ -1385,11 +1385,11 @@
     "bgPersistent": "Toujours allumé (ne s'éteint jamais)",
     "bgAnimate": "S'affiche avec une animation au chargement",
     "kindMvp": "Conseil d'administration de MVP",
-    "kindTopKillers": "Les principales causes de décès",
+    "kindTopKillers": "Meilleurs tueurs",
     "addMvp": "Ajouter un tableau MVP",
     "addTopKillers": "Ajouter les meilleurs tueurs",
     "mvpCreated": "Tableau MVP créé. Associez-y un design et définissez sa portée, puis copiez son lien une seule fois.",
-    "topKillersCreated": "Création du classement des principales causes de décès. Associez un modèle et définissez son champ d'application, puis copiez son lien une seule fois."
+    "topKillersCreated": "Classement des meilleurs tueurs créé. Associez un design, choisissez sa portée, puis copiez son lien une fois."
   },
   "mediaAudit": {
     "title": "Médias audiovisuels",

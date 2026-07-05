@@ -1125,7 +1125,7 @@
       "totalTab": "Classificação Geral",
       "tieBreakersTab": "Critérios de desempate",
       "mvpTab": "MVP",
-      "topKillersTab": "Principais causas de morte",
+      "topKillersTab": "Melhores matadores",
       "backfillTab": "Preenchimento do depurador",
       "scoringTab": "Configuração de pontuação",
       "totalTitle": "Classificação Geral",
@@ -1169,8 +1169,8 @@
       "saveSuccess": "Resultados dos jogos guardados!",
       "saveError": "Não foi possível guardar os resultados do jogo",
       "noMapsToSave": "Ainda não há resultados de mapas para guardar neste grupo.",
-      "savedAllMaps": "Guardei todos os {count, plural, one {# mapa} other {# mapas}} deste grupo.",
-      "savedSomeMaps": "Guardado {ok} dos mapas de {total}. Falha em {failed}: {reason}",
+      "savedAllMaps": "{count, plural, one {# mapa guardado} other {# mapas guardados}} neste grupo.",
+      "savedSomeMaps": "{ok} de {total} mapas guardados. Falha em {failed}: {reason}",
       "saveGroupError": "Não foi possível guardar os mapas do grupo",
       "retryHint": "abre o mapa que não está a funcionar e tenta novamente"
     }
@@ -1385,11 +1385,11 @@
     "bgPersistent": "Sempre ligado (nunca se desliga)",
     "bgAnimate": "Apresenta-se com um efeito de animação ao carregar",
     "kindMvp": "Conselho de Administração da MVP",
-    "kindTopKillers": "Principais causas de morte",
+    "kindTopKillers": "Melhores matadores",
     "addMvp": "Adicionar quadro MVP",
-    "addTopKillers": "Adicionar os principais assassinos",
+    "addTopKillers": "Adicionar melhores matadores",
     "mvpCreated": "Painel MVP criado. Associe um projeto e selecione o seu âmbito; depois, copie o link uma vez.",
-    "topKillersCreated": "Foi criado o quadro dos principais fatores de mortalidade. Associe um design e selecione o seu âmbito; depois, copie o link uma vez."
+    "topKillersCreated": "Classificação dos melhores matadores criada. Associe um design, escolha o seu âmbito e copie o link uma vez."
   },
   "mediaAudit": {
     "title": "Meios de comunicação social",
