@@ -101,6 +101,9 @@ import { GroupBulkUploadPanel } from "../../_components/GroupBulkUploadPanel";
 // list. Previously only on the leaderboard VIEW page; the admin uploads results HERE on the edit page,
 // so it must be reachable here too. Same component the view page mounts.
 import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
+// Pending capture bucket (complaint D): "decide later" uploads from the desktop capture client, resolved
+// here as a new/replacement map or discarded. Renders nothing when there are none.
+import { PendingCapturesPanel } from "@/components/leaderboards/PendingCapturesPanel";
 // OCR review flow (Phase 1): pick a map + drop a screenshot (MapSelectionStep), then review +
 // correct the auto-extracted rows (OCRReviewTable) and commit. Mounted in the Upload drawer below,
 // in place of the old read-only ImageUploadStep preview. DraftRow types come from lib/api/ocr.ts.
@@ -1562,13 +1565,24 @@ export default function EditLeaderboardPage({
         {participantType !== "solo" && (
           <TabsContent value="flagging" className="mt-4 space-y-4">
             {eventData && (
-              <FlaggedKillsPanel
-                key={flagRefreshKey}
-                eventId={id}
-                token={token}
-                canManage
-                onChanged={fetchData}
-              />
+              <>
+                {/* Pending "decide later" captures from the desktop client (complaint D) sit above the
+                    per-player ringer flags; the panel renders nothing when there are none. */}
+                <PendingCapturesPanel
+                  key={`pending-${flagRefreshKey}`}
+                  eventId={id}
+                  token={token}
+                  canManage
+                  onChanged={fetchData}
+                />
+                <FlaggedKillsPanel
+                  key={flagRefreshKey}
+                  eventId={id}
+                  token={token}
+                  canManage
+                  onChanged={fetchData}
+                />
+              </>
             )}
           </TabsContent>
         )}
