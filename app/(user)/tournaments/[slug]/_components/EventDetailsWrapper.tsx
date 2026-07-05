@@ -5621,11 +5621,18 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             <Card>
               <CardContent className="flex flex-col items-center justify-center gap-2">
                 <p className="font-semibold text-lg md:text-2xl">
+                  {/* Clamp to 0 (owner 2026-07-05 bug fix): a duplicate/over-capacity registration
+                      made this show "-1". Slots left can never be negative. The dup itself is
+                      prevented + made removable server-side (uniq_event_team_registration + the
+                      _resolve_event_team fix). */}
                   {formatMoneyInput(
-                    eventDetails?.max_teams_or_players -
-                      (eventDetails?.registered_competitors?.length ||
-                        eventDetails?.tournament_teams?.length ||
-                        0),
+                    Math.max(
+                      0,
+                      (eventDetails?.max_teams_or_players || 0) -
+                        (eventDetails?.registered_competitors?.length ||
+                          eventDetails?.tournament_teams?.length ||
+                          0),
+                    ),
                   )}
                 </p>
                 <p className="text-xs md:text-sm">

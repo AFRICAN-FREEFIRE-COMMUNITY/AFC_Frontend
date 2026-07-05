@@ -28,12 +28,17 @@ import { IconUserX } from "@tabler/icons-react";
 
 export const RemoveTeamModal = ({
   team_id,
+  tournament_team_id,
   event_id,
   name,
   onSuccess,
   showLabel = false,
 }: {
   team_id: number;
+  // The EXACT registration row to remove (owner 2026-07-05 bug fix). When a team was accidentally
+  // registered TWICE, removing by team_id alone hit MultipleObjectsReturned server-side (un-removable
+  // dupe). Passing tournament_team_id targets the specific row; the backend prefers it.
+  tournament_team_id?: number;
   event_id: number;
   name: string;
   onSuccess?: () => void;
@@ -49,7 +54,8 @@ export const RemoveTeamModal = ({
       try {
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/remove-team-from-event/`,
-          { event_id, team_id },
+          // Send tournament_team_id when known so the backend removes THIS exact row (handles dupes).
+          { event_id, team_id, ...(tournament_team_id ? { tournament_team_id } : {}) },
           { headers: { Authorization: `Bearer ${token}` } },
         );
         toast.success(res.data.message || "Team removed from the event.");
