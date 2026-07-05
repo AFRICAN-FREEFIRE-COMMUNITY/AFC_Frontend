@@ -543,6 +543,28 @@
     "roomMatch": "Partida {n}",
     "roomReleasedNote": "Os detalhes da sala são compartilhados aqui assim que o organizador os publica."
   },
+  "combined": {
+    "tabLabel": "Combinado",
+    "heading": "Classificação combinada",
+    "explainer": "Junte vários grupos ou etapas numa única tabela de classificação. Usa o mesmo agregador do overlay de transmissão ao vivo, por isso os números coincidem.",
+    "wholeEvent": "Todo o evento",
+    "orPick": "Ou escolha etapas e grupos",
+    "stagesLabel": "Etapa inteira",
+    "groupsLabel": "Grupos",
+    "apply": "Aplicar",
+    "selectPrompt": "Escolha todo o evento, ou uma ou mais etapas e grupos, e depois aplique.",
+    "empty": "Ainda não há resultados.",
+    "teamsOnly": "A classificação combinada está disponível para eventos por equipe.",
+    "notPublished": "Os resultados ainda não foram publicados.",
+    "loading": "A carregar a classificação combinada...",
+    "loadError": "Não foi possível carregar a classificação combinada.",
+    "colPos": "#",
+    "teamColumn": "Equipe",
+    "booyah": "Booyah",
+    "placePts": "Pontos de Colocação",
+    "kills": "Abates",
+    "points": "Pts"
+  },
   "review": {
     "title": "Avaliar este evento",
     "noRatings": "Nenhuma avaliação ainda",

@@ -543,6 +543,28 @@
     "roomMatch": "Match {n}",
     "roomReleasedNote": "Room details are shared here once the organizer posts them."
   },
+  "combined": {
+    "tabLabel": "Combined",
+    "heading": "Combined Standings",
+    "explainer": "Merge several groups or stages into one leaderboard. It uses the same aggregator as the live broadcast overlay, so the numbers match.",
+    "wholeEvent": "Whole event",
+    "orPick": "Or pick stages and groups",
+    "stagesLabel": "Whole stage",
+    "groupsLabel": "Groups",
+    "apply": "Apply",
+    "selectPrompt": "Pick the whole event, or one or more stages and groups, then apply.",
+    "empty": "No results yet.",
+    "teamsOnly": "Combined standings are available for team events.",
+    "notPublished": "Results are not published yet.",
+    "loading": "Loading combined standings...",
+    "loadError": "Could not load combined standings.",
+    "colPos": "#",
+    "teamColumn": "Team",
+    "booyah": "Booyah",
+    "placePts": "Place Pts",
+    "kills": "Kills",
+    "points": "Pts"
+  },
   "review": {
     "title": "Rate this event",
     "noRatings": "No ratings yet",

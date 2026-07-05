@@ -36,6 +36,9 @@ import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
 import { TournamentStructure } from "./TournamentStructure";
+// "Combined" view (owner 2026-07-05): a third main-view tab that merges several groups/stages
+// (or the whole event) into one aggregate leaderboard via events/get-event-combined-standings/.
+import { CombinedStandings } from "./CombinedStandings";
 // "Your match" callout (owner 2026-06-29): a top-of-page card for registered participants that
 // surfaces their play time + room ID/password without digging into the Structure tab.
 import { YourMatchCallout } from "./YourMatchCallout";
@@ -3252,8 +3255,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeStageTab, setActiveStageTab] = useState<string>("");
-  // Results ⇄ Structure view toggle for the main stage area (default Results = existing behavior).
-  const [mainView, setMainView] = useState<"results" | "structure">("results");
+  // Results ⇄ Structure ⇄ Combined view toggle for the main stage area (default Results =
+  // existing behavior). "combined" (owner 2026-07-05) renders the CombinedStandings view.
+  const [mainView, setMainView] = useState<
+    "results" | "structure" | "combined"
+  >("results");
   const [modalStep, setModalStep] = useState<ModalStep>("CLOSED");
   // M: remember whether the last registration was routed to the waitlist so the
   // success step shows accurate copy instead of "Welcome to the tournament!".
@@ -5272,13 +5278,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 timezone={eventDetails.timezone}
               />
 
-              {/* Results ⇄ Structure toggle. "Structure" renders the new graphical
-                  TournamentStructure view (stage flow + group standings); "Results"
-                  keeps the existing per-stage results tables. */}
+              {/* Results ⇄ Structure ⇄ Combined toggle. "Structure" renders the graphical
+                  TournamentStructure view (stage flow + group standings); "Combined" renders
+                  the CombinedStandings view (merge groups/stages into one leaderboard);
+                  "Results" keeps the existing per-stage results tables. */}
               <Tabs
                 value={mainView}
                 onValueChange={(v) =>
-                  setMainView(v as "results" | "structure")
+                  setMainView(v as "results" | "structure" | "combined")
                 }
               >
                 <TabsList>
@@ -5287,6 +5294,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   </TabsTrigger>
                   <TabsTrigger value="structure">
                     {t("detail.viewToggle.structure")}
+                  </TabsTrigger>
+                  <TabsTrigger value="combined">
+                    {t("combined.tabLabel")}
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -5298,6 +5308,16 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   timezone={eventDetails.timezone}
                   // Hidden standings => group cards show "Results not published yet" (config stays).
                   resultsPublished={eventDetails.results_published}
+                />
+              ) : mainView === "combined" ? (
+                // Combined leaderboard across chosen groups/stages (or the whole event).
+                // Hits events/get-event-combined-standings/ (same aggregator as the OBS overlay).
+                <CombinedStandings
+                  eventId={eventDetails.event_id}
+                  stages={eventDetails.stages as any}
+                  participantType={eventDetails.participant_type}
+                  resultsPublished={eventDetails.results_published}
+                  timezone={eventDetails.timezone}
                 />
               ) : (
                 <Tabs

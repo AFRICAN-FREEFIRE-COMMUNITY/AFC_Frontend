@@ -543,6 +543,28 @@
     "roomMatch": "Match {n}",
     "roomReleasedNote": "Les détails de la salle seront partagés ici une fois que l'organisateur les aura publiés."
   },
+  "combined": {
+    "tabLabel": "Combiné",
+    "heading": "Classement combiné",
+    "explainer": "Fusionnez plusieurs groupes ou étapes en un seul classement. Il utilise le même agrégateur que l'overlay de diffusion en direct, donc les chiffres correspondent.",
+    "wholeEvent": "Tout l'événement",
+    "orPick": "Ou choisissez des étapes et des groupes",
+    "stagesLabel": "Étape entière",
+    "groupsLabel": "Groupes",
+    "apply": "Appliquer",
+    "selectPrompt": "Choisissez tout l'événement, ou une ou plusieurs étapes et groupes, puis appliquez.",
+    "empty": "Aucun résultat pour le moment.",
+    "teamsOnly": "Le classement combiné est disponible pour les événements par équipe.",
+    "notPublished": "Les résultats ne sont pas encore publiés.",
+    "loading": "Chargement du classement combiné...",
+    "loadError": "Impossible de charger le classement combiné.",
+    "colPos": "#",
+    "teamColumn": "Équipe",
+    "booyah": "Booyah",
+    "placePts": "Pts de placement",
+    "kills": "Kills",
+    "points": "Pts"
+  },
   "review": {
     "title": "Évaluer cet événement",
     "noRatings": "Aucune évaluation pour le moment",
