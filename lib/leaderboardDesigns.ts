@@ -118,6 +118,13 @@ export interface LeaderboardDesignField {
   font_size_pct: number | null; // size as % of canvas height
   color: string; // hex, or "" for the design default
   order: number;
+  // Per-size enablement (owner 2026-07-05, audit complaint A): whether this column renders on each
+  // export size INDEPENDENTLY. show_instagram=false hides it from the IG render only; show_youtube
+  // from the YT render only. Both default true (shown on both). Backend build_field_layout drops the
+  // field for a size whose flag is false. Toggled in DesignFieldsEditor's per-size palette + the
+  // "Shown on Instagram / YouTube" switches; reset to both-true by applyFieldEnablementToAll.
+  show_instagram: boolean;
+  show_youtube: boolean;
   // Multi-page (owner 2026-06-14): which page this field belongs to. null = legacy / page-1
   // (the design-level layout). The editor filters fields by this to scope each page's canvas.
   page_id: number | null;
@@ -329,6 +336,11 @@ export const leaderboardDesignsApi = {
       font_id?: number | null;
       font_size_pct?: number | null;
       color?: string;
+      // Per-size enablement (owner 2026-07-05): show this new column on IG / YT independently. Omit =>
+      // backend default true (both). The editor sends these so a column added while editing ONE size
+      // starts shown on that size only (it does not silently appear on the other size too).
+      show_instagram?: boolean;
+      show_youtube?: boolean;
       // Multi-page (owner 2026-06-14): scope this field to a page. Omit / null = design-level (page 1).
       page_id?: number | null;
     },
@@ -351,6 +363,9 @@ export const leaderboardDesignsApi = {
       font_id: number | null;
       font_size_pct: number | null;
       color: string;
+      // Per-size enablement (owner 2026-07-05): toggle this column on/off for one size independently.
+      show_instagram: boolean;
+      show_youtube: boolean;
       // Which size's layout this edit targets (owner 2026-06-15): "youtube" writes x_pct_youtube,
       // else the canonical Instagram x_pct. Omit = instagram.
       size: "instagram" | "youtube";
@@ -516,6 +531,22 @@ export const leaderboardDesignsApi = {
       .post<{ design: LeaderboardDesign }>(
         `${BASE}/organizers/leaderboard-designs/by-id/${designId}/apply-background-to-all/`,
         form,
+        { headers: authHeaders() },
+      )
+      .then((r) => r.data),
+
+  // POST .../apply-field-enablement-to-all/ -> {design}. The field-level twin of applyBackgroundToAll
+  // (owner 2026-07-05, audit complaint A): copy a placed column's per-size enablement so it shows on
+  // BOTH sizes (and, for a single fieldId, across all pages of a multi-page design). Pass fieldId to
+  // target one column; omit/null = every field on the design (turn all columns back on for both
+  // sizes). Returns the full updated design so the caller refreshes its field flags in one state
+  // update. Backed by afc_organizers.views_leaderboard_design.apply_field_enablement_to_all. Consumed
+  // by DesignFieldsEditor.tsx "Apply to all" control on the selected field.
+  applyFieldEnablementToAll: (designId: number, fieldId?: number | null) =>
+    axios
+      .post<{ design: LeaderboardDesign }>(
+        `${BASE}/organizers/leaderboard-designs/by-id/${designId}/apply-field-enablement-to-all/`,
+        fieldId != null ? { field_id: fieldId } : {},
         { headers: authHeaders() },
       )
       .then((r) => r.data),

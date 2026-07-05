@@ -292,6 +292,12 @@ interface FieldDraft {
   font_size_pct: number | null;
   color: string;
   order: number;
+  // Per-size enablement (owner 2026-07-05, audit complaint A): whether this column renders on each
+  // size INDEPENDENTLY. The palette add/remove + the style-panel switches drive these; the canvas
+  // hides a field not shown for the size being edited (so the preview matches the export). Both
+  // default true for existing fields (shown on both). See shownForSize / placedTypesInGroup.
+  show_instagram: boolean;
+  show_youtube: boolean;
 }
 
 // Working copy of a freeform text element.
@@ -733,6 +739,10 @@ export function DesignFieldsEditor({
         font_size_pct: f.font_size_pct,
         color: f.color,
         order: f.order,
+        // Per-size enablement (owner 2026-07-05). Older payloads may omit these; default to shown on
+        // both so a design authored before this feature keeps rendering every column on both sizes.
+        show_instagram: f.show_instagram ?? true,
+        show_youtube: f.show_youtube ?? true,
       }));
     const tDrafts: TextDraft[] = (design.texts ?? [])
       .filter((t) => t.page_id === initialPageId)
@@ -821,6 +831,10 @@ export function DesignFieldsEditor({
         font_size_pct: f.font_size_pct,
         color: f.color,
         order: f.order,
+        // Per-size enablement (owner 2026-07-05). Older payloads may omit these; default to shown on
+        // both so a design authored before this feature keeps rendering every column on both sizes.
+        show_instagram: f.show_instagram ?? true,
+        show_youtube: f.show_youtube ?? true,
       }));
     const tDrafts: TextDraft[] = cachedT ?? (design.texts ?? [])
       .filter((t) => t.page_id === currentPageId)
@@ -1146,11 +1160,23 @@ export function DesignFieldsEditor({
 
   // ── Field (connected column) helpers ──────────────────────────────────────
 
+  // Whether a field renders on the size CURRENTLY being edited (owner 2026-07-05, audit complaint A).
+  // Reads the reactive `isYT` (from editSize state) so render recomputes when the size toggles. Drives
+  // the per-size palette (a column hidden for this size shows as an "add" chip, not "placed") and the
+  // canvas (a field not shown for this size is not drawn, so the preview matches the export).
+  const shownForSize = (f: FieldDraft) => (isYT ? f.show_youtube : f.show_instagram);
+
   // Per-group placed field types (owner 2026-06-15): each column group has its OWN set of placed
   // columns, so the same stat (POS / TEAM / BOOYAH …) can be added AGAIN for a newly-added group.
   // The top palette manages group 0 (Group 1); each extra group card manages its own group index.
+  // Per-size (owner 2026-07-05): only count a field as "placed" when it is shown for the size being
+  // edited, so toggling a column on Instagram does not toggle it on YouTube.
   const placedTypesInGroup = (gi: number) =>
-    new Set(fields.filter((f) => f.column_group === gi).map((f) => f.field_type));
+    new Set(
+      fields
+        .filter((f) => f.column_group === gi && shownForSize(f))
+        .map((f) => f.field_type),
+    );
   // Top palette = Group 1 (column group 0).
   const placedTypes = placedTypesInGroup(0);
 
@@ -1158,6 +1184,23 @@ export function DesignFieldsEditor({
   // carries a local draftId always + a server id once created; edits/moves PATCH by id, and a
   // pending element (POST still in flight, no id yet) only updates locally until its id lands.
   const addField = (fieldType: FieldType, targetGroup = 0) => {
+    // Per-size add (owner 2026-07-05, audit complaint A): "add" enables this column for the size being
+    // EDITED. If a row of this stat+group already exists but is hidden for the current size (e.g. it
+    // was placed on the OTHER size), just flip its flag on rather than creating a duplicate — so a
+    // column can be shown on both sizes without two rows. Otherwise create a NEW row shown ONLY on the
+    // size being edited (its flag for the other size starts false), so placing it on Instagram does
+    // not silently make it appear on YouTube too (the exact gap this feature closes).
+    const sz = editSizeRef.current;
+    const existing = fieldsRef.current.find(
+      (f) => f.field_type === fieldType && f.column_group === targetGroup,
+    );
+    if (existing) {
+      updateField(
+        existing.draftId,
+        sz === "youtube" ? { show_youtube: true } : { show_instagram: true },
+      );
+      return;
+    }
     const draftId = newDraftId();
     const draft: FieldDraft = {
       draftId,
@@ -1174,6 +1217,10 @@ export function DesignFieldsEditor({
       font_size_pct: null,
       color: "",
       order: fields.length,
+      // Shown ONLY on the size being edited (see comment above). "Apply to all" or the style-panel
+      // switches turn on the other size.
+      show_instagram: sz === "instagram",
+      show_youtube: sz === "youtube",
       pending: true,
     };
     setFields((prev) => [...prev, draft]);
@@ -1187,6 +1234,9 @@ export function DesignFieldsEditor({
         font_id: draft.font_id,
         font_size_pct: draft.font_size_pct,
         color: draft.color,
+        // Per-size enablement: persist which size this new column starts shown on.
+        show_instagram: draft.show_instagram,
+        show_youtube: draft.show_youtube,
         // Multi-page: scope to the active page (null/undefined = design-level / page 1).
         page_id: currentPageId ?? undefined,
       });
@@ -1198,6 +1248,27 @@ export function DesignFieldsEditor({
     }, `Failed to add the ${FIELD_LABELS[fieldType]} column.`);
   };
 
+  // Palette "x" (owner 2026-07-05, audit complaint A): remove the column FROM THE SIZE BEING EDITED
+  // only. If the column is still shown on the OTHER size, we just flip this size's flag off (the row
+  // survives so the other size keeps it). Only when it would be shown on NEITHER size do we delete the
+  // row outright. This is what keeps "hide on Instagram" from also hiding on YouTube.
+  const hideFieldForCurrentSize = (draftId: string) => {
+    const sz = editSizeRef.current;
+    const f = fieldsRef.current.find((x) => x.draftId === draftId);
+    if (!f) return;
+    const shownOnOther = sz === "youtube" ? f.show_instagram : f.show_youtube;
+    if (shownOnOther) {
+      updateField(
+        draftId,
+        sz === "youtube" ? { show_youtube: false } : { show_instagram: false },
+      );
+    } else {
+      removeField(draftId);
+    }
+  };
+
+  // Hard delete a column from BOTH sizes (the style-panel "Remove column" button). Unlike the palette
+  // "x" this always removes the row, since it is an explicit per-field destructive action.
   const removeField = (draftId: string) => {
     const f = fieldsRef.current.find((x) => x.draftId === draftId);
     setFields((prev) => prev.filter((x) => x.draftId !== draftId));
@@ -1209,6 +1280,26 @@ export function DesignFieldsEditor({
         "Failed to remove the column.",
       );
     }
+  };
+
+  // "Apply to all" (owner 2026-07-05, audit complaint A): make the selected column show on BOTH sizes
+  // (and, for a multi-page design, on the same column across all pages) in one click, via the new
+  // apply-field-enablement-to-all endpoint. Optimistically flips both local flags on so the canvas +
+  // palette update instantly; the endpoint returns the full design and onSaved() refreshes the parent.
+  const applyFieldToAll = (draftId: string) => {
+    const f = fieldsRef.current.find((x) => x.draftId === draftId);
+    if (!f || f.id == null || f.pending) return;
+    const fid = f.id;
+    setFields((prev) =>
+      prev.map((x) =>
+        x.draftId === draftId
+          ? { ...x, show_instagram: true, show_youtube: true }
+          : x,
+      ),
+    );
+    persist(async () => {
+      await leaderboardDesignsApi.applyFieldEnablementToAll(design.id, fid);
+    }, "Failed to apply the column to all sizes.");
   };
 
   // Local merge + persist the changed keys (PATCH). The size slider is debounced so a drag of the
@@ -1239,6 +1330,10 @@ export function DesignFieldsEditor({
     if ("font_id" in patch) body.font_id = patch.font_id;
     if ("font_size_pct" in patch) body.font_size_pct = patch.font_size_pct;
     if ("color" in patch) body.color = patch.color;
+    // Per-size enablement (owner 2026-07-05): a show/hide toggle for this column on ONE size. Sent as
+    // a real boolean; the backend routes it to show_instagram / show_youtube. Independent of `size`.
+    if ("show_instagram" in patch) body.show_instagram = patch.show_instagram;
+    if ("show_youtube" in patch) body.show_youtube = patch.show_youtube;
     if (Object.keys(body).length === 0) return;
     const send = () =>
       persist(
@@ -1970,7 +2065,9 @@ export function DesignFieldsEditor({
                             const f = fields.find(
                               (f) => f.field_type === ft && f.column_group === 0,
                             );
-                            if (f) removeField(f.draftId);
+                            // Per-size (owner 2026-07-05): hide from the size being edited, keeping the
+                            // other size (removes the row only if hidden on both).
+                            if (f) hideFieldForCurrentSize(f.draftId);
                           }}
                           disabled={!canManage}
                           className="flex size-4 items-center justify-center rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground"
@@ -2075,6 +2172,9 @@ export function DesignFieldsEditor({
 
                   return fields.map((field) => {
                     if (field.column_group !== gi) return null;
+                    // Per-size (owner 2026-07-05): don't draw a field hidden for the size being edited,
+                    // so the canvas preview matches exactly what the export renders for that size.
+                    if (!shownForSize(field)) return null;
                     const isSelected =
                       selected?.type === "field" &&
                       selected.draftId === field.draftId;
@@ -2379,7 +2479,8 @@ export function DesignFieldsEditor({
                                             f.field_type === ft &&
                                             f.column_group === gi,
                                         );
-                                        if (f) removeField(f.draftId);
+                                        // Per-size (owner 2026-07-05): hide from the edited size only.
+                                        if (f) hideFieldForCurrentSize(f.draftId);
                                       }}
                                       disabled={!canManage}
                                       className="flex size-3.5 items-center justify-center rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground"
@@ -2670,6 +2771,50 @@ export function DesignFieldsEditor({
                       }
                       className="h-8 text-xs"
                     />
+                  </div>
+
+                  {/* Per-size visibility + Apply to all (owner 2026-07-05, audit complaint A) ─────────
+                      This column renders on each export size INDEPENDENTLY. The two switches show/hide
+                      it on Instagram vs YouTube without touching the other size; "Apply to all" turns it
+                      on for BOTH sizes (and, for a multi-page design, the same column on every page) in
+                      one click via apply-field-enablement-to-all. */}
+                  <div className="space-y-2 rounded-md border border-border bg-muted/30 p-2.5">
+                    <p className="text-[0.7rem] font-medium text-foreground">
+                      Shown on (per size)
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs">Instagram</Label>
+                      <Switch
+                        checked={selectedField.show_instagram}
+                        disabled={!canManage}
+                        onCheckedChange={(v: boolean) =>
+                          updateField(selectedField.draftId, { show_instagram: v })
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs">YouTube</Label>
+                      <Switch
+                        checked={selectedField.show_youtube}
+                        disabled={!canManage}
+                        onCheckedChange={(v: boolean) =>
+                          updateField(selectedField.draftId, { show_youtube: v })
+                        }
+                      />
+                    </div>
+                    {canManage && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 w-full text-xs"
+                        disabled={selectedField.pending}
+                        onClick={() => applyFieldToAll(selectedField.draftId)}
+                        title="Show this column on both Instagram and YouTube (and on every page)"
+                      >
+                        Apply to all
+                      </Button>
+                    )}
                   </div>
 
                   {/* Delete field button */}
