@@ -21,6 +21,9 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // MVPs tab (owner 2026-07-02): criteria-arranged event MVP. See _components/MvpTab.tsx.
 import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
+// Top Killers tab (owner 2026-07-05, complaint H): players ranked by summed kills. Sibling of MvpTab;
+// shares the scope/combine + through-a-design Download bar. See _components/TopKillersTab.tsx.
+import TopKillersTab from "@/app/(a)/a/leaderboards/_components/TopKillersTab";
 // Debugger-log backfill (owner 2026-07-02): fills 3D-room rich stats post-hoc. See the panel file.
 import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/DebuggerBackfillPanel";
 // Tie-breakers (owner 2026-07-02): arranged equal-points ordering, apply-to-all|stage|group.
@@ -1262,7 +1265,7 @@ export default function EditLeaderboardPage({
             past the whole standings to reach the flagged-kills / unmatched-team controls. */}
         <TabsList
           data-tour="leaderboard-edit-match"
-          className={`grid w-full ${participantType === "solo" ? "grid-cols-5" : "grid-cols-6"}`}
+          className={`grid w-full ${participantType === "solo" ? "grid-cols-6" : "grid-cols-7"}`}
         >
           <TabsTrigger value="matches">
             <IconMap size={14} className="mr-1" />
@@ -1291,11 +1294,21 @@ export default function EditLeaderboardPage({
             <IconTrophy size={14} className="mr-1" />
             MVPs
           </TabsTrigger>
+          {/* Top Killers (owner 2026-07-05, complaint H): players ranked by summed kills; see TopKillersTab. */}
+          <TabsTrigger value="top_killers">
+            <IconTrophy size={14} className="mr-1" />
+            Top Killers
+          </TabsTrigger>
         </TabsList>
 
-        {/* ── MVPs Tab: event-scoped (ignores the stage/group pickers above). ── */}
+        {/* ── MVPs Tab: event-scoped; the scope bar can COMBINE across selected stages/groups. ── */}
         <TabsContent value="mvp" className="mt-4">
-          <MvpTab eventId={id} />
+          <MvpTab eventId={id} organizationId={eventData?.organization_id ?? null} />
+        </TabsContent>
+
+        {/* ── Top Killers Tab: event-scoped players by summed kills (same combine + download bar). ── */}
+        <TabsContent value="top_killers" className="mt-4">
+          <TopKillersTab eventId={id} organizationId={eventData?.organization_id ?? null} />
         </TabsContent>
 
         {/* ── Match Results Tab ── */}

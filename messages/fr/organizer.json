@@ -1125,6 +1125,7 @@
       "totalTab": "Classement général",
       "tieBreakersTab": "Critères de départage",
       "mvpTab": "MVP",
+      "topKillersTab": "Les principales causes de décès",
       "backfillTab": "Remplissage du débogueur",
       "scoringTab": "Configuration de la notation",
       "totalTitle": "Classement général",
@@ -1382,7 +1383,13 @@
     "booyahFollow": "En direct : suivez le classement (l'équipe se classe en fonction de son dernier « booyah »)",
     "bgBehavior": "Contexte",
     "bgPersistent": "Toujours allumé (ne s'éteint jamais)",
-    "bgAnimate": "S'affiche avec une animation au chargement"
+    "bgAnimate": "S'affiche avec une animation au chargement",
+    "kindMvp": "Conseil d'administration de MVP",
+    "kindTopKillers": "Les principales causes de décès",
+    "addMvp": "Ajouter un tableau MVP",
+    "addTopKillers": "Ajouter les meilleurs tueurs",
+    "mvpCreated": "Tableau MVP créé. Associez-y un design et définissez sa portée, puis copiez son lien une seule fois.",
+    "topKillersCreated": "Création du classement des principales causes de décès. Associez un modèle et définissez son champ d'application, puis copiez son lien une seule fois."
   },
   "mediaAudit": {
     "title": "Médias audiovisuels",

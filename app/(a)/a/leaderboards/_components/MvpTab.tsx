@@ -14,12 +14,16 @@
 // app/(a)/a/leaderboards/[id]/edit/page.tsx (TabsContent value="mvp"). Admin surface — English.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-pulls the read-only ranking.
 import { useLiveTick } from "@/hooks/useLiveTick";
+// Scope (whole event / combine selected stages+groups) + "Download through a design" bar, shared with
+// the Top Killers tab (owner 2026-07-05, complaint G): lets the MVP be COMBINED across selected
+// groups/stages and exported as a PNG. Reuses the leaderboard combine path. See PlayerBoardControls.
+import { PlayerBoardControls } from "./PlayerBoardControls";
 
 import { env } from "@/lib/env";
 import { Badge } from "@/components/ui/badge";
@@ -95,9 +99,24 @@ interface MvpResponse {
 
 const authHeaders = () => ({ Authorization: `Bearer ${Cookies.get("auth_token")}` });
 
-export default function MvpTab({ eventId }: { eventId: number | string }) {
+export default function MvpTab({
+  eventId,
+  // organizationId scopes the Download dialog's design library (null = AFC-native library). Passed by
+  // the admin editor (eventData.organization_id) and the organizer page (their org id).
+  organizationId = null,
+}: {
+  eventId: number | string;
+  organizationId?: number | null;
+}) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // COMBINE scope (owner 2026-07-05, complaint G): which groups/stages the MVP is computed over. Held
+  // in a ref so `load` stays stable (deps [eventId]); a scope change re-fetches in the background.
+  const scopeRef = useRef<{ groupIds: number[]; stageIds: number[] }>({
+    groupIds: [],
+    stageIds: [],
+  });
+  const scopeInit = useRef(false);
   const [meta, setMeta] = useState<CriterionMeta[]>([]);
   const [criteria, setCriteria] = useState<string[]>([]);
   const [scope, setScope] = useState<"overall" | "winning_team">("overall");
@@ -121,12 +140,22 @@ export default function MvpTab({ eventId }: { eventId: number | string }) {
   // spinner + error toast, and only updates the READ-ONLY side (ranking table, per-map winners,
   // MVP header, criteria catalog) - the admin's in-progress criteria arrangement + scope picker
   // are form state and must never be clobbered by a background refetch.
+  // CSV query params for the current combine scope (empty => whole event). Sent on the GET + POST so
+  // the ranking is computed over exactly the selected groups/stages.
+  const scopeParams = () => {
+    const s = scopeRef.current;
+    const q: Record<string, string> = {};
+    if (s.groupIds.length) q.group_ids = s.groupIds.join(",");
+    if (s.stageIds.length) q.stage_ids = s.stageIds.join(",");
+    return q;
+  };
+
   const load = useCallback(async (background = false) => {
     if (!background) setLoading(true);
     try {
       const res = await axios.get<MvpResponse>(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/mvp/`,
-        { headers: authHeaders() },
+        { headers: authHeaders(), params: scopeParams() },
       );
       if (background) {
         const d = res.data;
@@ -165,13 +194,28 @@ export default function MvpTab({ eventId }: { eventId: number | string }) {
     });
   };
 
+  // A scope change reports up here (from PlayerBoardControls). The FIRST call is the initial
+  // whole-event selection, already covered by the mount load, so it is skipped; later changes
+  // re-fetch in the BACKGROUND (no spinner) with the new scope.
+  const handleScope = useCallback(
+    (s: { groupIds: number[]; stageIds: number[] }) => {
+      scopeRef.current = s;
+      if (!scopeInit.current) {
+        scopeInit.current = true;
+        return;
+      }
+      load(true);
+    },
+    [load],
+  );
+
   const saveAndCompute = async () => {
     setSaving(true);
     try {
       const res = await axios.post<MvpResponse>(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/mvp/`,
         { criteria, scope },
-        { headers: authHeaders() },
+        { headers: authHeaders(), params: scopeParams() },
       );
       applyResponse(res.data);
       toast.success("MVP criteria saved.");
@@ -194,7 +238,17 @@ export default function MvpTab({ eventId }: { eventId: number | string }) {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[320px_1fr]" data-tour="leaderboard-mvp-panel">
+    <div className="space-y-4">
+      {/* ── Scope (whole event / combine selected stages+groups) + Download the board through a
+          design (owner 2026-07-05, complaint G). Reuses the leaderboard combine path. ── */}
+      <PlayerBoardControls
+        eventId={eventId}
+        organizationId={organizationId}
+        kind="mvp"
+        onScopeChange={handleScope}
+      />
+
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr]" data-tour="leaderboard-mvp-panel">
       {/* ── Criteria arrangement + scope. ── */}
       <Card>
         <CardHeader>
@@ -357,6 +411,7 @@ export default function MvpTab({ eventId }: { eventId: number | string }) {
           </div>
         ) : null}
       </Card>
+      </div>
     </div>
   );
 }

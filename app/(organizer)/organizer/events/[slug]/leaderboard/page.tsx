@@ -129,6 +129,7 @@ import {
   IconRefresh,
   IconScale,
   IconSettings,
+  IconTargetArrow,
   IconTrophy,
   IconUpload,
   IconUserPlus,
@@ -204,6 +205,10 @@ import { BroadcastControl } from "@/components/overlay/BroadcastControl";
 // precedent as ManualMatchResultStep etc. above); the tab labels + everything ELSE authored on
 // this page is i18n'd (organizer.eventLeaderboard.*).
 import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
+// Top Killers tab (owner 2026-07-05, complaint H): players ranked by summed kills, sibling of MvpTab.
+// Reused admin component (English inside, like MvpTab); only its tab LABEL is i18n'd on this organizer
+// surface (eventLeaderboard.tools.topKillersTab). GET events/<id>/top-killers/ (same _broadcast_gate).
+import TopKillersTab from "@/app/(a)/a/leaderboards/_components/TopKillersTab";
 import TieBreakersPanel from "@/app/(a)/a/leaderboards/_components/TieBreakersPanel";
 import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/DebuggerBackfillPanel";
 // Scoring Config editor (owner 2026-07-04 organizer parity): the per-match kill/assist/damage +
@@ -2523,7 +2528,7 @@ export default function OrganizerEventLeaderboardPage({
                 baseline; Tie-breakers / MVPs / Debugger backfill need can_edit_events. */}
             <Tabs defaultValue="matches">
               <TabsList
-                className={`grid w-full ${canEditEvents ? "grid-cols-6" : "grid-cols-3"}`}
+                className={`grid w-full ${canEditEvents ? "grid-cols-7" : "grid-cols-3"}`}
               >
                 {/* Match Results (owner 2026-07-04 organizer parity): the SAME always-editable per-map
                     grid the admin editor has. Saves via edit-match-result / edit-solo-match-result,
@@ -2552,6 +2557,11 @@ export default function OrganizerEventLeaderboardPage({
                     <TabsTrigger value="mvp">
                       <IconTrophy size={14} className="mr-1" />
                       {t("eventLeaderboard.tools.mvpTab")}
+                    </TabsTrigger>
+                    {/* Top Killers (owner 2026-07-05, complaint H): players by summed kills; see TopKillersTab. */}
+                    <TabsTrigger value="top_killers">
+                      <IconTargetArrow size={14} className="mr-1" />
+                      {t("eventLeaderboard.tools.topKillersTab")}
                     </TabsTrigger>
                     <TabsTrigger value="backfill">
                       <IconDatabaseImport size={14} className="mr-1" />
@@ -2776,9 +2786,14 @@ export default function OrganizerEventLeaderboardPage({
                     />
                   </TabsContent>
 
-                  {/* ── MVPs ── event-scoped (ignores the stage/group pickers), admin parity. */}
+                  {/* ── MVPs ── event-scoped; the scope bar can COMBINE across selected stages/groups. */}
                   <TabsContent value="mvp" className="mt-4">
-                    <MvpTab eventId={eventId} />
+                    <MvpTab eventId={eventId} organizationId={organizationId} />
+                  </TabsContent>
+
+                  {/* ── Top Killers ── event-scoped players by summed kills (same combine + download bar). */}
+                  <TabsContent value="top_killers" className="mt-4">
+                    <TopKillersTab eventId={eventId} organizationId={organizationId} />
                   </TabsContent>
 
                   {/* ── Debugger backfill ── event-wide: every stage/group/match is a mapping

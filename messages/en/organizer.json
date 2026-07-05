@@ -1125,6 +1125,7 @@
       "totalTab": "Total Leaderboard",
       "tieBreakersTab": "Tie-breakers",
       "mvpTab": "MVPs",
+      "topKillersTab": "Top Killers",
       "backfillTab": "Debugger backfill",
       "scoringTab": "Scoring Config",
       "totalTitle": "Total Leaderboard",
@@ -1382,7 +1383,13 @@
     "booyahFollow": "Live: follow the leaderboard (team sets itself from the latest booyah)",
     "bgBehavior": "Background",
     "bgPersistent": "Always on (never leaves)",
-    "bgAnimate": "Animates in on load"
+    "bgAnimate": "Animates in on load",
+    "kindMvp": "MVP board",
+    "kindTopKillers": "Top killers",
+    "addMvp": "Add MVP board",
+    "addTopKillers": "Add top killers",
+    "mvpCreated": "MVP board created. Bind a design and pick its scope, then copy its link once.",
+    "topKillersCreated": "Top killers board created. Bind a design and pick its scope, then copy its link once."
   },
   "mediaAudit": {
     "title": "Broadcast media",

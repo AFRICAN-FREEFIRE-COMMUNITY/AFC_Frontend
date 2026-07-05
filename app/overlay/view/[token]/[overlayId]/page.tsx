@@ -375,6 +375,138 @@ function H2HView({ feed }: { feed: OverlayConfigFeed }) {
   );
 }
 
+// ── MVP (G) + Top Killers (H) player board (owner 2026-07-05) ────────────────
+// Two PLAYER-driven boards that REUSE the leaderboard combine/render idea: the config poll bundles the
+// resolved ranked PLAYER ROWS + the bound design's LOOK (background + colors + transparent), exactly like
+// _h2h_payload / _booyah_payload. Each row is keyed by the design player FIELD_CHOICES field types
+// (pos / player_name / team_name / team_country / esports_image / kills / damage / assists / mvp_count /
+// matches — build_player_design_rows), and esports_image is a URL drawn as an <img>. ONE renderer serves
+// both kinds (they share the payload shape): the only difference is the HEADLINE stat — the MVP board
+// leads with mvp_count (map MVPs won), the Top Killers board with kills. Rows are already ordered by pos.
+// Always render (no trigger), so it renders whenever the overlay is active. Styled in the AFC house look
+// like BooyahView / H2HView (the design LOOK sets bg + colors); the full field-placement render is the
+// through-a-design PNG export path (events/<id>/player-board-graphic/).
+function PlayerBoardView({ feed }: { feed: OverlayConfigFeed }) {
+  const isMvp = feed.kind === "mvp";
+  const payload = isMvp ? feed.mvp : feed.top_killers;
+  if (!feed.active || !payload || !payload.players?.length) return null;
+
+  const design = payload.design;
+  const text = design?.text_color || "#ffffff";
+  const accent = design?.accent_color || "#34d27b";
+  const title = isMvp ? "MVP STANDINGS" : "TOP KILLERS";
+  const headlineLabel = isMvp ? "MVPs" : "KILLS";
+  // The board's headline stat per row: map MVPs won for the MVP board, kills for Top Killers.
+  const headline = (p: (typeof payload.players)[number]) =>
+    isMvp ? p.mvp_count : p.kills;
+  // Fit a broadcast frame: show the top 10 (rows are pre-ordered by pos).
+  const rows = payload.players.slice(0, 10);
+
+  return (
+    <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
+      {design?.background && !design.transparent ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={design.background} alt="" className="absolute inset-0 size-full object-cover" />
+      ) : null}
+      <div
+        className="relative flex w-[860px] flex-col gap-3"
+        style={{ animation: "afc-pb-in 600ms cubic-bezier(0.16,1,0.3,1) both" }}
+      >
+        <div
+          className="text-center font-black uppercase tracking-[0.2em]"
+          style={{ color: accent, fontSize: "3.2rem", textShadow: "0 4px 20px rgba(0,0,0,0.9)" }}
+        >
+          {title}
+        </div>
+        <div className="flex flex-col gap-2">
+          {rows.map((p, i) => (
+            <div
+              key={`${p.pos}-${p.player_name}-${i}`}
+              className="flex items-center gap-4 rounded-2xl border bg-black/70 px-5 py-3"
+              style={{
+                borderColor: i === 0 ? accent : `${accent}55`,
+                animation: `afc-pb-row 500ms ease-out both`,
+                animationDelay: `${i * 60}ms`,
+              }}
+            >
+              {/* Rank */}
+              <span
+                className="w-12 shrink-0 text-center font-black tabular-nums"
+                style={{ color: i === 0 ? accent : text, fontSize: "2rem" }}
+              >
+                {p.pos}
+              </span>
+              {/* Player PHOTO (esports_image) drawn as an <img>; letter fallback when missing. */}
+              {p.esports_image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.esports_image}
+                  alt=""
+                  className="rounded-lg"
+                  style={{ height: 64, width: 64, objectFit: "cover" }}
+                />
+              ) : (
+                <div
+                  className="flex items-center justify-center rounded-lg text-2xl font-bold"
+                  style={{ height: 64, width: 64, background: "#111", color: accent }}
+                >
+                  {(p.player_name || "?").slice(0, 1).toUpperCase()}
+                </div>
+              )}
+              {/* Name + team */}
+              <div className="min-w-0 flex-1">
+                <p
+                  className="truncate text-2xl font-bold"
+                  style={{ color: text, textShadow: "0 2px 10px rgba(0,0,0,0.9)" }}
+                >
+                  {p.player_name}
+                </p>
+                {p.team_name ? (
+                  <p className="truncate text-sm uppercase tracking-wider opacity-70" style={{ color: text }}>
+                    {p.team_name}
+                  </p>
+                ) : null}
+              </div>
+              {/* Secondary stats: on the MVP board show kills (the headline is map MVPs); on the
+                  Top Killers board show damage (the headline is kills). */}
+              <div className="shrink-0 text-right opacity-75" style={{ color: text }}>
+                <span className="text-lg font-semibold tabular-nums">
+                  {isMvp ? p.kills : p.damage}
+                </span>
+                <span className="block text-[0.55rem] uppercase tracking-widest opacity-70">
+                  {isMvp ? "KILLS" : "DAMAGE"}
+                </span>
+              </div>
+              {/* Headline stat */}
+              <div className="shrink-0 text-right">
+                <span
+                  className="font-black tabular-nums"
+                  style={{ color: accent, fontSize: "2.4rem", lineHeight: 1 }}
+                >
+                  {headline(p)}
+                </span>
+                <span className="block text-[0.6rem] uppercase tracking-widest opacity-70" style={{ color: text }}>
+                  {headlineLabel}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <style jsx global>{`
+        @keyframes afc-pb-in {
+          from { opacity: 0; transform: translateY(26px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes afc-pb-row {
+          from { opacity: 0; transform: translateX(-16px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function OverlayViewPage() {
   const params = useParams<{ token: string; overlayId: string }>();
   const token = params?.token ?? "";
@@ -421,6 +553,10 @@ export default function OverlayViewPage() {
   }
   if (feed.kind === "h2h") {
     return <H2HView feed={feed} />;
+  }
+  // MVP (G) + Top Killers (H): ranked player rows drawn through the bound design (owner 2026-07-05).
+  if (feed.kind === "mvp" || feed.kind === "top_killers") {
+    return <PlayerBoardView feed={feed} />;
   }
 
   // Leaderboard: render the existing overlay page inside a full-viewport iframe. Keyed by the

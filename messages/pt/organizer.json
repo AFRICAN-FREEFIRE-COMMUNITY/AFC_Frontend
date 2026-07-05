@@ -1125,6 +1125,7 @@
       "totalTab": "Classificação Geral",
       "tieBreakersTab": "Critérios de desempate",
       "mvpTab": "MVP",
+      "topKillersTab": "Principais causas de morte",
       "backfillTab": "Preenchimento do depurador",
       "scoringTab": "Configuração de pontuação",
       "totalTitle": "Classificação Geral",
@@ -1382,7 +1383,13 @@
     "booyahFollow": "Ao vivo: acompanha a tabela de classificação (a equipa é definida com base no último «booyah»)",
     "bgBehavior": "Contexto",
     "bgPersistent": "Sempre ligado (nunca se desliga)",
-    "bgAnimate": "Apresenta-se com um efeito de animação ao carregar"
+    "bgAnimate": "Apresenta-se com um efeito de animação ao carregar",
+    "kindMvp": "Conselho de Administração da MVP",
+    "kindTopKillers": "Principais causas de morte",
+    "addMvp": "Adicionar quadro MVP",
+    "addTopKillers": "Adicionar os principais assassinos",
+    "mvpCreated": "Painel MVP criado. Associe um projeto e selecione o seu âmbito; depois, copie o link uma vez.",
+    "topKillersCreated": "Foi criado o quadro dos principais fatores de mortalidade. Associe um design e selecione o seu âmbito; depois, copie o link uma vez."
   },
   "mediaAudit": {
     "title": "Meios de comunicação social",

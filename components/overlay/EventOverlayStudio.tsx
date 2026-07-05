@@ -45,6 +45,7 @@ import {
   IconCheck,
   IconClock,
   IconCopy,
+  IconCrown,
   IconExternalLink,
   IconKey,
   IconLayoutGrid,
@@ -53,6 +54,7 @@ import {
   IconPlayerStop,
   IconPlus,
   IconSwords,
+  IconTargetArrow,
   IconTrash,
   IconTrophy,
   IconCopyPlus,
@@ -300,7 +302,17 @@ function OverlayCard({
               <IconPencil className="size-3.5" />
             </button>
             <Badge variant="outline" className="ml-auto rounded-full px-2 py-0.5 text-xs capitalize">
-              {row.kind === "timer" ? t("studio.kindTimer") : row.kind === "booyah" ? t("studio.kindBooyah") : row.kind === "h2h" ? t("studio.kindH2h") : t("studio.kindLeaderboard")}
+              {row.kind === "timer"
+                ? t("studio.kindTimer")
+                : row.kind === "booyah"
+                  ? t("studio.kindBooyah")
+                  : row.kind === "h2h"
+                    ? t("studio.kindH2h")
+                    : row.kind === "mvp"
+                      ? t("studio.kindMvp")
+                      : row.kind === "top_killers"
+                        ? t("studio.kindTopKillers")
+                        : t("studio.kindLeaderboard")}
             </Badge>
           </>
         )}
@@ -324,7 +336,12 @@ function OverlayCard({
             pointerEvents: "none",
           }}
         />
-        {row.kind !== "leaderboard" && !row.active ? (
+        {/* Trigger-based scenes (timer/booyah/h2h) show a "hidden until triggered" hint when inactive.
+            Always-render kinds (leaderboard/mvp/top_killers) never do. */}
+        {row.kind !== "leaderboard" &&
+        row.kind !== "mvp" &&
+        row.kind !== "top_killers" &&
+        !row.active ? (
           <span className="text-muted-foreground absolute inset-x-0 bottom-1.5 text-center text-[0.65rem]">
             {t("studio.timerHiddenHint")}
           </span>
@@ -636,6 +653,180 @@ function OverlayCard({
               {t("studio.hide")}
             </Button>
           </div>
+        </div>
+      ) : row.kind === "mvp" || row.kind === "top_killers" ? (
+        /* ── MVP (G) + Top Killers (H) controls (owner 2026-07-05) ────────────────────────────────
+           Two PLAYER-driven boards. Both bind a DESIGN + a Single/Combine scope, REUSING the exact
+           leaderboard combine picker below (whole STAGES + individual GROUPS). Saving writes the
+           overlay config; the ONE stable link (/overlay/view) re-renders the board's player rows
+           through the bound design (the mvp / top_killers branches in the view page). Always render
+           (no trigger) - so no Trigger/Hide here, mirroring the leaderboard kind. The single-scope
+           picker writes the plural stage_ids/group_ids arrays (never a bare singular), so "one group"
+           does not implicitly pull in its whole stage on the backend. */
+        <div className="grid grid-cols-2 gap-2">
+          <div className="col-span-2 space-y-1">
+            <Label className="text-xs">{t("studio.design")}</Label>
+            <Select
+              value={String(cfg.design_id ?? "")}
+              onValueChange={(v) => saveCfg({ design_id: Number(v) })}
+            >
+              <SelectTrigger className="h-8 w-full text-xs">
+                <SelectValue placeholder={t("studio.pickDesign")} />
+              </SelectTrigger>
+              <SelectContent>
+                {designs.map((d) => (
+                  <SelectItem key={d.id} value={String(d.id)}>
+                    {d.name}
+                    {d.is_default ? ` ${t("studio.defaultSuffix")}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Standings SCOPE: a single whole stage / one group, or COMBINE many. Same shape + copy as
+              the leaderboard card. */}
+          <div className="col-span-2 space-y-1">
+            <Label className="text-xs">{t("studio.scope")}</Label>
+            <Select
+              value={String(cfg.scope || "single")}
+              onValueChange={(v) => saveCfg({ scope: v })}
+            >
+              <SelectTrigger className="h-8 w-full text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="single">{t("studio.scopeSingle")}</SelectItem>
+                <SelectItem value="combine">{t("studio.scopeCombine")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {cfg.scope === "combine" ? (
+            /* COMBINE picker: identical to the leaderboard card - any mix of whole STAGES + individual
+               GROUPS. A whole-stage pick implicitly includes its groups (backend expands it), so they
+               show checked + disabled. Reads/writes cfg.stage_ids + cfg.group_ids. */
+            <div className="col-span-2 space-y-1">
+              <Label className="text-xs">{t("studio.combineUnits")}</Label>
+              <p className="text-muted-foreground text-[0.65rem]">{t("studio.combineHint")}</p>
+              <div className="max-h-44 space-y-2 overflow-y-auto rounded-md border p-2">
+                {(() => {
+                  const stageIds: number[] = Array.isArray(cfg.stage_ids)
+                    ? cfg.stage_ids.map(Number)
+                    : [];
+                  const groupIds: number[] = Array.isArray(cfg.group_ids)
+                    ? cfg.group_ids.map(Number)
+                    : [];
+                  return stages.map((s) => {
+                    const sid = Number(s.stage_id);
+                    const stageOn = stageIds.includes(sid);
+                    return (
+                      <div key={sid} className="space-y-1">
+                        <label className="flex cursor-pointer items-center gap-2 text-xs font-medium">
+                          <Checkbox
+                            checked={stageOn}
+                            onCheckedChange={(v) =>
+                              saveCfg({
+                                stage_ids:
+                                  v === true
+                                    ? [...new Set([...stageIds, sid])]
+                                    : stageIds.filter((x) => x !== sid),
+                              })
+                            }
+                          />
+                          {s.stage_name || `${t("studio.stage")} ${s.stage_id}`}
+                          <span className="text-muted-foreground">({t("studio.wholeStage")})</span>
+                        </label>
+                        <div className="ml-5 space-y-1">
+                          {(s.groups ?? []).map((g) => {
+                            const gid = Number(g.group_id);
+                            return (
+                              <label
+                                key={gid}
+                                className="flex cursor-pointer items-center gap-2 text-xs"
+                              >
+                                <Checkbox
+                                  checked={groupIds.includes(gid) || stageOn}
+                                  disabled={stageOn}
+                                  onCheckedChange={(v) =>
+                                    saveCfg({
+                                      group_ids:
+                                        v === true
+                                          ? [...new Set([...groupIds, gid])]
+                                          : groupIds.filter((x) => x !== gid),
+                                    })
+                                  }
+                                />
+                                {g.group_name || `${t("studio.group")} ${g.group_id}`}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          ) : (
+            /* SINGLE picker: a stage (ui_stage_id = FE picker context) + a group, or its whole stage.
+               Writes the PLURAL arrays so the backend scope is exact: whole stage -> stage_ids=[sid];
+               one group -> group_ids=[gid]. Empty (no stage picked) => whole event. */
+            <>
+              <div className="space-y-1">
+                <Label className="text-xs">{t("studio.stage")}</Label>
+                <Select
+                  value={String(cfg.ui_stage_id ?? "")}
+                  onValueChange={(v) =>
+                    saveCfg({ ui_stage_id: Number(v), stage_ids: [Number(v)], group_ids: [] })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-full text-xs">
+                    <SelectValue placeholder={t("studio.stage")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stages.map((s) => (
+                      <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                        {s.stage_name || `${t("studio.stage")} ${s.stage_id}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{t("studio.group")}</Label>
+                <Select
+                  value={
+                    Array.isArray(cfg.group_ids) && cfg.group_ids.length
+                      ? String(cfg.group_ids[0])
+                      : "__all__"
+                  }
+                  onValueChange={(v) =>
+                    saveCfg(
+                      v === "__all__"
+                        ? { group_ids: [], stage_ids: cfg.ui_stage_id ? [Number(cfg.ui_stage_id)] : [] }
+                        : { group_ids: [Number(v)], stage_ids: [] },
+                    )
+                  }
+                >
+                  <SelectTrigger className="h-8 w-full text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">{t("studio.allGroups")}</SelectItem>
+                    {(
+                      stages.find((s) => String(s.stage_id) === String(cfg.ui_stage_id ?? ""))
+                        ?.groups ?? []
+                    ).map((g) => (
+                      <SelectItem key={g.group_id} value={String(g.group_id)}>
+                        {g.group_name || `${t("studio.group")} ${g.group_id}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
         </div>
       ) : row.kind === "h2h" ? (
         /* Head-to-head controls (owner 2026-07-02, v1): 2-3 teams OR players compared on their
@@ -1000,6 +1191,31 @@ export function EventOverlayStudio({
     }
   };
 
+  // ── MVP (G) + Top Killers (H) overlays (owner 2026-07-05) ────────────────────
+  // Two PLAYER-driven boards that bind a design + a Single/Combine scope (the SAME whole-stage + group
+  // selector as the leaderboard card) and render their ranked player rows through the design on the ONE
+  // stable link. Default scope "single" with NO stage picked => whole event until narrowed. See the
+  // OverlayCard player-board branch + the view page's mvp/top_killers renderers.
+  const addPlayerBoard = async (kind: "mvp" | "top_killers") => {
+    try {
+      const row = await overlaysApi.create(eventId, {
+        name: kind === "mvp" ? t("studio.kindMvp") : t("studio.kindTopKillers"),
+        kind,
+        config: {
+          design_id: designs[0]?.id ?? null,
+          scope: "single",
+          ui_stage_id: null,
+          stage_ids: [],
+          group_ids: [],
+        },
+      });
+      setOverlays((prev) => [...prev, row]);
+      toast.success(kind === "mvp" ? t("studio.mvpCreated") : t("studio.topKillersCreated"));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("studio.createError"));
+    }
+  };
+
   const copyCaptureKey = async () => {
     try {
       const k = await uploadTokenApi.ensure(eventId);
@@ -1078,6 +1294,15 @@ export function EventOverlayStudio({
         <Button variant="outline" size="sm" onClick={addH2h}>
           <IconSwords className="size-4" />
           {t("studio.addH2h")}
+        </Button>
+        {/* MVP (G) + Top Killers (H) player boards (owner 2026-07-05). */}
+        <Button variant="outline" size="sm" onClick={() => addPlayerBoard("mvp")}>
+          <IconCrown className="size-4" />
+          {t("studio.addMvp")}
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => addPlayerBoard("top_killers")}>
+          <IconTargetArrow className="size-4" />
+          {t("studio.addTopKillers")}
         </Button>
       </div>
 
