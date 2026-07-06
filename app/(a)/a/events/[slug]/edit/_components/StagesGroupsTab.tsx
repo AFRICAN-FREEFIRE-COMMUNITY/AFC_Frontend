@@ -710,6 +710,8 @@ export default function StagesGroupsTab({
                           mode="stage"
                           targetId={stage.stage_id}
                           targetName={stage.stage_name}
+                          // eventId => the picker lists only THIS event's registered teams (owner 2026-07-06).
+                          eventId={eventDetails.event_id}
                           // Re-pull + re-render in place after teams are added (no reload).
                           onSuccess={() => onRefresh?.()}
                         />
@@ -804,6 +806,8 @@ export default function StagesGroupsTab({
                                 mode="group"
                                 targetId={group.group_id}
                                 targetName={`${stage.stage_name} › ${group.group_name}`}
+                                // eventId => picker shows only this event's registered teams (owner 2026-07-06).
+                                eventId={eventDetails.event_id}
                                 // Re-pull + re-render in place after teams are added (no reload).
                                 onSuccess={() => onRefresh?.()}
                               />

@@ -39,6 +39,13 @@ interface AddTeamsModalProps {
   onSuccess?: () => void;
   /** ids of teams already in the event/stage/group - they'll be greyed out */
   existingTeamIds?: number[];
+  /**
+   * The event id. When set for a SEEDING mode (stage/group), the picker lists ONLY the event's
+   * REGISTERED teams (via /events/seeding/registered-teams/) instead of every team on the platform
+   * (owner 2026-07-06: "show only teams that are registered as those you can seed"). Omit it (or use
+   * mode="event") to keep the full-roster list used when REGISTERING teams onto the event.
+   */
+  eventId?: number;
 }
 
 const ENDPOINT: Record<Mode, string> = {
@@ -65,7 +72,11 @@ export function AddTeamsModal({
   targetName,
   onSuccess,
   existingTeamIds = [],
+  eventId,
 }: AddTeamsModalProps) {
+  // Seeding into a stage/group draws from the event's REGISTERED teams only; registering onto the
+  // event itself (mode "event", or no eventId) still offers the full team roster.
+  const registeredOnly = mode !== "event" && !!eventId;
   const { token } = useAuth();
   const [open, setOpen] = useState(false);
 
@@ -81,14 +92,17 @@ export function AddTeamsModal({
     setLoading(true);
     setSelected([]);
     setSearch("");
+    // registered-teams/ (event's registered pool) for seeding; get-all-teams/ (whole roster) for
+    // registering teams onto the event. Both return the same {teams:[...]} shape.
+    const url = registeredOnly
+      ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seeding/registered-teams/?event_id=${eventId}`
+      : `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`;
     axios
-      .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(url, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => setTeams(res.data.teams ?? []))
       .catch(() => toast.error("Failed to load teams."))
       .finally(() => setLoading(false));
-  }, [open, token]);
+  }, [open, token, registeredOnly, eventId]);
 
   // Filter the loaded teams list against the search box using the shared matchesSearch helper
   // (punctuation/space/accent insensitive, folds stylized fancy-font names), so a team like "V-E"
@@ -140,8 +154,17 @@ export function AddTeamsModal({
           <DialogHeader>
             <DialogTitle>{LABEL[mode]}</DialogTitle>
             <DialogDescription>
-              Select teams to add to <strong>{targetName}</strong>. Teams
-              already added are disabled.
+              {registeredOnly ? (
+                <>
+                  Select from teams <strong>registered for this event</strong> to add to{" "}
+                  <strong>{targetName}</strong>. Teams already added are disabled.
+                </>
+              ) : (
+                <>
+                  Select teams to add to <strong>{targetName}</strong>. Teams already added are
+                  disabled.
+                </>
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -166,7 +189,9 @@ export function AddTeamsModal({
             ) : filtered.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-8">
                 {teams.length === 0
-                  ? "No teams found."
+                  ? registeredOnly
+                    ? "No registered teams for this event yet. Teams register first, then you seed them."
+                    : "No teams found."
                   : "No teams match your search."}
               </p>
             ) : (

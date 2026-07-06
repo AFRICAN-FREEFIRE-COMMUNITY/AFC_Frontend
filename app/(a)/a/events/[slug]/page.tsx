@@ -2069,6 +2069,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                             mode="stage"
                             targetId={stage.stage_id}
                             targetName={stage.stage_name}
+                            // eventId => picker lists only this event's registered teams (owner 2026-07-06).
+                            eventId={eventDetails.event_id}
                             onSuccess={() => refetchEvent()}
                           />
                         )}

@@ -450,6 +450,8 @@ export default function OrganizerEventGroupsPage({
                                 mode="group"
                                 targetId={group.group_id}
                                 targetName={`${stage.stage_name} › ${group.group_name}`}
+                                // eventId => picker lists only this event's registered teams (owner 2026-07-06).
+                                eventId={data.event_id}
                                 onSuccess={loadRosters}
                               />
                             )}
