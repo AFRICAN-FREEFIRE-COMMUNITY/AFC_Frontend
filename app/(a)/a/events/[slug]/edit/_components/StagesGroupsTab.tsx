@@ -725,6 +725,10 @@ export default function StagesGroupsTab({
                       onSuccess={() => onRefresh?.()}
                       stageId={stage?.stage_id}
                       participantType={eventDetails.participant_type}
+                      // Enable the "seed next stage by combined standings" option (owner 2026-07-06):
+                      // this stage's format + the NEXT stage's name (the stage after it in order).
+                      stageFormat={stage?.stage_format}
+                      nextStageName={stages[sIdx + 1]?.stage_name ?? null}
                     />
                     <Button
                       type="button"
