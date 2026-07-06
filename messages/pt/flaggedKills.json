@@ -15,6 +15,7 @@
   "reasonOtherTeam": "Registrado em outra equipe",
   "reasonNameUidChanged": "Nome correspondente (UID alterado)",
   "reasonNameOtherTeam": "O nome coincide com o de outra equipa",
+  "reasonUnlisted": "Mortes não registadas contra um jogador",
   "pending": "Em espera",
   "registeredAs": "Conta do site: {name}",
   "optDefault": "Seguir configuração do evento",

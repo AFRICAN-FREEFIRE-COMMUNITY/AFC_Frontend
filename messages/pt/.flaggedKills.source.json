@@ -15,6 +15,7 @@
   "reasonOtherTeam": "Registered on another team",
   "reasonNameUidChanged": "Name matched (UID changed)",
   "reasonNameOtherTeam": "Name matches another team",
+  "reasonUnlisted": "Kills not listed against a player",
   "pending": "Pending",
   "registeredAs": "Site account: {name}",
   "optDefault": "Follow event setting",

@@ -19,11 +19,16 @@ const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
 // Name-based matching reasons (name-matching feature): a file player whose NAME matches a roster
 // member but whose UID differs (uid_changed), or whose name matches a member registered on another
 // team. Both are created pending (count_kills=false) and approved via the same setFlag PATCH.
+// "unlisted_in_file" (owner 2026-07-07): the file's team KillScore exceeded the kills it listed against
+// players (the Free Fire client dropped a player row). The gap is one synthetic flag (uid "unlisted",
+// no registered_username) that counts by default (follows the event toggle) so the team total honors
+// the official KillScore, and the organizer can switch it off here if a KillScore looks wrong.
 export type FlagReason =
   | "not_on_roster"
   | "belongs_to_other_team"
   | "name_matched_uid_changed"
-  | "name_matched_other_team";
+  | "name_matched_other_team"
+  | "unlisted_in_file";
 
 export type FlaggedKill = {
   flag_id: number;

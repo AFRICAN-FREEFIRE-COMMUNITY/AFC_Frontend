@@ -15,6 +15,7 @@
   "reasonOtherTeam": "Inscrit dans une autre équipe",
   "reasonNameUidChanged": "Nom correspondant (UID modifié)",
   "reasonNameOtherTeam": "Le nom correspond à celui d'une autre équipe",
+  "reasonUnlisted": "Éliminations non comptabilisées à l'encontre d'un joueur",
   "pending": "En attente",
   "registeredAs": "Compte du site : {name}",
   "optDefault": "Suivre le paramètre de l'événement",

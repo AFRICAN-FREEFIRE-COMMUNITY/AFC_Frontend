@@ -54,6 +54,9 @@ const REASON_KEY: Record<string, string> = {
   belongs_to_other_team: "reasonOtherTeam",
   name_matched_uid_changed: "reasonNameUidChanged",
   name_matched_other_team: "reasonNameOtherTeam",
+  // unlisted_in_file (owner 2026-07-07): kills in the team's KillScore that the file listed against no
+  // player (dropped line). Counts by default; toggleable here.
+  unlisted_in_file: "reasonUnlisted",
 };
 
 export function FlaggedKillsPanel({ eventId, token, canManage = true, onChanged }: Props) {
