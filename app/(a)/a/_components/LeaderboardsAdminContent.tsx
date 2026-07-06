@@ -47,6 +47,10 @@ import {
 import { EventProp } from "./EventsAdminContent";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
+// Auth (bug fix 2026-07-06): GET /events/get-all-leaderboards/ became staff-gated in the #8
+// security audit, so this page must send the Bearer token. The bare axios() default instance did
+// not, which 400'd "Invalid or missing Authorization token" and blanked the whole page.
+import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import {
   Table,
@@ -97,6 +101,8 @@ interface LeaderboardProps {
 }
 
 export const LeaderboardsAdminContent = () => {
+  // JWT for the authed calls below. get-all-leaderboards/ is now staff-gated (see import note).
+  const { token } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLeaderboardQuery, setSearchLeaderboardQuery] = useState("");
   const [eventsPage, setEventsPage] = useState(1);
@@ -111,11 +117,16 @@ export const LeaderboardsAdminContent = () => {
   const fetchEvents = (background = false) => {
     const run = async () => {
       try {
+        // Both calls carry the Bearer token. get-all-events/ is public but get-all-leaderboards/
+        // is staff-gated (validate_token), so the header is required or the whole fetch 400s.
+        const authCfg = { headers: { Authorization: `Bearer ${token}` } };
         const eventsResponse = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
+          authCfg,
         );
         const leaderboardResponse = await axios(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboards/`,
+          authCfg,
         );
         if (
           eventsResponse.statusText === "OK" ||
@@ -140,8 +151,11 @@ export const LeaderboardsAdminContent = () => {
   // later ticks re-fetch in the background (no spinner flash).
   const tick = useLiveTick();
   useEffect(() => {
+    // Wait for the JWT to hydrate before calling the staff-gated endpoint, else the first load
+    // races ahead without a token and 400s. Re-runs when the token arrives (token in deps).
+    if (!token) return;
     fetchEvents(tick > 0);
-  }, [tick]);
+  }, [tick, token]);
 
   useEffect(() => {
     setEventsPage(1);

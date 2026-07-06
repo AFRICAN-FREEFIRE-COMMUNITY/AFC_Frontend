@@ -24,6 +24,11 @@ import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
 // Top Killers tab (owner 2026-07-05, complaint H): players ranked by summed kills. Sibling of MvpTab;
 // shares the scope/combine + through-a-design Download bar. See _components/TopKillersTab.tsx.
 import TopKillersTab from "@/app/(a)/a/leaderboards/_components/TopKillersTab";
+// Combined standings (owner 2026-07-06): the SAME self-contained combine-across-stages/groups view
+// used on the public tournament page, mounted here as a team-only "Combined" tab so admins/organizers
+// can merge results from any stages/groups and see one aggregate team leaderboard. It fetches
+// POST /events/get-event-combined-standings/ itself (authed bypass lets staff see pre-publish).
+import { CombinedStandings } from "@/app/(user)/tournaments/[slug]/_components/CombinedStandings";
 // Debugger-log backfill (owner 2026-07-02): fills 3D-room rich stats post-hoc. See the panel file.
 import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/DebuggerBackfillPanel";
 // Tie-breakers (owner 2026-07-02): arranged equal-points ordering, apply-to-all|stage|group.
@@ -51,6 +56,7 @@ import {
   IconUpload,
   IconFlag,
   IconBroadcast,
+  IconLayersSubtract,
 } from "@tabler/icons-react";
 // Redo map, per-team player expand/collapse, and the roster "Add player" control now live inside
 // the shared <MatchResultsGrid> (components/leaderboards/MatchResultsGrid.tsx), so the AlertDialog
@@ -1265,7 +1271,7 @@ export default function EditLeaderboardPage({
             past the whole standings to reach the flagged-kills / unmatched-team controls. */}
         <TabsList
           data-tour="leaderboard-edit-match"
-          className={`grid w-full ${participantType === "solo" ? "grid-cols-6" : "grid-cols-7"}`}
+          className={`grid w-full ${participantType === "solo" ? "grid-cols-6" : "grid-cols-8"}`}
         >
           <TabsTrigger value="matches">
             <IconMap size={14} className="mr-1" />
@@ -1275,6 +1281,14 @@ export default function EditLeaderboardPage({
             <IconTrophy size={14} className="mr-1" />
             Total Leaderboard
           </TabsTrigger>
+          {/* Combined (owner 2026-07-06): merge team standings across ANY stages/groups. Team-only
+              (the aggregator is team-scoped); mirrors the public "Combined" tab. */}
+          {participantType !== "solo" && (
+            <TabsTrigger value="combined">
+              <IconLayersSubtract size={14} className="mr-1" />
+              Combined
+            </TabsTrigger>
+          )}
           <TabsTrigger value="scoring">
             <IconSettings size={14} className="mr-1" />
             Scoring Config
@@ -1300,6 +1314,21 @@ export default function EditLeaderboardPage({
             Top Killers
           </TabsTrigger>
         </TabsList>
+
+        {/* ── Combined Tab (team-only): merge team standings across chosen stages/groups (or the
+            whole event) into one aggregate board. Self-contained (own picker + fetch), reused
+            verbatim from the public tournament page so numbers match the OBS overlay + public view. ── */}
+        {participantType !== "solo" && (
+          <TabsContent value="combined" className="mt-4">
+            <CombinedStandings
+              eventId={Number(id)}
+              stages={eventData?.stages ?? []}
+              participantType={participantType}
+              // Omit resultsPublished so the editor always shows the picker; the backend's authed
+              // bypass returns numbers even before the event is published.
+            />
+          </TabsContent>
+        )}
 
         {/* ── MVPs Tab: event-scoped; the scope bar can COMBINE across selected stages/groups. ── */}
         <TabsContent value="mvp" className="mt-4">
