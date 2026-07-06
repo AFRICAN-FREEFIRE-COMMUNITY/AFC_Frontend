@@ -1039,7 +1039,16 @@
       "ign": "IGN",
       "uid": "UID",
       "status": "Estado"
-    }
+    },
+    "removePlayer": "Remover jogador",
+    "removeTitle": "Remover o «{name}»?",
+    "removeFromGroup": "Retirar do grupo",
+    "removeFromStage": "Retirar do palco",
+    "removePlayerDescription": "Remova este jogador apenas deste grupo (ele mantém a sua classificação nesta fase) ou de toda a fase. Em qualquer dos casos, ele continua inscrito no evento.",
+    "cancel": "Cancelar",
+    "playerRemovedFromGroup": "{name} retirado do grupo.",
+    "playerRemovedFromStage": "{name} retirado do palco.",
+    "removeFailed": "Não foi possível remover o leitor."
   },
   "eventLeaderboard": {
     "manageTitle": "Gerir a tabela de classificação",
@@ -1063,6 +1072,8 @@
     "team": "Equipa",
     "matchLabel": "Jogo «{number}» ({map})",
     "matchOption": "Jogo{number} - {map}",
+    "missingWinnerBadge": "Não houve vencedor",
+    "missingWinnerTooltip": "Este mapa não tem nenhuma equipa em 1.º lugar, pelo que não atribui nenhum «booyah».",
     "emptyState": "Ainda não existe uma tabela de classificação para este evento. As tabelas de classificação são criadas automaticamente assim que cada grupo tiver os seus mapas definidos. Adicione mapas aos grupos deste evento no editor de eventos e, em seguida, volte aqui para definir a ordem inicial dos concorrentes e introduzir os resultados.",
     "openEventEditor": "Abrir o editor de eventos",
     "group": "Grupo",

@@ -44,6 +44,7 @@
 
 import React, { use, useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,7 +58,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IconLock, IconTrophy, IconSearch } from "@tabler/icons-react";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { IconLock, IconTrophy, IconSearch, IconTrash } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 // Team country flag beside each team name in the organizer group-roster tree (owner 2026-07-03).
 // team_country rides on each team from get_event_group_rosters (_team_payload). Mirrors the admin
@@ -84,6 +94,11 @@ import { useOrganizer } from "../../../_components/OrganizerContext";
 import GroupTeamMover from "@/app/(a)/a/events/[slug]/edit/_components/GroupTeamMover";
 import { AddTeamsModal } from "@/app/(a)/a/events/_components/AddTeamsModal";
 import { RemoveTeamModal } from "@/app/(a)/a/events/_components/RemoveTeamModal";
+// SOLO manual seeding (owner 2026-07-06): add-teams-* are team-only, so solo events get their own
+// add modal + per-player remove. AddSoloPlayersModal is the shared admin component (English, like
+// AddTeamsModal); the per-row remove button + its dialog live here and ARE i18n'd (organizer surface).
+// Backend: seeding_management.add_solo_players_to_group/_to_stage + remove_competitor_from_group/_stage.
+import { AddSoloPlayersModal } from "@/app/(a)/a/events/_components/AddSoloPlayersModal";
 
 type Params = { slug: string };
 
@@ -226,6 +241,60 @@ export default function OrganizerEventGroupsPage({
     if (!canView || notMine || resolving) return;
     loadRosters();
   }, [canView, notMine, resolving, loadRosters]);
+
+  // ── SOLO per-player remove (owner 2026-07-06) ─────────────────────────────────────────────────
+  // A solo player row can be pulled out of just its group or the whole stage. The backend
+  // (seeding_management.remove_competitor_from_group / _from_stage) HARD-BLOCKS a player who already
+  // has entered match results (400 + message) so real stats are never orphaned — we surface that.
+  // Solo rows only carry user_id (the roster payload has no competitor id), so we send user_id; the
+  // endpoint resolves it to the RegisteredCompetitors within this event.
+  const [pendingSoloRemove, setPendingSoloRemove] = useState<{
+    groupId: number;
+    stageId: number;
+    userId: number;
+    name: string;
+  } | null>(null);
+  const [removing, setRemoving] = useState(false);
+
+  const removeSolo = async (scope: "group" | "stage") => {
+    if (!pendingSoloRemove) return;
+    const pr = pendingSoloRemove;
+    setPendingSoloRemove(null);
+    setRemoving(true);
+    try {
+      const url =
+        scope === "group"
+          ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seeding/remove-from-group/`
+          : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seeding/remove-from-stage/`;
+      const body =
+        scope === "group"
+          ? { group_id: pr.groupId, user_id: pr.userId }
+          : { stage_id: pr.stageId, user_id: pr.userId };
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(json.message || t("groups.removeFailed"));
+      } else {
+        toast.success(
+          scope === "group"
+            ? t("groups.playerRemovedFromGroup", { name: pr.name })
+            : t("groups.playerRemovedFromStage", { name: pr.name }),
+        );
+        loadRosters();
+      }
+    } catch {
+      toast.error(t("groups.removeFailed"));
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   // ── IGN filter helpers (same logic as the admin GroupRostersPanel) ────────────
   // Use the shared matchesSearch() helper instead of raw .toLowerCase().includes so
@@ -384,6 +453,18 @@ export default function OrganizerEventGroupsPage({
                                 onSuccess={loadRosters}
                               />
                             )}
+                          {/* SOLO events: hand-pick registered players into THIS group. Shared admin
+                              modal (English), reused verbatim like AddTeamsModal above. */}
+                          {data.is_solo && (
+                            <AddSoloPlayersModal
+                              mode="group"
+                              eventId={data.event_id}
+                              targetId={group.group_id}
+                              stageId={stage.stage_id}
+                              targetName={`${stage.stage_name} › ${group.group_name}`}
+                              onSuccess={loadRosters}
+                            />
+                          )}
                           <span className="text-muted-foreground text-xs">
                             {data.is_solo
                               ? t("groups.playerCount", {
@@ -416,6 +497,11 @@ export default function OrganizerEventGroupsPage({
                                 <TableHead className="text-foreground text-xs p-2">
                                   {t("groups.table.status")}
                                 </TableHead>
+                                <TableHead className="p-2 w-8">
+                                  <span className="sr-only">
+                                    {t("groups.removePlayer")}
+                                  </span>
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -429,6 +515,25 @@ export default function OrganizerEventGroupsPage({
                                   </TableCell>
                                   <TableCell className="text-xs p-2 capitalize">
                                     {p.status}
+                                  </TableCell>
+                                  {/* Per-player remove (from group or stage). Opens the confirm
+                                      dialog defined at the bottom of the page. */}
+                                  <TableCell className="p-2 text-right">
+                                    <button
+                                      type="button"
+                                      title={t("groups.removePlayer")}
+                                      onClick={() =>
+                                        setPendingSoloRemove({
+                                          groupId: group.group_id,
+                                          stageId: stage.stage_id,
+                                          userId: p.user_id,
+                                          name: p.username,
+                                        })
+                                      }
+                                      className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    >
+                                      <IconTrash size={14} />
+                                    </button>
                                   </TableCell>
                                 </TableRow>
                               ))}
@@ -524,6 +629,49 @@ export default function OrganizerEventGroupsPage({
           </CardContent>
         </Card>
       ))}
+
+      {/* SOLO remove confirm: pull the player from just this group, or from the whole stage. The
+          backend blocks a player who already has entered results (surfaced as a toast). */}
+      <AlertDialog
+        open={!!pendingSoloRemove}
+        onOpenChange={(o) => !o && setPendingSoloRemove(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("groups.removeTitle", { name: pendingSoloRemove?.name ?? "" })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("groups.removePlayerDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel disabled={removing}>
+              {t("groups.cancel")}
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              disabled={removing}
+              onClick={(e) => {
+                e.preventDefault();
+                removeSolo("group");
+              }}
+            >
+              {t("groups.removeFromGroup")}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={removing}
+              onClick={(e) => {
+                e.preventDefault();
+                removeSolo("stage");
+              }}
+            >
+              {t("groups.removeFromStage")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -30,5 +30,8 @@
   "unmatchedTitle": "Equipas não encontradas ({count})",
   "unmatchedSubtitle": "Estas equipas do jogo não correspondem a nenhuma equipa registada. Atribui cada uma delas a uma equipa deste evento ou mantém a opção «Não contar».",
   "unmatchedMeta": "Posição n.º {placement}, {kills} pontos",
-  "unmatchedDontCount": "Não contes"
+  "unmatchedDontCount": "Não contes",
+  "missingWinnerTitle": "O vencedor do mapa não foi registado",
+  "missingWinnerUnmatched": "A equipa que ficou em 1.º lugar ({team}) não foi emparelhada com nenhuma equipa registada, pelo que este mapa conta com 0 booyahs. Atribui a equipa no painel «Mortes de jogadores marcados» na tabela de classificação para restaurar o booyah.",
+  "missingWinnerNoFirst": "O ficheiro carregado não incluía nenhuma equipa em primeiro lugar, pelo que este mapa conta com 0 «booyahs»."
 }

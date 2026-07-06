@@ -1039,7 +1039,16 @@
       "ign": "IGN",
       "uid": "UID",
       "status": "Status"
-    }
+    },
+    "removePlayer": "Remove player",
+    "removeTitle": "Remove {name}?",
+    "removeFromGroup": "Remove from group",
+    "removeFromStage": "Remove from stage",
+    "removePlayerDescription": "Remove this player from just this group (they stay seeded in the stage), or from the whole stage. Either way they stay registered for the event.",
+    "cancel": "Cancel",
+    "playerRemovedFromGroup": "{name} removed from group.",
+    "playerRemovedFromStage": "{name} removed from stage.",
+    "removeFailed": "Could not remove the player."
   },
   "eventLeaderboard": {
     "manageTitle": "Manage Leaderboard",
@@ -1063,6 +1072,8 @@
     "team": "Team",
     "matchLabel": "Match {number} ({map})",
     "matchOption": "Match {number} - {map}",
+    "missingWinnerBadge": "No winner",
+    "missingWinnerTooltip": "This map has no 1st-place team, so it adds 0 booyahs.",
     "emptyState": "No leaderboard yet for this event. Leaderboards are created automatically once each group has its maps set up. Add maps to this event's groups in the event editor, then come back here to seed competitors and enter results.",
     "openEventEditor": "Open event editor",
     "group": "Group",

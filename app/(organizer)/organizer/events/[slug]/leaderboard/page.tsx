@@ -77,6 +77,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+// Badge: used for the per-map "No winner" booyah flag in the View Type match picker below.
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 // Destructive confirm for "Redo this map" (organizer parity with the admin edit page,
 // owner 2026-07-02 organizer parity): wiping a map's results needs an explicit confirm.
@@ -2030,10 +2032,25 @@ export default function OrganizerEventLeaderboardPage({
                         key={m.match_id}
                         value={m.match_id.toString()}
                       >
-                        {t("eventLeaderboard.matchLabel", {
-                          number: m.match_number,
-                          map: m.match_map,
-                        })}
+                        <span className="inline-flex items-center gap-1.5">
+                          {t("eventLeaderboard.matchLabel", {
+                            number: m.match_number,
+                            map: m.match_map,
+                          })}
+                          {/* Booyah "map winner missing" flag (backend missing_winner on
+                              get-all-leaderboard-details-for-event): this map has results but no
+                              1st-place team, so it adds 0 booyahs. Amber outline chip, same idiom as
+                              the other status badges. */}
+                          {m.missing_winner && (
+                            <Badge
+                              variant="outline"
+                              className="rounded-full border-amber-500/60 px-2 py-0.5 text-xs text-amber-600 dark:text-amber-400"
+                              title={t("eventLeaderboard.missingWinnerTooltip")}
+                            >
+                              {t("eventLeaderboard.missingWinnerBadge")}
+                            </Badge>
+                          )}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>

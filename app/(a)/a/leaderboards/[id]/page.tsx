@@ -3,6 +3,8 @@
 import React, { useState, useEffect, use } from "react";
 import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+// Badge: used for the per-map "No winner" booyah flag in the View Type match picker below.
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -458,7 +460,22 @@ export default function IndividualLeaderboardPage({
                         key={m.match_id}
                         value={m.match_id.toString()}
                       >
-                        Match {m.match_number} ({m.match_map})
+                        <span className="inline-flex items-center gap-1.5">
+                          Match {m.match_number} ({m.match_map})
+                          {/* Booyah "map winner missing" flag (backend missing_winner on
+                              get-all-leaderboard-details-for-event): this map has results but no
+                              1st-place team, so it adds 0 booyahs. English copy: this is an admin
+                              (a) surface, exempt from i18n and English throughout. */}
+                          {m.missing_winner && (
+                            <Badge
+                              variant="outline"
+                              className="rounded-full border-amber-500/60 px-2 py-0.5 text-xs text-amber-600 dark:text-amber-400"
+                              title="This map has no 1st-place team, so it adds 0 booyahs."
+                            >
+                              No winner
+                            </Badge>
+                          )}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>

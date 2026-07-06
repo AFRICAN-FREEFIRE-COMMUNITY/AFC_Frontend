@@ -25,6 +25,10 @@ import { cn } from "@/lib/utils";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+// i18n: this upload step is reused inside the ORGANIZER leaderboard flow (a non-exempt surface),
+// so the new booyah "map winner missing" banner below is internationalized. Keys live in the
+// flaggedKills namespace, the same one the sibling FlaggedKillsPanel uses (same feature area).
+import { useTranslations } from "next-intl";
 // "All maps at once" mode (owner 2026-06-25): the 3D Room File picker can upload a single map OR
 // every map in the group at once. The multi-map panel is the same one the standalone "Upload all
 // maps (.log)" button uses — reused here so the all-maps option lives INSIDE the 3D Room File flow.
@@ -107,6 +111,16 @@ interface RosterMismatchTeam {
   site_team_id: number;       // afc team PK -> watchlistApi.add({ team_id })
   tournament_team_id: number;
 }
+// Booyah "map winner missing" flag from /events/upload-team-match-result/. When the uploaded map
+// has no stored 1st-place team it contributes 0 booyahs, so the backend tells us WHY:
+//   • winner_unmatched      — a 1st-place block existed but did not match a registered team (team_name set)
+//   • no_first_place_in_file — the file had no 1st place at all
+// Surfaced as a heads-up banner in the review panel below so the undercount is visible, not silent.
+interface MissingWinner {
+  reason: "winner_unmatched" | "no_first_place_in_file";
+  team_name?: string;
+  placement?: number;
+}
 interface UploadResult {
   parsed_teams: number;
   saved_teams: number;
@@ -117,6 +131,8 @@ interface UploadResult {
   roster_no_uid: RosterNoUidRow[];
   // Teams present on the site but flagged for off-roster players (see RosterMismatchTeam).
   roster_mismatch_teams: RosterMismatchTeam[];
+  // Booyah undercount flag: null when the map's 1st place is properly attributed (see MissingWinner).
+  missing_winner: MissingWinner | null;
   unmatched_count: number;
   // Every team registered for this event (owner 2026-06-30): options for the missing-teams resolver,
   // so the admin can attribute an unmatched in-game block to a registered team (or leave it dropped).
@@ -157,6 +173,8 @@ export function FileUploadStep({
   canManage = true,
 }: Props) {
   const { token } = useAuth();
+  // Translations for the booyah "map winner missing" banner (flaggedKills namespace).
+  const t = useTranslations("flaggedKills");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fileType, setFileType] = useState("match_result_file");
@@ -346,12 +364,20 @@ export function FileUploadStep({
       )
         ? data.roster_mismatch_teams
         : [];
+      // Booyah "map winner missing" flag (see MissingWinner). Truthy = this map's 1st place is not
+      // attributed to a registered team, so it scores 0 booyahs. Kept in the review panel so the
+      // undercount is visible even when it is the ONLY issue (otherwise the drawer would auto-advance).
+      const missingWinner: MissingWinner | null =
+        data.missing_winner && typeof data.missing_winner === "object"
+          ? (data.missing_winner as MissingWinner)
+          : null;
       const hasFlags =
         participantType === "team" &&
         (unknownUids.length > 0 ||
           missingTeams.length > 0 ||
           rosterNoUid.length > 0 ||
-          rosterMismatchTeams.length > 0);
+          rosterMismatchTeams.length > 0 ||
+          !!missingWinner);
 
       if (hasFlags) {
         setUploadResult({
@@ -363,6 +389,7 @@ export function FileUploadStep({
           unknown_uids: unknownUids,
           roster_no_uid: rosterNoUid,
           roster_mismatch_teams: rosterMismatchTeams,
+          missing_winner: missingWinner,
           unmatched_count: data.unmatched_count ?? unknownUids.length,
           event_teams: Array.isArray(data.event_teams) ? data.event_teams : [],
         });
@@ -681,6 +708,27 @@ export function FileUploadStep({
                   </Badge>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Booyah "map winner missing" heads-up (backend missing_winner on
+              upload-team-match-result): this map has no stored 1st-place team, so it contributes 0
+              booyahs and the count is silently short. Same amber warning idiom as the missing_teams
+              block above. winner_unmatched names the unmatched 1st-place team; no_first_place_in_file
+              means the file itself had no 1st place. */}
+          {uploadResult.missing_winner && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-semibold text-amber-500">
+                <IconAlertTriangle size={16} />
+                {t("missingWinnerTitle")}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {uploadResult.missing_winner.reason === "winner_unmatched"
+                  ? t("missingWinnerUnmatched", {
+                      team: uploadResult.missing_winner.team_name ?? "",
+                    })
+                  : t("missingWinnerNoFirst")}
+              </p>
             </div>
           )}
 

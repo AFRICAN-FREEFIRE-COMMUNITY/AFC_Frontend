@@ -30,5 +30,8 @@
   "unmatchedTitle": "Teams not found ({count})",
   "unmatchedSubtitle": "These in-game teams did not match any registered team. Attribute each one to a team in this event, or leave it on \"Don't count\".",
   "unmatchedMeta": "Placement #{placement}, {kills} kills",
-  "unmatchedDontCount": "Don't count"
+  "unmatchedDontCount": "Don't count",
+  "missingWinnerTitle": "Map winner not recorded",
+  "missingWinnerUnmatched": "The 1st-place team ({team}) was not matched to a registered team, so this map counts 0 booyahs. Attribute the team in the \"Flagged player kills\" panel on the leaderboard to restore the booyah.",
+  "missingWinnerNoFirst": "The uploaded file had no 1st-place team, so this map counts 0 booyahs."
 }

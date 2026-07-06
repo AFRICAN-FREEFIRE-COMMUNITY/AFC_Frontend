@@ -1039,7 +1039,16 @@
       "ign": "IGN",
       "uid": "UID",
       "status": "Statut"
-    }
+    },
+    "removePlayer": "Supprimer un joueur",
+    "removeTitle": "Supprimer « {name} » ?",
+    "removeFromGroup": "Retirer du groupe",
+    "removeFromStage": "Retirer de la scène",
+    "removePlayerDescription": "Retirez ce joueur uniquement de ce groupe (il conserve sa place dans la phase), ou de l'ensemble de la phase. Dans les deux cas, il reste inscrit à la compétition.",
+    "cancel": "Annuler",
+    "playerRemovedFromGroup": "{name} exclu du groupe.",
+    "playerRemovedFromStage": "{name} retiré de la scène.",
+    "removeFailed": "Impossible de supprimer le lecteur."
   },
   "eventLeaderboard": {
     "manageTitle": "Gérer le classement",
@@ -1063,6 +1072,8 @@
     "team": "Équipe",
     "matchLabel": "{number} de match ({map})",
     "matchOption": "{number} - {map}",
+    "missingWinnerBadge": "Pas de vainqueur",
+    "missingWinnerTooltip": "Cette carte ne comporte aucune équipe classée première ; elle n'ajoute donc aucun « booyah ».",
     "emptyState": "Il n'y a pas encore de classement pour cet événement. Les classements sont créés automatiquement dès que chaque groupe a configuré ses cartes. Ajoutez des cartes aux groupes de cet événement dans l'éditeur d'événements, puis revenez ici pour classer les participants et saisir les résultats.",
     "openEventEditor": "Ouvrir l'éditeur d'événements",
     "group": "Groupe",

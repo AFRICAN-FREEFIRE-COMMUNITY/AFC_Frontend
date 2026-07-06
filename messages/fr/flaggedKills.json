@@ -30,5 +30,8 @@
   "unmatchedTitle": "Équipes introuvables ({count})",
   "unmatchedSubtitle": "Ces équipes présentes dans le jeu ne correspondent à aucune équipe enregistrée. Attribuez chacune d'entre elles à une équipe participant à cet événement, ou laissez l'option « Ne pas compter » sélectionnée.",
   "unmatchedMeta": "Classement n° {placement}, {kills} kills",
-  "unmatchedDontCount": "Ne compte pas"
+  "unmatchedDontCount": "Ne compte pas",
+  "missingWinnerTitle": "Le vainqueur de la carte n'a pas été enregistré",
+  "missingWinnerUnmatched": "L'équipe classée 1re ({team}) n'a pas été appariée à une équipe inscrite ; cette carte affiche donc 0 « booyah ». Attribuez l'équipe dans la section « Kills de joueurs marqués » du classement pour rétablir le « booyah ».",
+  "missingWinnerNoFirst": "Le fichier mis en ligne ne comportait aucune équipe classée en première position ; cette carte compte donc 0 « booyah »."
 }
