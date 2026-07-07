@@ -1120,6 +1120,25 @@
       "success": "Map cleared. You can re-enter results for this map.",
       "error": "Failed to clear map results"
     },
+    "redoAllMaps": {
+      "button": "Redo all maps",
+      "clearing": "Clearing all...",
+      "title": "Redo all maps in this group?",
+      "description": "This clears the results for EVERY map in this group so you can re-enter them. Maps in other groups are not affected.",
+      "confirm": "Redo all maps",
+      "success": "Cleared all {count} maps in this group. Re-enter the results.",
+      "someFailed": "Cleared {ok} of {total} maps. {failed} failed, try again."
+    },
+    "evidence": {
+      "title": "Stored match files",
+      "logsHeading": "Result files",
+      "imagesHeading": "Screenshots",
+      "download": "Download",
+      "delete": "Delete",
+      "deleted": "File deleted.",
+      "loadError": "Failed to load stored files",
+      "deleteError": "Failed to delete file"
+    },
     "addPlayer": {
       "button": "Add player",
       "title": "Add player to roster",

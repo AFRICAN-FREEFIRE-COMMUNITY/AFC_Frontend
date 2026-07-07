@@ -240,6 +240,7 @@ import {
   type PlayerEditRow as GridPlayerEditRow,
   type TeamPlayerGroup as GridTeamPlayerGroup,
 } from "@/components/leaderboards/MatchResultsGrid";
+import { MatchEvidencePanel } from "@/components/leaderboards/MatchEvidencePanel";
 // Team country flag beside team names in the team + player standings and the adjust-points table
 // (owner 2026-07-03). Each row (overall_leaderboard / match.stats from
 // get_all_leaderboard_details_for_event) carries team_country; player rows inherit it below. Mirrors
@@ -500,6 +501,8 @@ export default function OrganizerEventLeaderboardPage({
   const [gridSavingMatch, setGridSavingMatch] = useState(false);
   const [gridSavingAllMaps, setGridSavingAllMaps] = useState(false);
   const [gridRedoing, setGridRedoing] = useState(false);
+  // Redo ALL maps (owner 2026-07-07): in-flight flag for clearing every map in the group.
+  const [gridRedoingAll, setGridRedoingAll] = useState(false);
 
   // ── Create-leaderboard wizard state ──
   // mode "view" = the leaderboard view/edit surface; mode "create" = the wizard.
@@ -1563,6 +1566,55 @@ export default function OrganizerEventLeaderboardPage({
     }
   };
 
+  // Redo ALL maps in the group at once (owner 2026-07-07). Sibling of handleGridRedoMap: fans out the
+  // SAME clear-match-result call over every map in the group (force:true so already-empty maps are
+  // harmless no-ops) via Promise.allSettled, mirroring handleSaveAllGridMaps, then refreshes so the
+  // whole group repaints blank for re-entry. gridMatchIds = gridGroupMatches.map(match_id).
+  const handleGridRedoAllMaps = async () => {
+    if (gridMatchIds.length === 0) return;
+    setGridRedoingAll(true);
+    try {
+      const results = await Promise.allSettled(
+        gridMatchIds.map((mid) =>
+          fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/clear-match-result/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ match_id: mid, force: true }),
+          }).then(async (res) => {
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.message || err.detail || "");
+            }
+          }),
+        ),
+      );
+      const rejected = results.filter(
+        (r): r is PromiseRejectedResult => r.status === "rejected",
+      );
+      const ok = gridMatchIds.length - rejected.length;
+      if (rejected.length > 0) {
+        toast.error(
+          t("eventLeaderboard.redoAllMaps.someFailed", {
+            ok,
+            total: gridMatchIds.length,
+            failed: rejected.length,
+          }),
+        );
+      } else {
+        toast.success(t("eventLeaderboard.redoAllMaps.success", { count: ok }));
+      }
+      fetchLeaderboard();
+      setFlagRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      toast.error(err.message || t("eventLeaderboard.redoMap.error"));
+    } finally {
+      setGridRedoingAll(false);
+    }
+  };
+
   // ── Create-wizard handlers ────────────────────────────────────────────────────
   // Enter the wizard from the empty state. Steps: BasicInfo → ConfigurePoints →
   // MatchOverview (which opens the 4 reused result-entry steps per match). When the
@@ -1855,6 +1907,11 @@ export default function OrganizerEventLeaderboardPage({
     redoDescription: t("eventLeaderboard.redoMap.description"),
     redoCancel: t("eventLeaderboard.cancel"),
     redoConfirm: t("eventLeaderboard.redoMap.confirm"),
+    redoAllButton: t("eventLeaderboard.redoAllMaps.button"),
+    redoAllClearing: t("eventLeaderboard.redoAllMaps.clearing"),
+    redoAllTitle: t("eventLeaderboard.redoAllMaps.title"),
+    redoAllDescription: t("eventLeaderboard.redoAllMaps.description"),
+    redoAllConfirm: t("eventLeaderboard.redoAllMaps.confirm"),
     saveAllMaps: (n: number) =>
       t("eventLeaderboard.matchResults.saveAllMaps", { count: n }),
     savingAllMaps: t("eventLeaderboard.matchResults.savingAllMaps"),
@@ -1862,6 +1919,18 @@ export default function OrganizerEventLeaderboardPage({
     saving: t("eventLeaderboard.tools.saving"),
     watchLabel: t("eventLeaderboard.watch.label"),
     watchReason: t("eventLeaderboard.watch.reason"),
+  };
+
+  // Localised copy for the stored-evidence panel under the grid (owner 2026-07-07).
+  const matchEvidenceLabels = {
+    title: t("eventLeaderboard.evidence.title"),
+    logsHeading: t("eventLeaderboard.evidence.logsHeading"),
+    imagesHeading: t("eventLeaderboard.evidence.imagesHeading"),
+    download: t("eventLeaderboard.evidence.download"),
+    deleteLabel: t("eventLeaderboard.evidence.delete"),
+    deleted: t("eventLeaderboard.evidence.deleted"),
+    loadError: t("eventLeaderboard.evidence.loadError"),
+    deleteError: t("eventLeaderboard.evidence.deleteError"),
   };
 
   // ── VIEW + EDIT-RESULTS SURFACE (mirrors the admin [id] page) ──────────────────
@@ -2619,9 +2688,22 @@ export default function OrganizerEventLeaderboardPage({
                   groupMatchCount={gridMatchIds.length}
                   onRedoMap={handleGridRedoMap}
                   redoingMap={gridRedoing}
+                  onRedoAllMaps={handleGridRedoAllMaps}
+                  redoingAllMaps={gridRedoingAll}
                   canEdit={canUploadResults}
                   labels={matchGridLabels}
                 />
+                {/* Stored evidence for the selected map (owner 2026-07-07): retained .log result
+                    file(s) + OCR/manual screenshots for later re-checking. Renders nothing when the
+                    map has no stored files. Manage (delete) gated on can_upload_results. */}
+                <div className="mt-4">
+                  <MatchEvidencePanel
+                    matchId={gridMatchId}
+                    token={token}
+                    canManage={canUploadResults}
+                    labels={matchEvidenceLabels}
+                  />
+                </div>
               </TabsContent>
 
               {/* ── Total Leaderboard adjustments ── overall standings of the selected group

@@ -1120,6 +1120,25 @@
       "success": "O mapa foi apagado. Pode voltar a introduzir resultados para este mapa.",
       "error": "Não foi possível limpar os resultados do mapa"
     },
+    "redoAllMaps": {
+      "button": "Refazer todos os mapas",
+      "clearing": "A limpar tudo...",
+      "title": "Queres refazer todos os mapas deste grupo?",
+      "description": "Isto apaga os resultados de TODOS os mapas deste grupo, para que possa introduzi-los novamente. Os mapas de outros grupos não são afetados.",
+      "confirm": "Refazer todos os mapas",
+      "success": "Concluí todos os mapas «{count}» deste grupo. Introduza novamente os resultados.",
+      "someFailed": "Limpei os mapas de {ok} em {total}. {failed} falhou, tente novamente."
+    },
+    "evidence": {
+      "title": "Ficheiros de partidas guardados",
+      "logsHeading": "Ficheiros de resultados",
+      "imagesHeading": "Capturas de ecrã",
+      "download": "Descarregar",
+      "delete": "Apagar",
+      "deleted": "Ficheiro eliminado.",
+      "loadError": "Não foi possível carregar os ficheiros guardados",
+      "deleteError": "Não foi possível eliminar o ficheiro"
+    },
     "addPlayer": {
       "button": "Adicionar jogador",
       "title": "Adicionar jogador ao plantel",

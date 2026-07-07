@@ -174,6 +174,12 @@ export interface MatchResultsGridLabels {
   redoDescription: string;
   redoCancel: string;
   redoConfirm: string;
+  /** "Redo all maps" bulk-clear controls (owner 2026-07-07). */
+  redoAllButton: string;
+  redoAllClearing: string;
+  redoAllTitle: string;
+  redoAllDescription: string;
+  redoAllConfirm: string;
   /** "Save all maps (N)". */
   saveAllMaps: (n: number) => string;
   savingAllMaps: string;
@@ -223,6 +229,12 @@ const DEFAULT_LABELS: MatchResultsGridLabels = {
     "This clears all results for this map. Other maps are not affected. You can then re-enter the results.",
   redoCancel: "Cancel",
   redoConfirm: "Redo map",
+  redoAllButton: "Redo all maps",
+  redoAllClearing: "Clearing all…",
+  redoAllTitle: "Redo all maps in this group?",
+  redoAllDescription:
+    "This clears the results for EVERY map in this group so you can re-enter them. Maps in other groups are not affected.",
+  redoAllConfirm: "Redo all maps",
   saveAllMaps: (n: number) => `Save all maps (${n})`,
   savingAllMaps: "Saving all maps…",
   saveThisMap: "Save this map",
@@ -275,6 +287,9 @@ export interface MatchResultsGridProps {
   groupMatchCount: number;
   onRedoMap: () => void;
   redoingMap: boolean;
+  /** Redo ALL maps in the group (owner 2026-07-07): clears every map's result for re-entry. */
+  onRedoAllMaps: () => void;
+  redoingAllMaps: boolean;
   /** When false, all inputs are disabled and the Save/Redo/Add controls are hidden (read-only). */
   canEdit?: boolean;
   /** i18n copy; omit for the admin (renders the English defaults above). */
@@ -308,6 +323,8 @@ export function MatchResultsGrid({
   groupMatchCount,
   onRedoMap,
   redoingMap,
+  onRedoAllMaps,
+  redoingAllMaps,
   canEdit = true,
   labels,
   dataTourMatchList,
@@ -827,43 +844,85 @@ export function MatchResultsGrid({
               data-tour={dataTourSave}
               className="flex flex-wrap justify-end gap-2"
             >
-              {/* Redo this map: clears ONLY the selected map's results so it can be re-entered.
-                  Destructive -> AlertDialog confirm. Parent's onRedoMap -> POST clear-match-result. */}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    className="mr-auto"
-                    disabled={redoingMap || savingMatch || savingAllMaps}
-                  >
-                    {redoingMap ? (
-                      <span className="flex items-center gap-2">
-                        <IconLoader2 size={14} className="animate-spin" />
-                        {L.redoClearing}
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <IconRefresh size={14} />
-                        {L.redoButton}
-                      </span>
-                    )}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{L.redoTitle}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {L.redoDescription}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{L.redoCancel}</AlertDialogCancel>
-                    <AlertDialogAction onClick={onRedoMap}>
-                      {L.redoConfirm}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              {/* The two destructive redo controls, grouped left (mr-auto) so the Save buttons stay
+                  right. "Redo this map" clears ONLY the selected map; "Redo all maps" clears every map
+                  in this group (owner 2026-07-07). Both fan out to the same clear-match-result endpoint
+                  in the parent (single vs Promise.allSettled over the group's match ids). */}
+              <div className="mr-auto flex flex-wrap gap-2">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      disabled={redoingMap || redoingAllMaps || savingMatch || savingAllMaps}
+                    >
+                      {redoingMap ? (
+                        <span className="flex items-center gap-2">
+                          <IconLoader2 size={14} className="animate-spin" />
+                          {L.redoClearing}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <IconRefresh size={14} />
+                          {L.redoButton}
+                        </span>
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{L.redoTitle}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {L.redoDescription}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{L.redoCancel}</AlertDialogCancel>
+                      <AlertDialogAction onClick={onRedoMap}>
+                        {L.redoConfirm}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Redo ALL maps in the group. Only shown when there is more than one map. */}
+                {groupMatches.length > 1 && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                        disabled={redoingMap || redoingAllMaps || savingMatch || savingAllMaps}
+                      >
+                        {redoingAllMaps ? (
+                          <span className="flex items-center gap-2">
+                            <IconLoader2 size={14} className="animate-spin" />
+                            {L.redoAllClearing}
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <IconRefresh size={14} />
+                            {L.redoAllButton}
+                          </span>
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{L.redoAllTitle}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {L.redoAllDescription}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{L.redoCancel}</AlertDialogCancel>
+                        <AlertDialogAction onClick={onRedoAllMaps}>
+                          {L.redoAllConfirm}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
               <Button
                 variant="outline"
                 onClick={onSaveAllMaps}

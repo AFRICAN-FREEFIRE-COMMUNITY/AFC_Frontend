@@ -1120,6 +1120,25 @@
       "success": "La carte a été effacée. Vous pouvez à nouveau saisir des résultats pour cette carte.",
       "error": "Échec de la suppression des résultats de la carte"
     },
+    "redoAllMaps": {
+      "button": "Refaire toutes les cartes",
+      "clearing": "Tout effacer...",
+      "title": "Refaire toutes les cartes de ce groupe ?",
+      "description": "Cette opération efface les résultats de TOUTES les cartes de ce groupe afin que vous puissiez les saisir à nouveau. Les cartes des autres groupes ne sont pas concernées.",
+      "confirm": "Refaire toutes les cartes",
+      "success": "Toutes les cartes « {count} » de ce groupe ont été validées. Veuillez saisir à nouveau les résultats.",
+      "someFailed": "Suppression de {ok} des cartes de {total}. Échec de {failed}, veuillez réessayer."
+    },
+    "evidence": {
+      "title": "Fichiers de matchs enregistrés",
+      "logsHeading": "Fichiers de résultats",
+      "imagesHeading": "Captures d'écran",
+      "download": "Télécharger",
+      "delete": "Supprimer",
+      "deleted": "Fichier supprimé.",
+      "loadError": "Échec du chargement des fichiers enregistrés",
+      "deleteError": "Échec de la suppression du fichier"
+    },
     "addPlayer": {
       "button": "Ajouter un joueur",
       "title": "Ajouter un joueur à l'effectif",

@@ -134,6 +134,7 @@ import { ScoringConfigPanel } from "../../_components/ScoringConfigPanel";
 // the handlers below and renders identically. No `labels` are passed here, so it renders the exact
 // English the tab always shipped (admin surface is i18n-exempt). Zero behaviour change.
 import { MatchResultsGrid } from "@/components/leaderboards/MatchResultsGrid";
+import { MatchEvidencePanel } from "@/components/leaderboards/MatchEvidencePanel";
 
 type Params = { id: string };
 
@@ -358,6 +359,8 @@ export default function EditLeaderboardPage({
   const [savingMatch, setSavingMatch] = useState(false);
   // Redo map (owner 2026-06-15): in-flight flag for the destructive "clear this map" action.
   const [redoingMap, setRedoingMap] = useState(false);
+  // Redo ALL maps (owner 2026-07-07): in-flight flag for clearing every map in the group.
+  const [redoingAllMaps, setRedoingAllMaps] = useState(false);
   // Whole-group "Save all maps" in-flight flag (fans out one save per map).
   const [savingAllMaps, setSavingAllMaps] = useState(false);
 
@@ -861,6 +864,55 @@ export default function EditLeaderboardPage({
       toast.error(err.message || "Failed to clear map results");
     } finally {
       setRedoingMap(false);
+    }
+  };
+
+  // ── Redo ALL maps of the current group at once (owner 2026-07-07) ────────────
+  // Sibling of handleRedoMap: instead of clearing only the selected map, fan out the SAME
+  // clear-match-result call over EVERY map in the group (force:true so already-empty maps are
+  // harmless no-ops), report an "X of Y" summary, then refresh so the whole group repaints
+  // blank for re-entry. Mirrors handleSaveAllMaps' Promise.allSettled fan-out.
+  const handleRedoAllMaps = async () => {
+    if (groupMatchIds.length === 0) return;
+    setRedoingAllMaps(true);
+    try {
+      const results = await Promise.allSettled(
+        groupMatchIds.map((mid) =>
+          fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/clear-match-result/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ match_id: mid, force: true }),
+          }).then(async (res) => {
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.message || err.detail || `Map ${mid} failed`);
+            }
+          }),
+        ),
+      );
+      const rejected = results.filter(
+        (r): r is PromiseRejectedResult => r.status === "rejected",
+      );
+      const ok = groupMatchIds.length - rejected.length;
+      if (rejected.length > 0) {
+        toast.error(
+          `Cleared ${ok} of ${groupMatchIds.length} maps. ${rejected.length} failed: ${
+            rejected[0].reason?.message || "try again"
+          }`,
+        );
+      } else {
+        toast.success(
+          `Cleared all ${ok} map${ok !== 1 ? "s" : ""} in this group. Re-enter the results.`,
+        );
+      }
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to clear the group's maps");
+    } finally {
+      setRedoingAllMaps(false);
     }
   };
 
@@ -1372,9 +1424,17 @@ export default function EditLeaderboardPage({
             groupMatchCount={groupMatchIds.length}
             onRedoMap={handleRedoMap}
             redoingMap={redoingMap}
+            onRedoAllMaps={handleRedoAllMaps}
+            redoingAllMaps={redoingAllMaps}
             dataTourMatchList="leaderboard-edit-match-list"
             dataTourSave="leaderboard-edit-save"
           />
+          {/* Stored evidence for the selected map: the retained .log result file(s) + OCR/manual
+              screenshots, so a disputed result can be re-checked later (owner 2026-07-07). Renders
+              nothing when the map has no stored files. Admin = English defaults + full manage. */}
+          <div className="mt-4">
+            <MatchEvidencePanel matchId={selectedMatchId} token={token} canManage />
+          </div>
         </TabsContent>
 
         {/* ── Total Leaderboard Tab ── */}
