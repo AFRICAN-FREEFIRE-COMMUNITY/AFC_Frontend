@@ -417,6 +417,10 @@ import { InfoTip } from "@/components/ui/info-tip";
 import { GroupResultModal } from "../../../_components/GroupResultModal";
 import { RoundRobinResultsModal } from "../../../_components/RoundRobinResultsModal";
 import { SeedToGroupModal } from "../../../_components/SeedToGroupModal";
+// AdvanceToNextStageModal (owner 2026-07-10): the discoverable stage-header button that advances a
+// round-robin stage's teams into the next stage by combined all-groups standings. Replaces the hidden
+// toggle that used to live inside SeedToGroupModal (which the owner could not find).
+import { AdvanceToNextStageModal } from "../../../_components/AdvanceToNextStageModal";
 import { SendNotificationModal } from "../../../_components/SendNotificationModal";
 import { AddTeamsModal } from "../../../_components/AddTeamsModal";
 import { EditMatchModal } from "../../../_components/EditMatchModal";
@@ -704,6 +708,18 @@ export default function StagesGroupsTab({
                           stageName={stage.stage_name}
                         />
                       )}
+                    {/* Advance THIS round-robin's teams into the NEXT stage by combined all-groups
+                        standings (owner 2026-07-10). Shown for every br-round-robin team stage so it is
+                        discoverable; the button itself disables with a reason when the stage is unsaved
+                        or there is no next stage yet. nextStageName = the stage after this one in order. */}
+                    {stage.stage_format === "br - round robin" &&
+                      eventDetails.participant_type !== "solo" && (
+                        <AdvanceToNextStageModal
+                          stageId={stage?.stage_id}
+                          nextStageName={stages[sIdx + 1]?.stage_name ?? null}
+                          onSuccess={() => onRefresh?.()}
+                        />
+                      )}
                     {eventDetails.participant_type === "squad" &&
                       stage?.stage_id && (
                         <AddTeamsModal
@@ -725,10 +741,6 @@ export default function StagesGroupsTab({
                       onSuccess={() => onRefresh?.()}
                       stageId={stage?.stage_id}
                       participantType={eventDetails.participant_type}
-                      // Enable the "seed next stage by combined standings" option (owner 2026-07-06):
-                      // this stage's format + the NEXT stage's name (the stage after it in order).
-                      stageFormat={stage?.stage_format}
-                      nextStageName={stages[sIdx + 1]?.stage_name ?? null}
                     />
                     <Button
                       type="button"
