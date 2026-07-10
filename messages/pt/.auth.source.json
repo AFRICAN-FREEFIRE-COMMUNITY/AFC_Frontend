@@ -106,5 +106,7 @@
   "enterEmail.submit": "Send Verification Code",
   "enterEmail.sending": "Sending...",
   "enterEmail.successSent": "Verification code sent!",
-  "enterEmail.failed": "Failed to send verification code"
+  "enterEmail.failed": "Failed to send verification code",
+  "support.cantAccessEmail": "Can't access your email?",
+  "support.contactSupport": "Contact support"
 }

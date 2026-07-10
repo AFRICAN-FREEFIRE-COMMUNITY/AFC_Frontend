@@ -306,6 +306,32 @@
       "numberLabel": "WhatsApp number",
       "numberDescription": "Add your WhatsApp number (with country code) to get tournament room details sent straight to your WhatsApp.",
       "optInLabel": "Send me room IDs and passwords on WhatsApp"
+    },
+    "changeEmail": {
+      "button": "Change email",
+      "helper": "This is the email you sign in with and where we send account mail. Changing it needs your password and a code sent to the new address.",
+      "title": "Change your email",
+      "step1Description": "Confirm it's you, then enter your new email. We'll send a 6-digit code to the new address to make sure it works.",
+      "oldEmailLabel": "Current email (on file)",
+      "oldEmailPlaceholder": "The email currently on your account",
+      "newEmailLabel": "New email",
+      "newEmailPlaceholder": "Enter your new email",
+      "passwordLabel": "Your password",
+      "passwordPlaceholder": "Enter your password",
+      "sendCode": "Send code",
+      "sending": "Sending...",
+      "step2Title": "Enter the code",
+      "step2Description": "We sent a 6-digit code to {email}. Enter it below to finish the change.",
+      "codeLabel": "Confirmation code",
+      "codePlaceholder": "6-digit code",
+      "confirm": "Confirm change",
+      "confirming": "Confirming...",
+      "back": "Back",
+      "cancel": "Cancel",
+      "resend": "Resend code",
+      "successRequest": "Code sent. Check your new email inbox.",
+      "successConfirm": "Your email has been updated.",
+      "genericError": "Something went wrong. Please try again."
     }
   },
   "password": {

@@ -306,6 +306,32 @@
       "numberLabel": "Número do WhatsApp",
       "numberDescription": "Adicione o seu número do WhatsApp (com o código do país) para receber os detalhes da sala do torneio diretamente no seu WhatsApp.",
       "optInLabel": "Envia-me os IDs das salas e as palavras-passe pelo WhatsApp"
+    },
+    "changeEmail": {
+      "button": "Alterar e-mail",
+      "helper": "Este é o endereço de e-mail que utiliza para iniciar sessão e para o qual enviamos as mensagens relacionadas com a sua conta. Para o alterar, é necessário introduzir a sua palavra-passe e um código enviado para o novo endereço.",
+      "title": "Alterar o seu endereço de e-mail",
+      "step1Description": "Confirme que é mesmo você e, em seguida, introduza o seu novo endereço de e-mail. Enviaremos um código de 6 dígitos para o novo endereço, para nos certificarmos de que funciona.",
+      "oldEmailLabel": "E-mail atual (no nosso registo)",
+      "oldEmailPlaceholder": "O endereço de e-mail atualmente associado à sua conta",
+      "newEmailLabel": "Novo e-mail",
+      "newEmailPlaceholder": "Introduza o seu novo endereço de e-mail",
+      "passwordLabel": "A sua palavra-passe",
+      "passwordPlaceholder": "Introduza a sua palavra-passe",
+      "sendCode": "Enviar código",
+      "sending": "A enviar...",
+      "step2Title": "Introduza o código",
+      "step2Description": "Enviámos um código de 6 dígitos para {email}. Introduza-o abaixo para concluir a alteração.",
+      "codeLabel": "Código de confirmação",
+      "codePlaceholder": "código de 6 dígitos",
+      "confirm": "Confirmar alteração",
+      "confirming": "A confirmar...",
+      "back": "Voltar",
+      "cancel": "Cancelar",
+      "resend": "Reenviar código",
+      "successRequest": "O código foi enviado. Verifique a sua caixa de entrada de e-mail.",
+      "successConfirm": "O seu endereço de e-mail foi atualizado.",
+      "genericError": "Ocorreu um erro. Por favor, tente novamente."
     }
   },
   "password": {

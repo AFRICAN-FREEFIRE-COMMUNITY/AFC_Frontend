@@ -33,6 +33,19 @@ const page = async () => {
           <Link href="/login">{t("forgotPassword.backToLogin")}</Link>
         </Button>
       </div>
+      {/* Locked-out recovery (owner 2026-07-10, bug #1 "what of those who can't
+          login"): password reset only helps if they still own the inbox. Someone
+          who signed up under the wrong/inaccessible email needs a human, so send
+          them to /contact where an admin can set the correct email + reactivate
+          (auth/admin/set-user-email/). Same shared auth.support.* copy as /login. */}
+      <div className="mt-3 text-center text-sm">
+        <span className="text-muted-foreground">
+          {t("support.cantAccessEmail")}{" "}
+        </span>
+        <Link href="/contact" className="text-primary hover:underline">
+          {t("support.contactSupport")}
+        </Link>
+      </div>
     </div>
   );
 };

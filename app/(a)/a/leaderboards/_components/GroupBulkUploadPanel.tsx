@@ -128,7 +128,14 @@ export function GroupBulkUploadPanel({
           });
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            throw new Error(err.message || err.detail || "Upload failed");
+            // Surface the REAL cause (owner 2026-07-09, bug #7): the backend returns the actual
+            // OCR/extraction failure in an `errors[]` array; we were only reading `message`, so the
+            // admin saw a bare "1 failed" with no reason. Prefer the detailed errors when present.
+            const detail =
+              Array.isArray(err.errors) && err.errors.length
+                ? err.errors.join("; ")
+                : err.message || err.detail || "Upload failed";
+            throw new Error(detail);
           }
           return res.json();
         }),
@@ -146,9 +153,18 @@ export function GroupBulkUploadPanel({
         return acc;
       }, 0);
 
+      // Pull the first failure's reason so the warning toast tells the admin WHY it failed,
+      // instead of only the counts (owner 2026-07-09, bug #7).
+      const firstReason = (
+        results.find((r) => r.status === "rejected") as
+          | PromiseRejectedResult
+          | undefined
+      )?.reason?.message;
+
       if (failed > 0) {
         toast.warning(
           `Uploaded ${ok} of ${entries.length} maps. ${failed} failed.` +
+            (firstReason ? ` ${firstReason}` : "") +
             (unmatched ? ` ${unmatched} name(s) need manual matching.` : ""),
         );
       } else {

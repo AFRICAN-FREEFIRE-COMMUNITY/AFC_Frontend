@@ -49,7 +49,20 @@ import { compressImageForUpload } from "@/lib/imageCompress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Input } from "@/components/ui/input";
+// Country-code phone input (owner 2026-07-09, bug #5): the WhatsApp number field now uses the
+// shared country-dial-code + flag picker instead of a plain text box, so users pick +234 etc. from
+// a list then type the local number. Same component + usage the Saved Addresses and Cart forms use
+// (components/PhoneNumberInput.tsx). Stores a single E.164 string, so no backend/zod change needed.
+import * as RPNInput from "react-phone-number-input";
+import {
+  CountrySelect,
+  FlagComponent,
+  PhoneInput,
+} from "@/components/PhoneNumberInput";
 import { PageHeader } from "@/components/PageHeader";
+// Verified change-email flow (owner 2026-07-09, bug #1): the email field is read-only; changing it
+// goes through this dialog (re-auth + code to the new address). See ChangeEmailDialog.tsx.
+import { ChangeEmailDialog } from "@/app/(user)/profile/_components/ChangeEmailDialog";
 import { InfoTip } from "@/components/ui/info-tip";
 // Shared A-Z letter-avatar picker (presentational; this page owns the data + save). See
 // components/ui/letter-avatar-picker.tsx. Backs the "Letter avatars" section below.
@@ -172,7 +185,10 @@ const Page = () => {
       // The backend also defaults to false (hidden) for new accounts, so this is consistent.
       stats_visible: false,
       whatsapp_number: "",
-      whatsapp_opt_in: false,
+      // Default ON (owner 2026-07-09, bug #5): the form starts with the WhatsApp opt-in enabled.
+      // Overwritten by form.reset below once the user loads, which preserves any existing saved
+      // choice (see the `?? true` there). Backend model default is also True for new profile rows.
+      whatsapp_opt_in: true,
     },
   });
 
@@ -200,8 +216,11 @@ const Page = () => {
         // from the get-user-profile payload (defaults false when the field is absent/new account).
         stats_visible: user.stats_visible ?? false,
         // WhatsApp prefs: seed from the saved profile values (AuthContext maps them).
+        // `?? true` = default ON only when the user has NO saved value (new accounts); an existing
+        // user who explicitly saved `false` reads back `false` and stays off (owner: leave existing
+        // users' choice untouched). New backend rows also default True, so both agree.
         whatsapp_number: user.whatsapp_number ?? "",
-        whatsapp_opt_in: user.whatsapp_opt_in ?? false,
+        whatsapp_opt_in: user.whatsapp_opt_in ?? true,
       });
     }
   }, [user, form]);
@@ -466,12 +485,24 @@ const Page = () => {
                   <FormItem>
                     <FormLabel>{t("edit.email")}</FormLabel>
                     <FormControl>
+                      {/* Email is READ-ONLY here (owner 2026-07-09, bug #1). Changing it is
+                          security-sensitive, so it runs through the verified ChangeEmailDialog
+                          (re-auth with password + old email, then a code to the new address). The
+                          backend also ignores any email change coming from edit-profile. */}
                       <Input
                         type="email"
                         placeholder={t("edit.emailPlaceholder")}
+                        readOnly
+                        className="cursor-not-allowed bg-muted/40"
                         {...field}
                       />
                     </FormControl>
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs text-muted-foreground max-w-[70%]">
+                        {t("edit.changeEmail.helper")}
+                      </p>
+                      <ChangeEmailDialog />
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -629,11 +660,19 @@ const Page = () => {
                         {t("edit.whatsapp.numberDescription")}
                       </p>
                       <FormControl>
-                        <Input
+                        {/* Country-code picker + number (bug #5). RPNInput yields `undefined` when
+                            cleared; coerce to "" so the max(20) string schema + FormData append stay
+                            happy. Stored value is a single E.164 string e.g. "+2348012345678". */}
+                        <RPNInput.default
                           id="whatsapp-number"
+                          className="flex rounded-md shadow-xs"
+                          international
+                          flagComponent={FlagComponent}
+                          countrySelectComponent={CountrySelect}
+                          inputComponent={PhoneInput}
                           placeholder="+234 801 234 5678"
-                          {...field}
                           value={field.value ?? ""}
+                          onChange={(value) => field.onChange(value ?? "")}
                         />
                       </FormControl>
                       <FormField

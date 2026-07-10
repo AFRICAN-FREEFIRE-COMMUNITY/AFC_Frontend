@@ -32,6 +32,20 @@ export default async function LoginPage() {
           {t("login.forgotPassword")}
         </Link>
       </div>
+      {/* Locked-out recovery (owner 2026-07-10, bug #1 "what of those who can't
+          login"): self-serve email change needs a working login + inbox. A user
+          who signed up with the wrong/inaccessible email can't reach that, so
+          point them at /contact, where an admin can set their email + reactivate
+          the account (auth/admin/set-user-email/). /contact is a public page, so
+          this is reachable while logged out. */}
+      <div className="mt-2 text-center text-sm">
+        <span className="text-muted-foreground">
+          {t("support.cantAccessEmail")}{" "}
+        </span>
+        <Link href="/contact" className="text-primary hover:underline">
+          {t("support.contactSupport")}
+        </Link>
+      </div>
       <Separator className="mt-4" />
       <div className="mt-4 text-center text-sm md:text-base">
         <p className="text-muted-foreground">{t("login.noAccount")}</p>

@@ -3521,6 +3521,24 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     }
   }, [modalStep, userDiscordId, checkUserDiscordStatus]);
 
+  // Prune stale member selections against the CURRENT roster (owner 2026-07-09, bug #6:
+  // "picked 2 players but it says 6/6"). selectedMembers can be restored verbatim from a saved
+  // localStorage draft; if the roster changed since (a member removed, switched to a staff role,
+  // or IDs no longer line up) the array still carries the old IDs. The checkboxes only tick for
+  // members actually rendered, but the footer count and the max-guard use selectedMembers.length,
+  // so the two disagree (2 checked, 6 counted). Reconcile here in the parent so the count, the
+  // checkboxes, the max-guard, AND the submitted payload all read the same selectable set.
+  useEffect(() => {
+    if (!userTeam) return;
+    const selectable = new Set(
+      userTeam.members.filter(isPlayingMember).map((m) => m.id),
+    );
+    setSelectedMembers((prev) => {
+      const pruned = prev.filter((id) => selectable.has(id));
+      return pruned.length === prev.length ? prev : pruned;
+    });
+  }, [userTeam]);
+
   useEffect(() => {
     const invitation =
       searchParams.get("invitation") || searchParams.get("invite_token");

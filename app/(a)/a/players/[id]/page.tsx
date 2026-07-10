@@ -38,7 +38,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Ban, ShieldCheck, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Ban, ShieldCheck, CheckCircle2, ArrowLeft, Mail } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { formatMoneyInput } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -177,6 +179,96 @@ const BanPlayerModal = ({
                   <CheckCircle2 className="h-4 w-4 mr-2" /> Confirm
                 </>
               )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Admin-assisted email fix (owner 2026-07-09, bug #1). For LOCKED-OUT legacy users who signed up with
+// a wrong/forgotten email and can't self-serve (they can't log in to run the verified self-serve flow).
+// POSTs /auth/admin/set-user-email/ (admin-only), which also reactivates a never-verified account.
+// Admin surface, so English copy is fine (i18n-exempt per the (a)/ rule). onSuccess re-fetches the page.
+const EditEmailModal = ({
+  player,
+  onSuccess,
+}: {
+  player: PlayerDetails;
+  onSuccess: () => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [pending, startTransition] = useTransition();
+  const { token } = useAuth();
+
+  const handle = () => {
+    startTransition(async () => {
+      try {
+        const res = await axios.post(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/admin/set-user-email/`,
+          { user_id: player.player_id, new_email: newEmail.trim() },
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        toast.success(res.data.message || "Email updated");
+        setOpen(false);
+        setNewEmail("");
+        onSuccess();
+      } catch (e: any) {
+        toast.error(
+          e.response?.data?.message ||
+            e.response?.data?.error ||
+            "Failed to update email",
+        );
+      }
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Mail className="h-4 w-4 mr-2" /> Edit email
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[420px]">
+        <DialogTitle className="text-lg">Change account email</DialogTitle>
+        <DialogDescription className="mt-1">
+          Set a new email for <b>{player.name}</b>. Use this to recover a user who
+          signed up with the wrong email and is locked out. This also reactivates a
+          never-verified account. Verify their identity before changing it.
+        </DialogDescription>
+        <div className="space-y-3 mt-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Current email</Label>
+            <p className="text-sm">{player.email ?? "-"}</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="admin-new-email">New email</Label>
+            <Input
+              id="admin-new-email"
+              type="email"
+              placeholder="Enter the correct email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              disabled={pending}
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={handle}
+              disabled={pending || !newEmail.trim()}
+            >
+              {pending ? <Loader text="Saving..." /> : "Save email"}
             </Button>
           </div>
         </div>
@@ -328,7 +420,11 @@ const Page = ({ params }: Props) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
               <div>
                 <p className="text-xs text-muted-foreground">Email Address</p>
-                <p className="text-sm mt-0.5">{player.email ?? "-"}</p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <p className="text-sm">{player.email ?? "-"}</p>
+                  {/* Admin email fix for locked-out users (owner 2026-07-09, bug #1). */}
+                  <EditEmailModal player={player} onSuccess={fetchPlayer} />
+                </div>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Phone Number</p>
