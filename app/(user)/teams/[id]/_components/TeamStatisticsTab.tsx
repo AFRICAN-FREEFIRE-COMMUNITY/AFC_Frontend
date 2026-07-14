@@ -50,6 +50,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useTranslations } from "next-intl";
+// Multi-currency display chokepoint: prizes/earnings are stored in NGN and must render in the
+// viewer's chosen currency (like <Money from="NGN"/> across the app), never a hardcoded "$".
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { displayMoney } from "@/lib/money";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 // Viewer-tz / locale-aware date helpers for the chart axis + table date cells.
@@ -185,9 +189,10 @@ const toMoney = (v: string | null | undefined): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-// "$12,450" style display for whole-dollar amounts.
-const fmtMoney = (n: number): string =>
-  "$" + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+// Money formatting (fmtMoney) is defined INSIDE the component below so it can read the viewer's
+// display currency from CurrencyContext. Stored amounts are NGN (the rankings + prizepool base
+// currency); we convert + format to the viewer's currency. The old hardcoded "$" was the bug that
+// showed a Naira prize as "$90,000" (owner 2026-07-14).
 
 // Short month label for an ISO date, e.g. "Nov 2025". Falls back to "" when null.
 // Used as a recharts axis/data label (a string, NOT JSX), so it cannot use the
@@ -246,6 +251,14 @@ const tierChipClass = (tier: number | null, label: string | null): string => {
 const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
   // i18n: detailed team statistics tab copy (teamsplayers -> "teamStats").
   const t = useTranslations("teamsplayers");
+
+  // Prizes/earnings are stored in NGN. Render them in the viewer's chosen display currency through
+  // the app-wide money chokepoint (lib/money + CurrencyContext), exactly like <Money from="NGN"/>
+  // elsewhere - NOT a hardcoded "$". `fmtMoney` is used by the earnings chart axis, the Earnings
+  // stat card, the "Earnings by event" bars, and the tournaments-played Prize column. Because the
+  // chart/metric config is rebuilt every render, this closure always sees the current currency.
+  const { rates, currency } = useCurrency();
+  const fmtMoney = (n: number): string => displayMoney(n, "NGN", currency, rates);
   const { token } = useAuth();
 
   /* ── Token-aware stats payload (the privacy boundary) ──────────────────────

@@ -45,6 +45,10 @@ import {
 
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+// Multi-currency display: winnings are stored in NGN but must render in the VIEWER's own currency
+// (derived from their country / their pick) via the app-wide money chokepoint, not a fixed "NGN".
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { displayMoney } from "@/lib/money";
 import { FullLoader, Loader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { NothingFound } from "@/components/NothingFound";
@@ -250,14 +254,10 @@ type MetricId = (typeof METRICS)[number]["id"];
 const placeLabel = (p: number | null | undefined) =>
   p == null ? "-" : `#${p}`;
 
-// Format an NGN amount (a decimal string from the backend) as "NGN 2,500,000". No em/en
-// dashes per AFC copy rules; whole-naira display with thousands separators. Blank/invalid
-// inputs fall back to "NGN 0" so the total never renders as NaN.
-const fmtNgn = (raw: string | null | undefined): string => {
-  const n = parseFloat(raw ?? "0");
-  const safe = Number.isFinite(n) ? n : 0;
-  return "NGN " + safe.toLocaleString(undefined, { maximumFractionDigits: 0 });
-};
+// Winnings amount formatting is defined INSIDE TournamentWinningsCard (below) so it can read the
+// viewer's display currency from CurrencyContext and convert the NGN-stored amount into the
+// currency of whoever is looking (owner 2026-07-14). Kept out of module scope because it needs the
+// hook. Amounts arrive as decimal strings from the backend and are stored in NGN.
 
 export function PlayerClient({ username }: { username: string }) {
   // i18n: public player profile copy (messages/en/teamsplayers.json -> "player").
@@ -1602,6 +1602,11 @@ function TournamentWinningsCard({
   winnings: TournamentWinningRow[] | undefined;
 }) {
   const t = useTranslations("teamsplayers");
+  // Convert the NGN-stored winnings into the viewer's own display currency (country-derived or their
+  // pick), so a Nigerian viewer sees Naira, a US viewer sees dollars, etc. Same chokepoint as <Money/>.
+  const { rates, currency } = useCurrency();
+  const fmtNgn = (raw: string | null | undefined): string =>
+    displayMoney(parseFloat(raw ?? "0") || 0, "NGN", currency, rates);
   const rows = winnings ?? [];
   const hasWinnings = rows.length > 0;
 
